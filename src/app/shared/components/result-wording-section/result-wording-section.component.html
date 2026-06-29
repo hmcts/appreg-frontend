@@ -36,8 +36,7 @@
     hint="Start typing to search for a result code"
     [(search)]="resultCodeSearch"
     [suggestions]="filteredResultCodes"
-    [getItemLabel]="resultCodeLabel"
-    (selectItem)="selectResultCode($event)"
+    (selectItem)="onResultCodeSuggestionSelected($event)"
     [widthClass]="'govuk-!-width-one-half'"
     [containerWidthClass]="'govuk-grid-column-one-half'"
   />

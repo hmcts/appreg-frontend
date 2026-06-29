@@ -10,13 +10,16 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
-import { asString, hasStringProp, isRecord } from '@util/data-utils';
+import { SuggestionsItem } from './suggestions.types';
+
+import { trimStringToLowerCase } from '@util/string-helpers';
 
 @Component({
   selector: 'app-suggestions',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './suggestions.component.html',
+  styleUrl: './suggestions.component.scss',
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -25,24 +28,20 @@ import { asString, hasStringProp, isRecord } from '@util/data-utils';
     },
   ],
 })
-export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
+export class SuggestionsComponent implements ControlValueAccessor {
   id = input('');
   label = input('');
   hint = input('');
   disabled = input(false);
   showError = input(false);
   errorText = input('This field is required');
-  suggestions = input.required<T[]>();
+  suggestions = input.required<SuggestionsItem[]>();
   showAllValues = input(false);
 
   search = input('');
   searchChange = output<string>();
 
-  getItemLabel = input<((item: T) => string) | null>(null);
-  selectItem = output<T>();
-
-  value = input('');
-  valueChange = output<string>();
+  selectItem = output<SuggestionsItem>();
 
   widthClass = input('govuk-input--width-10');
   containerWidthClass = input('govuk-grid-column-one-quarter');
@@ -52,20 +51,14 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
   private allValuesVisible = false;
   private committedLabel: string | null = null;
   searchState = signal('');
-  suggestionsState = signal<T[]>([]);
-  valueState = signal('');
+  private readonly controlValue = signal('');
   private readonly controlDisabledState = signal(false);
   disabledState = computed(
     () => this.disabled() || this.controlDisabledState(),
   );
-  getItemLabelState = signal<((item: T) => string) | null>(null);
 
   private readonly syncSearchInput = effect(() => {
-    const next = asString(this.search());
-    if (next === null) {
-      return;
-    }
-
+    const next = this.search();
     this.searchState.set(next);
     const trimmed = next.trim();
 
@@ -84,29 +77,43 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
     }
   });
 
-  private readonly syncSuggestionsInput = effect(() => {
-    this.suggestionsState.set(this.suggestions());
+  private readonly syncControlValueDisplay = effect(() => {
+    const value = this.controlValue();
+
+    if (!value || this.focused) {
+      return;
+    }
+
+    if (this.hasQuery && !this.isCommittedText) {
+      return;
+    }
+
+    const label = this.suggestions().find(
+      (item) => item.value === value,
+    )?.label;
+
+    if (!label && this.hasQuery) {
+      return;
+    }
+
+    const displayValue = label ?? value;
+
+    this.searchState.set(displayValue);
+    this.committedLabel = displayValue;
+    this.justSelected = true;
   });
 
-  private readonly syncValueInput = effect(() => {
-    this.valueState.set(this.value());
-  });
-
-  private readonly syncGetItemLabelInput = effect(() => {
-    this.getItemLabelState.set(this.getItemLabel());
-  });
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
 
   writeValue(next: string | null = ''): void {
     const resolved = next ?? '';
-    this.valueState.set(resolved);
+    this.controlValue.set(resolved);
 
     if (!resolved) {
       this.searchState.set('');
       this.committedLabel = null;
       this.justSelected = false;
-      this.suggestionsState.set([]);
     }
   }
 
@@ -150,53 +157,33 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
     this.allValuesVisible = this.showAllValues();
   }
 
+  onKeydown(event: KeyboardEvent): void {
+    if (this.disabledState()) {
+      return;
+    }
+
+    if (event.key === 'ArrowDown' || event.key === 'Enter') {
+      this.allValuesVisible = this.showAllValues();
+    }
+  }
+
   onBlur(): void {
     setTimeout(() => {
       this.focused = false;
       this.allValuesVisible = false;
+      this.onTouched();
     }, 0);
   }
 
-  labelFor(item: T): string {
-    const getItemLabel = this.getItemLabelState();
-    if (getItemLabel) {
-      return getItemLabel(item);
-    }
-    if (isRecord(item)) {
-      if (hasStringProp(item, 'name')) {
-        return item.name;
-      }
-      if (hasStringProp(item, 'description')) {
-        return item.description;
-      }
-    }
-    return String(item as unknown);
+  labelFor(item: SuggestionsItem): string {
+    return item.label;
   }
 
-  private valueFor(item: T): string {
-    if (item === null || item === undefined) {
-      return '';
-    }
-    if (typeof item === 'string') {
-      return item;
-    }
-
-    if (isRecord(item)) {
-      const v = item['value'];
-      if (typeof v === 'string') {
-        return v;
-      }
-
-      const lc = item['locationCode'];
-      if (typeof lc === 'string') {
-        return lc;
-      }
-    }
-
-    return '';
+  private valueFor(item: SuggestionsItem): string {
+    return item.value;
   }
 
-  choose(item: T, e: MouseEvent): void {
+  choose(item: SuggestionsItem, e: MouseEvent): void {
     e.preventDefault();
 
     // still emit the object if parent wants it
@@ -215,8 +202,6 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
       this.committedLabel = label;
     }
 
-    // clear list UI
-    this.suggestionsState.set([]);
     this.allValuesVisible = false;
     this.justSelected = true;
 
@@ -228,20 +213,20 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
   }
 
   private setValueInternal(v: string): void {
-    this.valueState.set(v);
-    this.valueChange.emit(v);
+    this.controlValue.set(v);
     this.onChange(v);
   }
 
-  labelOf(item: T): string {
-    if (item === null) {
-      return '';
-    }
-    if (typeof item === 'string') {
-      return item;
-    }
-    const o = item as { name?: string; description?: string; code?: string };
-    return o.name ?? o.description ?? o.code ?? '';
+  get statusId(): string {
+    return `${this.id()}-status`;
+  }
+
+  get listboxId(): string {
+    return `${this.id()}-listbox`;
+  }
+
+  get popupVisible(): boolean {
+    return this.open || this.noResultsVisible;
   }
 
   get noResultsVisible(): boolean {
@@ -274,29 +259,26 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
   get isCommittedText(): boolean {
     return (
       !!this.committedLabel &&
-      this.norm(this.searchState()) === this.norm(this.committedLabel)
+      trimStringToLowerCase(this.searchState()) ===
+        trimStringToLowerCase(this.committedLabel)
     );
   }
 
-  private norm(s: string | null | undefined) {
-    return (s ?? '').trim().toLowerCase();
-  }
-
-  get visibleSuggestions(): T[] {
-    const suggestions = this.suggestionsState();
+  get visibleSuggestions(): SuggestionsItem[] {
+    const suggestions = this.suggestions();
 
     if (!this.showAllValues()) {
       return suggestions;
     }
 
-    const query = this.norm(this.searchState());
+    const query = trimStringToLowerCase(this.searchState());
 
     if (!query) {
       return suggestions;
     }
 
     return suggestions.filter((item) =>
-      this.norm(this.labelFor(item)).includes(query),
+      trimStringToLowerCase(this.labelFor(item)).includes(query),
     );
   }
 }

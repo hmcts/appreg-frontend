@@ -44,7 +44,6 @@
     <!-- Court -->
     <app-suggestions
       id="court"
-      tabindex="-1"
       label="Court"
       formControlName="court"
       [search]="suggestions().courthouseSearch()"
@@ -53,7 +52,7 @@
         suggestions().onCourthouseInputChange()
       "
       [suggestions]="suggestions().filteredCourthouses()"
-      (selectItem)="suggestions().selectCourthouse($event)"
+      (selectItem)="onCourthouseSuggestionSelected($event)"
       [showError]="showError('court')"
       [errorText]="errorText('court')"
       containerWidthClass="govuk-grid-column-one-half"
@@ -87,7 +86,7 @@
           suggestions().setCjaSearch($event); suggestions().onCjaInputChange()
         "
         [suggestions]="suggestions().filteredCja()"
-        (selectItem)="suggestions().selectCja($event)"
+        (selectItem)="onCjaSuggestionSelected($event)"
         [showError]="showError('cja')"
         [errorText]="errorText('cja')"
         containerWidthClass="govuk-grid-column-one-quarter"

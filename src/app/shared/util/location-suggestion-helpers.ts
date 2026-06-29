@@ -29,7 +29,14 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 import { Subscription, merge } from 'rxjs';
 
 import { has } from './has';
+import { trimStringToLowerCase } from './string-helpers';
 
+import {
+  CjaSuggestionItem,
+  CourtSuggestionItem,
+  toCjaSuggestionItem,
+  toCourtSuggestionItem,
+} from '@components/suggestions/suggestions.types';
 import { FormRaw } from '@core-types/forms/forms.types';
 import {
   CourtLocationGetSummaryDto,
@@ -41,8 +48,6 @@ export interface LocationControls {
   location: AbstractControl;
   cja: AbstractControl;
 }
-
-type WithLabelValue<T> = T & { label?: string; value?: string };
 
 /** Wires mutually exclusive enable/disable for court vs location+cja. */
 export function attachLocationDisabler({
@@ -80,72 +85,49 @@ export function attachLocationDisabler({
   return sub;
 }
 
-const courtLabel = (c: { locationCode?: string; name?: string }) => {
-  const code = c.locationCode ?? '';
-  return c.name ? `${code} - ${c.name}` : code;
-};
-const cjaLabel = (a: { code?: string; description?: string }) => {
-  const code = a.code ?? '';
-  return a.description ? `${code} - ${a.description}` : code;
-};
-
 export function onCourthouseInputChange(
   form: FormGroup,
   courthouseSearch: string,
   courtLocations: CourtLocationGetSummaryDto[],
-): CourtLocationGetSummaryDto[] {
+): CourtSuggestionItem[] {
   form.controls['court'].setValue(courthouseSearch || '');
   const filtered = filterSuggestions(
     courtLocations,
     courthouseSearch,
     courtMatches,
   );
-  return filtered.map(
-    (c) =>
-      ({
-        ...c,
-        label: courtLabel(c),
-        value: c.locationCode,
-      }) as WithLabelValue<CourtLocationGetSummaryDto>,
-  );
+  return filtered.map(toCourtSuggestionItem);
 }
 
 export function onCjaInputChange(
   form: FormGroup,
   cjaSearch: string,
   cja: CriminalJusticeAreaGetDto[],
-): CriminalJusticeAreaGetDto[] {
+): CjaSuggestionItem[] {
   form.controls['cja'].setValue(cjaSearch || '');
   const filtered = filterSuggestions(cja, cjaSearch, cjaMatches);
-  return filtered.map(
-    (a) =>
-      ({
-        ...a,
-        label: cjaLabel(a),
-        value: a.code,
-      }) as WithLabelValue<CriminalJusticeAreaGetDto>,
-  );
+  return filtered.map(toCjaSuggestionItem);
 }
 
 export function selectCourthouse(
   form: FormGroup,
-  c: { locationCode?: string; name?: string } | CourtLocationGetSummaryDto,
+  c: CourtLocationGetSummaryDto | CourtSuggestionItem,
 ): {
   courthouseSearch: string;
-  filteredCourthouses: CourtLocationGetSummaryDto[];
+  filteredCourthouses: CourtSuggestionItem[];
 } {
   const value = c.locationCode ?? '';
-  const label = courtLabel(c as { locationCode?: string; name?: string });
+  const label = toCourtSuggestionItem(c).label;
   form.controls['court'].setValue(value);
   return { courthouseSearch: label, filteredCourthouses: [] };
 }
 
 export function selectCja(
   form: FormGroup,
-  c: { code?: string; description?: string } | CriminalJusticeAreaGetDto,
-): { cjaSearch: string; filteredCja: CriminalJusticeAreaGetDto[] } {
+  c: CriminalJusticeAreaGetDto | CjaSuggestionItem,
+): { cjaSearch: string; filteredCja: CjaSuggestionItem[] } {
   const value = c.code ?? '';
-  const label = cjaLabel(c as { code?: string; description?: string });
+  const label = toCjaSuggestionItem(c).label;
   form.controls['cja'].setValue(value);
   return { cjaSearch: label, filteredCja: [] };
 }
@@ -167,7 +149,7 @@ function filterSuggestions<T>(
   matches: (item: T, q: string) => boolean,
   limit = 20,
 ): T[] {
-  const q = (query ?? '').trim().toLowerCase();
+  const q = trimStringToLowerCase(query ?? '');
   if (!q) {
     return [];
   }

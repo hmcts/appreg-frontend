@@ -60,6 +60,10 @@ import { PaginationComponent } from '@components/pagination/pagination.component
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import {
+  toCjaSuggestionItem,
+  toCourtSuggestionItem,
+} from '@components/suggestions/suggestions.types';
+import {
   appListDetailColumns,
   appListDetailStatusOptions,
 } from '@constants/application-list-detail-update/form-table-structure';
@@ -1283,14 +1287,19 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
 
     if (dto.courtCode) {
-      this.selectCourthouse({
-        locationCode: dto.courtCode,
-        name: dto.courtName ?? undefined,
-      });
+      this.selectCourthouse(
+        toCourtSuggestionItem({
+          locationCode: dto.courtCode,
+          name: dto.courtName ?? '',
+        }),
+      );
     } else if (dto.cjaCode) {
-      const area = this.state().cja.find((a) => a.code === dto.cjaCode) ?? {
-        code: dto.cjaCode,
-      };
+      const area =
+        this.state().cja.find((a) => a.code === dto.cjaCode) ??
+        toCjaSuggestionItem({
+          code: dto.cjaCode,
+          description: '',
+        });
       this.selectCja(area);
 
       this.form.patchValue({

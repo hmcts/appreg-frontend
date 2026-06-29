@@ -12,8 +12,14 @@ import { DateInputComponent } from '@components/date-input/date-input.component'
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { isActivityType } from '@components/reports/util';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import {
+  SuggestionsItem,
+  isActivitySuggestionItem,
+  toActivitySuggestionItem,
+} from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ActivityType } from '@openapi';
+import { trimStringToLowerCase } from '@util/string-helpers';
 
 @Component({
   selector: 'app-activity-audit-section',
@@ -55,15 +61,20 @@ export class ActivityAuditSectionComponent {
   });
 
   readonly filteredActivities = computed(() => {
-    const query = this.normalise(this.activitySearch());
+    const query = trimStringToLowerCase(this.activitySearch());
 
     if (!query) {
-      return this.availableActivities();
+      return this.availableActivities().map((activity) =>
+        toActivitySuggestionItem(activity, this.activityLabel(activity)),
+      );
     }
 
     return this.availableActivities()
       .filter((activity) =>
-        this.normalise(this.activityLabel(activity)).includes(query),
+        trimStringToLowerCase(this.activityLabel(activity)).includes(query),
+      )
+      .map((activity) =>
+        toActivitySuggestionItem(activity, this.activityLabel(activity)),
       )
       .slice(0, 20);
   });
@@ -88,12 +99,20 @@ export class ActivityAuditSectionComponent {
     this.activitySearch.set(value ?? '');
   }
 
-  selectActivity(item: unknown): void {
-    if (!isActivityType(item)) {
+  onActivitySuggestionSelected(item: SuggestionsItem): void {
+    if (!isActivitySuggestionItem(item)) {
       return;
     }
 
-    this.setSelectedActivities([...this.selectedActivities(), item]);
+    this.selectActivity(item.activity);
+  }
+
+  selectActivity(activity: ActivityType): void {
+    if (!isActivityType(activity)) {
+      return;
+    }
+
+    this.setSelectedActivities([...this.selectedActivities(), activity]);
     this.activitySearch.set('');
   }
 
@@ -122,16 +141,5 @@ export class ActivityAuditSectionComponent {
         values.filter((item): item is ActivityType => isActivityType(item)),
       ),
     );
-  }
-
-  // private isActivityType(value: unknown): value is ActivityType {
-  //   return (
-  //     typeof value === 'string' &&
-  //     this.activityOptions.includes(value as ActivityType)
-  //   );
-  // }
-
-  private normalise(value: string): string {
-    return value.trim().toLowerCase();
   }
 }

@@ -23,6 +23,13 @@ import {
 import { createSignalState } from './signal-state-helpers';
 
 import {
+  CjaSuggestionItem,
+  CourtSuggestionItem,
+  SuggestionsItem,
+  isCjaSuggestionItem,
+  isCourtSuggestionItem,
+} from '@components/suggestions/suggestions.types';
+import {
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
 } from '@openapi';
@@ -37,8 +44,8 @@ export interface PlaceFieldsState {
   cjaSearch: string;
   courtLocations: CourtLocationGetSummaryDto[];
   cja: CriminalJusticeAreaGetDto[];
-  filteredCourthouses: CourtLocationGetSummaryDto[];
-  filteredCja: CriminalJusticeAreaGetDto[];
+  filteredCourthouses: CourtSuggestionItem[];
+  filteredCja: CjaSuggestionItem[];
 }
 
 const initialPlaceFieldsState: PlaceFieldsState = {
@@ -148,22 +155,28 @@ export abstract class PlaceFieldsBase {
     this.patch({ filteredCja: filterCja(this.placeForm, cjaSearch, cja) });
   }
 
-  selectCourthouse(c: unknown): void {
-    const next = selectCourthouse(
-      this.placeForm,
-      c as { locationCode?: string } | CourtLocationGetSummaryDto,
-    );
+  onCourthouseSuggestionSelected(item: SuggestionsItem): void {
+    if (isCourtSuggestionItem(item)) {
+      this.selectCourthouse(item);
+    }
+  }
+
+  onCjaSuggestionSelected(item: SuggestionsItem): void {
+    if (isCjaSuggestionItem(item)) {
+      this.selectCja(item);
+    }
+  }
+
+  selectCourthouse(c: CourtLocationGetSummaryDto | CourtSuggestionItem): void {
+    const next = selectCourthouse(this.placeForm, c);
     this.patch({
       courthouseSearch: next.courthouseSearch,
       filteredCourthouses: next.filteredCourthouses,
     });
   }
 
-  selectCja(c: unknown): void {
-    const next = selectCja(
-      this.placeForm,
-      c as { code?: string } | CriminalJusticeAreaGetDto,
-    );
+  selectCja(c: CriminalJusticeAreaGetDto | CjaSuggestionItem): void {
+    const next = selectCja(this.placeForm, c);
     this.patch({ cjaSearch: next.cjaSearch, filteredCja: next.filteredCja });
   }
 

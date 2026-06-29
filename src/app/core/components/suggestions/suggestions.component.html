@@ -28,6 +28,7 @@
         [value]="searchState()"
         (focus)="onFocus()"
         (click)="onClick()"
+        (keydown)="onKeydown($event)"
         (blur)="onBlur()"
         (input)="onNativeInput($event)"
         [attr.aria-describedby]="
@@ -36,26 +37,26 @@
         autocomplete="off"
       />
 
-      @if (open || noResultsVisible) {
-        <ul class="govuk-list app-autocomplete__menu">
+      @if (popupVisible) {
+        <ul [id]="listboxId" class="govuk-list app-autocomplete__menu">
           @if (open) {
             @for (item of visibleSuggestions; track item) {
               <li>
-                <a
-                  href="javascript:void(0)"
+                <button
+                  type="button"
                   class="app-autocomplete__link"
                   (mousedown)="choose(item, $event)"
                 >
                   {{ labelFor(item) }}
-                </a>
+                </button>
               </li>
             }
           } @else {
             <li>
               <span
+                [id]="statusId"
                 class="app-autocomplete__link"
-                aria-disabled="true"
-                tabindex="-1"
+                aria-live="polite"
               >
                 No results found
               </span>

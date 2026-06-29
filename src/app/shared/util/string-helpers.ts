@@ -15,6 +15,10 @@ export function isNullableString(x: unknown): x is string | null | undefined {
   return x === undefined || x === null || typeof x === 'string';
 }
 
+export function trimStringToLowerCase(s: string | null | undefined): string {
+  return (s ?? '').trim().toLowerCase();
+}
+
 //Below could exist in a title-util or input-utils in future
 export type TitleOption = { value: string; label: string };
 

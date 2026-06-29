@@ -10,6 +10,11 @@ import { DurationInputComponent } from '@components/duration-input/duration-inpu
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import {
+  SuggestionsItem,
+  isCjaSuggestionItem,
+  isCourtSuggestionItem,
+} from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
   ApplicationsListFormControls,
@@ -74,5 +79,17 @@ export class ApplicationsListFormComponent {
   onAdvancedClick(e: Event): void {
     e.preventDefault();
     this.onToggleAdvanced()?.();
+  }
+
+  onCourthouseSuggestionSelected(item: SuggestionsItem): void {
+    if (isCourtSuggestionItem(item)) {
+      this.suggestions().selectCourthouse(item);
+    }
+  }
+
+  onCjaSuggestionSelected(item: SuggestionsItem): void {
+    if (isCjaSuggestionItem(item)) {
+      this.suggestions().selectCja(item);
+    }
   }
 }
