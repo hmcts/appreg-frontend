@@ -197,7 +197,7 @@ describe('SuggestionsComponent', () => {
     expect(component.open).toBe(true);
   });
 
-  it('renders combobox attributes and associates the popup by id when suggestions are visible', () => {
+  it('renders suggestions as a plain popup list when suggestions are visible', () => {
     setInput('id', 'court');
     setInput('showAllValues', true);
     setInput('suggestions', [suggestion('A1', 'Alpha')]);
@@ -211,12 +211,17 @@ describe('SuggestionsComponent', () => {
     const listbox = fixture.nativeElement.querySelector(
       'ul#court-listbox',
     ) as HTMLUListElement;
+    const option = fixture.nativeElement.querySelector(
+      '.app-autocomplete__link',
+    ) as HTMLButtonElement;
 
-    expect(input.getAttribute('role')).toBe('combobox');
-    expect(input.getAttribute('aria-autocomplete')).toBe('list');
-    expect(input.getAttribute('aria-expanded')).toBe('true');
-    expect(input.getAttribute('aria-controls')).toBe('court-listbox');
+    expect(input.hasAttribute('role')).toBe(false);
+    expect(input.hasAttribute('aria-autocomplete')).toBe(false);
+    expect(input.hasAttribute('aria-expanded')).toBe(false);
+    expect(input.hasAttribute('aria-controls')).toBe(false);
     expect(listbox).toBeTruthy();
+    expect(listbox.hasAttribute('role')).toBe(false);
+    expect(option.hasAttribute('role')).toBe(false);
   });
 
   it('renders no results as a polite live region', () => {

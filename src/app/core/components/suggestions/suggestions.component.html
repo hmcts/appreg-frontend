@@ -31,10 +31,6 @@
         (keydown)="onKeydown($event)"
         (blur)="onBlur()"
         (input)="onNativeInput($event)"
-        role="combobox"
-        aria-autocomplete="list"
-        [attr.aria-expanded]="popupVisible"
-        [attr.aria-controls]="listboxId"
         [attr.aria-describedby]="
           (hint() ? id() + '-hint ' : '') + (showError() ? id() + '-error' : '')
         "
