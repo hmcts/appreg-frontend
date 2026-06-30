@@ -30,10 +30,11 @@ describe('UpdateNotesComponent', () => {
   const entriesApiStub: jest.Mocked<
     Pick<
       ApplicationListEntriesApi,
-      'getApplicationListEntry' | 'updateClosedApplicationListEntry'
+      | 'getApplicationListEntryFromClosedList'
+      | 'updateClosedApplicationListEntry'
     >
   > = {
-    getApplicationListEntry: jest.fn(),
+    getApplicationListEntryFromClosedList: jest.fn(),
     updateClosedApplicationListEntry: jest.fn(),
   };
 
@@ -55,7 +56,9 @@ describe('UpdateNotesComponent', () => {
   };
 
   beforeEach(async () => {
-    entriesApiStub.getApplicationListEntry.mockReturnValue(of(entryDetail));
+    entriesApiStub.getApplicationListEntryFromClosedList.mockReturnValue(
+      of(entryDetail),
+    );
     entriesApiStub.updateClosedApplicationListEntry.mockReturnValue(of({}));
     history.replaceState({ updateNotesApplication: navigationContext }, '');
 
@@ -81,7 +84,9 @@ describe('UpdateNotesComponent', () => {
   it('loads route ids, selected application context and existing application notes', () => {
     expect(component.listId).toBe('list-1');
     expect(component.entryId).toBe('entry-1');
-    expect(entriesApiStub.getApplicationListEntry).toHaveBeenCalledWith({
+    expect(
+      entriesApiStub.getApplicationListEntryFromClosedList,
+    ).toHaveBeenCalledWith({
       listId: 'list-1',
       entryId: 'entry-1',
     });
@@ -104,15 +109,17 @@ describe('UpdateNotesComponent', () => {
 
     expect(element.querySelector('#application-notes-hint')).toBeNull();
     expect(
-      element.querySelector('#application-notes')?.getAttribute('aria-describedby'),
+      element
+        .querySelector('#application-notes')
+        ?.getAttribute('aria-describedby'),
     ).toBeNull();
-    expect(element.querySelector('#additional-notes-hint')?.textContent).toContain(
-      'You have 400 characters remaining',
-    );
+    expect(
+      element.querySelector('#additional-notes-hint')?.textContent,
+    ).toContain('You have 400 characters remaining');
   });
 
   it('shows an error summary item when application notes cannot be loaded', async () => {
-    entriesApiStub.getApplicationListEntry.mockReturnValue(
+    entriesApiStub.getApplicationListEntryFromClosedList.mockReturnValue(
       throwError(() => new Error('load failed')),
     );
 

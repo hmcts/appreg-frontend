@@ -17,7 +17,6 @@ import { SortableTableComponent } from '@components/sortable-table/sortable-tabl
 import { PdfService } from '@core/services/pdf.service';
 import {
   ApplicationListEntriesApi,
-  ApplicationListGetDetailDto,
   ApplicationListGetPrintDto,
   ApplicationListStatus,
   ApplicationListsApi,
@@ -124,14 +123,9 @@ describe('ApplicationsComponent', () => {
   };
 
   const printApplicationListMock = jest.fn();
-  const getApplicationListMock = jest.fn();
   const appListsApiStub = {
-    getApplicationList: getApplicationListMock,
     printApplicationList: printApplicationListMock,
-  } as unknown as Pick<
-    ApplicationListsApi,
-    'getApplicationList' | 'printApplicationList'
-  >;
+  } as unknown as Pick<ApplicationListsApi, 'printApplicationList'>;
 
   const pdfServiceStub: jest.Mocked<
     Pick<
@@ -147,7 +141,6 @@ describe('ApplicationsComponent', () => {
   beforeEach(async () => {
     getEntriesMock.mockReset();
     getEntryIdsMock.mockReset();
-    getApplicationListMock.mockReset();
     printApplicationListMock.mockReset();
     pdfServiceStub.generatePagedApplicationListPdf.mockReset();
     pdfServiceStub.generateContinuousApplicationListsPdf.mockReset();
@@ -170,19 +163,6 @@ describe('ApplicationsComponent', () => {
         ApplicationListEntriesApi['getEntryIds']
       >,
     );
-    getApplicationListMock.mockReturnValue(
-      of({
-        id: 'list-1',
-        date: '2026-04-29',
-        time: '10:00',
-        description: 'Closed list',
-        status: ApplicationListStatus.CLOSED,
-        version: 1,
-      } as ApplicationListGetDetailDto) as unknown as ReturnType<
-        ApplicationListsApi['getApplicationList']
-      >,
-    );
-
     await TestBed.configureTestingModule({
       imports: [Applications],
       providers: [
@@ -795,12 +775,6 @@ describe('ApplicationsComponent', () => {
 
       await component.onUpdateNotesClick();
 
-      expect(getApplicationListMock).toHaveBeenCalledWith(
-        { listId: 'list-1' },
-        undefined,
-        undefined,
-        { transferCache: false },
-      );
       expect(navSpy).toHaveBeenCalledWith(
         ['/applications-list', 'list-1', 'update-notes', 'entry-1'],
         {
@@ -817,7 +791,29 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().errorSummary).toEqual([]);
     });
 
-    it('shows an error when the selected application status is not closed', async () => {
+    it('normalises the selected application list status before navigating', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedRows: [
+          {
+            ...makeSelectedRow('entry-1', 'list-1'),
+            status: 'closed',
+          },
+        ],
+      }));
+
+      await component.onUpdateNotesClick();
+
+      expect(navSpy).toHaveBeenCalledWith(
+        ['/applications-list', 'list-1', 'update-notes', 'entry-1'],
+        expect.any(Object),
+      );
+    });
+
+    it('shows an error when the selected application list status is not closed', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
@@ -834,52 +830,9 @@ describe('ApplicationsComponent', () => {
       await component.onUpdateNotesClick();
 
       expect(navSpy).not.toHaveBeenCalled();
-      expect(getApplicationListMock).not.toHaveBeenCalled();
       expect(component.vm().errorSummary).toEqual([
         {
-          text: 'Application List Entry cannot be updated in its current state',
-        },
-      ]);
-    });
-
-    it('shows an error when the selected application parent list is not closed', async () => {
-      const router = TestBed.inject(Router);
-      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
-      getApplicationListMock.mockReturnValueOnce(
-        of({
-          id: 'list-1',
-          date: '2026-04-29',
-          time: '10:00',
-          description: 'Open list',
-          status: ApplicationListStatus.OPEN,
-          version: 1,
-        } as ApplicationListGetDetailDto) as unknown as ReturnType<
-          ApplicationListsApi['getApplicationList']
-        >,
-      );
-
-      appStateSignal(component).update((s) => ({
-        ...s,
-        selectedRows: [
-          {
-            ...makeSelectedRow('entry-1', 'list-1'),
-            status: ApplicationListStatus.CLOSED,
-          },
-        ],
-      }));
-
-      await component.onUpdateNotesClick();
-
-      expect(getApplicationListMock).toHaveBeenCalledWith(
-        { listId: 'list-1' },
-        undefined,
-        undefined,
-        { transferCache: false },
-      );
-      expect(navSpy).not.toHaveBeenCalled();
-      expect(component.vm().errorSummary).toEqual([
-        {
-          text: 'Application List Entry cannot be updated in its current state',
+          text: 'Application List Entry cannot be updated in its current state. The parent application list is not closed.',
         },
       ]);
     });

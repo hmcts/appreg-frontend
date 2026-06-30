@@ -363,38 +363,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    if (toStatus(row.status) !== ApplicationListStatus.CLOSED) {
+    const listStatus = toStatus(row.status);
+    if (listStatus !== ApplicationListStatus.CLOSED) {
       this.patchApp({
         errorSummary: [
           {
-            text: 'Application List Entry cannot be updated in its current state',
-          },
-        ],
-      });
-      return;
-    }
-
-    let parentListStatus: ApplicationListStatus;
-    try {
-      const parentList = await firstValueFrom(
-        this.appListApi.getApplicationList(
-          { listId: row.applicationListId },
-          undefined,
-          undefined,
-          { transferCache: false },
-        ),
-      );
-      parentListStatus = parentList.status;
-    } catch (err) {
-      this.patchApp({ errorSummary: [{ text: getProblemText(err) }] });
-      return;
-    }
-
-    if (parentListStatus !== ApplicationListStatus.CLOSED) {
-      this.patchApp({
-        errorSummary: [
-          {
-            text: 'Application List Entry cannot be updated in its current state',
+            text: 'Application List Entry cannot be updated in its current state. The parent application list is not closed.',
           },
         ],
       });

@@ -119,7 +119,7 @@ export class UpdateNotesComponent implements OnInit {
     }
 
     this.entriesApi
-      .getApplicationListEntry({
+      .getApplicationListEntryFromClosedList({
         listId: this.listId,
         entryId: this.entryId,
       })
@@ -258,7 +258,9 @@ export class UpdateNotesComponent implements OnInit {
       return currentNotes;
     }
 
-    return currentNotes ? `${currentNotes} ${additionalNotes}` : additionalNotes;
+    return currentNotes
+      ? `${currentNotes} ${additionalNotes}`
+      : additionalNotes;
   }
 
   private applyEntry(entry: EntryGetDetailDto): void {
