@@ -40,7 +40,7 @@ Feature: Applications result selected help details
       | lodgementDate                                 | todayiso                       |
     Then User Verify Response Status Code Should Be "201"
 
-  @regression @applications @helpDetails
+  @regression @applications @helpDetails @ARCPOC-377
   Scenario: Expand and collapse applications result selected help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"

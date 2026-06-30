@@ -1,6 +1,6 @@
 Feature: Applications list help details
 
-  @regression @applicationsList @helpDetails
+  @regression @applicationsList @helpDetails @ARCPOC-377
   Scenario: Expand and collapse application list help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"

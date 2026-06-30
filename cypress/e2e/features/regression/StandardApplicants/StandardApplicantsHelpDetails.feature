@@ -1,6 +1,6 @@
 Feature: Standard applicants help details
 
-  @regression @standardApplicants @helpDetails
+  @regression @standardApplicants @helpDetails @ARCPOC-377
   Scenario: Expand and collapse standard applicants help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"

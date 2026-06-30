@@ -8,7 +8,7 @@ Feature: Applications list detail help details
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
 
-  @regression @applicationsList @helpDetails
+  @regression @applicationsList @helpDetails @ARCPOC-377
   Scenario: Expand and collapse applications tab help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"

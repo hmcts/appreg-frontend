@@ -1,6 +1,6 @@
 Feature: Reports help details
 
-  @regression @reports @helpDetails
+  @regression @reports @helpDetails @ARCPOC-377
   Scenario: Expand and collapse reports help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"

@@ -42,7 +42,7 @@ Feature: Applications list entry update help details
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId"
 
-  @regression @applicationListEntry @helpDetails
+  @regression @applicationListEntry @helpDetails @ARCPOC-377
   Scenario: Expand and collapse update entry help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
