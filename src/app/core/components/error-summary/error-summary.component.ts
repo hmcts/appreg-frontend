@@ -32,6 +32,8 @@ export class ErrorSummaryComponent {
   focusKey = input<number>(0);
   /** If you want to run custom logic (e.g. focus a form field), listen to this */
   itemSelect = output<ErrorItem>();
+  /** Prevent native/router hash scrolling when the parent handles focus/scroll manually. */
+  preventFragmentNavigation = input(false);
 
   private readonly platformId = inject(PLATFORM_ID);
   private readonly summaryEl =
@@ -79,5 +81,29 @@ export class ErrorSummaryComponent {
         summaryEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 0);
     });
+  }
+
+  onItemClick(event: MouseEvent, item: ErrorItem): void {
+    const isFragmentLink = !!this.fragmentTarget(item);
+
+    if (isFragmentLink && this.preventFragmentNavigation()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+
+    this.itemSelect.emit(item);
+  }
+
+  fragmentTarget(item: ErrorItem): string | undefined {
+    if (item.href?.startsWith('#')) {
+      return item.href.slice(1);
+    }
+
+    return item.id ? item.id : (this.targetId() ?? undefined);
+  }
+
+  fragmentHref(item: ErrorItem): string | undefined {
+    const target = this.fragmentTarget(item);
+    return target ? `#${target}` : undefined;
   }
 }

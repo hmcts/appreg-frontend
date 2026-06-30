@@ -127,4 +127,56 @@ describe('ErrorSummaryComponent (external template)', () => {
     expect(handler).toHaveBeenCalledWith(item);
     sub.unsubscribe();
   });
+
+  it('prevents default hash navigation when parent handles fragment clicks', () => {
+    const item: ErrorItem = { text: 'Click me', href: '#field-id' };
+    fixture.componentRef.setInput('items', [item]);
+    fixture.componentRef.setInput('preventFragmentNavigation', true);
+    fixture.detectChanges();
+
+    const handler = jest.fn();
+    const sub = comp.itemSelect.subscribe(handler);
+    const event = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+    });
+
+    const a = fixture.nativeElement.querySelector(
+      'a.govuk-link',
+    ) as HTMLAnchorElement;
+    expect(a.getAttribute('href')).toBe('#field-id');
+    expect(a.getAttribute('ng-reflect-router-link')).toBeNull();
+
+    a.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(handler).toHaveBeenCalledWith(item);
+    sub.unsubscribe();
+  });
+
+  it('prevents default hash navigation for targetId fallback links', () => {
+    const item: ErrorItem = { text: 'Click me' };
+    fixture.componentRef.setInput('items', [item]);
+    fixture.componentRef.setInput('targetId', 'summary-target');
+    fixture.componentRef.setInput('preventFragmentNavigation', true);
+    fixture.detectChanges();
+
+    const handler = jest.fn();
+    const sub = comp.itemSelect.subscribe(handler);
+    const event = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+    });
+
+    const a = fixture.nativeElement.querySelector(
+      'a.govuk-link',
+    ) as HTMLAnchorElement;
+    expect(a.getAttribute('href')).toBe('#summary-target');
+
+    a.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(handler).toHaveBeenCalledWith(item);
+    sub.unsubscribe();
+  });
 });
