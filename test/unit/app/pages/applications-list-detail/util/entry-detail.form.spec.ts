@@ -383,6 +383,75 @@ describe('applications-list entry form builders', () => {
       ]);
     });
 
+    it('sends explicit clear values for optional fields removed on update', () => {
+      const dto = buildEntryUpdateDtoFromForm(
+        {
+          ...baseDetail,
+          respondent: {
+            organisation: {
+              name: 'Existing respondent',
+              contactDetails: { addressLine1: '2 Street' },
+            },
+          },
+          numberOfRespondents: 12,
+          feeStatuses: [
+            {
+              paymentStatus: 'PAID',
+              statusDate: '2026-04-01',
+              paymentReference: 'PAY-1',
+            },
+          ],
+          caseReference: 'CASE-1',
+          accountNumber: 'ACC-1',
+          notes: 'Persisted note',
+          officials: [
+            {
+              type: 'CLERK',
+              forename: 'Clara',
+              surname: 'Clerk',
+            },
+          ],
+          wording: {
+            template: 'At {{Court}}',
+            'substitution-key-constraints': [
+              { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+            ],
+          },
+        } as unknown as EntryGetDetailDto,
+        {
+          applicantType: 'person',
+          standardApplicantCode: null,
+          applicationCode: 'APP-100',
+          respondentEntryType: 'person',
+          numberOfRespondents: null,
+          wordingFields: [],
+          feeStatuses: [],
+          applicationNotes: {
+            notes: '   ',
+            caseReference: '',
+            accountReference: null,
+          },
+        } as never,
+        {
+          ...blankPerson,
+          firstName: 'John',
+          surname: 'Smith',
+          addressLine1: '1 Street',
+        } as never,
+        blankOrg as never,
+        blankPerson as never,
+        blankOrg as never,
+      );
+
+      expect(dto.caseReference).toBeNull();
+      expect(dto.accountNumber).toBeNull();
+      expect(dto.notes).toBeNull();
+      expect(dto.numberOfRespondents).toBeNull();
+      expect(dto.wordingFields).toEqual([]);
+      expect(dto.feeStatuses).toEqual([]);
+      expect(dto.officials).toEqual([]);
+    });
+
     it('builds update payloads from an allowlist and excludes read-only detail fields', () => {
       const dto = buildEntryUpdateDtoFromForm(
         {

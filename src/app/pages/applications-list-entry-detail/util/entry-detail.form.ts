@@ -67,8 +67,44 @@ type MagSlot = {
   surKey: keyof ApplicationsListEntryFormValue;
 };
 
+type EntryUpdateDtoWithClears = Omit<
+  EntryUpdateDto,
+  'caseReference' | 'accountNumber' | 'notes' | 'numberOfRespondents'
+> & {
+  caseReference?: string | null;
+  accountNumber?: string | null;
+  notes?: string | null;
+  numberOfRespondents?: number | null;
+};
+
 const hasText = (v: unknown): v is string =>
   typeof v === 'string' && v.trim().length > 0;
+
+const toNullableTrimmed = (value: string | null | undefined): string | null => {
+  const trimmed = value?.trim();
+  return trimmed || null;
+};
+
+const toNullableInteger = (value: unknown): number | null => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && Number.isInteger(value) ? value : null;
+  }
+
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed || !/^\d+$/.test(trimmed)) {
+    return null;
+  }
+
+  return Number(trimmed);
+};
 
 const MAG_SLOTS: readonly MagSlot[] = [
   {
@@ -308,6 +344,7 @@ export function buildEntryUpdateDtoFromForm(
     officials: detail.officials,
   };
 
+  const officialsPatch = buildOfficialsFromFormValue(formValue);
   const patch = {
     ...buildEntryCreateDto(
       formValue,
@@ -316,24 +353,43 @@ export function buildEntryUpdateDtoFromForm(
       respondentPersonValue,
       respondentOrgValue,
     ),
-    ...buildOfficialsFromFormValue(formValue),
+    ...officialsPatch,
   } as Partial<EntryUpdateDto> & { lodgementDate?: string };
 
   delete patch.lodgementDate;
 
-  const dto: EntryUpdateDto = {
+  const dto: EntryUpdateDtoWithClears = {
     ...base,
     ...patch,
   };
 
+  dto.caseReference = toNullableTrimmed(
+    formValue.applicationNotes.caseReference,
+  );
+  dto.accountNumber = toNullableTrimmed(
+    formValue.applicationNotes.accountReference,
+  );
+  dto.notes = toNullableTrimmed(formValue.applicationNotes.notes);
+  dto.numberOfRespondents = toNullableInteger(formValue.numberOfRespondents);
+
+  if (Array.isArray(formValue.wordingFields)) {
+    dto.wordingFields = patch.wordingFields ?? [];
+  }
+
+  if (Array.isArray(formValue.feeStatuses)) {
+    dto.feeStatuses = formValue.feeStatuses;
+  }
+
+  dto.officials = officialsPatch.officials ?? [];
+
   if (formValue.applicantType === 'standard') {
     dto.standardApplicantCode = (formValue.standardApplicantCode ?? '').trim();
     normalizeApplicantSelection(dto, 'standard');
-    return dto;
+    return dto as EntryUpdateDto;
   }
 
   normalizeApplicantSelection(dto, 'applicant');
-  return dto;
+  return dto as EntryUpdateDto;
 }
 
 export function buildContactDetailsFromRaw(v: ContactFormRaw): ContactDetails {
