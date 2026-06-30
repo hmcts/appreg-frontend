@@ -592,7 +592,10 @@ export function buildEntryUpdateDtoForFeeChange<K extends keyof EntryUpdateDto>(
 }
 
 function normalizeApplicantSelection(
-  dto: EntryUpdateDto,
+  dto: {
+    applicant?: Applicant;
+    standardApplicantCode?: string | null;
+  },
   mode: 'standard' | 'applicant',
 ): void {
   if (mode === 'standard') {
