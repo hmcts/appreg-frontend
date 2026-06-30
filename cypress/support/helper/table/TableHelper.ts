@@ -46,6 +46,17 @@ export class TableHelper {
     return collectPage();
   }
 
+
+  /**
+   * Verifies that the table has the expected number of rows
+   * @param tableCaption The caption text of the table
+   * @param size The expected number of rows
+   */
+
+  static getTableLength(tableCaption: string, size: number): void {
+    TableElement.getTableRows(tableCaption).should('have.length', size);
+  }
+
   /**
    * Returns all cell values for a given column in a table
    * @param tableCaption The caption text of the table
