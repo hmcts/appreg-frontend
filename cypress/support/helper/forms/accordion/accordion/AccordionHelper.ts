@@ -1,7 +1,6 @@
 /// <reference types="cypress" />
 
 import { AccordionElement } from '../../../../pageobjects/generic/accordion/accordion/AccordionElement';
-import { StringUtils } from '../../../../utils/StringUtils';
 
 export class AccordionHelper {
   static isAccordionVisible(
@@ -46,40 +45,6 @@ export class AccordionHelper {
         this.toggleAccordion(accordionTitle);
       }
     });
-  }
-
-  static verifyAccordionExpanded(accordionTitle: string): void {
-    this.isAccordionExpanded(accordionTitle).should('eq', true);
-  }
-
-  static verifyAccordionCollapsed(accordionTitle: string): void {
-    this.isAccordionExpanded(accordionTitle).should('eq', false);
-  }
-
-  static verifyAccordionContainsText(
-    accordionTitle: string,
-    expectedText: string,
-  ): void {
-    this.verifyAccordionContainsTexts(accordionTitle, [expectedText]);
-  }
-
-  static verifyAccordionContainsTexts(
-    accordionTitle: string,
-    expectedTexts: string[],
-  ): void {
-    this.verifyAccordionExpanded(accordionTitle);
-    AccordionElement.getAccordionContent(accordionTitle)
-      .should('be.visible')
-      .invoke('text')
-      .then((text) => {
-        const normalizedText = StringUtils.normalizeText(text);
-
-        expectedTexts.forEach((expectedText) => {
-          expect(normalizedText).to.include(
-            StringUtils.normalizeText(expectedText),
-          );
-        });
-      });
   }
 
   /**

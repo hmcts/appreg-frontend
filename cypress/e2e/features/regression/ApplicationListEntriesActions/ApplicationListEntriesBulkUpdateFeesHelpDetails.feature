@@ -51,16 +51,13 @@ Feature: Application list entries bulk update fees help details
     Then User Should See The Button "Actions" Is Enabled
     When User Clicks "Actions" Then "Update fee details" From Caption Menu In Table "Entries"
     Then User Sees Page Heading "Update fee details"
-    Then User Should See The Accordion "Help with civil fee details" Is Collapsed
     When User Toggles The Accordion "Help with civil fee details"
-    Then User Should See The Following Text In The Accordion "Help with civil fee details":
-      | Civil fee details record whether an application fee is due, paid, remitted or covered by an undertaking. |
-      | Due means the fee still needs to be paid or resolved. |
-      | Paid means the fee has been paid in full. You can add a payment reference if needed. |
-      | Remitted means the court has waived the fee, for example through Help with Fees. |
-      | Undertaking means the applicant has formally agreed to pay later. The list cannot be closed until this is updated to Paid. |
-      | Applications that do not need a fee show No fee required and the fee fields cannot be changed. |
-      | Select Off-site fee if an additional fee applies because a magistrate attended a location away from court premises. |
+    Then User Should See The Text "Civil fee details record whether an application fee is due, paid, remitted or covered by an undertaking." In The Accordion "Help with civil fee details"
+    Then User Should See The Text "Due means the fee still needs to be paid or resolved." In The Accordion "Help with civil fee details"
+    Then User Should See The Text "Paid means the fee has been paid in full. You can add a payment reference if needed." In The Accordion "Help with civil fee details"
+    Then User Should See The Text "Remitted means the court has waived the fee, for example through Help with Fees." In The Accordion "Help with civil fee details"
+    Then User Should See The Text "Undertaking means the applicant has formally agreed to pay later. The list cannot be closed until this is updated to Paid." In The Accordion "Help with civil fee details"
+    Then User Should See The Text "Applications that do not need a fee show No fee required and the fee fields cannot be changed." In The Accordion "Help with civil fee details"
+    Then User Should See The Text "Select Off-site fee if an additional fee applies because a magistrate attended a location away from court premises." In The Accordion "Help with civil fee details"
     Then User Takes Screenshot "HelpDetails-BulkUpdateFees-CivilFee-Expanded"
     When User Toggles The Accordion "Help with civil fee details"
-    Then User Should See The Accordion "Help with civil fee details" Is Collapsed

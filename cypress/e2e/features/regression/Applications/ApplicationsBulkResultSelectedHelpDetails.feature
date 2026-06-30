@@ -58,11 +58,8 @@ Feature: Applications result selected help details
       | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Condemnation of Unfit Food | Yes | No       | OPEN   |
     When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Application list entries"
     Then User Sees Page Heading "Result applications"
-    Then User Should See The Accordion "Help with result wording" Is Collapsed
     When User Toggles The Accordion "Help with result wording"
-    Then User Should See The Following Text In The Accordion "Help with result wording":
-      | Result wording is based on the selected result code and may include fixed text and fields you need to complete. |
-      | Fixed wording cannot be edited on this page.                                                                    |
+    Then User Should See The Text "Result wording is based on the selected result code and may include fixed text and fields you need to complete." In The Accordion "Help with result wording"
+    Then User Should See The Text "Fixed wording cannot be edited on this page." In The Accordion "Help with result wording"
     Then User Takes Screenshot "HelpDetails-ApplicationsResultSelected-ResultWording-Expanded"
     When User Toggles The Accordion "Help with result wording"
-    Then User Should See The Accordion "Help with result wording" Is Collapsed

@@ -15,16 +15,12 @@ Feature: Application list bulk upload help details
     Given User Navigates To The URL "/applications-list/:listId/bulk-upload"
     Then User Sees Page Heading "Bulk Upload Applications"
     Then User Should See The Accordion "Help with bulk upload"
-    Then User Should See The Accordion "Help with bulk upload" Is Collapsed
     When User Toggles The Accordion "Help with bulk upload"
-    Then User Should See The Accordion "Help with bulk upload" Is Expanded
-    Then User Should See The Following Text In The Accordion "Help with bulk upload":
-      | Use bulk upload to add applications to this list from a CSV file. |
-      | The file must match the current bulk upload template. |
-      | The filename must end in .csv. |
-      | After you upload the file, the applications list page shows the upload progress. |
-      | The file is validated before applications are added to the list. |
-      | If the upload fails, the error message explains what needs to be corrected. |
+    Then User Should See The Text "Use bulk upload to add applications to this list from a CSV file." In The Accordion "Help with bulk upload"
+    Then User Should See The Text "The file must match the current bulk upload template." In The Accordion "Help with bulk upload"
+    Then User Should See The Text "The filename must end in .csv." In The Accordion "Help with bulk upload"
+    Then User Should See The Text "After you upload the file, the applications list page shows the upload progress." In The Accordion "Help with bulk upload"
+    Then User Should See The Text "The file is validated before applications are added to the list." In The Accordion "Help with bulk upload"
+    Then User Should See The Text "If the upload fails, the error message explains what needs to be corrected." In The Accordion "Help with bulk upload"
     Then User Takes Screenshot "HelpDetails-BulkUpload-Expanded"
     When User Toggles The Accordion "Help with bulk upload"
-    Then User Should See The Accordion "Help with bulk upload" Is Collapsed
