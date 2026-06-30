@@ -18,6 +18,10 @@ Then('User Should See Table {string} Has Rows', (tableCaption: string) => {
   TableHelper.hasTableRows(tableCaption);
 });
 
+Then('User Should See Table {string} Has {int} Rows', (tableCaption: string, size: number) => {
+  TableHelper.getTableLength(tableCaption, size);
+});
+
 /**
  * Verifies that a row exists in the table with the specified column values
  * Searches across all pages if pagination exists
