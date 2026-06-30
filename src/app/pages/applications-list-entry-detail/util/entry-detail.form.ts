@@ -55,6 +55,7 @@ import {
   ContactFormRaw,
   OrganisationFormRaw,
 } from '@util/types/applications-list-entry/types';
+import { accountReferenceRequiredForApplicationCode } from '@validators/account-reference.validator';
 import { crossFormValidation } from '@validators/cross-form.validator';
 import { optional } from '@validators/optional.validator';
 import { standardApplicantCodeConditionalRequired } from '@validators/standard-applicant-code.validator';
@@ -105,12 +106,13 @@ const WHOLE_NUMBER: ValidatorFn = optional((c) =>
 export function buildStandardApplicationForm(
   fb: NonNullableFormBuilder,
 ): ApplicationsListEntryForm {
-  // Surname is required if first name is filled
-  const officialNamePairValidators = [
+  // Cross-field validators for fields that depend on other entry values.
+  const formValidators = [
     crossFormValidation('mags1FirstName', 'mags1Surname'),
     crossFormValidation('mags2FirstName', 'mags2Surname'),
     crossFormValidation('mags3FirstName', 'mags3Surname'),
     crossFormValidation('officialFirstName', 'officialSurname'),
+    accountReferenceRequiredForApplicationCode(),
   ];
 
   return fb.group(
@@ -197,7 +199,7 @@ export function buildStandardApplicationForm(
         validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
     },
-    { validators: officialNamePairValidators },
+    { validators: formValidators },
   ) as ApplicationsListEntryForm;
 }
 
@@ -303,10 +305,10 @@ export function buildEntryUpdateDtoFromForm(
     caseReference: detail.caseReference,
     accountNumber: detail.accountNumber,
     notes: detail.notes,
+    officials: detail.officials,
   };
 
-  // Reuse existing mapper to build a “patch”
-  const patch: Partial<EntryUpdateDto> = {
+  const patch = {
     ...buildEntryCreateDto(
       formValue,
       applicantPersonValue,
@@ -315,7 +317,9 @@ export function buildEntryUpdateDtoFromForm(
       respondentOrgValue,
     ),
     ...buildOfficialsFromFormValue(formValue),
-  };
+  } as Partial<EntryUpdateDto> & { lodgementDate?: string };
+
+  delete patch.lodgementDate;
 
   const dto: EntryUpdateDto = {
     ...base,
@@ -472,7 +476,6 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
   }
 
   const base: EntryUpdateDto = {
-    // full copy of current server state
     standardApplicantCode: detail.standardApplicantCode,
     applicationCode: detail.applicationCode,
     applicant: detail.applicant,
@@ -487,7 +490,7 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     caseReference: detail.caseReference,
     accountNumber: detail.accountNumber,
     notes: detail.notes,
-    ...(detail as { officials?: Official[] }),
+    officials: detail.officials,
   };
 
   const dto: EntryUpdateDto = {

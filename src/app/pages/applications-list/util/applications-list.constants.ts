@@ -42,9 +42,9 @@ export const APPLICATIONS_LIST_ERROR_MESSAGES = {
   noEntriesToPrint: 'No entries available to print',
   pdfGenerateRetry: 'Unable to generate PDF. Please try again later',
   pdfGenerateGeneric: 'Unable to generate PDF.',
-  listNotFound: 'Application List not found',
+  listNotFound: 'Application list not found',
   invalidSearchCriteria:
-    'Invalid Search Criteria. At least one field must be entered.',
+    'Invalid search criteria. At least one field must be entered.',
 } as const;
 
 export const APPLICATIONS_LIST_FORM_ERROR_MESSAGES = {

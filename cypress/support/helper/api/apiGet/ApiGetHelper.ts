@@ -9,6 +9,13 @@ export class ApiGetHelper {
     ApiBaseHelper.makeRequest('GET', endpoint);
   }
 
+  static makeRawGetRequest(
+    endpoint: string,
+    headers?: Record<string, string>,
+  ): void {
+    ApiBaseHelper.makeRawRequest('GET', endpoint, { headers });
+  }
+
   static makeGetRequestUsingFE(endpoint: string, token?: string): void {
     const options: Partial<Cypress.RequestOptions> = {
       method: 'GET',

@@ -2,16 +2,11 @@ import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { LOCALE_ID, PLATFORM_ID, type WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import {
-  ActivatedRoute,
-  Router,
-  convertToParamMap,
-  provideRouter,
-} from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
-import { ApplicationsState } from '@components/applications/util/applications.state';
+import { type ApplicationsState } from '@components/applications/util/applications.state';
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { PdfService } from '@core/services/pdf.service';
@@ -25,6 +20,8 @@ import {
   EntryIdsDto,
   EntryPage,
 } from '@openapi';
+import { ApplicationsSearchFormService } from '@services/applications/applications-search-form.service';
+import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 
@@ -95,9 +92,15 @@ const flushSignalEffects = async (
   fixture.detectChanges();
 };
 
+const RESTORED_APPLICANT_ORG = 'Persisted Applicant Organisation';
+const RESTORED_ENTRY_ID = 'persisted-entry';
+const RESTORED_LIST_ID = 'persisted-list';
+
 describe('ApplicationsComponent', () => {
   let component: Applications;
   let fixture: ComponentFixture<Applications>;
+  let searchFormService: ApplicationsSearchFormService;
+  let searchStateService: ApplicationsSearchStateService;
 
   const referenceDataFacadeStub: Pick<
     ReferenceDataFacade,
@@ -172,7 +175,6 @@ describe('ApplicationsComponent', () => {
         { provide: ApplicationListsApi, useValue: appListsApiStub },
         { provide: PdfService, useValue: pdfServiceStub },
         { provide: PLATFORM_ID, useValue: 'browser' },
-        provideRouter([]),
         {
           provide: ActivatedRoute,
           useValue: {
@@ -185,6 +187,11 @@ describe('ApplicationsComponent', () => {
         },
       ],
     }).compileComponents();
+
+    searchFormService = TestBed.inject(ApplicationsSearchFormService);
+    searchStateService = TestBed.inject(ApplicationsSearchStateService);
+    searchFormService.reset();
+    searchStateService.reset();
 
     fixture = TestBed.createComponent(Applications);
     component = fixture.componentInstance;
@@ -220,6 +227,164 @@ describe('ApplicationsComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Select all failed');
     expect(fixture.nativeElement.textContent).not.toContain('Search failed');
+  });
+
+  it('restores the previous successful search state and reruns the query when the page is recreated', () => {
+    getEntriesMock.mockClear();
+    getEntriesMock.mockReturnValue(
+      of({
+        content: [
+          makeEntry({ id: RESTORED_ENTRY_ID, listId: RESTORED_LIST_ID }),
+        ],
+        totalPages: 3,
+        totalElements: 21,
+        number: 1,
+      } as unknown as EntryPage) as unknown as ReturnType<
+        ApplicationListEntriesApi['getEntries']
+      >,
+    );
+
+    appStateSignal(component).update((s) => ({
+      ...s,
+      currentPage: 1,
+      isAdvancedSearch: true,
+      sortField: { key: 'title', direction: 'asc' },
+    }));
+    component.form.patchValue({ applicantOrg: RESTORED_APPLICANT_ORG });
+
+    component.loadApplications();
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(getEntriesMock).toHaveBeenCalledTimes(2);
+    expect(getEntriesMock.mock.calls[1][0]).toEqual(
+      expect.objectContaining({
+        pageNumber: 1,
+        sort: ['applicationTitle,asc'],
+        filter: { applicantOrganisation: RESTORED_APPLICANT_ORG },
+      }),
+    );
+    expect(freshComponent.form.controls.applicantOrg.value).toBe(
+      RESTORED_APPLICANT_ORG,
+    );
+    expect(freshComponent.vm().rows.map((row) => row.id)).toEqual([
+      RESTORED_ENTRY_ID,
+    ]);
+    expect(freshComponent.vm().currentPage).toBe(1);
+    expect(freshComponent.vm().totalPages).toBe(3);
+    expect(freshComponent.vm().totalEntries).toBe(21);
+    expect(freshComponent.vm().sortField).toEqual({
+      key: 'title',
+      direction: 'asc',
+    });
+    expect(freshComponent.vm().isAdvancedSearch).toBe(true);
+    expect(freshComponent.vm().getFilters).toEqual({
+      applicantOrganisation: RESTORED_APPLICANT_ORG,
+    });
+  });
+
+  it('uses freshly fetched rows for a restored search', () => {
+    getEntriesMock.mockClear();
+    getEntriesMock
+      .mockReturnValueOnce(
+        of({
+          content: [
+            makeEntry({
+              id: RESTORED_ENTRY_ID,
+              listId: RESTORED_LIST_ID,
+              applicationTitle: 'Original title',
+            }),
+          ],
+          totalPages: 3,
+          totalElements: 21,
+          number: 1,
+        } as unknown as EntryPage) as unknown as ReturnType<
+          ApplicationListEntriesApi['getEntries']
+        >,
+      )
+      .mockReturnValueOnce(
+        of({
+          content: [
+            makeEntry({
+              id: RESTORED_ENTRY_ID,
+              listId: RESTORED_LIST_ID,
+              applicationTitle: 'Updated title',
+            }),
+          ],
+          totalPages: 3,
+          totalElements: 21,
+          number: 1,
+        } as unknown as EntryPage) as unknown as ReturnType<
+          ApplicationListEntriesApi['getEntries']
+        >,
+      );
+
+    appStateSignal(component).update((s) => ({
+      ...s,
+      currentPage: 1,
+      isAdvancedSearch: true,
+      sortField: { key: 'title', direction: 'asc' },
+    }));
+    component.form.patchValue({ applicantOrg: RESTORED_APPLICANT_ORG });
+    component.loadApplications();
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(getEntriesMock).toHaveBeenCalledTimes(2);
+    expect(getEntriesMock.mock.calls[1][0]).toEqual(
+      expect.objectContaining({
+        pageNumber: 1,
+        sort: ['applicationTitle,asc'],
+        filter: { applicantOrganisation: RESTORED_APPLICANT_ORG },
+      }),
+    );
+    expect(freshComponent.vm().rows.map((row) => row.applicationTitle)).toEqual(
+      ['Updated title'],
+    );
+  });
+
+  it('clears the stored search state when the search is cleared', () => {
+    getEntriesMock.mockClear();
+    getEntriesMock.mockReturnValueOnce(
+      of({
+        content: [
+          makeEntry({ id: RESTORED_ENTRY_ID, listId: RESTORED_LIST_ID }),
+        ],
+        totalPages: 1,
+        totalElements: 1,
+        number: 0,
+      } as unknown as EntryPage) as unknown as ReturnType<
+        ApplicationListEntriesApi['getEntries']
+      >,
+    );
+
+    component.form.patchValue({ applicantOrg: RESTORED_APPLICANT_ORG });
+    component.loadApplications();
+
+    component.clearSearch();
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(freshComponent.form.controls.applicantOrg.value).toBe('');
+    expect(freshComponent.vm().rows).toEqual([]);
+    expect(freshComponent.vm().isSearch).toBe(false);
+    expect(freshComponent.vm().getFilters).toEqual({});
+  });
+
+  it('restores the advanced search state after it is toggled', () => {
+    component.toggleAdvancedSearch();
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(freshComponent.vm().isAdvancedSearch).toBe(true);
   });
 
   describe('onSubmit validation', () => {
@@ -295,7 +460,7 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().searchErrors).toEqual([
         expect.objectContaining({
           id: 'search-error',
-          text: expect.stringContaining('Invalid Search Criteria'),
+          text: expect.stringContaining('Invalid search criteria'),
         }),
       ]);
     });
@@ -1314,6 +1479,161 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().errorSummary).toEqual([
         { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry },
       ]);
+    });
+
+    it('keeps loading true until page PDF generation completes', async () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedRows: [makeSelectedRow('entry-1', 'list-a')],
+      }));
+      printApplicationListMock.mockReturnValue(
+        of(
+          makePrintDto({
+            entries: [
+              {
+                id: 'entry-1',
+                applicant: {},
+                applicationCode: '',
+                applicationTitle: '',
+                applicationWording: '',
+              },
+            ],
+          }),
+        ),
+      );
+
+      let resolvePdf: (() => void) | undefined;
+      pdfServiceStub.generatePagedApplicationListPdf.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          resolvePdf = resolve;
+        }),
+      );
+
+      await component.onPrintPageClick();
+      fixture.detectChanges();
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      expect(component.vm().loading).toBe(true);
+
+      resolvePdf?.();
+      await flushSignalEffects(fixture);
+
+      expect(component.vm().loading).toBe(false);
+    });
+  });
+
+  describe('buildPrintRequest', () => {
+    it('returns early and patches an error when more than 100 rows are selected', async () => {
+      const resolveSelectedRowsSpy = jest
+        .spyOn(
+          component as unknown as {
+            resolveSelectedRows(): Promise<ApplicationRow[]>;
+          },
+          'resolveSelectedRows',
+        )
+        .mockResolvedValue([]);
+
+      appStateSignal(component).update((state) => ({
+        ...state,
+        selectedIds: new Set(
+          Array.from({ length: 101 }, (_, index) => `entry-${index + 1}`),
+        ),
+      }));
+
+      const request = await (
+        component as unknown as {
+          buildPrintRequest(mode: 'page' | 'continuous'): Promise<{
+            ids: string[];
+            mode: 'page' | 'continuous';
+            selectedRows: ApplicationRow[];
+          } | null | void>;
+        }
+      ).buildPrintRequest('page');
+
+      expect(request).toBeUndefined();
+      expect(resolveSelectedRowsSpy).not.toHaveBeenCalled();
+      expect(component.vm().errorSummary).toEqual([
+        { text: 'Please select less than 100 rows' },
+      ]);
+    });
+  });
+
+  describe('onResultSelectedClick', () => {
+    const makeResultRow = (id: string): ApplicationRow => ({
+      ...makeSelectedRow(id, `list-${id}`),
+      date: '2026-06-12',
+      applicant: `Applicant ${id}`,
+      respondent: `Respondent ${id}`,
+      title: `Title ${id}`,
+      status: 'Open',
+    });
+
+    it('shows an error and does not resolve rows when more than 100 applications are selected to result', async () => {
+      const resolveSelectedRowsSpy = jest
+        .spyOn(
+          component as unknown as {
+            resolveSelectedRows(): Promise<ApplicationRow[]>;
+          },
+          'resolveSelectedRows',
+        )
+        .mockResolvedValue([]);
+      const navigateSpy = jest
+        .spyOn((component as unknown as { router: Router }).router, 'navigate')
+        .mockResolvedValue(true);
+
+      appStateSignal(component).update((state) => ({
+        ...state,
+        selectedIds: new Set(
+          Array.from({ length: 101 }, (_, index) => `entry-${index + 1}`),
+        ),
+      }));
+
+      await component.onResultSelectedClick();
+
+      expect(resolveSelectedRowsSpy).not.toHaveBeenCalled();
+      expect(navigateSpy).not.toHaveBeenCalled();
+      expect(component.vm().errorSummary).toEqual([
+        { text: 'Please select less than 100 rows' },
+      ]);
+    });
+
+    it('navigates to result-selected when fewer than 50 open applications are selected', async () => {
+      const rows = Array.from({ length: 49 }, (_, index) =>
+        makeResultRow(`entry-${index + 1}`),
+      );
+      const navigateSpy = jest
+        .spyOn((component as unknown as { router: Router }).router, 'navigate')
+        .mockResolvedValue(true);
+
+      jest
+        .spyOn(
+          component as unknown as {
+            resolveSelectedRows(): Promise<ApplicationRow[]>;
+          },
+          'resolveSelectedRows',
+        )
+        .mockResolvedValue(rows);
+
+      await component.onResultSelectedClick();
+
+      expect(navigateSpy).toHaveBeenCalledWith(
+        ['result-selected'],
+        expect.objectContaining({
+          relativeTo: TestBed.inject(ActivatedRoute),
+          state: {
+            entriesToResult: rows.map((row) => ({
+              id: row.id,
+              listId: row.applicationListId,
+              date: row.date,
+              applicant: row.applicant,
+              respondent: row.respondent,
+              title: row.title,
+            })),
+            ignoredSelected: false,
+          },
+        }),
+      );
     });
   });
 

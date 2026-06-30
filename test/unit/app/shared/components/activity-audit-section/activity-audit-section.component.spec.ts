@@ -9,6 +9,7 @@ import { By } from '@angular/platform-browser';
 
 import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import { ActivitySuggestionItem } from '@components/suggestions/suggestions.types';
 import { ActivityType } from '@openapi';
 
 describe('ActivityAuditSectionComponent (with template)', () => {
@@ -76,49 +77,59 @@ describe('ActivityAuditSectionComponent (with template)', () => {
   it('filters activity suggestions from the search text', () => {
     const activitySuggestions = fixture.debugElement.query(
       By.css('app-suggestions'),
-    ).componentInstance as SuggestionsComponent<ActivityType>;
+    ).componentInstance as SuggestionsComponent;
 
     expect(activitySuggestions.id()).toBe('activity');
     expect(activitySuggestions.showAllValues()).toBe(true);
-    expect(activitySuggestions.suggestions()).toContain(
-      ActivityType.ADD_APPLICATION,
-    );
+    expect(
+      activitySuggestions
+        .suggestions()
+        .map((item) => (item as ActivitySuggestionItem).activity),
+    ).toContain(ActivityType.ADD_APPLICATION);
 
     component.setActivitySearch('bulk');
     fixture.detectChanges();
 
     expect(group.get('activity')?.value).toEqual([]);
     expect(activitySuggestions.search()).toBe('bulk');
-    expect(activitySuggestions.suggestions()).toEqual([
+    expect(
+      activitySuggestions
+        .suggestions()
+        .map((item) => (item as ActivitySuggestionItem).activity),
+    ).toEqual([
       ActivityType.BULK_APPLICATION_UPLOAD,
       ActivityType.BULK_UPDATE_FEE_STATUS,
       ActivityType.BULK_UPDATE_OFFICIALS,
     ]);
     expect(
-      activitySuggestions.labelFor(ActivityType.BULK_UPDATE_FEE_STATUS),
+      activitySuggestions.labelFor(
+        activitySuggestions.suggestions()[1] as ActivitySuggestionItem,
+      ),
     ).toBe('Bulk update fee status');
   });
 
   it('shows all available activities when the activity input is focused', () => {
     const activitySuggestions = fixture.debugElement.query(
       By.css('app-suggestions'),
-    ).componentInstance as SuggestionsComponent<ActivityType>;
+    ).componentInstance as SuggestionsComponent;
 
     activitySuggestions.onFocus();
 
     expect(activitySuggestions.open).toBe(true);
-    expect(activitySuggestions.visibleSuggestions).toEqual(
-      component.availableActivities(),
-    );
+    expect(
+      activitySuggestions.visibleSuggestions.map(
+        (item) => (item as ActivitySuggestionItem).activity,
+      ),
+    ).toEqual(component.availableActivities());
   });
 
   it('filters activity suggestions by friendly label text', () => {
     component.setActivitySearch('fee status');
     fixture.detectChanges();
 
-    expect(component.filteredActivities()).toEqual([
-      ActivityType.BULK_UPDATE_FEE_STATUS,
-    ]);
+    expect(component.filteredActivities().map((item) => item.activity)).toEqual(
+      [ActivityType.BULK_UPDATE_FEE_STATUS],
+    );
   });
 
   it('adds the selected activity to the form and renders it in the selected activities summary list', () => {
@@ -128,7 +139,9 @@ describe('ActivityAuditSectionComponent (with template)', () => {
 
     activitySuggestions.triggerEventHandler(
       'selectItem',
-      ActivityType.REPORT_DOWNLOADED,
+      component
+        .filteredActivities()
+        .find((item) => item.activity === ActivityType.REPORT_DOWNLOADED),
     );
     fixture.detectChanges();
 
@@ -180,7 +193,7 @@ describe('ActivityAuditSectionComponent (with template)', () => {
 
     const activitySuggestions = fixture.debugElement.query(
       By.css('app-suggestions'),
-    ).componentInstance as SuggestionsComponent<ActivityType>;
+    ).componentInstance as SuggestionsComponent;
 
     expect(activitySuggestions.showError()).toBe(true);
     expect(activitySuggestions.errorText()).toBe(

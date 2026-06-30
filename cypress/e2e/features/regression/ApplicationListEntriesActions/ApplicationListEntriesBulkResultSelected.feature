@@ -1,6 +1,6 @@
-Feature: Applications List Result
+Feature: Applications List  - Bulk Result Selected
 
-    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226
+    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @ARCPOC-1444
     Scenario Outline: Application List - Result Selected - 5 ALEs Mixed Applicant Types
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -178,17 +178,17 @@ Feature: Applications List Result
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            {
-            "key": "Date",
-            "value": "24-02-2026"
-            },
-            {
-            "key": "Courthouse",
-            "value": "London Courthouse"
-            }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "24-02-2026"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "London Courthouse"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -340,7 +340,7 @@ Feature: Applications List Result
         Then User See "Result applications" On The Page
         # Verify all 3 selected rows appear on the result page
         Then User Should See Row In Table "Application(s) to result" With Values:
-            | Sequence number | Applicant(s)           | Respondent(s)                  | Application Title(s)                           |
+            | Sequence number | Applicant              | Respondent                     | Application title                              |
             | 2               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax |
             | 3               | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   |
             | 5               | James Brown {RANDOM}   | Laura Davis {RANDOM}           | Collection Order - Financial Penalty Account   |
@@ -352,6 +352,8 @@ Feature: Applications List Result
         Then User Should See Summary Card With Title "RTC - Refer to Court"
         Then User Should See Tag "Pending" In Summary Card "RTC - Refer to Court"
         Then User Should See The Link "Remove" In Summary Card "RTC - Refer to Court"
+        Then User Clicks The Link "Remove" In Summary Card "RTC - Refer to Court"
+        Then User Selects "RTC - Refer to Court" From The Textbox "Result code" Autocomplete By Typing "RTC"
         Then User Should See "Wording" In Summary Card "RTC - Refer to Court"
         Then User Should See "Referred for full court hearing on" In Summary Card "RTC - Refer to Court"
         When User Clicks On The "Save changes" Button
@@ -360,12 +362,6 @@ Feature: Applications List Result
         When User Clicks On The "Save changes" Button
         Then User Sees Validation Error Banner "There is a problem Enter a Courthouse in the result wording section"
         Then User Verifies The "RTC - Refer to Court" Summary Card Has Textbox With Placeholder "Enter a Courthouse" And Enters "Bristol Crown Court"
-        When User Clicks On The "Save changes" Button
-        Then User Should See Tag "Existing" In Summary Card "RTC - Refer to Court"
-        Then User Sees Success Banner "Result codes applied successfully" Containing "RTC"
-        Then User Clicks The Link "Remove" In Summary Card "RTC - Refer to Court"
-        Then User Sees Success Banner "Results removed The results have been removed from these application list entries."
-        # Apply PROA with wording (number of days)
         Then User Selects "PROA - Production Order (to allow access)" From The Textbox "Result code" Autocomplete By Typing "PROA"
         Then User Should See Summary Card With Title "PROA - Production Order (to allow access)"
         Then User Should See Tag "Pending" In Summary Card "PROA - Production Order (to allow access)"
@@ -373,10 +369,6 @@ Feature: Applications List Result
         Then User Should See "Wording" In Summary Card "PROA - Production Order (to allow access)"
         Then User Should See "Production Order made for access to be allowed to material within" In Summary Card "PROA - Production Order (to allow access)"
         Then User Verifies The "PROA - Production Order (to allow access)" Summary Card Has Textbox With Placeholder "Enter a Number of days" And Enters "30"
-        When User Clicks On The "Save changes" Button
-        Then User Sees Success Banner "Result codes applied successfully" Containing "PROA"
-        Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
-        # Apply COST with wording (amount)
         Then User Selects "COST - Costs granted" From The Textbox "Result code" Autocomplete By Typing "COST"
         Then User Should See Summary Card With Title "COST - Costs granted"
         Then User Should See Tag "Pending" In Summary Card "COST - Costs granted"
@@ -385,7 +377,9 @@ Feature: Applications List Result
         Then User Should See "Application for costs granted in the sum of" In Summary Card "COST - Costs granted"
         Then User Verifies The "COST - Costs granted" Summary Card Has Textbox With Placeholder "Enter a Amount of costs" And Enters "500"
         When User Clicks On The "Save changes" Button
-        Then User Sees Success Banner "Result codes applied successfully" Containing "COST"
+        Then User Sees Success Banner "Result codes applied successfully" Containing "Result code(s) 'RTC, PROA, COST' applied successfully to application list entries"
+        Then User Should See Tag "Existing" In Summary Card "RTC - Refer to Court"
+        Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications list details"
         # Verify rows 2, 3, 5 have PROA and COST applied; row 5 retains pre-existing RTC; rows 1, 4, 6, 7, 8 unchanged

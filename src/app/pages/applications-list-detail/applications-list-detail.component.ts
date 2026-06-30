@@ -53,11 +53,16 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
+import {
+  toCjaSuggestionItem,
+  toCourtSuggestionItem,
+} from '@components/suggestions/suggestions.types';
 import {
   appListDetailColumns,
   appListDetailStatusOptions,
@@ -112,6 +117,7 @@ type ApplicationsListDetailHistoryState = {
     detail?: string;
   };
   moveError?: string;
+  updateFeeError?: string;
 };
 
 const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
@@ -141,6 +147,7 @@ const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
     MojButtonMenuDirective,
     ApplicationsListDetailSearchComponent,
     AsyncJobProgressComponent,
+    HelpDetailsComponent,
   ],
   templateUrl: './applications-list-detail.component.html',
   styleUrls: ['./applications-list-detail.component.scss'],
@@ -178,6 +185,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly printRequest = signal<PrintRequest | null>(null);
 
   private readonly loadFailed = signal(false);
+  readonly submitAttempt = signal(0);
   private selectAllRequestVersion = 0;
   private bulkUploadPollingSub: Subscription | null = null;
 
@@ -197,6 +205,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.setSuccessBanner();
     this.setCloseErrorFromNavigation();
     this.setMoveErrorFromNavigation();
+    this.setUpdateFeeErrorFromNavigation();
 
     //Attach validators
     addLocationValidatorsToForm(this.form, () => this.state());
@@ -313,9 +322,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           kind: 'success',
           heading: 'Bulk upload complete',
           body:
-            job.createdCount !== null
-              ? `${this.formatCount(job.createdCount, 'record')} created.`
-              : 'All records were uploaded successfully.',
+            job.createdCount === null
+              ? 'All records were uploaded successfully.'
+              : `${this.formatCount(job.createdCount, 'record')} created.`,
         };
 
       case 'completed_with_errors':
@@ -391,6 +400,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     ) {
       this.vm().updateOfficialsDone = true;
     }
+
+    if (
+      this.route.snapshot.queryParamMap.get('bulkFeeUpdateSuccessful') ===
+      'true'
+    ) {
+      this.vm().updateFeesDone = true;
+    }
   }
 
   private setCloseErrorFromNavigation(): void {
@@ -443,6 +459,32 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       updateInvalid: true,
       errorHint: 'There is a problem',
       errorSummary: [{ id: '', href: '', text: moveError }],
+      preserveErrorSummaryOnLoad: true,
+    });
+  }
+
+  private setUpdateFeeErrorFromNavigation(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const isFeeError =
+      this.route.snapshot.queryParamMap.get('updateFee') === 'error';
+    const feeState = history.state as ApplicationsListDetailHistoryState;
+    const feeError = feeState.updateFeeError;
+
+    if (!isFeeError || !feeError) {
+      return;
+    }
+
+    if (!feeError) {
+      return;
+    }
+
+    this.detailSignalState.patch({
+      updateInvalid: true,
+      errorHint: 'There is a problem',
+      errorSummary: [{ id: '', href: '', text: feeError }],
       preserveErrorSummaryOnLoad: true,
     });
   }
@@ -660,18 +702,22 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         onSuccess: async (dto) => {
           const mode = this.printRequest()?.mode;
           this.printRequest.set(null);
+          try {
+            const filteredDto = this.filterEntriesToPrint(dto);
 
-          const filteredDto = this.filterEntriesToPrint(dto);
+            if (mode === 'page') {
+              await this.handlePrintPage(filteredDto);
+              return;
+            }
 
-          if (mode === 'page') {
-            await this.handlePrintPage(filteredDto);
-            return;
+            await this.handlePrintContinuous(filteredDto);
+          } finally {
+            this.detailSignalState.patch({ pdfLoading: false });
           }
-
-          await this.handlePrintContinuous(filteredDto);
         },
         onError: (err) => {
           this.printRequest.set(null);
+          this.detailSignalState.patch({ pdfLoading: false });
           const errMsg = getProblemText(err);
           this.detailSignalState.patch({
             errorSummary: [
@@ -886,6 +932,53 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  async onUpdateFeeButtonClick(): Promise<void> {
+    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+
+    if (selected.length === 0) {
+      return;
+    }
+
+    // clear any prior messages
+    this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
+
+    // Exclude entries with no fee required
+    const selectedFeesRequired = selected.filter(
+      (element) => element.feeReq !== 'No',
+    );
+
+    if (selectedFeesRequired.length === 0) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          {
+            text: 'Cannot update application(s) that do not require a fee',
+            href: '',
+            id: '',
+          },
+        ],
+      });
+      return;
+    }
+
+    const entriesToUpdateFee = selectedFeesRequired.map((r) => ({
+      id: r.id,
+      applicant: r.applicant,
+      respondent: r.respondent,
+      title: r.title,
+      feeRequired: r.feeReq,
+      resulted: r.resulted,
+    }));
+
+    await this.router.navigate(['bulk-update-fee'], {
+      relativeTo: this.route,
+      state: {
+        removedApplicationsWarning:
+          selectedFeesRequired.length < selected.length,
+        entriesToUpdateFee,
+      },
+    });
+  }
+
   async onMoveButtonClick(): Promise<void> {
     const selected = (await this.resolveSelectedRows()) as selectedRow[];
 
@@ -915,7 +1008,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onPrintContinuousClick(): void {
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
+    this.detailSignalState.patch({ pdfLoading: true });
     if (!this.id) {
+      this.detailSignalState.patch({ pdfLoading: false });
       return;
     }
 
@@ -928,7 +1023,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onPrintPageClick(): void {
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
+    this.detailSignalState.patch({ pdfLoading: true });
     if (!this.id) {
+      this.detailSignalState.patch({ pdfLoading: false });
       return;
     }
 
@@ -939,6 +1036,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     patch: Partial<ApplicationsListDetailState>,
   ): void => {
     this.detailSignalState.patch(patch);
+  };
+
+  readonly incrementSubmitAttemptFn = (): void => {
+    this.submitAttempt.update((attempt) => attempt + 1);
   };
 
   readonly setUpdateRequestFn = (req: UpdateReq | null): void => {
@@ -982,6 +1083,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onSearchStarted(
     filters: ApplicationsListDetailSearchResult['reqFilter'],
   ): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.invalidateSelectAllRequest();
     this.detailSignalState.patch({
       currentPage: 0,
@@ -1185,14 +1287,19 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
 
     if (dto.courtCode) {
-      this.selectCourthouse({
-        locationCode: dto.courtCode,
-        name: dto.courtName ?? undefined,
-      });
+      this.selectCourthouse(
+        toCourtSuggestionItem({
+          locationCode: dto.courtCode,
+          name: dto.courtName ?? '',
+        }),
+      );
     } else if (dto.cjaCode) {
-      const area = this.state().cja.find((a) => a.code === dto.cjaCode) ?? {
-        code: dto.cjaCode,
-      };
+      const area =
+        this.state().cja.find((a) => a.code === dto.cjaCode) ??
+        toCjaSuggestionItem({
+          code: dto.cjaCode,
+          description: '',
+        });
       this.selectCja(area);
 
       this.form.patchValue({

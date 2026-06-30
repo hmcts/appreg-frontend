@@ -13,6 +13,7 @@ import {
   fetchCodeRows$,
   fetchCodesPage$,
   mapCodeRows,
+  requiresAccountReference,
   titleFromDetail,
   wordingFromDetail,
 } from '@util/application-code-helpers';
@@ -138,6 +139,22 @@ describe('application-code-helpers', () => {
       expect(
         wordingFromDetail(null as unknown as ApplicationCodeGetDetailDto),
       ).toBe('');
+    });
+  });
+
+  describe('requiresAccountReference', () => {
+    const cases: Array<[string, string | null | undefined, boolean]> = [
+      ['EF application code', 'EF123', true],
+      ['lowercase EF application code', 'ef123', true],
+      ['mixed-case EF application code', 'eF123', true],
+      ['EF application code with whitespace', '  EF123  ', true],
+      ['non-EF application code', 'AF123', false],
+      ['blank application code', '   ', false],
+      ['missing application code', null, false],
+    ];
+
+    it.each(cases)('returns %s result', (_label, code, expected) => {
+      expect(requiresAccountReference(code)).toBe(expected);
     });
   });
 

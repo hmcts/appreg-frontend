@@ -30,13 +30,13 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { map } from 'rxjs';
+import { map, merge } from 'rxjs';
 
 import {
   ApplicationsListEntryDetailState,
   initialApplicationsListEntryDetailState,
 } from './util/applications-list-entry-detail.state';
-import { focusSuccessBanner } from './util/banners.util';
+import { focusLocalBanner, focusSuccessBanner } from './util/banners.util';
 import {
   APPLICANT_COLUMNS,
   CIVIL_FEE_COLUMNS,
@@ -69,6 +69,8 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { ApplicationWordingHelpComponent } from '@components/help-details/application-wording-help.component';
+import { CivilFeeHelpComponent } from '@components/help-details/civil-fee-help.component';
 import {
   ApplicationNotesForm,
   NotesSectionComponent,
@@ -80,7 +82,11 @@ import { TableColumn } from '@components/sortable-table/sortable-table.component
 import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
-import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
+import {
+  APPLICANT_ENTRY_ERROR_MESSAGES,
+  ENTRY_ERROR_MESSAGES,
+  RESPONDENT_ENTRY_ERROR_MESSAGES,
+} from '@constants/application-list-entry/error-messages';
 import {
   APPLICANT_ORG_ERROR_HREFS,
   APPLICANT_PERSON_ERROR_HREFS,
@@ -124,10 +130,7 @@ import {
   updateFeeStatusesControl,
   updatePaymentReferenceInFeeStatusesControl,
 } from '@util/civil-fee-utils';
-import {
-  focusErrorSummary,
-  onCreateErrorClick as onCreateErrorClickFn,
-} from '@util/error-click';
+import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
@@ -178,6 +181,8 @@ export const ERROR_HREFS = {
     ApplicantSectionComponent,
     WordingSectionComponent,
     OfficialsSectionComponent,
+    ApplicationWordingHelpComponent,
+    CivilFeeHelpComponent,
   ],
   templateUrl: './applications-list-entry-detail.component.html',
 })
@@ -228,6 +233,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   selectedStandardApplicantCode: string | null = null;
   savedStandardApplicantCode: string | null = null;
   savedStandardApplicantName: string | null = null;
+  savedStandardApplicantDetailsUnavailable = false;
   private pendingStandardApplicantSummary: SelectedStandardApplicantSummary | null =
     null;
 
@@ -252,6 +258,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
+  readonly submitAttempt = signal(0);
 
   resultAppliedBannerVisible = signal(false);
 
@@ -314,6 +321,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // Watch applicantType changes
     this.bindApplicantTypeChanges();
+    this.bindRespondentValidationChanges();
 
     this.loadEntryAndPatchForm(listId, entryId, pr, state);
 
@@ -357,6 +365,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       wordingFields: dto.wordingFields,
     });
     this.wordingAppliedBannerVisible.set(true);
+
+    focusLocalBanner(this.platformId, '#wording-local-banner');
   }
 
   onWordingAppliedBannerDismissed(): void {
@@ -583,7 +593,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
       this.childErrors.applicant = buildFormErrorSummary(
         this.personGroup,
-        UPDATE_ENTRY_ERROR_MESSAGES,
+        APPLICANT_ENTRY_ERROR_MESSAGES,
         { hrefs: APPLICANT_PERSON_ERROR_HREFS },
       );
       return;
@@ -595,7 +605,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
       this.childErrors.applicant = buildFormErrorSummary(
         this.organisationGroup,
-        UPDATE_ENTRY_ERROR_MESSAGES,
+        APPLICANT_ENTRY_ERROR_MESSAGES,
         { hrefs: APPLICANT_ORG_ERROR_HREFS },
       );
       return;
@@ -628,7 +638,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         respondentEntryType: this.form.controls.respondentEntryType.value,
         respondentPersonForm: this.forms.respondentPersonForm,
         respondentOrganisationForm: this.forms.respondentOrganisationForm,
-        errorMessages: UPDATE_ENTRY_ERROR_MESSAGES,
+        errorMessages: RESPONDENT_ENTRY_ERROR_MESSAGES,
         respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
         respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
         respondentBulkControl: this.form.controls.numberOfRespondents,
@@ -641,7 +651,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.childErrors.respondent = [];
   }
 
-  private updateAllErrors(): void {
+  private updateAllErrors(opts: { focusSummary?: boolean } = {}): void {
     this.updateApplicantErrors();
     this.updateRespondentErrors();
 
@@ -658,13 +668,14 @@ export class ApplicationsListEntryDetail implements OnInit {
       errorFound,
     });
 
-    if (errorFound) {
-      focusErrorSummary(this.platformId);
+    if (errorFound && opts.focusSummary !== false) {
+      this.submitAttempt.update((attempt) => attempt + 1);
     }
   }
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
+    this.submitAttempt.update((attempt) => attempt + 1);
 
     if (source === 'codes' || source === 'resultWording') {
       const summaryErrors = [
@@ -680,7 +691,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       });
 
       if (source === 'resultWording' && errors?.length > 0) {
-        focusErrorSummary(this.platformId);
         this.resultAppliedBannerVisible.set(false);
       }
 
@@ -706,6 +716,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     successBanner: SuccessBanner,
   ): void {
     const entryId = getEntryId(this.route);
+    this.submitAttempt.update((attempt) => attempt + 1);
     if (!entryId || !this.entryDetail) {
       this.appListEntryDetailPatch({
         errorFound: true,
@@ -713,7 +724,6 @@ export class ApplicationsListEntryDetail implements OnInit {
           { text: 'Entry is not loaded. Reload the page and try again.' },
         ],
       });
-      focusErrorSummary(this.platformId);
       return;
     }
 
@@ -750,7 +760,6 @@ export class ApplicationsListEntryDetail implements OnInit {
         error: (err) => {
           this.appListEntryDetailPatch({ formSubmitted: false });
           this.applyMappedError(err);
-          focusErrorSummary(this.platformId);
         },
       });
   }
@@ -796,6 +805,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onUpdateApplicant(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.resetErrors();
     this.resetSuccessBanner();
     this.appListEntryDetailPatch({ formSubmitted: true });
@@ -811,6 +821,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onUpdateApplication(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.resetErrors();
     this.resetSuccessBanner();
     this.appListEntryDetailPatch({ formSubmitted: true });
@@ -850,6 +861,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onSaveOfficials(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.resetErrors();
     this.resetSuccessBanner();
     this.appListEntryDetailPatch({ formSubmitted: true });
@@ -897,6 +909,10 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     this.persistHasOffsiteFee(nextValue, prev);
+  }
+
+  onCivilFeeSubmitAttempt(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
   }
 
   private persistHasOffsiteFee(nextValue: boolean, prevValue: boolean): void {
@@ -1067,6 +1083,23 @@ export class ApplicationsListEntryDetail implements OnInit {
       });
   }
 
+  private bindRespondentValidationChanges(): void {
+    merge(
+      this.form.controls.respondentEntryType.valueChanges,
+      this.form.controls.numberOfRespondents.valueChanges,
+      this.forms.respondentPersonForm.valueChanges,
+      this.forms.respondentOrganisationForm.valueChanges,
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (!this.appListEntryDetailState().formSubmitted) {
+          return;
+        }
+
+        this.updateAllErrors({ focusSummary: false });
+      });
+  }
+
   private resetErrors(): void {
     this.appListEntryDetailPatch({
       errorHint: 'There is a problem',
@@ -1115,6 +1148,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           this.savedStandardApplicantCode =
             hydrate.selectedStandardApplicantCode;
           this.savedStandardApplicantName = null;
+          this.savedStandardApplicantDetailsUnavailable = false;
           this.pendingStandardApplicantSummary = null;
           this.loadSavedStandardApplicantName(this.savedStandardApplicantCode);
 
@@ -1220,23 +1254,20 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private loadSavedStandardApplicantName(code: string | null): void {
     const trimmedCode = code?.trim() || '';
-    const rawLodgementDate =
-      this.form.controls.lodgementDate.value?.trim() ||
-      this.entryDetail?.lodgementDate?.trim() ||
-      '';
-    const lodgementDate = rawLodgementDate.slice(0, 10);
 
-    if (!trimmedCode || !lodgementDate) {
+    if (!trimmedCode) {
       this.savedStandardApplicantName = null;
+      this.savedStandardApplicantDetailsUnavailable = false;
       this.pendingStandardApplicantSummary = null;
       return;
     }
 
+    this.savedStandardApplicantDetailsUnavailable = false;
+
     this.standardApplicantsApi
-      .getStandardApplicantByCodeAndDate(
+      .getStandardApplicantByCode(
         {
           code: trimmedCode,
-          date: lodgementDate,
         },
         'body',
         false,
@@ -1249,6 +1280,8 @@ export class ApplicationsListEntryDetail implements OnInit {
             applicant.name?.trim() ||
             formatPartyName(applicant.applicant)?.trim() ||
             null;
+          this.savedStandardApplicantDetailsUnavailable =
+            this.savedStandardApplicantName === null;
           this.pendingStandardApplicantSummary = this.savedStandardApplicantName
             ? {
                 code: trimmedCode,
@@ -1258,6 +1291,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         },
         error: () => {
           this.savedStandardApplicantName = null;
+          this.savedStandardApplicantDetailsUnavailable = true;
           this.pendingStandardApplicantSummary = null;
         },
       });
@@ -1267,6 +1301,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (this.applicantType !== 'standard') {
       this.savedStandardApplicantCode = null;
       this.savedStandardApplicantName = null;
+      this.savedStandardApplicantDetailsUnavailable = false;
       this.pendingStandardApplicantSummary = null;
       return;
     }
@@ -1277,6 +1312,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (pending?.code.trim() === currentCode) {
       this.savedStandardApplicantCode = pending.code.trim() || null;
       this.savedStandardApplicantName = pending.name.trim() || null;
+      this.savedStandardApplicantDetailsUnavailable =
+        this.savedStandardApplicantName === null;
     }
   }
 
@@ -1350,6 +1387,8 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.resultAppliedBannerVisible.set(true);
 
+    focusLocalBanner(this.platformId, '#results-local-banner');
+
     this.appListEntryDetailPatch({
       pendingResults:
         payload.pendingToCreate.length > 0 ||
@@ -1411,14 +1450,13 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private handleFatalLoadError(err: unknown): void {
     const { errorHint, errorSummary } = mapHttpErrorToSummary(err);
+    this.submitAttempt.update((attempt) => attempt + 1);
 
     this.appListEntryDetailPatch({
       errorHint,
       summaryErrors: errorSummary,
       errorFound: true,
     });
-
-    focusErrorSummary(this.platformId);
   }
 
   private handleResultWordingContext(

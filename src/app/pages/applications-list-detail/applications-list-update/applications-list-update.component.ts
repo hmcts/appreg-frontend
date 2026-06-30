@@ -25,6 +25,7 @@ import {
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { DETAIL_ERROR_ANCHORS } from '@constants/application-list-detail-update/error-hrefs';
 import {
   CLOSE_MESSAGES,
@@ -40,7 +41,12 @@ import { ApplicationListRow } from '@util/types/application-list/types';
 @Component({
   selector: 'app-applications-list-update',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, ApplicationsListFormComponent],
+  imports: [
+    FormsModule,
+    ReactiveFormsModule,
+    ApplicationsListFormComponent,
+    HelpDetailsComponent,
+  ],
   templateUrl: './applications-list-update.component.html',
 })
 export class ApplicationsListUpdateComponent {
@@ -62,6 +68,7 @@ export class ApplicationsListUpdateComponent {
   readonly vm = input.required<ApplicationsListDetailState>();
 
   readonly setUpdateRequest = input.required<(req: UpdateReq | null) => void>();
+  readonly incrementSubmitAttempt = input.required<() => void>();
 
   suggestionsFacade = input.required<SuggestionsFacade>();
 
@@ -74,6 +81,8 @@ export class ApplicationsListUpdateComponent {
   } as const;
 
   onUpdate(): void {
+    this.incrementSubmitAttempt()();
+
     // reset flags/errors
     this.patchState()(clearUpdateNotificationsPatch());
 

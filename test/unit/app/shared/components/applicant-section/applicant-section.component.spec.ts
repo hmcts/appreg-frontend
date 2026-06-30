@@ -137,13 +137,12 @@ describe('ApplicantSectionComponent', () => {
     fixture.detectChanges();
 
     const tag = fixture.debugElement.query(By.css('.govuk-tag'));
-    const body = fixture.debugElement.query(By.css('.govuk-body'));
+    const summaryText = tag?.nativeElement.closest('p')?.textContent ?? '';
 
     expect(tag).toBeTruthy();
     expect(tag.nativeElement.textContent).toContain('Saved');
-    expect(body).toBeTruthy();
-    expect(body.nativeElement.textContent).toContain('SA-123');
-    expect(body.nativeElement.textContent).toContain('Example Org');
+    expect(summaryText).toContain('SA-123');
+    expect(summaryText).toContain('Example Org');
   });
 
   it('renders the current standard applicant tag and text when current values exist', () => {
@@ -155,15 +154,15 @@ describe('ApplicantSectionComponent', () => {
     fixture.detectChanges();
 
     const tags = fixture.debugElement.queryAll(By.css('.govuk-tag'));
-    const body = fixture.debugElement.query(By.css('.govuk-body'));
+    const currentTag = tags.find((tag) =>
+      tag.nativeElement.textContent.includes('Currently selected'),
+    );
+    const summaryText =
+      currentTag?.nativeElement.closest('p')?.textContent ?? '';
 
-    expect(
-      tags.some((tag) =>
-        tag.nativeElement.textContent.includes('Currently selected'),
-      ),
-    ).toBe(true);
-    expect(body.nativeElement.textContent).toContain('SA-999');
-    expect(body.nativeElement.textContent).toContain('Current Org');
+    expect(currentTag).toBeTruthy();
+    expect(summaryText).toContain('SA-999');
+    expect(summaryText).toContain('Current Org');
   });
 
   it('does not render duplicate current and saved tags for the same applicant', () => {
@@ -188,6 +187,24 @@ describe('ApplicantSectionComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.css('.govuk-tag'))).toBeNull();
+  });
+
+  it('renders a warning with the raw saved standard applicant code when details are unavailable', () => {
+    fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
+    fixture.componentRef.setInput(
+      'savedStandardApplicantDetailsUnavailable',
+      true,
+    );
+    fixture.detectChanges();
+
+    const warning = fixture.debugElement.query(By.css('.govuk-warning-text'));
+
+    expect(warning).toBeTruthy();
+    expect(warning.nativeElement.textContent).toContain(
+      'Only the saved Standard Applicant code is available',
+    );
+    expect(warning.nativeElement.textContent).toContain('SA-123');
   });
 
   it('emits updateClicked when the update button is clicked', () => {

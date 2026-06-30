@@ -26,7 +26,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { map } from 'rxjs';
+import { map, merge } from 'rxjs';
 
 import {
   ApplicationsListEntryCreateState,
@@ -57,11 +57,17 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { ApplicationWordingHelpComponent } from '@components/help-details/application-wording-help.component';
+import { CivilFeeHelpComponent } from '@components/help-details/civil-fee-help.component';
 import { NotesSectionComponent } from '@components/notes-section/notes-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
-import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
+import {
+  APPLICANT_ENTRY_ERROR_MESSAGES,
+  ENTRY_ERROR_MESSAGES,
+  RESPONDENT_ENTRY_ERROR_MESSAGES,
+} from '@constants/application-list-entry/error-messages';
 import {
   APPLICANT_ORG_ERROR_HREFS,
   APPLICANT_PERSON_ERROR_HREFS,
@@ -89,7 +95,6 @@ import {
   updatePaymentReferenceInFeeStatusesControl,
 } from '@util/civil-fee-utils';
 import {
-  focusErrorSummary,
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
@@ -118,6 +123,8 @@ const ENTRY_CREATE_ERROR_HREFS = {
     ApplicantSectionComponent,
     CivilFeeSectionComponent,
     RespondentSectionComponent,
+    ApplicationWordingHelpComponent,
+    CivilFeeHelpComponent,
   ],
   viewProviders: [
     { provide: ControlContainer, useExisting: FormGroupDirective },
@@ -161,6 +168,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
+  readonly submitAttempt = signal(0);
 
   respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
   personTitleOptions = PERSON_TITLE_OPTIONS;
@@ -187,6 +195,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   ngOnInit(): void {
     this.appListEntryCreateState().id = this.route.snapshot.paramMap.get('id')!;
     this.bindApplicantTypeChanges();
+    this.bindRespondentValidationChanges();
     this.restoreNavigationState();
   }
 
@@ -223,6 +232,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   onSubmit(e: Event): void {
     e.preventDefault();
+    this.submitAttempt.update((attempt) => attempt + 1);
 
     this.resetFlags();
     this.wordingSubmitAttempt.update((n) => n + 1);
@@ -320,7 +330,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
       this.childErrors.applicant = buildFormErrorSummary(
         this.personForm,
-        ENTRY_ERROR_MESSAGES,
+        APPLICANT_ENTRY_ERROR_MESSAGES,
         { hrefs: APPLICANT_PERSON_ERROR_HREFS },
       );
       return;
@@ -332,7 +342,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
       this.childErrors.applicant = buildFormErrorSummary(
         this.organisationForm,
-        ENTRY_ERROR_MESSAGES,
+        APPLICANT_ENTRY_ERROR_MESSAGES,
         { hrefs: APPLICANT_ORG_ERROR_HREFS },
       );
       return;
@@ -354,7 +364,7 @@ export class ApplicationsListEntryCreate implements OnInit {
         respondentEntryType: this.form.controls.respondentEntryType.value,
         respondentPersonForm: this.forms.respondentPersonForm,
         respondentOrganisationForm: this.forms.respondentOrganisationForm,
-        errorMessages: ENTRY_ERROR_MESSAGES,
+        errorMessages: RESPONDENT_ENTRY_ERROR_MESSAGES,
         respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
         respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
         respondentBulkControl: this.form.controls.numberOfRespondents,
@@ -382,7 +392,10 @@ export class ApplicationsListEntryCreate implements OnInit {
     return isRespondentRequired || respondentFormHasValues;
   }
 
-  private updateErrors(opts: { validateOtherSections: boolean }): void {
+  private updateErrors(opts: {
+    validateOtherSections: boolean;
+    focusSummary?: boolean;
+  }): void {
     // Full or partial validation
     if (opts.validateOtherSections) {
       this.updateApplicantErrors();
@@ -402,9 +415,10 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     if (
       opts.validateOtherSections &&
+      opts.focusSummary !== false &&
       this.appListEntryCreateState().errorFound
     ) {
-      focusErrorSummary(this.platformId);
+      this.submitAttempt.update((attempt) => attempt + 1);
     }
   }
 
@@ -548,6 +562,10 @@ export class ApplicationsListEntryCreate implements OnInit {
     updateFeeStatusesControl(this.form.controls.feeStatuses, payload);
   }
 
+  onCivilFeeSubmitAttempt(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
+  }
+
   onOffsiteFeeChanged(nextValue: boolean): void {
     this.form.controls.hasOffsiteFee.setValue(nextValue, { emitEvent: false });
     this.form.controls.hasOffsiteFee.markAsDirty();
@@ -576,6 +594,26 @@ export class ApplicationsListEntryCreate implements OnInit {
         // reset/rehydrate subforms + keep standardApplicantCode in sync
         this.formSvc.onApplicantTypeChanged(this.forms, t);
         this.formSvc.syncApplicantTypeState(this.forms, t);
+      });
+  }
+
+  private bindRespondentValidationChanges(): void {
+    merge(
+      this.form.controls.respondentEntryType.valueChanges,
+      this.form.controls.numberOfRespondents.valueChanges,
+      this.forms.respondentPersonForm.valueChanges,
+      this.forms.respondentOrganisationForm.valueChanges,
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (!this.appListEntryCreateState().submitted) {
+          return;
+        }
+
+        this.updateErrors({
+          validateOtherSections: true,
+          focusSummary: false,
+        });
       });
   }
 

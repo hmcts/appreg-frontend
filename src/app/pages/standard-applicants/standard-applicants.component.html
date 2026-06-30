@@ -1,6 +1,7 @@
 @if (vm().searchErrors.length) {
   <app-error-summary
     [items]="vm().searchErrors"
+    [focusKey]="submitAttempt()"
     title="There is a problem"
     (itemSelect)="onCreateErrorClick($event)"
   />
@@ -14,6 +15,26 @@
 }
 
 <h1 class="govuk-heading-xl">Standard applicants</h1>
+
+<app-help-details summary="Help with standard applicants">
+  <p class="govuk-body">
+    Use this page to search for standard applicant records by code or name.
+  </p>
+
+  <ul class="govuk-list govuk-list--bullet">
+    <li>Select View to see the details for a standard applicant.</li>
+    <li>
+      Use Export to download standard applicant search results for use in a
+      spreadsheet.
+    </li>
+    <li>
+      Use Print to create a PDF report of standard applicant search results.
+    </li>
+    <li>
+      Standard applicant records cannot be created or amended on this page.
+    </li>
+  </ul>
+</app-help-details>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
@@ -43,6 +64,14 @@
 
   <div class="govuk-button-group">
     <button type="submit" class="govuk-button" value="search">Search</button>
+
+    <button
+      type="button"
+      class="govuk-button govuk-button--secondary"
+      (click)="clearSearch()"
+    >
+      Clear search
+    </button>
   </div>
 </form>
 
@@ -108,8 +137,9 @@
         <button
           type="button"
           class="govuk-button moj-button-menu__item govuk-button"
+          (click)="onViewClick(row)"
         >
-          Open
+          View
         </button>
       </div>
     </ng-template>

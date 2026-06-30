@@ -11,6 +11,8 @@ export class BannerElement {
     'app-error-summary [role="alert"]';
   private static readonly warningRegionSelector =
     'app-warning-banner [role="region"]';
+  private static readonly pageHeaderSelector =
+    'app-page-header .moj-page-header-actions__title h1, h1.govuk-heading-xl';
 
   static findNotificationRegionByText(
     text: string,
@@ -50,12 +52,25 @@ export class BannerElement {
     return cy.contains(this.warningRegionSelector, text);
   }
 
+  static getPageHeader(): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.get(this.pageHeaderSelector).first();
+  }
+
   static findSuccessAlertWithBody(
     heading: string,
     bodyText: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
       .contains(this.successAlertSelector, heading, { timeout: 10000 })
+      .should('contain.text', bodyText);
+  }
+
+  static findErrorAlertWithBody(
+    heading: string,
+    bodyText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .contains(this.errorAlertSelector, heading, { timeout: 10000 })
       .should('contain.text', bodyText);
   }
 }

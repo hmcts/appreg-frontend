@@ -26,6 +26,7 @@ describe('ApplicationsListUpdateComponent', () => {
   let router: Pick<Router, 'navigate'>;
   let patchState: jest.Mock;
   let setUpdateRequest: jest.Mock;
+  let incrementSubmitAttempt: jest.Mock;
 
   const mkForm = () =>
     new FormGroup({
@@ -106,6 +107,7 @@ describe('ApplicationsListUpdateComponent', () => {
     };
     patchState = jest.fn();
     setUpdateRequest = jest.fn();
+    incrementSubmitAttempt = jest.fn();
 
     await TestBed.configureTestingModule({
       imports: [ApplicationsListUpdateComponent],
@@ -132,6 +134,10 @@ describe('ApplicationsListUpdateComponent', () => {
     fixture.componentRef.setInput('patchState', patchState);
     fixture.componentRef.setInput('vm', mkVm());
     fixture.componentRef.setInput('setUpdateRequest', setUpdateRequest);
+    fixture.componentRef.setInput(
+      'incrementSubmitAttempt',
+      incrementSubmitAttempt,
+    );
     fixture.componentRef.setInput('suggestionsFacade', mkSuggestionsFacade());
     fixture.detectChanges();
   });
@@ -192,6 +198,7 @@ describe('ApplicationsListUpdateComponent', () => {
 
     component.onUpdate();
 
+    expect(incrementSubmitAttempt).toHaveBeenCalledTimes(1);
     expect(setUpdateRequest).toHaveBeenCalledTimes(1);
     expect(router.navigate).not.toHaveBeenCalled();
   });
@@ -202,6 +209,7 @@ describe('ApplicationsListUpdateComponent', () => {
 
     component.onUpdate();
 
+    expect(incrementSubmitAttempt).toHaveBeenCalledTimes(1);
     expect(setUpdateRequest).not.toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledTimes(1);
 
@@ -226,6 +234,7 @@ describe('ApplicationsListUpdateComponent', () => {
 
     component.onUpdate();
 
+    expect(incrementSubmitAttempt).toHaveBeenCalledTimes(1);
     expect(setUpdateRequest).not.toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalled();
     expect(lastPatch()).toEqual({

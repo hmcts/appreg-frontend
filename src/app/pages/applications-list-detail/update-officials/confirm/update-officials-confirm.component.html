@@ -1,20 +1,27 @@
+@if (errorSummary().length) {
+  <app-error-summary
+    [title]="'There is a problem'"
+    [items]="errorSummary()"
+    [focusKey]="submitAttempt()"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+}
+
+<app-alert
+  [alertType]="'information'"
+  [message]="'This action will overwrite the current officials for the selected application(s)'"
+/>
+
 <app-review-confirm
   title="Check officials before updating"
   confirmButtonTxt="Confirm and update officials"
   cancelButtonTxt="Back"
   [isRedButton]="false"
+  [scrollToTopOnInit]="true"
   [disabled]="isSubmitting()"
   (confirm)="onConfirm()"
   (cancelled)="goBack()"
 >
-  @if (errorSummary().length) {
-    <app-error-summary
-      [title]="'There is a problem'"
-      [items]="errorSummary()"
-      (itemSelect)="onCreateErrorClick($event)"
-    />
-  }
-
   <app-sortable-table
     id="update-officials-confirm-applications-table"
     [caption]="'Application(s) to update'"

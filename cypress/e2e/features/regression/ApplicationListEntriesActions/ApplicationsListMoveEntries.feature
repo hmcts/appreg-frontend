@@ -126,7 +126,7 @@ Feature: Application List Entries - Move
         When User Clicks "Actions" Then "Move entries" From Caption Menu In Table "Entries"
         Then User See "Move applications" On The Page
         Then User Should See Row In Table "You are moving the following application(s)" With Values:
-            | Applicant(s)           | Respondent(s)                  | Application title                              | Fee required | Resulted |
+            | Applicant              | Respondent                     | Application title                              | Fee required | Resulted |
             | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax | No           |          |
             | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   | No           |          |
         When User Searches Application List With:
@@ -138,7 +138,7 @@ Feature: Application List Entries - Move
         # ── Move confirm page ───────────────────────────────────────────────────
         Then User See "Are you sure you want to move these applications to this application list?" On The Page
         Then User Should See Row In Table "You are moving the following application(s)" With Values:
-            | Applicant(s)           | Respondent(s)                  | Application title                              | Fee required | Resulted |
+            | Applicant              | Respondent                     | Application title                              | Fee required | Resulted |
             | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax | No           |          |
             | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   | No           |          |
         Then User Should See Row In Table "To this applications list" With Values:
@@ -282,7 +282,7 @@ Feature: Application List Entries - Move
         Then User See "Move applications" On The Page
         # Verify selected entries shown on Move page
         Then User Should See Row In Table "You are moving the following application(s)" With Values:
-            | Applicant(s)           | Respondent(s)                  | Application title                              | Fee required | Resulted |
+            | Applicant              | Respondent                     | Application title                              | Fee required | Resulted |
             | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax | No           |          |
             | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   | No           |          |
         # Navigate to Create new list form from Move page
@@ -316,7 +316,7 @@ Feature: Application List Entries - Move
         # ── Move confirm page ────────────────────────────────────────────────────
         Then User See "Are you sure you want to move these applications to this application list?" On The Page
         Then User Should See Row In Table "You are moving the following application(s)" With Values:
-            | Applicant(s)           | Respondent(s)                  | Application title                              | Fee required | Resulted |
+            | Applicant              | Respondent                     | Application title                              | Fee required | Resulted |
             | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax | No           |          |
             | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   | No           |          |
         Then User Should See Row In Table "To this applications list" With Values:

@@ -1,10 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { Observable, Subject, of, throwError } from 'rxjs';
 
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
 import { StandardApplicantPage, StandardApplicantsApi } from '@openapi';
+import { StandardApplicantsSearchFormService } from '@services/standard-applicants/standard-applicants-search-form.service';
+import { StandardApplicantsSearchStateService } from '@services/standard-applicants/standard-applicants-search-state.service';
 
 const flushSignalEffects = async (
   fixture: ComponentFixture<StandardApplicants>,
@@ -17,6 +19,10 @@ const flushSignalEffects = async (
 describe('StandardApplicantsComponent', () => {
   let component: StandardApplicants;
   let fixture: ComponentFixture<StandardApplicants>;
+  let router: Router;
+  let route: ActivatedRoute;
+  let searchForm: StandardApplicantsSearchFormService;
+  let searchState: StandardApplicantsSearchStateService;
   const getStandardApplicantsMock = jest.fn<
     Observable<StandardApplicantPage>,
     Parameters<
@@ -58,6 +64,10 @@ describe('StandardApplicantsComponent', () => {
 
     fixture = TestBed.createComponent(StandardApplicants);
     component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+    route = TestBed.inject(ActivatedRoute);
+    searchForm = TestBed.inject(StandardApplicantsSearchFormService);
+    searchState = TestBed.inject(StandardApplicantsSearchStateService);
     await flushSignalEffects(fixture);
   });
 
@@ -72,6 +82,46 @@ describe('StandardApplicantsComponent', () => {
   it('does not render table or pagination before first search', () => {
     expect(fixture.debugElement.query(By.css('app-sortable-table'))).toBeNull();
     expect(fixture.debugElement.query(By.css('app-pagination'))).toBeNull();
+  });
+
+  it('restores saved form values and reruns the saved search on init', async () => {
+    searchForm.setState({
+      code: 'SA01',
+      name: 'Applicant Org',
+    });
+    searchState.setState({
+      hasSearched: true,
+      currentPage: 1,
+      pageSize: 10,
+      sortField: { key: 'name', direction: 'desc' },
+      appliedFilters: {
+        code: 'SA01',
+        name: 'Applicant Org',
+      },
+    });
+
+    fixture = TestBed.createComponent(StandardApplicants);
+    component = fixture.componentInstance;
+    await flushSignalEffects(fixture);
+
+    expect(component.form.getRawValue()).toEqual({
+      code: 'SA01',
+      name: 'Applicant Org',
+    });
+    expect(getStandardApplicantsMock).toHaveBeenCalledWith(
+      {
+        code: 'SA01',
+        name: 'Applicant Org',
+        pageNumber: 1,
+        pageSize: 10,
+        sort: ['name,desc'],
+      },
+      'body',
+      false,
+      {
+        transferCache: true,
+      },
+    );
   });
 
   it('submits search and requests first page with trimmed filters', async () => {
@@ -277,6 +327,150 @@ describe('StandardApplicantsComponent', () => {
     ).toBeTruthy();
   });
 
+  it('clears filters, results, pagination and errors when Clear search is clicked', async () => {
+    getStandardApplicantsMock.mockReturnValueOnce(
+      of({
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        content: [
+          {
+            code: 'SA01',
+            applicant: {
+              organisation: {
+                name: 'Applicant Org',
+                contactDetails: { addressLine1: '1 Test Street' },
+              },
+            },
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+          },
+        ],
+        elementsOnPage: 1,
+        totalPages: 4,
+      }),
+    );
+
+    component.form.patchValue({
+      code: 'SA01',
+      name: 'Applicant Org',
+    });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    component.form.patchValue({
+      name: 'x'.repeat(101),
+    });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    expect(component.vm().hasSearched).toBe(true);
+    expect(component.vm().rows).toHaveLength(1);
+    expect(component.vm().totalPages).toBe(4);
+    expect(component.vm().searchErrors).toHaveLength(1);
+
+    const clearButton = fixture.debugElement.query(
+      By.css('form .govuk-button--secondary'),
+    );
+    clearButton.nativeElement.click();
+    await flushSignalEffects(fixture);
+
+    expect(component.form.getRawValue()).toEqual({ code: '', name: '' });
+    expect(component.vm()).toEqual(
+      expect.objectContaining({
+        hasSearched: false,
+        currentPage: 0,
+        totalPages: 0,
+        rows: [],
+        isLoading: false,
+        searchErrors: [],
+      }),
+    );
+    expect(fixture.debugElement.query(By.css('app-sortable-table'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('app-pagination'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('app-error-summary'))).toBeNull();
+  });
+
+  it('ignores an in-flight search response after Clear search is clicked', async () => {
+    const inFlightResponse = new Subject<StandardApplicantPage>();
+    getStandardApplicantsMock.mockReturnValueOnce(inFlightResponse);
+
+    component.form.patchValue({ code: 'SA01' });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    expect(component.vm().isLoading).toBe(true);
+
+    const clearButton = fixture.debugElement.query(
+      By.css('form .govuk-button--secondary'),
+    );
+    clearButton.nativeElement.click();
+    await flushSignalEffects(fixture);
+
+    inFlightResponse.next({
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 1,
+      content: [
+        {
+          code: 'SA01',
+          applicant: {
+            organisation: {
+              name: 'Applicant Org',
+              contactDetails: { addressLine1: '1 Test Street' },
+            },
+          },
+          startDate: '2026-01-01',
+          endDate: '2026-12-31',
+        },
+      ],
+      elementsOnPage: 1,
+      totalPages: 1,
+    });
+    inFlightResponse.complete();
+    await flushSignalEffects(fixture);
+
+    expect(component.vm()).toEqual(
+      expect.objectContaining({
+        hasSearched: false,
+        rows: [],
+        totalPages: 0,
+        isLoading: false,
+        searchErrors: [],
+      }),
+    );
+    expect(fixture.debugElement.query(By.css('app-sortable-table'))).toBeNull();
+  });
+
+  it('ignores an in-flight search error after Clear search is clicked', async () => {
+    const inFlightResponse = new Subject<StandardApplicantPage>();
+    getStandardApplicantsMock.mockReturnValueOnce(inFlightResponse);
+
+    component.form.patchValue({ code: 'SA01' });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    const clearButton = fixture.debugElement.query(
+      By.css('form .govuk-button--secondary'),
+    );
+    clearButton.nativeElement.click();
+    await flushSignalEffects(fixture);
+
+    inFlightResponse.error(new Error('Late failure'));
+    await flushSignalEffects(fixture);
+
+    expect(component.vm()).toEqual(
+      expect.objectContaining({
+        hasSearched: false,
+        rows: [],
+        totalPages: 0,
+        isLoading: false,
+        searchErrors: [],
+      }),
+    );
+    expect(fixture.debugElement.query(By.css('app-error-summary'))).toBeNull();
+  });
+
   it('loads selected page when pagination changes', async () => {
     component.onSubmit(new SubmitEvent('submit'));
     await flushSignalEffects(fixture);
@@ -299,6 +493,77 @@ describe('StandardApplicantsComponent', () => {
         transferCache: true,
       },
     );
+  });
+
+  it('ignores page changes while a page load is already in flight', async () => {
+    const inFlightResponse = new Subject<StandardApplicantPage>();
+
+    getStandardApplicantsMock.mockReturnValueOnce(
+      of({
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        content: [
+          {
+            code: 'SA01',
+            applicant: {
+              organisation: {
+                name: 'Applicant Org',
+                contactDetails: { addressLine1: '1 Test Street' },
+              },
+            },
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+          },
+        ],
+        elementsOnPage: 1,
+        totalPages: 4,
+      }),
+    );
+
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    getStandardApplicantsMock.mockReturnValueOnce(inFlightResponse);
+
+    component.onPageChange(1);
+    await flushSignalEffects(fixture);
+
+    expect(component.vm().currentPage).toBe(1);
+    expect(searchState.state().currentPage).toBe(1);
+    expect(component.vm().isLoading).toBe(true);
+
+    getStandardApplicantsMock.mockClear();
+
+    component.onPageChange(2);
+    await flushSignalEffects(fixture);
+
+    expect(getStandardApplicantsMock).not.toHaveBeenCalled();
+    expect(component.vm().currentPage).toBe(1);
+    expect(searchState.state().currentPage).toBe(1);
+
+    inFlightResponse.next({
+      pageNumber: 1,
+      pageSize: 10,
+      totalElements: 1,
+      content: [
+        {
+          code: 'SA01',
+          applicant: {
+            organisation: {
+              name: 'Applicant Org',
+              contactDetails: { addressLine1: '1 Test Street' },
+            },
+          },
+          startDate: '2026-01-01',
+          endDate: '2026-12-31',
+        },
+      ],
+      elementsOnPage: 1,
+      totalPages: 4,
+    });
+    inFlightResponse.complete();
+    await flushSignalEffects(fixture);
   });
 
   it('maps useFrom sort key to backend from parameter on the current page', async () => {
@@ -539,5 +804,100 @@ describe('StandardApplicantsComponent', () => {
     expect(
       fixture.debugElement.query(By.css('app-notification-banner')),
     ).toBeNull();
+  });
+
+  it('shows an error and does not navigate when onViewClick is called without a code', async () => {
+    const navigateSpy = jest.spyOn(router, 'navigate');
+
+    await component.onViewClick({
+      code: '',
+      name: 'Applicant Org',
+      address: '1 Test Street',
+      useFrom: '1 Jan 2026',
+      useTo: '31 Dec 2026',
+    });
+
+    expect(navigateSpy).not.toHaveBeenCalled();
+    expect(component.vm().searchErrors).toEqual([
+      { text: 'Failed to load standard applicant. No code found' },
+    ]);
+  });
+
+  it('navigates to the standard applicant view with row state when onViewClick is called with a code', async () => {
+    const row = {
+      code: 'SA01',
+      name: 'Applicant Org',
+      address: '1 Test Street',
+      useFrom: '1 Jan 2026',
+      useTo: '31 Dec 2026',
+    };
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    await component.onViewClick(row);
+
+    expect(component.vm().searchErrors).toEqual([]);
+    expect(navigateSpy).toHaveBeenCalledWith(['SA01'], {
+      relativeTo: route,
+      state: row,
+    });
+  });
+
+  it('persists the current search snapshot before navigating to the view', async () => {
+    getStandardApplicantsMock.mockReturnValueOnce(
+      of({
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        content: [
+          {
+            code: 'SA01',
+            applicant: {
+              organisation: {
+                name: 'Applicant Org',
+                contactDetails: { addressLine1: '1 Test Street' },
+              },
+            },
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+          },
+        ],
+        elementsOnPage: 1,
+        totalPages: 1,
+      }),
+    );
+
+    component.form.patchValue({
+      code: ' SA01 ',
+      name: ' Applicant Org ',
+    });
+
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    await component.onViewClick({
+      code: 'SA01',
+      name: 'Applicant Org',
+      address: '1 Test Street',
+      useFrom: '1 Jan 2026',
+      useTo: '31 Dec 2026',
+    });
+
+    expect(navigateSpy).toHaveBeenCalled();
+    expect(searchForm.state()).toEqual({
+      code: ' SA01 ',
+      name: ' Applicant Org ',
+    });
+    expect(searchState.state()).toEqual({
+      hasSearched: true,
+      currentPage: 0,
+      pageSize: 10,
+      sortField: { key: 'code', direction: 'asc' },
+      appliedFilters: {
+        code: 'SA01',
+        name: 'Applicant Org',
+      },
+    });
   });
 });

@@ -96,6 +96,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
   suggestionsFacade = buildSuggestionsFacade(this);
 
   fromMoveApplications = signal(false);
+  readonly submitAttempt = signal(0);
   breadcrumbs = signal([
     { label: 'Applications list', link: '/applications-list' },
   ]);
@@ -203,6 +204,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
+    this.submitAttempt.update((attempt) => attempt + 1);
 
     this.appListCreatesignalState.patch({ submitted: true });
     this.appListCreatesignalState.patch(clearNotificationsPatch());

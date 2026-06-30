@@ -5,28 +5,28 @@ export class SummaryCardHelper {
    * Verify summary card exists and is visible
    */
   static verifySummaryCardVisible(cardTitle: string): void {
-    SummaryCardElement.findSummaryCard(cardTitle).should('be.visible');
+    SummaryCardElement.assertSummaryCardVisible(cardTitle);
   }
 
   /**
    * Verify tag text in summary card
    */
   static verifyTagInCard(cardTitle: string, tagText: string): void {
-    SummaryCardElement.findTagInCard(cardTitle).should('contain.text', tagText);
+    SummaryCardElement.assertTagInCardContains(cardTitle, tagText);
   }
 
   /**
    * Verify link exists in summary card
    */
   static verifyLinkInCard(cardTitle: string, linkText: string): void {
-    SummaryCardElement.findLinkInCard(cardTitle, linkText).should('be.visible');
+    SummaryCardElement.assertLinkInCardVisible(cardTitle, linkText);
   }
 
   /**
    * Click a link in summary card
    */
   static clickLinkInCard(cardTitle: string, linkText: string): void {
-    SummaryCardElement.findLinkInCard(cardTitle, linkText).click();
+    SummaryCardElement.clickLinkInCard(cardTitle, linkText);
   }
 
   /**
@@ -37,21 +37,17 @@ export class SummaryCardHelper {
     placeholder: string,
     value: string,
   ): void {
-    SummaryCardElement.findInputByPlaceholderInCard(cardTitle, placeholder)
-      .first()
-      .should('be.visible')
-      .and('have.attr', 'placeholder', placeholder)
-      .clear()
-      .type(value);
+    SummaryCardElement.fillInputByPlaceholderInCard(
+      cardTitle,
+      placeholder,
+      value,
+    );
   }
 
   /**
    * Verify text exists in summary card
    */
   static verifyTextInCard(cardTitle: string, expectedText: string): void {
-    SummaryCardElement.getSummaryCardContent(cardTitle).should(
-      'contain.text',
-      expectedText,
-    );
+    SummaryCardElement.assertTextInCard(cardTitle, expectedText);
   }
 }

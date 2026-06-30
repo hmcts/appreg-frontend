@@ -26,10 +26,7 @@ import { ResultGetDto } from '@openapi';
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
-import {
-  focusErrorSummary,
-  onCreateErrorClick as onCreateErrorClickFn,
-} from '@util/error-click';
+import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 @Component({
   selector: 'app-result-selected',
   standalone: true,
@@ -50,11 +47,12 @@ export class ResultSelected implements OnInit {
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
 
   listId!: string;
-  private readonly selectedResultCode = signal<string>('');
+  private readonly selectedResultCode = signal<string[]>([]);
 
   isSubmitting = signal(false);
 
   successBanner = signal<SuccessBanner | null>(null);
+  readonly submitAttempt = signal(0);
 
   errorHint: string | null = 'There is a problem';
   errorFound = computed(() => this.errorSummaryItems().length > 0);
@@ -105,6 +103,7 @@ export class ResultSelected implements OnInit {
     if (!resultId || !this.listId) {
       return;
     }
+    this.submitAttempt.update((attempt) => attempt + 1);
 
     this.resultsFacade.removeCreatedEntryResultGroup(
       this.listId,
@@ -114,7 +113,6 @@ export class ResultSelected implements OnInit {
 
         if (failedRemovals.length > 0) {
           this.applyMappedError(failedRemovals[0].error);
-          focusErrorSummary(this.platformId);
           return;
         }
 
@@ -123,7 +121,6 @@ export class ResultSelected implements OnInit {
       },
       (err) => {
         this.applyMappedError(err);
-        focusErrorSummary(this.platformId);
       },
     );
   }
@@ -137,18 +134,20 @@ export class ResultSelected implements OnInit {
 
   onError(errors: ErrorItem[]): void {
     this.errorSummaryItems.set(errors);
-    focusErrorSummary(this.platformId);
+    this.submitAttempt.update((attempt) => attempt + 1);
   }
 
   onSubmitResults(payload: ResultSectionSubmitPayload): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
+
     if (this.isSubmitting()) {
       return;
     }
 
-    const item = payload.pendingToCreate?.[0] ?? payload.existingToUpdate?.[0];
+    const item = [...payload.pendingToCreate, ...payload.existingToUpdate];
 
     if (item) {
-      this.selectedResultCode.set(item.resultCode);
+      this.selectedResultCode.set(item.map((element) => element.resultCode));
     }
 
     if (!this.listId || !this.rows?.length) {
@@ -169,7 +168,7 @@ export class ResultSelected implements OnInit {
 
         this.successBanner.set({
           heading: 'Result codes applied successfully',
-          body: `Result code '${this.selectedResultCode()}' applied successfully to application list entries`,
+          body: `Result code(s) '${this.selectedResultCode().join(', ')}' applied successfully to application list entries`,
         });
 
         focusSuccessBanner(this.platformId);
@@ -178,7 +177,6 @@ export class ResultSelected implements OnInit {
         this.isSubmitting.set(false);
         this.successBanner.set(null);
         this.applyMappedError(err);
-        focusErrorSummary(this.platformId);
       },
     );
   }

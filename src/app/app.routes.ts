@@ -103,6 +103,7 @@ export const routes: Routes = [
             (m) => m.PaymentReferenceEditComponent,
           ),
       },
+
       {
         path: ':id/bulk-upload',
         loadComponent: () =>
@@ -152,7 +153,36 @@ export const routes: Routes = [
             (m) => m.MoveConfirmComponent,
           ),
       },
+      {
+        path: ':id/bulk-update-fee',
+        loadComponent: () =>
+          import('@components/applications-list-detail/applications-list-detail-bulk-update-fees/applications-list-detail-bulk-update-fees.component').then(
+            (m) => m.ApplicationsListDetailBulkUpdateFeesComponent,
+          ),
+      },
+      {
+        path: ':id/bulk-update-fee/confirm',
+        loadComponent: () =>
+          import('@components/applications-list-detail/applications-list-detail-bulk-update-fees/fee-update-confirm/fee-update-confirm.component').then(
+            (m) => m.FeeUpdateConfirmComponent,
+          ),
+      },
+      {
+        path: ':id/bulk-update-fee/change-payment-reference',
+        loadComponent: () =>
+          import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
+            (m) => m.PaymentReferenceEditComponent,
+          ),
+      },
     ],
+  },
+  {
+    path: 'applications/result-selected',
+    loadComponent: () =>
+      import('@components/applications/applications-result-selected/applications-result-selected.component').then(
+        (m) => m.ApplicationsResultSelectedComponent,
+      ),
+    canActivate: [sessionGuard],
   },
   {
     path: 'applications',
@@ -164,11 +194,23 @@ export const routes: Routes = [
   },
   {
     path: 'standard-applicants',
-    loadComponent: () =>
-      import('@components/standard-applicants/standard-applicants.component').then(
-        (m) => m.StandardApplicants,
-      ),
     canActivate: [sessionGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('@components/standard-applicants/standard-applicants.component').then(
+            (m) => m.StandardApplicants,
+          ),
+      },
+      {
+        path: ':id',
+        loadComponent: () =>
+          import('@components/standard-applicants/standard-applicants-view/standard-applicants-view.component').then(
+            (m) => m.StandardApplicantsViewComponent,
+          ),
+      },
+    ],
   },
   {
     path: 'reports',

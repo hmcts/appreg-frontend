@@ -1,9 +1,8 @@
-<h1 class="govuk-heading-xl">Reports</h1>
-
 @if (vm().errorSummary.length) {
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().errorSummary"
+    [focusKey]="submitAttempt()"
     (itemSelect)="onCreateErrorClick($event)"
   />
 }
@@ -11,7 +10,11 @@
 @if (vm().reportFeedback; as feedback) {
   @switch (feedback.kind) {
     @case ('error') {
-      <app-error-summary [title]="feedback.title" [items]="feedback.items" />
+      <app-error-summary
+        [title]="feedback.title"
+        [items]="feedback.items"
+        [focusKey]="submitAttempt()"
+      />
     }
     @case ('progress') {
       <app-async-job-progress
@@ -24,6 +27,28 @@
     }
   }
 }
+
+<h1 class="govuk-heading-xl">Reports</h1>
+
+<app-help-details summary="Help with reports">
+  <p>Use this page to generate and download CSV reports.</p>
+
+  <ul class="govuk-list govuk-list--bullet">
+    <li>
+      Select a report type, then enter the filters needed for that report.
+    </li>
+    <li>Date from and date to are required for each report.</li>
+    <li>Leave optional filters blank to include all matching records.</li>
+    <li>
+      If you enter a court, the criminal justice area and other location fields
+      are not needed.
+    </li>
+    <li>
+      Select Download CSV. The report will be generated and downloaded
+      automatically when ready.
+    </li>
+  </ul>
+</app-help-details>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"

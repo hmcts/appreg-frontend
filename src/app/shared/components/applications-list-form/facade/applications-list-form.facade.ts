@@ -1,4 +1,8 @@
 import {
+  CjaSuggestionItem,
+  CourtSuggestionItem,
+} from '@components/suggestions/suggestions.types';
+import {
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
 } from '@openapi';
@@ -8,16 +12,18 @@ export type SuggestionsFacade = {
   // Court
   courthouseSearch: () => string;
   setCourthouseSearch: (v: string) => void;
-  filteredCourthouses: () => CourtLocationGetSummaryDto[];
+  filteredCourthouses: () => CourtSuggestionItem[];
   onCourthouseInputChange: () => void;
-  selectCourthouse: (item: unknown) => void;
+  selectCourthouse: (
+    item: CourtLocationGetSummaryDto | CourtSuggestionItem,
+  ) => void;
 
   // CJA
   cjaSearch: () => string;
   setCjaSearch: (v: string) => void;
-  filteredCja: () => CriminalJusticeAreaGetDto[];
+  filteredCja: () => CjaSuggestionItem[];
   onCjaInputChange: () => void;
-  selectCja: (item: unknown) => void;
+  selectCja: (item: CriminalJusticeAreaGetDto | CjaSuggestionItem) => void;
 };
 
 export function buildSuggestionsFacade(

@@ -1,9 +1,19 @@
+<app-help-details summary="Help with result wording">
+  <p class="govuk-body">
+    Result wording is based on the selected result code and may include fixed
+    text and fields you need to complete.
+  </p>
+
+  <p class="govuk-body">Fixed wording cannot be edited on this page.</p>
+</app-help-details>
+
 @if (showAppliedBanner()) {
   <app-alert
     alertType="success"
     message="Results applied to this entry. Save the entry to keep these changes."
     [allowDismiss]="true"
     (alertDismissed)="onAppliedBannerDismissed()"
+    id="results-local-banner"
   />
 }
 
@@ -13,7 +23,11 @@
   [captionSize]="captionSize()"
   [columns]="applicantRespondentColumns()"
   [data]="resultApplicantContext()"
-/>
+>
+  <ng-template #dateTemplate let-row>
+    {{ row.date | dateTime }}
+  </ng-template>
+</app-sortable-table>
 
 <div class="govuk-grid-row govuk-!-margin-top-8">
   <app-suggestions
@@ -22,8 +36,7 @@
     hint="Start typing to search for a result code"
     [(search)]="resultCodeSearch"
     [suggestions]="filteredResultCodes"
-    [getItemLabel]="resultCodeLabel"
-    (selectItem)="selectResultCode($event)"
+    (selectItem)="onResultCodeSuggestionSelected($event)"
     [widthClass]="'govuk-!-width-one-half'"
     [containerWidthClass]="'govuk-grid-column-one-half'"
   />

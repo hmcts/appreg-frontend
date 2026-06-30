@@ -12,6 +12,11 @@ import { SuggestionsFacade } from '@components/applications-list-form/facade/app
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import {
+  SuggestionsItem,
+  isCjaSuggestionItem,
+  isCourtSuggestionItem,
+} from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 
 @Component({
@@ -59,6 +64,18 @@ export class ReportsSharedFormComponent {
     }
 
     this.internalAdvancedOpen.update((open) => !open);
+  }
+
+  onCourthouseSuggestionSelected(item: SuggestionsItem): void {
+    if (isCourtSuggestionItem(item)) {
+      this.suggestions().selectCourthouse(item);
+    }
+  }
+
+  onCjaSuggestionSelected(item: SuggestionsItem): void {
+    if (isCjaSuggestionItem(item)) {
+      this.suggestions().selectCja(item);
+    }
   }
 
   private hasAdvancedError(): boolean {

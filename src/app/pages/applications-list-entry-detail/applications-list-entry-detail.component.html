@@ -4,6 +4,7 @@
   <app-error-summary
     [title]="vm().errorHint || 'There is a problem'"
     [items]="vm().summaryErrors"
+    [focusKey]="submitAttempt()"
     targetId="codes-table"
     (itemSelect)="onCreateErrorClick($event)"
   />
@@ -37,6 +38,9 @@
       [selectedStandardApplicantCode]="selectedStandardApplicantCode"
       [savedStandardApplicantCode]="savedStandardApplicantCode"
       [savedStandardApplicantName]="savedStandardApplicantName"
+      [savedStandardApplicantDetailsUnavailable]="
+        savedStandardApplicantDetailsUnavailable
+      "
       (standardApplicantCodeChange)="onStandardApplicantCodeChanged($event)"
       (standardApplicantSummaryChange)="
         onSelectedStandardApplicantSummaryChanged($event)
@@ -62,6 +66,8 @@
   </ng-template>
 
   <ng-template #wordingTpl>
+    <app-application-wording-help />
+
     @if (vm().appCodeDetail; as appCodeDetail) {
       <app-wording-section
         #wordingSection
@@ -92,6 +98,8 @@
   </ng-template>
 
   <ng-template #civilFeeTpl>
+    <app-civil-fee-help />
+
     <app-civil-fee-section
       #civilFeeSection
       [civilFeeColumns]="civilFeeColumns"
@@ -100,6 +108,7 @@
       [feeMeta]="feeMeta"
       (addFeeDetails)="onAddFeeDetails($event)"
       (civilFeeErrors)="onChildErrors('civilFee', $event)"
+      (submitAttempted)="onCivilFeeSubmitAttempt()"
       (offsiteFeeChanged)="onOffsiteFeeChanged($event)"
       [feeRequired]="vm().isFeeRequired"
       [autoSaveOffsiteFee]="true"

@@ -25,8 +25,8 @@ Feature: Application List Bulk Upload
         When User Uploads The File "bulk-upload-entries.csv"
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
-        Then User Sees Success Banner "Bulk upload complete All records were uploaded successfully."
-        Then User See "Applications List" On The Page
+        Then User Sees Success Banner "Success" Containing "Bulk upload complete All records were uploaded successfully."
+        Then User See "Applications list" On The Page
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number | Applicant                 | Respondent                      | Postcode | Title                                            | Fee | Resulted |
             | 1               | AC-{RANDOM}-1  | Benjamin Young            | Greenfield Finance {RANDOM} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |
@@ -38,7 +38,7 @@ Feature: Application List Bulk Upload
             | User  | APIDate  | Time           | Status | Description     | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkUp_{RANDOM} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-632
+    @regression @applicationsList @applicationListEntry @ARCPOC-632 @SC2
     Scenario Outline: Application List - Bulk Upload Fails With Invalid CSV Headers
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -58,13 +58,12 @@ Feature: Application List Bulk Upload
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk Upload Applications" On The Page
         When User Uploads The File "sample.txt"
-        Then User Sees Validation Error Banner "There is a problem"
-        Then User See "Please upload a valid CSV file." On The Page
+        Then User Sees Validation Error Banner "There is a problem" Containing "Please upload a valid CSV file."
+        # Then User See "Please upload a valid CSV file." On The Page
         When User Uploads The File "bulk-upload-wrong-headers.csv"
         When User Clicks On The "Upload file" Button
-        When User Waits For The File Upload To Complete
-        Then User Sees Validation Error Banner "Bulk upload failed"
-        Then User See "The bulk upload could not be completed." On The Page
+        Then User Sees Validation Error Banner "There is a problem" Containing "Uploaded file must be a valid CSV file"
+        # Then User See "Uploaded file must be a valid CSV file" On The Page
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"

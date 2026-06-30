@@ -25,13 +25,21 @@ import {
   ApplicationEntriesResultContext,
 } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import {
   SortableTableComponent,
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import {
+  ResultCodeSuggestionItem,
+  SuggestionsItem,
+  isResultCodeSuggestionItem,
+  toResultCodeSuggestionItem,
+} from '@components/suggestions/suggestions.types';
 import { SummaryListCardActionComponent } from '@components/summary-list-card-action/summary-list-card-action.component';
 import { WordingParserComponent } from '@components/wording-parser/wording-parser.component';
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { SummaryListCardAction } from '@core-types/summary-list-card-action/summary-list-card.type';
 import {
   ResultCodeGetSummaryDto,
@@ -56,6 +64,8 @@ import { ResultRow, toExistingRows } from '@util/result-code-helpers';
     WordingParserComponent,
     SortableTableComponent,
     AlertComponent,
+    DateTimePipe,
+    HelpDetailsComponent,
   ],
 })
 export class ResultWordingSectionComponent {
@@ -103,9 +113,6 @@ export class ResultWordingSectionComponent {
 
   applicantRespondentColumns = input<TableColumn[]>(RESULT_WORDING_COLUMNS);
 
-  resultCodeLabel = (rc: ResultCodeGetSummaryDto): string =>
-    `${rc.resultCode} - ${rc.title}`;
-
   resultCodeSearch = '';
 
   constructor() {
@@ -133,18 +140,28 @@ export class ResultWordingSectionComponent {
     });
   }
 
-  get filteredResultCodes(): ResultCodeGetSummaryDto[] {
-    if (this.pending().length > 0) {
-      return [];
-    }
-
+  get filteredResultCodes(): ResultCodeSuggestionItem[] {
     const q = this.norm(this.resultCodeSearch);
     if (!q) {
       return [];
     }
 
+    const pendingCodes = new Set(
+      this.pending().map((row) => this.normCode(row.resultCode)),
+    );
+    const existingCodes = new Set(
+      (this.existingResults() ?? []).map((row) =>
+        this.normCode(row.resultCode),
+      ),
+    );
+
     return this.resultCodesList()
       .filter((rc) => this.norm(`${rc.resultCode} ${rc.title}`).includes(q))
+      .filter((rc) => {
+        const code = this.normCode(rc.resultCode);
+        return !pendingCodes.has(code) && !existingCodes.has(code);
+      })
+      .map(toResultCodeSuggestionItem)
       .slice(0, 50);
   }
 
@@ -246,6 +263,12 @@ export class ResultWordingSectionComponent {
     () => this.hasPendingChanges() || this.hasExistingEdits(),
   );
 
+  onResultCodeSuggestionSelected(item: SuggestionsItem): void {
+    if (isResultCodeSuggestionItem(item)) {
+      this.selectResultCode(item);
+    }
+  }
+
   selectResultCode(item: ResultCodeGetSummaryDto): void {
     const code = item.resultCode.trim();
     if (!code) {
@@ -270,8 +293,7 @@ export class ResultWordingSectionComponent {
       wording: '-',
     };
 
-    //Only allow one result to be added at a time
-    this.pending.set([row]);
+    this.pending.update((pendingRows) => [...pendingRows, row]);
     this.pendingVersion.update((n) => n + 1);
     this.pendingChange.emit(this.pending());
     this.resultCodeSearch = '';
@@ -400,7 +422,9 @@ export class ResultWordingSectionComponent {
       this.pendingVersion.update((n) => n + 1);
     }
 
-    this.pending.set([updated]);
+    this.pending.update((rows) =>
+      rows.map((row) => (row.tempId === pendingRow.tempId ? updated : row)),
+    );
     this.pendingChange.emit(this.pending());
     this.handleValidationResponse(card.id, []);
   }
@@ -569,7 +593,10 @@ export class ResultWordingSectionComponent {
   }
 
   private buildSubmitPayload(): ResultSectionSubmitPayload {
-    const pendingToCreate = this.pending().slice(0, 1);
+    const pendingToCreate = this.pending().map((row) => ({
+      ...row,
+      wordingFields: (row.wordingFields ?? []).map((field) => ({ ...field })),
+    }));
     const draftById = this.existingWordingDraftById();
     const originalById = this.existingOriginalFieldsById();
     const appliedById = this.appliedExistingWordingDraftById();

@@ -160,7 +160,6 @@ describe('ApplicationsListDetail', () => {
 
     const dto = {
       entriesCount: 0,
-      entriesSummary: [],
     } as unknown as ApplicationListGetDetailDto;
 
     apiStub.getApplicationList.mockReturnValue(
@@ -754,6 +753,43 @@ describe('ApplicationsListDetail', () => {
         ],
       });
     });
+
+    it('keeps pdfLoading true until page PDF generation completes', async () => {
+      let resolvePdf: (() => void) | undefined;
+      const pendingPdf = new Promise<void>((resolve) => {
+        resolvePdf = resolve;
+      });
+      pdfStub.generatePagedApplicationListPdf.mockReturnValueOnce(pendingPdf);
+
+      patchDetailState({
+        selectedIds: new Set(['entry-1']),
+        selectedRows: [
+          {
+            id: 'entry-1',
+            applicant: 'Applicant 1',
+            respondent: 'Respondent 1',
+            title: 'Title 1',
+            location: 'LOC1',
+            feeReq: 'Yes',
+            resulted: 'No',
+            status: 'OPEN',
+          } as Row,
+        ],
+      });
+      component.id = 'list-123';
+      component.onPrintPageClick();
+      fixture.detectChanges();
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      expect(vm().pdfLoading).toBe(true);
+
+      resolvePdf?.();
+      await pendingPdf;
+      await flushSignalEffects(fixture);
+
+      expect(vm().pdfLoading).toBe(false);
+    });
   });
 
   describe('handlePrintContinuous', () => {
@@ -829,6 +865,7 @@ describe('ApplicationsListDetail', () => {
         preserveErrorSummaryOnLoad: false,
         moveDone: false,
         updateOfficialsDone: false,
+        updateFeesDone: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
         id: 'list-123',
@@ -873,6 +910,7 @@ describe('ApplicationsListDetail', () => {
         preserveErrorSummaryOnLoad: false,
         moveDone: false,
         updateOfficialsDone: false,
+        updateFeesDone: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
         id: 'list-123',
@@ -1149,6 +1187,47 @@ describe('ApplicationsListDetail', () => {
     expect(vm().preserveErrorSummaryOnLoad).toBe(true);
   });
 
+  it('maps fee update errors from navigation state onto the detail page', async () => {
+    historyStateSpy.mockReturnValue({
+      row: {
+        id: 'id-1',
+        location: 'LOC1',
+        description: '',
+        status: 'OPEN',
+      },
+      updateFeeError: 'Unable to update fees right now.',
+    });
+
+    const route = TestBed.inject(ActivatedRoute);
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => {
+        if (key === 'updateFee') {
+          return 'error';
+        }
+        return null;
+      });
+
+    (
+      component as unknown as {
+        setUpdateFeeErrorFromNavigation(): void;
+      }
+    ).setUpdateFeeErrorFromNavigation();
+
+    await flushSignalEffects(fixture);
+
+    expect(vm().updateInvalid).toBe(true);
+    expect(vm().errorHint).toBe('There is a problem');
+    expect(vm().errorSummary).toEqual([
+      {
+        id: '',
+        href: '',
+        text: 'Unable to update fees right now.',
+      },
+    ]);
+    expect(vm().preserveErrorSummaryOnLoad).toBe(true);
+  });
+
   it('sets moveDone when moveEntriesSuccessful query param is true', () => {
     const route = TestBed.inject(ActivatedRoute);
     jest
@@ -1163,6 +1242,22 @@ describe('ApplicationsListDetail', () => {
     component.setSuccessBanner();
 
     expect(vm().moveDone).toBe(true);
+  });
+
+  it('sets updateFeesDone when bulkFeeUpdateSuccessful query param is true', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => {
+        if (key === 'bulkFeeUpdateSuccessful') {
+          return 'true';
+        }
+        return null;
+      });
+
+    component.setSuccessBanner();
+
+    expect(vm().updateFeesDone).toBe(true);
   });
 
   it('preserves returned close errors when the detail page reload completes', async () => {
@@ -1313,6 +1408,134 @@ describe('ApplicationsListDetail', () => {
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
+  describe('onUpdateFeeButtonClick', () => {
+    it('shows an error when all selected applications do not require fees', async () => {
+      const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
+      jest
+        .spyOn(
+          component as unknown as {
+            resolveSelectedRows(): Promise<Row[]>;
+          },
+          'resolveSelectedRows',
+        )
+        .mockResolvedValue([
+          {
+            id: 'entry-1',
+            applicant: 'Applicant',
+            respondent: 'Respondent',
+            title: 'Title',
+            feeReq: 'No',
+          },
+        ]);
+
+      await component.onUpdateFeeButtonClick();
+
+      expect(vm().errorSummary).toEqual([
+        {
+          text: 'Cannot update application(s) that do not require a fee',
+          href: '',
+          id: '',
+        },
+      ]);
+      expect(navigateSpy).not.toHaveBeenCalledWith(
+        ['bulk-update-fee'],
+        expect.anything(),
+      );
+    });
+
+    it('filters out fee-exempt rows before navigating to bulk fee update', async () => {
+      const navigateSpy = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      jest
+        .spyOn(
+          component as unknown as {
+            resolveSelectedRows(): Promise<Row[]>;
+          },
+          'resolveSelectedRows',
+        )
+        .mockResolvedValue([
+          {
+            id: 'entry-1',
+            applicant: 'Applicant',
+            respondent: 'Respondent',
+            title: 'Title',
+            feeReq: 'No',
+            resulted: 'COST',
+          },
+          {
+            id: 'entry-2',
+            applicant: 'Applicant 2',
+            respondent: 'Respondent 2',
+            title: 'Title 2',
+            feeReq: 'Yes',
+            resulted: 'ADJ',
+          },
+        ]);
+
+      await component.onUpdateFeeButtonClick();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['bulk-update-fee'], {
+        relativeTo: TestBed.inject(ActivatedRoute),
+        state: {
+          removedApplicationsWarning: true,
+          entriesToUpdateFee: [
+            {
+              id: 'entry-2',
+              applicant: 'Applicant 2',
+              respondent: 'Respondent 2',
+              title: 'Title 2',
+              feeRequired: 'Yes',
+              resulted: 'ADJ',
+            },
+          ],
+        },
+      });
+    });
+
+    it('sets removedApplicationsWarning to false when every selected row requires a fee', async () => {
+      const navigateSpy = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      jest
+        .spyOn(
+          component as unknown as {
+            resolveSelectedRows(): Promise<Row[]>;
+          },
+          'resolveSelectedRows',
+        )
+        .mockResolvedValue([
+          {
+            id: 'entry-2',
+            applicant: 'Applicant 2',
+            respondent: 'Respondent 2',
+            title: 'Title 2',
+            feeReq: 'Yes',
+            resulted: 'ADJ',
+          },
+        ]);
+
+      await component.onUpdateFeeButtonClick();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['bulk-update-fee'], {
+        relativeTo: TestBed.inject(ActivatedRoute),
+        state: {
+          removedApplicationsWarning: false,
+          entriesToUpdateFee: [
+            {
+              id: 'entry-2',
+              applicant: 'Applicant 2',
+              respondent: 'Respondent 2',
+              title: 'Title 2',
+              feeRequired: 'Yes',
+              resulted: 'ADJ',
+            },
+          ],
+        },
+      });
+    });
+  });
+
   describe('noEntries', () => {
     it('is false while loading', () => {
       patchDetailState({ isLoading: true, updateInvalid: false, rows: [] });
@@ -1343,19 +1566,6 @@ describe('ApplicationsListDetail', () => {
 
       const dto = {
         entriesCount: 1,
-        entriesSummary: [
-          {
-            uuid: 'abc',
-            sequenceNumber: 7,
-            accountNumber: '',
-            applicant: null,
-            respondent: 'Acme',
-            postCode: null,
-            applicationTitle: 'Land Registry Appeal',
-            feeRequired: true,
-            result: false,
-          },
-        ],
       } as unknown as ApplicationListGetDetailDto;
 
       apiStub.getApplicationList.mockReturnValueOnce(

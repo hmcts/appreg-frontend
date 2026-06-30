@@ -8,6 +8,7 @@ import {
   UpdateOfficialsNavState,
 } from '../update-officials.types';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import {
   APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS,
   PERSON_TITLE_OPTIONS,
@@ -19,10 +20,7 @@ import {
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { ApplicationListEntriesApi, Official, OfficialType } from '@openapi';
-import {
-  focusErrorSummary,
-  onCreateErrorClick as onCreateErrorClickFn,
-} from '@util/error-click';
+import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 
 type OfficialSummaryRow = {
@@ -37,6 +35,7 @@ type OfficialSummaryRow = {
     ErrorSummaryComponent,
     ReviewConfirmComponent,
     SortableTableComponent,
+    AlertComponent,
   ],
   templateUrl: './update-officials-confirm.component.html',
 })
@@ -50,6 +49,7 @@ export class UpdateOfficialsConfirmComponent implements OnInit {
   readonly columns = APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS;
   readonly errorSummary = signal<ErrorItem[]>([]);
   readonly isSubmitting = signal(false);
+  readonly submitAttempt = signal(0);
   readonly onCreateErrorClick = onCreateErrorClickFn;
 
   private readonly titleLabels = new Map(
@@ -78,6 +78,8 @@ export class UpdateOfficialsConfirmComponent implements OnInit {
   }
 
   onConfirm(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
+
     if (this.isSubmitting()) {
       return;
     }
@@ -109,7 +111,6 @@ export class UpdateOfficialsConfirmComponent implements OnInit {
         },
         error: (err: unknown) => {
           this.errorSummary.set([{ text: getProblemText(err) }]);
-          focusErrorSummary(this.platformId);
         },
       });
   }

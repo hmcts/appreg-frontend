@@ -10,7 +10,7 @@ export class TextboxHelper {
     TextboxElement.findTextbox(selector)
       .should('be.visible')
       .should('be.enabled')
-      .clear()
+      .clear({ force: true })
       .type(text);
   }
 
@@ -200,5 +200,19 @@ export class TextboxHelper {
           .type(text);
       },
     );
+  }
+
+  static getValueInTextboxUnderFieldset(
+    textboxLabel: string,
+    fieldsetLabel: string,
+  ): Cypress.Chainable {
+    return cy
+      .contains('fieldset', fieldsetLabel, { matchCase: false })
+      .then(($fieldset) => {
+        return TextboxElement.findTextboxWithin($fieldset, textboxLabel)
+          .should('be.visible')
+          .should('be.enabled')
+          .invoke('val');
+      });
   }
 }

@@ -1,13 +1,6 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
-import {
-  ApplicationListGetDetailDto,
-  EntryApplicationListGetFilterDto,
-} from '@openapi';
-
-export type EntrySummary = NonNullable<
-  ApplicationListGetDetailDto['entriesSummary']
->[number];
+import { EntryApplicationListGetFilterDto } from '@openapi';
 
 export interface BulkUploadFeedback {
   kind: 'progress' | 'success' | 'warning' | 'error';
@@ -38,6 +31,7 @@ export interface ApplicationsListDetailState {
   updateOfficialsDone?: boolean;
   updateInvalid: boolean;
   moveDone: boolean;
+  updateFeesDone: boolean;
 
   // errors
   errorHint: string;
@@ -52,6 +46,8 @@ export interface ApplicationsListDetailState {
 
   // Request
   getFilters: EntryApplicationListGetFilterDto;
+
+  pdfLoading: boolean;
 }
 
 export const initialApplicationsListDetailState: ApplicationsListDetailState = {
@@ -73,6 +69,7 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   updateOfficialsDone: false,
   updateInvalid: false,
   moveDone: false,
+  updateFeesDone: false,
 
   errorHint: '',
   errorSummary: [],
@@ -82,6 +79,8 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   hasPrefilledFromApi: false,
 
   getFilters: {},
+
+  pdfLoading: false,
 };
 
 export const clearUpdateNotificationsPatch = (): Pick<
@@ -94,6 +93,7 @@ export const clearUpdateNotificationsPatch = (): Pick<
   | 'createDone'
   | 'preserveErrorSummaryOnLoad'
   | 'moveDone'
+  | 'updateFeesDone'
 > => ({
   updateDone: false,
   updateOfficialsDone: false,
@@ -103,4 +103,5 @@ export const clearUpdateNotificationsPatch = (): Pick<
   createDone: false,
   preserveErrorSummaryOnLoad: false,
   moveDone: false,
+  updateFeesDone: false,
 });

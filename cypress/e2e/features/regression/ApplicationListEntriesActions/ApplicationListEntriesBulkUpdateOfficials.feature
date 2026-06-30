@@ -1,6 +1,6 @@
-Feature: Application List Entries Update Officials
+Feature: Application List Entries Bulk Update Officials
 
-    @regression @applicationsListEntries @ARCPOC-222 @ARCPOC-631
+    @regression @applicationsListEntries @ARCPOC-222 @ARCPOC-631 @ARCPOC-1477
     Scenario Outline: Application List Entries - Update Officials
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -93,15 +93,18 @@ Feature: Application List Entries Update Officials
         Then User See "Applications" On The Page
         Then User Should See The Button "Actions" Is Disabled
         # Select all entries
-        When User Checks The Select All Checkbox In Table "Entries"
+        When User Checks The Checkbox In Row Of Table "Entries" With:
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                          | Fee | Resulted |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax | No  |          |
+            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  |          |
         Then User Should See The Button "Actions" Is Enabled
         # Update Officials for Both Entries
         When User Clicks "Actions" Then "Update officials" From Caption Menu In Table "Entries"
         Then User Sees Page Heading "Update officials"
         And User Should See Row In Table "Application(s) to update" With Values:
-            | Sequence number | Applicant(s)           | Respondent(s)                  | Application Title(s)                           |
-            | 1               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax |
-            | 2               | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   |
+            | Sequence number | Applicant              | Respondent            | Application title                              |
+            | 1               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}  | Issue of liability order summons - council tax |
+            | 2               | Sarah Johnson {RANDOM} | Greenfield Consulting | Collection Order - Financial Penalty Account   |
         # Magistrate 1
         Then User Selects "Mr" From The "Select magistrate's title" Dropdown Within The "Magistrate 1" FieldSet
         Then User Fills In The "Magistrate's first name" Textbox With "John" Within The "Magistrate 1" FieldSet
@@ -120,6 +123,7 @@ Feature: Application List Entries Update Officials
         Then User Fills In The "Official's surname" Textbox With "Zanetti_{RANDOM}" Within The "Court official" FieldSet
         # Save Officials
         When User Clicks On The "Save recording officials" Button
+        Then User Sees Information Alert "This action will overwrite the current officials for the selected application(s)"
         Then User Sees Page Heading "Check officials before updating"
         Then User See "Officials" On The Page
         Then User Should See Summary List Row With Key "Magistrate 1" And Value "<Magistrate1Value1>"
@@ -128,6 +132,55 @@ Feature: Application List Entries Update Officials
         Then User Should See Summary List Row With Key "Court official" And Value "<CourtOfficialValue1>"
         When User Clicks On The "Confirm and update officials" Button
         Then User Sees Success Banner "Officials updated" Containing "The officials have been successfully updated"
+        # Verfiy Updated Officials for ALE 1
+        When User Clicks "Open" Button In Row Of Table "Entries" With:
+            | Sequence number | Account number  | Applicant             | Respondent           | Postcode | Title                                          | Fee | Resulted |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  |          |
+        Then User Sees Page Heading "Applications list entry update"
+        When User Clicks On The "Show all sections" Button
+        # Magistrate 1
+        Then User Verifies The Dropdown "Select magistrate's title" Contains "Mr" Under FieldSet "Magistrate 1" In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's first name" Contains "John" Under "Magistrate 1" FieldSet In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's surname" Contains "Smith_{RANDOM}" Under "Magistrate 1" FieldSet In The Accordion "Officials"
+        # Magistrate 2
+        Then User Verifies The Dropdown "Select magistrate's title" Contains "Dr" Under FieldSet "Magistrate 2" In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's first name" Contains "Emily" Under "Magistrate 2" FieldSet In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's surname" Contains "Davis_{RANDOM}" Under "Magistrate 2" FieldSet In The Accordion "Officials"
+        # Magistrate 3
+        Then User Verifies The Dropdown "Select magistrate's title" Contains "Miss" Under FieldSet "Magistrate 3" In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's first name" Contains "Jane" Under "Magistrate 3" FieldSet In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's surname" Contains "Hardy_{RANDOM}" Under "Magistrate 3" FieldSet In The Accordion "Officials"
+        # Court Official
+        Then User Verifies The Dropdown "Select court official's title" Contains "Mrs" Under FieldSet "Court official" In The Accordion "Officials"
+        Then User Verifies The Textbox "Official's first name" Contains "Violette" Under "Court official" FieldSet In The Accordion "Officials"
+        Then User Verifies The Textbox "Official's surname" Contains "Zanetti_{RANDOM}" Under "Court official" FieldSet In The Accordion "Officials"
+        # Cancel from ALE Update Screen
+        Then User Clicks On The Link "Cancel"
+        # Verfiy Updated Officials for ALE 2
+        When User Clicks "Open" Button In Row Of Table "Entries" With:
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
+            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
+        Then User Sees Page Heading "Applications list entry update"
+        # When User Clicks On The "Show all sections" Button
+        # Magistrate 1
+        Then User Verifies The Dropdown "Select magistrate's title" Contains "Mr" Under FieldSet "Magistrate 1" In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's first name" Contains "John" Under "Magistrate 1" FieldSet In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's surname" Contains "Smith_{RANDOM}" Under "Magistrate 1" FieldSet In The Accordion "Officials"
+        # Magistrate 2
+        Then User Verifies The Dropdown "Select magistrate's title" Contains "Dr" Under FieldSet "Magistrate 2" In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's first name" Contains "Emily" Under "Magistrate 2" FieldSet In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's surname" Contains "Davis_{RANDOM}" Under "Magistrate 2" FieldSet In The Accordion "Officials"
+        # Magistrate 3
+        Then User Verifies The Dropdown "Select magistrate's title" Contains "Miss" Under FieldSet "Magistrate 3" In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's first name" Contains "Jane" Under "Magistrate 3" FieldSet In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's surname" Contains "Hardy_{RANDOM}" Under "Magistrate 3" FieldSet In The Accordion "Officials"
+        # Court Official
+        Then User Verifies The Dropdown "Select court official's title" Contains "Mrs" Under FieldSet "Court official" In The Accordion "Officials"
+        Then User Verifies The Textbox "Official's first name" Contains "Violette" Under "Court official" FieldSet In The Accordion "Officials"
+        Then User Verifies The Textbox "Official's surname" Contains "Zanetti_{RANDOM}" Under "Court official" FieldSet In The Accordion "Officials"
+        # Application List Cleanup
+        When User Makes DELETE API Request To "/application-lists/:listId"
+        Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | APIDate  | Time  | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Court                     | Entries | Magistrate1Value1      | Magistrate2Value1       | Magistrate3Value1        | CourtOfficialValue1           |
             | user1 | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todaydisplay | Bristol Crown Court Set 3 | 2       | Mr John Smith_{RANDOM} | Dr Emily Davis_{RANDOM} | Miss Jane Hardy_{RANDOM} | Mrs Violette Zanetti_{RANDOM} |

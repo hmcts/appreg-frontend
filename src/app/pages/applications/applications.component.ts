@@ -15,7 +15,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, map } from 'rxjs';
 
 import {
@@ -29,11 +29,13 @@ import {
 import { mapToRow } from './util/table-mapper';
 
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
@@ -53,6 +55,12 @@ import {
   EntryGetSummaryDto,
   GetEntriesRequestParams,
 } from '@openapi';
+import {
+  ApplicationsSearchFormService,
+  ApplicationsSearchFormValue,
+  DEFAULT_APPLICATIONS_SEARCH_FORM,
+} from '@services/applications/applications-search-form.service';
+import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { toStatus } from '@util/application-status-helpers';
@@ -72,6 +80,7 @@ import {
   isAllMatchingSelected,
 } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { trimStringToLowerCase } from '@util/string-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
 type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
@@ -96,6 +105,19 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
   status: 'status',
 };
 
+const MAX_BULK_ROWS = 100;
+
+export const ApplicationsColumns = [
+  { header: 'Date', field: 'date', wrap: false },
+  { header: 'Applicant', field: 'applicant' },
+  { header: 'Respondent', field: 'respondent' },
+  { header: 'Application title', field: 'title' },
+  { header: 'Fee', field: 'fee' },
+  { header: 'Resulted', field: 'resulted' },
+  { header: 'Status', field: 'status' },
+  { header: 'Actions', field: 'actions', sortable: false },
+];
+
 @Component({
   selector: 'app-applications',
   standalone: true,
@@ -113,6 +135,8 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
     NotificationBannerComponent,
     MojButtonMenuDirective,
     DateTimePipe,
+    AsyncJobProgressComponent,
+    HelpDetailsComponent,
   ],
   templateUrl: './applications.component.html',
   styleUrls: ['./applications.component.scss'],
@@ -124,7 +148,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly appListEntryApi = inject(ApplicationListEntriesApi);
   private readonly appListApi = inject(ApplicationListsApi);
   private readonly pdf = inject(PdfService);
+  private readonly searchForm = inject(ApplicationsSearchFormService);
+  private readonly searchState = inject(ApplicationsSearchStateService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   private readonly appState = createSignalState(initialApplicationsState);
   readonly vm = this.appState.vm;
@@ -136,6 +163,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   private readonly printRequest = signal<ApplicationsPrintRequest | null>(null);
   private selectAllRequestVersion = 0;
+
+  readonly submitAttempt = signal(0);
 
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -154,16 +183,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     status: new FormControl<string | null>(null),
   });
 
-  columns = [
-    { header: 'Date', field: 'date', wrap: false },
-    { header: 'Applicant', field: 'applicant' },
-    { header: 'Respondent', field: 'respondent' },
-    { header: 'Application title', field: 'title' },
-    { header: 'Fee', field: 'fee' },
-    { header: 'Resulted', field: 'resulted' },
-    { header: 'Status', field: 'status' },
-    { header: 'Actions', field: 'actions', sortable: false },
-  ];
+  columns = ApplicationsColumns;
 
   status = [
     { label: 'Choose', value: '' },
@@ -186,10 +206,34 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   ngOnInit(): void {
+    this.restoreSearchState();
     this.initPlaceFields(this.form, this.refFacade);
     this.setupEffects();
 
     addLocationValidatorsToForm(this.form, () => this.state());
+
+    if (this.vm().isSearch) {
+      this.loadApplications(this.vm().getFilters);
+    }
+  }
+
+  private restoreSearchState(): void {
+    const storedForm = this.searchForm.state();
+    const storedState = this.searchState.state();
+
+    this.form.reset(storedForm, { emitEvent: false });
+    this.appState.state.set({
+      ...initialApplicationsState,
+      isSearch: storedState.hasSearched,
+      submitted: storedState.hasSearched,
+      isAdvancedSearch: storedForm.isAdvancedSearch,
+      currentPage: storedState.currentPage,
+      pageSize: storedState.pageSize,
+      sortField: { ...storedState.sortField },
+      getFilters: { ...storedState.appliedFilters },
+      selectedIds: new Set<string>(),
+      selectedRows: [],
+    });
   }
 
   private setupEffects(): void {
@@ -221,37 +265,42 @@ export class Applications extends PlaceFieldsBase implements OnInit {
         },
         onSuccess: async (response) => {
           this.printRequest.set(null);
+          try {
+            const filteredDtos = response.dtos.map((dto) =>
+              filterEntriesToPrint(dto, response.selectedRows),
+            );
 
-          const filteredDtos = response.dtos.map((dto) =>
-            filterEntriesToPrint(dto, response.selectedRows),
-          );
+            if (response.mode === 'page') {
+              await handlePrintPage(filteredDtos, {
+                pdf: this.pdf,
+                isBrowser: isPlatformBrowser(this.platformId),
+                onError: (message) => this.patchPrintError(message),
+                noEntriesMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+                generateErrorMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry,
+                crestUrl: '/assets/govuk-crest.png',
+              });
+              return;
+            }
 
-          if (response.mode === 'page') {
-            await handlePrintPage(filteredDtos, {
+            await handlePrintContinuous(filteredDtos, {
               pdf: this.pdf,
               isBrowser: isPlatformBrowser(this.platformId),
               onError: (message) => this.patchPrintError(message),
               noEntriesMessage:
                 APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
               generateErrorMessage:
-                APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry,
-              crestUrl: '/assets/govuk-crest.png',
+                APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
+              isClosed: false,
             });
-            return;
+          } finally {
+            this.appState.patch({ loading: false });
           }
-
-          await handlePrintContinuous(filteredDtos, {
-            pdf: this.pdf,
-            isBrowser: isPlatformBrowser(this.platformId),
-            onError: (message) => this.patchPrintError(message),
-            noEntriesMessage: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
-            generateErrorMessage:
-              APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
-            isClosed: false,
-          });
         },
         onError: (err) => {
           this.printRequest.set(null);
+          this.appState.patch({ loading: false });
           const errMsg = getProblemText(err);
           this.patchPrintError(errMsg);
         },
@@ -263,6 +312,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   onSubmit(e: SubmitEvent): void {
     e.preventDefault();
     this.invalidateSelectAllRequest();
+    this.submitAttempt.update((attempt) => attempt + 1);
 
     this.patchApp({
       ...clearNotificationsPatch(),
@@ -274,6 +324,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.form.updateValueAndValidity({ emitEvent: false });
 
     const validationErrors = this.buildErrorSummary();
+    this.persistFormState();
+
     if (validationErrors.length) {
       this.patchApp({
         searchErrors: validationErrors,
@@ -311,8 +363,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   async onPrintContinuousClick(): Promise<void> {
+    this.appState.patch({ loading: true });
     const request = await this.buildPrintRequest('continuous');
     if (!request) {
+      this.appState.patch({ loading: false });
       return;
     }
 
@@ -320,8 +374,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   async onPrintPageClick(): Promise<void> {
+    this.appState.patch({ loading: true });
     const request = await this.buildPrintRequest('page');
     if (!request) {
+      this.appState.patch({ loading: false });
       return;
     }
 
@@ -390,10 +446,76 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     );
   }
 
+  async onResultSelectedClick(): Promise<void> {
+    if (this.vm().selectedIds.size > MAX_BULK_ROWS) {
+      this.patchApp({
+        errorSummary: [{ text: 'Please select less than 100 rows' }],
+      });
+      return;
+    }
+
+    let rows: ApplicationRow[] = [];
+    try {
+      rows = await this.resolveSelectedRows();
+    } catch (err) {
+      this.patchApp({
+        errorSummary: [
+          { text: `Failed to resolve selected rows: ${getProblemText(err)}` },
+        ],
+      });
+      return;
+    }
+
+    if (!rows.length) {
+      this.patchApp({
+        errorSummary: [{ text: 'Please select rows to result them' }],
+      });
+      return;
+    }
+
+    const rowsToResult = rows.filter(
+      (row) => trimStringToLowerCase(row.status) !== 'closed',
+    );
+
+    // Only result status = 'open' applications
+    if (!rowsToResult.length) {
+      this.patchApp({
+        errorSummary: [{ text: 'You can only result open application(s)' }],
+      });
+      return;
+    }
+
+    // Exclude status as we can only result open applications
+    const entriesToResult = rowsToResult.map((row) => ({
+      id: row.id,
+      listId: row.applicationListId,
+      date: row.date,
+      applicant: row.applicant,
+      respondent: row.respondent,
+      title: row.title,
+    }));
+
+    await this.router.navigate(['result-selected'], {
+      relativeTo: this.route,
+      state: {
+        entriesToResult,
+        ignoredSelected: rows.length > rowsToResult.length,
+      },
+    });
+  }
+
   private async buildPrintRequest(
     mode: ApplicationsPrintRequest['mode'],
-  ): Promise<ApplicationsPrintRequest | null> {
+  ): Promise<ApplicationsPrintRequest | null | void> {
     this.patchApp(clearNotificationsPatch());
+
+    if (this.vm().selectedIds.size > MAX_BULK_ROWS) {
+      this.patchApp({
+        errorSummary: [{ text: 'Please select less than 100 rows' }],
+      });
+      return;
+    }
+
     let selectedRows: ApplicationRow[];
     try {
       selectedRows = await this.resolveSelectedRows();
@@ -444,6 +566,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
             ),
             getFilters: params.filter ?? {},
           });
+          this.saveSearchState();
         },
         error: () => {
           this.patchApp(searchErrorPatch());
@@ -502,22 +625,17 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   clearSearch(): void {
     this.invalidateSelectAllRequest();
-    this.appState.state.set(initialApplicationsState);
-
-    this.form.reset({
-      date: null,
-      applicantOrg: '',
-      respondentOrg: '',
-      applicantSurname: '',
-      respondentSurname: '',
-      location: '',
-      standardApplicantCode: '',
-      respondentPostcode: '',
-      accountReference: '',
-      court: '',
-      cja: '',
-      status: null,
+    this.appState.state.set({
+      ...initialApplicationsState,
+      sortField: defaultApplicationsSort(),
+      selectedIds: new Set<string>(),
+      selectedRows: [],
+      getFilters: {},
     });
+    this.searchForm.reset();
+    this.searchState.reset();
+
+    this.form.reset(DEFAULT_APPLICATIONS_SEARCH_FORM);
 
     this.patch({
       courthouseSearch: '',
@@ -674,7 +792,45 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   toggleAdvancedSearch(): void {
-    this.patchApp({ isAdvancedSearch: !this.vm().isAdvancedSearch });
+    const isAdvancedSearch = !this.vm().isAdvancedSearch;
+
+    this.patchApp({ isAdvancedSearch });
+    this.searchForm.patchState({ isAdvancedSearch });
+  }
+
+  private saveSearchState(): void {
+    this.persistFormState();
+    this.searchState.setState({
+      hasSearched: this.vm().isSearch,
+      currentPage: this.vm().currentPage,
+      pageSize: this.vm().pageSize,
+      sortField: { ...this.vm().sortField },
+      appliedFilters: { ...this.vm().getFilters },
+    });
+  }
+
+  private persistFormState(): void {
+    this.searchForm.setState(this.searchFormValue());
+  }
+
+  private searchFormValue(): ApplicationsSearchFormValue {
+    const value = this.form.getRawValue();
+
+    return {
+      date: value.date ?? null,
+      applicantOrg: value.applicantOrg ?? '',
+      respondentOrg: value.respondentOrg ?? '',
+      applicantSurname: value.applicantSurname ?? '',
+      respondentSurname: value.respondentSurname ?? '',
+      location: value.location ?? '',
+      standardApplicantCode: value.standardApplicantCode ?? '',
+      respondentPostcode: value.respondentPostcode ?? '',
+      accountReference: value.accountReference ?? '',
+      court: value.court ?? '',
+      cja: value.cja ?? '',
+      status: value.status ?? null,
+      isAdvancedSearch: this.vm().isAdvancedSearch,
+    };
   }
 
   private buildErrorSummary(): ErrorItem[] {

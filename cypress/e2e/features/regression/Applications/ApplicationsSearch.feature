@@ -39,7 +39,7 @@ Feature: Applications List Entry Search
             | User  | SearchDate | NotificationMessage                                               |
             | user1 | 15/08/2023 | Important No application list entries found Try different filters |
 
-    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076
+    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1437 @ARCPOC-1445
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Court, Applicant Orgs and Respondent Orgs
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -106,11 +106,18 @@ Feature: Applications List Entry Search
         And User Should See Row In Table "<TableName>" With Values:
             | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
+
+        When User Clicks "Open" Button In Row Of Table "<TableName>" With:
+            | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
+            | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
+        Then User Sees Page Heading "Applications list entry update"
+        Then User Clicks On The Breadcrumb Link "Applications"
+        Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         Examples:
             | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                  | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                     | Respondent                     | ApplicationTitle                               | Fee | Resulted | Status |
             | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {RANDOM} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {RANDOM} | Respondent Industries {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
 
-    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1343
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1343 @ARCPOC-1437 @ARCPOC-1445
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Other Location and CJA, Applicant Person and Respondent Person
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -183,18 +190,37 @@ Feature: Applications List Entry Search
         And User Should See Row In Table "<TableName>" With Values:
             | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
+
+        When User Clicks "Open" Button In Row Of Table "<TableName>" With:
+            | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
+            | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
+        Then User Sees Page Heading "Applications list entry update"
+        Then User Clicks On The Breadcrumb Link "Applications"
+        Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         Examples:
             | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant             | Respondent           | ApplicationTitle                               | Fee | Resulted | Status |
             | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              | Taylor {RANDOM}  |               |                   | Open         | BS15               | 01        | London |               |               |                  | Application list entries | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
 
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-1437
+    Scenario Outline: Verify Validation Error Messages on Application list entry Search Page
+        Given User Is On The Portal Page
+        When User Signs In With Microsoft SSO As "user1"
+        Then User Clicks On The Link Using Exact Text Match "Applications"
+        Then User Verify The Page URL Contains "/applications"
+        When User Toggles The Accordion "Advanced search"
+        When User Searches Applications With:
+            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
+            |      |             |       |                        |                   |                         |                    | Closed                    |                      |           |                       |                            |                         |                   |
+
+
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083 @ARCPOC-1343
-    Scenario: Verify Validation Error Messages on Application list entry Search Page
+    Scenario Outline: Verify Validation Error Messages on Application list entry Search Page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         When User Clicks On The "Search" Button
-        Then User Sees Validation Error Banner "There is a problem Invalid Search Criteria. At least one field must be entered."
+        Then User Sees Validation Error Banner "There is a problem Invalid search criteria. At least one field must be entered."
         When User Searches Applications With:
             | Date          | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             | <InvalidDate> |             |       | ACME                   |                   |                         |                    |                           |                      |           |                       |                            |                         |                   |

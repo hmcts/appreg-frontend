@@ -1,0 +1,37 @@
+<app-review-confirm
+  (confirm)="onConfirm()"
+  (cancelled)="goBack()"
+  title="Are you sure you want to add these fees to the following applications?"
+  [isRedButton]="false"
+  [scrollToTopOnInit]="true"
+>
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+
+  <app-sortable-table
+    id="entry-selected-table"
+    [caption]="'You are adding fees to the following application(s)'"
+    [columns]="columnsEntries"
+    [data]="selectedEntries"
+    appMojButtonMenu
+  />
+
+  <hr class="govuk-section-break govuk-section-break--m" />
+
+  <section aria-labelledby="civil-fee-confirm-heading">
+    <h2 id="civil-fee-confirm-heading" class="govuk-heading-m">Fee details</h2>
+
+    @if (isOffSiteFee) {
+      <p class="govuk-body">Off site fee applies.</p>
+    }
+
+    <app-table
+      [rows]="feeTableRows"
+      [columns]="feeTableColumns"
+      [caption]="'Civil fee details'"
+      [hiddenCaption]="true"
+      [autoGenerateColumns]="false"
+    />
+  </section>
+</app-review-confirm>

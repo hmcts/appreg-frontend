@@ -61,9 +61,7 @@ import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
-import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
-import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
-import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
+import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
 @Component({
   selector: 'app-applications-list-entry-move',
@@ -107,6 +105,7 @@ export class ApplicationsListEntryMoveComponent
 
   private readonly loadRequest =
     signal<GetApplicationListsRequestParams | null>(null);
+  readonly submitAttempt = signal(0);
 
   readonly searchFormState = this.searchForm.state;
 
@@ -159,18 +158,7 @@ export class ApplicationsListEntryMoveComponent
 
     this.setupEffects();
 
-    this.form.addValidators([
-      courtLocCjaValidator(),
-      cjaMustExistIfTypedValidator({
-        getTyped: () => this.state().cjaSearch ?? '',
-        getValidCodes: () => this.state().cja.map((x) => x.code),
-      }),
-      courtMustExistIfTypedValidator({
-        getTyped: () => this.state().courthouseSearch ?? '',
-        getValidCodes: () =>
-          this.state().courtLocations.map((x) => x.locationCode),
-      }),
-    ]);
+    addLocationValidatorsToForm(this.form, () => this.state());
 
     // We can only move to open applications lists, force status to open
     this.form.patchValue({ status: 'open' });
@@ -186,6 +174,7 @@ export class ApplicationsListEntryMoveComponent
   onSearch(event: SubmitEvent): void {
     // Search applications list
     event.preventDefault();
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.moveEntryPatch({
       searchErrors: [],
       searchDone: false,

@@ -374,7 +374,7 @@ describe('ApplicationsList – search', () => {
     expect(service.getApplicationLists).not.toHaveBeenCalled();
     expect(getUIFlagState(component).searchErrors[0]).toEqual({
       id: '',
-      text: 'Invalid Search Criteria. At least one field must be entered.',
+      text: 'Invalid search criteria. At least one field must be entered.',
     });
   });
 
@@ -698,7 +698,6 @@ describe('ApplicationsList.onPrintPage', () => {
     comp.onPrintPage('abc-123');
     await flushSignalEffects(fixture);
 
-    expect(patchSpy).toHaveBeenCalledTimes(1);
     expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
 
     // args: { id }, undefined, undefined, { transferCache: false }
@@ -745,6 +744,31 @@ describe('ApplicationsList.onPrintPage', () => {
     });
   });
 
+  it('keeps pdfLoading true until page PDF generation completes', async () => {
+    const { comp, api, pdf, fixture } = createInstance('browser');
+    const dto = makePrintDto([{}]);
+    api.printApplicationList.mockReturnValue(of(dto));
+
+    let resolvePdf: (() => void) | undefined;
+    pdf.generatePagedApplicationListPdf.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        resolvePdf = resolve;
+      }),
+    );
+
+    comp.onPrintPage('abc-123');
+    fixture.detectChanges();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(getUIFlagState(comp).pdfLoading).toBe(true);
+
+    resolvePdf?.();
+    await flushSignalEffects(fixture);
+
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
+  });
+
   it('does not generate PDF on the server platform', async () => {
     const { comp, api, pdf, fixture } = createInstance('server');
 
@@ -767,7 +791,7 @@ describe('ApplicationsList.onPrintPage', () => {
     comp.onPrintPage('abc-123');
     await flushSignalEffects(fixture);
 
-    expect(showInlineSpy).toHaveBeenCalledWith('Application List not found');
+    expect(showInlineSpy).toHaveBeenCalledWith('Application list not found');
   });
 
   it('maps non-404 errors to generic banner', async () => {
@@ -828,7 +852,6 @@ describe('ApplicationsList.onPrintContinuous', () => {
     comp.onPrintContinuous('abc-123', false);
     await flushSignalEffects(fixture);
 
-    expect(patchSpy).toHaveBeenCalledTimes(1);
     expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
 
     expect(api.printApplicationList).toHaveBeenCalledTimes(1);

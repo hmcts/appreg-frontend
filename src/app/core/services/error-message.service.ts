@@ -17,6 +17,7 @@ const referenceDataCodePlaceholder = '[^/]+';
 const subscribedEndpoints: EndpointRule[] = [
   { endpoint: '/application-lists', responses: [400, 403, 404, 406, 500, 504] },
   { endpoint: '/application-codes', responses: [400, 403, 406, 500, 504] },
+  { endpoint: '/standard-applicants', responses: [400, 403, 406, 500, 504] },
 
   {
     endpoint: new RegExp(
@@ -28,7 +29,7 @@ const subscribedEndpoints: EndpointRule[] = [
     endpoint: new RegExp(
       `^/standard-applicants/${referenceDataCodePlaceholder}$`,
     ),
-    responses: [404],
+    responses: [400, 403, 404, 406, 500, 504],
   },
   {
     endpoint: new RegExp(`^/application-codes/${regexIdPlaceholder}$`),

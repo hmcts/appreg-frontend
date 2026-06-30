@@ -39,6 +39,7 @@ import {
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
 import { FeesSectionComponent } from '@components/fees-section/fees-section.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { ListMaintenanceSectionComponent } from '@components/list-maintenance-section/list-maintenance-section.component';
 import { PrivateProsecutorsIndexSectionComponent } from '@components/private-prosecutors-index-section/private-prosecutors-index-section.component';
 import { ReportSelectorComponent } from '@components/report-option/report-selector.component';
@@ -121,6 +122,7 @@ const REPORT_LOCATION_RESET_VALUE = {
     ErrorSummaryComponent,
     SuccessBannerComponent,
     AsyncJobProgressComponent,
+    HelpDetailsComponent,
   ],
   templateUrl: './reports.component.html',
 })
@@ -155,6 +157,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     signal<CreateActivityAuditReportRequestParams | null>(null);
   private readonly createPpiRequest =
     signal<CreatePrivateProsecutorsIndexReportRequestParams | null>(null);
+  readonly submitAttempt = signal(0);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -315,6 +318,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   }
 
   onDownload(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
+
     if (this.isReportInProgress()) {
       return;
     }

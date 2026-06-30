@@ -10,6 +10,24 @@ export class UploadHelper {
     });
   }
 
+  static selectFileContents(
+    fileName: string,
+    fileContents: string,
+    mimeType: string,
+  ): void {
+    UploadElement.getFileInput().selectFile(
+      {
+        contents: Cypress.Buffer.from(fileContents),
+        fileName,
+        mimeType,
+        lastModified: Date.now(),
+      },
+      {
+        force: true,
+      },
+    );
+  }
+
   /**
    * Waits for the full bulk upload lifecycle to complete:
    *

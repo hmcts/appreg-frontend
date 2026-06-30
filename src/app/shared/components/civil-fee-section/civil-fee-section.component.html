@@ -21,9 +21,10 @@
           <div class="govuk-hint govuk-checkboxes__hint">
             @if (autoSaveOffsiteFee()) {
               Selecting this will automatically apply the off site fee to the
-              entry. This change is saved immediately.
+              {{ informationText() }}. This change is saved immediately.
             } @else {
-              Selecting this will apply the off site fee to the entry.
+              Selecting this will apply the off site fee to the
+              {{ informationText() }}.
             }
           </div>
         </div>
@@ -32,9 +33,11 @@
   }
 
   <section id="civil-fee-section">
-    <h2 class="govuk-heading-s">
-      {{ feeRequired() ? feeHeadingText() : 'No fee required' }}
-    </h2>
+    @if (!noFeeMeta()) {
+      <h2 class="govuk-heading-s">
+        {{ feeRequired() ? feeHeadingText() : 'No fee required' }}
+      </h2>
+    }
 
     <app-sortable-table
       id="civil-fee-table"
@@ -43,7 +46,7 @@
       [columns]="civilFeeColumnsWithChangeLink()"
       [data]="feeStatusRows()"
       [dateFieldIdentifier]="'statusDateRaw'"
-      noDataMessage="No fees exist for this entry."
+      noDataMessage="No fees exist."
       appMojButtonMenu
     >
       <ng-template #dateTemplate let-row>

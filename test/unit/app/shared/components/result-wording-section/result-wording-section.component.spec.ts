@@ -78,11 +78,13 @@ describe('ResultWordingSectionComponent', () => {
     expect(res[0].resultCode).toBe('RC2');
   });
 
-  it('filteredResultCodes returns [] when there is a pending row', () => {
+  it('filteredResultCodes excludes pending rows but still returns other matches', () => {
     component.selectResultCode(codes[0]);
     component.resultCodeSearch = 'rc';
 
-    expect(component.filteredResultCodes).toEqual([]);
+    expect(
+      component.filteredResultCodes.map((item) => item.resultCode),
+    ).toEqual(['RC2']);
   });
 
   it('selectResultCode creates one pending row, emits pendingChange, clears search', () => {
@@ -245,6 +247,85 @@ describe('ResultWordingSectionComponent', () => {
     expect(payload.pendingToCreate[0].kind).toBe('pending');
     expect(payload.pendingToCreate[0].resultCode).toBe('RC1');
     expect(payload.existingToUpdate).toEqual([]);
+  });
+
+  it('keeps other pending rows when one pending wording field changes', () => {
+    fixture.componentRef.setInput('resultCodeTemplateByCode', {
+      RC1: {
+        template: "Result '{{ Date }}' applied.",
+        'substitution-key-constraints': [],
+      },
+      RC2: {
+        template: "Result '{{ Place }}' applied.",
+        'substitution-key-constraints': [],
+      },
+    } as Record<string, TemplateDetail>);
+    fixture.detectChanges();
+
+    const pendingEmitSpy = jest.spyOn(component.pendingChange, 'emit');
+
+    component.selectResultCode(codes[0]);
+    component.selectResultCode(codes[1]);
+
+    const pendingCards = component
+      .existingResultSummaryLists()
+      .filter((card) => card.status === 'pending');
+
+    component.onCardWordingFieldsDTO(pendingCards[0], {
+      wordingFields: [{ key: 'Date', value: '2026-03-02' }],
+    });
+
+    const lastPendingRows = pendingEmitSpy.mock.calls.at(-1)?.[0] ?? [];
+    expect(lastPendingRows).toHaveLength(2);
+    expect(lastPendingRows[0].resultCode).toBe('RC1');
+    expect(lastPendingRows[0].wordingFields).toEqual([
+      { key: 'Date', value: '2026-03-02' },
+    ]);
+    expect(lastPendingRows[1].resultCode).toBe('RC2');
+    expect(lastPendingRows[1].wordingFields).toEqual([]);
+  });
+
+  it('onSaveResult emits all pending rows in one payload', () => {
+    fixture.componentRef.setInput('resultCodeTemplateByCode', {
+      RC1: {
+        template: "Result '{{ Date }}' applied.",
+        'substitution-key-constraints': [],
+      },
+      RC2: {
+        template: "Result '{{ Place }}' applied.",
+        'substitution-key-constraints': [],
+      },
+    } as Record<string, TemplateDetail>);
+    fixture.detectChanges();
+
+    const submitSpy = jest.spyOn(component.submitResults, 'emit');
+
+    component.selectResultCode(codes[0]);
+    component.selectResultCode(codes[1]);
+
+    const pendingCards = component
+      .existingResultSummaryLists()
+      .filter((card) => card.status === 'pending');
+
+    component.onSaveResult();
+    component.onCardWordingFieldsDTO(pendingCards[0], {
+      wordingFields: [{ key: 'Date', value: '2026-03-02' }],
+    });
+    component.onCardWordingFieldsDTO(pendingCards[1], {
+      wordingFields: [{ key: 'Place', value: 'London' }],
+    });
+
+    expect(submitSpy).toHaveBeenCalledTimes(1);
+    expect(submitSpy.mock.calls[0][0].pendingToCreate).toEqual([
+      expect.objectContaining({
+        resultCode: 'RC1',
+        wordingFields: [{ key: 'Date', value: '2026-03-02' }],
+      }),
+      expect.objectContaining({
+        resultCode: 'RC2',
+        wordingFields: [{ key: 'Place', value: 'London' }],
+      }),
+    ]);
   });
 
   it('canSubmitResults is true for placeholder templates, but apply is blocked until wording fields are saved', () => {

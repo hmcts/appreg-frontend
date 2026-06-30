@@ -148,15 +148,18 @@ describe('CivilFeeSectionComponent', () => {
   it('onAddFeeDetailsClick lazily attaches validators and emits civilFeeErrors when invalid', () => {
     const errorsSpy = jest.fn();
     const addSpy = jest.fn();
+    const submitAttemptSpy = jest.fn();
 
     component.civilFeeErrors.subscribe(errorsSpy);
     component.addFeeDetails.subscribe(addSpy);
+    component.submitAttempted.subscribe(submitAttemptSpy);
 
     // leave required fields empty -> invalid
     component.onAddFeeDetailsClick();
 
     // should NOT emit addFeeDetails
     expect(addSpy).not.toHaveBeenCalled();
+    expect(submitAttemptSpy).toHaveBeenCalledTimes(1);
 
     // should emit error items
     expect(errorsSpy).toHaveBeenCalled();
@@ -178,9 +181,11 @@ describe('CivilFeeSectionComponent', () => {
   it('onAddFeeDetailsClick emits AddFeeDetailsPayload when valid (trims + null paymentReference)', () => {
     const errorsSpy = jest.fn();
     const addSpy = jest.fn();
+    const submitAttemptSpy = jest.fn();
 
     component.civilFeeErrors.subscribe(errorsSpy);
     component.addFeeDetails.subscribe(addSpy);
+    component.submitAttempted.subscribe(submitAttemptSpy);
 
     const f = component.feeForm().controls;
 
@@ -191,6 +196,7 @@ describe('CivilFeeSectionComponent', () => {
     component.onAddFeeDetailsClick();
 
     expect(addSpy).toHaveBeenCalledTimes(1);
+    expect(submitAttemptSpy).toHaveBeenCalledTimes(1);
     expect(addSpy).toHaveBeenCalledWith({
       feeStatus: 'paid',
       statusDate: '2025-11-01',
@@ -483,6 +489,24 @@ describe('CivilFeeSectionComponent', () => {
     expect(f.feeStatusDate.hasError('required')).toBe(false);
   });
 
+  it('on parent submit: when fee rows already exist, the add-fee inputs do not show submit errors', () => {
+    const f = component.feeForm().controls;
+
+    f.feeStatuses.setValue([
+      {
+        id: 'ROW-1',
+        paymentStatus: 'Paid',
+        statusDate: '01/01/2026',
+      } as unknown as FeeStatus,
+    ]);
+
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.componentRef.setInput('parentSubmitted', true);
+    fixture.detectChanges();
+
+    expect(component.showErrors()).toBe(false);
+  });
+
   it('on parent submit: emits civilFeeErrors for missing fee status and status date when fee is required and no rows exist', () => {
     const emitSpy = jest.spyOn(component.civilFeeErrors, 'emit');
 
@@ -509,10 +533,13 @@ describe('CivilFeeSectionComponent', () => {
   });
 
   it('validateForSubmit returns current civil fee errors', () => {
+    const emitSpy = jest.spyOn(component.civilFeeErrors, 'emit');
+
     fixture.componentRef.setInput('feeRequired', true);
     fixture.detectChanges();
 
     const errors = component.validateForSubmit();
+    const lastCall = emitSpy.mock.calls.at(-1) as [ErrorItem[]] | undefined;
 
     expect(errors).toEqual(
       expect.arrayContaining([
@@ -526,6 +553,32 @@ describe('CivilFeeSectionComponent', () => {
         }),
       ]),
     );
+    expect(lastCall?.[0]).toEqual(errors);
+  });
+
+  it('validateForSubmit emits an empty error list when the civil fee fields are valid', () => {
+    const emitSpy = jest.spyOn(component.civilFeeErrors, 'emit');
+
+    const f = component.feeForm().controls;
+    f.feeStatuses.setValue([
+      {
+        paymentStatus: 'PAID',
+        statusDate: '2026-01-01',
+        paymentReference: 'REF-123',
+      },
+    ]);
+    f.feeStatus.setValue('PAID');
+    f.feeStatusDate.setValue('2026-01-01');
+    f.paymentRef.setValue('REF-123');
+
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.detectChanges();
+
+    const errors = component.validateForSubmit();
+    const lastCall = emitSpy.mock.calls.at(-1) as [ErrorItem[]] | undefined;
+
+    expect(errors).toEqual([]);
+    expect(lastCall?.[0]).toEqual([]);
   });
 
   it("onAddFeeDetailsClick blocks when feeStatus is 'DUE' and paymentRef is provided", () => {

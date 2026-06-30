@@ -17,6 +17,7 @@ describe('applications-list.state', () => {
         key: 'date',
       },
       listCloseDone: false,
+      pdfLoading: false,
     });
   });
 

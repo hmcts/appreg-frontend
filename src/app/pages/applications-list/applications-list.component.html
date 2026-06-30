@@ -2,6 +2,7 @@
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().searchErrors"
+    [focusKey]="submitAttempt()"
     targetId="search"
     (itemSelect)="onCreateErrorClick($event)"
   />
@@ -20,6 +21,7 @@
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().errorSummary"
+    [focusKey]="submitAttempt()"
     targetId="sortable-table"
   />
 }
@@ -38,8 +40,15 @@
   />
 }
 
+@if (vm().pdfLoading) {
+  <app-async-job-progress
+    heading="PDF in progress"
+    body="Your PDF is being generated and will download automatically when ready."
+  />
+}
+
 <app-page-header
-  title="Applications List"
+  title="Applications list"
   [actions]="[
     {
       label: 'Create new list',
@@ -49,6 +58,25 @@
     },
   ]"
 />
+
+<app-help-details summary="Help with application lists">
+  <p class="govuk-body">
+    Actions are only available after you select a list from the search results.
+  </p>
+
+  <ul class="govuk-list govuk-list--bullet">
+    <li>
+      If you enter another location, you must also select the relevant or owning
+      CJA.
+    </li>
+    <li>
+      Print continuous prints all applications together as a court list or
+      register.
+    </li>
+    <li>Print page prints each application entry starting on a new page.</li>
+    <li>Delete list removes the selected list and its entries.</li>
+  </ul>
+</app-help-details>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
@@ -83,10 +111,7 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-@if (
-  storedRecordsVm().rows.length ||
-  (storedRecordsVm().submitted && !vm().isLoading)
-) {
+@if (storedRecordsVm().rows.length) {
   <!-- Sortable table component -->
   <app-sortable-table
     id="sortable-table"
@@ -189,4 +214,8 @@
     [totalPages]="storedRecordsVm().totalPages"
     (pageChange)="onPageChange($event)"
   />
+} @else {
+  @if (showNoResultsFound()) {
+    <p class="govuk-body">No results found.</p>
+  }
 }

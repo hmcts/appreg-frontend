@@ -148,6 +148,71 @@ describe('ApplicationListEntryFormService', () => {
     );
   });
 
+  it('requires account reference when an EF application code has an empty account reference', () => {
+    const forms = service.createForms();
+
+    forms.form.patchValue({
+      applicationCode: 'EF123',
+      applicationNotes: {
+        accountReference: null,
+      },
+    });
+    forms.form.updateValueAndValidity({ emitEvent: false });
+
+    expect(
+      forms.form.controls.applicationNotes.controls.accountReference.errors,
+    ).toEqual({ required: true });
+  });
+
+  it('treats whitespace-only account reference as empty for EF application codes', () => {
+    const forms = service.createForms();
+
+    forms.form.patchValue({
+      applicationCode: 'EF123',
+      applicationNotes: {
+        accountReference: '   ',
+      },
+    });
+    forms.form.updateValueAndValidity({ emitEvent: false });
+
+    expect(
+      forms.form.controls.applicationNotes.controls.accountReference.errors,
+    ).toEqual({ required: true });
+  });
+
+  it('does not require account reference for non-EF application codes', () => {
+    const forms = service.createForms();
+
+    forms.form.patchValue({
+      applicationCode: 'APP123',
+      applicationNotes: {
+        accountReference: null,
+      },
+    });
+    forms.form.updateValueAndValidity({ emitEvent: false });
+
+    expect(
+      forms.form.controls.applicationNotes.controls.accountReference.errors,
+    ).toBeNull();
+  });
+
+  it('keeps account reference max length validation when an EF application code has a value', () => {
+    const forms = service.createForms();
+    const accountReference =
+      forms.form.controls.applicationNotes.controls.accountReference;
+
+    forms.form.patchValue({
+      applicationCode: 'EF123',
+      applicationNotes: {
+        accountReference: '1'.repeat(21),
+      },
+    });
+    forms.form.updateValueAndValidity({ emitEvent: false });
+
+    expect(accountReference.hasError('maxlength')).toBe(true);
+    expect(accountReference.hasError('required')).toBe(false);
+  });
+
   it('hydrates a standard applicant code and resets applicant subforms', () => {
     const forms = service.createForms();
 
@@ -359,6 +424,7 @@ describe('ApplicationListEntryFormService', () => {
         },
       }),
     );
+    expect(dto as Record<string, unknown>).not.toHaveProperty('lodgementDate');
     expect(dto.applicant).toBeUndefined();
   });
 

@@ -12,8 +12,7 @@
       "location": "Manchester Magistrates’ Court",
       "description": "Public applications list (Early)",
       "entriesCount": 6,
-      "status": "OPEN",
-      "entriesSummary": [{ "sequenceNumber": 1, "result": "Adjourned" }]
+      "status": "OPEN"
     },
     {
       "id": "9b8b4b6e-9d1a-4a6a-9a36-222222222222",
@@ -22,8 +21,7 @@
       "location": "Manchester Magistrates’ Court",
       "description": "Public applications list AM",
       "entriesCount": 7,
-      "status": "OPEN",
-      "entriesSummary": [{ "sequenceNumber": 2, "result": "Heard" }]
+      "status": "OPEN"
     },
     {
       "id": "9b8b4b6e-9d1a-4a6a-9a36-333333333333",
@@ -32,8 +30,7 @@
       "location": "Liverpool Magistrates’ Court",
       "description": "Applications list (Late AM)",
       "entriesCount": 4,
-      "status": "OPEN",
-      "entriesSummary": []
+      "status": "OPEN"
     },
     {
       "id": "9b8b4b6e-9d1a-4a6a-9a36-444444444444",
@@ -42,8 +39,7 @@
       "location": "Leeds Magistrates’ Court",
       "description": "Applications list (Midday)",
       "entriesCount": 3,
-      "status": "OPEN",
-      "entriesSummary": []
+      "status": "OPEN"
     },
     {
       "id": "9b8b4b6e-9d1a-4a6a-9a36-555555555555",
@@ -52,8 +48,7 @@
       "location": "Birmingham Magistrates’ Court",
       "description": "Applications list (Early PM)",
       "entriesCount": 5,
-      "status": "CLOSED",
-      "entriesSummary": []
+      "status": "CLOSED"
     },
     {
       "id": "9b8b4b6e-9d1a-4a6a-9a36-666666666666",
@@ -62,8 +57,7 @@
       "location": "Manchester Magistrates’ Court",
       "description": "Public applications list PM",
       "entriesCount": 5,
-      "status": "CLOSED",
-      "entriesSummary": []
+      "status": "CLOSED"
     },
     {
       "id": "9b8b4b6e-9d1a-4a6a-9a36-777777777777",
@@ -72,8 +66,7 @@
       "location": "Bristol Magistrates’ Court",
       "description": "Applications list (Mid PM)",
       "entriesCount": 2,
-      "status": "OPEN",
-      "entriesSummary": []
+      "status": "OPEN"
     },
     {
       "id": "9b8b4b6e-9d1a-4a6a-9a36-888888888888",
@@ -82,8 +75,7 @@
       "location": "Nottingham Magistrates’ Court",
       "description": "Applications list (Late PM)",
       "entriesCount": 8,
-      "status": "OPEN",
-      "entriesSummary": [{ "sequenceNumber": 1, "result": "Heard" }]
+      "status": "OPEN"
     },
     {
       "id": "9b8b4b6e-9d1a-4a6a-9a36-999999999999",
@@ -92,8 +84,7 @@
       "location": "Sheffield Magistrates’ Court",
       "description": "Applications list (Evening)",
       "entriesCount": 1,
-      "status": "OPEN",
-      "entriesSummary": []
+      "status": "OPEN"
     },
     {
       "id": "9b8b4b6e-9d1a-4a6a-9a36-aaaaaaaaaaaa",
@@ -102,8 +93,7 @@
       "location": "Newcastle Magistrates’ Court",
       "description": "Applications list (Late)",
       "entriesCount": 3,
-      "status": "CLOSED",
-      "entriesSummary": []
+      "status": "CLOSED"
     }
   ]
 }

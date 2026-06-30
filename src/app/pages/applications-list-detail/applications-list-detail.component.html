@@ -3,19 +3,6 @@
   [items]="[{ label: 'Applications list', link: '/applications-list' }]"
 />
 
-<app-page-header
-  title="Applications List"
-  [actions]="[
-    {
-      label: 'Create application',
-      routerLink: ['create-entry'],
-      startIcon: true,
-      variant: 'primary',
-    },
-  ]"
->
-</app-page-header>
-
 @if (vm().createDone) {
   <app-success-banner
     heading="Application list created"
@@ -35,6 +22,7 @@
     [title]="vm().errorHint || 'There is a problem'"
     (itemSelect)="onCreateErrorClick($event)"
     [items]="vm().errorSummary"
+    [focusKey]="submitAttempt()"
   />
 }
 
@@ -49,6 +37,20 @@
   <app-success-banner
     heading="Officials updated"
     linkText="The officials have been successfully updated"
+  />
+}
+
+@if (vm().updateFeesDone) {
+  <app-success-banner
+    heading="Fees updated"
+    linkText="Fees have been successfully updated"
+  />
+}
+
+@if (vm().pdfLoading) {
+  <app-async-job-progress
+    heading="PDF in progress"
+    body="Your PDF is being generated and will download automatically when ready."
   />
 }
 
@@ -80,8 +82,21 @@
   <app-error-summary
     [title]="vm().bulkUploadFeedback?.heading ?? 'There is a problem'"
     [items]="[{ text: vm().bulkUploadFeedback?.body ?? '' }]"
+    [focusKey]="submitAttempt()"
   />
 }
+
+<app-page-header
+  title="Applications list"
+  [actions]="[
+    {
+      label: 'Create application',
+      routerLink: ['create-entry'],
+      startIcon: true,
+      variant: 'primary',
+    },
+  ]"
+/>
 
 <!-- Tabs -->
 <div class="govuk-tabs" data-module="govuk-tabs">
@@ -138,6 +153,32 @@
     >
     </app-page-header>
 
+    <app-help-details summary="Help with applications">
+      <p class="govuk-body">
+        Actions are applied to the entries selected in the table.
+      </p>
+
+      <ul class="govuk-list govuk-list--bullet">
+        <li>
+          Result selected applies the same result to all selected entries.
+        </li>
+        <li>
+          Move entries moves the selected entries to another application list.
+        </li>
+        <li>
+          Update officials changes the recorded justice of peace or official for
+          selected entries.
+        </li>
+        <li>
+          Update fee details changes fee information for selected entries.
+        </li>
+        <li>
+          Print continuous prints all selected entries together as a court list
+          or register.
+        </li>
+        <li>Print page prints each selected entry starting on a new page.</li>
+      </ul>
+    </app-help-details>
     <hr
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
@@ -145,6 +186,7 @@
     <app-applications-list-detail-search
       [listId]="id"
       [pageSize]="vm().pageSize"
+      [incrementSubmitAttempt]="incrementSubmitAttemptFn"
       (searchStarted)="onSearchStarted($event)"
       (searchResult)="onSearchResult($event)"
     />
@@ -222,6 +264,14 @@
                   (click)="onUpdateOfficialsButtonClick()"
                 >
                   Update officials
+                </button>
+
+                <button
+                  type="button"
+                  class="govuk-button moj-button-menu__item govuk-button--secondary"
+                  (click)="onUpdateFeeButtonClick()"
+                >
+                  Update fee details
                 </button>
 
                 <button
@@ -305,6 +355,7 @@
       [etag]="etag"
       [patchState]="patchStateFn"
       [setUpdateRequest]="setUpdateRequestFn"
+      [incrementSubmitAttempt]="incrementSubmitAttemptFn"
       [suggestionsFacade]="suggestionsFacade"
       [listRow]="listRow"
     />

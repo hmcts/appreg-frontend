@@ -1,4 +1,4 @@
-/* 
+/*
 Helper functions for applications-list.ts - onDelete()
 
 Input: Unknown
@@ -23,7 +23,7 @@ const TABLE: Record<number, SummaryItem[]> = {
   ],
   404: [
     {
-      text: 'Application List not found. Return to the Lists view.',
+      text: 'Application list not found. Return to the lists view.',
       href: '/applications-list#sortable-table',
     },
   ],

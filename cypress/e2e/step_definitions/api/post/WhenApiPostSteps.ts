@@ -36,8 +36,8 @@ When(
     const rowObj: Record<string, string> = {};
 
     // Process all rows (no header row in Object Builder tables)
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
+    for (const element of rows) {
+      const row = element;
       if (row.length >= 2) {
         const key = row[0].trim();
         const value = row[1].trim();
@@ -50,5 +50,26 @@ When(
 
     // Build nested object from flat dot-notation keys and make POST request
     ApiPostHelper.postWithBuilder(endpoint, processedRow);
+  },
+);
+
+When(
+  'User Makes Multipart POST API Request To {string} With Fixture File {string} And Content Type {string}',
+  (endpoint: string, fileName: string, contentType: string) => {
+    ApiPostHelper.postMultipartFile(endpoint, fileName, contentType);
+  },
+);
+
+When(
+  'User Makes Raw POST API Request To {string} With Body {string} And Headers:',
+  (endpoint: string, body: string, dataTable: DataTable) => {
+    const headers = Object.fromEntries(
+      dataTable
+        .raw()
+        .filter((row) => row.length >= 2)
+        .map(([key, value]) => [key.trim(), value.trim()]),
+    );
+
+    ApiPostHelper.postRaw(endpoint, body, headers);
   },
 );

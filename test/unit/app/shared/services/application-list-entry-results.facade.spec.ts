@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 
 import {
   ApplicationListEntryResultsApi,
@@ -32,10 +32,45 @@ function makeDetail(
   } as unknown as ResultCodeGetDetailDto;
 }
 
+type PrivateFacadeMethods = {
+  toUniqueEntryIds: (entryIds: string[]) => string[];
+  buildCreateRequests: (
+    selectedEntryIds: string[],
+    payload: {
+      pendingToCreate: PendingResultRow[];
+      existingToUpdate: Array<{
+        resultId: string;
+        resultCode: string;
+        wordingFields: Array<{ key: string; value: string }>;
+      }>;
+    },
+    requestFactory: (
+      item: PendingResultRow,
+      ids: string[],
+    ) => Observable<ResultGetDto[]>,
+  ) => Observable<ResultGetDto[]>[];
+  submitCombinedRequests: (
+    updateRequests: Observable<
+      | { result: ResultGetDto; success: true }
+      | { error: unknown; success: false }
+    >[],
+    createRequests: Observable<ResultGetDto[]>[],
+    onSuccess?: () => void,
+    onError?: (err: unknown) => void,
+  ) => void;
+};
+
+function getFacadeInternals(
+  value: ApplicationListEntryResultsFacade,
+): PrivateFacadeMethods {
+  return value as unknown as PrivateFacadeMethods;
+}
+
 describe('ApplicationListEntryResultsFacade', () => {
   let facade: ApplicationListEntryResultsFacade;
   let entryResultsApi: {
     bulkResultApplicationListEntries: jest.Mock;
+    bulkResultEntries: jest.Mock;
     createApplicationListEntryResult: jest.Mock;
     deleteApplicationListEntryResult: jest.Mock;
     getApplicationListEntryResults: jest.Mock;
@@ -49,6 +84,7 @@ describe('ApplicationListEntryResultsFacade', () => {
   beforeEach(() => {
     entryResultsApi = {
       bulkResultApplicationListEntries: jest.fn(() => of([]) as unknown),
+      bulkResultEntries: jest.fn(() => of([]) as unknown),
       createApplicationListEntryResult: jest.fn(() => of(null) as unknown),
       deleteApplicationListEntryResult: jest.fn(() => of(null) as unknown),
       getApplicationListEntryResults: jest.fn(
@@ -61,7 +97,15 @@ describe('ApplicationListEntryResultsFacade', () => {
         () => of({ content: [] } as unknown as ResultCodePage) as unknown,
       ),
       getResultCodeByCodeAndDate: jest.fn(
-        () => of(makeDetail({ wording: 'W' })) as unknown,
+        () =>
+          of(
+            makeDetail({
+              wording: {
+                template: 'W',
+                'substitution-key-constraints': [],
+              },
+            }),
+          ) as unknown,
       ),
     };
 
@@ -81,6 +125,138 @@ describe('ApplicationListEntryResultsFacade', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe('toUniqueEntryIds(), buildCreateRequests(), submitCombinedRequests()', () => {
+    it('toUniqueEntryIds removes duplicates and empty values', () => {
+      const internals = getFacadeInternals(facade);
+
+      expect(
+        internals.toUniqueEntryIds(['E-1', '', 'E-2', 'E-1', null as never]),
+      ).toEqual(['E-1', 'E-2']);
+    });
+
+    it('buildCreateRequests filters empty result codes and passes shared entry ids to the request factory', () => {
+      const internals = getFacadeInternals(facade);
+      const requestFactory = jest.fn(() => of([]));
+
+      const requests = internals.buildCreateRequests(
+        ['E-1', 'E-2'],
+        {
+          pendingToCreate: [
+            {
+              resultCode: 'RC1',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            } as PendingResultRow,
+            {
+              resultCode: '',
+              wordingFields: [{ key: 'Place', value: 'London' }],
+            } as PendingResultRow,
+            {
+              resultCode: 'RC2',
+              wordingFields: [],
+            } as unknown as PendingResultRow,
+          ],
+          existingToUpdate: [],
+        },
+        requestFactory,
+      );
+
+      expect(requests).toHaveLength(2);
+      expect(requestFactory).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ resultCode: 'RC1' }),
+        ['E-1', 'E-2'],
+      );
+      expect(requestFactory).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ resultCode: 'RC2' }),
+        ['E-1', 'E-2'],
+      );
+    });
+
+    it('buildCreateRequests returns no requests when there are no selected entry ids', () => {
+      const internals = getFacadeInternals(facade);
+      const requestFactory = jest.fn(() => of([]));
+
+      const requests = internals.buildCreateRequests(
+        [],
+        {
+          pendingToCreate: [
+            {
+              resultCode: 'RC1',
+              wordingFields: [],
+            } as unknown as PendingResultRow,
+          ],
+          existingToUpdate: [],
+        },
+        requestFactory,
+      );
+
+      expect(requests).toEqual([]);
+      expect(requestFactory).not.toHaveBeenCalled();
+    });
+
+    it('submitCombinedRequests merges created results, clears pending state, and calls onSuccess when requests succeed', () => {
+      const internals = getFacadeInternals(facade);
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      const mergedResult = makeResult({
+        id: 'R-200',
+        entryId: 'E-1',
+        resultCode: 'RC2',
+      });
+
+      facade.pendingRows.set([
+        {
+          resultCode: 'RC2',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        } as PendingResultRow,
+      ]);
+
+      internals.submitCombinedRequests(
+        [
+          of({
+            result: makeResult({ id: 'R-100', entryId: 'E-9' }),
+            success: true as const,
+          }),
+        ],
+        [of([mergedResult])],
+        onSuccess,
+        onError,
+      );
+
+      expect(facade.newlyCreatedEntryResults()).toEqual([
+        makeResult({ id: 'R-100', entryId: 'E-9' }),
+        mergedResult,
+      ]);
+      expect(facade.clearPendingToken()).toBe(1);
+      expect(facade.pendingRows()).toEqual([]);
+      expect(onSuccess).toHaveBeenCalled();
+      expect(onError).not.toHaveBeenCalled();
+    });
+
+    it('submitCombinedRequests reports failed wrapped updates and does not call onSuccess', () => {
+      const internals = getFacadeInternals(facade);
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      const error = new Error('update failed');
+
+      internals.submitCombinedRequests(
+        [
+          of({
+            error,
+            success: false as const,
+          }),
+        ],
+        [],
+        onSuccess,
+        onError,
+      );
+
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledWith(error);
+    });
   });
 
   describe('loadEntryResults', () => {
@@ -272,6 +448,68 @@ describe('ApplicationListEntryResultsFacade', () => {
       expect(onSuccess).toHaveBeenCalled();
     });
 
+    it('creates one bulk request per pending result code', () => {
+      const onSuccess = jest.fn();
+
+      entryResultsApi.bulkResultApplicationListEntries
+        .mockReturnValueOnce(
+          of([makeResult({ id: 'R-10', entryId: 'E-1' })]) as unknown,
+        )
+        .mockReturnValueOnce(
+          of([
+            makeResult({ id: 'R-11', entryId: 'E-1', resultCode: 'RC3' }),
+          ]) as unknown,
+        );
+
+      facade.submitResultChangesForEntries(
+        'L-1',
+        ['E-1', 'E-2'],
+        {
+          pendingToCreate: [
+            {
+              resultCode: ' rc2 ',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            } as PendingResultRow,
+            {
+              resultCode: ' rc3 ',
+              wordingFields: [{ key: 'Place', value: 'London' }],
+            } as PendingResultRow,
+          ],
+          existingToUpdate: [],
+        },
+        onSuccess,
+      );
+
+      expect(
+        entryResultsApi.bulkResultApplicationListEntries,
+      ).toHaveBeenCalledTimes(2);
+      expect(
+        entryResultsApi.bulkResultApplicationListEntries,
+      ).toHaveBeenNthCalledWith(1, {
+        listId: 'L-1',
+        bulkResultDto: {
+          entryIds: ['E-1', 'E-2'],
+          result: {
+            resultCode: 'rc2',
+            wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+          },
+        },
+      });
+      expect(
+        entryResultsApi.bulkResultApplicationListEntries,
+      ).toHaveBeenNthCalledWith(2, {
+        listId: 'L-1',
+        bulkResultDto: {
+          entryIds: ['E-1', 'E-2'],
+          result: {
+            resultCode: 'rc3',
+            wordingFields: [{ key: 'Place', value: 'London' }],
+          },
+        },
+      });
+      expect(onSuccess).toHaveBeenCalled();
+    });
+
     it('keeps pending rows and calls onError when the bulk request fails', () => {
       const onSuccess = jest.fn();
       const onError = jest.fn();
@@ -327,14 +565,13 @@ describe('ApplicationListEntryResultsFacade', () => {
       const onSuccess = jest.fn();
 
       facade.addCreatedEntryResults([
-        makeResult({ id: 'R-1', entryId: 'E-1', wordingFields: [] }),
+        makeResult({ id: 'R-1', entryId: 'E-1' }),
       ]);
       entryResultsApi.updateApplicationListEntryResult.mockReturnValueOnce(
         of(
           makeResult({
             id: 'R-1',
             entryId: 'E-1',
-            wordingFields: [{ key: 'Location', value: 'London' }],
           }),
         ),
       );
@@ -370,7 +607,6 @@ describe('ApplicationListEntryResultsFacade', () => {
         makeResult({
           id: 'R-1',
           entryId: 'E-1',
-          wordingFields: [{ key: 'Location', value: 'London' }],
         }),
       ]);
       expect(onSuccess).toHaveBeenCalled();
@@ -487,7 +723,6 @@ describe('ApplicationListEntryResultsFacade', () => {
         id: 'R-1',
         entryId: 'E-1',
         resultCode: 'RC1',
-        wordingFields: [{ key: 'Date', value: '2026-03-04' }],
       });
 
       facade.addCreatedEntryResults([originalResult1, originalResult2]);
@@ -521,6 +756,376 @@ describe('ApplicationListEntryResultsFacade', () => {
       ]);
       expect(onSuccess).not.toHaveBeenCalled();
       expect(onError).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('submitResultsWithManyListIds', () => {
+    it('creates one bulk request per pending result, stores returned results, and clears pending when it succeeds', () => {
+      const onSuccess = jest.fn();
+      const createdForEntry1 = makeResult({
+        id: 'R-20',
+        entryId: 'E-1',
+        resultCode: 'rc2',
+      });
+      const createdForEntry2 = makeResult({
+        id: 'R-21',
+        entryId: 'E-2',
+        resultCode: 'RC2',
+      });
+
+      facade.setPending([
+        {
+          resultCode: 'RC2',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        } as PendingResultRow,
+      ]);
+      entryResultsApi.bulkResultEntries.mockReturnValueOnce(
+        of([createdForEntry1, createdForEntry2]) as unknown,
+      );
+
+      facade.submitResultsWithManyListIds(
+        [
+          { listId: 'L-1', entryIds: ['E-1', 'E-1'] },
+          { listId: 'L-2', entryIds: ['E-2'] },
+        ],
+        {
+          pendingToCreate: [
+            {
+              resultCode: ' rc2 ',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            } as PendingResultRow,
+          ],
+          existingToUpdate: [],
+        },
+        onSuccess,
+      );
+
+      expect(entryResultsApi.bulkResultEntries).toHaveBeenCalledTimes(1);
+      expect(entryResultsApi.bulkResultEntries).toHaveBeenCalledWith({
+        bulkResultDto: {
+          entryIds: ['E-1', 'E-2'],
+          result: {
+            resultCode: 'rc2',
+            wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+          },
+        },
+      });
+      expect(
+        entryResultsApi.updateApplicationListEntryResult,
+      ).not.toHaveBeenCalled();
+      expect(facade.newlyCreatedEntryResults()).toEqual([
+        createdForEntry1,
+        createdForEntry2,
+      ]);
+      expect(facade.clearPendingToken()).toBe(1);
+      expect(facade.pendingRows()).toEqual([]);
+      expect(onSuccess).toHaveBeenCalled();
+    });
+
+    it('creates one bulk request for each pending result code', () => {
+      const onSuccess = jest.fn();
+
+      entryResultsApi.bulkResultEntries
+        .mockReturnValueOnce(
+          of([
+            makeResult({ id: 'R-30', entryId: 'E-1', resultCode: 'RC2' }),
+          ]) as unknown,
+        )
+        .mockReturnValueOnce(
+          of([
+            makeResult({ id: 'R-31', entryId: 'E-1', resultCode: 'RC3' }),
+          ]) as unknown,
+        );
+
+      facade.submitResultsWithManyListIds(
+        [{ listId: 'L-1', entryIds: ['E-1', 'E-2'] }],
+        {
+          pendingToCreate: [
+            {
+              resultCode: ' rc2 ',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            } as PendingResultRow,
+            {
+              resultCode: ' rc3 ',
+              wordingFields: [{ key: 'Place', value: 'London' }],
+            } as PendingResultRow,
+          ],
+          existingToUpdate: [],
+        },
+        onSuccess,
+      );
+
+      expect(entryResultsApi.bulkResultEntries).toHaveBeenCalledTimes(2);
+      expect(entryResultsApi.bulkResultEntries).toHaveBeenNthCalledWith(1, {
+        bulkResultDto: {
+          entryIds: ['E-1', 'E-2'],
+          result: {
+            resultCode: 'rc2',
+            wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+          },
+        },
+      });
+      expect(entryResultsApi.bulkResultEntries).toHaveBeenNthCalledWith(2, {
+        bulkResultDto: {
+          entryIds: ['E-1', 'E-2'],
+          result: {
+            resultCode: 'rc3',
+            wordingFields: [{ key: 'Place', value: 'London' }],
+          },
+        },
+      });
+      expect(onSuccess).toHaveBeenCalled();
+    });
+
+    it('updates existing results across list groups and merges returned results', () => {
+      const onSuccess = jest.fn();
+      const originalResult1 = makeResult({
+        id: 'R-1',
+        entryId: 'E-1',
+        resultCode: 'RC1',
+        wording: {
+          template: 'Same wording',
+          'substitution-key-constraints': [],
+        },
+      });
+      const originalResult2 = makeResult({
+        id: 'R-2',
+        entryId: 'E-2',
+        resultCode: 'RC1',
+        wording: {
+          template: 'Same wording',
+          'substitution-key-constraints': [],
+        },
+      });
+
+      facade.addCreatedEntryResults([originalResult1, originalResult2]);
+      entryResultsApi.updateApplicationListEntryResult
+        .mockReturnValueOnce(
+          of(
+            makeResult({
+              id: 'R-1',
+              entryId: 'E-1',
+              resultCode: 'RC1',
+              wording: {
+                template: 'Updated wording',
+                'substitution-key-constraints': [],
+              },
+            }),
+          ),
+        )
+        .mockReturnValueOnce(
+          of(
+            makeResult({
+              id: 'R-2',
+              entryId: 'E-2',
+              resultCode: 'RC1',
+              wording: {
+                template: 'Updated wording',
+                'substitution-key-constraints': [],
+              },
+            }),
+          ),
+        );
+
+      facade.submitResultsWithManyListIds(
+        [
+          { listId: 'L-1', entryIds: ['E-1'] },
+          { listId: 'L-2', entryIds: ['E-2'] },
+        ],
+        {
+          pendingToCreate: [],
+          existingToUpdate: [
+            {
+              resultId: 'R-1',
+              resultCode: 'RC1',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            },
+          ],
+        },
+        onSuccess,
+      );
+
+      expect(
+        entryResultsApi.updateApplicationListEntryResult,
+      ).toHaveBeenNthCalledWith(1, {
+        listId: 'L-1',
+        entryId: 'E-1',
+        resultId: 'R-1',
+        resultUpdateDto: {
+          resultCode: 'RC1',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        },
+      });
+      expect(
+        entryResultsApi.updateApplicationListEntryResult,
+      ).toHaveBeenNthCalledWith(2, {
+        listId: 'L-2',
+        entryId: 'E-2',
+        resultId: 'R-2',
+        resultUpdateDto: {
+          resultCode: 'RC1',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        },
+      });
+      expect(facade.newlyCreatedEntryResults()).toEqual([
+        makeResult({
+          id: 'R-1',
+          entryId: 'E-1',
+          resultCode: 'RC1',
+          wording: {
+            template: 'Updated wording',
+            'substitution-key-constraints': [],
+          },
+        }),
+        makeResult({
+          id: 'R-2',
+          entryId: 'E-2',
+          resultCode: 'RC1',
+          wording: {
+            template: 'Updated wording',
+            'substitution-key-constraints': [],
+          },
+        }),
+      ]);
+      expect(onSuccess).toHaveBeenCalled();
+    });
+
+    it('keeps pending rows and calls onError when any bulk request fails', () => {
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      const error = new Error('bulk failed');
+
+      facade.setPending([
+        {
+          resultCode: 'RC2',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        } as PendingResultRow,
+      ]);
+      entryResultsApi.bulkResultEntries
+        .mockReturnValueOnce(
+          of([
+            makeResult({ id: 'R-40', entryId: 'E-1', resultCode: 'RC2' }),
+          ]) as unknown,
+        )
+        .mockReturnValueOnce(throwError(() => error));
+
+      facade.submitResultsWithManyListIds(
+        [
+          { listId: 'L-1', entryIds: ['E-1'] },
+          { listId: 'L-2', entryIds: ['E-2'] },
+        ],
+        {
+          pendingToCreate: [
+            {
+              resultCode: 'RC2',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            } as PendingResultRow,
+            {
+              resultCode: 'RC3',
+              wordingFields: [{ key: 'Place', value: 'London' }],
+            } as PendingResultRow,
+          ],
+          existingToUpdate: [],
+        },
+        onSuccess,
+        onError,
+      );
+
+      expect(entryResultsApi.bulkResultEntries).toHaveBeenCalledTimes(2);
+      expect(facade.clearPendingToken()).toBe(0);
+      expect(facade.pendingRows()).toEqual([
+        {
+          resultCode: 'RC2',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        },
+      ]);
+      expect(facade.newlyCreatedEntryResults()).toEqual([]);
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledWith(error);
+    });
+
+    it('reports update errors and does not call onSuccess', () => {
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      const error = new Error('update failed');
+
+      facade.addCreatedEntryResults([
+        makeResult({
+          id: 'R-1',
+          entryId: 'E-1',
+          resultCode: 'RC1',
+          wording: {
+            template: 'Same wording',
+            'substitution-key-constraints': [],
+          },
+        }),
+        makeResult({
+          id: 'R-2',
+          entryId: 'E-2',
+          resultCode: 'RC1',
+          wording: {
+            template: 'Same wording',
+            'substitution-key-constraints': [],
+          },
+        }),
+      ]);
+      entryResultsApi.updateApplicationListEntryResult
+        .mockReturnValueOnce(
+          of(
+            makeResult({
+              id: 'R-1',
+              entryId: 'E-1',
+              resultCode: 'RC1',
+            }),
+          ),
+        )
+        .mockReturnValueOnce(throwError(() => error));
+
+      facade.submitResultsWithManyListIds(
+        [
+          { listId: 'L-1', entryIds: ['E-1'] },
+          { listId: 'L-2', entryIds: ['E-2'] },
+        ],
+        {
+          pendingToCreate: [],
+          existingToUpdate: [
+            {
+              resultId: 'R-1',
+              resultCode: 'RC1',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            },
+          ],
+        },
+        onSuccess,
+        onError,
+      );
+
+      expect(
+        entryResultsApi.updateApplicationListEntryResult,
+      ).toHaveBeenCalledTimes(2);
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledWith(error);
+    });
+
+    it('does nothing when there are no pending results to create', () => {
+      facade.submitResultsWithManyListIds(
+        [{ listId: 'L-1', entryIds: ['E-1'] }],
+        {
+          pendingToCreate: [],
+          existingToUpdate: [
+            {
+              resultId: 'R-1',
+              resultCode: 'RC1',
+              wordingFields: [],
+            },
+          ],
+        },
+      );
+
+      expect(entryResultsApi.bulkResultEntries).not.toHaveBeenCalled();
+      expect(
+        entryResultsApi.updateApplicationListEntryResult,
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -558,19 +1163,16 @@ describe('ApplicationListEntryResultsFacade', () => {
           id: 'R-1',
           entryId: 'E-1',
           resultCode: 'RC1',
-          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
         }),
         makeResult({
           id: 'R-2',
           entryId: 'E-2',
           resultCode: 'RC1',
-          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
         }),
         makeResult({
           id: 'R-3',
           entryId: 'E-3',
           resultCode: 'RC2',
-          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
         }),
       ]);
 
@@ -595,7 +1197,6 @@ describe('ApplicationListEntryResultsFacade', () => {
           id: 'R-3',
           entryId: 'E-3',
           resultCode: 'RC2',
-          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
         }),
       ]);
       expect(onSuccess).toHaveBeenCalled();

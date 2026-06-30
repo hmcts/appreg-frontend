@@ -8,15 +8,16 @@
   ]"
 />
 
-<h1 class="govuk-heading-xl">Create new entry</h1>
-
 @if (vm().errorFound) {
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().summaryErrors"
+    [focusKey]="submitAttempt()"
     (itemSelect)="onCreateErrorClick($event)"
   />
 }
+
+<h1 class="govuk-heading-xl">Create new entry</h1>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
@@ -58,6 +59,8 @@
   </ng-template>
 
   <ng-template #wordingTpl>
+    <app-application-wording-help />
+
     @if (vm().appCodeDetail; as appCodeDetail) {
       <app-wording-section
         #wordingSection
@@ -88,6 +91,8 @@
   </ng-template>
 
   <ng-template #civilFeeTpl>
+    <app-civil-fee-help />
+
     <app-civil-fee-section
       #civilFeeSection
       [civilFeeColumns]="civilFeeColumns"
@@ -96,6 +101,7 @@
       [feeMeta]="feeMeta"
       (addFeeDetails)="onAddFeeDetails($event)"
       (civilFeeErrors)="onChildErrors('civilFee', $event)"
+      (submitAttempted)="onCivilFeeSubmitAttempt()"
       (offsiteFeeChanged)="onOffsiteFeeChanged($event)"
       [feeRequired]="vm().isFeeRequired"
       [parentSubmitted]="vm().submitted"

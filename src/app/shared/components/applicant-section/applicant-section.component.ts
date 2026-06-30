@@ -6,6 +6,7 @@ import {
   PERSON_TITLE_OPTIONS,
 } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '@components/person-section/person-section.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
@@ -23,6 +24,7 @@ import { ApplicantType } from '@shared-types/applications-list-entry-create/appl
     PersonSectionComponent,
     SelectInputComponent,
     ReactiveFormsModule,
+    HelpDetailsComponent,
   ],
   templateUrl: './applicant-section.component.html',
 })
@@ -42,6 +44,7 @@ export class ApplicantSectionComponent {
     input<SelectedStandardApplicantSummary | null>(null);
   readonly savedStandardApplicantCode = input<string | null>(null);
   readonly savedStandardApplicantName = input<string | null>(null);
+  readonly savedStandardApplicantDetailsUnavailable = input(false);
   readonly isUpdateDisabled = input(false);
 
   readonly showUpdateButton = input(true);
@@ -66,6 +69,18 @@ export class ApplicantSectionComponent {
       code,
       name,
       displayText: `${code} ${name}`,
+    };
+  });
+  readonly savedStandardApplicantFallback = computed(() => {
+    const code = this.savedStandardApplicantCode()?.trim() || null;
+
+    if (!code || !this.savedStandardApplicantDetailsUnavailable()) {
+      return null;
+    }
+
+    return {
+      code,
+      displayText: code,
     };
   });
   readonly currentSelectionSummary = computed(() => {

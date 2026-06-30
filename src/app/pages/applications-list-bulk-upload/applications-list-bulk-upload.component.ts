@@ -25,6 +25,7 @@ import {
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { LoadingSpinner } from '@components/loading-spinner/loading-spinner';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import {
@@ -43,6 +44,7 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
     PageHeaderComponent,
     ErrorSummaryComponent,
     LoadingSpinner,
+    HelpDetailsComponent,
   ],
   templateUrl: './applications-list-bulk-upload.component.html',
   styleUrl: './applications-list-bulk-upload.component.scss',
@@ -64,6 +66,7 @@ export class ApplicationsListBulkUpload implements OnInit {
 
   private readonly bulkUploadRequest =
     signal<BulkUploadApplicationListEntriesRequestParams | null>(null);
+  readonly submitAttempt = signal(0);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -162,6 +165,7 @@ export class ApplicationsListBulkUpload implements OnInit {
   }
 
   onSubmit(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.bulkUploadPatch({ isUploadInProgress: true });
 
     if (!this.bulkUploadState().file) {

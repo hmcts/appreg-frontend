@@ -74,6 +74,7 @@ export class ApplicationsListDetailSearchComponent {
   readonly errorByDomId = computed(() =>
     buildErrorTextByDomId(this.localErrors()),
   );
+  readonly incrementSubmitAttempt = input.required<() => void>();
 
   form = new FormGroup({
     // Max lengths aligned with openapi spec
@@ -132,6 +133,7 @@ export class ApplicationsListDetailSearchComponent {
   }
 
   async onSearch(): Promise<void> {
+    this.incrementSubmitAttempt()();
     this.submitted.set(true);
     this.localErrors.set([]);
     this.form.markAllAsTouched();

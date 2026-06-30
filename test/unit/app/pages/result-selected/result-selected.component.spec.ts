@@ -17,7 +17,6 @@ import {
 } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
-import * as errorClick from '@util/error-click';
 
 describe('ResultSelectedComponent', () => {
   let component: ResultSelected;
@@ -208,8 +207,8 @@ describe('ResultSelectedComponent', () => {
 
     component.onSubmitResults({
       pendingToCreate: [],
-      pendingToRemove: [],
-    } as unknown as ResultSectionSubmitPayload);
+      existingToUpdate: [],
+    } as ResultSectionSubmitPayload);
 
     expect(submitSpy).not.toHaveBeenCalled();
     expect(component.isSubmitting()).toBe(false);
@@ -260,11 +259,19 @@ describe('ResultSelectedComponent', () => {
           wordingFields: [],
           wording: '-',
         },
+        {
+          kind: 'pending',
+          tempId: 'tmp_123-123',
+          resultCode: 'FRB',
+          display: 'FRB - Fee Remitted (Benefits)',
+          wordingFields: [],
+          wording: '-',
+        },
       ],
       existingToUpdate: [],
-    } as ResultSectionSubmitPayload);
+    });
 
-    expect(mockApi.bulkResultApplicationListEntries).toHaveBeenCalledTimes(1);
+    expect(mockApi.bulkResultApplicationListEntries).toHaveBeenCalledTimes(2);
     expect(mockApi.bulkResultApplicationListEntries).toHaveBeenCalledWith({
       listId: 'list-success',
       bulkResultDto: {
@@ -275,13 +282,23 @@ describe('ResultSelectedComponent', () => {
         },
       },
     });
+    expect(mockApi.bulkResultApplicationListEntries).toHaveBeenCalledWith({
+      listId: 'list-success',
+      bulkResultDto: {
+        entryIds: ['entry-1', 'entry-2'],
+        result: {
+          resultCode: 'FRB',
+          wordingFields: [],
+        },
+      },
+    });
     expect(mockApi.createApplicationListEntryResult).not.toHaveBeenCalled();
     expect(mockApi.getApplicationListEntryResults).not.toHaveBeenCalled();
     expect(component.createdEntryResults()).toEqual([createdResult]);
     expect(component.errorSummaryItems()).toEqual([]);
     expect(component.successBanner()).toEqual({
       heading: 'Result codes applied successfully',
-      body: "Result code 'ADJ' applied successfully to application list entries",
+      body: "Result code(s) 'ADJ, FRB' applied successfully to application list entries",
     });
     expect(component.isSubmitting()).toBe(false);
 
@@ -336,14 +353,10 @@ describe('ResultSelectedComponent', () => {
       ),
     );
 
-    const focusErrorSpy = jest
-      .spyOn(errorClick, 'focusErrorSummary')
-      .mockImplementation(() => {});
-
     component.onSubmitResults({
       pendingToCreate: [pendingRow],
       existingToUpdate: [],
-    } as ResultSectionSubmitPayload);
+    });
 
     expect(mockApi.bulkResultApplicationListEntries).toHaveBeenCalledTimes(1);
     expect(mockApi.createApplicationListEntryResult).not.toHaveBeenCalled();
@@ -355,10 +368,6 @@ describe('ResultSelectedComponent', () => {
     ]);
     expect(component.isSubmitting()).toBe(false);
     expect(facadeInstance.pendingRows()).toEqual([pendingRow]);
-
-    expect(focusErrorSpy).toHaveBeenCalledWith(TestBed.inject(PLATFORM_ID));
-
-    focusErrorSpy.mockRestore();
   });
 
   it('onSubmitResults ignores duplicate submissions while a bulk request is in flight', () => {
@@ -396,7 +405,7 @@ describe('ResultSelectedComponent', () => {
         },
       ],
       existingToUpdate: [],
-    } as ResultSectionSubmitPayload);
+    });
 
     expect(submitSpy).not.toHaveBeenCalled();
     submitSpy.mockRestore();
@@ -515,27 +524,19 @@ describe('ResultSelectedComponent', () => {
     removeSpy.mockRestore();
   });
 
-  it('onError should set errorSummaryItems and call focusErrorSummary with platformId', () => {
+  it('onError should set errorSummaryItems and increment submitAttempt', () => {
     const errors = [
       { text: 'Error 1', href: '#field1' },
     ] as unknown as ErrorItem[];
 
     const setSpy = jest.spyOn(component.errorSummaryItems, 'set');
-
-    const focusSpy = jest
-      .spyOn(errorClick, 'focusErrorSummary')
-      .mockImplementation(() => {});
+    const initialSubmitAttempt = component.submitAttempt();
 
     component.onError(errors);
 
     expect(setSpy).toHaveBeenCalledTimes(1);
     expect(setSpy).toHaveBeenCalledWith(errors);
-
-    const injectedPlatformId = TestBed.inject(PLATFORM_ID);
-    expect(focusSpy).toHaveBeenCalledTimes(1);
-    expect(focusSpy).toHaveBeenCalledWith(injectedPlatformId);
-
-    focusSpy.mockRestore();
+    expect(component.submitAttempt()).toBe(initialSubmitAttempt + 1);
     setSpy.mockRestore();
   });
 });

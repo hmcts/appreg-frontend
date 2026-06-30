@@ -117,10 +117,10 @@ describe('ErrorMessageService', () => {
       expect(svc.errorMessage()?.status).toBe(404);
     });
 
-    it('does not navigate for standard applicant detail 404s with dated lookups', () => {
+    it('does not navigate for standard applicant detail 404s with code-only lookups', () => {
       const err = makeErr({
         status: 404,
-        url: 'https://local/standard-applicants/SA-123?date=1000-01-01',
+        url: 'https://local/standard-applicants/SA-123',
         error: { title: 'Not Found', status: 404 },
       });
 
@@ -128,6 +128,19 @@ describe('ErrorMessageService', () => {
 
       expect(router.navigateByUrl).not.toHaveBeenCalled();
       expect(svc.errorMessage()?.status).toBe(404);
+    });
+
+    it('does not navigate for standard applicant search failures handled by the component', () => {
+      const err = makeErr({
+        status: 500,
+        url: 'https://local/standard-applicants?code=SA',
+        error: { title: 'Server error', status: 500 },
+      });
+
+      svc.handleErrorMessage(err);
+
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+      expect(svc.errorMessage()?.status).toBe(500);
     });
 
     it('navigates to /forbidden for non-subscribed 403', () => {

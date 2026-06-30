@@ -10,7 +10,7 @@ import {
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 
 import {
   ApplicationsListEntryDetail,
@@ -75,7 +75,7 @@ type GetCodeDetailFn = (
 ) => Observable<ApplicationCodeGetDetailDto>;
 
 type GetStandardApplicantDetailFn = (
-  params: { code: string; date: string },
+  params: { code: string },
   observe?: 'body',
   reportProgress?: boolean,
   options?: { transferCache?: boolean; context?: unknown },
@@ -132,7 +132,7 @@ describe('ApplicationsListEntryDetail', () => {
   let mockGetApplicationCodes: jest.MockedFunction<GetCodesFn>;
   let mockGetApplicationCodeByCodeAndDate: jest.MockedFunction<GetCodeDetailFn>;
   let mockGetStandardApplicants: jest.MockedFunction<GetStandardApplicantsFn>;
-  let mockGetStandardApplicantByCodeAndDate: jest.MockedFunction<GetStandardApplicantDetailFn>;
+  let mockGetStandardApplicantByCode: jest.MockedFunction<GetStandardApplicantDetailFn>;
   let mockGetApplicationListEntry: jest.MockedFunction<GetEntryFn>;
   let mockUpdateApplicationListEntry: jest.MockedFunction<UpdateEntryFn>;
 
@@ -171,7 +171,7 @@ describe('ApplicationsListEntryDetail', () => {
     mockGetApplicationCodes = jest.fn();
     mockGetApplicationCodeByCodeAndDate = jest.fn();
     mockGetStandardApplicants = jest.fn();
-    mockGetStandardApplicantByCodeAndDate = jest.fn();
+    mockGetStandardApplicantByCode = jest.fn();
     mockGetApplicationListEntry = jest.fn();
     mockUpdateApplicationListEntry = jest.fn();
 
@@ -237,7 +237,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     const standardApplicantsApiMock = {
       getStandardApplicants: mockGetStandardApplicants,
-      getStandardApplicantByCodeAndDate: mockGetStandardApplicantByCodeAndDate,
+      getStandardApplicantByCode: mockGetStandardApplicantByCode,
     } as unknown as StandardApplicantsApi;
 
     await TestBed.configureTestingModule({
@@ -356,7 +356,7 @@ describe('ApplicationsListEntryDetail', () => {
     ]);
   });
 
-  it('hydrates saved standard applicant name via exact code and lodgement date lookup', () => {
+  it('hydrates saved standard applicant name via code-only lookup', () => {
     mockGetApplicationListEntry.mockReturnValueOnce(
       of({
         lodgementDate: '2025-11-01T12:34:56Z',
@@ -364,7 +364,7 @@ describe('ApplicationsListEntryDetail', () => {
         standardApplicantCode: 'SA-123',
       } as unknown as EntryGetDetailDto),
     );
-    mockGetStandardApplicantByCodeAndDate.mockReturnValueOnce(
+    mockGetStandardApplicantByCode.mockReturnValueOnce(
       of({
         code: 'SA-123',
         name: 'Exact Applicant Name',
@@ -378,8 +378,20 @@ describe('ApplicationsListEntryDetail', () => {
 
     freshFixture.detectChanges();
 
-    expect(mockGetStandardApplicantByCodeAndDate).toHaveBeenCalledWith(
-      { code: 'SA-123', date: '2025-11-01' },
+    expect(mockGetStandardApplicantByCode).toHaveBeenCalledWith(
+      { code: 'SA-123' },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+    expect(mockGetStandardApplicantByCode).not.toHaveBeenCalledWith(
+      expect.objectContaining({ date: expect.any(String) }),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+    );
+    expect(mockGetApplicationCodeByCodeAndDate).toHaveBeenCalledWith(
+      { code: 'APP-100', date: '2025-11-01' },
       'body',
       false,
       expect.objectContaining({ transferCache: true }),
@@ -387,6 +399,7 @@ describe('ApplicationsListEntryDetail', () => {
     expect(freshComponent.savedStandardApplicantName).toBe(
       'Exact Applicant Name',
     );
+    expect(freshComponent.savedStandardApplicantDetailsUnavailable).toBe(false);
   });
 
   it('hydrates saved standard applicant name from applicant details when top-level name is absent', () => {
@@ -397,7 +410,7 @@ describe('ApplicationsListEntryDetail', () => {
         standardApplicantCode: 'SA-123',
       } as unknown as EntryGetDetailDto),
     );
-    mockGetStandardApplicantByCodeAndDate.mockReturnValueOnce(
+    mockGetStandardApplicantByCode.mockReturnValueOnce(
       of({
         code: 'SA-123',
         applicant: {
@@ -419,6 +432,35 @@ describe('ApplicationsListEntryDetail', () => {
     expect(freshComponent.savedStandardApplicantName).toBe(
       'Fallback Organisation Name',
     );
+    expect(freshComponent.savedStandardApplicantDetailsUnavailable).toBe(false);
+  });
+
+  it('keeps the saved standard applicant code available when the code lookup fails', () => {
+    mockGetApplicationListEntry.mockReturnValueOnce(
+      of({
+        lodgementDate: '2025-11-01T12:34:56Z',
+        applicationCode: 'APP-100',
+        standardApplicantCode: 'SA-404',
+      } as unknown as EntryGetDetailDto),
+    );
+    mockGetStandardApplicantByCode.mockReturnValueOnce(
+      throwError(() => new Error('Not found')),
+    );
+
+    const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
+    const freshComponent = freshFixture.componentInstance;
+
+    freshFixture.detectChanges();
+
+    expect(mockGetStandardApplicantByCode).toHaveBeenCalledWith(
+      { code: 'SA-404' },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+    expect(freshComponent.savedStandardApplicantCode).toBe('SA-404');
+    expect(freshComponent.savedStandardApplicantName).toBeNull();
+    expect(freshComponent.savedStandardApplicantDetailsUnavailable).toBe(true);
   });
 
   it('includes relayed standard applicant search errors in the parent summary', () => {
@@ -731,6 +773,39 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['appListEntryDetailState']().formSubmitted).toBe(true);
 
     expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
+  });
+
+  it('onUpdateApplication returns early when EF application code has no account reference', () => {
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'EF123',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+    component['form'].patchValue({
+      applicantType: 'standard',
+      standardApplicantCode: 'SA-123',
+      applicationCode: 'EF123',
+      lodgementDate: '2025-11-01',
+      applicationNotes: {
+        accountReference: null,
+      },
+    });
+    component.onStandardApplicantCodeChanged('SA-123');
+    component['submitEntryUpdate'] = jest.fn();
+
+    component.onUpdateApplication();
+
+    expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'applicationNotes.accountReference',
+          text: 'Enter an account reference for EF application codes',
+        }),
+      ]),
+    );
   });
 
   it('onUpdateApplication calls submitEntryUpdate when validation passes', () => {
@@ -1217,10 +1292,10 @@ describe('ApplicationsListEntryDetail', () => {
     expect(applicantErrors.length).toBeGreaterThan(0);
 
     const hasFirstNameError = applicantErrors.some((e) =>
-      /Enter a first name/i.test(e.text),
+      /Enter applicant first name/i.test(e.text),
     );
     const hasSurnameError = applicantErrors.some((e) =>
-      /Enter a last name/i.test(e.text),
+      /Enter applicant last name/i.test(e.text),
     );
 
     expect(hasFirstNameError).toBe(true);
@@ -1231,11 +1306,10 @@ describe('ApplicationsListEntryDetail', () => {
     const formSvc = TestBed.inject(ApplicationListEntryFormService);
 
     const dto: EntryUpdateDto = {
-      lodgementDate: '2025-11-01',
       applicationCode: 'APP-100',
       standardApplicantCode: 'SA-999',
       applicant: undefined,
-    } as unknown as EntryUpdateDto;
+    };
 
     jest.spyOn(formSvc, 'buildUpdateDto').mockReturnValue(dto);
 
@@ -1266,6 +1340,52 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component['appListEntryDetailState']().successBanner?.heading).toBe(
       'Applicant updated',
+    );
+  });
+
+  it('onUpdateApplicant sends an update payload without lodgementDate or detail-only fields', () => {
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+      wording: {
+        template: 'At {{Court}}',
+        'substitution-key-constraints': [
+          { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+        ],
+      },
+    } as EntryGetDetailDto;
+
+    component['form'].patchValue({
+      applicantType: 'standard',
+      applicationCode: 'APP100',
+      lodgementDate: '2026-01-01',
+    });
+    component.onStandardApplicantCodeChanged('SA-999');
+    component['form'].controls.standardApplicantCode.setValue('SA-999', {
+      emitEvent: false,
+    });
+
+    mockUpdateApplicationListEntry.mockClear();
+
+    component.onUpdateApplicant();
+
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+
+    const updatePayload = mockUpdateApplicationListEntry.mock.calls[0][0]
+      .entryUpdateDto as Record<string, unknown>;
+
+    expect(updatePayload).not.toHaveProperty('lodgementDate');
+    expect(updatePayload).not.toHaveProperty('id');
+    expect(updatePayload).not.toHaveProperty('listId');
+    expect(updatePayload).not.toHaveProperty('wording');
+    expect(updatePayload).toEqual(
+      expect.objectContaining({
+        applicationCode: 'APP100',
+        standardApplicantCode: 'SA-999',
+      }),
     );
   });
 
@@ -1322,9 +1442,50 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(
       component['appListEntryDetailState']().summaryErrors.some((e) =>
-        /organisation name/i.test(e.text),
+        /Enter respondent organisation name/i.test(e.text),
       ),
     ).toBe(true);
+  });
+
+  it('updates respondent required messages when respondent becomes populated after submit', () => {
+    component['forms'].respondentPersonForm.reset();
+    component['forms'].respondentOrganisationForm.reset();
+    component['form'].patchValue({
+      respondentEntryType: 'person',
+      numberOfRespondents: null,
+    });
+    component['appListEntryDetailPatch']({
+      appCodeDetail: {
+        requiresRespondent: false,
+      } as ApplicationCodeGetDetailDto,
+      formSubmitted: true,
+    });
+
+    expect(component.respondentErrorItems).toEqual([]);
+
+    component['forms'].respondentPersonForm.patchValue({
+      firstName: 'Jane',
+    });
+
+    expect(component.respondentErrorItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter respondent last name',
+          href: '#respondent-person-surname',
+        }),
+        expect.objectContaining({
+          text: 'Enter respondent address line 1',
+          href: '#respondent-person-address-line-1',
+        }),
+      ]),
+    );
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter respondent last name',
+        }),
+      ]),
+    );
   });
 
   it('toEntryDetailPatch maps wordingFields to values and preserves other fields', () => {

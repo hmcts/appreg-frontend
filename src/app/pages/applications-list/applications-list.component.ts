@@ -54,10 +54,12 @@ import {
 } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
+import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
@@ -109,6 +111,8 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
     PageHeaderComponent,
     DateTimePipe,
     ApplicationsListFormComponent,
+    AsyncJobProgressComponent,
+    HelpDetailsComponent,
   ],
   templateUrl: './applications-list.component.html',
 })
@@ -155,6 +159,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     id: string;
     isClosed: boolean;
   } | null>(null);
+  readonly submitAttempt = signal(0);
 
   columns: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
 
@@ -269,12 +274,14 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           ),
         onSuccess: async (dto) => {
           this.printPageRequest.set(null);
-          if (!this.hasEntries(dto)) {
-            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
-            return;
-          }
-
           try {
+            if (!this.hasEntries(dto)) {
+              this.showInline(
+                APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+              );
+              return;
+            }
+
             if (isPlatformBrowser(this.platformId)) {
               await this.pdf.generatePagedApplicationListPdf(dto, {
                 crestUrl: '/assets/govuk-crest.png',
@@ -282,9 +289,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             }
           } catch {
             this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
+          } finally {
+            this.appListSignalState.patch({ pdfLoading: false });
           }
         },
         onError: (err) => {
+          this.appListSignalState.patch({ pdfLoading: false });
           this.printPageRequest.set(null);
           const status = getHttpStatus(err);
           if (status === 404) {
@@ -309,12 +319,14 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             .pipe(map((dto) => ({ dto, isClosed: req.isClosed }))),
         onSuccess: async ({ dto, isClosed }) => {
           this.printContinuousRequest.set(null);
-          if (!this.hasEntries(dto)) {
-            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
-            return;
-          }
-
           try {
+            if (!this.hasEntries(dto)) {
+              this.showInline(
+                APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+              );
+              return;
+            }
+
             if (isPlatformBrowser(this.platformId)) {
               await this.pdf.generateContinuousApplicationListsPdf(
                 [dto],
@@ -325,9 +337,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             this.showInline(
               APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
             );
+          } finally {
+            this.appListSignalState.patch({ pdfLoading: false });
           }
         },
         onError: () => {
+          this.appListSignalState.patch({ pdfLoading: false });
           this.printContinuousRequest.set(null);
           this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric);
         },
@@ -346,6 +361,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
+    this.submitAttempt.update((attempt) => attempt + 1);
     const btn = event.submitter as HTMLButtonElement | null;
     const action = btn?.value ?? 'search';
 
@@ -401,6 +417,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     }
 
     this.appListSignalState.patch(clearNotificationsPatch());
+    this.appListSignalState.patch({ pdfLoading: true });
     this.printPageRequest.set(id);
   }
 
@@ -414,7 +431,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     }
 
     this.appListSignalState.patch(clearNotificationsPatch());
-
+    this.appListSignalState.patch({ pdfLoading: true });
     this.printContinuousRequest.set({ id, isClosed });
   }
 
@@ -554,5 +571,14 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     }
 
     return null;
+  }
+
+  showNoResultsFound(): boolean {
+    return (
+      !this.vm().isLoading &&
+      !this.vm().errorSummary.length &&
+      this.storedRecordsVm().submitted &&
+      !this.vm().searchErrors.length
+    );
   }
 }

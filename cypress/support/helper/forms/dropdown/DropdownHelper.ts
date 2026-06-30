@@ -171,4 +171,28 @@ export class DropdownHelper {
       },
     );
   }
+
+  static verifyDropdownOptionSelectedUnderFieldset(
+    dropdownLabel: string,
+    optionText: string,
+    fieldsetLabel: string,
+  ): void {
+    cy.contains('fieldset', fieldsetLabel, { matchCase: false }).then(
+      ($fieldset) => {
+        DropdownElement.findDropdownWithin($fieldset, dropdownLabel).then(
+          ($dropdown) => {
+            if (!$dropdown || $dropdown.length === 0) {
+              throw new Error(
+                `Dropdown "${dropdownLabel}" not found within fieldset "${fieldsetLabel}"`,
+              );
+            }
+            DropdownHelper.verifyDropdownOptionSelected(
+              dropdownLabel,
+              optionText,
+            );
+          },
+        );
+      },
+    );
+  }
 }
