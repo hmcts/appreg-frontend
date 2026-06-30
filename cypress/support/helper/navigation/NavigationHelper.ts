@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 import { APP_URLS } from '../../constants/ProjectConstants';
 import { NavigationPage } from '../../pageobjects/pageelements/NavigationPage';
+import { ApiBaseHelper } from '../api/apiBase/ApiBaseHelper';
 
 export class NavigationHelper {
   static navigateToPortalPage(): void {
@@ -10,7 +11,9 @@ export class NavigationHelper {
 
   static navigateToUrl(url: string): void {
     cy.log(`Navigating to ${url}`);
-    cy.visit(url);
+    ApiBaseHelper.resolveEndpointPlaceholders(url).then((resolvedUrl) => {
+      cy.visit(resolvedUrl);
+    });
   }
 
   static verifyPageTitle(expectedTitle: string): void {
