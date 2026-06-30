@@ -1,13 +1,22 @@
 import { BannerElement } from '../../../pageobjects/generic/banner/BannerElement';
 import { StringUtils } from '../../../utils/StringUtils';
 
+type BannerVerificationOptions = {
+  assertAbovePageHeader?: boolean;
+};
+
 export class BannerHelper {
   private static readonly placementTolerancePx = 1;
 
   private static verifyBannerAbovePageHeader(
     $banner: JQuery<HTMLElement>,
-  ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return BannerElement.getPageHeader().then(($pageHeader) => {
+    options: BannerVerificationOptions = {},
+  ): void {
+    if (options.assertAbovePageHeader === false) {
+      return;
+    }
+
+    BannerElement.getPageHeader().then(($pageHeader) => {
       const bannerRect = $banner[0].getBoundingClientRect();
       const pageHeaderRect = $pageHeader[0].getBoundingClientRect();
 
@@ -18,14 +27,17 @@ export class BannerHelper {
     });
   }
 
-  static verifyBannerText(expectedText: string): void {
+  static verifyBannerText(
+    expectedText: string,
+    options: BannerVerificationOptions = {},
+  ): void {
     // Previous assertion:
     // BannerElement.findNotificationRegionByText(expectedText).should(
     //   'be.visible',
     // );
     BannerElement.findNotificationRegionByText(expectedText)
       .should('be.visible')
-      .then(($banner) => this.verifyBannerAbovePageHeader($banner));
+      .then(($banner) => this.verifyBannerAbovePageHeader($banner, options));
   }
 
   static verifyBannerNotPresent(unexpectedText: string): void {
@@ -33,7 +45,10 @@ export class BannerHelper {
       'not.exist',
     );
   }
-  static verifySuccessBanner(message: string): void {
+  static verifySuccessBanner(
+    message: string,
+    options: BannerVerificationOptions = {},
+  ): void {
     // Previous assertion:
     // BannerElement.findSuccessAlertByText(message)
     //   .should('be.visible')
@@ -48,11 +63,14 @@ export class BannerHelper {
         const actualText = $banner.text();
         const normalizedActual = StringUtils.normalizeText(actualText);
         expect(normalizedActual).to.include(message);
-        return this.verifyBannerAbovePageHeader($banner);
+        this.verifyBannerAbovePageHeader($banner, options);
       });
   }
 
-  static verifyErrorBanner(unexpectedText: string): void {
+  static verifyErrorBanner(
+    unexpectedText: string,
+    options: BannerVerificationOptions = {},
+  ): void {
     // Previous assertion:
     // BannerElement.getErrorAlert()
     //   .should('be.visible')
@@ -67,7 +85,7 @@ export class BannerHelper {
         const actualText = $banner.text();
         const normalizedActual = StringUtils.normalizeText(actualText);
         expect(normalizedActual).to.include(unexpectedText);
-        return this.verifyBannerAbovePageHeader($banner);
+        this.verifyBannerAbovePageHeader($banner, options);
       });
   }
 
@@ -75,17 +93,21 @@ export class BannerHelper {
     BannerElement.findErrorAlertByText(unexpectedText).should('not.exist');
   }
 
-  static verifyWarningBanner(expectedText: string): void {
+  static verifyWarningBanner(
+    expectedText: string,
+    options: BannerVerificationOptions = {},
+  ): void {
     // Previous assertion:
     // BannerElement.findWarningRegionByText(expectedText).should('be.visible');
     BannerElement.findWarningRegionByText(expectedText)
       .should('be.visible')
-      .then(($banner) => this.verifyBannerAbovePageHeader($banner));
+      .then(($banner) => this.verifyBannerAbovePageHeader($banner, options));
   }
 
   static verifySuccessBannerContaining(
     heading: string,
     bodyText: string,
+    options: BannerVerificationOptions = {},
   ): void {
     // Previous assertion:
     // BannerElement.findSuccessAlertWithBody(heading, bodyText).should(
@@ -93,16 +115,20 @@ export class BannerHelper {
     // );
     BannerElement.findSuccessAlertWithBody(heading, bodyText)
       .should('be.visible')
-      .then(($banner) => this.verifyBannerAbovePageHeader($banner));
+      .then(($banner) => this.verifyBannerAbovePageHeader($banner, options));
   }
 
-  static verifyErrorBannerContaining(heading: string, bodyText: string): void {
+  static verifyErrorBannerContaining(
+    heading: string,
+    bodyText: string,
+    options: BannerVerificationOptions = {},
+  ): void {
     // Previous assertion:
     // BannerElement.findErrorAlertWithBody(heading, bodyText).should(
     //   'be.visible',
     // );
     BannerElement.findErrorAlertWithBody(heading, bodyText)
       .should('be.visible')
-      .then(($banner) => this.verifyBannerAbovePageHeader($banner));
+      .then(($banner) => this.verifyBannerAbovePageHeader($banner, options));
   }
 }
