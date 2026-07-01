@@ -72,9 +72,6 @@
   </div>
 
   <div class="govuk-button-group govuk-!-margin-top-6">
-    <a class="govuk-link" routerLink="/applications">
-      Return to Applications
-    </a>
     <button
       type="button"
       class="govuk-button"
@@ -83,5 +80,6 @@
     >
       {{ isSubmitting() ? 'Saving...' : 'Save additional notes' }}
     </button>
+    <a class="govuk-link" routerLink="/applications">Cancel</a>
   </div>
 </form>

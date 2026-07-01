@@ -178,19 +178,19 @@ describe('UpdateNotesComponent', () => {
     ).toContain('You have 400 characters remaining');
   });
 
-  it('links breadcrumbs and return action back to Applications', () => {
+  it('links breadcrumbs and cancel action back to Applications', () => {
     const element = fixture.nativeElement as HTMLElement;
     const breadcrumbLinks = Array.from(
       element.querySelectorAll<HTMLAnchorElement>('.govuk-breadcrumbs__link'),
     );
-    const returnLink = Array.from(
+    const cancelLink = Array.from(
       element.querySelectorAll<HTMLAnchorElement>('a.govuk-link'),
-    ).find((link) => link.textContent?.trim() === 'Return to Applications');
+    ).find((link) => link.textContent?.trim() === 'Cancel');
 
     expect(breadcrumbLinks).toHaveLength(1);
     expect(breadcrumbLinks[0].textContent?.trim()).toBe('Applications');
     expect(breadcrumbLinks[0].getAttribute('href')).toBe('/applications');
-    expect(returnLink?.getAttribute('href')).toBe('/applications');
+    expect(cancelLink?.getAttribute('href')).toBe('/applications');
   });
 
   it('navigates back to Applications without loading notes when route ids are missing', () => {
