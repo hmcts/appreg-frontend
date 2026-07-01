@@ -118,6 +118,21 @@ describe('UpdateNotesComponent', () => {
     ).toContain('You have 400 characters remaining');
   });
 
+  it('links breadcrumbs and return action back to Applications', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    const breadcrumbLinks = Array.from(
+      element.querySelectorAll<HTMLAnchorElement>('.govuk-breadcrumbs__link'),
+    );
+    const returnLink = Array.from(
+      element.querySelectorAll<HTMLAnchorElement>('a.govuk-link'),
+    ).find((link) => link.textContent?.trim() === 'Return to Applications');
+
+    expect(breadcrumbLinks).toHaveLength(1);
+    expect(breadcrumbLinks[0].textContent?.trim()).toBe('Applications');
+    expect(breadcrumbLinks[0].getAttribute('href')).toBe('/applications');
+    expect(returnLink?.getAttribute('href')).toBe('/applications');
+  });
+
   it('shows an error summary item when application notes cannot be loaded', async () => {
     entriesApiStub.getApplicationListEntryFromClosedList.mockReturnValue(
       throwError(() => new Error('load failed')),

@@ -1,9 +1,4 @@
-<app-breadcrumbs
-  [items]="[
-    { label: 'Applications list', link: '/applications-list' },
-    { label: 'Applications', link: '/applications-list/' + listId },
-  ]"
-/>
+<app-breadcrumbs [items]="[{ label: 'Applications', link: '/applications' }]" />
 
 @if (errorSummaryItems().length) {
   <app-error-summary
@@ -72,7 +67,7 @@
   </div>
 
   <div class="govuk-button-group govuk-!-margin-top-6">
-    <a class="govuk-link" [routerLink]="['/applications-list', listId]">
+    <a class="govuk-link" routerLink="/applications">
       Return to Applications
     </a>
     <button
