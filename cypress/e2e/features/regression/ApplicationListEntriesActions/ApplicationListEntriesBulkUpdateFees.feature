@@ -193,11 +193,11 @@ Feature: Application List Entries Bulk Update Fees
         When User Clicks On The "Show all sections" Button
         Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
             | Fee Status | Status Date  | Payment Ref  |
-            | DUE        | todaydisplay | PAYA{RANDOM} |
+            | UNDERTAKEN | todaydisplay | PAYA{RANDOM} |
             | PAID       | todaydisplay | PAY-{RANDOM} |
         Then User Verifies "Change" Link Is Not Visible In Row Of Table In The Accordion "Civil fee" With:
             | Fee Status | Status Date  | Payment Ref  |
-            | DUE        | todaydisplay | PAYA{RANDOM} |
+            | UNDERTAKEN | todaydisplay | PAYA{RANDOM} |
         Then User Verifies "Change" Link Is Visible In Row Of Table In The Accordion "Civil fee" With:
             | Fee Status | Status Date  | Payment Ref  |
             | PAID       | todaydisplay | PAY-{RANDOM} |
