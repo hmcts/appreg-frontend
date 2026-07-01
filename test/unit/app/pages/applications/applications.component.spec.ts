@@ -928,7 +928,10 @@ describe('ApplicationsComponent', () => {
       const selectedRow: ApplicationRow = {
         ...makeSelectedRow('entry-1', 'list-1'),
         applicant: 'William Scott',
+        date: '23 Apr 2025',
+        fee: 'Yes',
         respondent: 'Ryan Quinn',
+        resulted: 'No',
         title: 'Appeal by Case Stated (Civil)',
         status: ApplicationListStatus.CLOSED,
       };
@@ -947,7 +950,11 @@ describe('ApplicationsComponent', () => {
             updateNotesApplication: {
               id: 'entry-1',
               applicant: 'William Scott',
+              date: '23 Apr 2025',
+              fee: 'Yes',
               respondent: 'Ryan Quinn',
+              resulted: 'No',
+              status: ApplicationListStatus.CLOSED,
               title: 'Appeal by Case Stated (Civil)',
             },
           },

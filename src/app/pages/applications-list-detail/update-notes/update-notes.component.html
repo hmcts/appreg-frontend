@@ -12,15 +12,20 @@
 
 <h1 class="govuk-heading-xl">Update Application Notes</h1>
 
-@if (context(); as application) {
-  <p class="govuk-body govuk-!-font-weight-bold">
-    Applicant: {{ application.applicant || 'Not provided' }}
-  </p>
-  @if (applicationContextLine()) {
-    <p class="govuk-body govuk-!-font-weight-bold">
-      {{ applicationContextLine() }}
-    </p>
-  }
+@if (applicationContextRows().length) {
+  <table class="govuk-table">
+    <caption class="govuk-table__caption govuk-table__caption--m">
+      Selected application
+    </caption>
+    <tbody class="govuk-table__body">
+      @for (row of applicationContextRows(); track row.label) {
+        <tr class="govuk-table__row">
+          <th scope="row" class="govuk-table__header">{{ row.label }}</th>
+          <td class="govuk-table__cell">{{ row.value }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
 }
 
 <form [formGroup]="form">

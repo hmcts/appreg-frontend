@@ -438,7 +438,11 @@ export class Applications extends PlaceFieldsBase implements OnInit {
           updateNotesApplication: {
             id: row.id,
             applicant: row.applicant,
+            date: row.date,
+            fee: row.fee,
             respondent: row.respondent,
+            resulted: row.resulted,
+            status: row.status,
             title: row.title,
           },
         },

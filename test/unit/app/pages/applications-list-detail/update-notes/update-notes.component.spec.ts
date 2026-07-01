@@ -51,7 +51,11 @@ describe('UpdateNotesComponent', () => {
     id: 'entry-1',
     sequenceNumber: 2,
     applicant: 'Mrs Sam Smith Test Person',
+    date: '23 Apr 2025',
+    fee: 'Yes',
     respondent: 'Mr John Smith',
+    resulted: 'No',
+    status: 'CLOSED',
     title: 'Application for a private prosecution summons',
   };
 
@@ -94,14 +98,74 @@ describe('UpdateNotesComponent', () => {
       ...navigationContext,
       applicationCode: 'MX99010',
     });
-    expect(component.applicationContextLine()).toBe(
-      'MX99010 Application for a private prosecution summons',
-    );
+    expect(component.applicationContextRows()).toEqual([
+      { label: 'Applicant', value: 'Mrs Sam Smith Test Person' },
+      { label: 'Respondent', value: 'Mr John Smith' },
+      { label: 'Application code', value: 'MX99010' },
+      {
+        label: 'Application title',
+        value: 'Application for a private prosecution summons',
+      },
+      { label: 'Date', value: '23 Apr 2025' },
+      { label: 'Fee', value: 'Yes' },
+      { label: 'Resulted', value: 'No' },
+      { label: 'Status', value: 'CLOSED' },
+    ]);
     expect(component.form.getRawValue()).toEqual({
       applicationNotes: 'Existing application notes',
       additionalNotes: '',
     });
     expect(component.form.controls.applicationNotes.disabled).toBe(true);
+  });
+
+  it('shows the selected application context in a table', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    const rows = Array.from(
+      element.querySelectorAll<HTMLTableRowElement>('.govuk-table__row'),
+    ).map((row) =>
+      Array.from(row.children).map((cell) => cell.textContent?.trim()),
+    );
+
+    expect(
+      element.querySelector('.govuk-table__caption')?.textContent?.trim(),
+    ).toBe('Selected application');
+    expect(rows).toEqual([
+      ['Applicant', 'Mrs Sam Smith Test Person'],
+      ['Respondent', 'Mr John Smith'],
+      ['Application code', 'MX99010'],
+      ['Application title', 'Application for a private prosecution summons'],
+      ['Date', '23 Apr 2025'],
+      ['Fee', 'Yes'],
+      ['Resulted', 'No'],
+      ['Status', 'CLOSED'],
+    ]);
+  });
+
+  it('omits selected application context rows when values are not provided', () => {
+    component.context.set({
+      id: 'entry-1',
+      applicant: 'Mrs Sam Smith Test Person',
+      respondent: null,
+      title: '',
+      date: ' ',
+      fee: 'No',
+      resulted: null,
+      status: 'CLOSED',
+    });
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const rows = Array.from(
+      element.querySelectorAll<HTMLTableRowElement>('.govuk-table__row'),
+    ).map((row) =>
+      Array.from(row.children).map((cell) => cell.textContent?.trim()),
+    );
+
+    expect(rows).toEqual([
+      ['Applicant', 'Mrs Sam Smith Test Person'],
+      ['Fee', 'No'],
+      ['Status', 'CLOSED'],
+    ]);
   });
 
   it('shows the character counter only for Additional Notes', () => {

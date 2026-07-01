@@ -36,9 +36,18 @@ export type UpdateNotesApplicationContext = {
   id: string;
   sequenceNumber?: number;
   applicant: string | null;
+  date?: string | null;
+  fee?: string | null;
   respondent: string | null;
+  resulted?: string | null;
+  status?: string | null;
   title: string | null;
   applicationCode?: string | null;
+};
+
+type ApplicationContextTableRow = {
+  label: string;
+  value: string;
 };
 
 @Component({
@@ -70,14 +79,26 @@ export class UpdateNotesComponent implements OnInit {
 
   onCreateErrorClick = onCreateErrorClickFn;
 
-  readonly applicationContextLine = computed(() => {
-    const application = this.context();
-    const parts = [application?.applicationCode, application?.title].filter(
-      (value): value is string => !!value?.trim(),
-    );
+  readonly applicationContextRows = computed(
+    (): ApplicationContextTableRow[] => {
+      const application = this.context();
 
-    return parts.join(' ');
-  });
+      if (!application) {
+        return [];
+      }
+
+      return [
+        this.toContextRow('Applicant', application.applicant),
+        this.toContextRow('Respondent', application.respondent),
+        this.toContextRow('Application code', application.applicationCode),
+        this.toContextRow('Application title', application.title),
+        this.toContextRow('Date', application.date),
+        this.toContextRow('Fee', application.fee),
+        this.toContextRow('Resulted', application.resulted),
+        this.toContextRow('Status', application.status),
+      ].filter((row): row is ApplicationContextTableRow => row !== null);
+    },
+  );
 
   readonly form = new FormGroup({
     applicationNotes: new FormControl<string | null>({
@@ -108,6 +129,15 @@ export class UpdateNotesComponent implements OnInit {
         }
       )?.updateNotesApplication ?? null
     );
+  }
+
+  private toContextRow(
+    label: string,
+    value: string | null | undefined,
+  ): ApplicationContextTableRow | null {
+    const trimmedValue = value?.trim();
+
+    return trimmedValue ? { label, value: trimmedValue } : null;
   }
 
   private loadEntry(): void {
@@ -272,8 +302,8 @@ export class UpdateNotesComponent implements OnInit {
 
     const currentContext = this.context();
     this.context.set({
+      ...(currentContext ?? {}),
       id: entry.id,
-      sequenceNumber: currentContext?.sequenceNumber,
       applicant: currentContext?.applicant ?? formatPartyName(entry.applicant),
       respondent:
         currentContext?.respondent ?? formatPartyName(entry.respondent),
