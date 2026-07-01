@@ -280,15 +280,6 @@
               Result selected
             </button>
 
-            <!-- Update notes -->
-            <button
-              type="button"
-              class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onUpdateNotesClick()"
-            >
-              Update notes
-            </button>
-
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
@@ -331,6 +322,16 @@
           [disabled]="row.status === 'CLOSED'"
         >
           Open
+        </button>
+
+        <!-- Update notes -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          [disabled]="!canUpdateNotes(row)"
+          (click)="onUpdateNotesClick(row)"
+        >
+          Update notes
         </button>
       </div>
     </ng-template>

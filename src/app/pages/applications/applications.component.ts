@@ -384,32 +384,9 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.printRequest.set(request);
   }
 
-  async onUpdateNotesClick(): Promise<void> {
+  async onUpdateNotesClick(row: ApplicationRow): Promise<void> {
     this.patchApp(clearNotificationsPatch());
 
-    let selectedRows: ApplicationRow[];
-    try {
-      selectedRows = await this.resolveSelectedRows();
-    } catch (err) {
-      this.patchApp({ errorSummary: [{ text: getProblemText(err) }] });
-      return;
-    }
-
-    if (selectedRows.length !== 1) {
-      this.patchApp({
-        errorSummary: [
-          {
-            text:
-              selectedRows.length === 0
-                ? 'Select one application to update notes'
-                : 'Select only one application to update notes',
-          },
-        ],
-      });
-      return;
-    }
-
-    const row = selectedRows[0];
     if (!row.applicationListId || !row.id) {
       this.patchApp({
         errorSummary: [
@@ -446,6 +423,14 @@ export class Applications extends PlaceFieldsBase implements OnInit {
           },
         },
       },
+    );
+  }
+
+  canUpdateNotes(row: ApplicationRow): boolean {
+    return (
+      !!row.applicationListId &&
+      !!row.id &&
+      toStatus(row.status) === ApplicationListStatus.CLOSED
     );
   }
 

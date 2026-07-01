@@ -922,10 +922,10 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('onUpdateNotesClick', () => {
-    it('navigates to update-notes with the selected application context', async () => {
+    it('navigates to update-notes with the row application context', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
-      const selectedRow: ApplicationRow = {
+      const row: ApplicationRow = {
         ...makeSelectedRow('entry-1', 'list-1'),
         applicant: 'William Scott',
         date: '23 Apr 2025',
@@ -936,12 +936,7 @@ describe('ApplicationsComponent', () => {
         status: ApplicationListStatus.CLOSED,
       };
 
-      appStateSignal(component).update((s) => ({
-        ...s,
-        selectedRows: [selectedRow],
-      }));
-
-      await component.onUpdateNotesClick();
+      await component.onUpdateNotesClick(row);
 
       expect(navSpy).toHaveBeenCalledWith(
         ['/applications-list', 'list-1', 'update-notes', 'entry-1'],
@@ -965,18 +960,12 @@ describe('ApplicationsComponent', () => {
     it('normalises the selected application list status before navigating', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const row = {
+        ...makeSelectedRow('entry-1', 'list-1'),
+        status: 'closed',
+      };
 
-      appStateSignal(component).update((s) => ({
-        ...s,
-        selectedRows: [
-          {
-            ...makeSelectedRow('entry-1', 'list-1'),
-            status: 'closed',
-          },
-        ],
-      }));
-
-      await component.onUpdateNotesClick();
+      await component.onUpdateNotesClick(row);
 
       expect(navSpy).toHaveBeenCalledWith(
         ['/applications-list', 'list-1', 'update-notes', 'entry-1'],
@@ -987,18 +976,12 @@ describe('ApplicationsComponent', () => {
     it('shows an error when the selected application list status is not closed', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const row = {
+        ...makeSelectedRow('entry-1', 'list-1'),
+        status: ApplicationListStatus.OPEN,
+      };
 
-      appStateSignal(component).update((s) => ({
-        ...s,
-        selectedRows: [
-          {
-            ...makeSelectedRow('entry-1', 'list-1'),
-            status: ApplicationListStatus.OPEN,
-          },
-        ],
-      }));
-
-      await component.onUpdateNotesClick();
+      await component.onUpdateNotesClick(row);
 
       expect(navSpy).not.toHaveBeenCalled();
       expect(component.vm().errorSummary).toEqual([
@@ -1008,32 +991,42 @@ describe('ApplicationsComponent', () => {
       ]);
     });
 
-    it.each([
-      [[], 'Select one application to update notes'],
-      [
-        [
-          makeSelectedRow('entry-1', 'list-1'),
-          makeSelectedRow('entry-2', 'list-2'),
-        ],
-        'Select only one application to update notes',
-      ],
-    ] as [ApplicationRow[], string][])(
-      'shows a selection error when %s rows are selected',
-      async (selectedRows, message) => {
-        const router = TestBed.inject(Router);
-        const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    it('shows an error when the row cannot identify the application list entry', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const row = {
+        ...makeSelectedRow('', ''),
+        status: ApplicationListStatus.CLOSED,
+      };
 
-        appStateSignal(component).update((s) => ({
-          ...s,
-          selectedRows,
-        }));
+      await component.onUpdateNotesClick(row);
 
-        await component.onUpdateNotesClick();
+      expect(navSpy).not.toHaveBeenCalled();
+      expect(component.vm().errorSummary).toEqual([
+        { text: 'Unable to update notes for selected application' },
+      ]);
+    });
 
-        expect(navSpy).not.toHaveBeenCalled();
-        expect(component.vm().errorSummary).toEqual([{ text: message }]);
-      },
-    );
+    it('only enables update notes for closed rows with entry and list identifiers', () => {
+      expect(
+        component.canUpdateNotes({
+          ...makeSelectedRow('entry-1', 'list-1'),
+          status: ApplicationListStatus.CLOSED,
+        }),
+      ).toBe(true);
+      expect(
+        component.canUpdateNotes({
+          ...makeSelectedRow('entry-1', 'list-1'),
+          status: ApplicationListStatus.OPEN,
+        }),
+      ).toBe(false);
+      expect(
+        component.canUpdateNotes({
+          ...makeSelectedRow('', 'list-1'),
+          status: ApplicationListStatus.CLOSED,
+        }),
+      ).toBe(false);
+    });
   });
 
   describe('onPrintContinuousClick', () => {
