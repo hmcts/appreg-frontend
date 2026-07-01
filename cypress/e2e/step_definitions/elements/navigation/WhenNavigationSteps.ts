@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-import { Given, When } from '@badeball/cypress-cucumber-preprocessor';
+import { Given, Then, When } from '@badeball/cypress-cucumber-preprocessor';
 
 import { NavigationHelper } from '../../../../support/helper/navigation/NavigationHelper';
 
@@ -20,4 +20,8 @@ Given('User Is On The {string} Page', (partialUrl: string) => {
 
 When('User Refreshes The Page', () => {
   NavigationHelper.pageRefresh();
+});
+
+Then('User Takes Screenshot {string}', (screenshotName: string) => {
+  cy.screenshot(screenshotName, { overwrite: true });
 });
