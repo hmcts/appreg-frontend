@@ -8,7 +8,7 @@ properties([
     booleanParam(name: 'Regression', defaultValue: true, description: 'Run regression tests'),
   ])
 ])
-@Library('Infrastructure')
+@Library('Infrastructure@2.4.0')
 def type = 'angular'
 def product = 'appreg'
 def component = 'frontend'
@@ -41,7 +41,7 @@ def yarnBuilder = new uk.gov.hmcts.contino.YarnBuilder(this)
 withNightlyPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
-  
+
   env.TEST_URL = 'https://appreg.staging.apps.hmcts.net/'
 
   afterAlways('DependencyCheckNightly') {
@@ -50,7 +50,7 @@ withNightlyPipeline(type, product, component) {
         sh "./cypress/scripts/connectivity/test-connectivity.sh ${env.TEST_URL}"
       }
     }
-    
+
     echo 'Smoke: ' + params.Smoke
     echo 'Regression: ' + params.Regression
 
@@ -66,7 +66,7 @@ withNightlyPipeline(type, product, component) {
           } finally {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
             junit allowEmptyResults: true, testResults: 'functional-output/**/*.xml,cypress/reports/junit/**/*.xml'
-            
+
             publishHTML target: [
               allowMissing         : true,
               alwaysLinkToLastBuild: true,
@@ -87,7 +87,7 @@ withNightlyPipeline(type, product, component) {
             yarnBuilder.yarn('test:parallel:regression:chrome')
           } finally {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
-            junit allowEmptyResults: true, testResults: 'functional-output/**/*.xml,cypress/reports/junit/**/*.xml'           
+            junit allowEmptyResults: true, testResults: 'functional-output/**/*.xml,cypress/reports/junit/**/*.xml'
             publishHTML target: [
               allowMissing         : true,
               alwaysLinkToLastBuild: true,
