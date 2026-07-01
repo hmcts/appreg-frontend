@@ -402,9 +402,9 @@ Feature: Applications List Entry Create
     Then User Selects "Standard Applicant" In The "Select applicant type" Dropdown
     Then User Enters "APP025" Into The Textbox "Code" In The Accordion "Applicant"
     When User Clicks On The "Search" Button
-    When User Checks The Checkbox In Row Of Table "Standard applicants" In The Accordion "Applicant" With:
-      | Code   | Name        | Address        | Use from   | Use to |
-      | APP025 | Ava Johnson | 258 Cedar Lane | 6 Nov 2025 | —      |
+    Then User Should See The Text "Ava Johnson" In The Accordion "Applicant"
+    Then User Should See The Text "258 Cedar Lane" In The Accordion "Applicant"
+    Then User Checks The Checkbox With Label "Select APP025" In The Accordion "Applicant"
     Then User Should See The Text "Currently selected APP025 Ava Johnson" In The Accordion "Applicant"
     # Application Codes
     Then User Enters "AP99004" Into The Textbox "Application code" In The Accordion "Application codes"
@@ -418,7 +418,7 @@ Feature: Applications List Entry Create
     # Wording Details
     Then User Verifies The "Wording" Accordion Has Value "Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on"
     Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Date" and Enters "today"
-    # (Bug raised ARCPOC-1230/ARCPOC-1205/AARCPOC-1253 for below statement)
+    # (Bug raised ARCPOC-1230/ARCPOC-1205/ARCPOC-1253 for below statement)
     When User Clicks On The "Apply wording" Button In The Accordion "Wording"
     Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
     # Respondent Details Not provided as Respondent Required = N for the Application Code
