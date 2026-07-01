@@ -128,7 +128,7 @@ export const routes: Routes = [
       {
         path: ':id/update-notes/:entryId',
         loadComponent: () =>
-          import('@components/applications-list-detail/update-notes/update-notes.component').then(
+          import('@components/applications/update-notes/update-notes.component').then(
             (m) => m.UpdateNotesComponent,
           ),
       },

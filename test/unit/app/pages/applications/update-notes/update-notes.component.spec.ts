@@ -12,7 +12,7 @@ import { of, throwError } from 'rxjs';
 import {
   UpdateNotesApplicationContext,
   UpdateNotesComponent,
-} from '@components/applications-list-detail/update-notes/update-notes.component';
+} from '@components/applications/update-notes/update-notes.component';
 import { ApplicationListEntriesApi, EntryGetDetailDto } from '@openapi';
 
 describe('UpdateNotesComponent', () => {
