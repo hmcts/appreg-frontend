@@ -31,7 +31,7 @@
 <form [formGroup]="form">
   <div class="govuk-form-group">
     <label class="govuk-label govuk-label--s" for="application-notes">
-      Application Notes
+      Application notes
     </label>
     <app-govuk-textarea
       [control]="form.controls.applicationNotes"
@@ -48,7 +48,7 @@
     [class.govuk-form-group--error]="isAdditionalNotesInvalid()"
   >
     <label class="govuk-label govuk-label--s" for="additional-notes">
-      Additional Notes
+      Additional notes
     </label>
     @if (isAdditionalNotesInvalid()) {
       <p id="additional-notes-error" class="govuk-error-message">
@@ -81,7 +81,7 @@
       [disabled]="isSubmitting()"
       (click)="onSaveAdditionalNotes()"
     >
-      {{ isSubmitting() ? 'Saving...' : 'Save Additional Notes' }}
+      {{ isSubmitting() ? 'Saving...' : 'Save additional notes' }}
     </button>
   </div>
 </form>
