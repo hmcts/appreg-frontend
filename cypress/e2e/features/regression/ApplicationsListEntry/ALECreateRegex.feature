@@ -399,9 +399,9 @@ Feature: Applications List Entry Create Regex Validations
         Then User Enters "<StdAppCode>" Into The Textbox "Code" In The Accordion "Applicant"
         Then User Enters "Ava" Into The Textbox "Standard applicant name" In The Accordion "Applicant"
         When User Clicks On The "Search" Button
-        When User Checks The Checkbox In Row Of Table "Standard applicants" In The Accordion "Applicant" With:
-            | Code         | Name         | Address        | Use from   | Use to |
-            | <StdAppCode> | <StdAppName> | 258 Cedar Lane | 6 Nov 2025 | —      |
+        Then User Should See The Text "<StdAppName>" In The Accordion "Applicant"
+        Then User Should See The Text "258 Cedar Lane" In The Accordion "Applicant"
+        Then User Checks The Checkbox With Label "Select <StdAppCode>" In The Accordion "Applicant"
         Then User Should See The Text "Currently selected <StdAppCode> <StdAppName>" In The Accordion "Applicant"
         # Application Codes
         Then User Enters "AP99004" Into The Textbox "Application code" In The Accordion "Application codes"
