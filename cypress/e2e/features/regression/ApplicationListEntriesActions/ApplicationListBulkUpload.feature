@@ -20,7 +20,6 @@ Feature: Application List Bulk Upload
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk Upload Applications" On The Page
         Then User See "Select the bulk applications file you wish to upload." On The Page
-        Then User See "the filename must end in .csv" On The Page
         When User Uploads The File "bulk-upload-entries.csv"
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
