@@ -240,16 +240,23 @@ export class UpdateNotesComponent implements OnInit {
 
   private handleSaveError(err: unknown): void {
     const status = err instanceof HttpErrorResponse ? err.status : undefined;
-    const text =
-      status === 404
-        ? 'Application List Entry not found'
-        : status === 409
-          ? 'Application List Entry cannot be updated in its current state'
-          : 'Unable to save notes. Please try again later';
+    const text = this.getSaveErrorMessage(status);
 
     this.successMessage.set(null);
     this.errorSummaryItems.set([{ text }]);
     focusErrorSummary(this.platformId);
+  }
+
+  private getSaveErrorMessage(status: number | undefined): string {
+    if (status === 404) {
+      return 'Application List Entry not found';
+    }
+
+    if (status === 409) {
+      return 'Application List Entry cannot be updated in its current state';
+    }
+
+    return 'Unable to save notes. Please try again later';
   }
 
   private applySavedAdditionalNotes(
