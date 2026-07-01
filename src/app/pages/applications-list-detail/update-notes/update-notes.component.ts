@@ -16,7 +16,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
@@ -64,6 +64,7 @@ type ApplicationContextTableRow = {
 })
 export class UpdateNotesComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly entriesApi = inject(ApplicationListEntriesApi);
   private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
@@ -111,6 +112,12 @@ export class UpdateNotesComponent implements OnInit {
   ngOnInit(): void {
     this.listId = this.route.snapshot.paramMap.get('id') ?? '';
     this.entryId = this.route.snapshot.paramMap.get('entryId') ?? '';
+
+    if (!this.listId || !this.entryId) {
+      void this.router.navigate(['/applications']);
+      return;
+    }
+
     this.context.set(this.readNavigationContext());
     this.loadEntry();
   }
@@ -139,13 +146,6 @@ export class UpdateNotesComponent implements OnInit {
   }
 
   private loadEntry(): void {
-    if (!this.listId || !this.entryId) {
-      this.errorSummaryItems.set([
-        { text: 'Unable to load application notes' },
-      ]);
-      return;
-    }
-
     this.entriesApi
       .getApplicationListEntryFromClosedList({
         listId: this.listId,

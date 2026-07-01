@@ -3,6 +3,7 @@ import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   ActivatedRoute,
+  Router,
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
@@ -190,6 +191,27 @@ describe('UpdateNotesComponent', () => {
     expect(breadcrumbLinks[0].textContent?.trim()).toBe('Applications');
     expect(breadcrumbLinks[0].getAttribute('href')).toBe('/applications');
     expect(returnLink?.getAttribute('href')).toBe('/applications');
+  });
+
+  it('navigates back to Applications without loading notes when route ids are missing', () => {
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    const originalParamMap = routeStub.snapshot.paramMap;
+
+    try {
+      routeStub.snapshot.paramMap = convertToParamMap({});
+      entriesApiStub.getApplicationListEntryFromClosedList.mockClear();
+
+      const freshFixture = TestBed.createComponent(UpdateNotesComponent);
+      freshFixture.detectChanges();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/applications']);
+      expect(
+        entriesApiStub.getApplicationListEntryFromClosedList,
+      ).not.toHaveBeenCalled();
+    } finally {
+      routeStub.snapshot.paramMap = originalParamMap;
+    }
   });
 
   it('shows an error summary item when application notes cannot be loaded', async () => {
