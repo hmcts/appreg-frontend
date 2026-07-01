@@ -49,6 +49,8 @@ type ApplicationContextTableRow = {
   value: string;
 };
 
+const MAX_APPLICATION_NOTES_LENGTH = 4000;
+
 @Component({
   selector: 'app-update-notes',
   standalone: true,
@@ -76,6 +78,7 @@ export class UpdateNotesComponent implements OnInit {
   readonly errorSummaryItems = signal<ErrorItem[]>([]);
   readonly successMessage = signal<string | null>(null);
   readonly isSubmitting = signal(false);
+  private readonly applicationNotesLength = signal(0);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -99,13 +102,22 @@ export class UpdateNotesComponent implements OnInit {
     },
   );
 
+  readonly additionalNotesCharacterLimit = computed(() =>
+    Math.max(
+      MAX_APPLICATION_NOTES_LENGTH -
+        this.applicationNotesLength() -
+        this.appendedNotesSeparatorLength(),
+      0,
+    ),
+  );
+
   readonly form = new FormGroup({
     applicationNotes: new FormControl<string | null>({
       value: '',
       disabled: true,
     }),
     additionalNotes: new FormControl<string | null>('', [
-      Validators.maxLength(400),
+      Validators.maxLength(MAX_APPLICATION_NOTES_LENGTH),
     ]),
   });
 
@@ -171,7 +183,7 @@ export class UpdateNotesComponent implements OnInit {
     const control = this.form.controls.additionalNotes;
 
     if (control.hasError('maxlength')) {
-      return 'Additional Notes must be 400 characters or fewer';
+      return `Additional notes must be ${this.additionalNotesCharacterLimit()} characters or fewer`;
     }
 
     return null;
@@ -265,13 +277,12 @@ export class UpdateNotesComponent implements OnInit {
   ): void {
     const returnedNotes = this.getReturnedNotes(response);
     const currentNotes = this.form.controls.applicationNotes.value ?? '';
+    const updatedNotes =
+      returnedNotes ??
+      this.appendAdditionalNotes(currentNotes, additionalNotes);
 
-    this.form.patchValue({
-      applicationNotes:
-        returnedNotes ??
-        this.appendAdditionalNotes(currentNotes, additionalNotes),
-      additionalNotes: '',
-    });
+    this.setApplicationNotes(updatedNotes);
+    this.form.controls.additionalNotes.setValue('');
     this.form.controls.additionalNotes.markAsPristine();
     this.form.controls.additionalNotes.markAsUntouched();
   }
@@ -300,10 +311,8 @@ export class UpdateNotesComponent implements OnInit {
 
   private applyEntry(entry: EntryGetDetailDto): void {
     this.errorSummaryItems.set([]);
-    this.form.patchValue({
-      applicationNotes: entry.notes ?? '',
-      additionalNotes: '',
-    });
+    this.setApplicationNotes(entry.notes ?? '');
+    this.form.controls.additionalNotes.setValue('');
 
     const currentContext = this.context();
     this.context.set({
@@ -315,5 +324,23 @@ export class UpdateNotesComponent implements OnInit {
       title: currentContext?.title ?? null,
       applicationCode: entry.applicationCode,
     });
+  }
+
+  private setApplicationNotes(notes: string): void {
+    this.form.controls.applicationNotes.setValue(notes);
+    this.applicationNotesLength.set(notes.length);
+    this.updateAdditionalNotesValidator();
+  }
+
+  private updateAdditionalNotesValidator(): void {
+    const control = this.form.controls.additionalNotes;
+    control.setValidators([
+      Validators.maxLength(this.additionalNotesCharacterLimit()),
+    ]);
+    control.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private appendedNotesSeparatorLength(): number {
+    return this.applicationNotesLength() > 0 ? 1 : 0;
   }
 }

@@ -115,6 +115,7 @@ describe('UpdateNotesComponent', () => {
       additionalNotes: '',
     });
     expect(component.form.controls.applicationNotes.disabled).toBe(true);
+    expect(component.additionalNotesCharacterLimit()).toBe(3973);
   });
 
   it('shows the selected application context in a table', () => {
@@ -166,6 +167,9 @@ describe('UpdateNotesComponent', () => {
 
   it('shows the character counter only for Additional Notes', () => {
     const element = fixture.nativeElement as HTMLElement;
+    const additionalNotes = element.querySelector<HTMLTextAreaElement>(
+      'textarea[name="additionalNotes"]',
+    );
 
     expect(element.querySelector('#application-notes-hint')).toBeNull();
     expect(
@@ -173,9 +177,10 @@ describe('UpdateNotesComponent', () => {
         .querySelector('#application-notes')
         ?.getAttribute('aria-describedby'),
     ).toBeNull();
+    expect(additionalNotes?.maxLength).toBe(3973);
     expect(
       element.querySelector('#additional-notes-hint')?.textContent,
-    ).toContain('You have 400 characters remaining');
+    ).toContain('You have 3973 characters remaining');
   });
 
   it('links breadcrumbs and cancel action back to Applications', () => {
@@ -271,12 +276,15 @@ describe('UpdateNotesComponent', () => {
       applicationNotes: 'Updated notes returned by API',
       additionalNotes: '',
     });
+    expect(component.additionalNotesCharacterLimit()).toBe(3970);
     expect(component.form.controls.additionalNotes.pristine).toBe(true);
     expect(component.form.controls.additionalNotes.touched).toBe(false);
   });
 
-  it('does not save when additional notes exceed 400 characters', () => {
-    component.form.controls.additionalNotes.setValue('a'.repeat(401));
+  it('does not save when additional notes exceed the remaining character limit', () => {
+    component.form.controls.additionalNotes.setValue(
+      'a'.repeat(component.additionalNotesCharacterLimit() + 1),
+    );
 
     component.onSaveAdditionalNotes();
 
@@ -287,7 +295,7 @@ describe('UpdateNotesComponent', () => {
       {
         id: 'additional-notes',
         href: '#additional-notes',
-        text: 'Additional Notes must be 400 characters or fewer',
+        text: 'Additional notes must be 3973 characters or fewer',
       },
     ]);
     expect(component.isAdditionalNotesInvalid()).toBe(true);
