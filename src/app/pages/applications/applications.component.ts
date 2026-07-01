@@ -47,9 +47,9 @@ import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
 import {
-  ApplicationListStatus,
   ApplicationListEntriesApi,
   ApplicationListGetPrintDto,
+  ApplicationListStatus,
   ApplicationListsApi,
   EntryGetFilterDto,
   EntryGetSummaryDto,
