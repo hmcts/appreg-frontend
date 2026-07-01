@@ -29,6 +29,16 @@ Then('User Sees Notification Banner {string}', (expectedText: string) => {
 });
 
 Then(
+  'User Sees Inline Notification Banner {string}',
+  (expectedText: string) => {
+    BannerHelper.verifyBannerText(expectedText, {
+      assertAbovePageHeader: false,
+    });
+    cy.screenshot(`InlineBannerWithText-${expectedText.substring(0, 30)}`);
+  },
+);
+
+Then(
   'User Sees Success Banner {string} Containing {string}',
   (heading: string, bodyText: string) => {
     BannerHelper.verifySuccessBannerContaining(heading, bodyText);

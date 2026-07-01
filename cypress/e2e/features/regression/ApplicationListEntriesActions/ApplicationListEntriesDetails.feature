@@ -224,7 +224,7 @@ Feature: Application List Entries Search
         When User Searches Application List Entries With:
             | Applicant           | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
             | Nonexistent{RANDOM} |            |                     |                 |                |                   |     |          |
-        Then User Sees Notification Banner "Important No lists entries found Try again, or create a new list entry"
+        Then User Sees Inline Notification Banner "Important No lists entries found Try again, or create a new list entry"
         When User Clicks On The "Clear search" Button
         # Verify default sort order - Sequence number ascending by default, all others none
         Then User Should See Table "Entries" Header "Sequence number" Has Sort Order "ascending"
@@ -297,4 +297,3 @@ Feature: Application List Entries Search
         Examples:
             | User  | APIDate  | Time           | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     |
             | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todayDisplay | 5       | Bristol Crown Court Set 3 |
-
