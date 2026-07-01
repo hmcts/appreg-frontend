@@ -442,7 +442,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
             fee: row.fee,
             respondent: row.respondent,
             resulted: row.resulted,
-            status: row.status,
             title: row.title,
           },
         },

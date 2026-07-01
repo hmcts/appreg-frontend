@@ -954,7 +954,6 @@ describe('ApplicationsComponent', () => {
               fee: 'Yes',
               respondent: 'Ryan Quinn',
               resulted: 'No',
-              status: ApplicationListStatus.CLOSED,
               title: 'Appeal by Case Stated (Civil)',
             },
           },

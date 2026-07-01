@@ -55,7 +55,6 @@ describe('UpdateNotesComponent', () => {
     fee: 'Yes',
     respondent: 'Mr John Smith',
     resulted: 'No',
-    status: 'CLOSED',
     title: 'Application for a private prosecution summons',
   };
 
@@ -109,7 +108,6 @@ describe('UpdateNotesComponent', () => {
       { label: 'Date', value: '23 Apr 2025' },
       { label: 'Fee', value: 'Yes' },
       { label: 'Resulted', value: 'No' },
-      { label: 'Status', value: 'CLOSED' },
     ]);
     expect(component.form.getRawValue()).toEqual({
       applicationNotes: 'Existing application notes',
@@ -137,7 +135,6 @@ describe('UpdateNotesComponent', () => {
       ['Date', '23 Apr 2025'],
       ['Fee', 'Yes'],
       ['Resulted', 'No'],
-      ['Status', 'CLOSED'],
     ]);
   });
 
@@ -150,7 +147,6 @@ describe('UpdateNotesComponent', () => {
       date: ' ',
       fee: 'No',
       resulted: null,
-      status: 'CLOSED',
     });
     fixture.detectChanges();
 
@@ -164,7 +160,6 @@ describe('UpdateNotesComponent', () => {
     expect(rows).toEqual([
       ['Applicant', 'Mrs Sam Smith Test Person'],
       ['Fee', 'No'],
-      ['Status', 'CLOSED'],
     ]);
   });
 

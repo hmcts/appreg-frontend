@@ -40,7 +40,6 @@ export type UpdateNotesApplicationContext = {
   fee?: string | null;
   respondent: string | null;
   resulted?: string | null;
-  status?: string | null;
   title: string | null;
   applicationCode?: string | null;
 };
@@ -95,7 +94,6 @@ export class UpdateNotesComponent implements OnInit {
         this.toContextRow('Date', application.date),
         this.toContextRow('Fee', application.fee),
         this.toContextRow('Resulted', application.resulted),
-        this.toContextRow('Status', application.status),
       ].filter((row): row is ApplicationContextTableRow => row !== null);
     },
   );
