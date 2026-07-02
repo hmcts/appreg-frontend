@@ -166,7 +166,6 @@ describe('ApplicationsComponent', () => {
         ApplicationListEntriesApi['getEntryIds']
       >,
     );
-
     await TestBed.configureTestingModule({
       imports: [Applications],
       providers: [
@@ -919,6 +918,114 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().selectedRows).toEqual([]);
       expect(component.vm().allMatchingSelected).toBe(false);
       expect(component.vm().isSelectingAll).toBe(false);
+    });
+  });
+
+  describe('onUpdateNotesClick', () => {
+    it('navigates to update-notes with the row application context', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const row: ApplicationRow = {
+        ...makeSelectedRow('entry-1', 'list-1'),
+        applicant: 'William Scott',
+        date: '23 Apr 2025',
+        fee: 'Yes',
+        respondent: 'Ryan Quinn',
+        resulted: 'No',
+        title: 'Appeal by Case Stated (Civil)',
+        status: ApplicationListStatus.CLOSED,
+      };
+
+      await component.onUpdateNotesClick(row);
+
+      expect(navSpy).toHaveBeenCalledWith(
+        ['/applications-list', 'list-1', 'update-notes', 'entry-1'],
+        {
+          state: {
+            updateNotesApplication: {
+              id: 'entry-1',
+              applicant: 'William Scott',
+              date: '23 Apr 2025',
+              fee: 'Yes',
+              respondent: 'Ryan Quinn',
+              resulted: 'No',
+              title: 'Appeal by Case Stated (Civil)',
+            },
+          },
+        },
+      );
+      expect(component.vm().errorSummary).toEqual([]);
+    });
+
+    it('normalises the selected application list status before navigating', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const row = {
+        ...makeSelectedRow('entry-1', 'list-1'),
+        status: 'closed',
+      };
+
+      await component.onUpdateNotesClick(row);
+
+      expect(navSpy).toHaveBeenCalledWith(
+        ['/applications-list', 'list-1', 'update-notes', 'entry-1'],
+        expect.any(Object),
+      );
+    });
+
+    it('shows an error when the selected application list status is not closed', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const row = {
+        ...makeSelectedRow('entry-1', 'list-1'),
+        status: ApplicationListStatus.OPEN,
+      };
+
+      await component.onUpdateNotesClick(row);
+
+      expect(navSpy).not.toHaveBeenCalled();
+      expect(component.vm().errorSummary).toEqual([
+        {
+          text: 'Application List Entry cannot be updated in its current state. The parent application list is not closed.',
+        },
+      ]);
+    });
+
+    it('shows an error when the row cannot identify the application list entry', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const row = {
+        ...makeSelectedRow('', ''),
+        status: ApplicationListStatus.CLOSED,
+      };
+
+      await component.onUpdateNotesClick(row);
+
+      expect(navSpy).not.toHaveBeenCalled();
+      expect(component.vm().errorSummary).toEqual([
+        { text: 'Unable to update notes for selected application' },
+      ]);
+    });
+
+    it('only enables update notes for closed rows with entry and list identifiers', () => {
+      expect(
+        component.canUpdateNotes({
+          ...makeSelectedRow('entry-1', 'list-1'),
+          status: ApplicationListStatus.CLOSED,
+        }),
+      ).toBe(true);
+      expect(
+        component.canUpdateNotes({
+          ...makeSelectedRow('entry-1', 'list-1'),
+          status: ApplicationListStatus.OPEN,
+        }),
+      ).toBe(false);
+      expect(
+        component.canUpdateNotes({
+          ...makeSelectedRow('', 'list-1'),
+          status: ApplicationListStatus.CLOSED,
+        }),
+      ).toBe(false);
     });
   });
 

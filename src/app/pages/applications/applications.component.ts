@@ -49,6 +49,7 @@ import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListEntriesApi,
   ApplicationListGetPrintDto,
+  ApplicationListStatus,
   ApplicationListsApi,
   EntryGetFilterDto,
   EntryGetSummaryDto,
@@ -383,8 +384,54 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.printRequest.set(request);
   }
 
-  onUpdateNotesClick(): void {
-    /** TODO: ARCPOC-1333 */
+  async onUpdateNotesClick(row: ApplicationRow): Promise<void> {
+    this.patchApp(clearNotificationsPatch());
+
+    if (!row.applicationListId || !row.id) {
+      this.patchApp({
+        errorSummary: [
+          { text: 'Unable to update notes for selected application' },
+        ],
+      });
+      return;
+    }
+
+    const listStatus = toStatus(row.status);
+    if (listStatus !== ApplicationListStatus.CLOSED) {
+      this.patchApp({
+        errorSummary: [
+          {
+            text: 'Application List Entry cannot be updated in its current state. The parent application list is not closed.',
+          },
+        ],
+      });
+      return;
+    }
+
+    await this.router.navigate(
+      ['/applications-list', row.applicationListId, 'update-notes', row.id],
+      {
+        state: {
+          updateNotesApplication: {
+            id: row.id,
+            applicant: row.applicant,
+            date: row.date,
+            fee: row.fee,
+            respondent: row.respondent,
+            resulted: row.resulted,
+            title: row.title,
+          },
+        },
+      },
+    );
+  }
+
+  canUpdateNotes(row: ApplicationRow): boolean {
+    return (
+      !!row.applicationListId &&
+      !!row.id &&
+      toStatus(row.status) === ApplicationListStatus.CLOSED
+    );
   }
 
   async onResultSelectedClick(): Promise<void> {

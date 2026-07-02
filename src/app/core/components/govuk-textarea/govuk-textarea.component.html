@@ -3,7 +3,7 @@
   [id]="id()"
   [name]="name()"
   [rows]="rows()"
-  [attr.aria-describedby]="ariaDescribedBy()"
+  [attr.aria-describedby]="ariaDescribedBy() || null"
   [formControl]="control()"
   [maxlength]="maxCharacterLimit()"
   [class.govuk-input--error]="isInvalid()"
