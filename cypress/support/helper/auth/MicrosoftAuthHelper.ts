@@ -63,6 +63,66 @@ export class MicrosoftAuthHelper {
             .click();
         };
 
+        // Helper to handle optional "Stay signed in?" prompt
+        const handleStaySignedInPromptIfPresent = () => {
+          cy.get('body', { timeout: 15000 })
+            .should(($body) => {
+              const bodyText = $body.text();
+
+              const isStaySignedInPrompt =
+                bodyText.includes('Stay signed in') ||
+                bodyText.includes('Keep me signed in');
+
+              const hasNoButton =
+                $body.find('#idBtn_Back').filter((_, el) => {
+                  const value = (
+                    (el as HTMLInputElement).value ||
+                    el.textContent ||
+                    ''
+                  )
+                    .toString()
+                    .trim();
+
+                  return /^no$/i.test(value);
+                }).length > 0;
+
+              expect(
+                isStaySignedInPrompt || hasNoButton,
+                'Stay signed in prompt or No button should appear',
+              ).to.eq(true);
+            })
+            .then(($body) => {
+              const bodyText = $body.text();
+
+              const isStaySignedInPrompt =
+                bodyText.includes('Stay signed in') ||
+                bodyText.includes('Keep me signed in');
+
+              if (!isStaySignedInPrompt) {
+                cy.log(
+                  'Microsoft SSO: Stay signed in prompt not present; skipping #idBtn_Back',
+                );
+                return;
+              }
+
+              cy.log('Microsoft SSO: Stay signed in prompt detected');
+
+              cy.get('#idBtn_Back', { timeout: 10000 }).then(($btn) => {
+                const value = ($btn.val() || $btn.text() || '')
+                  .toString()
+                  .trim();
+
+                if (!/^no$/i.test(value)) {
+                  throw new Error(
+                    `Microsoft SSO: expected #idBtn_Back to be "No", but found "${value}"`,
+                  );
+                }
+
+                cy.wrap($btn).should('be.visible').should('be.enabled').click();
+              });
+            });
+        };
+
         // Enter email
         cy.log('Entering email...');
         typeExact(emailSel, innerEmail, 'email');
@@ -73,15 +133,8 @@ export class MicrosoftAuthHelper {
         typeExact(passSel, innerPassword, 'password');
         clickSubmit();
 
-        // Wait for and handle "Stay signed in?" prompt
-        cy.get('#idBtn_Back', { timeout: 15000 })
-          .should('be.visible')
-          .should('be.enabled')
-          .then(($btn) => {
-            const text = $btn.val() as string;
-            cy.log(`Clicking button: ${text}`);
-            cy.wrap($btn).click();
-          });
+        // Wait for and handle optional "Stay signed in?" prompt
+        handleStaySignedInPromptIfPresent();
       },
     );
 
