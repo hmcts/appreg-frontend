@@ -118,10 +118,7 @@ export class MicrosoftAuthHelper {
                   );
                 }
 
-                cy.wrap($btn)
-                  .should('be.visible')
-                  .should('be.enabled')
-                  .click();
+                cy.wrap($btn).should('be.visible').should('be.enabled').click();
               });
             });
         };
