@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { PLATFORM_ID } from '@angular/core';
+import { LOCALE_ID, PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   ActivatedRoute,
@@ -52,7 +52,7 @@ describe('UpdateNotesComponent', () => {
     id: 'entry-1',
     sequenceNumber: 2,
     applicant: 'Mrs Sam Smith Test Person',
-    date: '23 Apr 2025',
+    date: '2025-04-23',
     fee: 'Yes',
     respondent: 'Mr John Smith',
     resulted: 'No',
@@ -72,6 +72,7 @@ describe('UpdateNotesComponent', () => {
         provideRouter([]),
         { provide: ActivatedRoute, useValue: routeStub },
         { provide: ApplicationListEntriesApi, useValue: entriesApiStub },
+        { provide: LOCALE_ID, useValue: 'en-GB' },
         { provide: PLATFORM_ID, useValue: 'browser' },
       ],
     }).compileComponents();
@@ -106,7 +107,7 @@ describe('UpdateNotesComponent', () => {
         label: 'Application title',
         value: 'Application for a private prosecution summons',
       },
-      { label: 'Date', value: '23 Apr 2025' },
+      { label: 'Date', value: '2025-04-23', format: 'date' },
       { label: 'Fee', value: 'Yes' },
       { label: 'Resulted', value: 'No' },
     ]);

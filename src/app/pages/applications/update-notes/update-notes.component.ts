@@ -25,6 +25,7 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { GovukTextareaComponent } from '@components/govuk-textarea/govuk-textarea.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { ApplicationListEntriesApi, EntryGetDetailDto } from '@openapi';
 import {
   focusErrorSummary,
@@ -47,6 +48,7 @@ export type UpdateNotesApplicationContext = {
 type ApplicationContextTableRow = {
   label: string;
   value: string;
+  format?: 'date';
 };
 
 const MAX_APPLICATION_NOTES_LENGTH = 4000;
@@ -61,6 +63,7 @@ const MAX_APPLICATION_NOTES_LENGTH = 4000;
     ErrorSummaryComponent,
     GovukTextareaComponent,
     SuccessBannerComponent,
+    DateTimePipe,
   ],
   templateUrl: './update-notes.component.html',
 })
@@ -95,7 +98,7 @@ export class UpdateNotesComponent implements OnInit {
         this.toContextRow('Respondent', application.respondent),
         this.toContextRow('Application code', application.applicationCode),
         this.toContextRow('Application title', application.title),
-        this.toContextRow('Date', application.date),
+        this.toContextRow('Date', application.date, 'date'),
         this.toContextRow('Fee', application.fee),
         this.toContextRow('Resulted', application.resulted),
       ].filter((row): row is ApplicationContextTableRow => row !== null);
@@ -151,10 +154,11 @@ export class UpdateNotesComponent implements OnInit {
   private toContextRow(
     label: string,
     value: string | null | undefined,
+    format?: ApplicationContextTableRow['format'],
   ): ApplicationContextTableRow | null {
     const trimmedValue = value?.trim();
 
-    return trimmedValue ? { label, value: trimmedValue } : null;
+    return trimmedValue ? { label, value: trimmedValue, format } : null;
   }
 
   private loadEntry(): void {
