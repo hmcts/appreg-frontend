@@ -3,7 +3,7 @@
 # @(#)$Id$
 #
 # Script to set up the environment for appreg-frontend
-# by installing NVM, node and yarn packages and attempts to build the 
+# by installing NVM, node and yarn packages and attempts to build the
 # current project. Ensure this script is run in the root directory of the
 # project and that it has the necessary permissions to execute.
 
@@ -49,6 +49,6 @@ echo "====== running: corepack enable ======";
 corepack enable;
 
 echo "Attempting to install and build yarn packages";
-yarn install && yarn build;
+yarn install && yarn build && yarn prepare;
 
 exec ${SHELL}
