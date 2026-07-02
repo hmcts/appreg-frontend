@@ -7,7 +7,10 @@
     (itemSelect)="onCreateErrorClick($event)"
   />
 } @else if (successMessage(); as message) {
-  <app-success-banner [heading]="message" />
+  <app-success-banner
+    [heading]="message"
+    body="Additional application notes have been added successfully"
+  />
 }
 
 <h1 class="govuk-heading-xl">Update application notes</h1>

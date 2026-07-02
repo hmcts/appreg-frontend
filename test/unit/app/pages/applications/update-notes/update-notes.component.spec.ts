@@ -257,6 +257,11 @@ describe('UpdateNotesComponent', () => {
     expect(component.successMessage()).toBe(
       'Application entry updated successfully',
     );
+    fixture.detectChanges();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('app-success-banner')
+        ?.textContent,
+    ).toContain('Additional application notes have been added successfully');
     expect(component.form.getRawValue()).toEqual({
       applicationNotes: 'Existing application notes Court admin note',
       additionalNotes: '',
