@@ -95,8 +95,8 @@ export class ErrorSummaryComponent {
   }
 
   fragmentTarget(item: ErrorItem): string | undefined {
-    if (item.href?.startsWith('#')) {
-      return item.href.slice(1);
+    if (item.href) {
+      return item.href.startsWith('#') ? item.href.slice(1) : undefined;
     }
 
     return item.id ? item.id : (this.targetId() ?? undefined);
