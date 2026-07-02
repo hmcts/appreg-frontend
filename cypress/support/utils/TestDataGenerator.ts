@@ -12,8 +12,8 @@ export class TestDataGenerator {
    * Generates 6-digit number: 4 from timestamp + 2 from random
    */
   static initializeScenario(): void {
-    const timestamp = Date.now().toString().slice(-4); // Last 4 digits of timestamp
     const random = Math.floor(Math.random() * 100); // 0-99
+    const timestamp = Date.now().toString().slice(-4); // Last 4 digits of timestamp
     this.scenarioRandom = `${timestamp}${random.toString().padStart(2, '0')}`;
   }
 
