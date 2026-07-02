@@ -179,4 +179,30 @@ describe('ErrorSummaryComponent (external template)', () => {
     expect(handler).toHaveBeenCalledWith(item);
     sub.unsubscribe();
   });
+
+  it('does not prevent default for explicit non-fragment hrefs when targetId fallback exists', () => {
+    const item: ErrorItem = { text: 'Click me', href: '/somewhere' };
+    fixture.componentRef.setInput('items', [item]);
+    fixture.componentRef.setInput('targetId', 'summary-target');
+    fixture.componentRef.setInput('preventFragmentNavigation', true);
+    fixture.detectChanges();
+
+    const handler = jest.fn();
+    const sub = comp.itemSelect.subscribe(handler);
+    const event = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+    });
+
+    const a = fixture.nativeElement.querySelector(
+      'a.govuk-link',
+    ) as HTMLAnchorElement;
+    expect(a.getAttribute('href')).toBe('/somewhere');
+
+    a.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(handler).toHaveBeenCalledWith(item);
+    sub.unsubscribe();
+  });
 });
