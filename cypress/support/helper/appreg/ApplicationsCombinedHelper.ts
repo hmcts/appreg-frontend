@@ -1,3 +1,4 @@
+import { TextboxElement } from '../../pageobjects/generic/textbox/TextboxElement';
 import { processDatatableRow } from '../../utils/TestDataGenerator';
 import { AccordionHelper } from '../forms/accordion/accordion/AccordionHelper';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
@@ -84,19 +85,49 @@ export class ApplicationListEntriesCombinedHelper {
         case 'Other location description':
         case 'Other location':
         case 'List other location':
-          TextboxHelper.typeInTextbox('Other location description', value);
+          cy.get('details.govuk-details[open]').then(($advancedSearch) => {
+            return TextboxElement.findTextboxWithin(
+              $advancedSearch,
+              'Other location description',
+            )
+              .should('be.visible')
+              .should('be.enabled')
+              .scrollIntoView()
+              .clear({ force: true })
+              .should('have.value', '')
+              .type(value, { force: true });
+          });
           break;
 
         case 'Standard applicant code':
-          TextboxHelper.typeInTextbox('Standard applicant code', value);
-          break;
-
         case 'Applicant code':
-          TextboxHelper.typeInTextbox('Applicant code', value);
+          cy.get('details.govuk-details[open]').then(($advancedSearch) => {
+            return TextboxElement.findTextboxWithin(
+              $advancedSearch,
+              'Standard applicant code',
+            )
+              .should('be.visible')
+              .should('be.enabled')
+              .scrollIntoView()
+              .clear({ force: true })
+              .should('have.value', '')
+              .type(value, { force: true });
+          });
           break;
 
         case 'Respondent post code':
-          TextboxHelper.typeInTextbox('Respondent post code', value);
+          cy.get('details.govuk-details[open]').then(($advancedSearch) => {
+            return TextboxElement.findTextboxWithin(
+              $advancedSearch,
+              'Respondent post code',
+            )
+              .should('be.visible')
+              .should('be.enabled')
+              .scrollIntoView()
+              .clear({ force: true })
+              .should('have.value', '')
+              .type(value, { force: true });
+          });
           break;
 
         case 'CJASearch':
@@ -106,11 +137,23 @@ export class ApplicationListEntriesCombinedHelper {
         case 'Criminal justice area':
         case 'CJA': {
           const cjaSearchText = processedCriteria['CJASearch'] || value;
-          TextboxHelper.selectAutocompleteOption(
-            'Criminal justice area',
-            cjaSearchText,
-            value,
-          );
+          cy.get('details.govuk-details[open]').then(($advancedSearch) => {
+            return TextboxElement.findTextboxWithin(
+              $advancedSearch,
+              'Criminal justice area',
+            )
+              .should('be.visible')
+              .should('be.enabled')
+              .scrollIntoView()
+              .clear({ force: true })
+              .should('have.value', '')
+              .type(cjaSearchText, { force: true });
+          });
+          cy.get('.app-autocomplete__menu')
+            .should('be.visible')
+            .contains('.app-autocomplete__link', value, { matchCase: false })
+            .should('be.visible')
+            .trigger('mousedown');
           break;
         }
 
@@ -125,7 +168,18 @@ export class ApplicationListEntriesCombinedHelper {
           break;
 
         case 'Account reference':
-          TextboxHelper.typeInTextbox('Account reference', value);
+          cy.get('details.govuk-details[open]').then(($advancedSearch) => {
+            return TextboxElement.findTextboxWithin(
+              $advancedSearch,
+              'Account reference',
+            )
+              .should('be.visible')
+              .should('be.enabled')
+              .scrollIntoView()
+              .clear({ force: true })
+              .should('have.value', '')
+              .type(value, { force: true });
+          });
           break;
 
         default:

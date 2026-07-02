@@ -117,3 +117,21 @@ When(
     cy.screenshot(`verify-menu-options-${selectButtonText}-in-row`);
   },
 );
+
+When(
+  'User Clicks {string} Then Sees The Caption Menu With Options {string} In Table {string}',
+  (toggleButtonText: string, menuOptions: string, tableCaption: string) => {
+    const expectedMenuOptions = menuOptions
+      ? menuOptions.split(',').map((opt: string) => opt.trim())
+      : [];
+    cy.log(`Expected Menu Options (step): ${expectedMenuOptions.join(', ')}`);
+    TableInteraction.verifyCaptionMenuOptions(
+      tableCaption,
+      toggleButtonText,
+      expectedMenuOptions,
+    );
+    cy.screenshot(
+      `verify-caption-menu-options-${toggleButtonText}-in-${tableCaption}`,
+    );
+  },
+);

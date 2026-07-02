@@ -122,6 +122,7 @@ module.exports = defineConfig({
           // Additional Chrome args for consistent download behavior
           launchOptions.args.push('--enable-features=NetworkService');
           launchOptions.args.push('--disable-features=VizDisplayCompositor');
+          launchOptions.args.push('--incognito');
         }
         return launchOptions;
       });

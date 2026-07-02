@@ -241,4 +241,26 @@ export class TableInteraction {
       .and('not.be.disabled')
       .check({ force: true });
   }
+
+  static verifyCaptionMenuOptions(
+    tableCaption: string,
+    toggleButtonText: string,
+    expectedMenuOptions: string[],
+  ): void {
+    cy.log(
+      `Verifying caption menu options for "${toggleButtonText}" in table "${tableCaption}"`,
+    );
+    TableElement.getCaptionMenuToggle(tableCaption, toggleButtonText)
+      .scrollIntoView()
+      .should('be.visible')
+      .click()
+      .then(() => {
+        for (const menuItemText of expectedMenuOptions) {
+          cy.log(`Verifying menu item: ${menuItemText}`);
+          TableElement.getCaptionMenuItem(tableCaption, menuItemText).should(
+            'be.visible',
+          );
+        }
+      });
+  }
 }
