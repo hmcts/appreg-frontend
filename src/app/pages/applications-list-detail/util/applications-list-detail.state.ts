@@ -2,13 +2,6 @@ import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
 import { EntryApplicationListGetFilterDto } from '@openapi';
 
-export interface BulkUploadFeedback {
-  kind: 'progress' | 'success' | 'warning' | 'error';
-  heading: string;
-  body: string;
-  title?: string;
-}
-
 export interface ApplicationsListDetailState {
   // paging
   currentPage: number;
@@ -37,9 +30,6 @@ export interface ApplicationsListDetailState {
   errorHint: string;
   errorSummary: ErrorItem[];
   preserveErrorSummaryOnLoad: boolean;
-
-  // bulk upload
-  bulkUploadFeedback: BulkUploadFeedback | null;
 
   // internal
   hasPrefilledFromApi: boolean;
@@ -74,7 +64,6 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   errorHint: '',
   errorSummary: [],
   preserveErrorSummaryOnLoad: false,
-  bulkUploadFeedback: null,
 
   hasPrefilledFromApi: false,
 

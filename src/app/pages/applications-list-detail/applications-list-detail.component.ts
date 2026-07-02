@@ -15,7 +15,6 @@ import {
 } from '@angular/common/http';
 import {
   Component,
-  DestroyRef,
   EnvironmentInjector,
   NgZone,
   OnInit,
@@ -23,14 +22,12 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription, firstValueFrom } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import { ApplicationsListUpdateComponent } from './applications-list-update/applications-list-update.component';
 import {
   ApplicationsListDetailState,
-  BulkUploadFeedback,
   UpdateReq,
   clearUpdateNotificationsPatch,
   initialApplicationsListDetailState,
@@ -79,10 +76,6 @@ import {
   EntryPage,
 } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
-import {
-  JobPollingFacade,
-  PolledJobStatus,
-} from '@services/jobs/job-polling.facade';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { PrintRequest } from '@shared-types/pdf/pdf.types';
 import {
@@ -143,17 +136,16 @@ const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
     ApplicationsListUpdateComponent,
     SortableTableComponent,
     PaginationComponent,
-    NotificationBannerComponent,
     MojButtonMenuDirective,
     ApplicationsListDetailSearchComponent,
     AsyncJobProgressComponent,
     HelpDetailsComponent,
+    NotificationBannerComponent,
   ],
   templateUrl: './applications-list-detail.component.html',
   styleUrls: ['./applications-list-detail.component.scss'],
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
-  private readonly componentDestroyRef = inject(DestroyRef);
   private readonly envInjector = inject(EnvironmentInjector);
   private readonly appListFormService = inject(ApplicationsListFormService);
   private readonly platformId = inject(PLATFORM_ID);
@@ -161,7 +153,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly appListApi = inject(ApplicationListsApi);
   private readonly pdf = inject(PdfService);
   private readonly appListEntriesApi = inject(ApplicationListEntriesApi);
-  private readonly jobPollingFacade = inject(JobPollingFacade);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
@@ -187,7 +178,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly loadFailed = signal(false);
   readonly submitAttempt = signal(0);
   private selectAllRequestVersion = 0;
-  private bulkUploadPollingSub: Subscription | null = null;
 
   override form = this.appListFormService.createUpdateForm();
 
@@ -222,7 +212,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     if (isPlatformBrowser(this.platformId)) {
       this.loadApplicationsLists();
-      this.startBulkUploadPollingFromRoute();
     }
   }
 
@@ -253,131 +242,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.detailSignalState.patch({
       updateDone: false,
       updateOfficialsDone: false,
-    });
-  }
-
-  private startBulkUploadPollingFromRoute(): void {
-    const jobId = this.route.snapshot.queryParamMap.get('bulkUploadJobId');
-    if (!jobId) {
-      return;
-    }
-
-    this.startBulkUploadPolling(jobId);
-  }
-
-  private startBulkUploadPolling(jobId: string): void {
-    this.stopBulkUploadPolling();
-    this.detailSignalState.patch({
-      bulkUploadFeedback: {
-        kind: 'progress',
-        heading: 'Upload in progress',
-        body: 'Your bulk upload is being processed. This page will refresh automatically when it finishes.',
-      },
-    });
-
-    this.bulkUploadPollingSub = this.jobPollingFacade
-      .watchJob(jobId)
-      .pipe(takeUntilDestroyed(this.componentDestroyRef))
-      .subscribe({
-        next: (job) => this.handleBulkUploadStatus(job),
-        error: () => {
-          this.detailSignalState.patch({
-            bulkUploadFeedback: {
-              kind: 'error',
-              title: 'Error',
-              heading: 'Unable to load upload status',
-              body: 'Please try again later.',
-            },
-          });
-          this.stopBulkUploadPolling();
-        },
-      });
-  }
-
-  private stopBulkUploadPolling(): void {
-    this.bulkUploadPollingSub?.unsubscribe();
-    this.bulkUploadPollingSub = null;
-  }
-
-  private handleBulkUploadStatus(job: PolledJobStatus): void {
-    if (!job.isTerminal) {
-      return;
-    }
-
-    const feedback = this.toBulkUploadFeedback(job);
-    this.detailSignalState.patch({ bulkUploadFeedback: feedback });
-    this.stopBulkUploadPolling();
-
-    if (job.state === 'succeeded' || job.state === 'completed_with_errors') {
-      this.loadApplicationsLists();
-    }
-
-    void this.clearBulkUploadJobIdQueryParam();
-  }
-
-  private toBulkUploadFeedback(job: PolledJobStatus): BulkUploadFeedback {
-    switch (job.state) {
-      case 'succeeded':
-        return {
-          kind: 'success',
-          heading: 'Bulk upload complete',
-          body:
-            job.createdCount === null
-              ? 'All records were uploaded successfully.'
-              : `${this.formatCount(job.createdCount, 'record')} created.`,
-        };
-
-      case 'completed_with_errors':
-        return {
-          kind: 'warning',
-          title: 'Warning',
-          heading: 'Bulk upload completed with errors',
-          body: this.buildCompletedWithErrorsMessage(job),
-        };
-
-      case 'failed':
-        return {
-          kind: 'error',
-          title: 'Error',
-          heading: 'Bulk upload failed',
-          body: job.message ?? 'The bulk upload could not be completed.',
-        };
-
-      default:
-        return {
-          kind: 'progress',
-          heading: 'Upload in progress',
-          body: 'Your bulk upload is being processed. This page will refresh automatically when it finishes.',
-        };
-    }
-  }
-
-  private buildCompletedWithErrorsMessage(job: PolledJobStatus): string {
-    const parts: string[] = [];
-
-    if (job.createdCount !== null) {
-      parts.push(`${this.formatCount(job.createdCount, 'record')} created.`);
-    }
-
-    if (job.errorCount !== null) {
-      parts.push(`${this.formatCount(job.errorCount, 'record')} had errors.`);
-    }
-
-    return parts.length > 0
-      ? parts.join(' ')
-      : 'Some records were uploaded, but some could not be processed.';
-  }
-
-  private formatCount(count: number, noun: string): string {
-    return `${count} ${noun}${count === 1 ? '' : 's'}`;
-  }
-
-  private async clearBulkUploadJobIdQueryParam(): Promise<void> {
-    await this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { bulkUploadJobId: null },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
     });
   }
 

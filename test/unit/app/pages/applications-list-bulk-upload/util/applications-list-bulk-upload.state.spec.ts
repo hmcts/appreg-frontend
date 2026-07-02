@@ -1,7 +1,7 @@
 import {
   InitialBulkUploadState,
   clearFlags,
-} from '@components/applications-list-bulk-upload/util/applications-list-bulk-upload.state';
+} from '@components/applications-list-detail/applications-list-bulk-upload/util/applications-list-bulk-upload.state';
 
 describe('applications-list-bulk-upload state', () => {
   it('defines the initial bulk upload state', () => {
@@ -13,6 +13,8 @@ describe('applications-list-bulk-upload state', () => {
       listId: '',
       file: null,
       jobAcknowledgement: null,
+      uploadSuccessful: false,
+      bulkUploadFeedback: null,
     });
   });
 
