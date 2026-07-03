@@ -169,7 +169,7 @@ function buildNotFoundSummary(problem?: ProblemDetails): HttpErrorSummary {
   const errorHint = problem?.title ?? 'Entry not found';
   const errorSummary = makeItems(
     problem?.detail ||
-      'We could not find this Application List Entry. It may have been removed or you may not have access.',
+      'We could not find this application list entry. It may have been removed or you may not have access.',
   );
   return { hasFatalError: true, errorHint, errorSummary };
 }

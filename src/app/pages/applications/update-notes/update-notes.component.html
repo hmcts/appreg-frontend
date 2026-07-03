@@ -1,0 +1,94 @@
+<app-breadcrumbs [items]="[{ label: 'Applications', link: '/applications' }]" />
+
+@if (errorSummaryItems().length) {
+  <app-error-summary
+    title="There is a problem"
+    [items]="errorSummaryItems()"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+} @else if (successMessage(); as message) {
+  <app-success-banner
+    [heading]="message"
+    body="Additional application notes have been added successfully"
+  />
+}
+
+<h1 class="govuk-heading-xl">Update application notes</h1>
+
+@if (applicationContextRows().length) {
+  <table class="govuk-table">
+    <caption class="govuk-table__caption govuk-table__caption--m">
+      Selected application
+    </caption>
+    <tbody class="govuk-table__body">
+      @for (row of applicationContextRows(); track row.label) {
+        <tr class="govuk-table__row">
+          <th scope="row" class="govuk-table__header">{{ row.label }}</th>
+          <td class="govuk-table__cell">
+            @if (row.format === 'date') {
+              {{ row.value | dateTime }}
+            } @else {
+              {{ row.value }}
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+<form [formGroup]="form">
+  <div class="govuk-form-group">
+    <label class="govuk-label govuk-label--s" for="application-notes">
+      Application notes
+    </label>
+    <app-govuk-textarea
+      [control]="form.controls.applicationNotes"
+      id="application-notes"
+      name="applicationNotes"
+      ariaDescribedBy=""
+      [rows]="6"
+      [characterCountEnabled]="false"
+    />
+  </div>
+
+  <div
+    class="govuk-form-group"
+    [class.govuk-form-group--error]="isAdditionalNotesInvalid()"
+  >
+    <label class="govuk-label govuk-label--s" for="additional-notes">
+      Additional notes
+    </label>
+    @if (isAdditionalNotesInvalid()) {
+      <p id="additional-notes-error" class="govuk-error-message">
+        <span class="govuk-visually-hidden">Error:</span>
+        {{ additionalNotesError() }}
+      </p>
+    }
+    <app-govuk-textarea
+      [control]="form.controls.additionalNotes"
+      id="additional-notes"
+      name="additionalNotes"
+      [ariaDescribedBy]="
+        isAdditionalNotesInvalid()
+          ? 'additional-notes-error additional-notes-hint'
+          : 'additional-notes-hint'
+      "
+      [rows]="6"
+      [maxCharacterLimit]="additionalNotesCharacterLimit()"
+      [isInvalid]="isAdditionalNotesInvalid()"
+    />
+  </div>
+
+  <div class="govuk-button-group govuk-!-margin-top-6">
+    <button
+      type="button"
+      class="govuk-button"
+      [disabled]="isSubmitting()"
+      (click)="onSaveAdditionalNotes()"
+    >
+      {{ isSubmitting() ? 'Saving...' : 'Save additional notes' }}
+    </button>
+    <a class="govuk-link" routerLink="/applications">Cancel</a>
+  </div>
+</form>

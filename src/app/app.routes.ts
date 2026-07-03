@@ -126,6 +126,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: ':id/update-notes/:entryId',
+        loadComponent: () =>
+          import('@components/applications/update-notes/update-notes.component').then(
+            (m) => m.UpdateNotesComponent,
+          ),
+      },
+      {
         path: ':id/update-officials/confirm',
         loadComponent: () =>
           import('@components/applications-list-detail/update-officials/confirm/update-officials-confirm.component').then(

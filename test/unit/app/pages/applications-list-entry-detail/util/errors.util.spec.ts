@@ -156,7 +156,7 @@ describe('http-error-mapper', () => {
 
       expect(s.errorHint).toBe('Entry not found');
       expect(s.errorSummary[0]?.text).toContain(
-        'We could not find this Application List Entry',
+        'We could not find this application list entry',
       );
     });
 
