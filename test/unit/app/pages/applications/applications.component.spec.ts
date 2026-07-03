@@ -922,6 +922,41 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('onUpdateNotesClick', () => {
+    it('keeps the update notes row action clickable for open rows so validation can be shown', () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        rows: [
+          makeEntry({
+            id: 'entry-1',
+            listId: 'list-1',
+            status: ApplicationListStatus.OPEN,
+          }),
+        ],
+      }));
+      fixture.detectChanges();
+
+      const updateNotesButton = Array.from(
+        fixture.nativeElement.querySelectorAll('button'),
+      ).find(
+        (button): button is HTMLButtonElement =>
+          button.textContent?.trim() === 'Update notes',
+      );
+
+      expect(updateNotesButton).toBeTruthy();
+      expect(updateNotesButton?.disabled).toBe(false);
+
+      updateNotesButton?.click();
+      fixture.detectChanges();
+
+      expect(navSpy).not.toHaveBeenCalled();
+      expect(fixture.nativeElement.textContent).toContain(
+        'Application List Entry cannot be updated in its current state. The parent application list is not closed.',
+      );
+    });
+
     it('navigates to update-notes with the row application context', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
@@ -973,9 +1008,10 @@ describe('ApplicationsComponent', () => {
       );
     });
 
-    it('shows an error when the selected application list status is not closed', async () => {
+    it('shows a focused error when the selected application list entry status is not closed', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const initialAttempt = component.submitAttempt();
       const row = {
         ...makeSelectedRow('entry-1', 'list-1'),
         status: ApplicationListStatus.OPEN,
@@ -989,11 +1025,13 @@ describe('ApplicationsComponent', () => {
           text: 'Application List Entry cannot be updated in its current state. The parent application list is not closed.',
         },
       ]);
+      expect(component.submitAttempt()).toBe(initialAttempt + 1);
     });
 
-    it('shows an error when the row cannot identify the application list entry', async () => {
+    it('shows a focused error when the row cannot identify the application list entry', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const initialAttempt = component.submitAttempt();
       const row = {
         ...makeSelectedRow('', ''),
         status: ApplicationListStatus.CLOSED,
@@ -1005,6 +1043,7 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().errorSummary).toEqual([
         { text: 'Unable to update notes for selected application' },
       ]);
+      expect(component.submitAttempt()).toBe(initialAttempt + 1);
     });
 
     it('only enables update notes for closed rows with entry and list identifiers', () => {

@@ -388,23 +388,16 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.patchApp(clearNotificationsPatch());
 
     if (!row.applicationListId || !row.id) {
-      this.patchApp({
-        errorSummary: [
-          { text: 'Unable to update notes for selected application' },
-        ],
-      });
+      this.showUpdateNotesError(
+        'Unable to update notes for selected application',
+      );
       return;
     }
 
-    const listStatus = toStatus(row.status);
-    if (listStatus !== ApplicationListStatus.CLOSED) {
-      this.patchApp({
-        errorSummary: [
-          {
-            text: 'Application List Entry cannot be updated in its current state. The parent application list is not closed.',
-          },
-        ],
-      });
+    if (!this.canUpdateNotes(row)) {
+      this.showUpdateNotesError(
+        'Application List Entry cannot be updated in its current state. The parent application list is not closed.',
+      );
       return;
     }
 
@@ -424,6 +417,13 @@ export class Applications extends PlaceFieldsBase implements OnInit {
         },
       },
     );
+  }
+
+  private showUpdateNotesError(text: string): void {
+    this.patchApp({
+      errorSummary: [{ text }],
+    });
+    this.submitAttempt.update((attempt) => attempt + 1);
   }
 
   canUpdateNotes(row: ApplicationRow): boolean {
