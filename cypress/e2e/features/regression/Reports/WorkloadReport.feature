@@ -68,6 +68,22 @@ Feature: Workload Report
         Then User Waits For The Report Download To Complete
         Then User Verifies CSV "<CSVFileName>" Is Downloaded
         Then User Sees Success Banner "Success Report downloaded The workload report has downloaded."
+        Then User Verifies Latest Downloaded CSV Contains Text "Workload Report" In Row 1
+        Then User Verifies The Downloaded CSV Has Headers In Row 2:
+            | List Date               |
+            | List Court House Name   |
+            | List Other Location     |
+            | CJA Code                |
+            | List Description        |
+            | Standard Applicant Code |
+            | Applicant Name/Surname  |
+            | Application Code        |
+            | Application Code Title  |
+            | Results                 |
+            | JP1                     |
+            | JP2                     |
+            | JP3                     |
+            | Official                |
         Then User Clears Downloaded CSVs
         Examples:
             | CSVFileName             |
