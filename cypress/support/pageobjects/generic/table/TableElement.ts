@@ -391,4 +391,13 @@ export class TableElement {
       },
     );
   }
+
+  static getRowByIndex(
+    tableCaption: string,
+    rowIndex: number,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return this.findTable(tableCaption)
+      .find(this.tableBodyRowSelector)
+      .eq(rowIndex);
+  }
 }

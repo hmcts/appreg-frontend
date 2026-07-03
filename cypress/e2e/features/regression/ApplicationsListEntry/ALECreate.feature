@@ -376,7 +376,7 @@ Feature: Applications List Entry Create
     Then User Should See The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
 
-  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC3 @tp
+  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC3
   Scenario: Create and Open an ALE where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
     Given User Authenticates Via API As "user1"
     # Create Application List
@@ -486,8 +486,8 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Application details" Contains "This is a test application with special requirements" In The Accordion "Notes"
     # Result Wording Details
     Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
-      | Applicant    | Respondent    | Application title                                          |
-      | Ava Johnson  |               | Request for Certificate of Refusal to State a Case (Civil) |
+      | Applicant   | Respondent | Application title                                          |
+      | Ava Johnson |            | Request for Certificate of Refusal to State a Case (Civil) |
     Then User Verifies The Textbox "Result code" In The Accordion "Result wording" Is Empty
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details
