@@ -40,3 +40,11 @@ When(
     cy.screenshot('checked-select-all-checkbox');
   },
 );
+
+When(
+  'User Checks The Checkbox In Row {int} Of Table {string}',
+  (rowIndex: number, tableName: string) => {
+    TableInteraction.checkCheckboxInTableRowByIndex(tableName, rowIndex);
+    cy.screenshot(`checked-checkbox-in-row-${rowIndex}`);
+  },
+);

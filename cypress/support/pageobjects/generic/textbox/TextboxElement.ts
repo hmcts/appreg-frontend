@@ -74,7 +74,17 @@ export class TextboxElement {
     if ($label.length > 0) {
       const forAttr = $label.first().attr('for');
       if (forAttr) {
-        return cy.get(`#${forAttr}`);
+        const $formGroup = $label.first().closest('.govuk-form-group');
+        const $formControl = $formGroup.length
+          ? $formGroup.find('input, textarea, select').first()
+          : $root
+              .find('input, textarea, select')
+              .filter((_, el) => el.id === forAttr)
+              .first();
+
+        if ($formControl.length > 0) {
+          return cy.wrap($formControl);
+        }
       }
     }
     // Fallback: first input/textarea inside root
