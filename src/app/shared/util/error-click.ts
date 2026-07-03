@@ -1,4 +1,4 @@
-/* 
+/*
 Error summary - clickable error hints
 */
 
@@ -37,19 +37,21 @@ function focusByIdOrFirstFocusable(idOrHref: string): void {
     return;
   }
 
-  try {
-    root.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  } catch {
-    root.scrollIntoView(true);
-  }
-
   const selector = 'input,select,textarea,[contenteditable="true"],[tabindex]';
 
   const target: HTMLElement = root.matches(selector)
     ? root
     : (root.querySelector<HTMLElement>(selector) ?? root);
 
-  setTimeout(() => target.focus?.({ preventScroll: true }), 50);
+  target.focus?.({ preventScroll: true });
+
+  const scrollTarget = target.closest<HTMLElement>('.govuk-form-group') ?? root;
+
+  try {
+    scrollTarget.scrollIntoView({ behavior: 'auto', block: 'center' });
+  } catch {
+    scrollTarget.scrollIntoView(true);
+  }
 }
 
 export function onCreateErrorClick(item: ErrorItem): void {

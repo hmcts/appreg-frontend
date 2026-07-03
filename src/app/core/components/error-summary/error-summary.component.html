@@ -20,7 +20,15 @@
             <a
               class="govuk-link"
               [attr.href]="err.href"
-              (click)="itemSelect.emit(err)"
+              (click)="onItemClick($event, err)"
+            >
+              {{ err.text }}
+            </a>
+          } @else if (preventFragmentNavigation()) {
+            <a
+              class="govuk-link"
+              [attr.href]="fragmentHref(err)"
+              (click)="onItemClick($event, err)"
             >
               {{ err.text }}
             </a>
@@ -28,14 +36,8 @@
             <a
               class="govuk-link"
               [routerLink]="[]"
-              [fragment]="
-                err.href && err.href.startsWith('#')
-                  ? err.href.slice(1)
-                  : err.id
-                    ? err.id
-                    : (targetId() ?? undefined)
-              "
-              (click)="itemSelect.emit(err)"
+              [fragment]="fragmentTarget(err)"
+              (click)="onItemClick($event, err)"
             >
               {{ err.text }}
             </a>

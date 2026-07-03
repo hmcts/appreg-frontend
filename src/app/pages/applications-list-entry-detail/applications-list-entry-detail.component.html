@@ -5,6 +5,7 @@
     [title]="vm().errorHint || 'There is a problem'"
     [items]="vm().summaryErrors"
     [focusKey]="submitAttempt()"
+    [preventFragmentNavigation]="true"
     targetId="codes-table"
     (itemSelect)="onCreateErrorClick($event)"
   />

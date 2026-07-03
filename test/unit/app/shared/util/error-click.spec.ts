@@ -46,7 +46,6 @@ describe('error focus utils', () => {
       onCreateErrorClick({ href: '#x' } as unknown as TestErrorItem);
 
       expect(scrollSpy).toHaveBeenCalled();
-      jest.advanceTimersByTime(50);
       expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
     });
 
@@ -62,10 +61,9 @@ describe('error focus utils', () => {
       } as unknown as TestErrorItem);
 
       expect(scrollSpy).toHaveBeenCalledWith({
-        behavior: 'smooth',
+        behavior: 'auto',
         block: 'center',
       });
-      jest.advanceTimersByTime(50);
       expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
     });
 
@@ -80,13 +78,10 @@ describe('error focus utils', () => {
       onCreateErrorClick({ id: 'x' } as TestErrorItem);
 
       expect(scrollSpy).toHaveBeenCalledWith({
-        behavior: 'smooth',
+        behavior: 'auto',
         block: 'center',
       });
 
-      // focus happens after timeout
-      expect(focusSpy).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(50);
       expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
     });
 
@@ -106,8 +101,6 @@ describe('error focus utils', () => {
       onCreateErrorClick({ id: 'y' } as TestErrorItem);
 
       expect(scrollMock).toHaveBeenCalledWith(true);
-
-      jest.advanceTimersByTime(50);
     });
   });
 
@@ -135,7 +128,6 @@ describe('error focus utils', () => {
       expect(rootMatchesSpy).toHaveBeenCalled();
       expect(rootQuerySpy).toHaveBeenCalled();
 
-      jest.advanceTimersByTime(50);
       expect(childFocusSpy).toHaveBeenCalledWith({ preventScroll: true });
     });
 
