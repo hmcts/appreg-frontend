@@ -396,7 +396,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
     if (!this.canUpdateNotes(row)) {
       this.showUpdateNotesError(
-        'Application List Entry cannot be updated in its current state. The parent application list is not closed.',
+        'Application list entry cannot be updated in its current state. The parent application list is not closed.',
       );
       return;
     }

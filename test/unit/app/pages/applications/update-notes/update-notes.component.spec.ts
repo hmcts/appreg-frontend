@@ -308,8 +308,8 @@ describe('UpdateNotesComponent', () => {
   });
 
   it.each([
-    [404, 'Application List Entry not found'],
-    [409, 'Application List Entry cannot be updated in its current state'],
+    [404, 'Application list entry not found'],
+    [409, 'Application list entry cannot be updated in its current state'],
     [500, 'Unable to save notes. Please try again later'],
   ])('shows a mapped save error for HTTP %s', (status, message) => {
     entriesApiStub.updateClosedApplicationListEntry.mockReturnValue(

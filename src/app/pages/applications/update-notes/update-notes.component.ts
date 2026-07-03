@@ -265,11 +265,11 @@ export class UpdateNotesComponent implements OnInit {
 
   private getSaveErrorMessage(status: number | undefined): string {
     if (status === 404) {
-      return 'Application List Entry not found';
+      return 'Application list entry not found';
     }
 
     if (status === 409) {
-      return 'Application List Entry cannot be updated in its current state';
+      return 'Application list entry cannot be updated in its current state';
     }
 
     return 'Unable to save notes. Please try again later';

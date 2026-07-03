@@ -953,7 +953,7 @@ describe('ApplicationsComponent', () => {
 
       expect(navSpy).not.toHaveBeenCalled();
       expect(fixture.nativeElement.textContent).toContain(
-        'Application List Entry cannot be updated in its current state. The parent application list is not closed.',
+        'Application list entry cannot be updated in its current state. The parent application list is not closed.',
       );
     });
 
@@ -1022,7 +1022,7 @@ describe('ApplicationsComponent', () => {
       expect(navSpy).not.toHaveBeenCalled();
       expect(component.vm().errorSummary).toEqual([
         {
-          text: 'Application List Entry cannot be updated in its current state. The parent application list is not closed.',
+          text: 'Application list entry cannot be updated in its current state. The parent application list is not closed.',
         },
       ]);
       expect(component.submitAttempt()).toBe(initialAttempt + 1);
