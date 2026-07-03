@@ -271,6 +271,14 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     ) {
       this.vm().updateFeesDone = true;
     }
+
+    if (this.route.snapshot.queryParamMap.get('bulkUploadSuccess') === 'true') {
+      this.vm().bulkUploadDone = true;
+      const uploadState = history.state as { msg: string };
+      // TODO: when we get entry ids from BE. link to existing bulk-update-fees component with those entry ids
+      // We would also need to use this.resolveSelectedRows() which will be removed soon
+      this.vm().bulkUploadBannerText = `${uploadState.msg}. Click here to update fee details on newly uploaded applications.`;
+    }
   }
 
   private setCloseErrorFromNavigation(): void {

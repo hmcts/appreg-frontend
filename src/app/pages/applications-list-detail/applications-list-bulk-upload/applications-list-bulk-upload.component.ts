@@ -163,6 +163,7 @@ export class ApplicationsListBulkUpload implements OnInit {
       case 'succeeded':
         void this.router.navigate(['../'], {
           relativeTo: this.route,
+          queryParams: { bulkUploadSuccess: 'true' },
           state: {
             msg:
               job.createdCount === null
