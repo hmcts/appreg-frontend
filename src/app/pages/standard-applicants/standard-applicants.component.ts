@@ -298,7 +298,7 @@ export class StandardApplicants implements OnInit {
     const url = URL.createObjectURL(csvBlob);
     const link = this.document.createElement('a');
     link.href = url;
-    link.download = `export-${getDateStamp()}.csv`;
+    link.download = `standard-applicant-export-csv-${getDateStamp()}.csv`;
     link.style.display = 'none';
 
     this.document.body.appendChild(link);
