@@ -3,6 +3,7 @@ import {
   formatFullName,
   formatPartyName,
   formatPersonName,
+  getDateStamp,
   mapOptionValueToTitle,
   mapTitleToOptionValue,
   returnOrgName,
@@ -218,6 +219,7 @@ describe('returnOrgName', () => {
 
 describe('formatPartyName', () => {
   it('prefers organisation name over person name', () => {
+    // Ignore this error
     const applicant = {
       organisation: { name: 'Acme Ltd' },
       person: {
@@ -244,5 +246,18 @@ describe('formatPartyName', () => {
     } as Applicant;
 
     expect(formatPartyName(applicant)).toBe('Jane Doe');
+  });
+});
+
+describe('getDateStamp', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('returns today in yyyy-mm-dd format', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-07-06T09:30:00Z'));
+
+    expect(getDateStamp()).toBe('2026-07-06');
   });
 });

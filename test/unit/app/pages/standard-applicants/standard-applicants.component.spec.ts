@@ -1,3 +1,4 @@
+import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
@@ -36,13 +37,34 @@ describe('StandardApplicantsComponent', () => {
       ) => Observable<StandardApplicantPage>
     >
   >();
-  const apiStub: Pick<StandardApplicantsApi, 'getStandardApplicants'> = {
+  const standardApplicantsExportMock = jest.fn<
+    Observable<HttpResponse<string>>,
+    Parameters<
+      (
+        requestParameters?: Parameters<
+          StandardApplicantsApi['standardApplicantsExport']
+        >[0],
+        observe?: 'response',
+        reportProgress?: boolean,
+        options?: Parameters<
+          StandardApplicantsApi['standardApplicantsExport']
+        >[3],
+      ) => Observable<HttpResponse<string>>
+    >
+  >();
+  const apiStub: Pick<
+    StandardApplicantsApi,
+    'getStandardApplicants' | 'standardApplicantsExport'
+  > = {
     getStandardApplicants:
       getStandardApplicantsMock as unknown as StandardApplicantsApi['getStandardApplicants'],
+    standardApplicantsExport:
+      standardApplicantsExportMock as unknown as StandardApplicantsApi['standardApplicantsExport'],
   };
 
   beforeEach(async () => {
     getStandardApplicantsMock.mockReset();
+    standardApplicantsExportMock.mockReset();
     getStandardApplicantsMock.mockReturnValue(
       of({
         pageNumber: 0,
@@ -52,6 +74,17 @@ describe('StandardApplicantsComponent', () => {
         elementsOnPage: 0,
         totalPages: 0,
       }),
+    );
+    standardApplicantsExportMock.mockReturnValue(
+      of(
+        new HttpResponse({
+          body: 'code,name\nSA01,Applicant Org\n',
+          headers: new HttpHeaders({
+            'content-type': 'text/csv;charset=utf-8',
+          }),
+          status: 200,
+        }),
+      ),
     );
 
     await TestBed.configureTestingModule({
@@ -72,6 +105,7 @@ describe('StandardApplicantsComponent', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
@@ -804,6 +838,119 @@ describe('StandardApplicantsComponent', () => {
     expect(
       fixture.debugElement.query(By.css('app-notification-banner')),
     ).toBeNull();
+  });
+
+  it('exports CSV using the last applied filters and downloads a dated file', async () => {
+    component.form.patchValue({
+      code: ' SA01 ',
+    });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    const createObjectUrlSpy = jest.fn(() => 'blob:standard-applicants');
+    const revokeObjectUrlSpy = jest.fn();
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: createObjectUrlSpy,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      writable: true,
+      value: revokeObjectUrlSpy,
+    });
+
+    const link = document.createElement('a');
+    const clickSpy = jest.spyOn(link, 'click').mockImplementation(() => {});
+    const removeSpy = jest.spyOn(link, 'remove').mockImplementation(() => {});
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = jest
+      .spyOn(document, 'createElement')
+      .mockImplementation((tagName: string): HTMLElement => {
+        if (tagName === 'a') {
+          return link;
+        }
+
+        return originalCreateElement(tagName);
+      });
+    const appendChildSpy = jest.spyOn(document.body, 'appendChild');
+
+    component.onExportButtonClick();
+    await flushSignalEffects(fixture);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(standardApplicantsExportMock).toHaveBeenCalledWith(
+      { code: 'SA01' },
+      'response',
+      false,
+      {
+        httpHeaderAccept: 'text/csv',
+        transferCache: false,
+      },
+    );
+    expect(createObjectUrlSpy).toHaveBeenCalledWith(expect.any(Blob));
+    expect(createElementSpy).toHaveBeenCalledWith('a');
+    expect(link.href).toBe('blob:standard-applicants');
+    expect(link.download).toMatch(/^export-\d{4}-\d{2}-\d{2}\.csv$/);
+    expect(appendChildSpy).toHaveBeenCalledWith(link);
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(removeSpy).toHaveBeenCalledTimes(1);
+    expect(revokeObjectUrlSpy).toHaveBeenCalledWith('blob:standard-applicants');
+    expect(component.vm().exportSuccess).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('app-success-banner')?.textContent,
+    ).toContain('Successfully exported CSV');
+  });
+
+  it('shows an export validation error when no code or name has been searched', async () => {
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    standardApplicantsExportMock.mockClear();
+    component.onExportButtonClick();
+    await flushSignalEffects(fixture);
+
+    expect(standardApplicantsExportMock).not.toHaveBeenCalled();
+    expect(component.vm().searchErrors).toEqual([
+      {
+        text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
+      },
+    ]);
+  });
+
+  it('shows an error when the export response body is missing', async () => {
+    component.form.patchValue({
+      name: ' Applicant Org ',
+    });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    standardApplicantsExportMock.mockReturnValueOnce(
+      of(
+        new HttpResponse({
+          body: '',
+          headers: new HttpHeaders({
+            'content-type': 'text/csv;charset=utf-8',
+          }),
+          status: 200,
+        }),
+      ),
+    );
+    const createObjectUrlSpy = jest.fn();
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: createObjectUrlSpy,
+    });
+
+    component.onExportButtonClick();
+    await flushSignalEffects(fixture);
+
+    expect(createObjectUrlSpy).not.toHaveBeenCalled();
+    expect(component.vm().exportSuccess).toBe(false);
+    expect(component.vm().searchErrors).toEqual([
+      { text: 'Failed to export CSV. Please try again later' },
+    ]);
   });
 
   it('shows an error and does not navigate when onViewClick is called without a code', async () => {
