@@ -263,4 +263,31 @@ export class TableInteraction {
         }
       });
   }
+
+  /**
+   * Checks a checkbox in a specific row by its index (0-based) in the table
+   * @param tableCaption Caption of the table to scope the search
+   * @param rowIndex 0-based index of the row to check the checkbox in
+   */
+  static checkCheckboxInTableRowByIndex(
+    tableCaption: string,
+    rowIndex: number,
+  ): void {
+    cy.log(
+      `Checking checkbox in row index ${rowIndex} of table "${tableCaption}"`,
+    );
+    TableElement.getRowByIndex(tableCaption, rowIndex)
+      .find('input[type="checkbox"]')
+      .scrollIntoView()
+      .should('exist')
+      .and('not.be.disabled')
+      .check({ force: true });
+  }
+
+  /**
+   * Clicks a button in a specific row by its index (0-based) in the table
+   * @param tableCaption Caption of the table to scope the search
+   * @param rowIndex 0-based index of the row to click the button in
+   * @
+   */
 }

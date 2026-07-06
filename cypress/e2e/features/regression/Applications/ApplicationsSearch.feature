@@ -1,4 +1,4 @@
-Feature: Applications List Entry Search
+Feature: Applications Search
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1086
     Scenario: Verify components on applications list entry (ALE) search page
@@ -107,7 +107,7 @@ Feature: Applications List Entry Search
             | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
 
-        When User Clicks "Open" Button In Row Of Table "<TableName>" With:
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "<TableName>" With:
             | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
         Then User Sees Page Heading "Applications list entry update"
@@ -191,7 +191,7 @@ Feature: Applications List Entry Search
             | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
 
-        When User Clicks "Open" Button In Row Of Table "<TableName>" With:
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "<TableName>" With:
             | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
         Then User Sees Page Heading "Applications list entry update"
@@ -200,18 +200,6 @@ Feature: Applications List Entry Search
         Examples:
             | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant             | Respondent           | ApplicationTitle                               | Fee | Resulted | Status |
             | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              | Taylor {RANDOM}  |               |                   | Open         | BS15               | 01        | London |               |               |                  | Application list entries | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
-
-    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-1437
-    Scenario Outline: Verify Validation Error Messages on Application list entry Search Page
-        Given User Is On The Portal Page
-        When User Signs In With Microsoft SSO As "user1"
-        Then User Clicks On The Link Using Exact Text Match "Applications"
-        Then User Verify The Page URL Contains "/applications"
-        When User Toggles The Accordion "Advanced search"
-        When User Searches Applications With:
-            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            |      |             |       |                        |                   |                         |                    | Closed                    |                      |           |                       |                            |                         |                   |
-
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083 @ARCPOC-1343
     Scenario Outline: Verify Validation Error Messages on Application list entry Search Page

@@ -236,7 +236,7 @@ Feature: Applications Bulk Result Selected
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications"
-        When User Clicks "Open" Button In Row Of Table "Application list entries" With:
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Application list entries" With:
             | Date         | Applicant              | Respondent                | Application title                              | Fee | Resulted | Status |
             | todaydisplay | Sarah Johnson {RANDOM} | Finance Corp LTD {RANDOM} | Rights of Entry Warrant - Electricity Operator | Yes | Yes      | OPEN   |
         Then User Sees Page Heading "Applications list entry update"
@@ -244,7 +244,7 @@ Feature: Applications Bulk Result Selected
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications"
-        When User Clicks "Open" Button In Row Of Table "Application list entries" With:
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Application list entries" With:
             | Date         | Applicant                    | Respondent             | Application title          | Fee | Resulted | Status |
             | todaydisplay | ACME Industries LTD {RANDOM} | Emma Williams {RANDOM} | Condemnation of Unfit Food | Yes | Yes      | OPEN   |
         Then User Sees Page Heading "Applications list entry update"
@@ -259,3 +259,23 @@ Feature: Applications Bulk Result Selected
         Examples:
             | User  |
             | user1 |
+
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-1335
+    Scenario Outline: Verify Validation Error Message For Closed Applications Bulk Result Selected
+        Given User Is On The Portal Page
+        When User Signs In With Microsoft SSO As "user1"
+        Then User Clicks On The Link Using Exact Text Match "Applications"
+        Then User Verify The Page URL Contains "/applications"
+        When User Toggles The Accordion "Advanced search"
+        When User Searches Applications With:
+            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
+            |      |             |       |                        |                   |                         |                    | Closed                    |                      |           |                       |                            |                         |                   |
+        Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+        And User Should See Table "<TableName>" Header "Actions" Is Not Sortable
+        When User Checks The Checkbox In Row 1 Of Table "<TableName>"
+        When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Entries"
+        Then User Sees Validation Error Banner "There is a problem You can only result open application(s)"
+
+        Examples:
+            | TableName                |
+            | Application list entries |
