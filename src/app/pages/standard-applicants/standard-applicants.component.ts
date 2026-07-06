@@ -203,7 +203,7 @@ export class StandardApplicants implements OnInit {
   }
 
   onExportButtonClick(): void {
-    this.signalState.patch({ exportSuccess: false });
+    this.signalState.patch({ exportSuccess: false, searchErrors: [] });
     this.submitAttempt.update((attempt) => attempt + 1);
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
@@ -262,6 +262,7 @@ export class StandardApplicants implements OnInit {
     this.searchForm.reset();
     this.searchState.reset();
     this.loadRequest.set(null);
+    this.exportRequest.set(null);
     this.form.reset();
     this.appliedFilters = {};
     this.signalState.patch({
@@ -279,6 +280,7 @@ export class StandardApplicants implements OnInit {
   private saveCsv(response: HttpResponse<string>): void {
     if (!response.body) {
       this.signalState.patch({
+        exportSuccess: false,
         searchErrors: [
           { text: 'Failed to export CSV. Please try again later' },
         ],
