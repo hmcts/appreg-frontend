@@ -56,7 +56,7 @@ Feature: Activity Audit Report
     When User Clicks On The "Download CSV" Button
     Then User Sees Validation Error Banner "At least 1 activity is required"
 
-  @regression @reports @ARCPOC-383 @JF
+  @regression @reports @ARCPOC-383
   Scenario: Activity Audit Report - Valid date fields
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
@@ -67,11 +67,6 @@ Feature: Activity Audit Report
     When User Selects The Radio Button "Activity audit"
     When User Set Date Field "Date from" To "27/02/2026"
     When User Set Date Field "Date to" To "27/03/2026"
-    Then User Should Not See The Link "Remove"
-    Then User Selects "Add application" From The Textbox "Activity" Autocomplete By Typing "Add application"
-    Then User Sees Text "Add application" In "Selected activities" Field
-    Then User Should See The Link "Remove"
-    Then User Clicks On The Link "Remove"
     Then User Should Not See The Link "Remove"
     Then User Selects "Add application" From The Textbox "Activity" Autocomplete By Typing "Add application"
     Then User Sees Text "Add application" In "Selected activities" Field
