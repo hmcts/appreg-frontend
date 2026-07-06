@@ -212,7 +212,9 @@ export class StandardApplicants implements OnInit {
     if (!values.code && !values.name) {
       this.signalState.patch({
         searchErrors: [
-          { text: 'Either code or name must be provided, but not both' },
+          {
+            text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
+          },
         ],
       });
       return;
