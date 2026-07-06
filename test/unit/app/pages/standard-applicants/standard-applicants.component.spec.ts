@@ -891,7 +891,9 @@ describe('StandardApplicantsComponent', () => {
     expect(createObjectUrlSpy).toHaveBeenCalledWith(expect.any(Blob));
     expect(createElementSpy).toHaveBeenCalledWith('a');
     expect(link.href).toBe('blob:standard-applicants');
-    expect(link.download).toMatch(/^export-\d{4}-\d{2}-\d{2}\.csv$/);
+    expect(link.download).toMatch(
+      /^standard-applicant-export-csv-\d{4}-\d{2}-\d{2}\.csv$/,
+    );
     expect(appendChildSpy).toHaveBeenCalledWith(link);
     expect(clickSpy).toHaveBeenCalledTimes(1);
     expect(removeSpy).toHaveBeenCalledTimes(1);
