@@ -228,7 +228,7 @@ Feature: Applications Bulk Result Selected
             | todaydisplay | Innovative Solutions Inc     | John Smith {RANDOM}       | Copy documents                                 | Yes | Yes      | OPEN   |
             | todaydisplay | Sarah Johnson {RANDOM}       | Finance Corp LTD {RANDOM} | Rights of Entry Warrant - Electricity Operator | Yes | Yes      | OPEN   |
             | todaydisplay | ACME Industries LTD {RANDOM} | Emma Williams {RANDOM}    | Condemnation of Unfit Food                     | Yes | Yes      | OPEN   |
-        When User Clicks "Open" Button In Row Of Table "Application list entries" With:
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Application list entries" With:
             | Date         | Applicant                | Respondent          | Application title | Fee | Resulted | Status |
             | todaydisplay | Innovative Solutions Inc | John Smith {RANDOM} | Copy documents    | Yes | Yes      | OPEN   |
         Then User Sees Page Heading "Applications list entry update"
