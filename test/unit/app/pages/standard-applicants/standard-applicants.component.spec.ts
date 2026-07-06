@@ -918,6 +918,26 @@ describe('StandardApplicantsComponent', () => {
     ]);
   });
 
+  it('shows an export validation error when both code and name have been searched', async () => {
+    component.form.patchValue({
+      code: 'SA01',
+      name: 'Applicant Org',
+    });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    standardApplicantsExportMock.mockClear();
+    component.onExportButtonClick();
+    await flushSignalEffects(fixture);
+
+    expect(standardApplicantsExportMock).not.toHaveBeenCalled();
+    expect(component.vm().searchErrors).toEqual([
+      {
+        text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
+      },
+    ]);
+  });
+
   it('shows an error when the export response body is missing', async () => {
     component.form.patchValue({
       name: ' Applicant Org ',

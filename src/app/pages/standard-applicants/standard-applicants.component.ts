@@ -49,7 +49,7 @@ import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
-import { getDateStamp } from '@util/string-helpers';
+import { getDateStamp, trimToUndefined } from '@util/string-helpers';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
 export type StandardApplicantFilters = Pick<
@@ -203,13 +203,17 @@ export class StandardApplicants implements OnInit {
   }
 
   onExportButtonClick(): void {
+    this.signalState.patch({ exportSuccess: false });
     this.submitAttempt.update((attempt) => attempt + 1);
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
     const values = this.appliedFilters;
+    const code = trimToUndefined(values.code);
+    const name = trimToUndefined(values.name);
 
-    if (!values.code && !values.name) {
+    if (!!code === !!name) {
+      // Endpoint only supports either code or name (XOR). Applies to the active filters, not the current form values.
       this.signalState.patch({
         searchErrors: [
           {
@@ -221,8 +225,8 @@ export class StandardApplicants implements OnInit {
     }
 
     const params = {
-      ...(values.code?.trim() && { code: values.code }),
-      ...(values.name?.trim() && { name: values.name }),
+      ...(code && { code }),
+      ...(name && { name }),
     };
 
     this.exportRequest.set(params);
