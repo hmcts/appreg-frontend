@@ -284,12 +284,17 @@ Feature: Applications Print
             | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |
         Then User Should See Row In Table "Application list entries" With Values:
-            | Date         | Applicant                           | Respondent                     | Application title                                      | Fee | Resulted | Status |
-            | todaydisplay | Innovative Solutions Inc            | John Smith {RANDOM}            | Issue of liability order summons - council tax         | No  | Yes      | OPEN   |
-            | todaydisplay | Sarah Johnson {RANDOM}              | Finance Corp LTD {RANDOM}      | Collection Order - Financial Penalty Account           | No  | Yes      | OPEN   |
-            | todaydisplay | ACME Industries LTD {RANDOM}        | Emma Williams {RANDOM}         | Condemnation of Unfit Food                             | Yes | Yes      | OPEN   |
-            | todaydisplay | Global Trade Solutions LTD {RANDOM} | Controlled Assets Ltd {RANDOM} | Order for the disposal of uncollected controlled goods | No  | Yes      | OPEN   |
-        When User Checks The Select All Checkbox In Table "Application list entries"
+            | Date         | Applicant                           | Respondent                     | Application title                                                   | Fee | Resulted | Status |
+            | todaydisplay | Innovative Solutions Inc            | John Smith {RANDOM}            | Appeal by Case Stated (Civil)                                       | Yes | Yes      | OPEN   |
+            | todaydisplay | Sarah Johnson {RANDOM}              | Finance Corp LTD {RANDOM}      | Application to remove an educational institution from the registert | Yes | Yes      | OPEN   |
+            | todaydisplay | ACME Industries LTD {RANDOM}        | Emma Williams {RANDOM}         | Condemnation of Unfit Food                                          | Yes | Yes      | OPEN   |
+            | todaydisplay | Global Trade Solutions LTD {RANDOM} | Controlled Assets Ltd {RANDOM} | Application for a licence for a child to work abroad                | Yes | Yes      | OPEN   |
+        When User Checks The Checkbox In Row Of Table "Application list entries" With:
+            | Date         | Applicant                           | Respondent                     | Application title                                                  | Fee | Resulted | Status |
+            | todaydisplay | Innovative Solutions Inc            | John Smith {RANDOM}            | Appeal by Case Stated (Civil)                                      | Yes | Yes      | OPEN   |
+            | todaydisplay | Sarah Johnson {RANDOM}              | Finance Corp LTD {RANDOM}      | Application to remove an educational institution from the register | Yes | Yes      | OPEN   |
+            | todaydisplay | ACME Industries LTD {RANDOM}        | Emma Williams {RANDOM}         | Condemnation of Unfit Food                                         | Yes | Yes      | OPEN   |
+            | todaydisplay | Global Trade Solutions LTD {RANDOM} | Controlled Assets Ltd {RANDOM} | Application for a licence for a child to work abroad               | Yes | Yes      | OPEN   |
         When User Clicks "Actions" Then "Print continuous" From Caption Menu In Table "Application list entries"
         Then User Verifies PDF "applications-todayiso-print-cont" Is Downloaded
         Then User Verifies Latest Downloaded PDF Is Not Empty
