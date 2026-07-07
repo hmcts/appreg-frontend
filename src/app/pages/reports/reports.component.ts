@@ -73,7 +73,10 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
-import { getTrimmedStringOrNullFromGroup } from '@util/string-helpers';
+import {
+  getDateStamp,
+  getTrimmedStringOrNullFromGroup,
+} from '@util/string-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { dateToOnOrAfterDateFromValidator } from '@validators/date-range.validator';
 
@@ -911,16 +914,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     const reportId = this.getSelectedReportOption()?.id;
     const reportName = reportId ? `${reportId}-report` : 'report';
 
-    return `${reportName}-${this.getDateStamp()}.csv`;
-  }
-
-  private getDateStamp(): string {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
+    return `${reportName}-${getDateStamp()}.csv`;
   }
 
   private showReportProgress(): void {
