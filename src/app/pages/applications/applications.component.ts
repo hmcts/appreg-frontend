@@ -333,6 +333,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       });
       return;
     }
+    console.log('test');
 
     if (!this.hasAnyParams()) {
       this.patchApp({

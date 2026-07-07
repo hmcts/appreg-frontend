@@ -10,8 +10,10 @@ if [ -z "$UPSTREAM_REF" ]; then
     exit 1
 fi
 
-# Skip suite
-if git --no-pager diff --name-only "$UPSTREAM_REF"...HEAD | grep -q '^cypress/'; then
+CHANGED_FILES=$(git --no-pager diff --name-only "$UPSTREAM_REF"...HEAD)
+
+# Skip suite only when all changed files are under cypress/
+if [ -n "$CHANGED_FILES" ] && ! printf '%s\n' "$CHANGED_FILES" | grep -qv '^cypress/'; then
     exit 0
 fi
 
