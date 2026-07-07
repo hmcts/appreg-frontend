@@ -193,6 +193,35 @@ describe('applications-list entry form builders', () => {
       form.updateValueAndValidity();
       expect(form.controls.officialSurname.errors).toHaveProperty('required');
     });
+
+    it('requires first name when a magistrate or official surname is entered', () => {
+      const form = buildStandardApplicationForm(fb);
+
+      form.controls.mags1Surname.setValue('Smith');
+      form.updateValueAndValidity();
+      expect(form.controls.mags1FirstName.errors).toHaveProperty('required');
+
+      form.controls.mags1Surname.setValue(null);
+      form.controls.mags1FirstName.setErrors(null);
+
+      form.controls.mags2Surname.setValue('Jones');
+      form.updateValueAndValidity();
+      expect(form.controls.mags2FirstName.errors).toHaveProperty('required');
+
+      form.controls.mags2Surname.setValue(null);
+      form.controls.mags2FirstName.setErrors(null);
+
+      form.controls.mags3Surname.setValue('Taylor');
+      form.updateValueAndValidity();
+      expect(form.controls.mags3FirstName.errors).toHaveProperty('required');
+
+      form.controls.mags3Surname.setValue(null);
+      form.controls.mags3FirstName.setErrors(null);
+
+      form.controls.officialSurname.setValue('Brown');
+      form.updateValueAndValidity();
+      expect(form.controls.officialFirstName.errors).toHaveProperty('required');
+    });
   });
 
   describe('getRespondentEntryType', () => {

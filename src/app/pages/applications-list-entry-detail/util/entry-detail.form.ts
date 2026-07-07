@@ -109,9 +109,13 @@ export function buildStandardApplicationForm(
   // Cross-field validators for fields that depend on other entry values.
   const formValidators = [
     crossFormValidation('mags1FirstName', 'mags1Surname'),
+    crossFormValidation('mags1Surname', 'mags1FirstName'),
     crossFormValidation('mags2FirstName', 'mags2Surname'),
+    crossFormValidation('mags2Surname', 'mags2FirstName'),
     crossFormValidation('mags3FirstName', 'mags3Surname'),
+    crossFormValidation('mags3Surname', 'mags3FirstName'),
     crossFormValidation('officialFirstName', 'officialSurname'),
+    crossFormValidation('officialSurname', 'officialFirstName'),
     accountReferenceRequiredForApplicationCode(),
   ];
 
