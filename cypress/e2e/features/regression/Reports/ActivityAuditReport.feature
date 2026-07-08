@@ -60,13 +60,14 @@ Feature: Activity Audit Report
   Scenario: Activity Audit Report - Valid date fields
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
+    Then User Clears Downloaded CSVs
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
     Then User See "Reports" On The Page
     Then User See "Select the report you wish to download?" On The Page
     When User Selects The Radio Button "Activity audit"
     When User Set Date Field "Date from" To "27/02/2026"
-    When User Set Date Field "Date to" To "27/03/2026"
+    When User Set Date Field "Date to" To "28/02/2026"
     Then User Should Not See The Link "Remove"
     Then User Selects "Add application" From The Textbox "Activity" Autocomplete By Typing "Add application"
     Then User Sees Text "Add application" In "Selected activities" Field
