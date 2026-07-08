@@ -5190,12 +5190,12 @@ __metadata:
   linkType: hard
 
 "@redocly/cli@npm:^2.31.6":
-  version: 2.37.0
-  resolution: "@redocly/cli@npm:2.37.0"
+  version: 2.38.0
+  resolution: "@redocly/cli@npm:2.38.0"
   bin:
     openapi: bin/cli.js
     redocly: bin/cli.js
-  checksum: 10/c416590ceb0d4a67f9b619126eb6836751b70cfa8c5091372a5bab99001cb6e3ff0ef1c99c6d139c1144d6ef57eded83fd710c941ecdc7c5e2e07039ab1f1a36
+  checksum: 10/a2648d134b3d65ee35808e64efbb273ec3478ae540f254719698c3f4398a5c79d1b372ae75926ac9dfe2de935b57dc43e2ac38515a7b2c99b35afa02cfc14a32
   languageName: node
   linkType: hard
 
