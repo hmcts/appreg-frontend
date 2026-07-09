@@ -98,6 +98,47 @@ describe('SuccessBannerComponent (external template)', () => {
     expect(link.getAttribute('href')).toBe('/docs');
   });
 
+  it('emits linkClick when the banner link is clicked', () => {
+    setInput('heading', 'Done', false);
+    setInput('linkText', 'Open docs', false);
+    setInput('linkCommands', ['/applications-list'], false);
+    fixture.detectChanges();
+
+    const emitSpy = jest.spyOn(comp.linkClick, 'emit');
+    const link = fixture.debugElement.query(
+      By.css('.govuk-notification-banner__link'),
+    );
+    const clickEvent = new MouseEvent('click', { button: 0 });
+
+    link.nativeElement.dispatchEvent(clickEvent);
+
+    expect(emitSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a clickable anchor and emits linkClick without navigation inputs', () => {
+    setInput('heading', 'Done', false);
+    setInput('linkText', 'Run action', false);
+    setInput('linkHref', undefined, false);
+    setInput('linkCommands', undefined, false);
+    fixture.detectChanges();
+
+    const emitSpy = jest.spyOn(comp.linkClick, 'emit');
+    const link = fixture.nativeElement.querySelector(
+      '.govuk-notification-banner__link',
+    ) as HTMLAnchorElement;
+    const clickEvent = new MouseEvent('click', {
+      button: 0,
+      cancelable: true,
+    });
+
+    link.dispatchEvent(clickEvent);
+
+    expect(link.textContent?.trim()).toBe('Run action');
+    expect(link.getAttribute('href')).toBe('#');
+    expect(clickEvent.defaultPrevented).toBe(true);
+    expect(emitSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('autoFocus focuses the banner element after view init', () => {
     // Enable fake timers BEFORE detectChanges (ngAfterViewInit schedules setTimeout)
     jest.useFakeTimers();

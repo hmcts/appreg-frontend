@@ -4,6 +4,7 @@ import {
   ElementRef,
   ViewChild,
   input,
+  output,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -25,6 +26,7 @@ export class SuccessBannerComponent implements AfterViewInit {
   linkCommands = input<string[] | undefined>(undefined);
   autoFocus = input(true);
   segments = input<BannerSegment[]>([]);
+  linkClick = output<void>();
 
   @ViewChild('bannerEl') private readonly bannerEl?: ElementRef<HTMLDivElement>;
 
