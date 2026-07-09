@@ -314,7 +314,8 @@ describe('ApplicationsListBulkUpload', () => {
       expect(banner).toBeNull();
       expect(navigateSpy).toHaveBeenCalledWith(['../'], {
         relativeTo: TestBed.inject(ActivatedRoute),
-        state: { msg: '3 records created.' },
+        queryParams: { bulkUploadSuccess: 'true' },
+        state: { msg: '3 records created.', jobId: 'job-1' },
       });
       expect(getState(component).uploadSuccessful).toBe(true);
       expect(getState(component).bulkUploadFeedback).toBeUndefined();

@@ -98,11 +98,14 @@ describe('ApplicationsListDetail', () => {
   const entriesApiStub: jest.Mocked<
     Pick<
       ApplicationListEntriesApi,
-      'getApplicationListEntries' | 'getApplicationListEntryIds'
+      | 'getApplicationListEntries'
+      | 'getApplicationListEntryIds'
+      | 'getBulkResultApplicationListEntriesByJobId'
     >
   > = {
     getApplicationListEntries: jest.fn(),
     getApplicationListEntryIds: jest.fn(),
+    getBulkResultApplicationListEntriesByJobId: jest.fn(),
   };
 
   const menuStub: jest.Mocked<Pick<MojButtonMenu, 'initAll'>> = {
@@ -693,6 +696,7 @@ describe('ApplicationsListDetail', () => {
         errorHint: '',
         errorSummary: [],
         createDone: false,
+        bulkUploadDone: false,
         preserveErrorSummaryOnLoad: false,
         moveDone: false,
         updateOfficialsDone: false,
@@ -738,6 +742,7 @@ describe('ApplicationsListDetail', () => {
         errorHint: '',
         errorSummary: [],
         createDone: false,
+        bulkUploadDone: false,
         preserveErrorSummaryOnLoad: false,
         moveDone: false,
         updateOfficialsDone: false,
@@ -1091,6 +1096,35 @@ describe('ApplicationsListDetail', () => {
     expect(vm().updateFeesDone).toBe(true);
   });
 
+  it('sets bulk upload success banner text and job id from navigation state', () => {
+    historyStateSpy.mockReturnValue({
+      row: {
+        id: 'id-1',
+        location: 'LOC1',
+        description: '',
+        status: 'OPEN',
+      },
+      msg: '3 records created.',
+      jobId: 'job-123',
+    });
+
+    const route = TestBed.inject(ActivatedRoute);
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => {
+        if (key === 'bulkUploadSuccess') {
+          return 'true';
+        }
+        return null;
+      });
+
+    component.setSuccessBanner();
+
+    expect(vm().bulkUploadDone).toBe(true);
+    expect(vm().bulkUploadBannerText).toBe('3 records created.');
+    expect(component.bulkUploadJobId()).toBe('job-123');
+  });
+
   it('preserves returned close errors when the detail page reload completes', async () => {
     patchDetailState({
       updateInvalid: true,
@@ -1364,6 +1398,65 @@ describe('ApplicationsListDetail', () => {
           ],
         },
       });
+    });
+  });
+
+  describe('onBulkUploadBannerClick', () => {
+    it('loads uploaded entry ids, patches selection, and opens bulk fee update', async () => {
+      entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReturnValue(
+        of(['entry-1', 'entry-2']) as never,
+      );
+      component.bulkUploadJobId.set('job-123');
+
+      const updateFeeSpy = jest
+        .spyOn(component, 'onUpdateFeeButtonClick')
+        .mockResolvedValue();
+
+      await component.onBulkUploadBannerClick();
+
+      expect(
+        entriesApiStub.getBulkResultApplicationListEntriesByJobId,
+      ).toHaveBeenCalledWith({ jobId: 'job-123' });
+      expect(vm().selectedIds).toEqual(new Set(['entry-1', 'entry-2']));
+      expect(updateFeeSpy).toHaveBeenCalled();
+    });
+
+    it('shows an error when no uploaded entry ids are returned', async () => {
+      entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReturnValue(
+        of([]) as never,
+      );
+      component.bulkUploadJobId.set('job-123');
+
+      const updateFeeSpy = jest
+        .spyOn(component, 'onUpdateFeeButtonClick')
+        .mockResolvedValue();
+
+      await component.onBulkUploadBannerClick();
+
+      expect(vm().errorSummary).toEqual([
+        { text: 'Failed to get new bulk uploaded applications' },
+      ]);
+      expect(updateFeeSpy).not.toHaveBeenCalled();
+    });
+
+    it('shows the backend error and hides the banner when loading uploaded ids fails', async () => {
+      const httpError = new HttpErrorResponse({
+        status: 500,
+        statusText: 'boom',
+      });
+
+      entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReturnValue(
+        throwError(() => httpError) as never,
+      );
+      patchDetailState({ bulkUploadDone: true });
+      component.bulkUploadJobId.set('job-123');
+
+      await component.onBulkUploadBannerClick();
+
+      expect(vm().bulkUploadDone).toBe(false);
+      expect(vm().errorSummary).toEqual([
+        { text: 'Failed to get new bulk uploaded applications' },
+      ]);
     });
   });
 
