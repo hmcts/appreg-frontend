@@ -54,14 +54,12 @@ Feature: Applications List Entry Notes Update
         Then User Verify Response Status Code Should Be "201"
 
 
-
-
     @regression @applicationListEntry @ARCPOC-1333 @JF
     Scenario: Expand and collapse update entry help details
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
-        Given User Navigates To The URL "/applications-list/:listId#list-details"
-        Then User Sees Page Heading "Applications list"
+        Given User Navigates To The URL "/applications-list/:listId"
+        Then User Clicks On The Link "List details"
         Then User Selects "Closed" In The "status" Dropdown
         Then User Verifies "Closed" Is Selected In The "status" Dropdown
         When User Clicks On The "Update" Button
@@ -72,4 +70,8 @@ Feature: Applications List Entry Notes Update
         Given User Navigates To The URL "/applications"
         Then User Enters "Taylor {RANDOM}" Into The "Applicant surname" Textbox
         When User Clicks On The "Search" Button
+#  'User Selects {string} from {named} Toggle Button In Row Of Table {string} With:',
+# When User Selects "Update notes" from "Select" Toggle Button In Row Of Table "Entries" With:
+#     | Applicant             | Respondent           |
+#     | Henry Taylor {RANDOM} | Emily Clark {RANDOM} |
 
