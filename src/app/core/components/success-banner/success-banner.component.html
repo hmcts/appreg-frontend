@@ -67,22 +67,20 @@
             (click)="linkClick.emit()"
             >{{ linkText() }}</a
           >
-        }
-        @if (linkText() && linkCommands()) {
+        } @else if (linkText() && linkCommands()) {
           <a
             class="govuk-notification-banner__link"
             [routerLink]="linkCommands()"
             (click)="linkClick.emit()"
             >{{ linkText() }}</a
           >
-        }
-        @if (linkText() && !linkHref() && !linkCommands() && allowOnClick()) {
+        } @else if (linkText() && allowOnClick()) {
           <a
             class="govuk-notification-banner__link"
             (click)="$event.preventDefault(); linkClick.emit()"
             >{{ linkText() }}</a
           >
-        } @else {
+        } @else if (linkText()) {
           <span>{{ linkText() }}</span>
         }
       </p>

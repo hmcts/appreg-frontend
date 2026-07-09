@@ -80,6 +80,10 @@ describe('SuccessBannerComponent (external template)', () => {
 
     // Optional: also assert the rendered href (jsdom makes it absolute)
     expect(linkEl.href.endsWith('/applications-list')).toBe(true);
+    expect(
+      bodyP.querySelectorAll('.govuk-notification-banner__link'),
+    ).toHaveLength(1);
+    expect(bodyP.querySelectorAll('span')).toHaveLength(0);
   });
 
   it('renders an href link when linkHref provided', () => {
@@ -96,6 +100,30 @@ describe('SuccessBannerComponent (external template)', () => {
 
     expect(link.textContent.trim()).toBe('Open docs');
     expect(link.getAttribute('href')).toBe('/docs');
+    expect(
+      fixture.nativeElement.querySelectorAll(
+        '.govuk-notification-banner__link',
+      ),
+    ).toHaveLength(1);
+    expect(
+      fixture.nativeElement.querySelectorAll('.govuk-body span'),
+    ).toHaveLength(0);
+  });
+
+  it('prefers linkHref when both linkHref and linkCommands are provided', () => {
+    setInput('linkText', 'Open docs', false);
+    setInput('linkHref', '/docs', false);
+    setInput('linkCommands', ['/applications-list'], false);
+    fixture.detectChanges();
+
+    const links = fixture.nativeElement.querySelectorAll(
+      '.govuk-notification-banner__link',
+    );
+    const link = links[0] as HTMLAnchorElement;
+
+    expect(links).toHaveLength(1);
+    expect(link.getAttribute('href')).toBe('/docs');
+    expect(fixture.nativeElement.querySelector('.govuk-body span')).toBeNull();
   });
 
   it('emits linkClick when the banner link is clicked', () => {
