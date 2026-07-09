@@ -31,13 +31,6 @@
     [body]="vm().bulkUploadFeedback?.body ?? 'Uploading file, please wait...'"
   />
 }
-<!-- move to app-list-detail -->
-<!-- @if (vm().bulkUploadFeedback?.kind === 'success') {
-  <app-success-banner
-    [heading]="vm().bulkUploadFeedback?.heading ?? ''"
-    [body]="vm().bulkUploadFeedback?.body ?? ''"
-  />
-} -->
 
 @if (vm().bulkUploadFeedback?.kind === 'warning') {
   <app-notification-banner

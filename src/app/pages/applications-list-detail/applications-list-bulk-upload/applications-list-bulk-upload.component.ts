@@ -173,14 +173,6 @@ export class ApplicationsListBulkUpload implements OnInit {
           },
         });
         return;
-      // return {
-      //   kind: 'success',
-      //   heading: 'Bulk upload complete',
-      //   body:
-      //     job.createdCount === null
-      //       ? 'All records were uploaded successfully.'
-      //       : `${this.formatCount(job.createdCount, 'record')} created.`,
-      // } as const;
 
       case 'completed_with_errors':
         return {
