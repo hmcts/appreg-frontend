@@ -120,7 +120,7 @@ describe('SuccessBannerComponent (external template)', () => {
     setInput('linkText', 'Run action', false);
     setInput('linkHref', undefined, false);
     setInput('linkCommands', undefined, false);
-    fixture.detectChanges();
+    setInput('allowOnClick', true, true);
 
     const emitSpy = jest.spyOn(comp.linkClick, 'emit');
     const link = fixture.nativeElement.querySelector(
@@ -134,7 +134,6 @@ describe('SuccessBannerComponent (external template)', () => {
     link.dispatchEvent(clickEvent);
 
     expect(link.textContent?.trim()).toBe('Run action');
-    expect(link.getAttribute('href')).toBe('#');
     expect(clickEvent.defaultPrevented).toBe(true);
     expect(emitSpy).toHaveBeenCalledTimes(1);
   });

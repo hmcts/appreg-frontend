@@ -277,6 +277,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     }
 
     if (this.route.snapshot.queryParamMap.get('bulkUploadSuccess') === 'true') {
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
+      }
       this.vm().bulkUploadDone = true;
       const uploadState = history.state as { msg: string; jobId: string };
       const returnedJobId = uploadState.jobId;

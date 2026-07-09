@@ -76,13 +76,14 @@
             >{{ linkText() }}</a
           >
         }
-        @if (linkText() && !linkHref() && !linkCommands()) {
+        @if (linkText() && !linkHref() && !linkCommands() && allowOnClick()) {
           <a
             class="govuk-notification-banner__link"
-            href="#"
             (click)="$event.preventDefault(); linkClick.emit()"
             >{{ linkText() }}</a
           >
+        } @else {
+          <span>{{ linkText() }}</span>
         }
       </p>
     }
