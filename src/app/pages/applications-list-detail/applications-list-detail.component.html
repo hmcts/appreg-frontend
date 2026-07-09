@@ -50,7 +50,9 @@
 @if (vm().bulkUploadDone) {
   <app-success-banner
     heading="Applications successfully uploaded"
-    [linkText]="vm().bulkUploadBannerText"
+    [body]="vm().bulkUploadBannerText"
+    linkText="Click here to update fee details on newly uploaded applications"
+    (linkClick)="onBulkUploadBannerClick()"
   />
 }
 

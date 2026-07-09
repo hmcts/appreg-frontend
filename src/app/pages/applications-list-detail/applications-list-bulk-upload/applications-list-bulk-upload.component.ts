@@ -169,6 +169,7 @@ export class ApplicationsListBulkUpload implements OnInit {
               job.createdCount === null
                 ? 'All records were uploaded successfully.'
                 : `${this.formatCount(job.createdCount, 'record')} created.`,
+            jobId: job.id,
           },
         });
         return;

@@ -97,6 +97,7 @@ import {
   isAllMatchingSelected,
 } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { trimToUndefined } from '@util/string-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
@@ -162,6 +163,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   listRow: ApplicationListRow | undefined = undefined;
   etag: string | null = null;
   entryCount: number = 0;
+
+  bulkUploadJobId = signal('');
+  bulkUploadedEntryIds: string[] | undefined = [];
 
   private readonly detailSignalState =
     createSignalState<ApplicationsListDetailState>(
@@ -274,10 +278,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     if (this.route.snapshot.queryParamMap.get('bulkUploadSuccess') === 'true') {
       this.vm().bulkUploadDone = true;
-      const uploadState = history.state as { msg: string };
-      // TODO: when we get entry ids from BE. link to existing bulk-update-fees component with those entry ids
-      // We would also need to use this.resolveSelectedRows() which will be removed soon
-      this.vm().bulkUploadBannerText = `${uploadState.msg}. Click here to update fee details on newly uploaded applications.`;
+      const uploadState = history.state as { msg: string; jobId: string };
+      const returnedJobId = uploadState.jobId;
+      this.bulkUploadJobId.set(returnedJobId);
+
+      this.vm().bulkUploadBannerText = `${uploadState.msg}`;
     }
   }
 
@@ -877,6 +882,26 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  async onBulkUploadBannerClick(): Promise<void> {
+    await this.bulkImportGetIds(this.bulkUploadJobId());
+
+    if (!this.bulkUploadedEntryIds?.length) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          { text: 'Failed to get new bulk uploaded applications' },
+        ],
+      });
+      return;
+    }
+
+    // Set selected Ids as bulkUploadedEntryIds and then let existing function handle the rest
+    this.detailSignalState.patch({
+      selectedIds: new Set(this.bulkUploadedEntryIds),
+    });
+
+    void this.onUpdateFeeButtonClick();
+  }
+
   onPrintContinuousClick(): void {
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
@@ -1001,6 +1026,38 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         },
       },
     );
+  }
+
+  private async bulkImportGetIds(jobId: string): Promise<void> {
+    const id = trimToUndefined(jobId);
+
+    if (!id) {
+      return;
+    }
+
+    try {
+      const newEntryIds = await firstValueFrom(
+        this.appListEntriesApi.getBulkResultApplicationListEntriesByJobId({
+          jobId: id,
+        }),
+      );
+
+      if (!newEntryIds.length) {
+        this.vm().errorSummary = [
+          { text: 'Failed to get new bulk uploaded IDs' },
+        ];
+        return;
+      }
+
+      this.bulkUploadedEntryIds = newEntryIds;
+    } catch (err) {
+      const msg = getProblemText(err);
+
+      this.detailSignalState.patch({
+        errorSummary: [{ text: msg }],
+        bulkUploadDone: false,
+      });
+    }
   }
 
   private patchLoadSuccessState(
