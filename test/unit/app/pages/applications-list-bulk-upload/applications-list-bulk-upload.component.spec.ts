@@ -374,7 +374,7 @@ describe('ApplicationsListBulkUpload', () => {
       expect(summary).toBeTruthy();
       expect(summary.nativeElement.textContent).toContain('Bulk upload failed');
       expect(summary.nativeElement.textContent).toContain(
-        'The bulk upload could not be completed. Contact support for more guidance',
+        'The uploaded file could not be processed.',
       );
       expect(getState(component).uploadSuccessful).toBe(false);
     });
@@ -467,11 +467,7 @@ describe('ApplicationsListBulkUpload', () => {
         '   ',
         'The bulk upload could not be completed. Contact support for more guidance',
       ],
-      [
-        'malformed JSON',
-        '{not-json',
-        'The bulk upload could not be completed. Contact support for more guidance',
-      ],
+      ['malformed JSON', '{not-json', '{not-json'],
       [
         'a JSON object',
         JSON.stringify({ errorType: 'DATA_ERROR' }),

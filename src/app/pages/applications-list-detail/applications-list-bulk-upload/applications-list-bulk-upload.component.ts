@@ -284,7 +284,10 @@ export class ApplicationsListBulkUpload implements OnInit {
       return 'The bulk upload could not be completed. See the table below for more details';
     } catch {
       this.errorRows.set([]);
-      return 'The bulk upload could not be completed. Contact support for more guidance';
+      return (
+        msg ??
+        'The bulk upload could not be completed. Contact support for more guidance'
+      );
     }
   }
 
