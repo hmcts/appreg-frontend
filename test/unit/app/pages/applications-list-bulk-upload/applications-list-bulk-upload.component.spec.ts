@@ -321,7 +321,7 @@ describe('ApplicationsListBulkUpload', () => {
       expect(getState(component).bulkUploadFeedback).toBeUndefined();
     });
 
-    it('shows a warning banner when the upload completes with errors', async () => {
+    it('continues showing upload progress for a completed-with-errors status', async () => {
       jobPollingFacadeMock.watchJob.mockReturnValue(
         of(
           terminalJob({
@@ -340,18 +340,14 @@ describe('ApplicationsListBulkUpload', () => {
       const summary = fixture.debugElement.query(
         By.css('.govuk-error-summary'),
       );
-      expect(summary).toBeTruthy();
-      expect(summary.nativeElement.getAttribute('role')).toBe('alert');
-      expect(summary.nativeElement.textContent).toContain('Bulk upload failed');
-      expect(summary.nativeElement.textContent).toContain('4 records created.');
-      expect(summary.nativeElement.textContent).toContain(
-        '2 records had errors.',
-      );
+      expect(summary).toBeNull();
+      expect(
+        fixture.debugElement.query(By.css('app-async-job-progress')),
+      ).toBeTruthy();
       expect(getState(component).uploadSuccessful).toBe(false);
       expect(getState(component).bulkUploadFeedback).toMatchObject({
-        kind: 'error',
-        heading: 'Bulk upload failed',
-        body: '4 records created. 2 records had errors.',
+        kind: 'progress',
+        heading: 'Upload in progress',
       });
     });
 
@@ -378,7 +374,7 @@ describe('ApplicationsListBulkUpload', () => {
       expect(summary).toBeTruthy();
       expect(summary.nativeElement.textContent).toContain('Bulk upload failed');
       expect(summary.nativeElement.textContent).toContain(
-        'The uploaded file could not be processed.',
+        'The bulk upload could not be completed. Contact support for more guidance',
       );
       expect(getState(component).uploadSuccessful).toBe(false);
     });

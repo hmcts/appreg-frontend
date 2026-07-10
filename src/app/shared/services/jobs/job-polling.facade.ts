@@ -36,15 +36,6 @@ const TERMINAL_SUCCESS_STATUSES = new Set<string>([
   'SUCCEEDED',
   String(JobStatus2.COMPLETED),
 ]);
-const IN_PROGRESS_STATUSES = new Set<string>([
-  String(JobStatus2.RECEIVED),
-  String(JobStatus2.VALIDATING),
-  String(JobStatus2.PROCESSING),
-  'PENDING',
-  'QUEUED',
-  'RUNNING',
-  'IN_PROGRESS',
-]);
 const FAILED_STATUS = String(JobStatus2.FAILED);
 
 @Injectable({
@@ -114,27 +105,13 @@ function normaliseJobStatus(
     'detail',
     'reason',
   ]);
-  const reportAvailable =
-    readBoolean(raw, [
-      'reportAvailable',
-      'errorReportAvailable',
-      'hasErrorReport',
-    ]) ?? rawStatus === 'COMPLETED_WITH_ERRORS';
 
   let state: PolledJobState = 'in_progress';
 
   if (rawStatus === FAILED_STATUS) {
     state = 'failed';
-  } else if (
-    rawStatus === 'COMPLETED_WITH_ERRORS' ||
-    ((errorCount ?? 0) > 0 &&
-      (TERMINAL_SUCCESS_STATUSES.has(rawStatus) || reportAvailable))
-  ) {
-    state = 'completed_with_errors';
   } else if (TERMINAL_SUCCESS_STATUSES.has(rawStatus)) {
     state = 'succeeded';
-  } else if (!IN_PROGRESS_STATUSES.has(rawStatus)) {
-    state = 'in_progress';
   }
 
   const id = readString(raw, ['id', 'jobId']) ?? fallbackJobId;
@@ -205,22 +182,6 @@ function readString(
         if (trimmed) {
           return trimmed;
         }
-      }
-    }
-  }
-
-  return null;
-}
-
-function readBoolean(
-  record: Record<string, unknown>,
-  keys: string[],
-): boolean | null {
-  for (const source of collectSearchSpace(record)) {
-    for (const key of keys) {
-      const value = source[key];
-      if (typeof value === 'boolean') {
-        return value;
       }
     }
   }
