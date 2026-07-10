@@ -36,6 +36,9 @@ describe('app.routes', () => {
 
     const indexRoute = childRoutes.find((route) => route.path === '');
     const detailRoute = childRoutes.find((route) => route.path === ':id');
+    const bulkUploadRoute = childRoutes.find(
+      (route) => route.path === ':id/bulk-upload',
+    );
     const createEntryRoute = childRoutes.find(
       (route) => route.path === ':id/create-entry',
     );
@@ -48,6 +51,9 @@ describe('app.routes', () => {
 
     expect(detailRoute?.loadComponent).toBeDefined();
     expect(detailRoute?.component).toBeUndefined();
+
+    expect(bulkUploadRoute?.loadComponent).toBeDefined();
+    expect(bulkUploadRoute?.component).toBeUndefined();
 
     expect(createEntryRoute?.loadComponent).toBeDefined();
     expect(createEntryRoute?.component).toBeUndefined();
