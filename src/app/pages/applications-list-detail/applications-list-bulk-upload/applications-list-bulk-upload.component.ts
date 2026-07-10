@@ -255,7 +255,10 @@ export class ApplicationsListBulkUpload implements OnInit {
 
       if (!Array.isArray(errorsAsArrayObjects)) {
         this.errorRows.set([]);
-        return 'The bulk upload could not be completed. Contact support for more guidance';
+        return (
+          msg ??
+          'The bulk upload could not be completed. Contact support for more guidance'
+        );
       }
 
       const rows: Row[] = errorsAsArrayObjects.map(

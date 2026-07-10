@@ -457,13 +457,29 @@ describe('ApplicationsListBulkUpload', () => {
     });
 
     it.each([
-      ['null', null],
-      ['blank', '   '],
-      ['malformed JSON', '{not-json'],
-      ['a JSON object', JSON.stringify({ errorType: 'DATA_ERROR' })],
+      [
+        'null',
+        null,
+        'The bulk upload could not be completed. Contact support for more guidance',
+      ],
+      [
+        'blank',
+        '   ',
+        'The bulk upload could not be completed. Contact support for more guidance',
+      ],
+      [
+        'malformed JSON',
+        '{not-json',
+        'The bulk upload could not be completed. Contact support for more guidance',
+      ],
+      [
+        'a JSON object',
+        JSON.stringify({ errorType: 'DATA_ERROR' }),
+        JSON.stringify({ errorType: 'DATA_ERROR' }),
+      ],
     ])(
-      'uses the support fallback and clears rows for %s backend errors',
-      async (_label, message) => {
+      'clears rows for %s backend errors and sets the expected feedback message',
+      async (_label, message, expectedBody) => {
         component.errorRows.set([{ message: 'stale row' }]);
         jobPollingFacadeMock.watchJob.mockReturnValue(
           of(
@@ -484,7 +500,7 @@ describe('ApplicationsListBulkUpload', () => {
         expect(component.errorRows()).toEqual([]);
         expect(getState(component).bulkUploadFeedback).toMatchObject({
           kind: 'error',
-          body: 'The bulk upload could not be completed. Contact support for more guidance',
+          body: expectedBody,
         });
         expect(
           fixture.debugElement.query(By.css('app-sortable-table')),
