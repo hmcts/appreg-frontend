@@ -10,7 +10,10 @@ Given('User Is On The Portal Page', () => {
 
 Given('User Navigates To The URL {string}', (url: string) => {
   NavigationHelper.navigateToUrl(url);
-  cy.screenshot(`NavigatedTo-${url}`);
+
+  if (url.includes('/applications-list/')) {
+    NavigationHelper.waitForApplicationListPageToLoad();
+  }
 });
 
 Given('User Is On The {string} Page', (partialUrl: string) => {

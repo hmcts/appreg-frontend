@@ -7,6 +7,7 @@ Feature: Applications List Entry Notes Update
             | todayiso | 10:20 | OPEN   | Entry update Notes {RANDOM} | LCCC065           | 2             | 22              |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
+        Then User Stores Response Body Property "description" As "initiaDescription"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | null                                  |
             | applicationCode                               | MX99009                               |
@@ -61,6 +62,7 @@ Feature: Applications List Entry Notes Update
         Given User Navigates To The URL "/applications-list/:listId"
         Then User Clicks On The Link "List details"
         Then User Verify The Page URL Contains "#list-details"
+        Then User Verifies The "List description" Textbox Has Value "Entry update Notes {RANDOM}"
         Then User Verifies "Open" Is Selected In The "Select list status" Dropdown
         Then User Selects "Closed" In The "Select list status" Dropdown
         Then User Verifies "Closed" Is Selected In The "Select list status" Dropdown
