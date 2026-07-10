@@ -379,6 +379,127 @@ describe('ApplicationsListBulkUpload', () => {
       expect(getState(component).uploadSuccessful).toBe(false);
     });
 
+    it('maps structured backend errors into table rows and renders the export action', async () => {
+      const onExportErrorFilesClick = jest.spyOn(
+        component,
+        'onExportErrorFilesClick',
+      );
+      const errorMessage = JSON.stringify([
+        {
+          errorType: 'DATA_ERROR',
+          rowNumber: 4,
+          location: ' applicantName ',
+          message: ' Invalid value ',
+          name: ' Jane Doe ',
+          addressLine1: ' 1 High Street ',
+          rejectedValue: ' ??? ',
+        },
+        {
+          errorType: 'HEADER_ERROR',
+          rowNumber: null,
+          location: null,
+          message: '',
+          name: null,
+          addressLine1: '   ',
+          rejectedValue: null,
+        },
+      ]);
+
+      jobPollingFacadeMock.watchJob.mockReturnValue(
+        of(
+          terminalJob({
+            rawStatus: 'FAILED',
+            state: 'failed',
+            createdCount: null,
+            errorCount: null,
+            totalCount: null,
+            message: errorMessage,
+          }),
+        ),
+      );
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      expect(component.errorRows()).toEqual([
+        {
+          errorType: 'Data error',
+          rowNumber: 4,
+          location: 'applicantName',
+          message: 'Invalid value',
+          name: 'Jane Doe',
+          addressLine1: '1 High Street',
+          rejectedValue: '???',
+        },
+        {
+          errorType: 'Header error',
+          rowNumber: null,
+          location: '—',
+          message: '—',
+          name: '—',
+          addressLine1: '—',
+          rejectedValue: '—',
+        },
+      ]);
+      expect(
+        fixture.debugElement.query(By.css('app-sortable-table')),
+      ).toBeTruthy();
+
+      const exportButton = fixture.debugElement.query(
+        By.css('button.govuk-button__export'),
+      );
+      expect(exportButton.nativeElement.textContent).toContain(
+        'Export the file with errors shown',
+      );
+
+      exportButton.nativeElement.click();
+      expect(onExportErrorFilesClick).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['null', null],
+      ['blank', '   '],
+      ['malformed JSON', '{not-json'],
+      ['a JSON object', JSON.stringify({ errorType: 'DATA_ERROR' })],
+    ])(
+      'uses the support fallback and clears rows for %s backend errors',
+      async (_label, message) => {
+        component.errorRows.set([{ message: 'stale row' }]);
+        jobPollingFacadeMock.watchJob.mockReturnValue(
+          of(
+            terminalJob({
+              rawStatus: 'FAILED',
+              state: 'failed',
+              createdCount: null,
+              errorCount: null,
+              totalCount: null,
+              message,
+            }),
+          ),
+        );
+
+        startBulkUploadPolling();
+        await flushSignalEffects(fixture);
+
+        expect(component.errorRows()).toEqual([]);
+        expect(getState(component).bulkUploadFeedback).toMatchObject({
+          kind: 'error',
+          body: 'The bulk upload could not be completed. Contact support for more guidance',
+        });
+        expect(
+          fixture.debugElement.query(By.css('app-sortable-table')),
+        ).toBeNull();
+      },
+    );
+
+    it('clears existing error rows when a new upload is submitted', () => {
+      component.errorRows.set([{ message: 'stale row' }]);
+
+      component.onSubmit();
+
+      expect(component.errorRows()).toEqual([]);
+    });
+
     it('shows an inline error summary when polling fails', async () => {
       jobPollingFacadeMock.watchJob.mockReturnValue(
         throwError(() => new Error('boom')),
