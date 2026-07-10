@@ -152,7 +152,7 @@ describe('SuccessBannerComponent (external template)', () => {
 
     const emitSpy = jest.spyOn(comp.linkClick, 'emit');
     const link = fixture.nativeElement.querySelector(
-      '.govuk-notification-banner__link',
+      '.govuk-link',
     ) as HTMLAnchorElement;
     const clickEvent = new MouseEvent('click', {
       button: 0,
