@@ -76,7 +76,8 @@
           >
         } @else if (linkText() && allowOnClick()) {
           <a
-            class="govuk-notification-banner__link"
+            class="govuk-link govuk-link--no-visited-state"
+            href="#"
             (click)="$event.preventDefault(); linkClick.emit()"
             >{{ linkText() }}</a
           >
