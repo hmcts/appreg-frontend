@@ -50,7 +50,7 @@
   />
 }
 
-<app-page-header title="Bulk Upload Applications" />
+<app-page-header title="Bulk upload applications" />
 
 <app-help-details summary="Help with bulk upload">
   <p class="govuk-body">
@@ -103,3 +103,14 @@
     </div>
   </div>
 </div>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+@if (errorRows().length > 0) {
+  <app-sortable-table
+    [columns]="columns"
+    [data]="errorRows()"
+  ></app-sortable-table>
+}
