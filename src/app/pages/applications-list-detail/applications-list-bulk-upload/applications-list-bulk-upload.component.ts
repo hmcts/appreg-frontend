@@ -376,4 +376,8 @@ export class ApplicationsListBulkUpload implements OnInit {
 
     this.bulkUploadRequest.set(params);
   }
+
+  onExportErrorFilesClick(): void {
+    // TODO: ARCPOC-1506
+  }
 }

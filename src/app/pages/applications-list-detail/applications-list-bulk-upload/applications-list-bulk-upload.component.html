@@ -109,8 +109,12 @@
 />
 
 @if (errorRows().length > 0) {
-  <app-sortable-table
-    [columns]="columns"
-    [data]="errorRows()"
-  ></app-sortable-table>
+  <app-sortable-table [columns]="columns" [data]="errorRows()" />
+
+  <button
+    class="govuk-button govuk-button__export"
+    (click)="onExportErrorFilesClick()"
+  >
+    Export the file with errors shown
+  </button>
 }
