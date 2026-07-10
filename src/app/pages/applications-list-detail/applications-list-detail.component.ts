@@ -280,8 +280,14 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       if (!isPlatformBrowser(this.platformId)) {
         return;
       }
-      this.vm().bulkUploadDone = true;
+
       const uploadState = history.state as { msg: string; jobId: string };
+
+      if (!uploadState.msg || !uploadState.jobId) {
+        return;
+      }
+
+      this.vm().bulkUploadDone = true;
       const returnedJobId = uploadState.jobId;
       this.bulkUploadJobId.set(returnedJobId);
 
