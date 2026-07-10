@@ -60,8 +60,10 @@ Feature: Applications List Entry Notes Update
         When User Signs In With Microsoft SSO As "user1"
         Given User Navigates To The URL "/applications-list/:listId"
         Then User Clicks On The Link "List details"
-        Then User Selects "Closed" In The "status" Dropdown
-        Then User Verifies "Closed" Is Selected In The "status" Dropdown
+        Then User Verify The Page URL Contains "#list-details"
+        Then User Verifies "Open" Is Selected In The "Select list status" Dropdown
+        Then User Selects "Closed" In The "Select list status" Dropdown
+        Then User Verifies "Closed" Is Selected In The "Select list status" Dropdown
         When User Clicks On The "Update" Button
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
@@ -70,8 +72,6 @@ Feature: Applications List Entry Notes Update
         Given User Navigates To The URL "/applications"
         Then User Enters "Taylor {RANDOM}" Into The "Applicant surname" Textbox
         When User Clicks On The "Search" Button
-#  'User Selects {string} from {named} Toggle Button In Row Of Table {string} With:',
-# When User Selects "Update notes" from "Select" Toggle Button In Row Of Table "Entries" With:
-#     | Applicant             | Respondent           |
-#     | Henry Taylor {RANDOM} | Emily Clark {RANDOM} |
-
+        When User Clicks "Select" Then "Update notes" From Menu In Row Of Table "Application list entries" With:
+            | Applicant             | Respondent           |
+            | Henry Taylor {RANDOM} | Emily Clark {RANDOM} |
