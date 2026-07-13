@@ -15,6 +15,7 @@ describe('applications-list-bulk-upload state', () => {
       jobAcknowledgement: null,
       uploadSuccessful: false,
       bulkUploadFeedback: null,
+      currentPage: 0,
     });
   });
 
