@@ -45,7 +45,12 @@
 @if (vm().bulkUploadFeedback?.kind === 'error') {
   <app-error-summary
     [title]="vm().bulkUploadFeedback?.heading ?? 'There is a problem'"
-    [items]="[{ text: vm().bulkUploadFeedback?.body ?? '' }]"
+    [items]="[
+      {
+        text: vm().bulkUploadFeedback?.body ?? '',
+        href: errorRows().length > 0 ? '#error-table' : undefined,
+      },
+    ]"
     [focusKey]="submitAttempt()"
   />
 }
@@ -109,7 +114,23 @@
 />
 
 @if (errorRows().length > 0) {
-  <app-sortable-table [columns]="columns" [data]="errorRows()" />
+  <app-sortable-table
+    [columns]="columns"
+    [data]="paginatedErrorRows()"
+    [clientOrServerSort]="'server'"
+    [sortState]="errorSort()"
+    (sortChange)="onSortChange($event)"
+    id="error-table"
+    tabindex="-1"
+  />
+
+  @if (errorRows().length > 5) {
+    <app-pagination
+      [currentPage]="vm().currentPage"
+      [totalPages]="totalPages()"
+      (pageChange)="onPageChange($event)"
+    />
+  }
 
   <button
     class="govuk-button govuk-button__export"

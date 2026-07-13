@@ -512,6 +512,28 @@ describe('ApplicationsListBulkUpload', () => {
       expect(component.errorRows()).toEqual([]);
     });
 
+    it('sorts all error rows before selecting the current page', () => {
+      component.errorRows.set([
+        { name: 'Zulu' },
+        { name: 'Charlie' },
+        { name: 'Echo' },
+        { name: 'Foxtrot' },
+        { name: 'Golf' },
+        { name: 'Alpha' },
+      ]);
+
+      component.onSortChange({ key: 'name', direction: 'asc' });
+
+      expect(component.paginatedErrorRows().map((row) => row['name'])).toEqual([
+        'Alpha',
+        'Charlie',
+        'Echo',
+        'Foxtrot',
+        'Golf',
+      ]);
+      expect(component.vm().currentPage).toBe(0);
+    });
+
     it('shows an inline error summary when polling fails', async () => {
       jobPollingFacadeMock.watchJob.mockReturnValue(
         throwError(() => new Error('boom')),

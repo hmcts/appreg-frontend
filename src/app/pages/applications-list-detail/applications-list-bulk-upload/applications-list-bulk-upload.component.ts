@@ -13,6 +13,7 @@ import {
   DestroyRef,
   EnvironmentInjector,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -32,6 +33,7 @@ import { ErrorSummaryComponent } from '@components/error-summary/error-summary.c
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import {
   SortableTableComponent,
   TableColumn,
@@ -49,6 +51,7 @@ import {
 import { getProblemText } from '@util/http-error-to-text';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { trimToUndefined } from '@util/string-helpers';
+import { sortRows } from '@util/table-sort';
 
 const UPLOAD_IN_PROGRESS_FEEDBACK = {
   kind: 'progress',
@@ -87,6 +90,7 @@ interface ErrorDescription {
     AsyncJobProgressComponent,
     NotificationBannerComponent,
     SortableTableComponent,
+    PaginationComponent,
   ],
   templateUrl: './applications-list-bulk-upload.component.html',
   styleUrl: './applications-list-bulk-upload.component.scss',
@@ -112,6 +116,28 @@ export class ApplicationsListBulkUpload implements OnInit {
 
   columns = BulkUploadErrorTableColumns;
   readonly errorRows = signal<Row[]>([]);
+  readonly pageSize = 5;
+  readonly errorSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
+    key: '',
+    direction: 'asc',
+  });
+
+  readonly totalPages = computed(() =>
+    Math.ceil(this.errorRows().length / this.pageSize),
+  );
+
+  // Sort all returned rows before paginating them.
+  readonly sortedErrorRows = computed(() => {
+    const { key, direction: sortDirection } = this.errorSort();
+    return key
+      ? sortRows(this.errorRows(), { key, direction: sortDirection })
+      : this.errorRows();
+  });
+
+  readonly paginatedErrorRows = computed(() => {
+    const start = this.vm().currentPage * this.pageSize;
+    return this.sortedErrorRows().slice(start, start + this.pageSize);
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -256,6 +282,7 @@ export class ApplicationsListBulkUpload implements OnInit {
         }),
       );
       this.errorRows.set(rows);
+
       return 'The bulk upload could not be completed. See the table below for more details';
     } catch {
       this.errorRows.set([]);
@@ -342,6 +369,7 @@ export class ApplicationsListBulkUpload implements OnInit {
       isUploadInProgress: true,
       bulkUploadFeedback: null,
       uploadSuccessful: false,
+      currentPage: 0,
     });
 
     if (!this.bulkUploadState().file) {
@@ -360,5 +388,14 @@ export class ApplicationsListBulkUpload implements OnInit {
 
   onExportErrorFilesClick(): void {
     // TODO: ARCPOC-1506
+  }
+
+  onPageChange(page: number): void {
+    this.bulkUploadPatch({ currentPage: page });
+  }
+
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.errorSort.set(sort);
+    this.bulkUploadPatch({ currentPage: 0 });
   }
 }
