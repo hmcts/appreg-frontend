@@ -80,3 +80,14 @@ Then(
     );
   },
 );
+
+Then(
+  'User Verify Response Body Array Property {string} Should Contain Objects:',
+  (arrayPropertyPath: string, dataTable: DataTable) => {
+    const expectedObjects = dataTable.hashes();
+    ApiResponseHelper.verifyResponseBodyArrayPropertyShouldContainObjects(
+      arrayPropertyPath,
+      expectedObjects,
+    );
+  },
+);

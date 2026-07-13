@@ -84,37 +84,23 @@ Feature: API - Application List Entry Fees
       | status       | SUCCEEDED |
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId1"
     Then User Verify Response Status Code Should Be "200"
-    # Then User Verify Response Body Should Have:
-    #   | feeStatuses.length              | 1           |
-    #   | feeStatuses[0].paymentStatus    | REMITTED    |
-    #   | feeStatuses[0].statusDate       | 2025-10-07  |
-    #   | feeStatuses[0].paymentReference | PAY-UPDATED |
-    #   | hasOffsiteFee                   | true        |
     Then User Verify Response Body Should Have:
-      | feeStatuses.length              | 2            |
-      | feeStatuses[0].paymentStatus    | PAID         |
-      | feeStatuses[0].statusDate       | 2025-01-10   |
-      | feeStatuses[0].paymentReference | PAYA{RANDOM} |
-      | hasOffsiteFee                   | true         |
-      | feeStatuses[1].paymentStatus    | REMITTED     |
-      | feeStatuses[1].statusDate       | 2025-10-07   |
-      | feeStatuses[1].paymentReference | PAY-UPDATED  |
-      | hasOffsiteFee                   | true         |
+      | hasOffsiteFee      | true |
+      | feeStatuses.length | 2    |
+    Then User Verify Response Body Array Property "feeStatuses" Should Contain Objects:
+      | paymentReference | paymentStatus | statusDate |
+      | PAYA{RANDOM}     | PAID          | 2025-01-10 |
+      | PAY-UPDATED      | REMITTED      | 2025-10-07 |
+
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId2"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
-      # | feeStatuses.length              | 1           |
-      # | feeStatuses[0].paymentStatus    | REMITTED    |
-      # | feeStatuses[0].statusDate       | 2025-10-07  |
-      # | feeStatuses[0].paymentReference | PAY-UPDATED |
-      # | hasOffsiteFee                   | true        |
-      | feeStatuses.length              | 2           |
-      | feeStatuses[0].paymentStatus    | DUE         |
-      | feeStatuses[0].statusDate       | 2025-01-10  |
-      | feeStatuses[1].paymentStatus    | REMITTED    |
-      | feeStatuses[1].statusDate       | 2025-10-07  |
-      | feeStatuses[1].paymentReference | PAY-UPDATED |
-      | hasOffsiteFee                   | true        |
+      | hasOffsiteFee      | true |
+      | feeStatuses.length | 2    |
+    Then User Verify Response Body Array Property "feeStatuses" Should Contain Objects:
+      | paymentReference | paymentStatus | statusDate |
+      |                  | DUE           | 2025-01-10 |
+      | PAY-UPDATED      | REMITTED      | 2025-10-07 |
 
     Examples:
       | User  |
@@ -240,14 +226,12 @@ Feature: API - Application List Entry Fees
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
-      | feeStatuses.length              | 2            |
-      | feeStatuses[0].paymentStatus    | PAID         |
-      | feeStatuses[0].statusDate       | 2025-01-10   |
-      | feeStatuses[0].paymentReference | PAYD{RANDOM} |
-      | feeStatuses[1].paymentStatus    | REMITTED     |
-      | feeStatuses[1].statusDate       | 2025-10-07   |
-      | feeStatuses[1].paymentReference | PAY-UPDATED  |
-      | hasOffsiteFee                   | true         |
+      | hasOffsiteFee      | true |
+      | feeStatuses.length | 2    |
+    Then User Verify Response Body Array Property "feeStatuses" Should Contain Objects:
+      | paymentReference | paymentStatus | statusDate |
+      | PAYD{RANDOM}     | PAID          | 2025-01-10 |
+      | PAY-UPDATED      | REMITTED      | 2025-10-07 |
 
     Examples:
       | User  |
@@ -282,7 +266,7 @@ Feature: API - Application List Entry Fees
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                         |
       | applicant.person.contactDetails.email        | offsite-composite{RANDOM}@example.com |
       | wordingFields                                | __empty_array__                       |
-      | feeStatuses.0.paymentReference               | OFFCMP-{RANDOM}                       |
+      | feeStatuses.0.paymentReference               | Pay-{RANDOM}                          |
       | feeStatuses.0.paymentStatus                  | PAID                                  |
       | feeStatuses.0.statusDate                     | todayiso                              |
       | hasOffsiteFee                                | true                                  |
@@ -309,14 +293,12 @@ Feature: API - Application List Entry Fees
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
-      | hasOffsiteFee                   | true            |
-      | feeStatuses.length              | 2               |
-      | feeStatuses[0].paymentStatus    | PAID            |
-      | feeStatuses[0].statusDate       | todayiso        |
-      | feeStatuses[0].paymentReference | OFFCMP-{RANDOM} |
-      | feeStatuses[1].paymentStatus    | REMITTED        |
-      | feeStatuses[1].statusDate       | 2025-10-07      |
-      | feeStatuses[1].paymentReference | OFFSITE-UPDATED |
+      | hasOffsiteFee      | true |
+      | feeStatuses.length | 2    |
+    Then User Verify Response Body Array Property "feeStatuses" Should Contain Objects:
+      | paymentReference | paymentStatus | statusDate |
+      | Pay-{RANDOM}     | PAID          | todayiso   |
+      | OFFSITE-UPDATED  | REMITTED      | 2025-10-07 |
 
     Examples:
       | User  |
