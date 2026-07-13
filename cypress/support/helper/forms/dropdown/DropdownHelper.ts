@@ -59,25 +59,18 @@ export class DropdownHelper {
     dropdownLabel: string,
     optionText: string,
   ): void {
-    DropdownElement.findDropdown(dropdownLabel)
-      .invoke('val')
-      .then((val) => {
-        const valMatch = String(val).toLowerCase() === optionText.toLowerCase();
-        if (valMatch) {
-          cy.wrap(valMatch).should('be.true');
-        } else {
-          // Fall back to comparing text content
-          return DropdownElement.findDropdown(dropdownLabel).then(
-            ($dropdown) => {
-              const textMatch = $dropdown
-                .text()
-                .toLowerCase()
-                .includes(optionText.toLowerCase());
-              cy.wrap(textMatch).should('be.true');
-            },
-          );
-        }
-      });
+    DropdownElement.findDropdown(dropdownLabel).then(($dropdown) => {
+      if (!$dropdown.is('select')) {
+        throw new Error(`Dropdown "${dropdownLabel}" is not a native select`);
+      }
+      cy.wrap($dropdown)
+        .find('option:selected')
+        .invoke('text')
+        .then((text) => {
+          const actual = text.replaceAll('\u00a0', ' ').trim();
+          expect(actual).to.eq(optionText);
+        });
+    });
   }
 
   static verifyDropdownOptionNotSelected(

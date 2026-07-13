@@ -16,12 +16,6 @@ export class NavigationHelper {
     });
   }
 
-  static waitForApplicationListPageToLoad(): void {
-    cy.contains('h1', 'Applications list', { timeout: 15000 }).should(
-      'be.visible',
-    );
-  }
-
   static verifyPageTitle(expectedTitle: string): void {
     cy.log(`Verifying page title is ${expectedTitle}`);
     cy.title().should('eq', expectedTitle);

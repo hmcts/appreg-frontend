@@ -6,12 +6,14 @@ export class TextboxHelper {
    * @param selector selector for the textbox
    * @param text The text to type
    */
-  static typeInTextbox(selector: string, text: string): void {
+  static typeInTextbox(selector: string, value: string): void {
     TextboxElement.findTextbox(selector)
       .should('be.visible')
       .should('be.enabled')
+      .click()
       .clear({ force: true })
-      .type(text);
+      .type(value, { delay: 25, log: false })
+      .should('have.value', value);
   }
 
   /**
