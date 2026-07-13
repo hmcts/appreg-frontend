@@ -204,15 +204,6 @@ export class ApplicationsListBulkUpload implements OnInit {
         });
         return;
 
-      // I don't think we need this
-      // case 'completed_with_errors':
-      //   return {
-      //     kind: 'error',
-      //     title: 'Error',
-      //     heading: 'Bulk upload failed',
-      //     body: this.buildCompletedWithErrorsMessage(job),
-      //   } as const;
-
       case 'failed':
         return {
           kind: 'error',
@@ -225,22 +216,6 @@ export class ApplicationsListBulkUpload implements OnInit {
         return UPLOAD_IN_PROGRESS_FEEDBACK;
     }
   }
-
-  // private buildCompletedWithErrorsMessage(job: PolledJobStatus): string {
-  //   const parts: string[] = [];
-
-  //   if (job.createdCount !== null) {
-  //     parts.push(`${this.formatCount(job.createdCount, 'record')} created.`);
-  //   }
-
-  //   if (job.errorCount !== null) {
-  //     parts.push(`${this.formatCount(job.errorCount, 'record')} had errors.`);
-  //   }
-
-  //   return parts.length > 0
-  //     ? parts.join(' ')
-  //     : 'Some records were uploaded, but some could not be processed.';
-  // }
 
   private formatErrorDescriptionFromError(msg: string | null): string {
     const formatMsg = trimToUndefined(msg);
