@@ -14,6 +14,13 @@
   }
 }
 
+@if (vm().exportSuccess) {
+  <app-success-banner
+    heading="Successfully exported CSV"
+    body="Standard applicant CSV has been successfully exported"
+  />
+}
+
 <h1 class="govuk-heading-xl">Standard applicants</h1>
 
 <app-help-details summary="Help with standard applicants">
@@ -117,15 +124,16 @@
           <button
             type="button"
             class="govuk-button moj-button-menu__item govuk-button--secondary"
+            (click)="onExportButtonClick()"
           >
-            Export
+            Export CSV
           </button>
 
           <button
             type="button"
             class="govuk-button moj-button-menu__item govuk-button--secondary"
           >
-            Print
+            Print PDF
           </button>
         </div>
       </span>

@@ -1,6 +1,9 @@
 import { isPlatformBrowser } from '@angular/common';
+import { HttpResponse } from '@angular/common/http';
 import {
   Component,
+  DOCUMENT,
+  DestroyRef,
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
@@ -31,10 +34,12 @@ import {
   mapSaToRow,
   standardAppColumns,
 } from '@components/standard-applicant-select/util/standard-applicant-select-row-helpers';
+import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
   GetStandardApplicantsRequestParams,
   StandardApplicantsApi,
+  StandardApplicantsExportRequestParams,
 } from '@openapi';
 import { StandardApplicantsSearchFormService } from '@services/standard-applicants/standard-applicants-search-form.service';
 import { StandardApplicantsSearchStateService } from '@services/standard-applicants/standard-applicants-search-state.service';
@@ -44,6 +49,7 @@ import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
+import { getDateStamp, trimToUndefined } from '@util/string-helpers';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
 export type StandardApplicantFilters = Pick<
@@ -60,6 +66,7 @@ export type StandardApplicantsState = {
   rows: StandardApplicantRow[];
   isLoading: boolean;
   searchErrors: ErrorItem[];
+  exportSuccess: boolean;
 };
 
 const initialStandardApplicantsState: StandardApplicantsState = {
@@ -71,6 +78,7 @@ const initialStandardApplicantsState: StandardApplicantsState = {
   rows: [],
   isLoading: false,
   searchErrors: [],
+  exportSuccess: false,
 };
 
 @Component({
@@ -85,6 +93,7 @@ const initialStandardApplicantsState: StandardApplicantsState = {
     MojButtonMenuDirective,
     NotificationBannerComponent,
     HelpDetailsComponent,
+    SuccessBannerComponent,
   ],
   templateUrl: './standard-applicants.component.html',
   styleUrl: './standard-applicants.component.scss',
@@ -97,6 +106,8 @@ export class StandardApplicants implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly searchForm = inject(StandardApplicantsSearchFormService);
   private readonly searchState = inject(StandardApplicantsSearchStateService);
+  private readonly document = inject(DOCUMENT);
+  private readonly componentDestroyRef = inject(DestroyRef);
 
   private readonly signalState = createSignalState<StandardApplicantsState>(
     initialStandardApplicantsState,
@@ -105,6 +116,9 @@ export class StandardApplicants implements OnInit {
 
   private readonly loadRequest =
     signal<GetStandardApplicantsRequestParams | null>(null);
+  private readonly exportRequest =
+    signal<StandardApplicantsExportRequestParams | null>(null);
+
   readonly submitted = signal(false);
   readonly submitAttempt = signal(0);
   private readonly errorMap: ErrorMessageMap =
@@ -157,7 +171,11 @@ export class StandardApplicants implements OnInit {
     }
 
     this.appliedFilters = this.getTrimmedFilters();
-    this.signalState.patch({ hasSearched: true, currentPage: 0 });
+    this.signalState.patch({
+      hasSearched: true,
+      currentPage: 0,
+      exportSuccess: false,
+    });
     this.persistSearchState();
     this.loadStandardApplicants(0, this.appliedFilters);
   }
@@ -182,6 +200,36 @@ export class StandardApplicants implements OnInit {
       relativeTo: this.route,
       state: row,
     });
+  }
+
+  onExportButtonClick(): void {
+    this.signalState.patch({ exportSuccess: false, searchErrors: [] });
+    this.submitAttempt.update((attempt) => attempt + 1);
+    this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    const values = this.appliedFilters;
+    const code = trimToUndefined(values.code);
+    const name = trimToUndefined(values.name);
+
+    if (!!code === !!name) {
+      // Endpoint only supports either code or name (XOR). Applies to the active filters, not the current form values.
+      this.signalState.patch({
+        searchErrors: [
+          {
+            text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
+          },
+        ],
+      });
+      return;
+    }
+
+    const params = {
+      ...(code && { code }),
+      ...(name && { name }),
+    };
+
+    this.exportRequest.set(params);
   }
 
   fieldError(id: string): ErrorItem | undefined {
@@ -214,6 +262,7 @@ export class StandardApplicants implements OnInit {
     this.searchForm.reset();
     this.searchState.reset();
     this.loadRequest.set(null);
+    this.exportRequest.set(null);
     this.form.reset();
     this.appliedFilters = {};
     this.signalState.patch({
@@ -223,11 +272,45 @@ export class StandardApplicants implements OnInit {
       rows: [],
       isLoading: false,
       searchErrors: [],
+      exportSuccess: false,
     });
     this.preserveErrOnLoad.set(false);
   }
 
+  private saveCsv(response: HttpResponse<string>): void {
+    if (!response.body) {
+      this.signalState.patch({
+        exportSuccess: false,
+        searchErrors: [
+          { text: 'Failed to export CSV. Please try again later' },
+        ],
+      });
+      return;
+    }
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const csvBlob = new Blob([response.body], {
+      type: response.headers.get('content-type') ?? 'text/csv;charset=utf-8',
+    });
+    const url = URL.createObjectURL(csvBlob);
+    const link = this.document.createElement('a');
+    link.href = url;
+    link.download = `standard-applicant-export-csv-${getDateStamp()}.csv`;
+    link.style.display = 'none';
+
+    this.document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+    this.signalState.patch({ exportSuccess: true });
+  }
+
   private setupEffects(): void {
+    // GET /standard-applicants
     setupLoadEffect(
       {
         request: this.loadRequest,
@@ -252,6 +335,29 @@ export class StandardApplicants implements OnInit {
             searchErrors: [{ id: 'search', text: getProblemText(err) }],
           });
           this.loadRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+
+    // GET /standard-applicants/export
+    setupLoadEffect(
+      {
+        request: this.exportRequest,
+        load: (params) =>
+          this.saApi.standardApplicantsExport(params, 'response', false, {
+            httpHeaderAccept: 'text/csv',
+            transferCache: false,
+          }),
+        onSuccess: (res) => {
+          this.saveCsv(res);
+          this.exportRequest.set(null);
+        },
+        onError: (err) => {
+          this.signalState.patch({
+            searchErrors: [{ id: 'search', text: getProblemText(err) }],
+          });
+          this.exportRequest.set(null);
         },
       },
       this.envInjector,

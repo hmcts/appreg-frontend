@@ -21,6 +21,7 @@ export class TextboxHelper {
     TextboxElement.findTextbox(selector)
       .should('be.visible')
       .should('be.enabled')
+      .scrollIntoView()
       .clear();
   }
 
@@ -89,10 +90,15 @@ export class TextboxHelper {
     TextboxElement.findTextbox(selector)
       .should('be.visible')
       .should('be.enabled')
+      .scrollIntoView()
       .clear();
 
     // Re-find element after clear to handle potential re-renders
-    TextboxElement.findTextbox(selector).should('be.visible').type(text);
+    TextboxElement.findTextbox(selector)
+      .should('be.visible')
+      .should('be.enabled')
+      .scrollIntoView()
+      .type(text, { force: true });
 
     // Wait for autocomplete dropdown to appear and trigger mousedown on the link
     cy.get('.app-autocomplete__menu')
@@ -170,8 +176,9 @@ export class TextboxHelper {
       .should('be.visible')
       .should('be.enabled')
       .should('have.attr', 'placeholder', placeholder)
+      .scrollIntoView()
       .clear()
-      .type(value);
+      .type(value, { force: true });
   }
 
   static verifyTextboxValue(
@@ -195,8 +202,9 @@ export class TextboxHelper {
         TextboxElement.findTextboxWithin($fieldset, textboxLabel)
           .should('be.visible')
           .should('be.enabled')
+          .scrollIntoView()
           .clear()
-          .type(text);
+          .type(text, { force: true });
       },
     );
   }

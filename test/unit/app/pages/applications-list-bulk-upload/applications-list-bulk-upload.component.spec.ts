@@ -5,33 +5,38 @@ import {
 } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import {
   ActivatedRoute,
   Router,
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
-import { Subject, of, throwError } from 'rxjs';
+import { EMPTY, Subject, from, of, throwError } from 'rxjs';
 
-import { ApplicationsListBulkUpload } from '@components/applications-list-bulk-upload/applications-list-bulk-upload.component';
-import { ApplicationsListBulkUploadState } from '@components/applications-list-bulk-upload/util/applications-list-bulk-upload.state';
+import { ApplicationsListBulkUpload } from '@components/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component';
+import { ApplicationsListBulkUploadState } from '@components/applications-list-detail/applications-list-bulk-upload/util/applications-list-bulk-upload.state';
 import {
   ApplicationListEntriesApi,
   JobAcknowledgement,
   JobStatus2 as JobStatus,
   JobType,
 } from '@openapi';
+import {
+  JobPollingFacade,
+  PolledJobStatus,
+} from '@services/jobs/job-polling.facade';
 
 describe('ApplicationsListBulkUpload', () => {
   let component: ApplicationsListBulkUpload;
   let fixture: ComponentFixture<ApplicationsListBulkUpload>;
-  let router: Router;
 
   const mockActivatedRoute = {
     snapshot: {
       paramMap: convertToParamMap({
         id: '73d0276f-42a3-4150-b2fd-d9b2d56b359c',
       }),
+      queryParamMap: convertToParamMap({}),
     },
   };
 
@@ -45,6 +50,33 @@ describe('ApplicationsListBulkUpload', () => {
 
   const actionsApiMock = {
     bulkUploadApplicationListEntries: jest.fn(),
+  };
+
+  const jobPollingFacadeMock = {
+    watchJob: jest.fn(),
+  };
+
+  const terminalJob = (
+    overrides: Partial<PolledJobStatus>,
+  ): PolledJobStatus => ({
+    id: 'job-1',
+    rawStatus: 'SUCCEEDED',
+    state: 'succeeded',
+    isTerminal: true,
+    createdCount: 3,
+    errorCount: null,
+    totalCount: 3,
+    message: null,
+    raw: {},
+    ...overrides,
+  });
+
+  const startBulkUploadPolling = (jobId = 'job-1'): void => {
+    (
+      component as unknown as {
+        startBulkUploadPolling(jobId: string): void;
+      }
+    ).startBulkUploadPolling(jobId);
   };
 
   type BulkUploadSignalStateAccessor = {
@@ -67,16 +99,20 @@ describe('ApplicationsListBulkUpload', () => {
     testFixture: ComponentFixture<ApplicationsListBulkUpload>,
   ): Promise<void> => {
     testFixture.detectChanges();
-    await testFixture.whenStable();
+    await Promise.resolve();
+    await Promise.resolve();
     testFixture.detectChanges();
   };
 
   beforeEach(async () => {
+    jobPollingFacadeMock.watchJob.mockReturnValue(EMPTY);
+
     await TestBed.configureTestingModule({
       imports: [ApplicationsListBulkUpload],
       providers: [
         { provide: ActivatedRoute, useValue: mockActivatedRoute },
         { provide: ApplicationListEntriesApi, useValue: actionsApiMock },
+        { provide: JobPollingFacade, useValue: jobPollingFacadeMock },
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -85,7 +121,6 @@ describe('ApplicationsListBulkUpload', () => {
 
     fixture = TestBed.createComponent(ApplicationsListBulkUpload);
     component = fixture.componentInstance;
-    router = TestBed.inject(Router);
     fixture.detectChanges();
   });
 
@@ -126,7 +161,7 @@ describe('ApplicationsListBulkUpload', () => {
   });
 
   describe('onSubmit', () => {
-    it('calls the upload API and navigates to the detail page when the job is accepted', async () => {
+    it('calls the upload API and starts polling when the job is accepted', async () => {
       const ack: JobAcknowledgement = {
         id: 'job-1',
         status: JobStatus.RECEIVED,
@@ -134,11 +169,13 @@ describe('ApplicationsListBulkUpload', () => {
       };
 
       actionsApiMock.bulkUploadApplicationListEntries.mockReturnValue(
-        of(
-          new HttpResponse<JobAcknowledgement>({
-            status: 202,
-            body: ack,
-          }),
+        from(
+          Promise.resolve(
+            new HttpResponse<JobAcknowledgement>({
+              status: 202,
+              body: ack,
+            }),
+          ),
         ),
       );
 
@@ -147,9 +184,6 @@ describe('ApplicationsListBulkUpload', () => {
         file: new File(['csv-content'], 'test.csv', { type: 'text/csv' }),
       });
 
-      const navigateSpy = jest
-        .spyOn(router, 'navigate')
-        .mockResolvedValue(true);
       component.onSubmit();
       await flushSignalEffects(fixture);
 
@@ -161,13 +195,13 @@ describe('ApplicationsListBulkUpload', () => {
         false,
         { transferCache: false },
       );
-      expect(navigateSpy).toHaveBeenCalledWith(
-        ['/applications-list', 'list-123'],
-        {
-          queryParams: { bulkUploadJobId: 'job-1' },
-        },
-      );
+      expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledWith('job-1');
       expect(getState(component).jobAcknowledgement).toBe(ack);
+      expect(getState(component).isUploadInProgress).toBe(false);
+      expect(getState(component).bulkUploadFeedback).toMatchObject({
+        kind: 'progress',
+        heading: 'Upload in progress',
+      });
     });
 
     it('sets error status and errorSummary when the API errors', async () => {
@@ -205,11 +239,13 @@ describe('ApplicationsListBulkUpload', () => {
       };
 
       actionsApiMock.bulkUploadApplicationListEntries.mockReturnValue(
-        of(
-          new HttpResponse<JobAcknowledgement>({
-            status: 200,
-            body: ack,
-          }),
+        from(
+          Promise.resolve(
+            new HttpResponse<JobAcknowledgement>({
+              status: 200,
+              body: ack,
+            }),
+          ),
         ),
       );
 
@@ -218,13 +254,9 @@ describe('ApplicationsListBulkUpload', () => {
         file: new File(['csv-content'], 'test.csv', { type: 'text/csv' }),
       });
 
-      const navigateSpy = jest
-        .spyOn(router, 'navigate')
-        .mockResolvedValue(true);
       component.onSubmit();
       await flushSignalEffects(fixture);
 
-      expect(navigateSpy).not.toHaveBeenCalled();
       expect(getState(component).fileUploadStatus).toBe('error');
       expect(getState(component).errorSummary).toEqual([
         { text: 'Unable to start bulk upload. Please try again.' },
@@ -248,6 +280,127 @@ describe('ApplicationsListBulkUpload', () => {
       await flushSignalEffects(fixture);
 
       expect(getState(component).isUploadInProgress).toBe(true);
+    });
+  });
+
+  describe('bulk upload polling', () => {
+    it('shows live progress content while the upload is being polled', async () => {
+      jobPollingFacadeMock.watchJob.mockReturnValue(EMPTY);
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledWith('job-1');
+      const progress = fixture.debugElement.query(
+        By.css('app-async-job-progress'),
+      );
+      expect(progress).toBeTruthy();
+      expect(progress.nativeElement.textContent).toContain(
+        'Upload in progress',
+      );
+    });
+
+    it('shows a success banner when the upload succeeds', async () => {
+      const navigateSpy = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+
+      jobPollingFacadeMock.watchJob.mockReturnValue(of(terminalJob({})));
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      const banner = fixture.debugElement.query(By.css('app-success-banner'));
+      expect(banner).toBeNull();
+      expect(navigateSpy).toHaveBeenCalledWith(['../'], {
+        relativeTo: TestBed.inject(ActivatedRoute),
+        queryParams: { bulkUploadSuccess: 'true' },
+        state: { msg: '3 records created.', jobId: 'job-1' },
+      });
+      expect(getState(component).uploadSuccessful).toBe(true);
+      expect(getState(component).bulkUploadFeedback).toBeUndefined();
+    });
+
+    it('shows a warning banner when the upload completes with errors', async () => {
+      jobPollingFacadeMock.watchJob.mockReturnValue(
+        of(
+          terminalJob({
+            rawStatus: 'COMPLETED_WITH_ERRORS',
+            state: 'completed_with_errors',
+            createdCount: 4,
+            errorCount: 2,
+            totalCount: 6,
+          }),
+        ),
+      );
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      const summary = fixture.debugElement.query(
+        By.css('.govuk-error-summary'),
+      );
+      expect(summary).toBeTruthy();
+      expect(summary.nativeElement.getAttribute('role')).toBe('alert');
+      expect(summary.nativeElement.textContent).toContain('Bulk upload failed');
+      expect(summary.nativeElement.textContent).toContain('4 records created.');
+      expect(summary.nativeElement.textContent).toContain(
+        '2 records had errors.',
+      );
+      expect(getState(component).uploadSuccessful).toBe(false);
+      expect(getState(component).bulkUploadFeedback).toMatchObject({
+        kind: 'error',
+        heading: 'Bulk upload failed',
+        body: '4 records created. 2 records had errors.',
+      });
+    });
+
+    it('shows a failure error summary with the backend message', async () => {
+      jobPollingFacadeMock.watchJob.mockReturnValue(
+        of(
+          terminalJob({
+            rawStatus: 'FAILED',
+            state: 'failed',
+            createdCount: null,
+            errorCount: null,
+            totalCount: null,
+            message: 'The uploaded file could not be processed.',
+          }),
+        ),
+      );
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      const summary = fixture.debugElement.query(
+        By.css('.govuk-error-summary'),
+      );
+      expect(summary).toBeTruthy();
+      expect(summary.nativeElement.textContent).toContain('Bulk upload failed');
+      expect(summary.nativeElement.textContent).toContain(
+        'The uploaded file could not be processed.',
+      );
+      expect(getState(component).uploadSuccessful).toBe(false);
+    });
+
+    it('shows an inline error summary when polling fails', async () => {
+      jobPollingFacadeMock.watchJob.mockReturnValue(
+        throwError(() => new Error('boom')),
+      );
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      const summary = fixture.debugElement.query(
+        By.css('.govuk-error-summary'),
+      );
+      expect(summary).toBeTruthy();
+      expect(summary.nativeElement.textContent).toContain(
+        'Unable to load upload status',
+      );
+      expect(summary.nativeElement.textContent).toContain(
+        'Please try again later.',
+      );
     });
   });
 });

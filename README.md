@@ -201,6 +201,12 @@ Run below to run code using Staging connectivity (VPN required)
 yarn dev:stg
 ```
 
+Run the following command to setup pre-commit & pre-push checks
+
+```
+yarn prepare
+```
+
 ## Application Insights
 
 Frontend browser telemetry is configured at runtime from `GET /app/config`.

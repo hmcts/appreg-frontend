@@ -27,17 +27,26 @@
             }
             @case ('link') {
               @if (seg.href) {
-                <a class="govuk-notification-banner__link" [href]="seg.href">{{
-                  seg.text
-                }}</a>
+                <a
+                  class="govuk-notification-banner__link"
+                  [href]="seg.href"
+                  (click)="linkClick.emit()"
+                  >{{ seg.text }}</a
+                >
               } @else if (seg.commands) {
                 <a
                   class="govuk-notification-banner__link"
                   [routerLink]="seg.commands"
+                  (click)="linkClick.emit()"
                   >{{ seg.text }}</a
                 >
               } @else {
-                <span>{{ seg.text }}</span>
+                <a
+                  class="govuk-notification-banner__link"
+                  href="#"
+                  (click)="$event.preventDefault(); linkClick.emit()"
+                  >{{ seg.text }}</a
+                >
               }
             }
           }
@@ -52,18 +61,27 @@
           {{ body() }}
         }
         @if (linkText() && linkHref()) {
-          <a class="govuk-notification-banner__link" [href]="linkHref()">{{
-            linkText()
-          }}</a>
-        }
-        @if (linkText() && linkCommands()) {
+          <a
+            class="govuk-notification-banner__link"
+            [href]="linkHref()"
+            (click)="linkClick.emit()"
+            >{{ linkText() }}</a
+          >
+        } @else if (linkText() && linkCommands()) {
           <a
             class="govuk-notification-banner__link"
             [routerLink]="linkCommands()"
+            (click)="linkClick.emit()"
             >{{ linkText() }}</a
           >
-        }
-        @if (linkText() && !linkHref() && !linkCommands()) {
+        } @else if (linkText() && allowOnClick()) {
+          <a
+            class="govuk-link govuk-link--no-visited-state"
+            href="#"
+            (click)="$event.preventDefault(); linkClick.emit()"
+            >{{ linkText() }}</a
+          >
+        } @else if (linkText()) {
           <span>{{ linkText() }}</span>
         }
       </p>
