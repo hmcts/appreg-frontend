@@ -13,6 +13,7 @@ import {
   DestroyRef,
   EnvironmentInjector,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -32,6 +33,12 @@ import { ErrorSummaryComponent } from '@components/error-summary/error-summary.c
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
+import {
+  SortableTableComponent,
+  TableColumn,
+} from '@components/sortable-table/sortable-table.component';
+import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListEntriesApi,
   BulkUploadApplicationListEntriesRequestParams,
@@ -43,12 +50,34 @@ import {
 } from '@services/jobs/job-polling.facade';
 import { getProblemText } from '@util/http-error-to-text';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { trimToUndefined } from '@util/string-helpers';
+import { sortRows } from '@util/table-sort';
 
 const UPLOAD_IN_PROGRESS_FEEDBACK = {
   kind: 'progress',
   heading: 'Upload in progress',
   body: 'Your bulk upload is being processed. This page will update automatically when it finishes.',
 } as const;
+
+const BulkUploadErrorTableColumns: TableColumn[] = [
+  { header: 'Error type', field: 'errorType', wrap: false },
+  { header: 'Row', field: 'rowNumber', wrap: false },
+  { header: 'Affected column', field: 'location' },
+  { header: 'Message', field: 'message' },
+  { header: 'Applicant name', field: 'name' },
+  { header: 'Address line 1', field: 'addressLine1', wrap: false },
+  { header: 'Rejected value', field: 'rejectedValue', wrap: false },
+];
+
+interface ErrorDescription {
+  rowNumber: number | null;
+  location: string | null;
+  rejectedValue: string | null;
+  message: string | null;
+  addressLine1: string | null;
+  name: string | null;
+  errorType: 'HEADER_ERROR' | 'DATA_ERROR';
+}
 
 @Component({
   selector: 'app-applications-list-bulk-upload',
@@ -60,6 +89,8 @@ const UPLOAD_IN_PROGRESS_FEEDBACK = {
     HelpDetailsComponent,
     AsyncJobProgressComponent,
     NotificationBannerComponent,
+    SortableTableComponent,
+    PaginationComponent,
   ],
   templateUrl: './applications-list-bulk-upload.component.html',
   styleUrl: './applications-list-bulk-upload.component.scss',
@@ -82,6 +113,31 @@ export class ApplicationsListBulkUpload implements OnInit {
   private readonly bulkUploadRequest =
     signal<BulkUploadApplicationListEntriesRequestParams | null>(null);
   readonly submitAttempt = signal(0);
+
+  columns = BulkUploadErrorTableColumns;
+  readonly errorRows = signal<Row[]>([]);
+  readonly pageSize = 10;
+  readonly errorSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
+    key: '',
+    direction: 'asc',
+  });
+
+  readonly totalPages = computed(() =>
+    Math.ceil(this.errorRows().length / this.pageSize),
+  );
+
+  // Sort all returned rows before paginating them.
+  readonly sortedErrorRows = computed(() => {
+    const { key, direction: sortDirection } = this.errorSort();
+    return key
+      ? sortRows(this.errorRows(), { key, direction: sortDirection })
+      : this.errorRows();
+  });
+
+  readonly paginatedErrorRows = computed(() => {
+    const start = this.vm().currentPage * this.pageSize;
+    return this.sortedErrorRows().slice(start, start + this.pageSize);
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -174,20 +230,12 @@ export class ApplicationsListBulkUpload implements OnInit {
         });
         return;
 
-      case 'completed_with_errors':
-        return {
-          kind: 'error',
-          title: 'Error',
-          heading: 'Bulk upload failed',
-          body: this.buildCompletedWithErrorsMessage(job),
-        } as const;
-
       case 'failed':
         return {
           kind: 'error',
           title: 'Error',
           heading: 'Bulk upload failed',
-          body: job.message ?? 'The bulk upload could not be completed.',
+          body: this.formatErrorDescriptionFromError(job.message),
         } as const;
 
       default:
@@ -195,20 +243,58 @@ export class ApplicationsListBulkUpload implements OnInit {
     }
   }
 
-  private buildCompletedWithErrorsMessage(job: PolledJobStatus): string {
-    const parts: string[] = [];
+  private formatErrorDescriptionFromError(msg: string | null): string {
+    const formatMsg = trimToUndefined(msg);
 
-    if (job.createdCount !== null) {
-      parts.push(`${this.formatCount(job.createdCount, 'record')} created.`);
+    if (!formatMsg) {
+      this.errorRows.set([]);
+      return 'The bulk upload could not be completed. Contact support for more guidance';
     }
 
-    if (job.errorCount !== null) {
-      parts.push(`${this.formatCount(job.errorCount, 'record')} had errors.`);
-    }
+    try {
+      const errorsAsArrayObjects = JSON.parse(formatMsg) as ErrorDescription[];
 
-    return parts.length > 0
-      ? parts.join(' ')
-      : 'Some records were uploaded, but some could not be processed.';
+      if (!Array.isArray(errorsAsArrayObjects)) {
+        this.errorRows.set([]);
+        return (
+          msg ??
+          'The bulk upload could not be completed. Contact support for more guidance'
+        );
+      }
+
+      if (!errorsAsArrayObjects.length) {
+        return 'The bulk upload could not be completed. Contact support for more guidance';
+      }
+
+      const rows: Row[] = errorsAsArrayObjects.map(
+        ({
+          errorType,
+          rowNumber,
+          location,
+          message,
+          name,
+          addressLine1,
+          rejectedValue,
+        }) => ({
+          errorType: errorType === 'DATA_ERROR' ? 'Data error' : 'Header error',
+          rowNumber,
+          location: trimToUndefined(location) ?? '—',
+          message: trimToUndefined(message) ?? '—',
+          name: trimToUndefined(name) ?? '—',
+          addressLine1: trimToUndefined(addressLine1) ?? '—',
+          rejectedValue: trimToUndefined(rejectedValue) ?? '—',
+        }),
+      );
+      this.errorRows.set(rows);
+
+      return 'The bulk upload could not be completed. See the table below for more details';
+    } catch {
+      this.errorRows.set([]);
+      return (
+        msg ??
+        'The bulk upload could not be completed. Contact support for more guidance'
+      );
+    }
   }
 
   private formatCount(count: number, noun: string): string {
@@ -282,10 +368,12 @@ export class ApplicationsListBulkUpload implements OnInit {
 
   onSubmit(): void {
     this.submitAttempt.update((attempt) => attempt + 1);
+    this.errorRows.set([]);
     this.bulkUploadPatch({
       isUploadInProgress: true,
       bulkUploadFeedback: null,
       uploadSuccessful: false,
+      currentPage: 0,
     });
 
     if (!this.bulkUploadState().file) {
@@ -300,5 +388,18 @@ export class ApplicationsListBulkUpload implements OnInit {
     };
 
     this.bulkUploadRequest.set(params);
+  }
+
+  onExportErrorFilesClick(): void {
+    // TODO: ARCPOC-1506
+  }
+
+  onPageChange(page: number): void {
+    this.bulkUploadPatch({ currentPage: page });
+  }
+
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.errorSort.set(sort);
+    this.bulkUploadPatch({ currentPage: 0 });
   }
 }

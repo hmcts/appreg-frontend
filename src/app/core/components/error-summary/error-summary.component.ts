@@ -11,6 +11,8 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { onCreateErrorClick } from '@util/error-click';
+
 export type ErrorItem = { text: string; href?: string; id?: string };
 
 @Component({
@@ -85,6 +87,10 @@ export class ErrorSummaryComponent {
 
   onItemClick(event: MouseEvent, item: ErrorItem): void {
     const isFragmentLink = !!this.fragmentTarget(item);
+
+    if (isFragmentLink) {
+      onCreateErrorClick(item);
+    }
 
     if (isFragmentLink && this.preventFragmentNavigation()) {
       event.preventDefault();
