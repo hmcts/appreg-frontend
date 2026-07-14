@@ -233,7 +233,7 @@
     [selectable]="true"
     idField="id"
     [selectAllScope]="'external'"
-    [selectedIds]="vm().selectedIds"
+    [selectedIds]="tableSelectedIds()"
     (sortChange)="onSortChange($event)"
     (selectAllChange)="onHeaderSelectAllChange($event)"
     (selectedIdsChange)="onSelectedIdsChange($event)"

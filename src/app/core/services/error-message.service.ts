@@ -83,6 +83,10 @@ const subscribedEndpoints: EndpointRule[] = [
     endpoint: new RegExp(`^/reports/jobs/${regexIdPlaceholder}/download$`),
     responses: [0, 400, 403, 404, 406, 409, 500, 504],
   },
+  {
+    endpoint: '/application-list-entries/bulk-action-preview',
+    responses: [0, 400, 401, 403, 404, 406, 409, 413, 500, 504],
+  },
 ];
 
 // Contains endpoints where errors will be ignored
