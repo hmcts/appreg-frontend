@@ -72,7 +72,7 @@ import { toStatus } from '@util/application-status-helpers';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { has } from '@util/has';
-import { getProblemText } from '@util/http-error-to-text';
+import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import {
   filterEntriesToPrint,
@@ -845,7 +845,17 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       this.patchApp({ previewRows: response });
       return response;
     } catch (err) {
-      this.patchApp({ errorSummary: [{ text: getProblemText(err) }] });
+      const code = getHttpStatus(err);
+      let msg: string;
+
+      if (code === 413) {
+        msg =
+          'Affected rows exceeds 2000. Please reduce the number of rows selected';
+      } else {
+        msg = getProblemText(err);
+      }
+
+      this.patchApp({ errorSummary: [{ text: msg }] });
       return null;
     }
   }
