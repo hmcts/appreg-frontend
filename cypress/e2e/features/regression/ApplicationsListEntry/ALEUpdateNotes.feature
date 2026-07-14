@@ -55,8 +55,8 @@ Feature: Applications List Entry Notes Update
         Then User Verify Response Status Code Should Be "201"
 
 
-    @regression @applicationListEntry @ARCPOC-1333 @JF
-    Scenario: Expand and collapse update entry help details
+    @regression @applicationListEntry @ARCPOC-1333
+    Scenario: Validate Update Notes Screen and process
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         Given User Navigates To The URL "/applications-list/:listId"
