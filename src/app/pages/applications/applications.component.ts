@@ -82,7 +82,6 @@ import {
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { isAllMatchingSelected } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
-import { trimStringToLowerCase } from '@util/string-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
 type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
@@ -471,19 +470,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     const rows = (preview?.entries ?? []).map(mapToRow);
     const ineligibleRowsFound = preview?.ineligibleCount;
 
-    if (!rows.length) {
-      this.patchApp({
-        errorSummary: [{ text: 'Please select rows to result them' }],
-      });
-      return;
-    }
-
-    const rowsToResult = rows.filter(
-      (row) => trimStringToLowerCase(row.status) !== 'closed',
-    );
-
     // Only result status = 'open' applications
-    if (!rowsToResult.length) {
+    if (!rows.length) {
       this.patchApp({
         errorSummary: [{ text: 'You can only result open application(s)' }],
       });
@@ -491,7 +479,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     }
 
     // Exclude status as we can only result open applications
-    const entriesToResult = rowsToResult.map((row) => ({
+    const entriesToResult = rows.map((row) => ({
       id: row.id,
       listId: row.applicationListId,
       date: row.date,
