@@ -94,4 +94,11 @@ Feature: Applications List Entry Notes Update
             | Date              | todaydisplay                                             |
             | Fee               | Yes                                                      |
             | Resulted          | Yes                                                      |
+        Then User See "You have 3970 characters remaining" On The Page
         Then User Enters "Some value" Into The "Additional notes" Textbox
+        Then User See "You have 3960 characters remaining" On The Page
+        When User Clicks On The "Save additional notes" Button
+        Then User See "You have 3959 characters remaining" On The Page
+        Then User Sees Success Banner "Success" Containing "Application entry updated successfully"
+        Then User Verifies The "Application notes" Textbox Has Value "Original Note with ref {RANDOM} Some value"
+        Then User Verifies The "Additional notes" Textbox Is Empty
