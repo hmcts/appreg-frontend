@@ -4,9 +4,12 @@ import {
   formatPartyName,
   formatPersonName,
   getDateStamp,
+  hasText,
   mapOptionValueToTitle,
   mapTitleToOptionValue,
   returnOrgName,
+  toNullableInteger,
+  trimToNull,
   trimToString,
   trimToUndefined,
 } from '@util/string-helpers';
@@ -76,6 +79,57 @@ describe('trimToUndefined', () => {
   it('returns undefined for functions and symbols', () => {
     expect(trimToUndefined(Symbol('x'))).toBeUndefined();
     expect(trimToUndefined(() => 'hello')).toBeUndefined();
+  });
+});
+
+describe('trimToNull', () => {
+  it('returns the trimmed string when given a non-empty string with spaces', () => {
+    expect(trimToNull('  hello  ')).toBe('hello');
+  });
+
+  it('returns null for empty, whitespace-only, and non-string values', () => {
+    expect(trimToNull('')).toBeNull();
+    expect(trimToNull('   ')).toBeNull();
+    expect(trimToNull(null)).toBeNull();
+    expect(trimToNull(undefined)).toBeNull();
+    expect(trimToNull(123)).toBeNull();
+  });
+});
+
+describe('hasText', () => {
+  it('returns true only for strings with non-whitespace text', () => {
+    expect(hasText('  hello  ')).toBe(true);
+    expect(hasText('')).toBe(false);
+    expect(hasText('   ')).toBe(false);
+    expect(hasText(null)).toBe(false);
+    expect(hasText(123)).toBe(false);
+  });
+});
+
+describe('toNullableInteger', () => {
+  it('returns integer numbers unchanged', () => {
+    expect(toNullableInteger(12)).toBe(12);
+    expect(toNullableInteger(0)).toBe(0);
+    expect(toNullableInteger(-1)).toBe(-1);
+  });
+
+  it('parses strings containing whole numbers', () => {
+    expect(toNullableInteger(' 12 ')).toBe(12);
+    expect(toNullableInteger('0')).toBe(0);
+    expect(toNullableInteger('0012')).toBe(12);
+  });
+
+  it('returns null for blank, non-numeric, and non-integer values', () => {
+    expect(toNullableInteger(null)).toBeNull();
+    expect(toNullableInteger(undefined)).toBeNull();
+    expect(toNullableInteger('')).toBeNull();
+    expect(toNullableInteger('   ')).toBeNull();
+    expect(toNullableInteger('12.5')).toBeNull();
+    expect(toNullableInteger('-1')).toBeNull();
+    expect(toNullableInteger('abc')).toBeNull();
+    expect(toNullableInteger(12.5)).toBeNull();
+    expect(toNullableInteger(Number.NaN)).toBeNull();
+    expect(toNullableInteger({})).toBeNull();
   });
 });
 

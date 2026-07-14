@@ -43,7 +43,10 @@ import {
   RespondentPersonFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
+  hasText,
   mapTitleToOptionValue,
+  toNullableInteger,
+  trimToNull,
   trimToString,
   trimToUndefined,
 } from '@util/string-helpers';
@@ -67,8 +70,15 @@ type MagSlot = {
   surKey: keyof ApplicationsListEntryFormValue;
 };
 
-const hasText = (v: unknown): v is string =>
-  typeof v === 'string' && v.trim().length > 0;
+type EntryUpdateDtoWithClears = Omit<
+  EntryUpdateDto,
+  'caseReference' | 'accountNumber' | 'notes' | 'numberOfRespondents'
+> & {
+  caseReference?: string | null;
+  accountNumber?: string | null;
+  notes?: string | null;
+  numberOfRespondents?: number | null;
+};
 
 const MAG_SLOTS: readonly MagSlot[] = [
   {
@@ -312,6 +322,7 @@ export function buildEntryUpdateDtoFromForm(
     officials: detail.officials,
   };
 
+  const officialsPatch = buildOfficialsFromFormValue(formValue);
   const patch = {
     ...buildEntryCreateDto(
       formValue,
@@ -320,24 +331,39 @@ export function buildEntryUpdateDtoFromForm(
       respondentPersonValue,
       respondentOrgValue,
     ),
-    ...buildOfficialsFromFormValue(formValue),
+    ...officialsPatch,
   } as Partial<EntryUpdateDto> & { lodgementDate?: string };
 
   delete patch.lodgementDate;
 
-  const dto: EntryUpdateDto = {
+  const dto: EntryUpdateDtoWithClears = {
     ...base,
     ...patch,
   };
 
+  dto.caseReference = trimToNull(formValue.applicationNotes.caseReference);
+  dto.accountNumber = trimToNull(formValue.applicationNotes.accountReference);
+  dto.notes = trimToNull(formValue.applicationNotes.notes);
+  dto.numberOfRespondents = toNullableInteger(formValue.numberOfRespondents);
+
+  if (Array.isArray(formValue.wordingFields)) {
+    dto.wordingFields = patch.wordingFields ?? [];
+  }
+
+  if (Array.isArray(formValue.feeStatuses)) {
+    dto.feeStatuses = formValue.feeStatuses;
+  }
+
+  dto.officials = officialsPatch.officials ?? [];
+
   if (formValue.applicantType === 'standard') {
     dto.standardApplicantCode = (formValue.standardApplicantCode ?? '').trim();
     normalizeApplicantSelection(dto, 'standard');
-    return dto;
+    return dto as EntryUpdateDto;
   }
 
   normalizeApplicantSelection(dto, 'applicant');
-  return dto;
+  return dto as EntryUpdateDto;
 }
 
 export function buildContactDetailsFromRaw(v: ContactFormRaw): ContactDetails {
@@ -536,7 +562,10 @@ export function buildEntryUpdateDtoForFeeChange<K extends keyof EntryUpdateDto>(
 }
 
 function normalizeApplicantSelection(
-  dto: EntryUpdateDto,
+  dto: {
+    applicant?: Applicant;
+    standardApplicantCode?: string | null;
+  },
   mode: 'standard' | 'applicant',
 ): void {
   if (mode === 'standard') {
