@@ -43,7 +43,10 @@ import {
   RespondentPersonFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
+  hasText,
   mapTitleToOptionValue,
+  toNullableInteger,
+  trimToNull,
   trimToString,
   trimToUndefined,
 } from '@util/string-helpers';
@@ -75,35 +78,6 @@ type EntryUpdateDtoWithClears = Omit<
   accountNumber?: string | null;
   notes?: string | null;
   numberOfRespondents?: number | null;
-};
-
-const hasText = (v: unknown): v is string =>
-  typeof v === 'string' && v.trim().length > 0;
-
-const toNullableTrimmed = (value: string | null | undefined): string | null => {
-  const trimmed = value?.trim();
-  return trimmed || null;
-};
-
-const toNullableInteger = (value: unknown): number | null => {
-  if (value === null || value === undefined) {
-    return null;
-  }
-
-  if (typeof value === 'number') {
-    return Number.isFinite(value) && Number.isInteger(value) ? value : null;
-  }
-
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  if (!trimmed || !/^\d+$/.test(trimmed)) {
-    return null;
-  }
-
-  return Number(trimmed);
 };
 
 const MAG_SLOTS: readonly MagSlot[] = [
@@ -367,13 +341,9 @@ export function buildEntryUpdateDtoFromForm(
     ...patch,
   };
 
-  dto.caseReference = toNullableTrimmed(
-    formValue.applicationNotes.caseReference,
-  );
-  dto.accountNumber = toNullableTrimmed(
-    formValue.applicationNotes.accountReference,
-  );
-  dto.notes = toNullableTrimmed(formValue.applicationNotes.notes);
+  dto.caseReference = trimToNull(formValue.applicationNotes.caseReference);
+  dto.accountNumber = trimToNull(formValue.applicationNotes.accountReference);
+  dto.notes = trimToNull(formValue.applicationNotes.notes);
   dto.numberOfRespondents = toNullableInteger(formValue.numberOfRespondents);
 
   if (Array.isArray(formValue.wordingFields)) {
