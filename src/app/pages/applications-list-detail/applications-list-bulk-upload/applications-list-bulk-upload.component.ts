@@ -116,7 +116,7 @@ export class ApplicationsListBulkUpload implements OnInit {
 
   columns = BulkUploadErrorTableColumns;
   readonly errorRows = signal<Row[]>([]);
-  readonly pageSize = 5;
+  readonly pageSize = 10;
   readonly errorSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
     key: '',
     direction: 'asc',

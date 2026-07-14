@@ -124,7 +124,7 @@
     tabindex="-1"
   />
 
-  @if (errorRows().length > 5) {
+  @if (errorRows().length > pageSize) {
     <app-pagination
       [currentPage]="vm().currentPage"
       [totalPages]="totalPages()"

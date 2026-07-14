@@ -530,6 +530,7 @@ describe('ApplicationsListBulkUpload', () => {
         'Echo',
         'Foxtrot',
         'Golf',
+        'Zulu',
       ]);
       expect(component.vm().currentPage).toBe(0);
     });
