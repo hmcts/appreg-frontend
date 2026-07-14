@@ -262,6 +262,10 @@ export class ApplicationsListBulkUpload implements OnInit {
         );
       }
 
+      if (!errorsAsArrayObjects.length) {
+        return 'The bulk upload could not be completed. Contact support for more guidance';
+      }
+
       const rows: Row[] = errorsAsArrayObjects.map(
         ({
           errorType,
