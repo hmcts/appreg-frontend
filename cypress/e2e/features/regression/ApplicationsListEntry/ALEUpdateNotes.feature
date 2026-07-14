@@ -91,7 +91,7 @@ Feature: Applications List Entry Notes Update
             | Respondent        | Emily Clark {RANDOM}                                     |
             | Application code  | MX99009                                                  |
             | Application title | Application for order re public health measures (person) |
-            | Date              | 13 Jul 2026                                              |
+            | Date              | todaydisplay                                             |
             | Fee               | Yes                                                      |
             | Resulted          | Yes                                                      |
         Then User Enters "Some value" Into The "Additional notes" Textbox
