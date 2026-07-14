@@ -463,10 +463,13 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     const preview = await this.getBulkPreviewData(
       BulkActionType.RESULT_SELECTED,
     );
+
     if (!preview) {
       return;
     }
+
     const rows = (preview?.entries ?? []).map(mapToRow);
+    const ineligibleRowsFound = preview?.ineligibleCount;
 
     if (!rows.length) {
       this.patchApp({
@@ -501,7 +504,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       relativeTo: this.route,
       state: {
         entriesToResult,
-        ignoredSelected: rows.length > rowsToResult.length,
+        ignoredSelected: ineligibleRowsFound > 0,
       },
     });
   }
