@@ -65,5 +65,5 @@ When(
       TableInteraction.verifyCheckboxIsCheckedInTableRow(tableName, rowData);
       cy.screenshot(`verified-checkbox-is-checked-in-row-${index + 1}`);
     });
-  }
-)
+  },
+);
