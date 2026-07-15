@@ -294,7 +294,10 @@ export class TableInteraction {
       true,
       (row) => {
         return TableElement.getCheckboxInRow(row).then((checkbox) => {
-          cy.wrap(checkbox).scrollIntoView().should('exist').and('be.checked');
+          cy.wrap(checkbox)
+            .scrollIntoView()
+            .should('exist')
+            .and('be.checked');
         }) as unknown as Cypress.Chainable<void>;
       },
     ).then((found) => {

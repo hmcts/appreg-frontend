@@ -130,7 +130,7 @@ export class BannerHelper {
     BannerElement.findSuccessAlertWithLink(heading, linkText)
       .should('be.visible')
       .then(($banner) => this.verifyBannerAbovePageHeader($banner, options));
-  }
+  } 
 
   static verifyErrorBannerContaining(
     heading: string,
