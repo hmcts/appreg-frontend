@@ -1,0 +1,57 @@
+{
+  "action": "RESULT_SELECTED",
+  "limit": 2000,
+  "selectedCount": 2,
+  "eligibleCount": 1,
+  "ineligibleCount": 1,
+  "entryIds": [
+    "4503ac46-c40a-4c77-9fb9-efed831c8809",
+    "0a40e8e4-9b4f-456b-9162-a23e8f05110f"
+  ],
+  "entries": [
+    {
+      "id": "4503ac46-c40a-4c77-9fb9-efed831c8809",
+      "applicant": {
+        "person": {
+          "name": {
+            "title": null,
+            "lastName": "asdf",
+            "firstName": "asdf"
+          }
+        }
+      },
+      "respondent": null,
+      "applicationTitle": "Search Warrant - Stolen Goods",
+      "isFeeRequired": false,
+      "isResulted": false,
+      "listId": "9161fede-5ce5-412e-8264-ae122aae9ffa",
+      "date": "3036-09-12",
+      "sequenceNumber": 1,
+      "resulted": [],
+      "status": "OPEN",
+      "accountNumber": null
+    },
+    {
+      "id": "0a40e8e4-9b4f-456b-9162-a23e8f05110f",
+      "applicant": {
+        "person": {
+          "name": {
+            "title": null,
+            "lastName": "asdf",
+            "firstName": "asdf"
+          }
+        }
+      },
+      "respondent": null,
+      "applicationTitle": "Search Warrant - Stolen Goods",
+      "isFeeRequired": false,
+      "isResulted": true,
+      "listId": "9161fede-5ce5-412e-8264-ae122aae9ffa",
+      "date": "3036-09-12",
+      "sequenceNumber": 2,
+      "resulted": [],
+      "status": "CLOSED",
+      "accountNumber": null
+    }
+  ]
+}
