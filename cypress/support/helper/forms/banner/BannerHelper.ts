@@ -118,6 +118,20 @@ export class BannerHelper {
       .then(($banner) => this.verifyBannerAbovePageHeader($banner, options));
   }
 
+  static verifySuccessBannerContainingLink(
+    heading: string,
+    linkText: string,
+    options: BannerVerificationOptions = {},
+  ): void {
+    // Previous assertion:
+    // BannerElement.findSuccessAlertWithLink(heading, linkText).should(
+    //   'be.visible',
+    // );
+    BannerElement.findSuccessAlertWithLink(heading, linkText)
+      .should('be.visible')
+      .then(($banner) => this.verifyBannerAbovePageHeader($banner, options));
+  } 
+
   static verifyErrorBannerContaining(
     heading: string,
     bodyText: string,
