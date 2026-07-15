@@ -39,7 +39,7 @@ export class UploadHelper {
    *   (.app-async-job-progress) is visible with the expected headings,
    *   then waits for it to disappear once the background job finishes.
    */
-  static  waitForBulkUploadToComplete(): void {
+  static waitForBulkUploadToComplete(): void {
     // Phase 1: POST in-flight spinner on bulk-upload page
     UploadElement.getPageSpinner(60000).should('not.exist');
 
