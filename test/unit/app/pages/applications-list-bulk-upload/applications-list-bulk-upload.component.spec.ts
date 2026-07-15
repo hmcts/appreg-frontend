@@ -321,7 +321,7 @@ describe('ApplicationsListBulkUpload', () => {
       expect(getState(component).bulkUploadFeedback).toBeUndefined();
     });
 
-    it('shows a warning banner when the upload completes with errors', async () => {
+    it('continues showing upload progress for a completed-with-errors status', async () => {
       jobPollingFacadeMock.watchJob.mockReturnValue(
         of(
           terminalJob({
@@ -340,18 +340,14 @@ describe('ApplicationsListBulkUpload', () => {
       const summary = fixture.debugElement.query(
         By.css('.govuk-error-summary'),
       );
-      expect(summary).toBeTruthy();
-      expect(summary.nativeElement.getAttribute('role')).toBe('alert');
-      expect(summary.nativeElement.textContent).toContain('Bulk upload failed');
-      expect(summary.nativeElement.textContent).toContain('4 records created.');
-      expect(summary.nativeElement.textContent).toContain(
-        '2 records had errors.',
-      );
+      expect(summary).toBeNull();
+      expect(
+        fixture.debugElement.query(By.css('app-async-job-progress')),
+      ).toBeTruthy();
       expect(getState(component).uploadSuccessful).toBe(false);
       expect(getState(component).bulkUploadFeedback).toMatchObject({
-        kind: 'error',
-        heading: 'Bulk upload failed',
-        body: '4 records created. 2 records had errors.',
+        kind: 'progress',
+        heading: 'Upload in progress',
       });
     });
 
@@ -381,6 +377,162 @@ describe('ApplicationsListBulkUpload', () => {
         'The uploaded file could not be processed.',
       );
       expect(getState(component).uploadSuccessful).toBe(false);
+    });
+
+    it('maps structured backend errors into table rows and renders the export action', async () => {
+      const onExportErrorFilesClick = jest.spyOn(
+        component,
+        'onExportErrorFilesClick',
+      );
+      const errorMessage = JSON.stringify([
+        {
+          errorType: 'DATA_ERROR',
+          rowNumber: 4,
+          location: ' applicantName ',
+          message: ' Invalid value ',
+          name: ' Jane Doe ',
+          addressLine1: ' 1 High Street ',
+          rejectedValue: ' ??? ',
+        },
+        {
+          errorType: 'HEADER_ERROR',
+          rowNumber: null,
+          location: null,
+          message: '',
+          name: null,
+          addressLine1: '   ',
+          rejectedValue: null,
+        },
+      ]);
+
+      jobPollingFacadeMock.watchJob.mockReturnValue(
+        of(
+          terminalJob({
+            rawStatus: 'FAILED',
+            state: 'failed',
+            createdCount: null,
+            errorCount: null,
+            totalCount: null,
+            message: errorMessage,
+          }),
+        ),
+      );
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      expect(component.errorRows()).toEqual([
+        {
+          errorType: 'Data error',
+          rowNumber: 4,
+          location: 'applicantName',
+          message: 'Invalid value',
+          name: 'Jane Doe',
+          addressLine1: '1 High Street',
+          rejectedValue: '???',
+        },
+        {
+          errorType: 'Header error',
+          rowNumber: null,
+          location: '—',
+          message: '—',
+          name: '—',
+          addressLine1: '—',
+          rejectedValue: '—',
+        },
+      ]);
+      expect(
+        fixture.debugElement.query(By.css('app-sortable-table')),
+      ).toBeTruthy();
+
+      const exportButton = fixture.debugElement.query(
+        By.css('button.govuk-button__export'),
+      );
+      expect(exportButton.nativeElement.textContent).toContain(
+        'Export the file with errors shown',
+      );
+
+      exportButton.nativeElement.click();
+      expect(onExportErrorFilesClick).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      [
+        'null',
+        null,
+        'The bulk upload could not be completed. Contact support for more guidance',
+      ],
+      [
+        'blank',
+        '   ',
+        'The bulk upload could not be completed. Contact support for more guidance',
+      ],
+      ['malformed JSON', '{not-json', '{not-json'],
+      [
+        'a JSON object',
+        JSON.stringify({ errorType: 'DATA_ERROR' }),
+        JSON.stringify({ errorType: 'DATA_ERROR' }),
+      ],
+    ])(
+      'clears rows for %s backend errors and sets the expected feedback message',
+      async (_label, message, expectedBody) => {
+        component.errorRows.set([{ message: 'stale row' }]);
+        jobPollingFacadeMock.watchJob.mockReturnValue(
+          of(
+            terminalJob({
+              rawStatus: 'FAILED',
+              state: 'failed',
+              createdCount: null,
+              errorCount: null,
+              totalCount: null,
+              message,
+            }),
+          ),
+        );
+
+        startBulkUploadPolling();
+        await flushSignalEffects(fixture);
+
+        expect(component.errorRows()).toEqual([]);
+        expect(getState(component).bulkUploadFeedback).toMatchObject({
+          kind: 'error',
+          body: expectedBody,
+        });
+        expect(
+          fixture.debugElement.query(By.css('app-sortable-table')),
+        ).toBeNull();
+      },
+    );
+
+    it('clears existing error rows when a new upload is submitted', () => {
+      component.errorRows.set([{ message: 'stale row' }]);
+
+      component.onSubmit();
+
+      expect(component.errorRows()).toEqual([]);
+    });
+
+    it('sorts all error rows before selecting the current page', () => {
+      component.errorRows.set([
+        { name: 'Zulu' },
+        { name: 'Charlie' },
+        { name: 'Echo' },
+        { name: 'Foxtrot' },
+        { name: 'Golf' },
+        { name: 'Alpha' },
+      ]);
+
+      component.onSortChange({ key: 'name', direction: 'asc' });
+
+      expect(component.paginatedErrorRows().map((row) => row['name'])).toEqual([
+        'Alpha',
+        'Charlie',
+        'Echo',
+        'Foxtrot',
+        'Golf',
+        'Zulu',
+      ]);
+      expect(component.vm().currentPage).toBe(0);
     });
 
     it('shows an inline error summary when polling fails', async () => {

@@ -18,6 +18,7 @@ export interface ApplicationsListBulkUploadState {
   listId: string;
   uploadSuccessful: boolean;
   bulkUploadFeedback: BulkUploadFeedback | null | void;
+  currentPage: number;
 }
 
 export const InitialBulkUploadState: ApplicationsListBulkUploadState = {
@@ -30,6 +31,7 @@ export const InitialBulkUploadState: ApplicationsListBulkUploadState = {
   jobAcknowledgement: null,
   uploadSuccessful: false,
   bulkUploadFeedback: null,
+  currentPage: 0,
 };
 
 export const clearFlags = (): Pick<

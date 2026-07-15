@@ -45,12 +45,17 @@
 @if (vm().bulkUploadFeedback?.kind === 'error') {
   <app-error-summary
     [title]="vm().bulkUploadFeedback?.heading ?? 'There is a problem'"
-    [items]="[{ text: vm().bulkUploadFeedback?.body ?? '' }]"
+    [items]="[
+      {
+        text: vm().bulkUploadFeedback?.body ?? '',
+        href: errorRows().length > 0 ? '#error-table' : undefined,
+      },
+    ]"
     [focusKey]="submitAttempt()"
   />
 }
 
-<app-page-header title="Bulk Upload Applications" />
+<app-page-header title="Bulk upload applications" />
 
 <app-help-details summary="Help with bulk upload">
   <p class="govuk-body">
@@ -103,3 +108,34 @@
     </div>
   </div>
 </div>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+@if (errorRows().length > 0) {
+  <app-sortable-table
+    [columns]="columns"
+    [data]="paginatedErrorRows()"
+    [clientOrServerSort]="'server'"
+    [sortState]="errorSort()"
+    (sortChange)="onSortChange($event)"
+    id="error-table"
+    tabindex="-1"
+  />
+
+  @if (errorRows().length > pageSize) {
+    <app-pagination
+      [currentPage]="vm().currentPage"
+      [totalPages]="totalPages()"
+      (pageChange)="onPageChange($event)"
+    />
+  }
+
+  <button
+    class="govuk-button govuk-button__export"
+    (click)="onExportErrorFilesClick()"
+  >
+    Export the file with errors shown
+  </button>
+}

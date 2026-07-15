@@ -2,8 +2,43 @@ import {
   type SortState,
   ariaSortFor,
   getNextSortState,
+  sortRows,
   suppressSortEvent,
 } from '@util/table-sort';
+
+describe('sortRows', () => {
+  it('sorts string values numerically in ascending order', () => {
+    const rows = [{ value: '10' }, { value: '2' }, { value: '1' }];
+
+    expect(sortRows(rows, { key: 'value', direction: 'asc' })).toEqual([
+      { value: '1' },
+      { value: '2' },
+      { value: '10' },
+    ]);
+  });
+
+  it('sorts numeric values in descending order and does not mutate the input', () => {
+    const rows = [{ value: 2 }, { value: 10 }, { value: 1 }];
+
+    expect(sortRows(rows, { key: 'value', direction: 'desc' })).toEqual([
+      { value: 10 },
+      { value: 2 },
+      { value: 1 },
+    ]);
+    expect(rows).toEqual([{ value: 2 }, { value: 10 }, { value: 1 }]);
+  });
+
+  it('places null and undefined values after populated values', () => {
+    const rows = [{ value: null }, { value: 'Beta' }, {}, { value: 'Alpha' }];
+
+    expect(sortRows(rows, { key: 'value', direction: 'asc' })).toEqual([
+      { value: 'Alpha' },
+      { value: 'Beta' },
+      { value: null },
+      {},
+    ]);
+  });
+});
 
 describe('getNextSortState', () => {
   it('starts a new sort key in ascending order', () => {

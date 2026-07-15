@@ -28,6 +28,7 @@ import {
 
 import { Row } from '@core-types/table/row.types';
 import {
+  SortState,
   ariaSortFor as ariaSortForUtil,
   getNextSortState,
   suppressSortEvent,
@@ -96,6 +97,7 @@ export class SortableTableComponent
   // Make sure to set default key and direction in page component
   sortKey = input<string>('');
   sortDirection = input<'desc' | 'asc'>('desc');
+  sortState = input<SortState | null>(null);
   clientOrServerSort = input<'server' | 'client'>('client');
 
   sortChange = output<{
@@ -133,8 +135,11 @@ export class SortableTableComponent
   });
   // Keep the rendered server-side sort state aligned with the page state.
   private readonly sortStateSync = effect(() => {
-    this.sortKeyState.set(this.sortKey() ?? '');
-    this.sortDirectionState.set(this.sortDirection() ?? 'desc');
+    const sortState = this.sortState();
+    this.sortKeyState.set(sortState?.key ?? this.sortKey() ?? '');
+    this.sortDirectionState.set(
+      sortState?.direction ?? this.sortDirection() ?? 'desc',
+    );
   });
 
   /** trackBy helper retained for performance */
