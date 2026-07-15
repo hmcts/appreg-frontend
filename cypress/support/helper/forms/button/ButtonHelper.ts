@@ -16,7 +16,9 @@ export class ButtonHelper {
   }
 
   static isButtonEnabled(buttonText: string): Cypress.Chainable {
-    return ButtonElement.findButton(buttonText).should('not.be.disabled');
+    return ButtonElement.findButton(buttonText)
+      .should('be.visible')
+      .and('be.enabled');
   }
 
   static isButtonDisabled(buttonText: string): Cypress.Chainable {

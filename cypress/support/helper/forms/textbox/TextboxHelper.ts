@@ -4,15 +4,13 @@ export class TextboxHelper {
   /**
    * Types text into a textbox
    * @param selector selector for the textbox
-   * @param text The text to type
+   * @param value The text to type
    */
-  static typeInTextbox(selector: string, text: string): void {
+  static typeInTextbox(selector: string, value: string): void {
+    TextboxHelper.clearTextbox(selector);
     TextboxElement.findTextbox(selector)
-      .should('be.visible')
-      .should('be.enabled')
-      .scrollIntoView()
-      .clear({ force: true })
-      .type(text, { force: true });
+      .type(value)
+      .should('have.value', value);
   }
 
   /**
