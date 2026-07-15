@@ -1,7 +1,7 @@
 Feature: Application List Bulk Upload
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821
-    Scenario Outline: Application List - Bulk Upload Entries Via CSV
+    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500
+    Scenario Outline: Application List - Bulk Upload Entries Via CSV File With Application Codes Fee Required = 'N'
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date      | time   | status   | description   | courtLocationCode   |
@@ -18,17 +18,24 @@ Feature: Application List Bulk Upload
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
-        Then User See "Bulk Upload Applications" On The Page
+        Then User See "Bulk upload applications" On The Page
         Then User See "Select the bulk applications file you wish to upload." On The Page
         When User Uploads The File "bulk-upload-entries.csv"
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
-        Then User Sees Success Banner "Success" Containing "Bulk upload complete All records were uploaded successfully."
+        Then User Sees Success Banner "Success Bulk upload complete All records were uploaded successfully." Containing Link "Click here to update fee details on newly uploaded applications"
         Then User See "Applications list" On The Page
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number | Applicant                 | Respondent                      | Postcode | Title                                            | Fee | Resulted |
             | 1               | AC-{RANDOM}-1  | Benjamin Young            | Greenfield Finance {RANDOM} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |
             | 2               | AC-{RANDOM}-2  | Global Tech Solutions Ltd | James Hargreaves{RANDOM}        | B1 1BB   | Warrant of Control                               | No  |          |
+        Then User Clicks On The Link "Click here to update fee details on newly uploaded applications"
+        Then User Sees Validation Error Banner "There is a problem" Containing "Cannot update application(s) that do not require a fee"
+        When User Verifies The Checkbox is Checked In Row Of Table "Entries" With Values:
+            | Sequence number | Account number | Applicant                 | Respondent                      | Postcode | Title                                            | Fee | Resulted |
+            | 1               | AC-{RANDOM}-1  | Benjamin Young            | Greenfield Finance {RANDOM} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |
+            | 2               | AC-{RANDOM}-2  | Global Tech Solutions Ltd | James Hargreaves{RANDOM}        | B1 1BB   | Warrant of Control                               | No  |          |
+        Then User Should See The Button "Actions" Is Enabled
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
@@ -36,7 +43,7 @@ Feature: Application List Bulk Upload
             | User  | APIDate  | Time           | Status | Description     | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkUp_{RANDOM} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-632 @SC2
+    @regression @applicationsList @applicationListEntry @ARCPOC-632
     Scenario Outline: Application List - Bulk Upload Fails With Invalid CSV Headers
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
