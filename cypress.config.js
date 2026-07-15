@@ -221,13 +221,29 @@ module.exports = defineConfig({
         },
 
         // ── Bulk upload tasks ─────────────────────────────────────────────
-        buildBulkUploadCsv({ suffix }) {
-          const rows = [
-            'APPLICANT_CODE|RESP_TITLE|RESP_NAME_ORG|RESP_FORENAME1|RESP_FORENAME2|RESP_FORENAME3|RESP_SURNAME|RESP_ADDLINE1|RESP_ADDLINE2|RESP_ADDLINE3|RESP_ADDLINE4|RESP_ADDLINE5|RESP_POSTCODE|RESP_EMAIL|RESP_TEL|RESP_MOBILE|ACCOUNT_NUMBER|APPLICATION_CODE|APPLICATION_TEXT1|APPLICATION_TEXT2',
+        buildBulkUploadCsv({ suffix, fileName }) {
+          const header =
+            'APPLICANT_CODE|RESP_TITLE|RESP_NAME_ORG|RESP_FORENAME1|RESP_FORENAME2|RESP_FORENAME3|RESP_SURNAME|RESP_ADDLINE1|RESP_ADDLINE2|RESP_ADDLINE3|RESP_ADDLINE4|RESP_ADDLINE5|RESP_POSTCODE|RESP_EMAIL|RESP_TEL|RESP_MOBILE|ACCOUNT_NUMBER|APPLICATION_CODE|APPLICATION_TEXT1|APPLICATION_TEXT2';
+          const feeNotRequiredRows = [
             `APP012||Greenfield Finance ${suffix} Ltd|||||${suffix} High Street|Walsall|Darlaston|Walsall|West Midlands|WS1 1SY|greenfield-finance-${suffix}@test.cgi.com|0207 1234567|07700 900001|AC-${suffix}-1|SW99062|Benjamin Young|`,
             `APP031|Mr||James|Edward|Thomas|Hargreaves${suffix}|${suffix} Park Road|Birmingham|Handsworth|Birchfield|West Midlands|B1 1BB|james.hargreaves-${suffix}@test.cgi.com|0121 9876543|07700 900002|AC-${suffix}-2|EF99007|£500.00|`,
           ];
-          return rows.join('\n');
+          const feeRequiredRows = [
+            `APP012||Globex Corporation ${suffix} Ltd|||||${suffix} High Street|Walsall|Darlaston|Walsall|West Midlands|WS1 1SY|greenfield-finance-${suffix}@test.cgi.com|0207 1234567|07700 900001|AC-${suffix}-1|RE99001|Test Address for Benjamin Young|`,
+            `APP031|Mr||John|Smith|Alexander|Hargreaves${suffix}|${suffix} Park Road|Birmingham|Handsworth|Birchfield|West Midlands|B1 1BB|james.hargreaves-${suffix}@test.cgi.com|0121 9876543|07700 900002|AC-${suffix}-2|EF99007|£500.00|`,
+          ];
+          const rowsByFile = {
+            'bulk-upload-entries.csv': feeNotRequiredRows,
+            'bulk-upload-entries-fee-not-required.csv': feeNotRequiredRows,
+            'bulk-upload-entries-fee-required.csv': feeRequiredRows,
+          };
+          const rows = rowsByFile[fileName];
+
+          if (!rows) {
+            throw new Error(`Unsupported bulk upload fixture: ${fileName}`);
+          }
+
+          return [header, ...rows].join('\n');
         },
       });
 
