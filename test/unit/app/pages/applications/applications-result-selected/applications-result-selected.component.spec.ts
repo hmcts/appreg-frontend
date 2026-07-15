@@ -123,6 +123,29 @@ describe('ApplicationsResultSelectedComponent', () => {
     );
   });
 
+  it('sorts all rows before applying the page size and resets to the first page', () => {
+    component.rows = Array.from({ length: 11 }, (_, index) => ({
+      id: `entry-${index}`,
+      listId: `list-${index}`,
+      date: '2026-06-12',
+      applicant: `Applicant ${String(11 - index).padStart(2, '0')}`,
+      respondent: 'Respondent',
+      title: `Application ${index}`,
+    }));
+    component.onPageChange(1);
+
+    component.onSortChange({ key: 'applicant', direction: 'asc' });
+
+    expect(component.currentPage()).toBe(0);
+    expect(component.totalPages()).toBe(2);
+    expect(component.paginatedRows().map((row) => row.applicant)).toEqual(
+      Array.from(
+        { length: 10 },
+        (_, index) => `Applicant ${String(index + 1).padStart(2, '0')}`,
+      ),
+    );
+  });
+
   it('onSubmitResults groups entries by listId and applies pending results via bulkResultEntries', () => {
     const createdResult = {
       id: 'result-1',

@@ -29,6 +29,7 @@ import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
+import { sortRows } from '@util/table-sort';
 
 type ApplicationsResultContext = Pick<
   ApplicationRow,
@@ -76,7 +77,34 @@ export class ApplicationsResultSelectedComponent implements OnInit {
       !['actions', 'fee', 'status', 'resulted'].includes(column.field),
   );
 
-  rows: ApplicationsResultContext[] = [];
+  private readonly rowsState = signal<ApplicationsResultContext[]>([]);
+  get rows(): ApplicationsResultContext[] {
+    return this.rowsState();
+  }
+  set rows(rows: ApplicationsResultContext[]) {
+    this.rowsState.set(rows);
+  }
+  readonly pageSize = 10;
+  readonly currentPage = signal(0);
+  readonly resultSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
+    key: '',
+    direction: 'asc',
+  });
+
+  readonly totalPages = computed(() =>
+    Math.ceil(this.rowsState().length / this.pageSize),
+  );
+
+  readonly sortedRows = computed(() => {
+    const { key, direction } = this.resultSort();
+    const rows = this.rowsState();
+    return key ? sortRows(rows, { key, direction }) : rows;
+  });
+
+  readonly paginatedRows = computed(() => {
+    const start = this.currentPage() * this.pageSize;
+    return this.sortedRows().slice(start, start + this.pageSize);
+  });
 
   ngOnInit(): void {
     this.rows = isPlatformBrowser(this.platformId)
@@ -100,6 +128,15 @@ export class ApplicationsResultSelectedComponent implements OnInit {
     }
 
     this.showInfoBanner.set(hasExcludedRows);
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+  }
+
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.resultSort.set(sort);
+    this.currentPage.set(0);
   }
 
   readonly createdEntryResults = computed(() => {
