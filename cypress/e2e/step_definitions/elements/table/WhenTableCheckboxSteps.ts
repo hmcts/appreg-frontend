@@ -48,3 +48,22 @@ When(
     cy.screenshot(`checked-checkbox-in-row-${rowIndex}`);
   },
 );
+
+When(
+  'User Verifies The Checkbox is Checked In Row Of Table {string} With Values:',
+  (
+    tableName: string,
+    dataTable: { hashes: () => { [key: string]: string }[] },
+  ) => {
+    const rows = dataTable.hashes();
+    if (rows.length === 0) {
+      throw new Error('DataTable must have at least one row of data');
+    }
+
+    // Loop through all rows to verify multiple checkboxes
+    rows.forEach((rowData, index) => {
+      TableInteraction.verifyCheckboxIsCheckedInTableRow(tableName, rowData);
+      cy.screenshot(`verified-checkbox-is-checked-in-row-${index + 1}`);
+    });
+  }
+)
