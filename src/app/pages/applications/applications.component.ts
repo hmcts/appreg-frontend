@@ -468,10 +468,11 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     }
 
     const rows = (preview?.entries ?? []).map(mapToRow);
+    const eligibleCount = preview?.eligibleCount;
     const ineligibleRowsFound = preview?.ineligibleCount;
 
     // Only result status = 'open' applications
-    if (!rows.length) {
+    if (eligibleCount <= 0) {
       this.patchApp({
         errorSummary: [{ text: 'You can only result open application(s)' }],
       });
@@ -814,6 +815,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   ): Promise<BulkActionPreviewResponseDto | null> {
     const vm = this.vm();
     const isFilterSelection = vm.isFilterSelection && !forceIds;
+    const sortKey = APPLICATIONS_SORT_MAP[vm.sortField.key] ?? vm.sortField.key;
+    const sort = [`${sortKey},${vm.sortField.direction}`];
 
     const selectionParams: BulkActionSelectionDto = {
       selectionType: isFilterSelection
@@ -822,6 +825,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       ...(!isFilterSelection && {
         entryIds: [...(entryIds ?? vm.selectedIds)],
       }),
+      ...(isFilterSelection && { sort }),
       ...(isFilterSelection && {
         filter: vm.getFilters,
       }),
