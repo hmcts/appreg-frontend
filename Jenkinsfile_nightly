@@ -8,7 +8,7 @@ properties([
     booleanParam(name: 'Regression', defaultValue: true, description: 'Run regression tests'),
   ])
 ])
-@Library('Infrastructure@2.4.4')
+@Library('Infrastructure@2.4.5')
 def type = 'angular'
 def product = 'appreg'
 def component = 'frontend'
