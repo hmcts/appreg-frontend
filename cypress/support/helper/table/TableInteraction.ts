@@ -284,6 +284,11 @@ export class TableInteraction {
       .check({ force: true });
   }
 
+  /**
+   * Verifies that a checkbox in a table row is checked
+   * @param tableCaption Caption of the table to scope the search
+   * @param columnValues Key-value pairs matching the target row
+   */
   static verifyCheckboxIsCheckedInTableRow(
     tableCaption: string,
     columnValues: Record<string, string>,
