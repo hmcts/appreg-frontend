@@ -123,10 +123,6 @@ export class BannerHelper {
     linkText: string,
     options: BannerVerificationOptions = {},
   ): void {
-    // Previous assertion:
-    // BannerElement.findSuccessAlertWithLink(heading, linkText).should(
-    //   'be.visible',
-    // );
     BannerElement.findSuccessAlertWithLink(heading, linkText)
       .should('be.visible')
       .then(($banner) => this.verifyBannerAbovePageHeader($banner, options));

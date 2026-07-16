@@ -5,8 +5,8 @@ export class UploadElement {
   private static readonly pageSpinnerSelector = 'app-loading-spinner';
   private static readonly bulkProgressSelector = '.app-async-job-progress';
   static readonly bulkProgressHeading = 'Upload in progress';
-  static readonly bulkProgressBody =
-    'Uploading file, please wait...';
+  static readonly bulkProgressBody = 'Uploading file, please wait...';
+
   static getFileInput(): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy.get(this.fileInputSelector);
   }
