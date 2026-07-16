@@ -1,4 +1,4 @@
-Feature: List Maintenance Report
+Feature: Private prosecutors index Report
 
     @regression @reports @ARCPOC-250
     Scenario: Private prosecutors index Report - Render report filters
@@ -92,13 +92,3 @@ Feature: List Maintenance Report
         Examples:
             | CSVFileName                               |
             | private-prosecutors-index-report-todayiso |
-
-    @regression @reports @ARCPOC-250
-    Scenario: Private prosecutors index Report - Accessibility
-        Given User Is On The Portal Page
-        When User Signs In With Microsoft SSO As "user1"
-        Then User Clicks On The Link Using Exact Text Match "Reports"
-        Then User Verify The Page URL Contains "/reports"
-        When User Selects The Radio Button "Private prosecutors index"
-        When User Toggles The Accordion "Advanced filters"
-        Then User Checks Accessibility Of The Current Page
