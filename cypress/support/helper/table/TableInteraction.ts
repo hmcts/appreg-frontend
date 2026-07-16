@@ -285,9 +285,29 @@ export class TableInteraction {
   }
 
   /**
-   * Clicks a button in a specific row by its index (0-based) in the table
+   * Verifies that a checkbox in a table row is checked
    * @param tableCaption Caption of the table to scope the search
-   * @param rowIndex 0-based index of the row to click the button in
-   * @
+   * @param columnValues Key-value pairs matching the target row
    */
+  static verifyCheckboxIsCheckedInTableRow(
+    tableCaption: string,
+    columnValues: Record<string, string>,
+  ): Cypress.Chainable<void> {
+    return TableSearch.searchWithPagination(
+      columnValues,
+      tableCaption,
+      true,
+      (row) => {
+        return TableElement.getCheckboxInRow(row).then((checkbox) => {
+          cy.wrap(checkbox).scrollIntoView().should('exist').and('be.checked');
+        }) as unknown as Cypress.Chainable<void>;
+      },
+    ).then((found) => {
+      if (!found) {
+        throw new Error(
+          `Row with specified values not found in table "${tableCaption}" to verify checkbox is checked`,
+        );
+      }
+    }) as unknown as Cypress.Chainable<void>;
+  }
 }
