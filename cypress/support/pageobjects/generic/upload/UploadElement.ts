@@ -6,8 +6,6 @@ export class UploadElement {
   private static readonly bulkProgressSelector = '.app-async-job-progress';
   static readonly bulkProgressHeading = 'Upload in progress';
   static readonly bulkProgressBody = 'Uploading file, please wait...';
-  // static readonly bulkProgressBody2 =
-  //   'Your bulk upload is being processed. This page will refresh automatically when it finishes.';
 
   static getFileInput(): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy.get(this.fileInputSelector);
