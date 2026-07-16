@@ -7,12 +7,14 @@ Functionality:
   - Updates UI state for upload progress and result
 */
 
+import { DOCUMENT } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
   Component,
   DestroyRef,
   EnvironmentInjector,
   OnInit,
+  PLATFORM_ID,
   computed,
   inject,
   signal,
@@ -20,6 +22,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { take } from 'rxjs';
 
 import {
   ApplicationsListBulkUploadState,
@@ -43,14 +46,16 @@ import {
   ApplicationListEntriesApi,
   BulkUploadApplicationListEntriesRequestParams,
   JobAcknowledgement,
+  ReportsApi,
 } from '@openapi';
 import {
   JobPollingFacade,
   PolledJobStatus,
 } from '@services/jobs/job-polling.facade';
 import { getProblemText } from '@util/http-error-to-text';
+import { saveCsv as saveCsvFile } from '@util/save-csv';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
-import { trimToUndefined } from '@util/string-helpers';
+import { getDateStamp, trimToUndefined } from '@util/string-helpers';
 import { sortRows } from '@util/table-sort';
 
 const UPLOAD_IN_PROGRESS_FEEDBACK = {
@@ -101,6 +106,10 @@ export class ApplicationsListBulkUpload implements OnInit {
   private readonly jobPollingFacade = inject(JobPollingFacade);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly jobApi = inject(ReportsApi);
+  private readonly componentDestroyRef = inject(DestroyRef);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly document = inject(DOCUMENT);
 
   // Initialise signal state
   private readonly bulkUploadSignalState =
@@ -115,6 +124,8 @@ export class ApplicationsListBulkUpload implements OnInit {
   readonly submitAttempt = signal(0);
 
   columns = BulkUploadErrorTableColumns;
+
+  jobId: string = '';
   readonly errorRows = signal<Row[]>([]);
   readonly pageSize = 10;
   readonly errorSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
@@ -205,6 +216,12 @@ export class ApplicationsListBulkUpload implements OnInit {
     if (!job.isTerminal) {
       return;
     }
+
+    if (!trimToUndefined(job.id)) {
+      return;
+    }
+
+    this.jobId = job.id;
 
     this.bulkUploadPatch({
       bulkUploadFeedback: this.toBulkUploadFeedback(job),
@@ -391,7 +408,35 @@ export class ApplicationsListBulkUpload implements OnInit {
   }
 
   onExportErrorFilesClick(): void {
-    // TODO: ARCPOC-1506
+    if (!trimToUndefined(this.jobId)) {
+      this.bulkUploadPatch({
+        errorSummary: [
+          {
+            text: 'Unable to export file. If you believe this was in error, please contact support.',
+          },
+        ],
+      });
+      return;
+    }
+
+    this.jobApi
+      .downloadReport({ jobId: this.jobId }, 'response', false, {
+        httpHeaderAccept: 'text/csv',
+        transferCache: false,
+      })
+      .pipe(take(1), takeUntilDestroyed(this.componentDestroyRef))
+      .subscribe({
+        next: (response) => {
+          this.saveCsv(response);
+        },
+        error: (err) => {
+          this.submitAttempt.update((attempt) => attempt + 1);
+          this.bulkUploadPatch({
+            fileUploadStatus: 'error',
+            errorSummary: [{ text: getProblemText(err) }],
+          });
+        },
+      });
   }
 
   onPageChange(page: number): void {
@@ -401,5 +446,23 @@ export class ApplicationsListBulkUpload implements OnInit {
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
     this.errorSort.set(sort);
     this.bulkUploadPatch({ currentPage: 0 });
+  }
+
+  private saveCsv(response: HttpResponse<Blob>): void {
+    if (!response.body) {
+      this.bulkUploadPatch({
+        errorSummary: [
+          { text: 'Failed to export CSV. Please try again later' },
+        ],
+      });
+      return;
+    }
+
+    saveCsvFile(
+      response,
+      `bulk-upload-export-error-csv-${getDateStamp()}.csv`,
+      this.document,
+      this.platformId,
+    );
   }
 }

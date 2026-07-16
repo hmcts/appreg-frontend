@@ -1,4 +1,4 @@
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { DOCUMENT } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
   Component,
@@ -72,6 +72,7 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
+import { saveCsv as saveCsvFile } from '@util/save-csv';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import {
   getDateStamp,
@@ -892,21 +893,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    const url = URL.createObjectURL(response.body);
-    const link = this.document.createElement('a');
-    link.href = url;
-    link.download = this.getReportFilename();
-    link.style.display = 'none';
-
-    this.document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    saveCsvFile(
+      response,
+      this.getReportFilename(),
+      this.document,
+      this.platformId,
+    );
     this.showReportSuccess();
   }
 

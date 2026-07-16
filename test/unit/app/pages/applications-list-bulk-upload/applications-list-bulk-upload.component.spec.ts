@@ -21,6 +21,7 @@ import {
   JobAcknowledgement,
   JobStatus2 as JobStatus,
   JobType,
+  ReportsApi,
 } from '@openapi';
 import {
   JobPollingFacade,
@@ -54,6 +55,10 @@ describe('ApplicationsListBulkUpload', () => {
 
   const jobPollingFacadeMock = {
     watchJob: jest.fn(),
+  };
+
+  const reportsApiMock = {
+    downloadReport: jest.fn(),
   };
 
   const terminalJob = (
@@ -112,6 +117,7 @@ describe('ApplicationsListBulkUpload', () => {
       providers: [
         { provide: ActivatedRoute, useValue: mockActivatedRoute },
         { provide: ApplicationListEntriesApi, useValue: actionsApiMock },
+        { provide: ReportsApi, useValue: reportsApiMock },
         { provide: JobPollingFacade, useValue: jobPollingFacadeMock },
         provideRouter([]),
         provideHttpClient(),
@@ -126,6 +132,99 @@ describe('ApplicationsListBulkUpload', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('onExportErrorFilesClick', () => {
+    it('shows an error when there is no failed upload job to export', () => {
+      component.onExportErrorFilesClick();
+
+      expect(reportsApiMock.downloadReport).not.toHaveBeenCalled();
+      expect(getState(component).errorSummary).toEqual([
+        {
+          text: 'Unable to export file. If you believe this was in error, please contact support.',
+        },
+      ]);
+    });
+
+    it('downloads the failed upload CSV when the report API succeeds', () => {
+      const response = new HttpResponse({
+        body: new Blob(['error'], { type: 'text/csv' }),
+      });
+      reportsApiMock.downloadReport.mockReturnValue(of(response));
+      (component as unknown as { jobId: string }).jobId = 'job-1';
+      const saveCsvSpy = jest.spyOn(
+        component as unknown as {
+          saveCsv: (value: HttpResponse<Blob>) => void;
+        },
+        'saveCsv',
+      );
+
+      component.onExportErrorFilesClick();
+
+      expect(reportsApiMock.downloadReport).toHaveBeenCalledWith(
+        { jobId: 'job-1' },
+        'response',
+        false,
+        { httpHeaderAccept: 'text/csv', transferCache: false },
+      );
+      expect(saveCsvSpy).toHaveBeenCalledWith(response);
+    });
+
+    it('adds the API error to the error summary', () => {
+      reportsApiMock.downloadReport.mockReturnValue(
+        throwError(() => new Error('Export failed')),
+      );
+      (component as unknown as { jobId: string }).jobId = 'job-1';
+
+      component.onExportErrorFilesClick();
+
+      expect(getState(component).errorSummary).toEqual([
+        { text: 'Request failed' },
+      ]);
+      expect(component.submitAttempt()).toBe(1);
+    });
+  });
+
+  describe('saveCsv', () => {
+    it('downloads a CSV response with the bulk-upload error filename', () => {
+      const createObjectURL = jest.fn().mockReturnValue('blob:csv');
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        value: createObjectURL,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        value: jest.fn(),
+      });
+      const saveCsv = (
+        component as unknown as {
+          saveCsv: (response: HttpResponse<Blob>) => void;
+        }
+      ).saveCsv;
+
+      saveCsv.call(
+        component,
+        new HttpResponse({
+          body: new Blob(['error'], { type: 'text/csv' }),
+        }),
+      );
+
+      expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    });
+
+    it('adds an error when the response has no body', () => {
+      const saveCsv = (
+        component as unknown as {
+          saveCsv: (response: HttpResponse<Blob>) => void;
+        }
+      ).saveCsv;
+
+      saveCsv.call(component, new HttpResponse<Blob>({ body: null }));
+
+      expect(getState(component).errorSummary).toEqual([
+        { text: 'Failed to export CSV. Please try again later' },
+      ]);
+    });
   });
 
   it('should create', () => {
