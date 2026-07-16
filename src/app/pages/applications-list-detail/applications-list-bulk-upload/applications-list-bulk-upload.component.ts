@@ -432,6 +432,7 @@ export class ApplicationsListBulkUpload implements OnInit {
         error: (err) => {
           this.submitAttempt.update((attempt) => attempt + 1);
           this.bulkUploadPatch({
+            fileUploadStatus: 'error',
             errorSummary: [{ text: getProblemText(err) }],
           });
         },
