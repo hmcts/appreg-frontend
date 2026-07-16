@@ -47,6 +47,7 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
+import { saveCsv as saveCsvFile } from '@util/save-csv';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 import { getDateStamp, trimToUndefined } from '@util/string-helpers';
@@ -288,24 +289,12 @@ export class StandardApplicants implements OnInit {
       return;
     }
 
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    const csvBlob = new Blob([response.body], {
-      type: response.headers.get('content-type') ?? 'text/csv;charset=utf-8',
-    });
-    const url = URL.createObjectURL(csvBlob);
-    const link = this.document.createElement('a');
-    link.href = url;
-    link.download = `standard-applicant-export-csv-${getDateStamp()}.csv`;
-    link.style.display = 'none';
-
-    this.document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    saveCsvFile(
+      response,
+      `standard-applicant-export-csv-${getDateStamp()}.csv`,
+      this.document,
+      this.platformId,
+    );
     this.signalState.patch({ exportSuccess: true });
   }
 
