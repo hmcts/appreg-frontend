@@ -6,7 +6,7 @@ def type = 'angular'
 def product = 'appreg'
 def component = 'frontend'
 
-def branchesToSync = ['demo', 'ithc']
+def branchesToSync = ['demo']
 
 def vaultOverrides = [
   'dev': 'stg',
