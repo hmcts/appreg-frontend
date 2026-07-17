@@ -187,7 +187,19 @@ export class DropdownHelper {
               );
             }
             if ($dropdown.is('select')) {
-              cy.wrap($dropdown).select(optionText);
+              cy.wrap($dropdown)
+                .should('be.visible')
+                .and('be.enabled')
+                .select(optionText);
+
+              cy.wrap($dropdown)
+                .find('option:selected')
+                .should(($option) => {
+                  const actual = this.normalise($option.text());
+                  const expected = this.normalise(optionText);
+
+                  expect(actual, 'Selected dropdown option').to.eq(expected);
+                });
             } else {
               cy.wrap($dropdown)
                 .click()
@@ -215,19 +227,30 @@ export class DropdownHelper {
     optionText: string,
     fieldsetLabel: string,
   ): void {
+    const expected = this.normalise(optionText);
+
     cy.contains('fieldset', fieldsetLabel, { matchCase: false }).then(
       ($fieldset) => {
-        DropdownElement.findDropdownWithin($fieldset, dropdownLabel).then(
+        DropdownElement.findDropdownWithin($fieldset, dropdownLabel).should(
           ($dropdown) => {
-            if (!$dropdown || $dropdown.length === 0) {
-              throw new Error(
-                `Dropdown "${dropdownLabel}" not found within fieldset "${fieldsetLabel}"`,
-              );
-            }
-            DropdownHelper.verifyDropdownOptionSelected(
-              dropdownLabel,
-              optionText,
+            expect(
+              $dropdown.length,
+              `Dropdown "${dropdownLabel}" within fieldset "${fieldsetLabel}"`,
+            ).to.be.greaterThan(0);
+
+            expect(
+              $dropdown.is('select'),
+              `Dropdown "${dropdownLabel}" within fieldset "${fieldsetLabel}" is a native select`,
+            ).to.eq(true);
+
+            const actual = this.normalise(
+              $dropdown.find('option:selected').text(),
             );
+
+            expect(
+              actual,
+              `Selected value in "${dropdownLabel}" within fieldset "${fieldsetLabel}"`,
+            ).to.eq(expected);
           },
         );
       },
