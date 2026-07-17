@@ -22,6 +22,14 @@ import {
   RespondentPersonFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
+type EntryCreateDtoWithRespondentClears = Omit<
+  EntryCreateDto,
+  'respondent' | 'numberOfRespondents'
+> & {
+  respondent?: Respondent | null;
+  numberOfRespondents?: number | null;
+};
+
 /**
  * Top-level builder: turns form values into an EntryCreateDto.
  */
@@ -32,14 +40,8 @@ export function buildEntryCreateDto(
   respondentPersonForm: RespondentPersonFormValue,
   respondentOrganisationForm: OrganisationFormValue,
 ): EntryCreateDto {
-  const dto: Partial<EntryCreateDto> = {
+  const dto: Partial<EntryCreateDtoWithRespondentClears> = {
     applicationCode: toOptionalTrimmed(formValue.applicationCode)!,
-    respondent: buildRespondent(
-      formValue,
-      respondentPersonForm,
-      respondentOrganisationForm,
-    ),
-    numberOfRespondents: toOptionalInteger(formValue.numberOfRespondents),
     wordingFields: buildWordingFields(formValue),
     feeStatuses: buildFeeStatuses(formValue),
     hasOffsiteFee: formValue.hasOffsiteFee ?? undefined,
@@ -60,7 +62,35 @@ export function buildEntryCreateDto(
   }
 
   pruneNullish(dto);
+  applyRespondentSelection(
+    dto,
+    formValue,
+    respondentPersonForm,
+    respondentOrganisationForm,
+  );
   return dto as EntryCreateDto;
+}
+
+function applyRespondentSelection(
+  dto: Partial<EntryCreateDtoWithRespondentClears>,
+  formValue: ApplicationsListEntryFormValue,
+  respondentPersonForm: RespondentPersonFormValue,
+  respondentOrganisationForm: OrganisationFormValue,
+): void {
+  if (formValue.respondentEntryType === 'bulk') {
+    dto.respondent = null;
+    dto.numberOfRespondents =
+      toOptionalInteger(formValue.numberOfRespondents) ?? null;
+    return;
+  }
+
+  dto.respondent =
+    buildRespondent(
+      formValue,
+      respondentPersonForm,
+      respondentOrganisationForm,
+    ) ?? null;
+  dto.numberOfRespondents = null;
 }
 
 function buildApplicant(

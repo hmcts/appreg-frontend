@@ -332,7 +332,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.vm().currentStandardApplicantSummary).toBeNull();
   });
 
-  it('payload: omits applicant/respondent when empty', () => {
+  it('payload: omits applicant and clears respondent fields when empty', () => {
     component.form.patchValue({
       applicationCode: 'A001',
       applicantType: 'org',
@@ -345,7 +345,8 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     const payload = roundTrip(dto as Record<string, unknown>);
     expect(payload['applicationCode']).toBe('A001');
     expect('applicant' in payload).toBe(false);
-    expect('respondent' in payload).toBe(false);
+    expect(payload['respondent']).toBeNull();
+    expect(payload['numberOfRespondents']).toBeNull();
   });
 
   it('payload: includes applicant.organisation with trimmed name; prunes blank nested fields', () => {
@@ -374,7 +375,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect('email' in contact).toBe(false);
   });
 
-  it('payload: omits respondent when only whitespace strings are provided', () => {
+  it('payload: clears respondent when only whitespace strings are provided', () => {
     component.form.patchValue({
       applicationCode: 'X001',
       respondentEntryType: 'organisation',
@@ -387,7 +388,8 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     });
 
     const payload = roundTrip(build() as Record<string, unknown>);
-    expect('respondent' in payload).toBe(false);
+    expect(payload['respondent']).toBeNull();
+    expect(payload['numberOfRespondents']).toBeNull();
   });
 
   it('payload: keeps both applicant and respondent when both are meaningfully populated', () => {

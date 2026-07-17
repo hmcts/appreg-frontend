@@ -18,7 +18,7 @@ describe('ApplicationListEntryFormService', () => {
     id: 'entry-1',
     listId: 'list-1',
     applicationCode: 'APP-100',
-    numberOfRespondents: 1,
+    numberOfRespondents: 0,
     lodgementDate: '2026-04-20',
     ...overrides,
   });
@@ -118,6 +118,44 @@ describe('ApplicationListEntryFormService', () => {
     );
 
     expect(forms.form.controls.respondentEntryType.value).toBe('person');
+    expect(forms.respondentPersonForm.getRawValue()).toMatchObject({
+      firstName: '',
+      surname: null,
+      dob: null,
+      addressLine1: '',
+    });
+    expect(forms.respondentOrganisationForm.getRawValue()).toMatchObject({
+      name: '',
+      addressLine1: '',
+    });
+    expect(forms.respondentPersonForm.dirty).toBe(false);
+    expect(forms.respondentOrganisationForm.dirty).toBe(false);
+  });
+
+  it('hydrates a positive numberOfRespondents as bulk respondent mode', () => {
+    const forms = service.createForms();
+
+    forms.form.controls.respondentEntryType.setValue('organisation');
+    forms.respondentPersonForm.patchValue({
+      firstName: 'Old',
+      surname: 'Respondent',
+      addressLine1: 'Old Address',
+    });
+    forms.respondentOrganisationForm.patchValue({
+      name: 'Old Org',
+      addressLine1: 'Old Org Address',
+    });
+
+    service.hydrateFromDto(
+      makeDetail({
+        respondent: null as unknown as EntryGetDetailDto['respondent'],
+        numberOfRespondents: 2,
+      }),
+      forms,
+    );
+
+    expect(forms.form.controls.respondentEntryType.value).toBe('bulk');
+    expect(forms.form.controls.numberOfRespondents.value).toBe(2);
     expect(forms.respondentPersonForm.getRawValue()).toMatchObject({
       firstName: '',
       surname: null,
@@ -410,7 +448,7 @@ describe('ApplicationListEntryFormService', () => {
       expect.objectContaining({
         standardApplicantCode: 'STD-99',
         applicationCode: 'APP-200',
-        numberOfRespondents: 2,
+        numberOfRespondents: null,
         caseReference: 'CASE123',
         accountNumber: 'ACCT123',
         notes: 'Updated notes',
@@ -426,6 +464,39 @@ describe('ApplicationListEntryFormService', () => {
     );
     expect(dto as Record<string, unknown>).not.toHaveProperty('lodgementDate');
     expect(dto.applicant).toBeUndefined();
+  });
+
+  it('buildUpdateDto clears respondent details when bulk mode is selected', () => {
+    const forms = service.createForms();
+    const detail = makeDetail({
+      respondent: {
+        person: {
+          name: {
+            firstName: 'Old',
+            lastName: 'Respondent',
+          },
+          contactDetails: {
+            addressLine1: 'Old Respondent Address',
+          },
+        },
+      },
+    });
+
+    forms.form.patchValue({
+      applicantType: 'standard',
+      applicationCode: 'APP-200',
+      numberOfRespondents: 2,
+      respondentEntryType: 'bulk',
+    });
+
+    const dto = service.buildUpdateDto(detail, forms, 'STD-99');
+
+    expect(dto).toEqual(
+      expect.objectContaining({
+        respondent: null,
+        numberOfRespondents: 2,
+      }),
+    );
   });
 
   it('buildCreateDto syncs selected standard applicant code and builds from all form sections', () => {
@@ -459,7 +530,7 @@ describe('ApplicationListEntryFormService', () => {
     expect(dto).toEqual(
       expect.objectContaining({
         applicationCode: 'APP-300',
-        numberOfRespondents: 3,
+        numberOfRespondents: null,
         lodgementDate: '2026-04-22',
         applicant: {
           person: expect.objectContaining({

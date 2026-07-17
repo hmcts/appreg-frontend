@@ -313,14 +313,21 @@ export class ApplicationListEntryFormService {
     emitEvent: boolean,
   ): void {
     const r = dto.respondent;
+    const hasBulkRespondentCount =
+      Number.isFinite(dto.numberOfRespondents) && dto.numberOfRespondents > 0;
+    const respondentEntryType = hasBulkRespondentCount
+      ? 'bulk'
+      : (getRespondentEntryType(r) ?? 'person');
 
     forms.form.controls.respondent.setValue(r ?? null, { emitEvent });
-    forms.form.controls.respondentEntryType.setValue(
-      getRespondentEntryType(r) ?? 'person',
-      { emitEvent },
-    );
+    forms.form.controls.respondentEntryType.setValue(respondentEntryType, {
+      emitEvent,
+    });
 
-    if (r?.person) {
+    if (hasBulkRespondentCount) {
+      forms.respondentPersonForm.reset(undefined, { emitEvent });
+      forms.respondentOrganisationForm.reset(undefined, { emitEvent });
+    } else if (r?.person) {
       forms.respondentPersonForm.reset(undefined, { emitEvent });
       forms.respondentPersonForm.patchValue(
         respondentPersonToFormPatch(r.person),

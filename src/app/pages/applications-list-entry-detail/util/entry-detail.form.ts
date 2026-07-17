@@ -72,11 +72,16 @@ type MagSlot = {
 
 type EntryUpdateDtoWithClears = Omit<
   EntryUpdateDto,
-  'caseReference' | 'accountNumber' | 'notes' | 'numberOfRespondents'
+  | 'caseReference'
+  | 'accountNumber'
+  | 'notes'
+  | 'respondent'
+  | 'numberOfRespondents'
 > & {
   caseReference?: string | null;
   accountNumber?: string | null;
   notes?: string | null;
+  respondent?: Respondent | null;
   numberOfRespondents?: number | null;
 };
 
@@ -344,7 +349,14 @@ export function buildEntryUpdateDtoFromForm(
   dto.caseReference = trimToNull(formValue.applicationNotes.caseReference);
   dto.accountNumber = trimToNull(formValue.applicationNotes.accountReference);
   dto.notes = trimToNull(formValue.applicationNotes.notes);
-  dto.numberOfRespondents = toNullableInteger(formValue.numberOfRespondents);
+
+  if (formValue.respondentEntryType === 'bulk') {
+    dto.respondent = null;
+    dto.numberOfRespondents = toNullableInteger(formValue.numberOfRespondents);
+  } else {
+    dto.respondent = dto.respondent ?? null;
+    dto.numberOfRespondents = null;
+  }
 
   if (Array.isArray(formValue.wordingFields)) {
     dto.wordingFields = patch.wordingFields ?? [];
