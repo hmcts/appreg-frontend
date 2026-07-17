@@ -88,7 +88,9 @@ export class RespondentSectionComponent {
         !this.bulkAllowed() &&
         this.form().controls.respondentEntryType.value === 'bulk'
       ) {
-        this.form().controls.respondentEntryType.setValue('person');
+        const form = this.form();
+        form.controls.numberOfRespondents.reset();
+        form.controls.respondentEntryType.setValue('person');
       }
     });
 
