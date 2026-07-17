@@ -1,6 +1,9 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
-import { EntryApplicationListGetFilterDto } from '@openapi';
+import {
+  BulkActionPreviewResponseDto,
+  EntryApplicationListGetFilterDto,
+} from '@openapi';
 
 export interface ApplicationsListDetailState {
   // paging
@@ -41,6 +44,10 @@ export interface ApplicationsListDetailState {
   getFilters: EntryApplicationListGetFilterDto;
 
   pdfLoading: boolean;
+
+  previewRows: BulkActionPreviewResponseDto | null;
+  isFilterSelection: boolean;
+  excludedEntryIds: Set<string>;
 }
 
 export const initialApplicationsListDetailState: ApplicationsListDetailState = {
@@ -76,6 +83,10 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   getFilters: {},
 
   pdfLoading: false,
+
+  previewRows: null,
+  isFilterSelection: false,
+  excludedEntryIds: new Set<string>(),
 };
 
 export const clearUpdateNotificationsPatch = (): Pick<

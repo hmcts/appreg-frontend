@@ -19,6 +19,7 @@ import {
   NgZone,
   OnInit,
   PLATFORM_ID,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -69,10 +70,14 @@ import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListEntriesApi,
+  ApplicationListEntryBulkActionPreviewRequestDto,
+  ApplicationListEntryBulkActionSelectionDto,
   ApplicationListGetDetailDto,
   ApplicationListGetPrintDto,
   ApplicationListsApi,
-  EntryIdsDto,
+  BulkActionPreviewResponseDto,
+  BulkActionSelectionType,
+  BulkActionType,
   EntryPage,
 } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
@@ -82,7 +87,7 @@ import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
-import { getProblemText } from '@util/http-error-to-text';
+import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import {
   handlePrintContinuous as handlePrintContinuousPdf,
@@ -92,8 +97,6 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
 import {
   ServerPaginatedSelectionPatch,
   buildPageSelectionPatch,
-  buildSelectAllMatchingPatch,
-  getVisibleSelectedRows,
   isAllMatchingSelected,
 } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
@@ -192,6 +195,25 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
+
+  readonly tableRows = computed(() => this.vm().rows);
+
+  readonly tableSelectedIds = computed(() => {
+    const vm = this.vm();
+
+    if (!vm.isFilterSelection) {
+      return vm.selectedIds;
+    }
+
+    return new Set(
+      this.tableRows()
+        .map((row) => row['id'])
+        .filter(
+          (id): id is string =>
+            typeof id === 'string' && !vm.excludedEntryIds.has(id),
+        ),
+    );
+  });
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
@@ -624,7 +646,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   get selectedCount(): number {
-    return this.vm().selectedIds.size;
+    const vm = this.vm();
+    return vm.isFilterSelection
+      ? Math.max(vm.totalEntries - vm.excludedEntryIds.size, 0)
+      : vm.selectedIds.size;
   }
 
   get hasSelection(): boolean {
@@ -670,11 +695,26 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onSelectedIdsChange(ids: Set<string>): void {
     const vm = this.vm();
     const selectedIds = new Set(ids);
+    const excludedEntryIds = new Set(vm.excludedEntryIds);
+
+    if (vm.isFilterSelection) {
+      const visibleIds = this.tableRows().map((row) => row['id']) as string[];
+      for (const id of visibleIds) {
+        if (!selectedIds.has(id)) {
+          excludedEntryIds.add(id);
+        } else {
+          excludedEntryIds.delete(id);
+        }
+      }
+    }
 
     this.detailSignalState.patch({
       selectedIds,
-      selectedRows: getVisibleSelectedRows(vm.rows, selectedIds),
-      allMatchingSelected: isAllMatchingSelected(selectedIds, vm.totalEntries),
+      // selectedRows: getVisibleSelectedRows(vm.rows, selectedIds),
+      allMatchingSelected: vm.isFilterSelection
+        ? excludedEntryIds.size === 0
+        : isAllMatchingSelected(selectedIds, vm.totalEntries),
+      excludedEntryIds,
     });
   }
 
@@ -691,69 +731,76 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.clearSelection();
   }
 
-  async onSelectAllMatchingClick(): Promise<void> {
+  onSelectAllMatchingClick(): void {
     if (!this.id) {
+      this.detailSignalState.patch({ isSelectingAll: false });
       return;
     }
 
-    const requestVersion = this.nextSelectAllRequestVersion();
-    const vm = this.vm();
-    const previousSelection = {
-      selectedIds: new Set(vm.selectedIds),
-      selectedRows: [...vm.selectedRows],
-      allMatchingSelected: vm.allMatchingSelected,
-    };
-    const visibleIds = new Set(
-      vm.rows
-        .map((row) => row['id'])
-        .filter(
-          (id): id is string | number =>
-            typeof id === 'string' || typeof id === 'number',
-        )
-        .map(String),
-    );
-    const optimisticSelectedIds = new Set([
-      ...previousSelection.selectedIds,
-      ...visibleIds,
-    ]);
+    // const requestVersion = this.nextSelectAllRequestVersion();
+    // const vm = this.vm();
+    // const previousSelection = {
+    //   selectedIds: new Set(vm.selectedIds),
+    //   selectedRows: [...vm.selectedRows],
+    //   allMatchingSelected: vm.allMatchingSelected,
+    // };
+    // const visibleIds = new Set(
+    //   vm.rows
+    //     .map((row) => row['id'])
+    //     .filter(
+    //       (id): id is string | number =>
+    //         typeof id === 'string' || typeof id === 'number',
+    //     )
+    //     .map(String),
+    // );
+    // const optimisticSelectedIds = new Set([
+    //   ...previousSelection.selectedIds,
+    //   ...visibleIds,
+    // ]);
+
+    const visibleRows = this.tableRows();
+    const selectedIds = new Set(
+      visibleRows.map((row) => row['id']),
+    ) as Set<string>;
 
     this.detailSignalState.patch({
-      isSelectingAll: true,
-      selectedIds: optimisticSelectedIds,
-      selectedRows: [...vm.rows],
-      allMatchingSelected:
-        visibleIds.size > 0 && visibleIds.size === vm.totalEntries,
+      isSelectingAll: false,
+      selectedIds,
+      selectedRows: visibleRows,
+      allMatchingSelected: true,
       errorSummary: [],
       errorHint: '',
+      isFilterSelection: true,
+      excludedEntryIds: new Set<string>(),
     });
 
-    try {
-      const dto = await firstValueFrom(
-        this.appListEntriesApi.getApplicationListEntryIds({
-          listId: this.id,
-          filter: this.vm().getFilters,
-        }),
-      );
+    // try {
+    //   const dto = await firstValueFrom(
+    //     this.appListEntriesApi.getApplicationListEntryIds({
+    //       listId: this.id,
+    //       filter: this.vm().getFilters,
+    //     }),
+    //   );
 
-      if (requestVersion !== this.selectAllRequestVersion) {
-        return;
-      }
+    //   if (requestVersion !== this.selectAllRequestVersion) {
+    //     return;
+    //   }
 
-      this.applySelectAllMatching(dto);
-    } catch (err) {
-      if (requestVersion !== this.selectAllRequestVersion) {
-        return;
-      }
+    //   this.applySelectAllMatching(dto);
+    // } catch (err) {
+    //   if (requestVersion !== this.selectAllRequestVersion) {
+    //     return;
+    //   }
 
-      const errMsg = getProblemText(err);
-      this.detailSignalState.patch({
-        isSelectingAll: false,
-        ...previousSelection,
-        updateInvalid: true,
-        errorHint: errMsg,
-        errorSummary: [{ text: errMsg }],
-      });
-    }
+    //   const errMsg = getProblemText(err);
+    //   this.detailSignalState.patch({
+    //     isSelectingAll: false,
+    //     ...previousSelection,
+    //     updateInvalid: true,
+    //     errorHint: errMsg,
+    //     errorSummary: [{ text: errMsg }],
+    //   });
+    // }
   }
 
   clearSelection(): void {
@@ -763,20 +810,30 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       selectedRows: [],
       isSelectingAll: false,
       allMatchingSelected: false,
+      isFilterSelection: false,
+      excludedEntryIds: new Set<string>(),
     });
   }
 
   async onUpdateOfficialsButtonClick(): Promise<void> {
-    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+    const preview = await this.getBulkPreview(BulkActionType.UPDATE_OFFICIALS);
 
-    if (selected.length === 0) {
+    // const selected = (await this.resolveSelectedRows()) as selectedRow[];
+
+    // if (selected.length === 0) {
+    //   return;
+    // }
+
+    if (!preview) {
       return;
     }
+
+    const rows = mapEntrySummaryRows(preview?.entries) ?? [];
 
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
 
-    const updateOfficialsApplications = selected.map((r) => ({
+    const updateOfficialsApplications = rows.map((r) => ({
       id: r.id,
       sequenceNumber: r.sequenceNumber,
       applicant: r.applicant,
@@ -793,16 +850,24 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async onResultButtonClick(): Promise<void> {
-    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+    const preview = await this.getBulkPreview(BulkActionType.RESULT_SELECTED);
 
-    if (selected.length === 0) {
+    // const selected = (await this.resolveSelectedRows()) as selectedRow[];
+
+    // if (selected.length === 0) {
+    //   return;
+    // }
+
+    if (!preview) {
       return;
     }
+
+    const rows = mapEntrySummaryRows(preview?.entries) ?? [];
 
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
 
-    const resultingApplications = selected.map((r) => ({
+    const resultingApplications = rows.map((r) => ({
       id: r.id,
       sequenceNumber: r.sequenceNumber,
       applicant: r.applicant,
@@ -819,21 +884,33 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async onUpdateFeeButtonClick(): Promise<void> {
-    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+    const preview = await this.getBulkPreview(
+      BulkActionType.UPDATE_FEE_DETAILS,
+    );
+    // const selected = (await this.resolveSelectedRows()) as selectedRow[];
 
-    if (selected.length === 0) {
+    // if (selected.length === 0) {
+    //   return;
+    // }
+
+    if (!preview) {
       return;
     }
+
+    const rows = mapEntrySummaryRows(preview?.entries) ?? [];
 
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
 
     // Exclude entries with no fee required
-    const selectedFeesRequired = selected.filter(
-      (element) => element.feeReq !== 'No',
-    );
+    // const selectedFeesRequired = selected.filter(
+    //   (element) => element.feeReq !== 'No',
+    // );
 
-    if (selectedFeesRequired.length === 0) {
+    const eligibleCount = preview?.eligibleCount;
+    const ineligibleCount = preview?.ineligibleCount;
+
+    if (eligibleCount === 0) {
       this.detailSignalState.patch({
         errorSummary: [
           {
@@ -846,7 +923,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const entriesToUpdateFee = selectedFeesRequired.map((r) => ({
+    const entriesToUpdateFee = rows.map((r) => ({
       id: r.id,
       applicant: r.applicant,
       respondent: r.respondent,
@@ -858,23 +935,29 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     await this.router.navigate(['bulk-update-fee'], {
       relativeTo: this.route,
       state: {
-        removedApplicationsWarning:
-          selectedFeesRequired.length < selected.length,
+        removedApplicationsWarning: ineligibleCount !== 0,
         entriesToUpdateFee,
       },
     });
   }
 
   async onMoveButtonClick(): Promise<void> {
-    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+    const preview = await this.getBulkPreview(BulkActionType.MOVE_ENTRIES);
+    // const selected = (await this.resolveSelectedRows()) as selectedRow[];
 
-    if (selected.length === 0) {
+    // if (selected.length === 0) {
+    //   return;
+    // }
+
+    if (!preview) {
       return;
     }
 
+    const rows = mapEntrySummaryRows(preview?.entries) ?? [];
+
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
 
-    const entriesToMove = selected.map((r) => ({
+    const entriesToMove = rows.map((r) => ({
       id: r.id,
       applicant: r.applicant,
       respondent: r.respondent,
@@ -998,6 +1081,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       selectedRows: [],
       isSelectingAll: false,
       allMatchingSelected: false,
+      isFilterSelection: false,
+      excludedEntryIds: new Set<string>(),
     });
   }
 
@@ -1018,6 +1103,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       errorSummary: hasErrors ? result.errors : [],
       preserveErrorSummaryOnLoad: false,
       getFilters: filters,
+      isFilterSelection: false,
+      excludedEntryIds: new Set<string>(),
     });
   }
 
@@ -1104,16 +1191,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     };
   }
 
-  private applySelectAllMatching(dto: EntryIdsDto): void {
-    this.detailSignalState.patch({
-      isSelectingAll: false,
-      ...buildSelectAllMatchingPatch(
-        dto.ids ?? [],
-        this.vm().rows,
-        this.vm().totalEntries,
-      ),
-    });
-  }
+  // private applySelectAllMatching(dto: EntryIdsDto): void {
+  //   this.detailSignalState.patch({
+  //     isSelectingAll: false,
+  //     ...buildSelectAllMatchingPatch(
+  //       dto.ids ?? [],
+  //       this.vm().rows,
+  //       this.vm().totalEntries,
+  //     ),
+  //   });
+  // }
 
   private async resolveSelectedRows(): Promise<Row[]> {
     const vm = this.vm();
@@ -1169,6 +1256,61 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   private invalidateSelectAllRequest(): void {
     this.selectAllRequestVersion += 1;
+  }
+
+  private async getBulkPreview(
+    action: BulkActionType,
+    entryIds?: Set<string>,
+    forceIds = false,
+  ): Promise<BulkActionPreviewResponseDto | null> {
+    const vm = this.vm();
+    const listId = this.id;
+    const isFilterSelection = vm.isFilterSelection && !forceIds;
+
+    const selectionParams: ApplicationListEntryBulkActionSelectionDto = {
+      selectionType: isFilterSelection
+        ? BulkActionSelectionType.FILTER
+        : BulkActionSelectionType.IDS,
+      ...(!isFilterSelection && {
+        entryIds: [...(entryIds ?? vm.selectedIds)],
+      }),
+      ...(isFilterSelection && {
+        filter: vm.getFilters,
+      }),
+      ...(isFilterSelection &&
+        vm.excludedEntryIds.size > 0 && {
+          excludedEntryIds: [...vm.excludedEntryIds],
+        }),
+    };
+
+    const params: ApplicationListEntryBulkActionPreviewRequestDto = {
+      action,
+      selection: selectionParams,
+    };
+
+    try {
+      const response = await firstValueFrom(
+        this.appListEntriesApi.applicationListEntryBulkActionPreview({
+          listId,
+          applicationListEntryBulkActionPreviewRequestDto: params,
+        }),
+      );
+      this.detailSignalState.patch({ previewRows: response });
+      return response;
+    } catch (err) {
+      const code = getHttpStatus(err);
+      let msg: string;
+
+      if (code === 413) {
+        msg =
+          'Affected rows exceeds 2000. Please reduce the number of rows selected';
+      } else {
+        msg = getProblemText(err);
+      }
+
+      this.detailSignalState.patch({ errorSummary: [{ text: msg }] });
+      return null;
+    }
   }
 
   private async handlePrintPage(
