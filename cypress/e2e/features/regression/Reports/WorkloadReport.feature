@@ -45,7 +45,6 @@ Feature: Workload Report
         When User Clicks On The "Clear filters" Button
         When User Set Date Field "Date from" To "27/02/2026"
         When User Set Date Field "Date to" To "27/03/2026"
-        When User Toggles The Accordion "Advanced filters"
         Then User Enters "Annex" Into The "Other location description" Textbox
         Then User Should See The Textbox "Court" Is Disabled
         Then User Should See The Textbox "Criminal justice area" Is Enabled
