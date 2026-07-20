@@ -610,8 +610,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         onSuccess: async (dto) => {
           const mode = this.printRequest()?.mode;
           this.printRequest.set(null);
+
+          if (!mode) {
+            return;
+          }
+
           try {
-            const filteredDto = await this.filterEntriesToPrint(dto);
+            const filteredDto = await this.filterEntriesToPrint(dto, mode);
 
             if (!filteredDto) {
               this.detailSignalState.patch({
@@ -1189,11 +1194,15 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   private async filterEntriesToPrint(
     dto: ApplicationListGetPrintDto,
+    mode: 'page' | 'continuous',
   ): Promise<ApplicationListGetPrintDto | undefined> {
     // const selectedIds = this.detailSignalState.state().selectedIds;
-    const selectedEntries = await this.getBulkPreview(
-      BulkActionType.PRINT_CONTINUOUS, // Assuming cont and page return the same thing
-    );
+    const selectedMode =
+      mode === 'page'
+        ? BulkActionType.PRINT_PAGE
+        : BulkActionType.PRINT_CONTINUOUS;
+
+    const selectedEntries = await this.getBulkPreview(selectedMode);
 
     if (!selectedEntries) {
       return;
