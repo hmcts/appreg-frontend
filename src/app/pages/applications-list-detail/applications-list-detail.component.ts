@@ -621,18 +621,15 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
                   },
                 ],
               });
-            }
-
-            if (mode === 'page') {
-              await this.handlePrintPage(
-                filteredDto as ApplicationListGetPrintDto,
-              );
               return;
             }
 
-            await this.handlePrintContinuous(
-              filteredDto as ApplicationListGetPrintDto,
-            );
+            if (mode === 'page') {
+              await this.handlePrintPage(filteredDto);
+              return;
+            }
+
+            await this.handlePrintContinuous(filteredDto);
           } finally {
             this.detailSignalState.patch({ pdfLoading: false });
           }
