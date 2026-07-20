@@ -2,6 +2,8 @@
  * Table sort helpers for server side sorting
  */
 
+import naturalCompare from 'natural-compare';
+
 export type SortDirection = 'asc' | 'desc';
 export type SortState = { key: string; direction: SortDirection };
 
@@ -26,19 +28,14 @@ export function sortRows<T extends Record<string, unknown>>(
     }
 
     if (typeof leftValue === 'number' && typeof rightValue === 'number') {
-      return (leftValue - rightValue) * direction;
+      return naturalCompare(leftValue, rightValue) * direction;
     }
 
-    if (typeof leftValue !== 'string' || typeof rightValue !== 'string') {
-      return 0;
+    if (typeof leftValue === 'string' && typeof rightValue === 'string') {
+      return naturalCompare(leftValue, rightValue) * direction;
     }
 
-    return (
-      leftValue.localeCompare(rightValue, undefined, {
-        numeric: true,
-        sensitivity: 'base',
-      }) * direction
-    );
+    return 0;
   });
 }
 
