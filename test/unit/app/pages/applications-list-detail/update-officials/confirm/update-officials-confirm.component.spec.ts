@@ -115,6 +115,22 @@ describe('UpdateOfficialsConfirmComponent', () => {
     ]);
   });
 
+  it('sorts and paginates applications on the confirmation page', () => {
+    createComponent();
+    component.rows = Array.from({ length: 11 }, (_, index) => ({
+      ...rows[0],
+      id: `entry-${11 - index}`,
+      sequenceNumber: 11 - index,
+    }));
+
+    component.onSortChange({ key: 'sequenceNumber', direction: 'asc' });
+    expect(component.currentPage()).toBe(0);
+    expect(component.paginatedRows()[0].sequenceNumber).toBe(1);
+
+    component.onPageChange(1);
+    expect(component.paginatedRows()).toHaveLength(1);
+  });
+
   it('submits the bulk officials update and navigates back to the detail page', () => {
     createComponent();
 

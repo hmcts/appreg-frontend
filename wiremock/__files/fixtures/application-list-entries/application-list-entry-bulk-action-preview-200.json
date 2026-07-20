@@ -26,7 +26,16 @@
   "entries": [
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 1",
+      "isFeeRequired": true,
+      "isResulted": false,
+      "status": "OPEN",
+      "sequenceNumber": 1,
+      "accountNumber": "ACC-0001"
+    },
+    {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "applicationTitle": "test 2",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -35,7 +44,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 3",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -44,7 +53,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 4",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -53,7 +62,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 5",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -62,7 +71,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 6",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -71,7 +80,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 7",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -80,7 +89,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 8",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -89,7 +98,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 9",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -98,7 +107,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 10",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -107,7 +116,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 12",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -116,7 +125,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 13",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -125,7 +134,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 14",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -134,7 +143,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 15",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -143,7 +152,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 16",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",
@@ -152,16 +161,7 @@
     },
     {
       "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
-      "isFeeRequired": false,
-      "isResulted": false,
-      "status": "OPEN",
-      "sequenceNumber": 1,
-      "accountNumber": "ACC-0001"
-    },
-    {
-      "id": "11111111-1111-1111-1111-111111111111",
-      "applicationTitle": "Sample application",
+      "applicationTitle": "test 17",
       "isFeeRequired": false,
       "isResulted": false,
       "status": "OPEN",

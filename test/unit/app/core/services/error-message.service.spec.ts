@@ -229,6 +229,20 @@ describe('ErrorMessageService', () => {
       expect(svc.errorMessage()?.status).toBe(409);
     });
 
+    it('treats bulk-action preview failures as subscribed (no navigation)', () => {
+      const id = '123e4567-e89b-12d3-a456-426614174000';
+      const err = makeErr({
+        status: 413,
+        url: `https://local/application-lists/${id}/entries/bulk-action-preview`,
+        error: { title: 'Payload too large', status: 413 },
+      });
+
+      svc.handleErrorMessage(err);
+
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+      expect(svc.errorMessage()?.status).toBe(413);
+    });
+
     it('treats job polling endpoint failures as subscribed (no navigation)', () => {
       const id = '123e4567-e89b-12d3-a456-426614174000';
       const err = makeErr({

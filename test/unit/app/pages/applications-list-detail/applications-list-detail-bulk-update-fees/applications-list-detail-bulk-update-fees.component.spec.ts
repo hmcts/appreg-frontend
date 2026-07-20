@@ -69,6 +69,33 @@ describe('ApplicationsListDetailBulkUpdateFeesComponent', () => {
     ]);
   });
 
+  it('sorts and paginates selected entries, resetting the page when sorted', () => {
+    history.replaceState(
+      {
+        entriesToUpdateFee: Array.from({ length: 11 }, (_, index) => ({
+          id: `entry-${11 - index}`,
+          applicant: 'Applicant',
+          respondent: 'Respondent',
+          title: 'Title',
+        })),
+      },
+      '',
+    );
+
+    const fixture = TestBed.createComponent(
+      ApplicationsListDetailBulkUpdateFeesComponent,
+    );
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+
+    component.onSortChange({ key: 'id', direction: 'asc' });
+    expect(component.currentPage()).toBe(0);
+    expect(component.paginatedRows()[0].id).toBe('entry-1');
+
+    component.onPageChange(1);
+    expect(component.paginatedRows()).toHaveLength(1);
+  });
+
   it('updates the offsite fee control when the checkbox changes', () => {
     history.replaceState(
       {
