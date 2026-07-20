@@ -619,13 +619,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             const filteredDto = await this.filterEntriesToPrint(dto, mode);
 
             if (!filteredDto) {
-              this.detailSignalState.patch({
-                errorSummary: [
-                  {
-                    text: 'Print failed, please try again later',
-                  },
-                ],
-              });
               return;
             }
 
