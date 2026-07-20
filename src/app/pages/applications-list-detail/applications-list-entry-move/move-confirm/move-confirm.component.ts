@@ -1,10 +1,17 @@
 import { Location, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  PLATFORM_ID,
+  computed,
+  inject,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { APPLICATIONS_LIST_COLUMNS } from '@components/applications-list/util/applications-list.constants';
 import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { ApplicationEntriesMoveContext } from '@components/applications-list-entry-detail/util/routing-state-util';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { TableComponent } from '@components/table/table.component';
@@ -29,6 +36,7 @@ type MoveConfirmNavState = {
     DateTimePipe,
     TableComponent,
     SortableTableComponent,
+    PaginationComponent,
   ],
   templateUrl: './move-confirm.component.html',
 })
@@ -51,6 +59,8 @@ export class MoveConfirmComponent implements OnInit {
   targetList: ApplicationListRow | undefined = this.navState?.targetList;
   entriesToMove: ApplicationEntriesMoveContext[] =
     this.navState?.entriesToMove ?? [];
+
+  showPagination = computed(() => this.entriesToMove.length > 10);
 
   ngOnInit(): void {
     if (

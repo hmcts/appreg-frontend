@@ -1,8 +1,15 @@
 import { Location, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  PLATFORM_ID,
+  computed,
+  inject,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { TableComponent } from '@components/table/table.component';
@@ -30,7 +37,12 @@ type FeeTableRow = {
 
 @Component({
   selector: 'app-fee-update-confirm',
-  imports: [ReviewConfirmComponent, TableComponent, SortableTableComponent],
+  imports: [
+    ReviewConfirmComponent,
+    TableComponent,
+    SortableTableComponent,
+    PaginationComponent,
+  ],
   templateUrl: './fee-update-confirm.component.html',
 })
 export class FeeUpdateConfirmComponent implements OnInit {
@@ -58,6 +70,8 @@ export class FeeUpdateConfirmComponent implements OnInit {
   selectedEntries = this.navState?.selectedEntries ?? [];
   feeStatuses = this.navState?.feeTable ?? [];
   isOffSiteFee = this.navState?.isOffSiteFee ?? false;
+
+  showPagination = computed(() => this.selectedEntries.length > 10);
 
   get feeTableRows(): FeeTableRow[] {
     return this.feeStatuses.map((feeStatus) => ({

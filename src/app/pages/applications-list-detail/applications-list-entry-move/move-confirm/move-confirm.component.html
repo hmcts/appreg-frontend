@@ -16,6 +16,10 @@
     appMojButtonMenu
   />
 
+  @if (showPagination()) {
+    <app-pagination />
+  }
+
   <div class="govuk-!-margin-top-6">
     <app-table
       [rows]="[targetList]"

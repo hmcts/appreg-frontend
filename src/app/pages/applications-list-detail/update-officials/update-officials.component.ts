@@ -1,5 +1,12 @@
 import { Location, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  PLATFORM_ID,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import {
@@ -15,6 +22,7 @@ import {
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
 import { OfficialsSectionComponent } from '@components/officials-section/officials-section.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { OFFICIAL_FIELD_MESSAGES } from '@constants/application-list-entry/error-messages';
 import { OFFICIALS_ERROR_HREFS } from '@constants/application-list-entry/respondent/error-hrefs';
@@ -30,6 +38,7 @@ import { buildFormErrorSummary } from '@util/error-summary';
     ErrorSummaryComponent,
     OfficialsSectionComponent,
     SortableTableComponent,
+    PaginationComponent,
   ],
   templateUrl: './update-officials.component.html',
 })
@@ -49,6 +58,8 @@ export class UpdateOfficialsComponent implements OnInit {
 
   listId = this.route.snapshot.paramMap.get('id') ?? '';
   rows: UpdateOfficialsApplication[] = [];
+
+  showPagination = computed(() => this.rows.length > 10);
 
   constructor() {
     this.form.controls.applicationCode.disable({ emitEvent: false });

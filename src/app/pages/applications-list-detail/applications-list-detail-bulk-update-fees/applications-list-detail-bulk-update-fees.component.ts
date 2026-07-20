@@ -4,6 +4,7 @@ import {
   OnInit,
   PLATFORM_ID,
   ViewChild,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -29,6 +30,7 @@ import {
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
 import { CivilFeeHelpComponent } from '@components/help-details/civil-fee-help.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { FeeStatus } from '@openapi';
 import {
@@ -63,6 +65,7 @@ type BulkUpdateFeeSnapshot = {
     CivilFeeSectionComponent,
     AlertComponent,
     CivilFeeHelpComponent,
+    PaginationComponent,
   ],
   templateUrl: './applications-list-detail-bulk-update-fees.component.html',
 })
@@ -91,6 +94,8 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
     paymentRef: new FormControl<string | null>(null),
     feeStatuses: new FormControl<FeeStatus[] | null>(null),
   });
+
+  showPagination = computed(() => this.vm().selectedEntries.length > 10);
 
   @ViewChild('civilFeeSection')
   private readonly civilFeeSection?: CivilFeeSectionComponent;

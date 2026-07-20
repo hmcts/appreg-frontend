@@ -29,6 +29,10 @@
     [data]="rows"
   />
 
+  @if (showPagination()) {
+    <app-pagination />
+  }
+
   <h2 class="govuk-heading-m govuk-!-margin-top-6">Officials</h2>
 
   <dl class="govuk-summary-list">

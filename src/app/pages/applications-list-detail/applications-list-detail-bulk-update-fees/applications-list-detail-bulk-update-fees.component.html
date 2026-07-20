@@ -40,6 +40,10 @@
   appMojButtonMenu
 />
 
+@if (showPagination()) {
+  <app-pagination />
+}
+
 <hr class="govuk-section-break govuk-section-break--m" />
 
 <app-civil-fee-section

@@ -4,6 +4,7 @@ import {
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -116,6 +117,8 @@ export class ApplicationsListEntryMoveComponent
 
   columnsEntries = APPLICATION_ENTRIES_MOVE_COLUMNS;
   columnsLists: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
+
+  showPagination = computed(() => this.vm().selectedEntries.length > 10);
 
   private readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
 

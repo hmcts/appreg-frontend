@@ -39,6 +39,10 @@
   appMojButtonMenu
 />
 
+@if (showPagination()) {
+  <app-pagination />
+}
+
 <!-- Nav to existing create page with params to adjust that page accordingly -->
 <div class="govuk-!-margin-top-6">
   <app-page-header
