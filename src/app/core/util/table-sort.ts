@@ -2,8 +2,6 @@
  * Table sort helpers for server side sorting
  */
 
-import naturalCompare from 'natural-compare';
-
 export type SortDirection = 'asc' | 'desc';
 export type SortState = { key: string; direction: SortDirection };
 
@@ -17,6 +15,11 @@ export function sortRows<T extends Record<string, unknown>>(
     const leftValue = left[sort.key];
     const rightValue = right[sort.key];
 
+    const collator = new Intl.Collator(undefined, {
+      numeric: true,
+      sensitivity: 'base',
+    });
+
     if (leftValue === rightValue) {
       return 0;
     }
@@ -28,11 +31,11 @@ export function sortRows<T extends Record<string, unknown>>(
     }
 
     if (typeof leftValue === 'number' && typeof rightValue === 'number') {
-      return naturalCompare(leftValue, rightValue) * direction;
+      return (leftValue - rightValue) * direction;
     }
 
     if (typeof leftValue === 'string' && typeof rightValue === 'string') {
-      return naturalCompare(leftValue, rightValue) * direction;
+      return collator.compare(leftValue, rightValue) * direction;
     }
 
     return 0;
