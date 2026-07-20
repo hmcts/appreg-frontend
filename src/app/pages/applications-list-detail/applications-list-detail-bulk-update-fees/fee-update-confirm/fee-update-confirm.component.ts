@@ -84,7 +84,7 @@ export class FeeUpdateConfirmComponent implements OnInit {
     direction: 'asc',
   });
 
-  showPagination = computed(() => this.selectedEntries.length > 10);
+  showPagination = computed(() => this.selectedEntries.length > this.pageSize);
 
   readonly sortedRows = computed(() => {
     const { key, direction } = this.feeSort();

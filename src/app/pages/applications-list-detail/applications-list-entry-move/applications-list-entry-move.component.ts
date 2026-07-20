@@ -61,6 +61,7 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { sortRows } from '@util/table-sort';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
@@ -118,7 +119,31 @@ export class ApplicationsListEntryMoveComponent
   columnsEntries = APPLICATION_ENTRIES_MOVE_COLUMNS;
   columnsLists: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
 
-  showPagination = computed(() => this.vm().selectedEntries.length > 10);
+  private readonly pageSize = 10;
+  readonly currentPage = signal(0);
+  readonly totalPages = computed(() =>
+    Math.ceil(this.vm().selectedEntries.length / this.pageSize),
+  );
+
+  readonly moveSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
+    key: '',
+    direction: 'asc',
+  });
+
+  showPagination = computed(
+    () => this.vm().selectedEntries.length > this.pageSize,
+  );
+
+  readonly sortedRows = computed(() => {
+    const { key, direction } = this.moveSort();
+    const rows = this.vm().selectedEntries;
+    return key ? sortRows(rows, { key, direction }) : rows;
+  });
+
+  readonly paginatedRows = computed(() => {
+    const start = this.currentPage() * this.pageSize;
+    return this.sortedRows().slice(start, start + this.pageSize);
+  });
 
   private readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
 
@@ -238,6 +263,15 @@ export class ApplicationsListEntryMoveComponent
   onPageChange(page: number): void {
     this.storedRecordsState.patch({ currentPage: page });
     this.loadApplicationsLists();
+  }
+
+  onSortChangeSelected(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.moveSort.set(sort);
+    this.currentPage.set(0);
+  }
+
+  onPageChangeSelected(page: number): void {
+    this.currentPage.set(page);
   }
 
   fieldError(id: string): ErrorItem | undefined {

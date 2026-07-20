@@ -30,6 +30,7 @@ import { SortableTableComponent } from '@components/sortable-table/sortable-tabl
 import { ApplicationListEntriesApi, Official, OfficialType } from '@openapi';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
+import { sortRows } from '@util/table-sort';
 
 type OfficialSummaryRow = {
   label: string;
@@ -71,7 +72,29 @@ export class UpdateOfficialsConfirmComponent implements OnInit {
   officialRows: OfficialSummaryRow[] = [];
   officialFormValue: UpdateOfficialsNavState['officialFormValue'];
 
-  showPagination = computed(() => this.rows.length > 10);
+  private readonly pageSize = 10;
+  readonly currentPage = signal(0);
+  readonly totalPages = computed(() =>
+    Math.ceil(this.rows.length / this.pageSize),
+  );
+
+  readonly officialSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
+    key: '',
+    direction: 'asc',
+  });
+
+  showPagination = computed(() => this.rows.length > this.pageSize);
+
+  readonly sortedRows = computed(() => {
+    const { key, direction } = this.officialSort();
+    const rows = this.rows;
+    return key ? sortRows(rows, { key, direction }) : rows;
+  });
+
+  readonly paginatedRows = computed(() => {
+    const start = this.currentPage() * this.pageSize;
+    return this.sortedRows().slice(start, start + this.pageSize);
+  });
 
   ngOnInit(): void {
     const navState = isPlatformBrowser(this.platformId)
@@ -141,6 +164,15 @@ export class UpdateOfficialsConfirmComponent implements OnInit {
         } satisfies UpdateOfficialsNavState,
       },
     );
+  }
+
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.officialSort.set(sort);
+    this.currentPage.set(0);
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
   }
 
   private buildOfficialRows(officials: Official[]): OfficialSummaryRow[] {

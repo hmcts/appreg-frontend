@@ -5,6 +5,7 @@ import {
   PLATFORM_ID,
   computed,
   inject,
+  signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -22,6 +23,7 @@ import {
   MoveEntriesDto,
 } from '@openapi';
 import { getProblemText } from '@util/http-error-to-text';
+import { sortRows } from '@util/table-sort';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
 type MoveConfirmNavState = {
@@ -60,7 +62,29 @@ export class MoveConfirmComponent implements OnInit {
   entriesToMove: ApplicationEntriesMoveContext[] =
     this.navState?.entriesToMove ?? [];
 
-  showPagination = computed(() => this.entriesToMove.length > 10);
+  private readonly pageSize = 10;
+  readonly currentPage = signal(0);
+  readonly totalPages = computed(() =>
+    Math.ceil(this.entriesToMove.length / this.pageSize),
+  );
+
+  readonly moveSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
+    key: '',
+    direction: 'asc',
+  });
+
+  showPagination = computed(() => this.entriesToMove.length > this.pageSize);
+
+  readonly sortedRows = computed(() => {
+    const { key, direction } = this.moveSort();
+    const rows = this.entriesToMove;
+    return key ? sortRows(rows, { key, direction }) : rows;
+  });
+
+  readonly paginatedRows = computed(() => {
+    const start = this.currentPage() * this.pageSize;
+    return this.sortedRows().slice(start, start + this.pageSize);
+  });
 
   ngOnInit(): void {
     if (
@@ -129,5 +153,14 @@ export class MoveConfirmComponent implements OnInit {
         entriesToMove: this.entriesToMove,
       },
     });
+  }
+
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.moveSort.set(sort);
+    this.currentPage.set(0);
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
   }
 }
