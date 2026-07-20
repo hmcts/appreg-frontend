@@ -190,7 +190,7 @@
         (selectAllChange)="onHeaderSelectAllChange($event)"
         (selectedIdsChange)="onSelectedIdsChange($event)"
         (selectedRowsChange)="onSelectedRowsChange($event)"
-        [selectedIds]="vm().selectedIds"
+        [selectedIds]="tableSelectedIds()"
         appMojButtonMenu
       >
         <caption

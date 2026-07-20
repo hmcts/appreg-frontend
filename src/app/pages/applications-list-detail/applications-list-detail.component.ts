@@ -611,14 +611,28 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           const mode = this.printRequest()?.mode;
           this.printRequest.set(null);
           try {
-            const filteredDto = this.filterEntriesToPrint(dto);
+            const filteredDto = await this.filterEntriesToPrint(dto);
+
+            if (!filteredDto) {
+              this.detailSignalState.patch({
+                errorSummary: [
+                  {
+                    text: 'Print failed, please try again later',
+                  },
+                ],
+              });
+            }
 
             if (mode === 'page') {
-              await this.handlePrintPage(filteredDto);
+              await this.handlePrintPage(
+                filteredDto as ApplicationListGetPrintDto,
+              );
               return;
             }
 
-            await this.handlePrintContinuous(filteredDto);
+            await this.handlePrintContinuous(
+              filteredDto as ApplicationListGetPrintDto,
+            );
           } finally {
             this.detailSignalState.patch({ pdfLoading: false });
           }
@@ -1176,10 +1190,19 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  private filterEntriesToPrint(
+  private async filterEntriesToPrint(
     dto: ApplicationListGetPrintDto,
-  ): ApplicationListGetPrintDto {
-    const selectedIds = this.detailSignalState.state().selectedIds;
+  ): Promise<ApplicationListGetPrintDto | undefined> {
+    // const selectedIds = this.detailSignalState.state().selectedIds;
+    const selectedEntries = await this.getBulkPreview(
+      BulkActionType.PRINT_CONTINUOUS, // Assuming cont and page return the same thing
+    );
+
+    if (!selectedEntries) {
+      return;
+    }
+
+    const selectedIds = new Set<string>(selectedEntries.entryIds);
 
     const filteredEntries = dto.entries.filter((entry) =>
       selectedIds.has(entry.id),
