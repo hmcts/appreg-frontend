@@ -314,7 +314,7 @@ export function buildEntryUpdateDtoFromForm(
     applicationCode: detail.applicationCode,
     applicant: detail.applicant,
     respondent: detail.respondent,
-    numberOfRespondents: detail.numberOfRespondents,
+    numberOfRespondents: detail.numberOfRespondents ?? undefined,
     wordingFields: toTemplateSubstitutions(
       getEntryWordingFields(detail),
       LEGACY_WORDING_KEYS,
@@ -522,7 +522,7 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     applicationCode: detail.applicationCode,
     applicant: detail.applicant,
     respondent: detail.respondent,
-    numberOfRespondents: detail.numberOfRespondents,
+    numberOfRespondents: detail.numberOfRespondents ?? undefined,
     wordingFields: toTemplateSubstitutions(
       getEntryWordingFields(detail),
       LEGACY_WORDING_KEYS,

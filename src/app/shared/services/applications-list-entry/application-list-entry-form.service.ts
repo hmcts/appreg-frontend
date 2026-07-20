@@ -314,7 +314,10 @@ export class ApplicationListEntryFormService {
   ): void {
     const r = dto.respondent;
     const hasBulkRespondentCount =
-      Number.isFinite(dto.numberOfRespondents) && dto.numberOfRespondents > 0;
+      dto.numberOfRespondents !== null &&
+      Number.isFinite(dto.numberOfRespondents) &&
+      dto.numberOfRespondents > 0;
+
     const respondentEntryType = hasBulkRespondentCount
       ? 'bulk'
       : (getRespondentEntryType(r) ?? 'person');
