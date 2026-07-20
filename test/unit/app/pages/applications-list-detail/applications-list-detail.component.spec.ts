@@ -49,6 +49,8 @@ const flushSignalEffects = async (
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
+    await Promise.resolve();
+    fixture.detectChanges();
     return;
   }
   await Promise.resolve();
@@ -78,7 +80,7 @@ type PlaceFieldsSignalStateAccessor = {
 type PrintHelpersAccessor = {
   filterEntriesToPrint(
     dto: ApplicationListGetPrintDto,
-  ): ApplicationListGetPrintDto;
+  ): Promise<ApplicationListGetPrintDto | undefined>;
   handlePrintPage(dto: ApplicationListGetPrintDto): Promise<void>;
   handlePrintContinuous(dto: ApplicationListGetPrintDto): Promise<void>;
 };
@@ -516,14 +518,21 @@ describe('ApplicationsListDetail', () => {
     const printHelpers = (): PrintHelpersAccessor =>
       component as unknown as PrintHelpersAccessor;
 
-    it('returns only entries whose row ids are selected', () => {
+    it('returns only entries whose row ids are selected', async () => {
       patchDetailState({ selectedIds: new Set(['entry-1', 'entry-3']) });
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of({
+          entryIds: ['entry-1', 'entry-3'],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
 
       const dto = {
         entries: [{ id: 'entry-1' }, { id: 'entry-2' }, { id: 'entry-3' }],
       } as ApplicationListGetPrintDto;
 
-      const result = printHelpers().filterEntriesToPrint(dto);
+      const result = await printHelpers().filterEntriesToPrint(dto);
 
       expect(result).toEqual({
         ...dto,
@@ -531,14 +540,21 @@ describe('ApplicationsListDetail', () => {
       });
     });
 
-    it('returns the dto with an empty entries array when nothing is selected', () => {
+    it('returns the dto with an empty entries array when nothing is selected', async () => {
       patchDetailState({ selectedIds: new Set<string>() });
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of({
+          entryIds: [],
+        }) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
 
       const dto = {
         entries: [{ id: 'entry-1' }, { id: 'entry-2' }],
       } as ApplicationListGetPrintDto;
 
-      const result = printHelpers().filterEntriesToPrint(dto);
+      const result = await printHelpers().filterEntriesToPrint(dto);
 
       expect(result).toEqual({
         ...dto,
@@ -621,6 +637,13 @@ describe('ApplicationsListDetail', () => {
           },
         ],
       });
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of({
+          entryIds: ['entry-1'],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
       component.id = 'list-123';
       component.onPrintPageClick();
       fixture.detectChanges();
@@ -807,6 +830,13 @@ describe('ApplicationsListDetail', () => {
         .mockResolvedValue();
 
       patchDetailState({ selectedIds: new Set(['entry-1']) });
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of({
+          entryIds: ['entry-1'],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
 
       (component as unknown as PrintRequestSignalAccessor).printRequest.set({
         id: 'list-123',
@@ -854,6 +884,13 @@ describe('ApplicationsListDetail', () => {
         .mockResolvedValue();
 
       patchDetailState({ selectedIds: new Set(['entry-2']) });
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of({
+          entryIds: ['entry-2'],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
 
       (component as unknown as PrintRequestSignalAccessor).printRequest.set({
         id: 'list-123',
