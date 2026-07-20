@@ -79,10 +79,11 @@ import {
   BulkActionSelectionType,
   BulkActionType,
   EntryPage,
+  PrintApplicationListsRequestParams,
 } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
-import { PrintRequest } from '@shared-types/pdf/pdf.types';
+import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
@@ -180,7 +181,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly tableDataRequest = signal<tableDataReq | null>(null);
   private readonly listDetailRequest = signal<listDetailsReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
-  private readonly printRequest = signal<PrintRequest | null>(null);
+  private readonly printRequest = signal<BulkPrintRequest | null>(null);
 
   private readonly loadFailed = signal(false);
   readonly submitAttempt = signal(0);
@@ -594,13 +595,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       this.envInjector,
     );
 
-    // GET /application-lists/{listId}/print
+    // GET /application-lists/print
     setupLoadEffect(
       {
         request: this.printRequest,
-        load: (req: PrintRequest) =>
-          this.appListApi.printApplicationList(
-            { listId: req.id },
+        load: (req: BulkPrintRequest) =>
+          this.appListApi.printApplicationLists(
+            {
+              bulkGetApplicationListEntriesRequestDto:
+                req.body.bulkGetApplicationListEntriesRequestDto,
+            },
             undefined,
             undefined,
             {
@@ -616,18 +620,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           }
 
           try {
-            const filteredDto = await this.filterEntriesToPrint(dto, mode);
-
-            if (!filteredDto) {
+            if (!dto) {
               return;
             }
 
             if (mode === 'page') {
-              await this.handlePrintPage(filteredDto);
+              await this.handlePrintPage(dto);
               return;
             }
 
-            await this.handlePrintContinuous(filteredDto);
+            await this.handlePrintContinuous(dto);
           } finally {
             this.detailSignalState.patch({ pdfLoading: false });
           }
@@ -733,7 +735,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   onHeaderSelectAllChange(checked: boolean): void {
     if (checked) {
-      void this.onSelectAllMatchingClick();
+      this.onSelectAllMatchingClick();
       return;
     }
 
@@ -837,7 +839,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const rows = mapEntrySummaryRows(preview?.entries) ?? [];
+    const rows = mapEntrySummaryRows(preview.entries);
 
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
@@ -871,7 +873,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const rows = mapEntrySummaryRows(preview?.entries) ?? [];
+    const rows = mapEntrySummaryRows(preview.entries);
 
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
@@ -906,7 +908,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const rows = mapEntrySummaryRows(preview?.entries) ?? [];
+    const rows = mapEntrySummaryRows(preview.entries);
 
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
@@ -962,7 +964,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const rows = mapEntrySummaryRows(preview?.entries) ?? [];
+    const rows = mapEntrySummaryRows(preview.entries);
 
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
 
@@ -1003,7 +1005,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     void this.onUpdateFeeButtonClick();
   }
 
-  onPrintContinuousClick(): void {
+  async onPrintContinuousClick(): Promise<void> {
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
     this.detailSignalState.patch({ pdfLoading: true });
@@ -1012,13 +1014,31 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    const preview = await this.getBulkPreview(BulkActionType.PRINT_CONTINUOUS);
+
+    if (!preview) {
+      this.detailSignalState.patch({ pdfLoading: false });
+      return;
+    }
+
+    const entryIds = preview.entryIds;
+
+    const params: PrintApplicationListsRequestParams = {
+      bulkGetApplicationListEntriesRequestDto: {
+        listIds: [this.id],
+        ...(entryIds.length !== 0 && {
+          entryIds: [...new Set(entryIds)], // Omitting this returns all entries
+        }),
+      },
+    };
+
     this.printRequest.set({
-      id: this.id,
+      body: params,
       mode: 'continuous',
     });
   }
 
-  onPrintPageClick(): void {
+  async onPrintPageClick(): Promise<void> {
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
     this.detailSignalState.patch({ pdfLoading: true });
@@ -1027,7 +1047,26 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    this.printRequest.set({ id: this.id, mode: 'page' });
+    const preview = await this.getBulkPreview(BulkActionType.PRINT_PAGE);
+
+    if (!preview) {
+      this.detailSignalState.patch({ pdfLoading: false });
+      return;
+    }
+
+    const entryIds = preview.entryIds;
+
+    const params: PrintApplicationListsRequestParams = {
+      bulkGetApplicationListEntriesRequestDto: {
+        listIds: [this.id],
+        entryIds: [...new Set<string>(entryIds)],
+      },
+    };
+
+    this.printRequest.set({
+      body: params,
+      mode: 'page',
+    });
   }
 
   readonly patchStateFn = (
@@ -1185,33 +1224,33 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  private async filterEntriesToPrint(
-    dto: ApplicationListGetPrintDto,
-    mode: 'page' | 'continuous',
-  ): Promise<ApplicationListGetPrintDto | undefined> {
-    // const selectedIds = this.detailSignalState.state().selectedIds;
-    const selectedMode =
-      mode === 'page'
-        ? BulkActionType.PRINT_PAGE
-        : BulkActionType.PRINT_CONTINUOUS;
+  // private async filterEntriesToPrint(
+  //   dto: ApplicationListGetPrintDto,
+  //   mode: 'page' | 'continuous',
+  // ): Promise<ApplicationListGetPrintDto | undefined> {
+  //   // const selectedIds = this.detailSignalState.state().selectedIds;
+  //   const selectedMode =
+  //     mode === 'page'
+  //       ? BulkActionType.PRINT_PAGE
+  //       : BulkActionType.PRINT_CONTINUOUS;
 
-    const selectedEntries = await this.getBulkPreview(selectedMode);
+  //   const selectedEntries = await this.getBulkPreview(selectedMode);
 
-    if (!selectedEntries) {
-      return;
-    }
+  //   if (!selectedEntries) {
+  //     return;
+  //   }
 
-    const selectedIds = new Set<string>(selectedEntries.entryIds);
+  //   const selectedIds = new Set<string>(selectedEntries.entryIds);
 
-    const filteredEntries = dto.entries.filter((entry) =>
-      selectedIds.has(entry.id),
-    );
+  //   const filteredEntries = dto.entries.filter((entry) =>
+  //     selectedIds.has(entry.id),
+  //   );
 
-    return {
-      ...dto,
-      entries: filteredEntries,
-    };
-  }
+  //   return {
+  //     ...dto,
+  //     entries: filteredEntries,
+  //   };
+  // }
 
   // private applySelectAllMatching(dto: EntryIdsDto): void {
   //   this.detailSignalState.patch({
@@ -1224,52 +1263,52 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   //   });
   // }
 
-  private async resolveSelectedRows(): Promise<Row[]> {
-    const vm = this.vm();
+  // private async resolveSelectedRows(): Promise<Row[]> {
+  //   const vm = this.vm();
 
-    if (vm.selectedIds.size === 0) {
-      return vm.selectedRows;
-    }
+  //   if (vm.selectedIds.size === 0) {
+  //     return vm.selectedRows;
+  //   }
 
-    if (vm.selectedIds.size === vm.selectedRows.length) {
-      return vm.selectedRows;
-    }
+  //   if (vm.selectedIds.size === vm.selectedRows.length) {
+  //     return vm.selectedRows;
+  //   }
 
-    const selectedIds = new Set(vm.selectedIds);
-    const apiSortKey =
-      APPLICATION_LIST_DETAIL_SORT_MAP[vm.sortField.key] ?? vm.sortField.key;
-    const sort = [`${apiSortKey},${vm.sortField.direction}`];
-    const pageCount =
-      vm.totalPages > 0 ? vm.totalPages : vm.totalEntries > 0 ? 1 : 0;
-    const selectedRows: Row[] = [];
+  //   const selectedIds = new Set(vm.selectedIds);
+  //   const apiSortKey =
+  //     APPLICATION_LIST_DETAIL_SORT_MAP[vm.sortField.key] ?? vm.sortField.key;
+  //   const sort = [`${apiSortKey},${vm.sortField.direction}`];
+  //   const pageCount =
+  //     vm.totalPages > 0 ? vm.totalPages : vm.totalEntries > 0 ? 1 : 0;
+  //   const selectedRows: Row[] = [];
 
-    for (let pageNumber = 0; pageNumber < pageCount; pageNumber += 1) {
-      const page = await firstValueFrom(
-        this.appListEntriesApi.getApplicationListEntries({
-          listId: this.id,
-          pageNumber,
-          pageSize: vm.pageSize,
-          sort,
-          filter: vm.getFilters,
-        }),
-      );
+  //   for (let pageNumber = 0; pageNumber < pageCount; pageNumber += 1) {
+  //     const page = await firstValueFrom(
+  //       this.appListEntriesApi.getApplicationListEntries({
+  //         listId: this.id,
+  //         pageNumber,
+  //         pageSize: vm.pageSize,
+  //         sort,
+  //         filter: vm.getFilters,
+  //       }),
+  //     );
 
-      const rows = mapEntrySummaryRows(page.content ?? []);
-      for (const row of rows) {
-        if (selectedIds.has(row.id)) {
-          selectedRows.push(row);
-        }
-      }
+  //     const rows = mapEntrySummaryRows(page.content ?? []);
+  //     for (const row of rows) {
+  //       if (selectedIds.has(row.id)) {
+  //         selectedRows.push(row);
+  //       }
+  //     }
 
-      if (selectedRows.length === selectedIds.size) {
-        break;
-      }
-    }
+  //     if (selectedRows.length === selectedIds.size) {
+  //       break;
+  //     }
+  //   }
 
-    this.detailSignalState.patch({ selectedRows });
+  //   this.detailSignalState.patch({ selectedRows });
 
-    return selectedRows;
-  }
+  //   return selectedRows;
+  // }
 
   private nextSelectAllRequestVersion(): number {
     this.selectAllRequestVersion += 1;
@@ -1336,7 +1375,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private async handlePrintPage(
-    dto: ApplicationListGetPrintDto,
+    dto: ApplicationListGetPrintDto[],
   ): Promise<void> {
     await handlePrintPagePdf(dto, {
       pdf: this.pdf,
@@ -1349,7 +1388,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private async handlePrintContinuous(
-    dto: ApplicationListGetPrintDto,
+    dto: ApplicationListGetPrintDto[],
   ): Promise<void> {
     await handlePrintContinuousPdf(dto, {
       pdf: this.pdf,

@@ -64,7 +64,7 @@ type DetailSignalStateAccessor = {
 
 type PrintRequestSignalAccessor = {
   printRequest: {
-    set: (value: { id: string; mode: 'page' | 'continuous' } | null) => void;
+    set: (value: unknown) => void;
   };
 };
 
@@ -78,9 +78,6 @@ type PlaceFieldsSignalStateAccessor = {
 };
 
 type PrintHelpersAccessor = {
-  filterEntriesToPrint(
-    dto: ApplicationListGetPrintDto,
-  ): Promise<ApplicationListGetPrintDto | undefined>;
   handlePrintPage(dto: ApplicationListGetPrintDto): Promise<void>;
   handlePrintContinuous(dto: ApplicationListGetPrintDto): Promise<void>;
 };
@@ -98,12 +95,12 @@ describe('ApplicationsListDetail', () => {
   const apiStub: jest.Mocked<
     Pick<
       ApplicationListsApi,
-      'getApplicationList' | 'updateApplicationList' | 'printApplicationList'
+      'getApplicationList' | 'updateApplicationList' | 'printApplicationLists'
     >
   > = {
     getApplicationList: jest.fn(),
     updateApplicationList: jest.fn(),
-    printApplicationList: jest.fn(),
+    printApplicationLists: jest.fn(),
   };
 
   const entriesApiStub: jest.Mocked<
@@ -183,11 +180,11 @@ describe('ApplicationsListDetail', () => {
       ),
     );
 
-    apiStub.printApplicationList.mockReturnValue(
-      of({
-        entries: [{ id: 'entry-1' }, { id: 'entry-2' }],
-      } as ApplicationListGetPrintDto) as unknown as ReturnType<
-        ApplicationListsApi['printApplicationList']
+    apiStub.printApplicationLists.mockReturnValue(
+      of([
+        { entries: [{ id: 'entry-1' }, { id: 'entry-2' }] },
+      ] as ApplicationListGetPrintDto[]) as unknown as ReturnType<
+        ApplicationListsApi['printApplicationLists']
       >,
     );
 
@@ -514,55 +511,6 @@ describe('ApplicationsListDetail', () => {
     });
   });
 
-  describe('filterEntriesToPrint', () => {
-    const printHelpers = (): PrintHelpersAccessor =>
-      component as unknown as PrintHelpersAccessor;
-
-    it('returns only entries whose row ids are selected', async () => {
-      patchDetailState({ selectedIds: new Set(['entry-1', 'entry-3']) });
-      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
-        of({
-          entryIds: ['entry-1', 'entry-3'],
-        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
-          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
-        >,
-      );
-
-      const dto = {
-        entries: [{ id: 'entry-1' }, { id: 'entry-2' }, { id: 'entry-3' }],
-      } as ApplicationListGetPrintDto;
-
-      const result = await printHelpers().filterEntriesToPrint(dto);
-
-      expect(result).toEqual({
-        ...dto,
-        entries: [{ id: 'entry-1' }, { id: 'entry-3' }],
-      });
-    });
-
-    it('returns the dto with an empty entries array when nothing is selected', async () => {
-      patchDetailState({ selectedIds: new Set<string>() });
-      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
-        of({
-          entryIds: [],
-        }) as unknown as ReturnType<
-          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
-        >,
-      );
-
-      const dto = {
-        entries: [{ id: 'entry-1' }, { id: 'entry-2' }],
-      } as ApplicationListGetPrintDto;
-
-      const result = await printHelpers().filterEntriesToPrint(dto);
-
-      expect(result).toEqual({
-        ...dto,
-        entries: [],
-      });
-    });
-  });
-
   describe('handlePrintPage', () => {
     const printHelpers = (): PrintHelpersAccessor =>
       component as unknown as PrintHelpersAccessor;
@@ -645,7 +593,7 @@ describe('ApplicationsListDetail', () => {
         >,
       );
       component.id = 'list-123';
-      component.onPrintPageClick();
+      await component.onPrintPageClick();
       fixture.detectChanges();
       await Promise.resolve();
       fixture.detectChanges();
@@ -713,7 +661,7 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('onPrintContinuousClick', () => {
-    it('clears notifications and sets a continuous print request when id exists', () => {
+    it('clears notifications and sets a continuous print request when id exists', async () => {
       const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
       const setSpy = jest.spyOn(
         (component as unknown as PrintRequestSignalAccessor).printRequest,
@@ -721,8 +669,15 @@ describe('ApplicationsListDetail', () => {
       );
 
       component.id = 'list-123';
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of({
+          entryIds: ['entry-1'],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
 
-      component.onPrintContinuousClick();
+      await component.onPrintContinuousClick();
 
       expect(patchSpy).toHaveBeenCalledWith({
         updateDone: false,
@@ -737,12 +692,17 @@ describe('ApplicationsListDetail', () => {
         updateFeesDone: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
-        id: 'list-123',
+        body: {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-1'],
+          },
+        },
         mode: 'continuous',
       });
     });
 
-    it('clears notifications and does not set a print request when id is missing', () => {
+    it('clears notifications and does not set a print request when id is missing', async () => {
       const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
       const setSpy = jest.spyOn(
         (component as unknown as PrintRequestSignalAccessor).printRequest,
@@ -751,7 +711,7 @@ describe('ApplicationsListDetail', () => {
 
       component.id = '';
 
-      component.onPrintContinuousClick();
+      await component.onPrintContinuousClick();
 
       expect(patchSpy).toHaveBeenCalled();
       expect(setSpy).not.toHaveBeenCalled();
@@ -759,7 +719,7 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('onPrintPageClick', () => {
-    it('clears notifications and sets a page print request when id exists', () => {
+    it('clears notifications and sets a page print request when id exists', async () => {
       const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
       const setSpy = jest.spyOn(
         (component as unknown as PrintRequestSignalAccessor).printRequest,
@@ -767,8 +727,15 @@ describe('ApplicationsListDetail', () => {
       );
 
       component.id = 'list-123';
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of({
+          entryIds: ['entry-1'],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
 
-      component.onPrintPageClick();
+      await component.onPrintPageClick();
 
       expect(patchSpy).toHaveBeenCalledWith({
         updateDone: false,
@@ -783,12 +750,17 @@ describe('ApplicationsListDetail', () => {
         updateFeesDone: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
-        id: 'list-123',
+        body: {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-1'],
+          },
+        },
         mode: 'page',
       });
     });
 
-    it('clears notifications and does not set a print request when id is missing', () => {
+    it('clears notifications and does not set a print request when id is missing', async () => {
       const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
       const setSpy = jest.spyOn(
         (component as unknown as PrintRequestSignalAccessor).printRequest,
@@ -797,7 +769,7 @@ describe('ApplicationsListDetail', () => {
 
       component.id = '';
 
-      component.onPrintPageClick();
+      await component.onPrintPageClick();
 
       expect(patchSpy).toHaveBeenCalled();
       expect(setSpy).not.toHaveBeenCalled();
@@ -839,13 +811,23 @@ describe('ApplicationsListDetail', () => {
       );
 
       (component as unknown as PrintRequestSignalAccessor).printRequest.set({
-        id: 'list-123',
+        body: {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-1'],
+          },
+        },
         mode: 'page',
       });
       await flushSignalEffects(fixture);
 
-      expect(apiStub.printApplicationList).toHaveBeenCalledWith(
-        { listId: 'list-123' },
+      expect(apiStub.printApplicationLists).toHaveBeenCalledWith(
+        {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-1'],
+          },
+        },
         undefined,
         undefined,
         {
@@ -853,9 +835,9 @@ describe('ApplicationsListDetail', () => {
         },
       );
       expect(setSpy).toHaveBeenCalledWith(null);
-      expect(handlePrintPageSpy).toHaveBeenCalledWith({
-        entries: [{ id: 'entry-1' }],
-      });
+      expect(handlePrintPageSpy).toHaveBeenCalledWith([
+        { entries: [{ id: 'entry-1' }, { id: 'entry-2' }] },
+      ]);
       expect(handlePrintContinuousSpy).not.toHaveBeenCalled();
     });
 
@@ -893,13 +875,23 @@ describe('ApplicationsListDetail', () => {
       );
 
       (component as unknown as PrintRequestSignalAccessor).printRequest.set({
-        id: 'list-123',
+        body: {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-2'],
+          },
+        },
         mode: 'continuous',
       });
       await flushSignalEffects(fixture);
 
-      expect(apiStub.printApplicationList).toHaveBeenCalledWith(
-        { listId: 'list-123' },
+      expect(apiStub.printApplicationLists).toHaveBeenCalledWith(
+        {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-2'],
+          },
+        },
         undefined,
         undefined,
         {
@@ -907,9 +899,9 @@ describe('ApplicationsListDetail', () => {
         },
       );
       expect(setSpy).toHaveBeenCalledWith(null);
-      expect(handlePrintContinuousSpy).toHaveBeenCalledWith({
-        entries: [{ id: 'entry-2' }],
-      });
+      expect(handlePrintContinuousSpy).toHaveBeenCalledWith([
+        { entries: [{ id: 'entry-1' }, { id: 'entry-2' }] },
+      ]);
       expect(handlePrintPageSpy).not.toHaveBeenCalled();
     });
 
@@ -925,12 +917,17 @@ describe('ApplicationsListDetail', () => {
       );
       const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
 
-      apiStub.printApplicationList.mockReturnValueOnce(
+      apiStub.printApplicationLists.mockReturnValueOnce(
         throwError(() => requestError),
       );
 
       (component as unknown as PrintRequestSignalAccessor).printRequest.set({
-        id: 'list-123',
+        body: {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-1'],
+          },
+        },
         mode: 'page',
       });
       await flushSignalEffects(fixture);
@@ -1790,6 +1787,7 @@ describe('ApplicationsListDetail', () => {
 
   it('requests a bulk preview using filter selection and excluded ids', async () => {
     jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
     entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
       of({
         action: BulkActionType.RESULT_SELECTED,
@@ -1798,7 +1796,14 @@ describe('ApplicationsListDetail', () => {
         eligibleCount: 1,
         ineligibleCount: 0,
         entryIds: ['abc'],
-        entries: [],
+        entries: [
+          {
+            id: 'abc',
+            sequenceNumber: 1,
+            applicationTitle: 'Application',
+            isFeeRequired: false,
+          },
+        ],
       } as BulkActionPreviewResponseDto) as unknown as ReturnType<
         ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
       >,
@@ -1828,8 +1833,9 @@ describe('ApplicationsListDetail', () => {
   });
 
   it('reports the specific message when a bulk preview exceeds the row limit', async () => {
-    entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
-      throwError(() => new HttpErrorResponse({ status: 413 })),
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
+    entriesApiStub.applicationListEntryBulkActionPreview.mockImplementationOnce(
+      () => throwError(() => new HttpErrorResponse({ status: 413 })),
     );
     patchDetailState({ selectedIds: new Set(['abc']) });
     component.id = 'list-123';
