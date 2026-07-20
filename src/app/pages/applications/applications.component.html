@@ -302,37 +302,49 @@
     </caption>
 
     <ng-template #actionsTemplate let-row>
-      <div
-        class="moj-button-menu"
-        data-module="moj-button-menu"
-        data-button-text="Select"
-        data-button-classes="govuk-button"
-      >
-        <!-- Open -->
-        <button
-          type="button"
-          class="govuk-button moj-button-menu__item govuk-button--secondary"
-          [routerLink]="[
-            '/applications-list',
-            row.applicationListId,
-            'update-entry',
-            row.id,
-          ]"
-          [state]="{ fromApplicationsPage: true }"
-          [disabled]="row.status === 'CLOSED'"
+      <!-- Show button menu is row is open -->
+      @if (row.status === 'OPEN') {
+        <div
+          class="moj-button-menu"
+          data-module="moj-button-menu"
+          data-button-text="Select"
+          data-button-classes="govuk-button"
         >
-          Open
-        </button>
-
-        <!-- Update notes -->
-        <button
-          type="button"
-          class="govuk-button moj-button-menu__item govuk-button--secondary"
-          (click)="onUpdateNotesClick(row)"
-        >
-          Update notes
-        </button>
-      </div>
+          <!-- Open -->
+          <button
+            type="button"
+            class="govuk-button moj-button-menu__item govuk-button--secondary"
+            [routerLink]="[
+              '/applications-list',
+              row.applicationListId,
+              'update-entry',
+              row.id,
+            ]"
+            [state]="{ fromApplicationsPage: true }"
+            [disabled]="row.status === 'CLOSED'"
+          >
+            Open
+          </button>
+          <!-- Update notes -->
+          <button
+            type="button"
+            class="govuk-button moj-button-menu__item govuk-button--secondary"
+            (click)="onUpdateNotesClick(row)"
+          >
+            Update notes
+          </button>
+        </div>
+      } @else {
+        <div data-module="moj-button-menu">
+          <button
+            type="button"
+            class="govuk-button"
+            (click)="onUpdateNotesClick(row)"
+          >
+            Update notes
+          </button>
+        </div>
+      }
     </ng-template>
   </app-sortable-table>
 
