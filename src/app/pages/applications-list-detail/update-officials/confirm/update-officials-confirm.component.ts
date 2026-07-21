@@ -1,15 +1,9 @@
 import { Location, isPlatformBrowser } from '@angular/common';
-import {
-  Component,
-  OnInit,
-  PLATFORM_ID,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
+import { UpdateOfficialsTableBase } from '../update-officials-table.base';
 import {
   UpdateOfficialsApplication,
   UpdateOfficialsNavState,
@@ -30,7 +24,6 @@ import { SortableTableComponent } from '@components/sortable-table/sortable-tabl
 import { ApplicationListEntriesApi, Official, OfficialType } from '@openapi';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
-import { sortRows } from '@util/table-sort';
 
 type OfficialSummaryRow = {
   label: string;
@@ -49,7 +42,10 @@ type OfficialSummaryRow = {
   ],
   templateUrl: './update-officials-confirm.component.html',
 })
-export class UpdateOfficialsConfirmComponent implements OnInit {
+export class UpdateOfficialsConfirmComponent
+  extends UpdateOfficialsTableBase
+  implements OnInit
+{
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
@@ -71,30 +67,6 @@ export class UpdateOfficialsConfirmComponent implements OnInit {
   officials: Official[] = [];
   officialRows: OfficialSummaryRow[] = [];
   officialFormValue: UpdateOfficialsNavState['officialFormValue'];
-
-  private readonly pageSize = 10;
-  readonly currentPage = signal(0);
-  readonly totalPages = computed(() =>
-    Math.ceil(this.rows.length / this.pageSize),
-  );
-
-  readonly officialSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
-    key: '',
-    direction: 'asc',
-  });
-
-  showPagination = computed(() => this.rows.length > this.pageSize);
-
-  readonly sortedRows = computed(() => {
-    const { key, direction } = this.officialSort();
-    const rows = this.rows;
-    return key ? sortRows(rows, { key, direction }) : rows;
-  });
-
-  readonly paginatedRows = computed(() => {
-    const start = this.currentPage() * this.pageSize;
-    return this.sortedRows().slice(start, start + this.pageSize);
-  });
 
   ngOnInit(): void {
     const navState = isPlatformBrowser(this.platformId)
@@ -164,15 +136,6 @@ export class UpdateOfficialsConfirmComponent implements OnInit {
         } satisfies UpdateOfficialsNavState,
       },
     );
-  }
-
-  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
-    this.officialSort.set(sort);
-    this.currentPage.set(0);
-  }
-
-  onPageChange(page: number): void {
-    this.currentPage.set(page);
   }
 
   private buildOfficialRows(officials: Official[]): OfficialSummaryRow[] {

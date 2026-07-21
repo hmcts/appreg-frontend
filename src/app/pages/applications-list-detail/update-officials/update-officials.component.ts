@@ -1,14 +1,8 @@
 import { Location, isPlatformBrowser } from '@angular/common';
-import {
-  Component,
-  OnInit,
-  PLATFORM_ID,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { UpdateOfficialsTableBase } from './update-officials-table.base';
 import {
   UpdateOfficialsApplication,
   UpdateOfficialsNavState,
@@ -29,7 +23,6 @@ import { OFFICIALS_ERROR_HREFS } from '@constants/application-list-entry/respond
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
-import { sortRows } from '@util/table-sort';
 
 @Component({
   selector: 'app-update-officials',
@@ -43,7 +36,10 @@ import { sortRows } from '@util/table-sort';
   ],
   templateUrl: './update-officials.component.html',
 })
-export class UpdateOfficialsComponent implements OnInit {
+export class UpdateOfficialsComponent
+  extends UpdateOfficialsTableBase
+  implements OnInit
+{
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
@@ -60,31 +56,8 @@ export class UpdateOfficialsComponent implements OnInit {
   listId = this.route.snapshot.paramMap.get('id') ?? '';
   rows: UpdateOfficialsApplication[] = [];
 
-  private readonly pageSize = 10;
-  readonly currentPage = signal(0);
-  readonly totalPages = computed(() =>
-    Math.ceil(this.rows.length / this.pageSize),
-  );
-
-  readonly officialSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
-    key: '',
-    direction: 'asc',
-  });
-
-  showPagination = computed(() => this.rows.length > this.pageSize);
-
-  readonly sortedRows = computed(() => {
-    const { key, direction } = this.officialSort();
-    const rows = this.rows;
-    return key ? sortRows(rows, { key, direction }) : rows;
-  });
-
-  readonly paginatedRows = computed(() => {
-    const start = this.currentPage() * this.pageSize;
-    return this.sortedRows().slice(start, start + this.pageSize);
-  });
-
   constructor() {
+    super();
     this.form.controls.applicationCode.disable({ emitEvent: false });
     this.form.controls.lodgementDate.disable({ emitEvent: false });
   }
@@ -158,14 +131,5 @@ export class UpdateOfficialsComponent implements OnInit {
     return buildFormErrorSummary(this.form, OFFICIAL_FIELD_MESSAGES, {
       hrefs: OFFICIALS_ERROR_HREFS,
     });
-  }
-
-  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
-    this.officialSort.set(sort);
-    this.currentPage.set(0);
-  }
-
-  onPageChange(page: number): void {
-    this.currentPage.set(page);
   }
 }
