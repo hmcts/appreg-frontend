@@ -1,5 +1,4 @@
 import { DataTable, Then } from '@badeball/cypress-cucumber-preprocessor';
-
 import { SummaryTableHelper } from '../../../../support/helper/table/SummaryTableHelper';
 import { TableHelper } from '../../../../support/helper/table/TableHelper';
 import { TableSearch } from '../../../../support/helper/table/TableSearch';
@@ -153,6 +152,26 @@ Then(
     // Verify the button is disabled for each row in the data table
     for (const row of rows) {
       TableVerification.verifyButtonDisabledInRow(
+        tableCaption,
+        row,
+        buttonText,
+      );
+    }
+  },
+);
+
+Then(
+  'User Verify {string} Button Is Not Present In Row Of Table {string} With:',
+  (buttonText: string, tableCaption: string, dataTable: DataTable) => {
+    const rows = dataTable.hashes();
+
+    if (rows.length === 0) {
+      throw new Error('DataTable must have at least one row of data');
+    }
+
+    // Verify the button is not present for each row in the data table
+    for (const row of rows) {
+      TableVerification.verifyButtonNotPresentInRow(
         tableCaption,
         row,
         buttonText,

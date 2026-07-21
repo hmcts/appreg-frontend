@@ -298,4 +298,43 @@ export class TableVerification {
         });
     });
   }
+
+  static verifyButtonNotPresentInRow(
+    tableCaption: string,
+    rowData: { [key: string]: string },
+    buttonText: string,
+  ): void {
+    cy.log(
+      `Verifying button "${buttonText}" is not present for row with data: ${JSON.stringify(
+        rowData,
+      )}`,
+    );
+
+    const escapedButtonText = buttonText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const exactButtonText = new RegExp(
+      String.raw`^\s*${escapedButtonText}\s*$`,
+    );
+
+    TableSearch.searchWithPagination(rowData, tableCaption, true, (row) => {
+      return cy
+        .wrap(row)
+        .find(
+          'button, [role="button"], input[type="button"], input[type="submit"], a',
+        )
+        .filter((_index, element) => {
+          const $element = Cypress.$(element);
+          const text = $element.is('input')
+            ? String($element.val() ?? '')
+            : $element.text();
+
+          return exactButtonText.test(text);
+        })
+        .should('not.exist') as unknown as Cypress.Chainable<void>;
+    }).then((found) => {
+      expect(
+        found,
+        `Row should exist in table "${tableCaption}" before checking button "${buttonText}"`,
+      ).to.equal(true);
+    });
+  }
 }
