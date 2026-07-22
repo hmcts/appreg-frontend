@@ -98,6 +98,29 @@ describe('FeeUpdateConfirmComponent', () => {
     });
   });
 
+  it('submits selected entries with only the offsite fee enabled', () => {
+    component.selectedEntries = [
+      {
+        id: 'entry-1',
+        applicant: 'Applicant',
+        respondent: 'Respondent',
+        title: 'Title',
+      },
+    ] as never;
+    component.feeStatuses = [];
+    component.isOffSiteFee = true;
+
+    component.onConfirm();
+
+    expect(bulkUpdateApplicationListEntryFees).toHaveBeenCalledWith({
+      listId: 'list-1',
+      bulkFeesUpdateDto: {
+        entryIds: ['entry-1'],
+        hasOffsiteFee: true,
+      },
+    });
+  });
+
   it('goBack persists civil fee statuses in bulk update snapshot state', () => {
     component.selectedEntries = [
       {

@@ -9,7 +9,7 @@ import {
 } from '@components/civil-fee-section/civil-fee-section.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { TableColumn } from '@components/sortable-table/sortable-table.component';
-import { FeeStatus } from '@openapi';
+import { FeeStatus, PaymentStatus } from '@openapi';
 
 jest.mock('@util/civil-fee-utils', () => ({
   buildCivilFeeHeading: jest.fn(() => 'MOCK_HEADING'),
@@ -241,19 +241,39 @@ describe('CivilFeeSectionComponent', () => {
     ]);
   });
 
-  it('onAddFeeDetailsClick allows partial fee details when just fee entry is allowed', () => {
+  it.each([
+    ['fee status only', 'PAID', '', null],
+    ['status date only', null, '2025-11-01', null],
+    ['payment reference only', null, '', 'REF-123'],
+  ])(
+    'onAddFeeDetailsClick blocks %s when just fee entry is allowed',
+    (_description, feeStatus, statusDate, paymentReference) => {
+      const addSpy = jest.fn();
+      component.addFeeDetails.subscribe(addSpy);
+      fixture.componentRef.setInput('allowJustFeeEntry', true);
+      const f = component.feeForm().controls;
+      f.feeStatus.setValue(feeStatus);
+      f.feeStatusDate.setValue(statusDate);
+      f.paymentRef.setValue(paymentReference);
+
+      component.onAddFeeDetailsClick();
+
+      expect(addSpy).not.toHaveBeenCalled();
+    },
+  );
+
+  it('onAddFeeDetailsClick blocks partial fee details when just fee entry is allowed', () => {
     const addSpy = jest.fn();
     component.addFeeDetails.subscribe(addSpy);
     fixture.componentRef.setInput('allowJustFeeEntry', true);
-    component.feeForm().controls.paymentRef.setValue('REF-123');
+
+    const f = component.feeForm().controls;
+    f.feeStatus.setValue('PAID');
+    f.feeStatusDate.setValue('');
 
     component.onAddFeeDetailsClick();
 
-    expect(addSpy).toHaveBeenCalledWith({
-      feeStatus: null,
-      statusDate: '',
-      paymentReference: 'REF-123',
-    });
+    expect(addSpy).not.toHaveBeenCalled();
   });
 
   it('onAddFeeDetailsClick shows errors for empty fee details even when offsite fee is selected', () => {
@@ -267,6 +287,50 @@ describe('CivilFeeSectionComponent', () => {
     expect(errorsSpy).toHaveBeenCalledWith([
       { id: 'feeStatus', text: 'Select a fee status' },
       { id: 'feeStatusDate', text: 'Enter a valid status date' },
+    ]);
+  });
+
+  it('onAddFeeDetailsClick shows the DUE payment reference error in just-fee mode', () => {
+    const errorsSpy = jest.fn();
+    const addSpy = jest.fn();
+    component.civilFeeErrors.subscribe(errorsSpy);
+    component.addFeeDetails.subscribe(addSpy);
+    fixture.componentRef.setInput('allowJustFeeEntry', true);
+    const f = component.feeForm().controls;
+    f.feeStatus.setValue('DUE');
+    f.feeStatusDate.setValue('2025-11-01');
+    f.paymentRef.setValue('REF-123');
+
+    component.onAddFeeDetailsClick();
+
+    expect(addSpy).not.toHaveBeenCalled();
+    expect(errorsSpy).toHaveBeenCalledWith([
+      {
+        id: 'paymentRef',
+        text: 'A payment reference cannot be supplied when fee status is DUE',
+      },
+    ]);
+  });
+
+  it('onAddFeeDetailsClick shows the payment reference max length error in just-fee mode', () => {
+    const errorsSpy = jest.fn();
+    const addSpy = jest.fn();
+    component.civilFeeErrors.subscribe(errorsSpy);
+    component.addFeeDetails.subscribe(addSpy);
+    fixture.componentRef.setInput('allowJustFeeEntry', true);
+    const f = component.feeForm().controls;
+    f.feeStatus.setValue('PAID');
+    f.feeStatusDate.setValue('2025-11-01');
+    f.paymentRef.setValue('1234567890123456');
+
+    component.onAddFeeDetailsClick();
+
+    expect(addSpy).not.toHaveBeenCalled();
+    expect(errorsSpy).toHaveBeenCalledWith([
+      {
+        id: 'paymentRef',
+        text: 'Payment reference must be 15 characters or fewer',
+      },
     ]);
   });
 
@@ -607,7 +671,7 @@ describe('CivilFeeSectionComponent', () => {
     const f = component.feeForm().controls;
     f.feeStatuses.setValue([
       {
-        paymentStatus: 'PAID',
+        paymentStatus: PaymentStatus.PAID,
         statusDate: '2026-01-01',
         paymentReference: 'REF-123',
       },
@@ -624,6 +688,21 @@ describe('CivilFeeSectionComponent', () => {
 
     expect(errors).toEqual([]);
     expect(lastCall?.[0]).toEqual([]);
+  });
+
+  it('validateForSubmit allows existing fee rows when add-fee inputs are cleared in just-fee mode', () => {
+    const f = component.feeForm().controls;
+    f.feeStatuses.setValue([
+      {
+        paymentStatus: PaymentStatus.PAID,
+        statusDate: '2026-01-01',
+        paymentReference: undefined,
+      },
+    ]);
+    fixture.componentRef.setInput('allowJustFeeEntry', true);
+    fixture.detectChanges();
+
+    expect(component.validateForSubmit()).toEqual([]);
   });
 
   it("onAddFeeDetailsClick blocks when feeStatus is 'DUE' and paymentRef is provided", () => {

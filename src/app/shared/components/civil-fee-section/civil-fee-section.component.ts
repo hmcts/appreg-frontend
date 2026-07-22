@@ -173,19 +173,21 @@ export class CivilFeeSectionComponent implements OnInit {
       // Lazy attach validators so they do not show on parent update.
       f.feeStatus.setValidators([(c) => Validators.required(c)]);
       f.feeStatusDate.setValidators([(c) => Validators.required(c)]);
-      f.paymentRef.setValidators([
-        this.paymentRefNotAllowedWhenDueValidator,
-        (c) => Validators.maxLength(15)(c),
-      ]);
 
       f.feeStatus.updateValueAndValidity({ emitEvent: false });
       f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
-      f.paymentRef.updateValueAndValidity({ emitEvent: false });
 
       f.feeStatus.markAsTouched();
       f.feeStatusDate.markAsTouched();
-      f.paymentRef.markAsTouched();
     }
+
+    f.paymentRef.setValidators([
+      this.paymentRefNotAllowedWhenDueValidator,
+      (c) => Validators.maxLength(15)(c),
+    ]);
+
+    f.paymentRef.updateValueAndValidity({ emitEvent: false });
+    f.paymentRef.markAsTouched();
 
     this.emitCivilFeeErrors();
 
@@ -197,13 +199,8 @@ export class CivilFeeSectionComponent implements OnInit {
       return;
     }
 
-    // Bulk update fee details - allow just offsite fee to be added
-    if (
-      this.allowJustFeeEntry() &&
-      !feeStatus &&
-      !statusDate &&
-      !paymentReference
-    ) {
+    // Bulk update fee details require both status and date when adding a fee.
+    if (this.allowJustFeeEntry() && (!feeStatus || !statusDate)) {
       return;
     }
 
@@ -234,29 +231,39 @@ export class CivilFeeSectionComponent implements OnInit {
     const entries: ErrorItem[] = [];
 
     const f = this.feeForm().controls;
+    const feeStatusIsEmpty = !f.feeStatus.value?.trim();
+    const feeStatusDateIsEmpty = !f.feeStatusDate.value?.trim();
     const feeDetailsAreEmpty =
-      !f.feeStatus.value?.trim() &&
-      !f.feeStatusDate.value?.trim() &&
-      !f.paymentRef.value?.trim();
+      feeStatusIsEmpty && feeStatusDateIsEmpty && !f.paymentRef.value?.trim();
+    const feeRowsAreEmpty = (f.feeStatuses.value ?? []).length === 0;
 
-    if (
-      this.allowJustFeeEntry() &&
-      feeDetailsAreEmpty &&
-      (!allowOffsiteOnly || !f.hasOffsiteFee.value)
-    ) {
-      return [
-        {
-          id: 'feeStatus',
-          text: CIVIL_FEE_FIELD_MESSAGES.feeStatus['required'],
-        },
-        {
-          id: 'feeStatusDate',
-          text: CIVIL_FEE_FIELD_MESSAGES.feeStatusDate['required'],
-        },
-      ];
-    }
+    if (this.allowJustFeeEntry()) {
+      const isOffsiteOnlySubmit =
+        allowOffsiteOnly &&
+        feeDetailsAreEmpty &&
+        ((feeRowsAreEmpty && f.hasOffsiteFee.value) || !feeRowsAreEmpty);
 
-    if (!this.allowJustFeeEntry()) {
+      if (!isOffsiteOnlySubmit) {
+        if (feeStatusIsEmpty) {
+          entries.push({
+            id: 'feeStatus',
+            text: CIVIL_FEE_FIELD_MESSAGES.feeStatus['required'],
+          });
+        }
+        if (feeStatusDateIsEmpty) {
+          entries.push({
+            id: 'feeStatusDate',
+            text: CIVIL_FEE_FIELD_MESSAGES.feeStatusDate['required'],
+          });
+        }
+      }
+
+      this.getControlErrorMessages('paymentRef').forEach((message) => {
+        entries.push({ id: 'paymentRef', text: message });
+      });
+
+      return entries;
+    } else {
       (['feeStatus', 'feeStatusDate', 'paymentRef'] as const).forEach(
         (name) => {
           this.getControlErrorMessages(name).forEach((message) => {
