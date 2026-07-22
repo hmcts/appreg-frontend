@@ -1,7 +1,6 @@
 /// <reference types="cypress" />
 import { AccordionElement } from '../../pageobjects/generic/accordion/accordion/AccordionElement';
 import { TableElement } from '../../pageobjects/generic/table/TableElement';
-
 import { TableNavigation } from './TableNavigation';
 import { TableSearch } from './TableSearch';
 

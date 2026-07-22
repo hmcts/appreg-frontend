@@ -1,4 +1,5 @@
 import { DataTable, Then } from '@badeball/cypress-cucumber-preprocessor';
+
 import { SummaryTableHelper } from '../../../../support/helper/table/SummaryTableHelper';
 import { TableHelper } from '../../../../support/helper/table/TableHelper';
 import { TableSearch } from '../../../../support/helper/table/TableSearch';

@@ -2,6 +2,7 @@
 import { TableElement } from '../../pageobjects/generic/table/TableElement';
 import { DateTimeUtil } from '../../utils/DateTimeUtil';
 import { TestDataGenerator } from '../../utils/TestDataGenerator';
+
 import { TableNavigation } from './TableNavigation';
 import { TableSearch } from './TableSearch';
 
