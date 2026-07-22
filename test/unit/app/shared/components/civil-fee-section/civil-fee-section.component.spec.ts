@@ -225,6 +225,51 @@ describe('CivilFeeSectionComponent', () => {
     expect(f.paymentRef.hasError('maxlength')).toBe(true);
   });
 
+  it('onAddFeeDetailsClick blocks empty fee details when just fee entry is allowed', () => {
+    const addSpy = jest.fn();
+    const errorsSpy = jest.fn();
+    component.addFeeDetails.subscribe(addSpy);
+    component.civilFeeErrors.subscribe(errorsSpy);
+    fixture.componentRef.setInput('allowJustFeeEntry', true);
+
+    component.onAddFeeDetailsClick();
+
+    expect(addSpy).not.toHaveBeenCalled();
+    expect(errorsSpy).toHaveBeenCalledWith([
+      { id: 'feeStatus', text: 'Select a fee status' },
+      { id: 'feeStatusDate', text: 'Enter a valid status date' },
+    ]);
+  });
+
+  it('onAddFeeDetailsClick allows partial fee details when just fee entry is allowed', () => {
+    const addSpy = jest.fn();
+    component.addFeeDetails.subscribe(addSpy);
+    fixture.componentRef.setInput('allowJustFeeEntry', true);
+    component.feeForm().controls.paymentRef.setValue('REF-123');
+
+    component.onAddFeeDetailsClick();
+
+    expect(addSpy).toHaveBeenCalledWith({
+      feeStatus: null,
+      statusDate: '',
+      paymentReference: 'REF-123',
+    });
+  });
+
+  it('onAddFeeDetailsClick shows errors for empty fee details even when offsite fee is selected', () => {
+    const errorsSpy = jest.fn();
+    component.civilFeeErrors.subscribe(errorsSpy);
+    fixture.componentRef.setInput('allowJustFeeEntry', true);
+    component.feeForm().controls.hasOffsiteFee.setValue(true);
+
+    component.onAddFeeDetailsClick();
+
+    expect(errorsSpy).toHaveBeenCalledWith([
+      { id: 'feeStatus', text: 'Select a fee status' },
+      { id: 'feeStatusDate', text: 'Enter a valid status date' },
+    ]);
+  });
+
   it('when fee is not required, keeps inputs visible but disabled and disables add button', () => {
     fixture.componentRef.setInput('feeRequired', false);
     fixture.detectChanges();

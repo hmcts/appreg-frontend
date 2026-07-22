@@ -164,6 +164,11 @@ export class CivilFeeSectionComponent implements OnInit {
     this.submitted.set(true);
     const f = this.feeForm().controls;
 
+    // form values to null
+    const feeStatus = (f.feeStatus.value?.trim() as PaymentStatus) || null;
+    const statusDate = (f.feeStatusDate.value ?? '').trim();
+    const paymentReference = (f.paymentRef.value ?? null)?.trim() || null;
+
     if (!this.allowJustFeeEntry()) {
       // Lazy attach validators so they do not show on parent update.
       f.feeStatus.setValidators([(c) => Validators.required(c)]);
@@ -192,10 +197,20 @@ export class CivilFeeSectionComponent implements OnInit {
       return;
     }
 
+    // Bulk update fee details - allow just offsite fee to be added
+    if (
+      this.allowJustFeeEntry() &&
+      !feeStatus &&
+      !statusDate &&
+      !paymentReference
+    ) {
+      return;
+    }
+
     const payload: AddFeeDetailsPayload = {
-      feeStatus: (f.feeStatus.value?.trim() as PaymentStatus) || null,
-      statusDate: (f.feeStatusDate.value ?? '').trim(),
-      paymentReference: (f.paymentRef.value ?? null)?.trim() || null,
+      feeStatus,
+      statusDate,
+      paymentReference,
     };
 
     this.addFeeDetails.emit(payload);
@@ -204,19 +219,42 @@ export class CivilFeeSectionComponent implements OnInit {
     this.clearCivilFeeInputsAndErrors();
   }
 
-  private emitCivilFeeErrors(): void {
-    this.civilFeeErrors.emit(this.buildCivilFeeErrors());
+  private emitCivilFeeErrors(allowOffsiteOnly = false): void {
+    this.civilFeeErrors.emit(this.buildCivilFeeErrors(allowOffsiteOnly));
   }
 
   validateForSubmit(): ErrorItem[] {
     this.attachValidatorsForSubmitAttempt();
-    const errors = this.buildCivilFeeErrors();
+    const errors = this.buildCivilFeeErrors(true);
     this.civilFeeErrors.emit(errors);
     return errors;
   }
 
-  private buildCivilFeeErrors(): ErrorItem[] {
+  private buildCivilFeeErrors(allowOffsiteOnly = false): ErrorItem[] {
     const entries: ErrorItem[] = [];
+
+    const f = this.feeForm().controls;
+    const feeDetailsAreEmpty =
+      !f.feeStatus.value?.trim() &&
+      !f.feeStatusDate.value?.trim() &&
+      !f.paymentRef.value?.trim();
+
+    if (
+      this.allowJustFeeEntry() &&
+      feeDetailsAreEmpty &&
+      (!allowOffsiteOnly || !f.hasOffsiteFee.value)
+    ) {
+      return [
+        {
+          id: 'feeStatus',
+          text: CIVIL_FEE_FIELD_MESSAGES.feeStatus['required'],
+        },
+        {
+          id: 'feeStatusDate',
+          text: CIVIL_FEE_FIELD_MESSAGES.feeStatusDate['required'],
+        },
+      ];
+    }
 
     if (!this.allowJustFeeEntry()) {
       (['feeStatus', 'feeStatusDate', 'paymentRef'] as const).forEach(
