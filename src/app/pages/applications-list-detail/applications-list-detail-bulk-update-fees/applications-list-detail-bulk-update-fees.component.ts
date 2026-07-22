@@ -160,7 +160,7 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
     }
 
     const formFeeStatuses = this.civilFeeForm.value.feeStatuses;
-    const isOffSiteFee = this.civilFeeForm.value.hasOffsiteFee;
+    const isOffSiteFee = this.civilFeeForm.value.hasOffsiteFee ?? undefined;
 
     void this.router.navigate(
       ['/applications-list', this.vm().listId, 'bulk-update-fee', 'confirm'],
