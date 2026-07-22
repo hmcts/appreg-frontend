@@ -43,10 +43,10 @@ const makePrintDto = (entries: unknown[] = []): ApplicationListGetPrintDto =>
   };
 
 const applicationsListsApiMock: jest.Mocked<
-  Pick<ApplicationListsApi, 'getApplicationLists' | 'printApplicationList'>
+  Pick<ApplicationListsApi, 'getApplicationLists' | 'printApplicationLists'>
 > = {
   getApplicationLists: jest.fn().mockReturnValue(of({ content: [] })),
-  printApplicationList: jest.fn(),
+  printApplicationLists: jest.fn(),
 };
 
 // used by ReferenceDataFacade (unchanged)
@@ -139,8 +139,8 @@ function createInstance(
   platformId: 'browser' | 'server' = 'browser',
   rows: ApplicationListRow[] = [],
 ) {
-  const api: { printApplicationList: jest.Mock } = {
-    printApplicationList: jest.fn(),
+  const api: { printApplicationLists: jest.Mock } = {
+    printApplicationLists: jest.fn(),
   };
 
   const pdf = new PdfServiceStub();
@@ -684,7 +684,7 @@ describe('ApplicationsList.onPrintPage', () => {
     comp.onPrintPage('');
 
     expect(patchSpy).not.toHaveBeenCalled();
-    expect(api.printApplicationList).not.toHaveBeenCalled();
+    expect(api.printApplicationLists).not.toHaveBeenCalled();
     expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
   });
 
@@ -693,21 +693,20 @@ describe('ApplicationsList.onPrintPage', () => {
     patchSpy.mockClear();
 
     const dto = makePrintDto([]);
-    api.printApplicationList.mockReturnValue(of(dto));
+    api.printApplicationLists.mockReturnValue(of([dto]));
 
     comp.onPrintPage('abc-123');
     await flushSignalEffects(fixture);
 
     expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
 
-    // args: { id }, undefined, undefined, { transferCache: false }
-    expect(api.printApplicationList).toHaveBeenCalledTimes(1);
-    expect(api.printApplicationList.mock.calls[0][0]).toEqual({
-      listId: 'abc-123',
+    expect(api.printApplicationLists).toHaveBeenCalledTimes(1);
+    expect(api.printApplicationLists.mock.calls[0][0]).toEqual({
+      bulkGetApplicationListEntriesRequestDto: { listIds: ['abc-123'] },
     });
-    expect(api.printApplicationList.mock.calls[0][1]).toBeUndefined();
-    expect(api.printApplicationList.mock.calls[0][2]).toBeUndefined();
-    expect(api.printApplicationList.mock.calls[0][3]).toEqual({
+    expect(api.printApplicationLists.mock.calls[0][1]).toBeUndefined();
+    expect(api.printApplicationLists.mock.calls[0][2]).toBeUndefined();
+    expect(api.printApplicationLists.mock.calls[0][3]).toEqual({
       transferCache: false,
     });
   });
@@ -717,7 +716,7 @@ describe('ApplicationsList.onPrintPage', () => {
       createInstance('browser');
 
     const dto = makePrintDto([]);
-    api.printApplicationList.mockReturnValue(of(dto));
+    api.printApplicationLists.mockReturnValue(of([dto]));
 
     comp.onPrintPage('abc-123');
     await flushSignalEffects(fixture);
@@ -733,13 +732,13 @@ describe('ApplicationsList.onPrintPage', () => {
     const dto = makePrintDto([{}]);
 
     // ensure the mock is typed like the real method’s return
-    api.printApplicationList.mockReturnValue(of(dto));
+    api.printApplicationLists.mockReturnValue(of([dto]));
 
     comp.onPrintPage('abc-123');
     await flushSignalEffects(fixture);
 
     expect(pdf.generatePagedApplicationListPdf).toHaveBeenCalledTimes(1);
-    expect(pdf.generatePagedApplicationListPdf).toHaveBeenCalledWith(dto, {
+    expect(pdf.generatePagedApplicationListPdf).toHaveBeenCalledWith([dto], {
       crestUrl: '/assets/govuk-crest.png',
     });
   });
@@ -747,7 +746,7 @@ describe('ApplicationsList.onPrintPage', () => {
   it('keeps pdfLoading true until page PDF generation completes', async () => {
     const { comp, api, pdf, fixture } = createInstance('browser');
     const dto = makePrintDto([{}]);
-    api.printApplicationList.mockReturnValue(of(dto));
+    api.printApplicationLists.mockReturnValue(of([dto]));
 
     let resolvePdf: (() => void) | undefined;
     pdf.generatePagedApplicationListPdf.mockReturnValueOnce(
@@ -773,7 +772,7 @@ describe('ApplicationsList.onPrintPage', () => {
     const { comp, api, pdf, fixture } = createInstance('server');
 
     const dto = makePrintDto([]);
-    api.printApplicationList.mockReturnValue(of(dto));
+    api.printApplicationLists.mockReturnValue(of([dto]));
 
     comp.onPrintPage('abc-123');
     await flushSignalEffects(fixture);
@@ -781,32 +780,30 @@ describe('ApplicationsList.onPrintPage', () => {
     expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
   });
 
-  it('maps 404 to "Application List not found"', async () => {
+  it('maps API errors to the generic print banner', async () => {
     const { comp, api, showInlineSpy, fixture } = createInstance('browser');
 
-    api.printApplicationList.mockReturnValue(
+    api.printApplicationLists.mockReturnValue(
       throwError(() => ({ status: 404 })),
     );
 
     comp.onPrintPage('abc-123');
     await flushSignalEffects(fixture);
 
-    expect(showInlineSpy).toHaveBeenCalledWith('Application list not found');
+    expect(showInlineSpy).toHaveBeenCalledWith('Unable to generate PDF.');
   });
 
   it('maps non-404 errors to generic banner', async () => {
     const { comp, api, showInlineSpy, fixture } = createInstance('browser');
 
-    api.printApplicationList.mockReturnValue(
+    api.printApplicationLists.mockReturnValue(
       throwError(() => ({ status: 500 })),
     );
 
     comp.onPrintPage('abc-123');
     await flushSignalEffects(fixture);
 
-    expect(showInlineSpy).toHaveBeenCalledWith(
-      'Unable to generate PDF. Please try again later',
-    );
+    expect(showInlineSpy).toHaveBeenCalledWith('Unable to generate PDF.');
   });
 });
 
@@ -824,7 +821,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
     await flushSignalEffects(fixture);
 
     expect(patchSpy).not.toHaveBeenCalled();
-    expect(api.printApplicationList).not.toHaveBeenCalled();
+    expect(api.printApplicationLists).not.toHaveBeenCalled();
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
     expect(showInlineSpy).not.toHaveBeenCalled();
   });
@@ -837,7 +834,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
     comp.onPrintContinuous('', false);
 
     expect(patchSpy).not.toHaveBeenCalled();
-    expect(api.printApplicationList).not.toHaveBeenCalled();
+    expect(api.printApplicationLists).not.toHaveBeenCalled();
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
     expect(showInlineSpy).not.toHaveBeenCalled();
   });
@@ -847,20 +844,20 @@ describe('ApplicationsList.onPrintContinuous', () => {
     patchSpy.mockClear();
 
     const dto = makePrintDto([{ a: 1 } as unknown]);
-    api.printApplicationList.mockReturnValue(of(dto));
+    api.printApplicationLists.mockReturnValue(of([dto]));
 
     comp.onPrintContinuous('abc-123', false);
     await flushSignalEffects(fixture);
 
     expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
 
-    expect(api.printApplicationList).toHaveBeenCalledTimes(1);
-    expect(api.printApplicationList.mock.calls[0][0]).toEqual({
-      listId: 'abc-123',
+    expect(api.printApplicationLists).toHaveBeenCalledTimes(1);
+    expect(api.printApplicationLists.mock.calls[0][0]).toEqual({
+      bulkGetApplicationListEntriesRequestDto: { listIds: ['abc-123'] },
     });
-    expect(api.printApplicationList.mock.calls[0][1]).toBeUndefined();
-    expect(api.printApplicationList.mock.calls[0][2]).toBeUndefined();
-    expect(api.printApplicationList.mock.calls[0][3]).toEqual({
+    expect(api.printApplicationLists.mock.calls[0][1]).toBeUndefined();
+    expect(api.printApplicationLists.mock.calls[0][2]).toBeUndefined();
+    expect(api.printApplicationLists.mock.calls[0][3]).toEqual({
       transferCache: false,
     });
   });
@@ -869,7 +866,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
     const { comp, api, pdf, showInlineSpy, fixture } =
       createInstance('browser');
 
-    api.printApplicationList.mockReturnValue(of(makePrintDto([])));
+    api.printApplicationLists.mockReturnValue(of([makePrintDto([])]));
 
     comp.onPrintContinuous('abc-123', false);
     await flushSignalEffects(fixture);
@@ -882,7 +879,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
     const { comp, api, pdf, fixture } = createInstance('browser');
 
     const dto = makePrintDto([{}]);
-    api.printApplicationList.mockReturnValue(of(dto));
+    api.printApplicationLists.mockReturnValue(of([dto]));
 
     comp.onPrintContinuous('abc-123', false);
     await flushSignalEffects(fixture);
@@ -899,7 +896,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
       createInstance('browser');
 
     const dto = makePrintDto([{ x: 1 } as unknown]);
-    api.printApplicationList.mockReturnValue(of(dto));
+    api.printApplicationLists.mockReturnValue(of([dto]));
     pdf.generateContinuousApplicationListsPdf.mockRejectedValueOnce(
       new Error('pdf fail'),
     );
@@ -907,7 +904,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
     comp.onPrintContinuous('abc-123', false);
     await flushSignalEffects(fixture);
 
-    expect(api.printApplicationList).toHaveBeenCalledTimes(1);
+    expect(api.printApplicationLists).toHaveBeenCalledTimes(1);
     expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
     expect(showInlineSpy).toHaveBeenCalledWith('Unable to generate PDF.');
   });
