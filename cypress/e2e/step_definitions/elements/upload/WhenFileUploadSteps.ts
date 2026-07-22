@@ -1,6 +1,5 @@
 /// <reference types="cypress" />
 import { When } from '@badeball/cypress-cucumber-preprocessor';
-
 import { UploadHelper } from '../../../../support/helper/forms/upload/UploadHelper';
 import { TestDataGenerator } from '../../../../support/utils/TestDataGenerator';
 
