@@ -31,18 +31,18 @@ describe('ResultSelectedComponent', () => {
   };
 
   let mockApi: {
+    bulkDeleteResultEntries: jest.Mock;
     bulkResultApplicationListEntries: jest.Mock;
     createApplicationListEntryResult: jest.Mock;
-    deleteApplicationListEntryResult: jest.Mock;
     getApplicationListEntryResults: jest.Mock;
     updateApplicationListEntryResult: jest.Mock;
   };
 
   beforeEach(async () => {
     mockApi = {
+      bulkDeleteResultEntries: jest.fn().mockReturnValue(of(null)),
       bulkResultApplicationListEntries: jest.fn().mockReturnValue(of([])),
       createApplicationListEntryResult: jest.fn().mockReturnValue(of(null)),
-      deleteApplicationListEntryResult: jest.fn().mockReturnValue(of(null)),
       getApplicationListEntryResults: jest
         .fn()
         .mockReturnValue(of({ content: [] })),

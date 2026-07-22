@@ -4,6 +4,8 @@ import { Observable, catchError, forkJoin, map, of } from 'rxjs';
 
 import {
   ApplicationListEntryResultsApi,
+  BulkDeleteResultEntriesRequestParams,
+  BulkDeleteResultItemDto,
   ResultCodeGetDetailDto,
   ResultCodesApi,
   ResultGetDto,
@@ -180,50 +182,45 @@ export class ApplicationListEntryResultsFacade {
       return;
     }
 
-    const requests = targets.map((result) =>
-      this.entryResultsApi
-        .deleteApplicationListEntryResult({
-          listId,
-          entryId: result.entryId,
-          resultId: result.id,
-        })
-        .pipe(
-          map(
-            (): BulkResultRemoval => ({
-              entryId: result.entryId,
-              resultId: result.id,
-              success: true,
-            }),
-          ),
-          catchError((error: unknown) =>
-            of({
-              entryId: result.entryId,
-              resultId: result.id,
-              success: false,
-              error,
-            }),
-          ),
-        ),
+    const removals = targets.map((result) => ({
+      listId,
+      entryId: result.entryId,
+      resultId: result.id,
+    }));
+
+    this.bulkRemoveCreatedEntryResults(removals, onSuccess, onError);
+  }
+
+  bulkRemoveCreatedEntryResults(
+    resultsToRemove: BulkDeleteResultItemDto[],
+    onSuccess?: (results: BulkResultRemoval[]) => void,
+    onError?: (err: unknown) => void,
+  ): void {
+    if (resultsToRemove.length === 0) {
+      return;
+    }
+
+    this.bulkRemoveResult(
+      resultsToRemove,
+      () => {
+        const deletedIds = new Set(
+          resultsToRemove.map((result) => result.resultId),
+        );
+
+        this.newlyCreatedEntryResults.update((current) =>
+          current.filter((result) => !deletedIds.has(result.id ?? '')),
+        );
+
+        onSuccess?.(
+          resultsToRemove.map(({ entryId, resultId }) => ({
+            entryId,
+            resultId,
+            success: true,
+          })),
+        );
+      },
+      onError,
     );
-
-    forkJoin(requests)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (results) => {
-          const deletedIds = new Set(
-            results
-              .filter((result) => result.success)
-              .map((result) => result.resultId),
-          );
-
-          this.newlyCreatedEntryResults.update((current) =>
-            current.filter((result) => !deletedIds.has(result.id ?? '')),
-          );
-
-          onSuccess?.(results);
-        },
-        error: (err) => onError?.(err),
-      });
   }
 
   removeCreatedEntryResultGroup(
@@ -285,14 +282,34 @@ export class ApplicationListEntryResultsFacade {
       return;
     }
 
+    this.bulkRemoveResult(
+      [{ listId, entryId, resultId }],
+      () => {
+        this.loadEntryResults(listId, entryId);
+        onSuccess?.();
+      },
+      onError,
+    );
+  }
+
+  bulkRemoveResult(
+    resultsToRemove: BulkDeleteResultItemDto[],
+    onSuccess?: () => void,
+    onError?: (err: unknown) => void,
+  ): void {
+    if (resultsToRemove.length === 0) {
+      return;
+    }
+
+    const params: BulkDeleteResultEntriesRequestParams = {
+      bulkDeleteResultsDto: { results: resultsToRemove },
+    };
+
     this.entryResultsApi
-      .deleteApplicationListEntryResult({ listId, entryId, resultId })
+      .bulkDeleteResultEntries(params)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
-          this.loadEntryResults(listId, entryId);
-          onSuccess?.();
-        },
+        next: () => onSuccess?.(),
         error: (err) => onError?.(err),
       });
   }
@@ -471,7 +488,9 @@ export class ApplicationListEntryResultsFacade {
   }
 
   private unescapeTemplatePlaceholders(template: string): string {
-    return template.replaceAll(/\\\{\\\{/g, '{{').replaceAll(/\\\}\\\}/g, '}}');
+    return template
+      .replaceAll(String.raw`\{\{`, '{{')
+      .replaceAll(String.raw`\}\}`, '}}');
   }
 
   private mergeCreatedEntryResults(results: ResultGetDto[]): void {

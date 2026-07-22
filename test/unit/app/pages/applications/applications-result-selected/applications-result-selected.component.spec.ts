@@ -13,20 +13,17 @@ import {
   ResultCodesApi,
   ResultGetDto,
 } from '@openapi';
-import {
-  ApplicationListEntryResultsFacade,
-  BulkResultRemoval,
-} from '@services/applications-list-entry/application-list-entry-results.facade';
+import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 
 describe('ApplicationsResultSelectedComponent', () => {
   let component: ApplicationsResultSelectedComponent;
   let fixture: ComponentFixture<ApplicationsResultSelectedComponent>;
 
   let mockApi: {
+    bulkDeleteResultEntries: jest.Mock;
     bulkResultApplicationListEntries: jest.Mock;
     bulkResultEntries: jest.Mock;
     createApplicationListEntryResult: jest.Mock;
-    deleteApplicationListEntryResult: jest.Mock;
     getApplicationListEntryResults: jest.Mock;
     updateApplicationListEntryResult: jest.Mock;
   };
@@ -67,10 +64,10 @@ describe('ApplicationsResultSelectedComponent', () => {
     );
 
     mockApi = {
+      bulkDeleteResultEntries: jest.fn().mockReturnValue(of(null)),
       bulkResultApplicationListEntries: jest.fn().mockReturnValue(of([])),
       bulkResultEntries: jest.fn().mockReturnValue(of([])),
       createApplicationListEntryResult: jest.fn().mockReturnValue(of(null)),
-      deleteApplicationListEntryResult: jest.fn().mockReturnValue(of(null)),
       getApplicationListEntryResults: jest
         .fn()
         .mockReturnValue(of({ content: [] })),
@@ -340,74 +337,30 @@ describe('ApplicationsResultSelectedComponent', () => {
       },
     ]);
 
-    const removeSpy = jest
-      .spyOn(facade, 'removeCreatedEntryResults')
-      .mockImplementation(
-        (
-          _listId: string,
-          _resultIds: string[],
-          onSuccess?: (results: BulkResultRemoval[]) => void,
-        ) => {
-          onSuccess?.([
-            {
-              entryId: 'entry-1',
-              resultId: 'result-1',
-              success: true,
-            },
-          ]);
-        },
-      )
-      .mockImplementationOnce(
-        (
-          _listId: string,
-          _resultIds: string[],
-          onSuccess?: (results: BulkResultRemoval[]) => void,
-        ) => {
-          onSuccess?.([
-            {
-              entryId: 'entry-1',
-              resultId: 'result-1',
-              success: true,
-            },
-          ]);
-        },
-      )
-      .mockImplementationOnce(
-        (
-          _listId: string,
-          _resultIds: string[],
-          onSuccess?: (results: BulkResultRemoval[]) => void,
-        ) => {
-          onSuccess?.([
-            {
-              entryId: 'entry-2',
-              resultId: 'result-2',
-              success: true,
-            },
-          ]);
-        },
-      );
-
     const focusSuccessSpy = jest
       .spyOn(bannersUtil, 'focusSuccessBanner')
       .mockImplementation(() => {});
 
     component.onRemoveResult('result-1');
 
-    expect(removeSpy).toHaveBeenNthCalledWith(
-      1,
-      'list-1',
-      ['result-1'],
-      expect.any(Function),
-      expect.any(Function),
-    );
-    expect(removeSpy).toHaveBeenNthCalledWith(
-      2,
-      'list-2',
-      ['result-2'],
-      expect.any(Function),
-      expect.any(Function),
-    );
+    expect(mockApi.bulkDeleteResultEntries).toHaveBeenCalledTimes(1);
+    expect(mockApi.bulkDeleteResultEntries).toHaveBeenCalledWith({
+      bulkDeleteResultsDto: {
+        results: [
+          {
+            listId: 'list-1',
+            entryId: 'entry-1',
+            resultId: 'result-1',
+          },
+          {
+            listId: 'list-2',
+            entryId: 'entry-2',
+            resultId: 'result-2',
+          },
+        ],
+      },
+    });
+    expect(facade.newlyCreatedEntryResults()).toEqual([]);
     expect(component.successBanner()).toEqual(
       ENTRY_SUCCESS_MESSAGES.resultsRemoved,
     );

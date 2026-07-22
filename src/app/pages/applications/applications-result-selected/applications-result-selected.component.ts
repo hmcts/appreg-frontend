@@ -23,7 +23,7 @@ import { ResultWordingSectionComponent } from '@components/result-wording-sectio
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
-import { ResultGetDto } from '@openapi';
+import { BulkDeleteResultItemDto, ResultGetDto } from '@openapi';
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
@@ -180,74 +180,39 @@ export class ApplicationsResultSelectedComponent implements OnInit {
         .filter((row) => !!row.id && !!row.listId)
         .map((row) => [row.id, row.listId]),
     );
-    const resultIdsByListId = new Map<string, string[]>();
-
-    createdResults
+    const resultsToRemove = createdResults
       .filter((result) => this.areLogicallyEquivalentResults(result, anchor))
-      .forEach((result) => {
-        const listId = result.entryId
-          ? entryIdToListId.get(result.entryId)
-          : '';
-        if (!listId || !result.id) {
-          return;
+      .map((result) => {
+        if (!result.entryId || !result.id) {
+          return null;
         }
 
-        const ids = resultIdsByListId.get(listId) ?? [];
-        ids.push(result.id);
-        resultIdsByListId.set(listId, ids);
-      });
+        const listId = entryIdToListId.get(result.entryId);
+        if (!listId) {
+          return null;
+        }
 
-    if (resultIdsByListId.size === 0) {
+        return {
+          listId,
+          entryId: result.entryId,
+          resultId: result.id,
+        };
+      })
+      .filter((result): result is BulkDeleteResultItemDto => result !== null);
+
+    if (resultsToRemove.length === 0) {
       return;
     }
 
-    const groupedRemovals = Array.from(resultIdsByListId.entries());
-    const allResults: {
-      entryId: string;
-      resultId: string;
-      success: boolean;
-      error?: unknown;
-    }[] = [];
-    let pendingGroups = groupedRemovals.length;
-    let failed = false;
-
-    groupedRemovals.forEach(([listId, resultIds]) => {
-      this.resultsFacade.removeCreatedEntryResults(
-        listId,
-        resultIds,
-        (results) => {
-          if (failed) {
-            return;
-          }
-
-          allResults.push(...results);
-          pendingGroups -= 1;
-
-          if (pendingGroups > 0) {
-            return;
-          }
-
-          const failedRemovals = allResults.filter((result) => !result.success);
-
-          if (failedRemovals.length > 0) {
-            this.applyMappedError(failedRemovals[0].error);
-            return;
-          }
-
-          this.errorSummaryItems.set([]);
-          this.successBanner.set(ENTRY_SUCCESS_MESSAGES.resultsRemoved);
-          focusSuccessBanner(this.platformId);
-        },
-        (err) => {
-          if (failed) {
-            return;
-          }
-
-          failed = true;
-          this.applyMappedError(err);
-        },
-      );
-    });
+    this.resultsFacade.bulkRemoveCreatedEntryResults(
+      resultsToRemove,
+      () => {
+        this.errorSummaryItems.set([]);
+        this.successBanner.set(ENTRY_SUCCESS_MESSAGES.resultsRemoved);
+        focusSuccessBanner(this.platformId);
+      },
+      (err) => this.applyMappedError(err),
+    );
   }
 
   onError(errors: ErrorItem[]): void {
