@@ -91,9 +91,9 @@ describe('FeeUpdateConfirmComponent', () => {
             paymentStatus: 'PAID',
             statusDate: '2026-01-01',
             paymentReference: 'REF-1',
-            hasOffsiteFee: true,
           },
         ],
+        hasOffsiteFee: true,
       },
     });
   });

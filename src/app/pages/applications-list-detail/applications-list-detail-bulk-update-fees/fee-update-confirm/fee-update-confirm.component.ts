@@ -161,8 +161,6 @@ export class FeeUpdateConfirmComponent implements OnInit {
 
     return {
       entryIds,
-      // feeDetails: feeStatuses?.length ? feeStatuses : null,
-
       ...(feeStatuses.length > 0 && { feeDetails: feeStatuses }),
       ...(isOffSiteFee && {
         hasOffsiteFee: isOffSiteFee,
