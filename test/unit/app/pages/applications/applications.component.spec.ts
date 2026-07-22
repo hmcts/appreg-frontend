@@ -126,10 +126,10 @@ describe('ApplicationsComponent', () => {
     bulkActionPreview: bulkActionPreviewMock,
   };
 
-  const printApplicationListMock = jest.fn();
+  const printApplicationListsMock = jest.fn();
   const appListsApiStub = {
-    printApplicationList: printApplicationListMock,
-  } as unknown as Pick<ApplicationListsApi, 'printApplicationList'>;
+    printApplicationLists: printApplicationListsMock,
+  } as unknown as Pick<ApplicationListsApi, 'printApplicationLists'>;
 
   const pdfServiceStub: jest.Mocked<
     Pick<
@@ -145,7 +145,7 @@ describe('ApplicationsComponent', () => {
   beforeEach(async () => {
     getEntriesMock.mockReset();
     bulkActionPreviewMock.mockReset();
-    printApplicationListMock.mockReset();
+    printApplicationListsMock.mockReset();
     pdfServiceStub.generatePagedApplicationListPdf.mockReset();
     pdfServiceStub.generateContinuousApplicationListsPdf.mockReset();
 
@@ -1146,12 +1146,12 @@ describe('ApplicationsComponent', () => {
         >,
       );
 
-      printApplicationListMock.mockImplementation(({ listId }) =>
-        of(
+      printApplicationListsMock.mockReturnValue(
+        of([
           makePrintDto({
             entries: [
               {
-                id: listId === 'list-a' ? 'entry-1' : 'entry-2',
+                id: 'entry-1',
                 applicant: {},
                 applicationCode: '',
                 applicationTitle: '',
@@ -1159,7 +1159,18 @@ describe('ApplicationsComponent', () => {
               },
             ],
           }),
-        ),
+          makePrintDto({
+            entries: [
+              {
+                id: 'entry-2',
+                applicant: {},
+                applicationCode: '',
+                applicationTitle: '',
+                applicationWording: '',
+              },
+            ],
+          }),
+        ]),
       );
 
       await component.onPrintContinuousClick();
@@ -1175,10 +1186,20 @@ describe('ApplicationsComponent', () => {
           }),
         }),
       });
-      expect(printApplicationListMock).toHaveBeenCalledTimes(2);
+      expect(printApplicationListsMock).toHaveBeenCalledWith(
+        {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-a', 'list-b'],
+            entryIds: ['entry-1', 'entry-2'],
+          },
+        },
+        undefined,
+        undefined,
+        { transferCache: false },
+      );
     });
 
-    it('fetches each unique list id and generates one filtered continuous PDF', async () => {
+    it('fetches all selected list ids and generates one continuous PDF', async () => {
       const listADto = makePrintDto({
         courtName: 'Court A',
         entries: [
@@ -1234,69 +1255,38 @@ describe('ApplicationsComponent', () => {
         ],
       }));
 
-      printApplicationListMock.mockImplementation(({ listId }) => {
-        if (listId === 'list-a') {
-          return of(listADto);
-        }
-        return of(listBDto);
-      });
+      printApplicationListsMock.mockReturnValue(of([listADto, listBDto]));
 
       await component.onPrintContinuousClick();
       await flushSignalEffects(fixture);
 
-      expect(printApplicationListMock).toHaveBeenCalledTimes(2);
-      expect(printApplicationListMock.mock.calls[0]).toEqual([
-        { listId: 'list-a' },
+      expect(printApplicationListsMock).toHaveBeenCalledWith(
+        {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-a', 'list-b'],
+            entryIds: ['entry-a1', 'entry-a2', 'entry-b1'],
+          },
+        },
         undefined,
         undefined,
         { transferCache: false },
-      ]);
-      expect(printApplicationListMock.mock.calls[1]).toEqual([
-        { listId: 'list-b' },
-        undefined,
-        undefined,
-        { transferCache: false },
-      ]);
+      );
       expect(
         pdfServiceStub.generateContinuousApplicationListsPdf,
-      ).toHaveBeenCalledWith(
-        [
-          {
-            ...listADto,
-            entries: listADto.entries.filter((entry) =>
-              ['entry-a1', 'entry-a2'].includes(entry.id),
-            ),
-          },
-          {
-            ...listBDto,
-            entries: listBDto.entries.filter((entry) =>
-              ['entry-b1'].includes(entry.id),
-            ),
-          },
-        ],
-        false,
-      );
+      ).toHaveBeenCalledWith([listADto, listBDto], false);
     });
 
-    it('shows no entries message when all fetched DTO entries are filtered out', async () => {
+    it('shows no entries message when the print API returns no entries', async () => {
       appStateSignal(component).update((s) => ({
         ...s,
         selectedRows: [makeSelectedRow('entry-1', 'list-a')],
       }));
-      printApplicationListMock.mockReturnValue(
-        of(
+      printApplicationListsMock.mockReturnValue(
+        of([
           makePrintDto({
-            entries: [
-              {
-                id: 'other-entry',
-                applicant: {},
-                applicationCode: '',
-                applicationTitle: '',
-                applicationWording: '',
-              },
-            ],
+            entries: [],
           }),
-        ),
+        ]),
       );
 
       await component.onPrintContinuousClick();
@@ -1315,7 +1305,7 @@ describe('ApplicationsComponent', () => {
         ...s,
         selectedRows: [makeSelectedRow('entry-1', 'list-a')],
       }));
-      printApplicationListMock.mockReturnValue(
+      printApplicationListsMock.mockReturnValue(
         throwError(
           () =>
             new HttpErrorResponse({
@@ -1362,7 +1352,7 @@ describe('ApplicationsComponent', () => {
       await component.onPrintContinuousClick();
       await flushSignalEffects(fixture);
 
-      expect(printApplicationListMock).not.toHaveBeenCalled();
+      expect(printApplicationListsMock).not.toHaveBeenCalled();
       expect(component.vm().errorSummary).toEqual([{ text: 'Resolve failed' }]);
     });
 
@@ -1371,8 +1361,8 @@ describe('ApplicationsComponent', () => {
         ...s,
         selectedRows: [makeSelectedRow('entry-1', 'list-a')],
       }));
-      printApplicationListMock.mockReturnValue(
-        of(
+      printApplicationListsMock.mockReturnValue(
+        of([
           makePrintDto({
             entries: [
               {
@@ -1384,7 +1374,7 @@ describe('ApplicationsComponent', () => {
               },
             ],
           }),
-        ),
+        ]),
       );
       pdfServiceStub.generateContinuousApplicationListsPdf.mockImplementationOnce(
         () => {
@@ -1405,7 +1395,7 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('onPrintPageClick', () => {
-    it('fetches each unique list id and generates one filtered page PDF', async () => {
+    it('fetches all selected list ids and generates one page PDF', async () => {
       const listADto = makePrintDto({
         courtName: 'Court A',
         entries: [
@@ -1461,72 +1451,43 @@ describe('ApplicationsComponent', () => {
         ],
       }));
 
-      printApplicationListMock.mockImplementation(({ listId }) => {
-        if (listId === 'list-a') {
-          return of(listADto);
-        }
-        return of(listBDto);
-      });
+      printApplicationListsMock.mockReturnValue(of([listADto, listBDto]));
 
       await component.onPrintPageClick();
       await flushSignalEffects(fixture);
 
-      expect(printApplicationListMock).toHaveBeenCalledTimes(2);
-      expect(printApplicationListMock.mock.calls[0]).toEqual([
-        { listId: 'list-a' },
+      expect(printApplicationListsMock).toHaveBeenCalledWith(
+        {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-a', 'list-b'],
+            entryIds: ['entry-a1', 'entry-a2', 'entry-b1'],
+          },
+        },
         undefined,
         undefined,
         { transferCache: false },
-      ]);
-      expect(printApplicationListMock.mock.calls[1]).toEqual([
-        { listId: 'list-b' },
-        undefined,
-        undefined,
-        { transferCache: false },
-      ]);
+      );
       expect(
         pdfServiceStub.generatePagedApplicationListPdf,
-      ).toHaveBeenCalledWith(
-        [
-          {
-            ...listADto,
-            entries: listADto.entries.filter((entry) =>
-              ['entry-a1', 'entry-a2'].includes(entry.id),
-            ),
-          },
-          {
-            ...listBDto,
-            entries: listBDto.entries.filter((entry) =>
-              ['entry-b1'].includes(entry.id),
-            ),
-          },
-        ],
-        { crestUrl: '/assets/govuk-crest.png' },
-      );
+      ).toHaveBeenCalledWith([listADto, listBDto], {
+        crestUrl: '/assets/govuk-crest.png',
+      });
       expect(
         pdfServiceStub.generateContinuousApplicationListsPdf,
       ).not.toHaveBeenCalled();
     });
 
-    it('shows no entries message when all fetched DTO entries are filtered out', async () => {
+    it('shows no entries message when the print API returns no entries', async () => {
       appStateSignal(component).update((s) => ({
         ...s,
         selectedRows: [makeSelectedRow('entry-1', 'list-a')],
       }));
-      printApplicationListMock.mockReturnValue(
-        of(
+      printApplicationListsMock.mockReturnValue(
+        of([
           makePrintDto({
-            entries: [
-              {
-                id: 'other-entry',
-                applicant: {},
-                applicationCode: '',
-                applicationTitle: '',
-                applicationWording: '',
-              },
-            ],
+            entries: [],
           }),
-        ),
+        ]),
       );
 
       await component.onPrintPageClick();
@@ -1545,8 +1506,8 @@ describe('ApplicationsComponent', () => {
         ...s,
         selectedRows: [makeSelectedRow('entry-1', 'list-a')],
       }));
-      printApplicationListMock.mockReturnValue(
-        of(
+      printApplicationListsMock.mockReturnValue(
+        of([
           makePrintDto({
             entries: [
               {
@@ -1558,7 +1519,7 @@ describe('ApplicationsComponent', () => {
               },
             ],
           }),
-        ),
+        ]),
       );
       pdfServiceStub.generatePagedApplicationListPdf.mockImplementationOnce(
         () => {
@@ -1582,8 +1543,8 @@ describe('ApplicationsComponent', () => {
         ...s,
         selectedRows: [makeSelectedRow('entry-1', 'list-a')],
       }));
-      printApplicationListMock.mockReturnValue(
-        of(
+      printApplicationListsMock.mockReturnValue(
+        of([
           makePrintDto({
             entries: [
               {
@@ -1595,7 +1556,7 @@ describe('ApplicationsComponent', () => {
               },
             ],
           }),
-        ),
+        ]),
       );
 
       let resolvePdf: (() => void) | undefined;

@@ -16,7 +16,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { firstValueFrom, forkJoin, map } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import {
   clearNotificationsPatch,
@@ -48,7 +48,6 @@ import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListEntriesApi,
-  ApplicationListGetPrintDto,
   ApplicationListStatus,
   ApplicationListsApi,
   BulkActionPreviewRequestDto,
@@ -59,6 +58,7 @@ import {
   EntryGetFilterDto,
   EntryGetSummaryDto,
   GetEntriesRequestParams,
+  PrintApplicationListsRequestParams,
 } from '@openapi';
 import {
   ApplicationsSearchFormService,
@@ -68,17 +68,14 @@ import {
 import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
+import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
 import { toStatus } from '@util/application-status-helpers';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { has } from '@util/has';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
-import {
-  filterEntriesToPrint,
-  handlePrintContinuous,
-  handlePrintPage,
-} from '@util/pdf-utils';
+import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { isAllMatchingSelected } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
@@ -86,15 +83,25 @@ import { addLocationValidatorsToForm } from '@validators/add-location-validators
 
 type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
 type ControlName = keyof AppErrorMap;
-type ApplicationsPrintRequest =
-  | { ids: string[]; mode: 'page'; selectedRows: ApplicationRow[] }
-  | { ids: string[]; mode: 'continuous'; selectedRows: ApplicationRow[] };
+// type ApplicationsPrintRequest =
+//   | {
+//       listIds: string[];
+//       entryIds: string[];
+//       mode: 'page';
+//       selectedRows: ApplicationRow[];
+//     }
+//   | {
+//       listIds: string[];
+//       entryIds: string[];
+//       mode: 'continuous';
+//       selectedRows: ApplicationRow[];
+//     };
 
-type ApplicationsPrintResponse = {
-  dtos: ApplicationListGetPrintDto[];
-  mode: 'page' | 'continuous';
-  selectedRows: ApplicationRow[];
-};
+// type ApplicationsPrintResponse = {
+//   dtos: ApplicationListGetPrintDto[];
+//   mode: 'page' | 'continuous';
+//   selectedRows: ApplicationRow[];
+// };
 
 const APPLICATIONS_SORT_MAP: Record<string, string> = {
   date: 'date',
@@ -174,7 +181,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   private readonly errorMap = APPLICATIONS_ERROR_MAP;
 
-  private readonly printRequest = signal<ApplicationsPrintRequest | null>(null);
+  private readonly printRequest = signal<BulkPrintRequest | null>(null);
 
   readonly submitAttempt = signal(0);
 
@@ -258,37 +265,25 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     setupLoadEffect(
       {
         request: this.printRequest,
-        load: (req: ApplicationsPrintRequest) => {
-          return forkJoin(
-            req.ids.map((listId) =>
-              this.appListApi.printApplicationList(
-                { listId },
-                undefined,
-                undefined,
-                {
-                  transferCache: false,
-                },
-              ),
-            ),
-          ).pipe(
-            map(
-              (dtos): ApplicationsPrintResponse => ({
-                dtos,
-                mode: req.mode,
-                selectedRows: req.selectedRows,
-              }),
-            ),
-          );
-        },
-        onSuccess: async (response) => {
+        load: (req: BulkPrintRequest) =>
+          this.appListApi.printApplicationLists(
+            {
+              bulkGetApplicationListEntriesRequestDto:
+                req.body.bulkGetApplicationListEntriesRequestDto,
+            },
+            undefined,
+            undefined,
+            {
+              transferCache: false,
+            },
+          ),
+        onSuccess: async (dto) => {
+          const mode = this.printRequest()?.mode;
           this.printRequest.set(null);
-          try {
-            const filteredDtos = response.dtos.map((dto) =>
-              filterEntriesToPrint(dto, response.selectedRows),
-            );
 
-            if (response.mode === 'page') {
-              await handlePrintPage(filteredDtos, {
+          try {
+            if (mode === 'page') {
+              await handlePrintPage(dto, {
                 pdf: this.pdf,
                 isBrowser: isPlatformBrowser(this.platformId),
                 onError: (message) => this.patchPrintError(message),
@@ -301,16 +296,18 @@ export class Applications extends PlaceFieldsBase implements OnInit {
               return;
             }
 
-            await handlePrintContinuous(filteredDtos, {
-              pdf: this.pdf,
-              isBrowser: isPlatformBrowser(this.platformId),
-              onError: (message) => this.patchPrintError(message),
-              noEntriesMessage:
-                APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
-              generateErrorMessage:
-                APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
-              isClosed: false,
-            });
+            if (mode === 'continuous') {
+              await handlePrintContinuous(dto, {
+                pdf: this.pdf,
+                isBrowser: isPlatformBrowser(this.platformId),
+                onError: (message) => this.patchPrintError(message),
+                noEntriesMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+                generateErrorMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
+                isClosed: false,
+              });
+            }
           } finally {
             this.appState.patch({ loading: false });
           }
@@ -499,24 +496,36 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   private async buildPrintRequest(
-    mode: ApplicationsPrintRequest['mode'],
+    mode: BulkPrintRequest['mode'],
     action: BulkActionType,
-  ): Promise<ApplicationsPrintRequest | null | void> {
+  ): Promise<BulkPrintRequest | null | void> {
     this.patchApp(clearNotificationsPatch());
 
     const preview = await this.getBulkPreviewData(action);
-    const selectedRows = (preview?.entries ?? []).map(mapToRow);
 
-    if (selectedRows.length === 0) {
-      return null;
+    if (!preview || !mode) {
+      return;
+    }
+
+    const selectedRows = (preview?.entries ?? []).map(mapToRow);
+    const entryIds = preview.entryIds;
+
+    if (!selectedRows.length || !entryIds.length) {
+      return;
     }
 
     const selectedRowsListIds = this.getArrOfPrintListId(selectedRows);
 
+    const params: PrintApplicationListsRequestParams = {
+      bulkGetApplicationListEntriesRequestDto: {
+        listIds: selectedRowsListIds,
+        entryIds,
+      },
+    };
+
     return {
-      ids: selectedRowsListIds,
+      body: params,
       mode,
-      selectedRows,
     };
   }
 
