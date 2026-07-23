@@ -621,7 +621,14 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           }
 
           try {
-            if (!dto) {
+            if (!dto?.length) {
+              this.detailSignalState.patch({
+                errorSummary: [
+                  {
+                    text: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+                  },
+                ],
+              });
               return;
             }
 
@@ -983,7 +990,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     const params: PrintApplicationListsRequestParams = {
       bulkGetApplicationListEntriesRequestDto: {
         listIds: [this.id],
-        entryIds: [...new Set<string>(entryIds)],
+        ...(entryIds.length !== 0 && {
+          entryIds: [...new Set(entryIds)], // Omitting this returns all entries
+        }),
       },
     };
 

@@ -5,6 +5,11 @@
 export type SortDirection = 'asc' | 'desc';
 export type SortState = { key: string; direction: SortDirection };
 
+const collator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: 'base',
+});
+
 export function sortRows<T extends Record<string, unknown>>(
   rows: T[],
   sort: SortState,
@@ -14,11 +19,6 @@ export function sortRows<T extends Record<string, unknown>>(
   return [...rows].sort((left, right) => {
     const leftValue = left[sort.key];
     const rightValue = right[sort.key];
-
-    const collator = new Intl.Collator(undefined, {
-      numeric: true,
-      sensitivity: 'base',
-    });
 
     if (leftValue === rightValue) {
       return 0;
