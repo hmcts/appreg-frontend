@@ -83,25 +83,6 @@ import { addLocationValidatorsToForm } from '@validators/add-location-validators
 
 type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
 type ControlName = keyof AppErrorMap;
-// type ApplicationsPrintRequest =
-//   | {
-//       listIds: string[];
-//       entryIds: string[];
-//       mode: 'page';
-//       selectedRows: ApplicationRow[];
-//     }
-//   | {
-//       listIds: string[];
-//       entryIds: string[];
-//       mode: 'continuous';
-//       selectedRows: ApplicationRow[];
-//     };
-
-// type ApplicationsPrintResponse = {
-//   dtos: ApplicationListGetPrintDto[];
-//   mode: 'page' | 'continuous';
-//   selectedRows: ApplicationRow[];
-// };
 
 const APPLICATIONS_SORT_MAP: Record<string, string> = {
   date: 'date',
@@ -261,7 +242,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   private setupEffects(): void {
-    // GET /application-lists/{listId}/print
+    // GET /application-lists/print
     setupLoadEffect(
       {
         request: this.printRequest,
@@ -466,7 +447,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
     const rows = (preview?.entries ?? []).map(mapToRow);
     const eligibleCount = preview?.eligibleCount;
-    const ineligibleRowsFound = preview?.ineligibleCount;
+    const ineligibleRowsFound = preview?.ineligibleCount > 0;
 
     // Only result status = 'open' applications
     if (eligibleCount <= 0) {
@@ -490,7 +471,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       relativeTo: this.route,
       state: {
         entriesToResult,
-        ignoredSelected: ineligibleRowsFound > 0,
+        ignoredSelected: ineligibleRowsFound,
       },
     });
   }
