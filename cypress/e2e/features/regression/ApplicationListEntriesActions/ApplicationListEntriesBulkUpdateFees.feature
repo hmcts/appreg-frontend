@@ -1,6 +1,6 @@
 Feature: Application List Entries Bulk Update Fees
 
-    @regression @applicationsListEntries @ARCPOC-222 @ARCPOC-630 @ARCPOC-1475
+    @regression @applicationsListEntries @ARCPOC-222 @ARCPOC-630 @ARCPOC-1475 @ARCPOC-1493
     Scenario Outline: Application List Entries - Bulk Update Fees - 3 ALEs with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -150,16 +150,28 @@ Feature: Application List Entries Bulk Update Fees
             | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Condemnation of Unfit Food                                         | Yes          |          |
             | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Application for order re public health measures (person)           | Yes          |          |
             | Michael Brown {RANDOM} | Emily Clark {RANDOM}           | Application to remove an educational institution from the register | Yes          |          |
+        # ARCPOC-1493: Verify that the off site fee applies message is displayed when the checkbox is checked/unchecked
+        Then User Should See The Button "Update fee details" Is Disabled
         When User Checks The Checkbox With Label "Off site fee applies"
+        Then User Should See The Button "Update fee details" Is Enabled
+        When User Clicks On The "Update fee details" Button
+        Then User See "Are you sure you want to add these fees to the following applications?" On The Page
+        Then User Should See Row In Table "You are adding fees to the following application(s)" With Values:
+            | Applicant              | Respondent                     | Application title                                                  | Fee required | Resulted |
+            | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Condemnation of Unfit Food                                         | Yes          |          |
+            | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Application for order re public health measures (person)           | Yes          |          |
+            | Michael Brown {RANDOM} | Emily Clark {RANDOM}           | Application to remove an educational institution from the register | Yes          |          |
+        Then User See "Fee details" On The Page
+        Then User See "Off site fee applies." On The Page
+        Then User Clicks On The Link "Cancel"
+        # Contineue to add fee details
         Then User See "Selecting this will apply the off site fee to the entries." On The Page
         And User See "No fees exist" On The Page
         And User See "Update fee status" On The Page
         Then User Selects "Paid" In The "Fee status" Dropdown
         When User Set Date Field "Status date" To "<SearchDate>"
         Then User Enters "<PaymentReference>" Into The "Payment reference" Textbox
-        Then User Should See The Button "Update fee details" Is Disabled
         When User Clicks On The "Add fee details" Button
-        Then User Should See The Button "Update fee details" Is Enabled
         When User Clicks "Change" Link In Row Of Table "Current fee statuses table" With:
             | Fee Status | Status Date  | Payment Ref  |
             | PAID       | todaydisplay | PAYD{RANDOM} |
