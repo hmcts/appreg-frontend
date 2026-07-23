@@ -208,7 +208,7 @@ Feature: Applications List Update
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567
     Scenario Outline: Close application list with One ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -414,7 +414,7 @@ Feature: Applications List Update
             | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |
         Then User Should See Table "Application list entries" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
-        Then User Verify "Open" Button Is Disabled In Row Of Table "Application list entries" With:
+        Then User Verify "Open" Button Is Not Present In Row Of Table "Application list entries" With:
             | Date          | Applicant             | Respondent           | Application title                                        | Fee | Resulted | Status |
             | <DisplayDate> | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Application for order re public health measures (person) | Yes | Yes      | CLOSED |
 

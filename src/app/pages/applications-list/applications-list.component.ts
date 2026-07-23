@@ -32,7 +32,7 @@ import {
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
-import { map, take } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 
 import {
   APPLICATIONS_LIST_COLUMNS_ACTION,
@@ -74,6 +74,7 @@ import {
   ApplicationListStatus,
   ApplicationListsApi,
   GetApplicationListsRequestParams,
+  PrintApplicationListsRequestParams,
 } from '@openapi';
 import { ApplicationListRecordsService } from '@services/applications-list/application-list-records.service';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
@@ -85,9 +86,11 @@ import {
 } from '@services/applications-list/searchform/application-list-search-form.service';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
-import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
+import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
+import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
@@ -159,7 +162,11 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     id: string;
     isClosed: boolean;
   } | null>(null);
+
+  private readonly printRequest = signal<BulkPrintRequest | null>(null);
+
   readonly submitAttempt = signal(0);
+  readonly listIsClosed = signal(false);
 
   columns: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
 
@@ -259,13 +266,16 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       this.envInjector,
     );
 
-    // Applications list print page
+    // POST /application-lists/print
     setupLoadEffect(
       {
-        request: this.printPageRequest,
-        load: (id) =>
-          this.appListsApi.printApplicationList(
-            { listId: id },
+        request: this.printRequest,
+        load: (req: BulkPrintRequest) =>
+          this.appListsApi.printApplicationLists(
+            {
+              bulkGetApplicationListEntriesRequestDto:
+                req.body.bulkGetApplicationListEntriesRequestDto,
+            },
             undefined,
             undefined,
             {
@@ -273,67 +283,51 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             },
           ),
         onSuccess: async (dto) => {
-          this.printPageRequest.set(null);
-          try {
-            if (!this.hasEntries(dto)) {
-              this.showInline(
-                APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
-              );
-              return;
-            }
+          const mode = this.printRequest()?.mode;
+          this.printRequest.set(null);
 
-            if (isPlatformBrowser(this.platformId)) {
-              await this.pdf.generatePagedApplicationListPdf(dto, {
+          if (!mode) {
+            return;
+          }
+
+          if (dto.length > 1) {
+            return;
+          }
+
+          if (!this.hasEntries(dto[0])) {
+            // We only expect 1 object here
+            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
+            return;
+          }
+
+          try {
+            if (mode === 'page') {
+              await handlePrintPage(dto, {
+                pdf: this.pdf,
+                isBrowser: isPlatformBrowser(this.platformId),
+                onError: (message) => this.showInline(message),
+                noEntriesMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+                generateErrorMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry,
                 crestUrl: '/assets/govuk-crest.png',
               });
             }
+
+            if (mode === 'continuous') {
+              await handlePrintContinuous(dto, {
+                pdf: this.pdf,
+                isBrowser: isPlatformBrowser(this.platformId),
+                onError: (message) => this.showInline(message),
+                noEntriesMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+                generateErrorMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
+                isClosed: this.listIsClosed(),
+              });
+            }
           } catch {
-            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
-          } finally {
             this.appListSignalState.patch({ pdfLoading: false });
-          }
-        },
-        onError: (err) => {
-          this.appListSignalState.patch({ pdfLoading: false });
-          this.printPageRequest.set(null);
-          const status = getHttpStatus(err);
-          if (status === 404) {
-            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.listNotFound);
-          } else {
-            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
-          }
-        },
-      },
-      this.envInjector,
-    );
-
-    // Applications list print cont
-    setupLoadEffect(
-      {
-        request: this.printContinuousRequest,
-        load: (req) =>
-          this.appListsApi
-            .printApplicationList({ listId: req.id }, undefined, undefined, {
-              transferCache: false,
-            })
-            .pipe(map((dto) => ({ dto, isClosed: req.isClosed }))),
-        onSuccess: async ({ dto, isClosed }) => {
-          this.printContinuousRequest.set(null);
-          try {
-            if (!this.hasEntries(dto)) {
-              this.showInline(
-                APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
-              );
-              return;
-            }
-
-            if (isPlatformBrowser(this.platformId)) {
-              await this.pdf.generateContinuousApplicationListsPdf(
-                [dto],
-                isClosed,
-              );
-            }
-          } catch {
             this.showInline(
               APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
             );
@@ -412,13 +406,26 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   onPrintPage(id: string): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     if (!id) {
       return;
     }
 
+    const params: PrintApplicationListsRequestParams = {
+      bulkGetApplicationListEntriesRequestDto: {
+        listIds: [id],
+      },
+    };
+
     this.appListSignalState.patch(clearNotificationsPatch());
     this.appListSignalState.patch({ pdfLoading: true });
-    this.printPageRequest.set(id);
+    this.printRequest.set({
+      body: params,
+      mode: 'page',
+    });
   }
 
   onPrintContinuous(id: string, isClosed: boolean): void {
@@ -430,9 +437,20 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    this.listIsClosed.set(isClosed);
+
+    const params: PrintApplicationListsRequestParams = {
+      bulkGetApplicationListEntriesRequestDto: {
+        listIds: [id],
+      },
+    };
+
     this.appListSignalState.patch(clearNotificationsPatch());
     this.appListSignalState.patch({ pdfLoading: true });
-    this.printContinuousRequest.set({ id, isClosed });
+    this.printRequest.set({
+      body: params,
+      mode: 'continuous',
+    });
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {

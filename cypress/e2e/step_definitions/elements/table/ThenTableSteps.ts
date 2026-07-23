@@ -160,3 +160,23 @@ Then(
     }
   },
 );
+
+Then(
+  'User Verify {string} Button Is Not Present In Row Of Table {string} With:',
+  (buttonText: string, tableCaption: string, dataTable: DataTable) => {
+    const rows = dataTable.hashes();
+
+    if (rows.length === 0) {
+      throw new Error('DataTable must have at least one row of data');
+    }
+
+    // Verify the button is not present for each row in the data table
+    for (const row of rows) {
+      TableVerification.verifyButtonNotPresentInRow(
+        tableCaption,
+        row,
+        buttonText,
+      );
+    }
+  },
+);

@@ -37,12 +37,14 @@
       <p class="govuk-body">Off site fee applies.</p>
     }
 
-    <app-table
-      [rows]="feeTableRows"
-      [columns]="feeTableColumns"
-      [caption]="'Civil fee details'"
-      [hiddenCaption]="true"
-      [autoGenerateColumns]="false"
-    />
+    @if (feeStatuses.length > 0) {
+      <app-table
+        [rows]="feeTableRows"
+        [columns]="feeTableColumns"
+        [caption]="'Civil fee details'"
+        [hiddenCaption]="true"
+        [autoGenerateColumns]="false"
+      />
+    }
   </section>
 </app-review-confirm>

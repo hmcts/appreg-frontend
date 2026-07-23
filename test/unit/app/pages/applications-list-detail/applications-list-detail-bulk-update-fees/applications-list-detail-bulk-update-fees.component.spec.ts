@@ -430,6 +430,44 @@ describe('ApplicationsListDetailBulkUpdateFeesComponent', () => {
     );
   });
 
+  it('navigates to confirm when only the offsite fee is selected', () => {
+    history.replaceState(
+      {
+        entriesToUpdateFee: [
+          {
+            id: 'entry-1',
+            applicant: 'Applicant',
+            respondent: 'Respondent',
+            title: 'Title',
+          },
+        ],
+      },
+      '',
+    );
+
+    const fixture = TestBed.createComponent(
+      ApplicationsListDetailBulkUpdateFeesComponent,
+    );
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+    component.onOffsiteFeeChanged(true);
+    Object.defineProperty(component, 'civilFeeSection', {
+      value: { validateForSubmit: jest.fn(() => []) },
+    });
+
+    component.addFees();
+
+    expect(routerNavigate).toHaveBeenCalledWith(
+      ['/applications-list', 'list-123', 'bulk-update-fee', 'confirm'],
+      expect.objectContaining({
+        state: expect.objectContaining({
+          feeTable: null,
+          isOffSiteFee: true,
+        }),
+      }),
+    );
+  });
+
   it('prevents confirm navigation when child validation returns errors', () => {
     history.replaceState(
       {

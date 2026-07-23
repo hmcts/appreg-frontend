@@ -31,7 +31,7 @@ Feature: Application List Bulk Upload
             | 2               | AC-{RANDOM}-2  | Global Tech Solutions Ltd | James Hargreaves{RANDOM}        | B1 1BB   | Warrant of Control                               | No  |          |
         Then User Clicks On The Link "Click here to update fee details on newly uploaded applications"
         # Add Fee Details for Bulk Uploaded Application(s) where Fee Required = 'N'
-        Then User Sees Validation Error Banner "There ia a problem" Containing "Cannot update application(s) that do not requres a fee"
+        Then User Sees Validation Error Banner "There is a problem" Containing "Cannot update application(s) that do not require a fee"
         When User Verifies The Checkbox is Checked In Row Of Table "Entries" With Values:
             | Sequence number | Account number | Applicant                 | Respondent                      | Postcode | Title                                            | Fee | Resulted |
             | 1               | AC-{RANDOM}-1  | Benjamin Young            | Greenfield Finance {RANDOM} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |
@@ -44,7 +44,7 @@ Feature: Application List Bulk Upload
             | User  | APIDate  | Time           | Status | Description     | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkUp_{RANDOM} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @SC2
+    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500
     Scenario Outline: Application List - Bulk Upload Entries Via CSV File With Application Codes Fee Required = 'Y'
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -140,3 +140,29 @@ Feature: Application List Bulk Upload
         Examples:
             | User  | APIDate  | Time           | Status | Description       | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkFail_{RANDOM} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
+
+    @applicationsList @applicationListEntry @ARCPOC-1502 @ARCPOC-1563
+    Scenario Outline: Application List - Bulk Upload Fails - Verify CSV Import Error Table
+        Given User Authenticates Via API As "<User>"
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date      | time   | status   | description   | courtLocationCode   |
+            | <APIDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        Given User Is On The Portal Page
+        When User Signs In With Microsoft SSO As "<User>"
+        When User Searches Application List With:
+            | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+        Then User See "Applications" On The Page
+        Then User Clicks On The Link "Bulk upload"
+        Then User See "Bulk upload applications" On The Page
+        When User Uploads The File "bulk-upload-invalid-values-one-header-per-row.csv"
+        When User Clicks On The "Upload file" Button
+        When User Waits For The File Upload To Complete
+        Then User Sees Validation Error Banner "Bulk upload failed" Containing "The bulk upload could not be completed. See the table below for more details. Please re-try the upload once these errors have been resolved"
+        Then User Should See Row In Table "Import errors table" With Values:
+            | Error Type | Row | Affected column | Message | Applicant name | Address line 1 | Rejected value |

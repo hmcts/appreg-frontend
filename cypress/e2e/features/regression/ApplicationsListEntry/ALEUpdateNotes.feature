@@ -55,7 +55,7 @@ Feature: Applications List Entry Notes Update
         Then User Verify Response Status Code Should Be "201"
 
 
-    @regression @applicationListEntry @ARCPOC-1333
+    @regression @applicationListEntry @ARCPOC-1333 @ARCPOC-1567
     Scenario: Validate Update Notes Screen and process
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
@@ -79,7 +79,7 @@ Feature: Applications List Entry Notes Update
         Then User Enters "Taylor {RANDOM}" Into The "Applicant surname" Textbox
         Then User Should See The Button "Search" Is Enabled
         When User Clicks On The "Search" Button
-        When User Clicks "Select" Then "Update notes" From Menu In Row Of Table "Application list entries" With:
+        When User Clicks "Update notes" Button In Row Of Table "Application list entries" With:
             | Applicant             | Respondent           |
             | Henry Taylor {RANDOM} | Emily Clark {RANDOM} |
         Then User Verifies The "Application notes" Textbox Has Value "Original Note with ref {RANDOM}"

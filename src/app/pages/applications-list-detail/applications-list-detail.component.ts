@@ -395,6 +395,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       errorHint: 'There is a problem',
       errorSummary: [{ id: '', href: '', text: feeError }],
       preserveErrorSummaryOnLoad: true,
+      updateFeesDone: false,
     });
   }
 
@@ -911,7 +912,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     const rows = mapEntrySummaryRows(preview.entries);
 
     // clear any prior messages
-    this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
+    this.detailSignalState.patch(clearUpdateNotificationsPatch());
 
     // Exclude entries with no fee required
     // const selectedFeesRequired = selected.filter(

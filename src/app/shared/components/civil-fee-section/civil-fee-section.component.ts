@@ -91,6 +91,7 @@ export class CivilFeeSectionComponent implements OnInit {
   feeRequired = input<boolean>(false);
 
   noFeeMeta = input<boolean>(false);
+  allowJustFeeEntry = input<boolean>(false);
 
   informationText = input('entry');
 
@@ -163,20 +164,29 @@ export class CivilFeeSectionComponent implements OnInit {
     this.submitted.set(true);
     const f = this.feeForm().controls;
 
-    // Lazy attach validators so they do not show on parent update.
-    f.feeStatus.setValidators([(c) => Validators.required(c)]);
-    f.feeStatusDate.setValidators([(c) => Validators.required(c)]);
+    // form values to null
+    const feeStatus = (f.feeStatus.value?.trim() as PaymentStatus) || null;
+    const statusDate = (f.feeStatusDate.value ?? '').trim();
+    const paymentReference = (f.paymentRef.value ?? null)?.trim() || null;
+
+    if (!this.allowJustFeeEntry()) {
+      // Lazy attach validators so they do not show on parent update.
+      f.feeStatus.setValidators([(c) => Validators.required(c)]);
+      f.feeStatusDate.setValidators([(c) => Validators.required(c)]);
+
+      f.feeStatus.updateValueAndValidity({ emitEvent: false });
+      f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
+
+      f.feeStatus.markAsTouched();
+      f.feeStatusDate.markAsTouched();
+    }
+
     f.paymentRef.setValidators([
       this.paymentRefNotAllowedWhenDueValidator,
       (c) => Validators.maxLength(15)(c),
     ]);
 
-    f.feeStatus.updateValueAndValidity({ emitEvent: false });
-    f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
     f.paymentRef.updateValueAndValidity({ emitEvent: false });
-
-    f.feeStatus.markAsTouched();
-    f.feeStatusDate.markAsTouched();
     f.paymentRef.markAsTouched();
 
     this.emitCivilFeeErrors();
@@ -189,10 +199,15 @@ export class CivilFeeSectionComponent implements OnInit {
       return;
     }
 
+    // Bulk update fee details require both status and date when adding a fee.
+    if (this.allowJustFeeEntry() && (!feeStatus || !statusDate)) {
+      return;
+    }
+
     const payload: AddFeeDetailsPayload = {
-      feeStatus: f.feeStatus.value?.trim() as PaymentStatus,
-      statusDate: (f.feeStatusDate.value ?? '').trim(),
-      paymentReference: (f.paymentRef.value ?? null)?.trim() || null,
+      feeStatus,
+      statusDate,
+      paymentReference,
     };
 
     this.addFeeDetails.emit(payload);
@@ -201,25 +216,62 @@ export class CivilFeeSectionComponent implements OnInit {
     this.clearCivilFeeInputsAndErrors();
   }
 
-  private emitCivilFeeErrors(): void {
-    this.civilFeeErrors.emit(this.buildCivilFeeErrors());
+  private emitCivilFeeErrors(allowOffsiteOnly = false): void {
+    this.civilFeeErrors.emit(this.buildCivilFeeErrors(allowOffsiteOnly));
   }
 
   validateForSubmit(): ErrorItem[] {
     this.attachValidatorsForSubmitAttempt();
-    const errors = this.buildCivilFeeErrors();
+    const errors = this.buildCivilFeeErrors(true);
     this.civilFeeErrors.emit(errors);
     return errors;
   }
 
-  private buildCivilFeeErrors(): ErrorItem[] {
+  private buildCivilFeeErrors(allowOffsiteOnly = false): ErrorItem[] {
     const entries: ErrorItem[] = [];
 
-    (['feeStatus', 'feeStatusDate', 'paymentRef'] as const).forEach((name) => {
-      this.getControlErrorMessages(name).forEach((message) => {
-        entries.push({ id: name, text: message });
+    const f = this.feeForm().controls;
+    const feeStatusIsEmpty = !f.feeStatus.value?.trim();
+    const feeStatusDateIsEmpty = !f.feeStatusDate.value?.trim();
+    const feeDetailsAreEmpty =
+      feeStatusIsEmpty && feeStatusDateIsEmpty && !f.paymentRef.value?.trim();
+    const feeRowsAreEmpty = (f.feeStatuses.value ?? []).length === 0;
+
+    if (this.allowJustFeeEntry()) {
+      const isOffsiteOnlySubmit =
+        allowOffsiteOnly &&
+        feeDetailsAreEmpty &&
+        ((feeRowsAreEmpty && f.hasOffsiteFee.value) || !feeRowsAreEmpty);
+
+      if (!isOffsiteOnlySubmit) {
+        if (feeStatusIsEmpty) {
+          entries.push({
+            id: 'feeStatus',
+            text: CIVIL_FEE_FIELD_MESSAGES.feeStatus['required'],
+          });
+        }
+        if (feeStatusDateIsEmpty) {
+          entries.push({
+            id: 'feeStatusDate',
+            text: CIVIL_FEE_FIELD_MESSAGES.feeStatusDate['required'],
+          });
+        }
+      }
+
+      this.getControlErrorMessages('paymentRef').forEach((message) => {
+        entries.push({ id: 'paymentRef', text: message });
       });
-    });
+
+      return entries;
+    } else {
+      (['feeStatus', 'feeStatusDate', 'paymentRef'] as const).forEach(
+        (name) => {
+          this.getControlErrorMessages(name).forEach((message) => {
+            entries.push({ id: name, text: message });
+          });
+        },
+      );
+    }
 
     return entries;
   }

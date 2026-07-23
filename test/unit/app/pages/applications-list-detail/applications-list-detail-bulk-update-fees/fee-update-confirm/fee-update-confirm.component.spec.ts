@@ -91,9 +91,32 @@ describe('FeeUpdateConfirmComponent', () => {
             paymentStatus: 'PAID',
             statusDate: '2026-01-01',
             paymentReference: 'REF-1',
-            hasOffsiteFee: true,
           },
         ],
+        hasOffsiteFee: true,
+      },
+    });
+  });
+
+  it('submits selected entries with only the offsite fee enabled', () => {
+    component.selectedEntries = [
+      {
+        id: 'entry-1',
+        applicant: 'Applicant',
+        respondent: 'Respondent',
+        title: 'Title',
+      },
+    ] as never;
+    component.feeStatuses = [];
+    component.isOffSiteFee = true;
+
+    component.onConfirm();
+
+    expect(bulkUpdateApplicationListEntryFees).toHaveBeenCalledWith({
+      listId: 'list-1',
+      bulkFeesUpdateDto: {
+        entryIds: ['entry-1'],
+        hasOffsiteFee: true,
       },
     });
   });
