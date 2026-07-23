@@ -70,11 +70,7 @@ export class FeeUpdateConfirmComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (
-      !this.listId ||
-      !this.selectedEntries.length ||
-      !this.feeStatuses.length
-    ) {
+    if (!this.listId || !this.selectedEntries.length) {
       this.goBack();
     }
   }
@@ -82,7 +78,11 @@ export class FeeUpdateConfirmComponent implements OnInit {
   onConfirm(): void {
     const listId = this.listId;
 
-    if (!this.feeStatuses.length || !listId || !this.selectedEntries.length) {
+    if (
+      !listId ||
+      !this.selectedEntries.length ||
+      (!this.feeStatuses.length && !this.isOffSiteFee)
+    ) {
       this.goBack();
       return;
     }
@@ -157,12 +157,14 @@ export class FeeUpdateConfirmComponent implements OnInit {
       paymentStatus: feeStatus.paymentStatus,
       statusDate: feeStatus.statusDate,
       paymentReference: feeStatus.paymentReference ?? undefined,
-      hasOffsiteFee: isOffSiteFee,
     }));
 
     return {
       entryIds,
-      feeDetails: feeStatuses,
+      ...(feeStatuses.length > 0 && { feeDetails: feeStatuses }),
+      ...(isOffSiteFee && {
+        hasOffsiteFee: isOffSiteFee,
+      }),
     };
   }
 }
