@@ -44,7 +44,7 @@ Feature: Application List Bulk Upload
             | User  | APIDate  | Time           | Status | Description     | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkUp_{RANDOM} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500
+    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1493
     Scenario Outline: Application List - Bulk Upload Entries Via CSV File With Application Codes Fee Required = 'Y'
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -79,16 +79,16 @@ Feature: Application List Bulk Upload
         And User Should See Row In Table "Updating fees for the following application(s)" With Values:
             | Applicant      | Respondent                      | Application title                      | Fee required | Resulted |
             | Benjamin Young | Globex Corporation {RANDOM} Ltd | Rights of Entry Warrant - Gas Operator | Yes          |          |
+        Then User Should See The Button "Update fee details" Is Disabled
         When User Checks The Checkbox With Label "Off site fee applies"
+        Then User Should See The Button "Update fee details" Is Enabled
         Then User See "Selecting this will apply the off site fee to the entry." On The Page
         And User See "No fees exist" On The Page
         And User See "Update fee status" On The Page
         Then User Selects "Paid" In The "Fee status" Dropdown
         When User Set Date Field "Status date" To "<SearchDate>"
         Then User Enters "BUldFee{RANDOM}" Into The "Payment reference" Textbox
-        Then User Should See The Button "Update fee details" Is Disabled
         When User Clicks On The "Add fee details" Button
-        Then User Should See The Button "Update fee details" Is Enabled
         When User Clicks On The "Update fee details" Button
         Then User See "Are you sure you want to add these fees to the following applications?" On The Page
         When User Clicks On The "Continue" Button
