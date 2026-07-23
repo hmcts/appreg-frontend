@@ -5,6 +5,11 @@
 export type SortDirection = 'asc' | 'desc';
 export type SortState = { key: string; direction: SortDirection };
 
+const collator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: 'base',
+});
+
 export function sortRows<T extends Record<string, unknown>>(
   rows: T[],
   sort: SortState,
@@ -29,16 +34,11 @@ export function sortRows<T extends Record<string, unknown>>(
       return (leftValue - rightValue) * direction;
     }
 
-    if (typeof leftValue !== 'string' || typeof rightValue !== 'string') {
-      return 0;
+    if (typeof leftValue === 'string' && typeof rightValue === 'string') {
+      return collator.compare(leftValue, rightValue) * direction;
     }
 
-    return (
-      leftValue.localeCompare(rightValue, undefined, {
-        numeric: true,
-        sensitivity: 'base',
-      }) * direction
-    );
+    return 0;
   });
 }
 

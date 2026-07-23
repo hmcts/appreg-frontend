@@ -88,6 +88,29 @@ describe('ResultSelectedComponent', () => {
     expect(component.rows).toEqual(sampleRows);
   });
 
+  it('sorts rows client-side and resets to the first page', () => {
+    component.rows = Array.from({ length: 11 }, (_, index) => ({
+      id: `r${index}`,
+      sequenceNumber: `${index}`,
+    })) as ApplicationEntriesResultContext[];
+    component.onPageChange(1);
+    component.onSortChange({ key: 'sequenceNumber', direction: 'desc' });
+
+    expect(component.currentPage()).toBe(0);
+    expect(component.paginatedRows()[0].sequenceNumber).toBe('10');
+    expect(component.totalPages()).toBe(2);
+  });
+
+  it('returns only the selected page of rows', () => {
+    component.rows = Array.from({ length: 21 }, (_, index) => ({
+      id: `r${index}`,
+    })) as ApplicationEntriesResultContext[];
+    component.onPageChange(2);
+
+    expect(component.paginatedRows()).toHaveLength(1);
+    expect(component.paginatedRows()[0].id).toBe('r20');
+  });
+
   it('onPendingChange should call facade.setPending with provided rows', () => {
     const setPendingSpy = jest.spyOn(
       ApplicationListEntryResultsFacade.prototype,

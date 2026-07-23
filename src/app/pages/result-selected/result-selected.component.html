@@ -27,7 +27,7 @@
 <h1 class="govuk-heading-xl">Result applications</h1>
 
 <app-result-wording-section
-  [resultApplicantContext]="rows"
+  [resultApplicantContext]="paginatedRows()"
   [resultCodesList]="resultsFacade.resultCodesSignal()"
   [existingResults]="createdEntryResults()"
   [clearPendingToken]="resultsFacade.clearPendingToken()"
@@ -42,4 +42,9 @@
   [captionSize]="'m'"
   [caption]="'Application(s) to result'"
   [buttonText]="'Save changes'"
+  [sortState]="resultSort()"
+  (sortChange)="onSortChange($event)"
+  [currentPage]="currentPage()"
+  [totalPages]="totalPages()"
+  (pageChange)="onPageChange($event)"
 />

@@ -4,6 +4,7 @@ import {
   OnInit,
   PLATFORM_ID,
   ViewChild,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -29,6 +30,7 @@ import {
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
 import { CivilFeeHelpComponent } from '@components/help-details/civil-fee-help.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { FeeStatus } from '@openapi';
 import {
@@ -43,6 +45,7 @@ import {
 } from '@util/civil-fee-utils';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { createSignalState } from '@util/signal-state-helpers';
+import { sortRows } from '@util/table-sort';
 
 type BulkUpdateFeeSnapshot = {
   listId?: string;
@@ -63,6 +66,7 @@ type BulkUpdateFeeSnapshot = {
     CivilFeeSectionComponent,
     AlertComponent,
     CivilFeeHelpComponent,
+    PaginationComponent,
   ],
   templateUrl: './applications-list-detail-bulk-update-fees.component.html',
 })
@@ -77,6 +81,8 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
   private readonly feeStatePatch = this.bulkFeeUpdateSignalState.patch;
   readonly vm = this.bulkFeeUpdateSignalState.vm;
 
+  private readonly pageSize = 10;
+
   // Reuse columns from another page
   columnsEntries = APPLICATION_ENTRIES_MOVE_COLUMNS;
 
@@ -90,6 +96,31 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
     feeStatusDate: new FormControl<string | null>(null),
     paymentRef: new FormControl<string | null>(null),
     feeStatuses: new FormControl<FeeStatus[] | null>(null),
+  });
+
+  readonly currentPage = signal(0);
+  readonly totalPages = computed(() =>
+    Math.ceil(this.vm().selectedEntries.length / this.pageSize),
+  );
+
+  readonly feeSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
+    key: '',
+    direction: 'asc',
+  });
+
+  showPagination = computed(
+    () => this.vm().selectedEntries.length > this.pageSize,
+  );
+
+  readonly sortedRows = computed(() => {
+    const { key, direction } = this.feeSort();
+    const rows = this.vm().selectedEntries;
+    return key ? sortRows(rows, { key, direction }) : rows;
+  });
+
+  readonly paginatedRows = computed(() => {
+    const start = this.currentPage() * this.pageSize;
+    return this.sortedRows().slice(start, start + this.pageSize);
   });
 
   @ViewChild('civilFeeSection')
@@ -190,6 +221,15 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
 
   informationText(): string {
     return this.vm().selectedEntries.length === 1 ? 'entry' : 'entries';
+  }
+
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.feeSort.set(sort);
+    this.currentPage.set(0);
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
   }
 
   private validateChildSectionsForSubmit(): void {

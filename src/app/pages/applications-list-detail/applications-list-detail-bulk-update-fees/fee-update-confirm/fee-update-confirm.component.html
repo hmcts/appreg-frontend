@@ -13,9 +13,20 @@
     id="entry-selected-table"
     [caption]="'You are adding fees to the following application(s)'"
     [columns]="columnsEntries"
-    [data]="selectedEntries"
+    [data]="paginatedRows()"
+    [clientOrServerSort]="'server'"
+    [sortState]="feeSort()"
+    (sortChange)="onSortChange($event)"
     appMojButtonMenu
   />
+
+  @if (showPagination()) {
+    <app-pagination
+      [currentPage]="currentPage()"
+      [totalPages]="totalPages()"
+      (pageChange)="onPageChange($event)"
+    />
+  }
 
   <hr class="govuk-section-break govuk-section-break--m" />
 

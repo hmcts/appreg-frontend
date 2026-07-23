@@ -2,6 +2,7 @@ import { Location, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { UpdateOfficialsTableBase } from './update-officials-table.base';
 import {
   UpdateOfficialsApplication,
   UpdateOfficialsNavState,
@@ -15,6 +16,7 @@ import {
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
 import { OfficialsSectionComponent } from '@components/officials-section/officials-section.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { OFFICIAL_FIELD_MESSAGES } from '@constants/application-list-entry/error-messages';
 import { OFFICIALS_ERROR_HREFS } from '@constants/application-list-entry/respondent/error-hrefs';
@@ -30,10 +32,14 @@ import { buildFormErrorSummary } from '@util/error-summary';
     ErrorSummaryComponent,
     OfficialsSectionComponent,
     SortableTableComponent,
+    PaginationComponent,
   ],
   templateUrl: './update-officials.component.html',
 })
-export class UpdateOfficialsComponent implements OnInit {
+export class UpdateOfficialsComponent
+  extends UpdateOfficialsTableBase
+  implements OnInit
+{
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
@@ -51,6 +57,7 @@ export class UpdateOfficialsComponent implements OnInit {
   rows: UpdateOfficialsApplication[] = [];
 
   constructor() {
+    super();
     this.form.controls.applicationCode.disable({ emitEvent: false });
     this.form.controls.lodgementDate.disable({ emitEvent: false });
   }

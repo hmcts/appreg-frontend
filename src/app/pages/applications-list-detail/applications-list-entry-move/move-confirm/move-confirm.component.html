@@ -12,9 +12,20 @@
     id="entry-selected-table"
     [caption]="'You are moving the following application(s)'"
     [columns]="columnsEntries"
-    [data]="entriesToMove"
+    [data]="paginatedRows()"
+    [clientOrServerSort]="'server'"
+    [sortState]="moveSort()"
+    (sortChange)="onSortChange($event)"
     appMojButtonMenu
   />
+
+  @if (showPagination()) {
+    <app-pagination
+      [currentPage]="currentPage()"
+      [totalPages]="totalPages()"
+      (pageChange)="onPageChange($event)"
+    />
+  }
 
   <div class="govuk-!-margin-top-6">
     <app-table

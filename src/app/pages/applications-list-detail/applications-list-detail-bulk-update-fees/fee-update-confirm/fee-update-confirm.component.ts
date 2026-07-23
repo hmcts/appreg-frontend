@@ -1,8 +1,16 @@
 import { Location, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  PLATFORM_ID,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { TableComponent } from '@components/table/table.component';
@@ -15,6 +23,7 @@ import {
   FeeStatus,
 } from '@openapi';
 import { getProblemText } from '@util/http-error-to-text';
+import { sortRows } from '@util/table-sort';
 
 type UpdateFeeState = {
   selectedEntries: [];
@@ -30,7 +39,12 @@ type FeeTableRow = {
 
 @Component({
   selector: 'app-fee-update-confirm',
-  imports: [ReviewConfirmComponent, TableComponent, SortableTableComponent],
+  imports: [
+    ReviewConfirmComponent,
+    TableComponent,
+    SortableTableComponent,
+    PaginationComponent,
+  ],
   templateUrl: './fee-update-confirm.component.html',
 })
 export class FeeUpdateConfirmComponent implements OnInit {
@@ -58,6 +72,30 @@ export class FeeUpdateConfirmComponent implements OnInit {
   selectedEntries = this.navState?.selectedEntries ?? [];
   feeStatuses = this.navState?.feeTable ?? [];
   isOffSiteFee = this.navState?.isOffSiteFee ?? false;
+
+  private readonly pageSize = 10;
+  readonly currentPage = signal(0);
+  readonly totalPages = computed(() =>
+    Math.ceil(this.selectedEntries.length / this.pageSize),
+  );
+
+  readonly feeSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
+    key: '',
+    direction: 'asc',
+  });
+
+  showPagination = computed(() => this.selectedEntries.length > this.pageSize);
+
+  readonly sortedRows = computed(() => {
+    const { key, direction } = this.feeSort();
+    const rows = this.selectedEntries;
+    return key ? sortRows(rows, { key, direction }) : rows;
+  });
+
+  readonly paginatedRows = computed(() => {
+    const start = this.currentPage() * this.pageSize;
+    return this.sortedRows().slice(start, start + this.pageSize);
+  });
 
   get feeTableRows(): FeeTableRow[] {
     return this.feeStatuses.map((feeStatus) => ({
@@ -142,6 +180,15 @@ export class FeeUpdateConfirmComponent implements OnInit {
         },
       },
     );
+  }
+
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.feeSort.set(sort);
+    this.currentPage.set(0);
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
   }
 
   private buildBulkUpdateFeesPayload(

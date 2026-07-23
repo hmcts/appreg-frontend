@@ -28,6 +28,20 @@ describe('sortRows', () => {
     expect(rows).toEqual([{ value: 2 }, { value: 10 }, { value: 1 }]);
   });
 
+  it('sorts strings with embedded numbers naturally', () => {
+    const rows = [
+      { value: 'item 10' },
+      { value: 'item 2' },
+      { value: 'item 1' },
+    ];
+
+    expect(sortRows(rows, { key: 'value', direction: 'asc' })).toEqual([
+      { value: 'item 1' },
+      { value: 'item 2' },
+      { value: 'item 10' },
+    ]);
+  });
+
   it('places null and undefined values after populated values', () => {
     const rows = [{ value: null }, { value: 'Beta' }, {}, { value: 'Alpha' }];
 

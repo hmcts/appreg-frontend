@@ -36,9 +36,20 @@
   id="entry-selected-table"
   [caption]="'Updating fees for the following application(s)'"
   [columns]="columnsEntries"
-  [data]="vm().selectedEntries"
+  [data]="paginatedRows()"
+  [clientOrServerSort]="'server'"
+  [sortState]="feeSort()"
+  (sortChange)="onSortChange($event)"
   appMojButtonMenu
 />
+
+@if (showPagination()) {
+  <app-pagination
+    [currentPage]="currentPage()"
+    [totalPages]="totalPages()"
+    (pageChange)="onPageChange($event)"
+  />
+}
 
 <hr class="govuk-section-break govuk-section-break--m" />
 

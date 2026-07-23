@@ -27,6 +27,7 @@ import { ApplicationListEntryResultsFacade } from '@services/applications-list-e
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
+import { sortRows } from '@util/table-sort';
 @Component({
   selector: 'app-result-selected',
   standalone: true,
@@ -76,7 +77,32 @@ export class ResultSelected implements OnInit {
 
   columns = APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS;
 
-  rows!: ApplicationEntriesResultContext[];
+  private readonly rowsState = signal<ApplicationEntriesResultContext[]>([]);
+  get rows(): ApplicationEntriesResultContext[] {
+    return this.rowsState();
+  }
+  set rows(rows: ApplicationEntriesResultContext[]) {
+    this.rowsState.set(rows);
+  }
+
+  readonly pageSize = 10;
+  readonly currentPage = signal(0);
+  readonly resultSort = signal<{ key: string; direction: 'asc' | 'desc' }>({
+    key: '',
+    direction: 'asc',
+  });
+  readonly totalPages = computed(() =>
+    Math.ceil(this.rowsState().length / this.pageSize),
+  );
+  readonly sortedRows = computed(() => {
+    const { key, direction } = this.resultSort();
+    const rows = this.rowsState();
+    return key ? sortRows(rows, { key, direction }) : rows;
+  });
+  readonly paginatedRows = computed(() => {
+    const start = this.currentPage() * this.pageSize;
+    return this.sortedRows().slice(start, start + this.pageSize);
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -89,6 +115,15 @@ export class ResultSelected implements OnInit {
           resultingApplications?: ApplicationEntriesResultContext[];
         }
       )?.resultingApplications ?? [];
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+  }
+
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.resultSort.set(sort);
+    this.currentPage.set(0);
   }
 
   onPendingChange(rows: PendingResultRow[]): void {
