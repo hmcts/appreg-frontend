@@ -26,6 +26,7 @@ import {
 } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import {
   SortableTableComponent,
   TableColumn,
@@ -66,6 +67,7 @@ import { ResultRow, toExistingRows } from '@util/result-code-helpers';
     AlertComponent,
     DateTimePipe,
     HelpDetailsComponent,
+    PaginationComponent,
   ],
 })
 export class ResultWordingSectionComponent {
@@ -112,6 +114,19 @@ export class ResultWordingSectionComponent {
   private readonly validationErrorsByCard = new Map<string, ErrorItem[]>();
 
   applicantRespondentColumns = input<TableColumn[]>(RESULT_WORDING_COLUMNS);
+
+  // Optional client side sorting, handled in parent
+  sortState = input<{
+    key: string;
+    direction: 'asc' | 'desc';
+  } | null>(null);
+  sortChange = output<{
+    key: string;
+    direction: 'asc' | 'desc';
+  }>();
+  currentPage = input(0);
+  totalPages = input(1);
+  pageChange = output<number>();
 
   resultCodeSearch = '';
 

@@ -3,7 +3,7 @@ import { LOCALE_ID, PLATFORM_ID, type WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
-import { Subject, of, throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
 import { type ApplicationsState } from '@components/applications/util/applications.state';
@@ -15,9 +15,10 @@ import {
   ApplicationListGetPrintDto,
   ApplicationListStatus,
   ApplicationListsApi,
+  BulkActionPreviewResponseDto,
+  BulkActionType,
   EntryGetFilterDto,
   EntryGetSummaryDto,
-  EntryIdsDto,
   EntryPage,
 } from '@openapi';
 import { ApplicationsSearchFormService } from '@services/applications/applications-search-form.service';
@@ -113,22 +114,22 @@ describe('ApplicationsComponent', () => {
   const getEntriesMock: jest.MockedFunction<
     ApplicationListEntriesApi['getEntries']
   > = jest.fn();
-  const getEntryIdsMock: jest.MockedFunction<
-    ApplicationListEntriesApi['getEntryIds']
+  const bulkActionPreviewMock: jest.MockedFunction<
+    ApplicationListEntriesApi['bulkActionPreview']
   > = jest.fn();
 
   const appListEntriesApiStub: Pick<
     ApplicationListEntriesApi,
-    'getEntries' | 'getEntryIds'
+    'getEntries' | 'bulkActionPreview'
   > = {
     getEntries: getEntriesMock,
-    getEntryIds: getEntryIdsMock,
+    bulkActionPreview: bulkActionPreviewMock,
   };
 
-  const printApplicationListMock = jest.fn();
+  const printApplicationListsMock = jest.fn();
   const appListsApiStub = {
-    printApplicationList: printApplicationListMock,
-  } as unknown as Pick<ApplicationListsApi, 'printApplicationList'>;
+    printApplicationLists: printApplicationListsMock,
+  } as unknown as Pick<ApplicationListsApi, 'printApplicationLists'>;
 
   const pdfServiceStub: jest.Mocked<
     Pick<
@@ -143,8 +144,8 @@ describe('ApplicationsComponent', () => {
 
   beforeEach(async () => {
     getEntriesMock.mockReset();
-    getEntryIdsMock.mockReset();
-    printApplicationListMock.mockReset();
+    bulkActionPreviewMock.mockReset();
+    printApplicationListsMock.mockReset();
     pdfServiceStub.generatePagedApplicationListPdf.mockReset();
     pdfServiceStub.generateContinuousApplicationListsPdf.mockReset();
 
@@ -161,9 +162,17 @@ describe('ApplicationsComponent', () => {
         }),
       ),
     );
-    getEntryIdsMock.mockReturnValue(
-      of({ ids: [] } as EntryIdsDto) as unknown as ReturnType<
-        ApplicationListEntriesApi['getEntryIds']
+    bulkActionPreviewMock.mockReturnValue(
+      of({
+        action: BulkActionType.RESULT_SELECTED,
+        limit: 100,
+        selectedCount: 0,
+        eligibleCount: 0,
+        ineligibleCount: 0,
+        entryIds: [],
+        entries: [],
+      } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+        ApplicationListEntriesApi['bulkActionPreview']
       >,
     );
     await TestBed.configureTestingModule({
@@ -195,6 +204,29 @@ describe('ApplicationsComponent', () => {
 
     fixture = TestBed.createComponent(Applications);
     component = fixture.componentInstance;
+    bulkActionPreviewMock.mockImplementation((request) => {
+      const entries = component.vm().selectedRows.map((row) =>
+        makeEntry({
+          id: row.id,
+          listId: row.applicationListId,
+          date: row.date,
+          applicationTitle: row.title,
+          status: row.status as ApplicationListStatus,
+        }),
+      );
+
+      return of({
+        action: request.bulkActionPreviewRequestDto.action,
+        limit: 100,
+        selectedCount: entries.length,
+        eligibleCount: entries.length,
+        ineligibleCount: 0,
+        entryIds: entries.map((entry) => entry.id),
+        entries,
+      } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+        ApplicationListEntriesApi['bulkActionPreview']
+      >;
+    });
     fixture.detectChanges();
   });
 
@@ -809,7 +841,7 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().selectedIds).toBe(selectedIds);
     });
 
-    it('header select-all fetches matching ids and updates selection', async () => {
+    it('header select-all switches to filter selection without fetching IDs', () => {
       appStateSignal(component).update((s) => ({
         ...s,
         rows: [
@@ -820,22 +852,64 @@ describe('ApplicationsComponent', () => {
         getFilters: { applicantOrganisation: 'Org Ltd' },
       }));
 
-      getEntryIdsMock.mockReturnValueOnce(
-        of({
-          ids: ['entry-1', 'entry-2', 'entry-3', 'entry-4'],
-        }) as unknown as ReturnType<ApplicationListEntriesApi['getEntryIds']>,
-      );
+      component.onHeaderSelectAllChange(true);
 
-      await component.onHeaderSelectAllChange(true);
-
-      expect(getEntryIdsMock).toHaveBeenCalledWith({
-        filter: { applicantOrganisation: 'Org Ltd' },
-      });
+      expect(bulkActionPreviewMock).not.toHaveBeenCalled();
       expect(component.vm().selectedIds).toEqual(
-        new Set(['entry-1', 'entry-2', 'entry-3', 'entry-4']),
+        new Set(['entry-1', 'entry-2']),
       );
+      expect(component.vm().isFilterSelection).toBe(true);
       expect(component.vm().isSelectingAll).toBe(false);
       expect(component.vm().allMatchingSelected).toBe(true);
+    });
+
+    it('keeps manually unselected ids as exclusions for a filter selection', () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        rows: [
+          makeEntry({ id: 'entry-1' }),
+          makeEntry({ id: 'entry-2' }),
+          makeEntry({ id: 'entry-3' }),
+        ],
+        totalEntries: 3,
+        selectedIds: new Set(['entry-1', 'entry-2', 'entry-3']),
+        isFilterSelection: true,
+        allMatchingSelected: true,
+      }));
+
+      component.onSelectedIdsChange(new Set(['entry-1', 'entry-3']));
+
+      expect(component.vm().excludedEntryIds).toEqual(new Set(['entry-2']));
+
+      bulkActionPreviewMock.mockReturnValueOnce(
+        of({
+          action: BulkActionType.RESULT_SELECTED,
+          limit: 100,
+          selectedCount: 2,
+          eligibleCount: 2,
+          ineligibleCount: 0,
+          entryIds: ['entry-1', 'entry-3'],
+          entries: [],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['bulkActionPreview']
+        >,
+      );
+
+      void (
+        component as unknown as {
+          getBulkPreviewData: (action: BulkActionType) => Promise<unknown>;
+        }
+      ).getBulkPreviewData(BulkActionType.RESULT_SELECTED);
+
+      expect(bulkActionPreviewMock).toHaveBeenCalledWith({
+        bulkActionPreviewRequestDto: expect.objectContaining({
+          action: BulkActionType.RESULT_SELECTED,
+          selection: expect.objectContaining({
+            selectionType: 'FILTER',
+            excludedEntryIds: ['entry-2'],
+          }),
+        }),
+      });
     });
 
     it('keeps selected rows from other pages and replaces only current-page selections', () => {
@@ -863,7 +937,7 @@ describe('ApplicationsComponent', () => {
       ]);
     });
 
-    it('clears selection when header select-all is unchecked', async () => {
+    it('clears selection when header select-all is unchecked', () => {
       appStateSignal(component).update((s) => ({
         ...s,
         selectedIds: new Set(['entry-1']),
@@ -872,47 +946,7 @@ describe('ApplicationsComponent', () => {
         isSelectingAll: true,
       }));
 
-      await component.onHeaderSelectAllChange(false);
-
-      expect(component.vm().selectedIds.size).toBe(0);
-      expect(component.vm().selectedRows).toEqual([]);
-      expect(component.vm().allMatchingSelected).toBe(false);
-      expect(component.vm().isSelectingAll).toBe(false);
-    });
-
-    it('ignores stale select-all responses after the selection is cleared', async () => {
-      const idsSubject = new Subject<EntryIdsDto>();
-
-      appStateSignal(component).update((s) => ({
-        ...s,
-        rows: [
-          makeEntry({ id: 'entry-1', listId: 'list-a' }),
-          makeEntry({ id: 'entry-2', listId: 'list-b' }),
-        ],
-        totalEntries: 4,
-        getFilters: { applicantOrganisation: 'Org Ltd' },
-      }));
-
-      getEntryIdsMock.mockReturnValueOnce(
-        idsSubject.asObservable() as unknown as ReturnType<
-          ApplicationListEntriesApi['getEntryIds']
-        >,
-      );
-
-      const selectAllPromise = component.onHeaderSelectAllChange(true);
-
-      expect(component.vm().selectedIds).toEqual(
-        new Set(['entry-1', 'entry-2']),
-      );
-      expect(component.vm().isSelectingAll).toBe(true);
-
-      await component.onHeaderSelectAllChange(false);
-
-      idsSubject.next({
-        ids: ['entry-1', 'entry-2', 'entry-3', 'entry-4'],
-      } as EntryIdsDto);
-      idsSubject.complete();
-      await selectAllPromise;
+      component.onHeaderSelectAllChange(false);
 
       expect(component.vm().selectedIds.size).toBe(0);
       expect(component.vm().selectedRows).toEqual([]);
@@ -942,6 +976,7 @@ describe('ApplicationsComponent', () => {
         fixture.nativeElement.querySelectorAll('button'),
       ).find(
         (button): button is HTMLButtonElement =>
+          button instanceof HTMLButtonElement &&
           button.textContent?.trim() === 'Update notes',
       );
 
@@ -999,6 +1034,20 @@ describe('ApplicationsComponent', () => {
         ...makeSelectedRow('entry-1', 'list-1'),
         status: 'closed',
       };
+
+      bulkActionPreviewMock.mockReturnValueOnce(
+        of({
+          action: BulkActionType.UPDATE_NOTES,
+          limit: 100,
+          selectedCount: 1,
+          eligibleCount: 1,
+          ineligibleCount: 0,
+          entryIds: ['entry-1'],
+          entries: [makeEntry({ id: 'entry-1', listId: 'list-1' })],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['bulkActionPreview']
+        >,
+      );
 
       await component.onUpdateNotesClick(row);
 
@@ -1069,11 +1118,14 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('onPrintContinuousClick', () => {
-    it('resolves selected rows across pages before printing', async () => {
+    it('uses the preview response rows before printing', async () => {
       appStateSignal(component).update((s) => ({
         ...s,
         selectedIds: new Set(['entry-1', 'entry-2']),
-        selectedRows: [makeSelectedRow('entry-1', 'list-a')],
+        selectedRows: [
+          makeSelectedRow('entry-1', 'list-a'),
+          makeSelectedRow('entry-2', 'list-b'),
+        ],
         totalPages: 2,
         totalEntries: 2,
         pageSize: 10,
@@ -1094,12 +1146,12 @@ describe('ApplicationsComponent', () => {
         >,
       );
 
-      printApplicationListMock.mockImplementation(({ listId }) =>
-        of(
+      printApplicationListsMock.mockReturnValue(
+        of([
           makePrintDto({
             entries: [
               {
-                id: listId === 'list-a' ? 'entry-1' : 'entry-2',
+                id: 'entry-1',
                 applicant: {},
                 applicationCode: '',
                 applicationTitle: '',
@@ -1107,22 +1159,47 @@ describe('ApplicationsComponent', () => {
               },
             ],
           }),
-        ),
+          makePrintDto({
+            entries: [
+              {
+                id: 'entry-2',
+                applicant: {},
+                applicationCode: '',
+                applicationTitle: '',
+                applicationWording: '',
+              },
+            ],
+          }),
+        ]),
       );
 
       await component.onPrintContinuousClick();
       await flushSignalEffects(fixture);
 
-      expect(getEntriesMock).toHaveBeenCalledWith({
-        pageNumber: 0,
-        pageSize: 10,
-        sort: ['date,desc'],
-        filter: { applicantOrganisation: 'Org Ltd' },
+      expect(getEntriesMock).not.toHaveBeenCalled();
+      expect(bulkActionPreviewMock).toHaveBeenCalledWith({
+        bulkActionPreviewRequestDto: expect.objectContaining({
+          action: BulkActionType.PRINT_CONTINUOUS,
+          selection: expect.objectContaining({
+            selectionType: 'IDS',
+            entryIds: ['entry-1', 'entry-2'],
+          }),
+        }),
       });
-      expect(printApplicationListMock).toHaveBeenCalledTimes(2);
+      expect(printApplicationListsMock).toHaveBeenCalledWith(
+        {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-a', 'list-b'],
+            entryIds: ['entry-1', 'entry-2'],
+          },
+        },
+        undefined,
+        undefined,
+        { transferCache: false },
+      );
     });
 
-    it('fetches each unique list id and generates one filtered continuous PDF', async () => {
+    it('fetches all selected list ids and generates one continuous PDF', async () => {
       const listADto = makePrintDto({
         courtName: 'Court A',
         entries: [
@@ -1178,69 +1255,38 @@ describe('ApplicationsComponent', () => {
         ],
       }));
 
-      printApplicationListMock.mockImplementation(({ listId }) => {
-        if (listId === 'list-a') {
-          return of(listADto);
-        }
-        return of(listBDto);
-      });
+      printApplicationListsMock.mockReturnValue(of([listADto, listBDto]));
 
       await component.onPrintContinuousClick();
       await flushSignalEffects(fixture);
 
-      expect(printApplicationListMock).toHaveBeenCalledTimes(2);
-      expect(printApplicationListMock.mock.calls[0]).toEqual([
-        { listId: 'list-a' },
+      expect(printApplicationListsMock).toHaveBeenCalledWith(
+        {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-a', 'list-b'],
+            entryIds: ['entry-a1', 'entry-a2', 'entry-b1'],
+          },
+        },
         undefined,
         undefined,
         { transferCache: false },
-      ]);
-      expect(printApplicationListMock.mock.calls[1]).toEqual([
-        { listId: 'list-b' },
-        undefined,
-        undefined,
-        { transferCache: false },
-      ]);
+      );
       expect(
         pdfServiceStub.generateContinuousApplicationListsPdf,
-      ).toHaveBeenCalledWith(
-        [
-          {
-            ...listADto,
-            entries: listADto.entries.filter((entry) =>
-              ['entry-a1', 'entry-a2'].includes(entry.id),
-            ),
-          },
-          {
-            ...listBDto,
-            entries: listBDto.entries.filter((entry) =>
-              ['entry-b1'].includes(entry.id),
-            ),
-          },
-        ],
-        false,
-      );
+      ).toHaveBeenCalledWith([listADto, listBDto], false);
     });
 
-    it('shows no entries message when all fetched DTO entries are filtered out', async () => {
+    it('shows no entries message when the print API returns no entries', async () => {
       appStateSignal(component).update((s) => ({
         ...s,
         selectedRows: [makeSelectedRow('entry-1', 'list-a')],
       }));
-      printApplicationListMock.mockReturnValue(
-        of(
+      printApplicationListsMock.mockReturnValue(
+        of([
           makePrintDto({
-            entries: [
-              {
-                id: 'other-entry',
-                applicant: {},
-                applicationCode: '',
-                applicationTitle: '',
-                applicationWording: '',
-              },
-            ],
+            entries: [],
           }),
-        ),
+        ]),
       );
 
       await component.onPrintContinuousClick();
@@ -1259,7 +1305,7 @@ describe('ApplicationsComponent', () => {
         ...s,
         selectedRows: [makeSelectedRow('entry-1', 'list-a')],
       }));
-      printApplicationListMock.mockReturnValue(
+      printApplicationListsMock.mockReturnValue(
         throwError(
           () =>
             new HttpErrorResponse({
@@ -1290,7 +1336,7 @@ describe('ApplicationsComponent', () => {
         getFilters: { applicantOrganisation: 'Org Ltd' },
       }));
 
-      getEntriesMock.mockReturnValueOnce(
+      bulkActionPreviewMock.mockReturnValueOnce(
         throwError(
           () =>
             new HttpErrorResponse({
@@ -1298,13 +1344,15 @@ describe('ApplicationsComponent', () => {
               statusText: 'Server Error',
               error: { detail: 'Resolve failed' },
             }),
-        ),
+        ) as unknown as ReturnType<
+          ApplicationListEntriesApi['bulkActionPreview']
+        >,
       );
 
       await component.onPrintContinuousClick();
       await flushSignalEffects(fixture);
 
-      expect(printApplicationListMock).not.toHaveBeenCalled();
+      expect(printApplicationListsMock).not.toHaveBeenCalled();
       expect(component.vm().errorSummary).toEqual([{ text: 'Resolve failed' }]);
     });
 
@@ -1313,8 +1361,8 @@ describe('ApplicationsComponent', () => {
         ...s,
         selectedRows: [makeSelectedRow('entry-1', 'list-a')],
       }));
-      printApplicationListMock.mockReturnValue(
-        of(
+      printApplicationListsMock.mockReturnValue(
+        of([
           makePrintDto({
             entries: [
               {
@@ -1326,7 +1374,7 @@ describe('ApplicationsComponent', () => {
               },
             ],
           }),
-        ),
+        ]),
       );
       pdfServiceStub.generateContinuousApplicationListsPdf.mockImplementationOnce(
         () => {
@@ -1347,7 +1395,7 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('onPrintPageClick', () => {
-    it('fetches each unique list id and generates one filtered page PDF', async () => {
+    it('fetches all selected list ids and generates one page PDF', async () => {
       const listADto = makePrintDto({
         courtName: 'Court A',
         entries: [
@@ -1403,72 +1451,43 @@ describe('ApplicationsComponent', () => {
         ],
       }));
 
-      printApplicationListMock.mockImplementation(({ listId }) => {
-        if (listId === 'list-a') {
-          return of(listADto);
-        }
-        return of(listBDto);
-      });
+      printApplicationListsMock.mockReturnValue(of([listADto, listBDto]));
 
       await component.onPrintPageClick();
       await flushSignalEffects(fixture);
 
-      expect(printApplicationListMock).toHaveBeenCalledTimes(2);
-      expect(printApplicationListMock.mock.calls[0]).toEqual([
-        { listId: 'list-a' },
+      expect(printApplicationListsMock).toHaveBeenCalledWith(
+        {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-a', 'list-b'],
+            entryIds: ['entry-a1', 'entry-a2', 'entry-b1'],
+          },
+        },
         undefined,
         undefined,
         { transferCache: false },
-      ]);
-      expect(printApplicationListMock.mock.calls[1]).toEqual([
-        { listId: 'list-b' },
-        undefined,
-        undefined,
-        { transferCache: false },
-      ]);
+      );
       expect(
         pdfServiceStub.generatePagedApplicationListPdf,
-      ).toHaveBeenCalledWith(
-        [
-          {
-            ...listADto,
-            entries: listADto.entries.filter((entry) =>
-              ['entry-a1', 'entry-a2'].includes(entry.id),
-            ),
-          },
-          {
-            ...listBDto,
-            entries: listBDto.entries.filter((entry) =>
-              ['entry-b1'].includes(entry.id),
-            ),
-          },
-        ],
-        { crestUrl: '/assets/govuk-crest.png' },
-      );
+      ).toHaveBeenCalledWith([listADto, listBDto], {
+        crestUrl: '/assets/govuk-crest.png',
+      });
       expect(
         pdfServiceStub.generateContinuousApplicationListsPdf,
       ).not.toHaveBeenCalled();
     });
 
-    it('shows no entries message when all fetched DTO entries are filtered out', async () => {
+    it('shows no entries message when the print API returns no entries', async () => {
       appStateSignal(component).update((s) => ({
         ...s,
         selectedRows: [makeSelectedRow('entry-1', 'list-a')],
       }));
-      printApplicationListMock.mockReturnValue(
-        of(
+      printApplicationListsMock.mockReturnValue(
+        of([
           makePrintDto({
-            entries: [
-              {
-                id: 'other-entry',
-                applicant: {},
-                applicationCode: '',
-                applicationTitle: '',
-                applicationWording: '',
-              },
-            ],
+            entries: [],
           }),
-        ),
+        ]),
       );
 
       await component.onPrintPageClick();
@@ -1487,8 +1506,8 @@ describe('ApplicationsComponent', () => {
         ...s,
         selectedRows: [makeSelectedRow('entry-1', 'list-a')],
       }));
-      printApplicationListMock.mockReturnValue(
-        of(
+      printApplicationListsMock.mockReturnValue(
+        of([
           makePrintDto({
             entries: [
               {
@@ -1500,7 +1519,7 @@ describe('ApplicationsComponent', () => {
               },
             ],
           }),
-        ),
+        ]),
       );
       pdfServiceStub.generatePagedApplicationListPdf.mockImplementationOnce(
         () => {
@@ -1524,8 +1543,8 @@ describe('ApplicationsComponent', () => {
         ...s,
         selectedRows: [makeSelectedRow('entry-1', 'list-a')],
       }));
-      printApplicationListMock.mockReturnValue(
-        of(
+      printApplicationListsMock.mockReturnValue(
+        of([
           makePrintDto({
             entries: [
               {
@@ -1537,7 +1556,7 @@ describe('ApplicationsComponent', () => {
               },
             ],
           }),
-        ),
+        ]),
       );
 
       let resolvePdf: (() => void) | undefined;
@@ -1561,42 +1580,6 @@ describe('ApplicationsComponent', () => {
     });
   });
 
-  describe('buildPrintRequest', () => {
-    it('returns early and patches an error when more than 100 rows are selected', async () => {
-      const resolveSelectedRowsSpy = jest
-        .spyOn(
-          component as unknown as {
-            resolveSelectedRows(): Promise<ApplicationRow[]>;
-          },
-          'resolveSelectedRows',
-        )
-        .mockResolvedValue([]);
-
-      appStateSignal(component).update((state) => ({
-        ...state,
-        selectedIds: new Set(
-          Array.from({ length: 101 }, (_, index) => `entry-${index + 1}`),
-        ),
-      }));
-
-      const request = await (
-        component as unknown as {
-          buildPrintRequest(mode: 'page' | 'continuous'): Promise<{
-            ids: string[];
-            mode: 'page' | 'continuous';
-            selectedRows: ApplicationRow[];
-          } | null | void>;
-        }
-      ).buildPrintRequest('page');
-
-      expect(request).toBeUndefined();
-      expect(resolveSelectedRowsSpy).not.toHaveBeenCalled();
-      expect(component.vm().errorSummary).toEqual([
-        { text: 'Please select less than 100 rows' },
-      ]);
-    });
-  });
-
   describe('onResultSelectedClick', () => {
     const makeResultRow = (id: string): ApplicationRow => ({
       ...makeSelectedRow(id, `list-${id}`),
@@ -1607,35 +1590,6 @@ describe('ApplicationsComponent', () => {
       status: 'Open',
     });
 
-    it('shows an error and does not resolve rows when more than 100 applications are selected to result', async () => {
-      const resolveSelectedRowsSpy = jest
-        .spyOn(
-          component as unknown as {
-            resolveSelectedRows(): Promise<ApplicationRow[]>;
-          },
-          'resolveSelectedRows',
-        )
-        .mockResolvedValue([]);
-      const navigateSpy = jest
-        .spyOn((component as unknown as { router: Router }).router, 'navigate')
-        .mockResolvedValue(true);
-
-      appStateSignal(component).update((state) => ({
-        ...state,
-        selectedIds: new Set(
-          Array.from({ length: 101 }, (_, index) => `entry-${index + 1}`),
-        ),
-      }));
-
-      await component.onResultSelectedClick();
-
-      expect(resolveSelectedRowsSpy).not.toHaveBeenCalled();
-      expect(navigateSpy).not.toHaveBeenCalled();
-      expect(component.vm().errorSummary).toEqual([
-        { text: 'Please select less than 100 rows' },
-      ]);
-    });
-
     it('navigates to result-selected when fewer than 50 open applications are selected', async () => {
       const rows = Array.from({ length: 49 }, (_, index) =>
         makeResultRow(`entry-${index + 1}`),
@@ -1644,14 +1598,27 @@ describe('ApplicationsComponent', () => {
         .spyOn((component as unknown as { router: Router }).router, 'navigate')
         .mockResolvedValue(true);
 
-      jest
-        .spyOn(
-          component as unknown as {
-            resolveSelectedRows(): Promise<ApplicationRow[]>;
-          },
-          'resolveSelectedRows',
-        )
-        .mockResolvedValue(rows);
+      bulkActionPreviewMock.mockReturnValueOnce(
+        of({
+          action: BulkActionType.RESULT_SELECTED,
+          limit: 100,
+          selectedCount: rows.length,
+          eligibleCount: rows.length,
+          ineligibleCount: 0,
+          entryIds: rows.map((row) => row.id),
+          entries: rows.map((row) =>
+            makeEntry({
+              id: row.id,
+              listId: row.applicationListId,
+              date: row.date,
+              applicationTitle: row.title,
+              status: ApplicationListStatus.OPEN,
+            }),
+          ),
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['bulkActionPreview']
+        >,
+      );
 
       await component.onResultSelectedClick();
 
@@ -1659,17 +1626,19 @@ describe('ApplicationsComponent', () => {
         ['result-selected'],
         expect.objectContaining({
           relativeTo: TestBed.inject(ActivatedRoute),
-          state: {
-            entriesToResult: rows.map((row) => ({
-              id: row.id,
-              listId: row.applicationListId,
-              date: row.date,
-              applicant: row.applicant,
-              respondent: row.respondent,
-              title: row.title,
-            })),
+          state: expect.objectContaining({
+            entriesToResult: expect.arrayContaining(
+              rows.map((row) => ({
+                id: row.id,
+                listId: row.applicationListId,
+                date: row.date,
+                applicant: '',
+                respondent: '',
+                title: row.title,
+              })),
+            ),
             ignoredSelected: false,
-          },
+          }),
         }),
       );
     });
