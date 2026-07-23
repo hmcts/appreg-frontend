@@ -855,15 +855,15 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         errorSummary: [
           {
             text: 'Cannot update application(s) that do not require a fee',
-            href: '',
-            id: '',
           },
         ],
       });
       return;
     }
 
-    const entriesToUpdateFee = rows.map((r) => ({
+    const rowsToUpdate = rows.filter((row) => row.feeReq === 'Yes');
+
+    const entriesToUpdateFee = rowsToUpdate.map((r) => ({
       id: r.id,
       applicant: r.applicant,
       respondent: r.respondent,

@@ -1338,8 +1338,6 @@ describe('ApplicationsListDetail', () => {
       expect(vm().errorSummary).toEqual([
         {
           text: 'Cannot update application(s) that do not require a fee',
-          href: '',
-          id: '',
         },
       ]);
       expect(navigateSpy).not.toHaveBeenCalledWith(
