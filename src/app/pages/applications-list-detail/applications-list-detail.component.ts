@@ -722,7 +722,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     this.detailSignalState.patch({
       selectedIds,
-      // selectedRows: getVisibleSelectedRows(vm.rows, selectedIds),
       allMatchingSelected: vm.isFilterSelection
         ? excludedEntryIds.size === 0
         : isAllMatchingSelected(selectedIds, vm.totalEntries),
@@ -749,27 +748,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    // const requestVersion = this.nextSelectAllRequestVersion();
-    // const vm = this.vm();
-    // const previousSelection = {
-    //   selectedIds: new Set(vm.selectedIds),
-    //   selectedRows: [...vm.selectedRows],
-    //   allMatchingSelected: vm.allMatchingSelected,
-    // };
-    // const visibleIds = new Set(
-    //   vm.rows
-    //     .map((row) => row['id'])
-    //     .filter(
-    //       (id): id is string | number =>
-    //         typeof id === 'string' || typeof id === 'number',
-    //     )
-    //     .map(String),
-    // );
-    // const optimisticSelectedIds = new Set([
-    //   ...previousSelection.selectedIds,
-    //   ...visibleIds,
-    // ]);
-
     const visibleRows = this.tableRows();
     const selectedIds = new Set(
       visibleRows.map((row) => row['id']),
@@ -785,34 +763,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       isFilterSelection: true,
       excludedEntryIds: new Set<string>(),
     });
-
-    // try {
-    //   const dto = await firstValueFrom(
-    //     this.appListEntriesApi.getApplicationListEntryIds({
-    //       listId: this.id,
-    //       filter: this.vm().getFilters,
-    //     }),
-    //   );
-
-    //   if (requestVersion !== this.selectAllRequestVersion) {
-    //     return;
-    //   }
-
-    //   this.applySelectAllMatching(dto);
-    // } catch (err) {
-    //   if (requestVersion !== this.selectAllRequestVersion) {
-    //     return;
-    //   }
-
-    //   const errMsg = getProblemText(err);
-    //   this.detailSignalState.patch({
-    //     isSelectingAll: false,
-    //     ...previousSelection,
-    //     updateInvalid: true,
-    //     errorHint: errMsg,
-    //     errorSummary: [{ text: errMsg }],
-    //   });
-    // }
   }
 
   clearSelection(): void {
@@ -829,12 +779,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   async onUpdateOfficialsButtonClick(): Promise<void> {
     const preview = await this.getBulkPreview(BulkActionType.UPDATE_OFFICIALS);
-
-    // const selected = (await this.resolveSelectedRows()) as selectedRow[];
-
-    // if (selected.length === 0) {
-    //   return;
-    // }
 
     if (!preview) {
       return;
@@ -863,12 +807,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   async onResultButtonClick(): Promise<void> {
     const preview = await this.getBulkPreview(BulkActionType.RESULT_SELECTED);
-
-    // const selected = (await this.resolveSelectedRows()) as selectedRow[];
-
-    // if (selected.length === 0) {
-    //   return;
-    // }
 
     if (!preview) {
       return;
@@ -899,11 +837,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     const preview = await this.getBulkPreview(
       BulkActionType.UPDATE_FEE_DETAILS,
     );
-    // const selected = (await this.resolveSelectedRows()) as selectedRow[];
-
-    // if (selected.length === 0) {
-    //   return;
-    // }
 
     if (!preview) {
       return;
@@ -913,11 +846,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
-
-    // Exclude entries with no fee required
-    // const selectedFeesRequired = selected.filter(
-    //   (element) => element.feeReq !== 'No',
-    // );
 
     const eligibleCount = preview?.eligibleCount;
     const ineligibleCount = preview?.ineligibleCount;
@@ -955,11 +883,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   async onMoveButtonClick(): Promise<void> {
     const preview = await this.getBulkPreview(BulkActionType.MOVE_ENTRIES);
-    // const selected = (await this.resolveSelectedRows()) as selectedRow[];
-
-    // if (selected.length === 0) {
-    //   return;
-    // }
 
     if (!preview) {
       return;
@@ -1090,7 +1013,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         return [{ text: 'Resource changed. Reload and try again.' }];
 
       case 404:
-        // preserve your old behaviour: anchor to court field
         return [{ id: 'court', text: getProblemText(err) }];
 
       default:
@@ -1223,97 +1145,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       errorSummary: preserveErrorSummary ? vm.errorSummary : [],
       preserveErrorSummaryOnLoad: preserveErrorSummary,
     });
-  }
-
-  // private async filterEntriesToPrint(
-  //   dto: ApplicationListGetPrintDto,
-  //   mode: 'page' | 'continuous',
-  // ): Promise<ApplicationListGetPrintDto | undefined> {
-  //   // const selectedIds = this.detailSignalState.state().selectedIds;
-  //   const selectedMode =
-  //     mode === 'page'
-  //       ? BulkActionType.PRINT_PAGE
-  //       : BulkActionType.PRINT_CONTINUOUS;
-
-  //   const selectedEntries = await this.getBulkPreview(selectedMode);
-
-  //   if (!selectedEntries) {
-  //     return;
-  //   }
-
-  //   const selectedIds = new Set<string>(selectedEntries.entryIds);
-
-  //   const filteredEntries = dto.entries.filter((entry) =>
-  //     selectedIds.has(entry.id),
-  //   );
-
-  //   return {
-  //     ...dto,
-  //     entries: filteredEntries,
-  //   };
-  // }
-
-  // private applySelectAllMatching(dto: EntryIdsDto): void {
-  //   this.detailSignalState.patch({
-  //     isSelectingAll: false,
-  //     ...buildSelectAllMatchingPatch(
-  //       dto.ids ?? [],
-  //       this.vm().rows,
-  //       this.vm().totalEntries,
-  //     ),
-  //   });
-  // }
-
-  // private async resolveSelectedRows(): Promise<Row[]> {
-  //   const vm = this.vm();
-
-  //   if (vm.selectedIds.size === 0) {
-  //     return vm.selectedRows;
-  //   }
-
-  //   if (vm.selectedIds.size === vm.selectedRows.length) {
-  //     return vm.selectedRows;
-  //   }
-
-  //   const selectedIds = new Set(vm.selectedIds);
-  //   const apiSortKey =
-  //     APPLICATION_LIST_DETAIL_SORT_MAP[vm.sortField.key] ?? vm.sortField.key;
-  //   const sort = [`${apiSortKey},${vm.sortField.direction}`];
-  //   const pageCount =
-  //     vm.totalPages > 0 ? vm.totalPages : vm.totalEntries > 0 ? 1 : 0;
-  //   const selectedRows: Row[] = [];
-
-  //   for (let pageNumber = 0; pageNumber < pageCount; pageNumber += 1) {
-  //     const page = await firstValueFrom(
-  //       this.appListEntriesApi.getApplicationListEntries({
-  //         listId: this.id,
-  //         pageNumber,
-  //         pageSize: vm.pageSize,
-  //         sort,
-  //         filter: vm.getFilters,
-  //       }),
-  //     );
-
-  //     const rows = mapEntrySummaryRows(page.content ?? []);
-  //     for (const row of rows) {
-  //       if (selectedIds.has(row.id)) {
-  //         selectedRows.push(row);
-  //       }
-  //     }
-
-  //     if (selectedRows.length === selectedIds.size) {
-  //       break;
-  //     }
-  //   }
-
-  //   this.detailSignalState.patch({ selectedRows });
-
-  //   return selectedRows;
-  // }
-
-  private nextSelectAllRequestVersion(): number {
-    this.selectAllRequestVersion += 1;
-    return this.selectAllRequestVersion;
   }
 
   private invalidateSelectAllRequest(): void {
