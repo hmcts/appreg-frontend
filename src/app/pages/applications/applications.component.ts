@@ -79,6 +79,7 @@ import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { isAllMatchingSelected } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { trimStringToLowerCase } from '@util/string-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
 type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
@@ -457,8 +458,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    const rowsToResult = rows.filter(
+      (row) => trimStringToLowerCase(row.status) !== 'closed',
+    );
+
     // Exclude status as we can only result open applications
-    const entriesToResult = rows.map((row) => ({
+    const entriesToResult = rowsToResult.map((row) => ({
       id: row.id,
       listId: row.applicationListId,
       date: row.date,
