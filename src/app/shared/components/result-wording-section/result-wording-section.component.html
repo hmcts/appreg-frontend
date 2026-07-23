@@ -23,11 +23,22 @@
   [captionSize]="captionSize()"
   [columns]="applicantRespondentColumns()"
   [data]="resultApplicantContext()"
+  [clientOrServerSort]="'server'"
+  [sortState]="sortState()"
+  (sortChange)="sortChange.emit($event)"
 >
   <ng-template #dateTemplate let-row>
     {{ row.date | dateTime }}
   </ng-template>
 </app-sortable-table>
+
+@if (totalPages() > 1) {
+  <app-pagination
+    [currentPage]="currentPage()"
+    [totalPages]="totalPages()"
+    (pageChange)="pageChange.emit($event)"
+  />
+}
 
 <div class="govuk-grid-row govuk-!-margin-top-8">
   <app-suggestions

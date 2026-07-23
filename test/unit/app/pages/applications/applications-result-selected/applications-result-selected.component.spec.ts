@@ -13,20 +13,17 @@ import {
   ResultCodesApi,
   ResultGetDto,
 } from '@openapi';
-import {
-  ApplicationListEntryResultsFacade,
-  BulkResultRemoval,
-} from '@services/applications-list-entry/application-list-entry-results.facade';
+import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 
 describe('ApplicationsResultSelectedComponent', () => {
   let component: ApplicationsResultSelectedComponent;
   let fixture: ComponentFixture<ApplicationsResultSelectedComponent>;
 
   let mockApi: {
+    bulkDeleteResultEntries: jest.Mock;
     bulkResultApplicationListEntries: jest.Mock;
     bulkResultEntries: jest.Mock;
     createApplicationListEntryResult: jest.Mock;
-    deleteApplicationListEntryResult: jest.Mock;
     getApplicationListEntryResults: jest.Mock;
     updateApplicationListEntryResult: jest.Mock;
   };
@@ -67,10 +64,10 @@ describe('ApplicationsResultSelectedComponent', () => {
     );
 
     mockApi = {
+      bulkDeleteResultEntries: jest.fn().mockReturnValue(of(null)),
       bulkResultApplicationListEntries: jest.fn().mockReturnValue(of([])),
       bulkResultEntries: jest.fn().mockReturnValue(of([])),
       createApplicationListEntryResult: jest.fn().mockReturnValue(of(null)),
-      deleteApplicationListEntryResult: jest.fn().mockReturnValue(of(null)),
       getApplicationListEntryResults: jest
         .fn()
         .mockReturnValue(of({ content: [] })),
@@ -120,6 +117,29 @@ describe('ApplicationsResultSelectedComponent', () => {
   it('omits actions, fees, status, and resulted columns from the table', () => {
     expect(component.columns.map((column) => column.field)).not.toEqual(
       expect.arrayContaining(['actions', 'fee', 'status', 'resulted']),
+    );
+  });
+
+  it('sorts all rows before applying the page size and resets to the first page', () => {
+    component.rows = Array.from({ length: 11 }, (_, index) => ({
+      id: `entry-${index}`,
+      listId: `list-${index}`,
+      date: '2026-06-12',
+      applicant: `Applicant ${String(11 - index).padStart(2, '0')}`,
+      respondent: 'Respondent',
+      title: `Application ${index}`,
+    }));
+    component.onPageChange(1);
+
+    component.onSortChange({ key: 'applicant', direction: 'asc' });
+
+    expect(component.currentPage()).toBe(0);
+    expect(component.totalPages()).toBe(2);
+    expect(component.paginatedRows().map((row) => row.applicant)).toEqual(
+      Array.from(
+        { length: 10 },
+        (_, index) => `Applicant ${String(index + 1).padStart(2, '0')}`,
+      ),
     );
   });
 
@@ -317,74 +337,30 @@ describe('ApplicationsResultSelectedComponent', () => {
       },
     ]);
 
-    const removeSpy = jest
-      .spyOn(facade, 'removeCreatedEntryResults')
-      .mockImplementation(
-        (
-          _listId: string,
-          _resultIds: string[],
-          onSuccess?: (results: BulkResultRemoval[]) => void,
-        ) => {
-          onSuccess?.([
-            {
-              entryId: 'entry-1',
-              resultId: 'result-1',
-              success: true,
-            },
-          ]);
-        },
-      )
-      .mockImplementationOnce(
-        (
-          _listId: string,
-          _resultIds: string[],
-          onSuccess?: (results: BulkResultRemoval[]) => void,
-        ) => {
-          onSuccess?.([
-            {
-              entryId: 'entry-1',
-              resultId: 'result-1',
-              success: true,
-            },
-          ]);
-        },
-      )
-      .mockImplementationOnce(
-        (
-          _listId: string,
-          _resultIds: string[],
-          onSuccess?: (results: BulkResultRemoval[]) => void,
-        ) => {
-          onSuccess?.([
-            {
-              entryId: 'entry-2',
-              resultId: 'result-2',
-              success: true,
-            },
-          ]);
-        },
-      );
-
     const focusSuccessSpy = jest
       .spyOn(bannersUtil, 'focusSuccessBanner')
       .mockImplementation(() => {});
 
     component.onRemoveResult('result-1');
 
-    expect(removeSpy).toHaveBeenNthCalledWith(
-      1,
-      'list-1',
-      ['result-1'],
-      expect.any(Function),
-      expect.any(Function),
-    );
-    expect(removeSpy).toHaveBeenNthCalledWith(
-      2,
-      'list-2',
-      ['result-2'],
-      expect.any(Function),
-      expect.any(Function),
-    );
+    expect(mockApi.bulkDeleteResultEntries).toHaveBeenCalledTimes(1);
+    expect(mockApi.bulkDeleteResultEntries).toHaveBeenCalledWith({
+      bulkDeleteResultsDto: {
+        results: [
+          {
+            listId: 'list-1',
+            entryId: 'entry-1',
+            resultId: 'result-1',
+          },
+          {
+            listId: 'list-2',
+            entryId: 'entry-2',
+            resultId: 'result-2',
+          },
+        ],
+      },
+    });
+    expect(facade.newlyCreatedEntryResults()).toEqual([]);
     expect(component.successBanner()).toEqual(
       ENTRY_SUCCESS_MESSAGES.resultsRemoved,
     );

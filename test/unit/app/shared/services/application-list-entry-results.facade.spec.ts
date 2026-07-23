@@ -69,10 +69,10 @@ function getFacadeInternals(
 describe('ApplicationListEntryResultsFacade', () => {
   let facade: ApplicationListEntryResultsFacade;
   let entryResultsApi: {
+    bulkDeleteResultEntries: jest.Mock;
     bulkResultApplicationListEntries: jest.Mock;
     bulkResultEntries: jest.Mock;
     createApplicationListEntryResult: jest.Mock;
-    deleteApplicationListEntryResult: jest.Mock;
     getApplicationListEntryResults: jest.Mock;
     updateApplicationListEntryResult: jest.Mock;
   };
@@ -83,10 +83,10 @@ describe('ApplicationListEntryResultsFacade', () => {
 
   beforeEach(() => {
     entryResultsApi = {
+      bulkDeleteResultEntries: jest.fn(() => of(null) as unknown),
       bulkResultApplicationListEntries: jest.fn(() => of([]) as unknown),
       bulkResultEntries: jest.fn(() => of([]) as unknown),
       createApplicationListEntryResult: jest.fn(() => of(null) as unknown),
-      deleteApplicationListEntryResult: jest.fn(() => of(null) as unknown),
       getApplicationListEntryResults: jest.fn(
         () => of({ content: [] }) as unknown,
       ),
@@ -308,9 +308,7 @@ describe('ApplicationListEntryResultsFacade', () => {
       facade.removeResult('L-1', '', 'R-1');
       facade.removeResult('L-1', 'E-1', '');
 
-      expect(
-        entryResultsApi.deleteApplicationListEntryResult,
-      ).not.toHaveBeenCalled();
+      expect(entryResultsApi.bulkDeleteResultEntries).not.toHaveBeenCalled();
       expect(loadSpy).not.toHaveBeenCalled();
     });
 
@@ -320,15 +318,45 @@ describe('ApplicationListEntryResultsFacade', () => {
 
       facade.removeResult('L-1', 'E-1', 'R-1', onSuccess);
 
-      expect(
-        entryResultsApi.deleteApplicationListEntryResult,
-      ).toHaveBeenCalledWith({
-        listId: 'L-1',
-        entryId: 'E-1',
-        resultId: 'R-1',
+      expect(entryResultsApi.bulkDeleteResultEntries).toHaveBeenCalledWith({
+        bulkDeleteResultsDto: {
+          results: [
+            {
+              listId: 'L-1',
+              entryId: 'E-1',
+              resultId: 'R-1',
+            },
+          ],
+        },
       });
       expect(loadSpy).toHaveBeenCalledWith('L-1', 'E-1');
       expect(onSuccess).toHaveBeenCalled();
+    });
+  });
+
+  describe('bulkRemoveResult', () => {
+    it('does not send an empty bulk delete request', () => {
+      facade.bulkRemoveResult([]);
+
+      expect(entryResultsApi.bulkDeleteResultEntries).not.toHaveBeenCalled();
+    });
+
+    it('forwards bulk delete errors without calling onSuccess', () => {
+      const error = new Error('delete failed');
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      entryResultsApi.bulkDeleteResultEntries.mockReturnValueOnce(
+        throwError(() => error),
+      );
+
+      facade.bulkRemoveResult(
+        [{ listId: 'L-1', entryId: 'E-1', resultId: 'R-1' }],
+        onSuccess,
+        onError,
+      );
+
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledWith(error);
     });
   });
 
@@ -1140,17 +1168,83 @@ describe('ApplicationListEntryResultsFacade', () => {
 
       facade.removeCreatedEntryResults('L-1', ['R-1'], onSuccess);
 
-      expect(
-        entryResultsApi.deleteApplicationListEntryResult,
-      ).toHaveBeenCalledWith({
-        listId: 'L-1',
-        entryId: 'E-1',
-        resultId: 'R-1',
+      expect(entryResultsApi.bulkDeleteResultEntries).toHaveBeenCalledWith({
+        bulkDeleteResultsDto: {
+          results: [
+            {
+              listId: 'L-1',
+              entryId: 'E-1',
+              resultId: 'R-1',
+            },
+          ],
+        },
       });
       expect(facade.newlyCreatedEntryResults()).toEqual([
         makeResult({ id: 'R-2', entryId: 'E-2' }),
       ]);
-      expect(onSuccess).toHaveBeenCalled();
+      expect(onSuccess).toHaveBeenCalledWith([
+        { entryId: 'E-1', resultId: 'R-1', success: true },
+      ]);
+    });
+
+    it('keeps created results when the atomic delete fails', () => {
+      const error = new Error('delete failed');
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      const createdResults = [makeResult({ id: 'R-1', entryId: 'E-1' })];
+      entryResultsApi.bulkDeleteResultEntries.mockReturnValueOnce(
+        throwError(() => error),
+      );
+      facade.addCreatedEntryResults(createdResults);
+
+      facade.removeCreatedEntryResults('L-1', ['R-1'], onSuccess, onError);
+
+      expect(facade.newlyCreatedEntryResults()).toEqual(createdResults);
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('bulkRemoveCreatedEntryResults', () => {
+    it('deletes created results from multiple lists in one request', () => {
+      const onSuccess = jest.fn();
+
+      facade.addCreatedEntryResults([
+        makeResult({ id: 'R-1', entryId: 'E-1' }),
+        makeResult({ id: 'R-2', entryId: 'E-2' }),
+        makeResult({ id: 'R-3', entryId: 'E-3' }),
+      ]);
+
+      facade.bulkRemoveCreatedEntryResults(
+        [
+          { listId: 'L-1', entryId: 'E-1', resultId: 'R-1' },
+          { listId: 'L-2', entryId: 'E-2', resultId: 'R-2' },
+        ],
+        onSuccess,
+      );
+
+      expect(entryResultsApi.bulkDeleteResultEntries).toHaveBeenCalledTimes(1);
+      expect(entryResultsApi.bulkDeleteResultEntries).toHaveBeenCalledWith({
+        bulkDeleteResultsDto: {
+          results: [
+            { listId: 'L-1', entryId: 'E-1', resultId: 'R-1' },
+            { listId: 'L-2', entryId: 'E-2', resultId: 'R-2' },
+          ],
+        },
+      });
+      expect(facade.newlyCreatedEntryResults()).toEqual([
+        makeResult({ id: 'R-3', entryId: 'E-3' }),
+      ]);
+      expect(onSuccess).toHaveBeenCalledWith([
+        { entryId: 'E-1', resultId: 'R-1', success: true },
+        { entryId: 'E-2', resultId: 'R-2', success: true },
+      ]);
+    });
+
+    it('does not send a request when there are no results to remove', () => {
+      facade.bulkRemoveCreatedEntryResults([]);
+
+      expect(entryResultsApi.bulkDeleteResultEntries).not.toHaveBeenCalled();
     });
   });
 
@@ -1178,19 +1272,22 @@ describe('ApplicationListEntryResultsFacade', () => {
 
       facade.removeCreatedEntryResultGroup('L-1', 'R-1', onSuccess);
 
-      expect(
-        entryResultsApi.deleteApplicationListEntryResult,
-      ).toHaveBeenNthCalledWith(1, {
-        listId: 'L-1',
-        entryId: 'E-1',
-        resultId: 'R-1',
-      });
-      expect(
-        entryResultsApi.deleteApplicationListEntryResult,
-      ).toHaveBeenNthCalledWith(2, {
-        listId: 'L-1',
-        entryId: 'E-2',
-        resultId: 'R-2',
+      expect(entryResultsApi.bulkDeleteResultEntries).toHaveBeenCalledTimes(1);
+      expect(entryResultsApi.bulkDeleteResultEntries).toHaveBeenCalledWith({
+        bulkDeleteResultsDto: {
+          results: [
+            {
+              listId: 'L-1',
+              entryId: 'E-1',
+              resultId: 'R-1',
+            },
+            {
+              listId: 'L-1',
+              entryId: 'E-2',
+              resultId: 'R-2',
+            },
+          ],
+        },
       });
       expect(facade.newlyCreatedEntryResults()).toEqual([
         makeResult({
