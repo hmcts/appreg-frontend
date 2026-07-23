@@ -1,6 +1,6 @@
 Feature: API - Application List Entry Fees
 
-  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-276 @ARCPOC-1421 @ARCPOC-1475
+  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-276 @ARCPOC-1421 @ARCPOC-1475 @ARCPOC-1517 @ARCPOC-1493
   Scenario Outline: Bulk update fee details for multiple application list entries
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -76,7 +76,7 @@ Feature: API - Application List Entry Fees
       | feeDetails.0.paymentStatus    | REMITTED    |
       | feeDetails.0.statusDate       | 2025-10-07  |
       | feeDetails.0.paymentReference | PAY-UPDATED |
-      | feeDetails.0.hasOffsiteFee    | true        |
+      | hasOffsiteFee                 | true        |
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
       | totalCount   | 2         |
@@ -169,7 +169,7 @@ Feature: API - Application List Entry Fees
       | User  |
       | user1 |
 
-  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-276 @ARCPOC-1421 @ARCPOC-1475
+  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-276 @ARCPOC-1421 @ARCPOC-1475 @ARCPOC-1517 @ARCPOC-1493
   Scenario Outline: Accept duplicate entry ids in bulk fee update by de-duplicating the target set
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -217,7 +217,7 @@ Feature: API - Application List Entry Fees
       | feeDetails.0.paymentStatus    | REMITTED    |
       | feeDetails.0.statusDate       | 2025-10-07  |
       | feeDetails.0.paymentReference | PAY-UPDATED |
-      | feeDetails.0.hasOffsiteFee    | true        |
+      | hasOffsiteFee                 | true        |
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
       | totalCount   | 1         |
@@ -284,7 +284,7 @@ Feature: API - Application List Entry Fees
       | feeDetails.0.paymentStatus    | REMITTED        |
       | feeDetails.0.statusDate       | 2025-10-07      |
       | feeDetails.0.paymentReference | OFFSITE-UPDATED |
-      | feeDetails.0.hasOffsiteFee    | true            |
+      | hasOffsiteFee                 | true            |
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
       | totalCount   | 1         |
