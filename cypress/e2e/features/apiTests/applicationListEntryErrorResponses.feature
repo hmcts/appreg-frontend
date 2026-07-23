@@ -1068,13 +1068,28 @@ Feature: API - Application List Entry Error Responses
       | resultCode    | CASE            |
       | wordingFields | __empty_array__ |
     Then User Verify Response Status Code Should Be "409"
-    When User Makes DELETE API Request To "/application-lists/00000000-0000-0000-0000-000000000001/entries/:openEntryId/results/:resultId"
+    When User Makes DELETE API Request To "/application-lists/entries/results" With Object Builder:
+      | results.0.listId   | 00000000-0000-0000-0000-000000000001 |
+      | results.0.entryId  | :openEntryId                         |
+      | results.0.resultId | :resultId                            |
     Then User Verify Response Status Code Should Be "404"
-    When User Makes DELETE API Request To "/application-lists/:openListId/entries/00000000-0000-0000-0000-000000000001/results/:resultId"
+    When User Makes DELETE API Request To "/application-lists/entries/results" With Object Builder:
+      | results.0.listId   | :openListId                          |
+      | results.0.entryId  | 00000000-0000-0000-0000-000000000001 |
+      | results.0.resultId | :resultId                            |
     Then User Verify Response Status Code Should Be "404"
-    When User Makes DELETE API Request To "/application-lists/:openListId/entries/:openEntryId/results/00000000-0000-0000-0000-000000000001"
+    When User Makes DELETE API Request To "/application-lists/entries/results" With Object Builder:
+      | results.0.listId   | :openListId                          |
+      | results.0.entryId  | :openEntryId                         |
+      | results.0.resultId | 00000000-0000-0000-0000-000000000001 |
     Then User Verify Response Status Code Should Be "404"
-    When User Makes DELETE API Request To "/application-lists/:openListId/entries/:siblingEntryId/results/:resultId"
+    When User Makes DELETE API Request To "/application-lists/entries/results" With Object Builder:
+      | results.0.listId   | :openListId   |
+      | results.0.entryId  | :siblingEntryId |
+      | results.0.resultId | :resultId     |
     Then User Verify Response Status Code Should Be "409"
-    When User Makes DELETE API Request To "/application-lists/:closedListId/entries/:closedEntryId/results/:closedResultId"
+    When User Makes DELETE API Request To "/application-lists/entries/results" With Object Builder:
+      | results.0.listId   | :closedListId   |
+      | results.0.entryId  | :closedEntryId  |
+      | results.0.resultId | :closedResultId |
     Then User Verify Response Status Code Should Be "409"

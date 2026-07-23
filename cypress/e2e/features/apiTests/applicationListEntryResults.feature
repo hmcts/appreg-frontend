@@ -192,14 +192,20 @@ Feature: API - Application List Entry Results
       | wordingFields | __empty_array__ |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "resultId"
-    When User Makes DELETE API Request To "/application-lists/:listId/entries/:entryId/results/:resultId"
+    When User Makes DELETE API Request To "/application-lists/entries/results" With Object Builder:
+      | results.0.listId   | :listId   |
+      | results.0.entryId  | :entryId  |
+      | results.0.resultId | :resultId |
     Then User Verify Response Status Code Should Be "204"
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId/results?pageNumber=0&pageSize=10"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
       | totalElements  | 0 |
       | elementsOnPage | 0 |
-    When User Makes DELETE API Request To "/application-lists/:listId/entries/:entryId/results/:resultId"
+    When User Makes DELETE API Request To "/application-lists/entries/results" With Object Builder:
+      | results.0.listId   | :listId   |
+      | results.0.entryId  | :entryId  |
+      | results.0.resultId | :resultId |
     Then User Verify Response Status Code Should Be "404"
 
     Examples:
