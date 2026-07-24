@@ -851,13 +851,25 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     const rows = mapEntrySummaryRows(preview.entries);
 
+    if (!rows.length) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          {
+            text: 'No rows have been selected. If you believe this is in error, contact support',
+          },
+        ],
+      });
+      return;
+    }
+
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
 
     const eligibleCount = preview?.eligibleCount;
     const ineligibleCount = preview?.ineligibleCount;
+    const rowsToUpdate = rows.filter((row) => row.feeReq === 'Yes');
 
-    if (eligibleCount === 0) {
+    if (eligibleCount === 0 || !rowsToUpdate.length) {
       this.detailSignalState.patch({
         errorSummary: [
           {
@@ -867,8 +879,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       });
       return;
     }
-
-    const rowsToUpdate = rows.filter((row) => row.feeReq === 'Yes');
 
     const entriesToUpdateFee = rowsToUpdate.map((r) => ({
       id: r.id,
