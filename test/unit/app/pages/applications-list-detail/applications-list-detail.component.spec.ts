@@ -1330,7 +1330,28 @@ describe('ApplicationsListDetail', () => {
           eligibleCount: 0,
           ineligibleCount: 1,
           entryIds: ['entry-1'],
-          entries: [],
+          entries: [
+            {
+              id: 'entry-1',
+              applicant: {
+                organisation: {
+                  name: 'Applicant 2',
+                  contactDetails: { addressLine1: 'Applicant address' },
+                },
+              },
+              respondent: {
+                organisation: {
+                  name: 'Respondent 2',
+                  contactDetails: { addressLine1: 'Respondent address' },
+                },
+              },
+              applicationTitle: 'Title 2',
+              isFeeRequired: true,
+              isResulted: true,
+              resulted: [{ resultCode: 'ADJ', title: 'Adjourned' }],
+              status: ApplicationListStatus.OPEN,
+            },
+          ],
         });
 
       await component.onUpdateFeeButtonClick();
@@ -1338,6 +1359,33 @@ describe('ApplicationsListDetail', () => {
       expect(vm().errorSummary).toEqual([
         {
           text: 'Cannot update application(s) that do not require a fee',
+        },
+      ]);
+      expect(navigateSpy).not.toHaveBeenCalledWith(
+        ['bulk-update-fee'],
+        expect.anything(),
+      );
+    });
+
+    it('shows an error when bulk preview endpoint returns no rows', async () => {
+      const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
+      jest
+        .spyOn(component as unknown as BulkPreviewAccessor, 'getBulkPreview')
+        .mockResolvedValue({
+          action: BulkActionType.UPDATE_FEE_DETAILS,
+          limit: 2000,
+          selectedCount: 1,
+          eligibleCount: 0,
+          ineligibleCount: 1,
+          entryIds: ['entry-1'],
+          entries: [],
+        });
+
+      await component.onUpdateFeeButtonClick();
+
+      expect(vm().errorSummary).toEqual([
+        {
+          text: 'No rows have been selected. If you believe this is in error, contact support',
         },
       ]);
       expect(navigateSpy).not.toHaveBeenCalledWith(
