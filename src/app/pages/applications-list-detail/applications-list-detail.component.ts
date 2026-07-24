@@ -849,6 +849,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    // clear any prior messages
+    this.detailSignalState.patch(clearUpdateNotificationsPatch());
+
     const rows = mapEntrySummaryRows(preview.entries);
 
     if (!rows.length) {
@@ -861,9 +864,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       });
       return;
     }
-
-    // clear any prior messages
-    this.detailSignalState.patch(clearUpdateNotificationsPatch());
 
     const eligibleCount = preview?.eligibleCount;
     const ineligibleCount = preview?.ineligibleCount;
