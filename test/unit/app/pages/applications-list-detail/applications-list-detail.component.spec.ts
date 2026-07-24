@@ -1842,7 +1842,7 @@ describe('ApplicationsListDetail', () => {
 
     expect(vm().errorSummary).toEqual([
       {
-        text: 'Affected rows exceeds 2000. Please reduce the number of rows selected',
+        text: 'Affected rows exceeds 1050. Please reduce the number of rows selected',
       },
     ]);
   });

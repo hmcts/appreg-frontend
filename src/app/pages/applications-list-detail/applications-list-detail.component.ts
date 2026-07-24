@@ -1205,7 +1205,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
       if (code === 413) {
         msg =
-          'Affected rows exceeds 2000. Please reduce the number of rows selected';
+          'Affected rows exceeds 1050. Please reduce the number of rows selected';
       } else {
         msg = getProblemText(err);
       }
