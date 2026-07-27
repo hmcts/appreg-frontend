@@ -18,6 +18,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -38,6 +39,7 @@ import { SuccessBannerComponent } from '@components/success-banner/success-banne
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
   GetStandardApplicantsRequestParams,
+  PrintStandardApplicantsRequestParams,
   StandardApplicantsApi,
   StandardApplicantsExportRequestParams,
 } from '@openapi';
@@ -68,6 +70,8 @@ export type StandardApplicantsState = {
   isLoading: boolean;
   searchErrors: ErrorItem[];
   exportSuccess: boolean;
+  printSuccess: boolean;
+  isActionLoading: boolean;
 };
 
 const initialStandardApplicantsState: StandardApplicantsState = {
@@ -80,6 +84,8 @@ const initialStandardApplicantsState: StandardApplicantsState = {
   isLoading: false,
   searchErrors: [],
   exportSuccess: false,
+  printSuccess: false,
+  isActionLoading: false,
 };
 
 @Component({
@@ -95,6 +101,7 @@ const initialStandardApplicantsState: StandardApplicantsState = {
     NotificationBannerComponent,
     HelpDetailsComponent,
     SuccessBannerComponent,
+    AsyncJobProgressComponent,
   ],
   templateUrl: './standard-applicants.component.html',
   styleUrl: './standard-applicants.component.scss',
@@ -119,6 +126,8 @@ export class StandardApplicants implements OnInit {
     signal<GetStandardApplicantsRequestParams | null>(null);
   private readonly exportRequest =
     signal<StandardApplicantsExportRequestParams | null>(null);
+  private readonly printRequest =
+    signal<PrintStandardApplicantsRequestParams | null>(null);
 
   readonly submitted = signal(false);
   readonly submitAttempt = signal(0);
@@ -144,6 +153,7 @@ export class StandardApplicants implements OnInit {
   ];
 
   preserveErrOnLoad = signal(false);
+  actionType = signal<'CSV' | 'PDF'>('CSV');
 
   ngOnInit(): void {
     this.setupEffects();
@@ -204,33 +214,45 @@ export class StandardApplicants implements OnInit {
   }
 
   onExportButtonClick(): void {
-    this.signalState.patch({ exportSuccess: false, searchErrors: [] });
+    this.actionType.set('CSV');
+    this.signalState.patch({
+      exportSuccess: false,
+      searchErrors: [],
+      isActionLoading: true,
+    });
     this.submitAttempt.update((attempt) => attempt + 1);
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    const values = this.appliedFilters;
-    const code = trimToUndefined(values.code);
-    const name = trimToUndefined(values.name);
+    const params = this.getParamsForRequest();
 
-    if (!!code === !!name) {
-      // Endpoint only supports either code or name (XOR). Applies to the active filters, not the current form values.
-      this.signalState.patch({
-        searchErrors: [
-          {
-            text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
-          },
-        ],
-      });
+    if (!params) {
+      this.signalState.patch({ isActionLoading: false });
       return;
     }
 
-    const params = {
-      ...(code && { code }),
-      ...(name && { name }),
-    };
-
     this.exportRequest.set(params);
+  }
+
+  onPrintButtonClick(): void {
+    this.actionType.set('PDF');
+    this.signalState.patch({
+      printSuccess: false,
+      searchErrors: [],
+      isActionLoading: true,
+    });
+    this.submitAttempt.update((attempt) => attempt + 1);
+    this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    const params = this.getParamsForRequest();
+
+    if (!params) {
+      this.signalState.patch({ isActionLoading: false });
+      return;
+    }
+
+    this.printRequest.set(params);
   }
 
   fieldError(id: string): ErrorItem | undefined {
@@ -341,12 +363,42 @@ export class StandardApplicants implements OnInit {
         onSuccess: (res) => {
           this.saveCsv(res);
           this.exportRequest.set(null);
+
+          this.signalState.patch({
+            isActionLoading: false,
+          });
         },
         onError: (err) => {
           this.signalState.patch({
             searchErrors: [{ id: 'search', text: getProblemText(err) }],
+            isActionLoading: false,
           });
           this.exportRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+
+    // GET /standard-applicants/reports/print
+    setupLoadEffect(
+      {
+        request: this.printRequest,
+        load: (params: PrintStandardApplicantsRequestParams) =>
+          this.saApi.printStandardApplicants(params),
+        onSuccess: (res) => {
+          console.log(res);
+
+          this.printRequest.set(null);
+          this.signalState.patch({
+            isActionLoading: false,
+          });
+        },
+        onError: (err) => {
+          this.signalState.patch({
+            searchErrors: [{ id: 'search', text: getProblemText(err) }],
+            isActionLoading: false,
+          });
+          this.printRequest.set(null);
         },
       },
       this.envInjector,
@@ -444,5 +496,33 @@ export class StandardApplicants implements OnInit {
     this.signalState.patch({
       searchErrors: [{ text: errMsg }],
     });
+  }
+
+  private getParamsForRequest():
+    | PrintStandardApplicantsRequestParams
+    | StandardApplicantsExportRequestParams
+    | undefined {
+    const values = this.appliedFilters;
+    const code = trimToUndefined(values.code);
+    const name = trimToUndefined(values.name);
+
+    if (!!code === !!name) {
+      // Endpoint only supports either code or name (XOR). Applies to the active filters, not the current form values.
+      this.signalState.patch({
+        searchErrors: [
+          {
+            text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
+          },
+        ],
+      });
+      return;
+    }
+
+    const params: PrintStandardApplicantsRequestParams = {
+      ...(code && { code }),
+      ...(name && { name }),
+    };
+
+    return params;
   }
 }
