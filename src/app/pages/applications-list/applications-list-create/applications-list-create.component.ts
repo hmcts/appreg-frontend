@@ -249,10 +249,6 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  private keys<T extends object>(o: T): (keyof T)[] {
-    return Object.keys(o) as (keyof T)[];
-  }
-
   private buildErrorSummary(): ErrorItem[] {
     return buildApplicationsListErrorSummary(this.form, this.errorMap, {
       priorityKeys: {

@@ -76,7 +76,6 @@ import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
 import { toStatus } from '@util/application-status-helpers';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
-import { has } from '@util/has';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
@@ -85,6 +84,7 @@ import { isAllMatchingSelected } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { trimStringToLowerCase } from '@util/string-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
+import { atLeastOneRequiredValidator } from '@validators/at-least-one-value.validator';
 
 type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
 type ControlName = keyof AppErrorMap;
@@ -160,22 +160,27 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   readonly submitAttempt = signal(0);
 
-  override form = new FormGroup({
-    date: new FormControl<string | null>(null),
-    applicantOrg: new FormControl<string>(''),
-    respondentOrg: new FormControl<string>(''),
-    applicantSurname: new FormControl<string>(''),
-    respondentSurname: new FormControl<string>(''),
-    location: new FormControl<string>(''),
-    standardApplicantCode: new FormControl<string>(''),
-    respondentPostcode: new FormControl<string>('', {
-      validators: [Validators.maxLength(8)],
-    }),
-    accountReference: new FormControl<string>(''),
-    court: new FormControl<string>(''),
-    cja: new FormControl<string>(''),
-    status: new FormControl<string | null>(null),
-  });
+  override form = new FormGroup(
+    {
+      date: new FormControl<string | null>(null),
+      applicantOrg: new FormControl<string>(''),
+      respondentOrg: new FormControl<string>(''),
+      applicantSurname: new FormControl<string>(''),
+      respondentSurname: new FormControl<string>(''),
+      location: new FormControl<string>(''),
+      standardApplicantCode: new FormControl<string>(''),
+      respondentPostcode: new FormControl<string>('', {
+        validators: [Validators.maxLength(8)],
+      }),
+      accountReference: new FormControl<string>(''),
+      court: new FormControl<string>(''),
+      cja: new FormControl<string>(''),
+      status: new FormControl<string | null>(null),
+    },
+    {
+      validators: [atLeastOneRequiredValidator()],
+    },
+  );
 
   columns = ApplicationsColumns;
 
@@ -318,18 +323,18 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    if (!this.hasAnyParams()) {
-      this.patchApp({
-        searchErrors: [
-          {
-            text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
-            id: 'search-error',
-          },
-        ],
-        isSelectingAll: false,
-      });
-      return;
-    }
+    // if (!this.hasAnyParams()) {
+    //   this.patchApp({
+    //     searchErrors: [
+    //       {
+    //         text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
+    //         id: 'search-error',
+    //       },
+    //     ],
+    //     isSelectingAll: false,
+    //   });
+    //   return;
+    // }
 
     const filter = this.loadQuery();
 
@@ -627,25 +632,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   // Helpers
-  private hasAnyParams(): boolean {
-    const v = this.form.getRawValue();
-
-    return (
-      has(v.date) ||
-      has(v.applicantOrg) ||
-      has(v.respondentOrg) ||
-      has(v.applicantSurname) ||
-      has(v.respondentSurname) ||
-      has(v.location) ||
-      has(v.standardApplicantCode) ||
-      has(v.respondentPostcode) ||
-      has(v.accountReference) ||
-      has(v.court) ||
-      has(v.cja) ||
-      has(v.status)
-    );
-  }
-
   private loadQuery(): EntryGetFilterDto {
     const v = this.form.getRawValue();
     const filter: EntryGetFilterDto = {};
@@ -772,7 +758,19 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   private buildErrorSummary(): ErrorItem[] {
-    return buildFormErrorSummary(this.form, this.errorMap);
+    let errors = buildFormErrorSummary(this.form, this.errorMap);
+
+    if (this.form.hasError('atLeastOneRequired')) {
+      errors = [
+        {
+          id: 'search-error',
+          href: '#search',
+          text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
+        },
+      ];
+    }
+
+    return errors;
   }
 
   private patchPrintError(message: string): void {

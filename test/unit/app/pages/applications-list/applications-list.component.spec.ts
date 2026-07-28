@@ -10,12 +10,12 @@ import {
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsList } from '@components/applications-list/applications-list.component';
-import { APPLICATIONS_LIST_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import {
   ApplicationsListState,
   clearNotificationsPatch,
 } from '@components/applications-list/util/applications-list.state';
 import * as LoadQuery from '@components/applications-list/util/load-query';
+import { APPLICATIONS_LIST_FORM_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import {
   ApplicationListGetFilterDto,
   ApplicationListGetPrintDto,
