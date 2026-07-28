@@ -21,6 +21,22 @@
   />
 }
 
+@if (vm().printSuccess) {
+  <app-success-banner
+    heading="Successfully printed PDF"
+    body="Standard applicant PDF has been successfully printed"
+  />
+}
+
+@if (vm().isActionLoading) {
+  <app-async-job-progress
+    heading="{{ actionType() }} in progress"
+    body="Your {{
+      actionType()
+    }} is being generated and will download automatically when ready."
+  />
+}
+
 <h1 class="govuk-heading-xl">Standard applicants</h1>
 
 <app-help-details summary="Help with standard applicants">
@@ -125,6 +141,7 @@
             type="button"
             class="govuk-button moj-button-menu__item govuk-button--secondary"
             (click)="onExportButtonClick()"
+            [disabled]="vm().isActionLoading"
           >
             Export CSV
           </button>
@@ -132,6 +149,8 @@
           <button
             type="button"
             class="govuk-button moj-button-menu__item govuk-button--secondary"
+            (click)="onPrintButtonClick()"
+            [disabled]="vm().isActionLoading"
           >
             Print PDF
           </button>
