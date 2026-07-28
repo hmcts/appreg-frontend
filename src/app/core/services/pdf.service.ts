@@ -1,8 +1,10 @@
 // TODO: Look through this service and refactor
 
 import { Injectable, inject } from '@angular/core';
+import { autoTable } from 'jspdf-autotable';
 
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
+import { StandardApplicantPrintDto } from '@openapi';
 import { asArr, asObj, asStrOrNum } from '@util/data-utils';
 import {
   drawHr,
@@ -10,10 +12,9 @@ import {
   extractDuration as extractDurationFromDto,
   toLines,
 } from '@util/pdf-utils';
-import { trimToString } from '@util/string-helpers';
+import { getDateStamp, trimToString } from '@util/string-helpers';
 import { normaliseTime } from '@util/time-helpers';
 import { JsPDFLike, PdfList } from '@util/types/pdf-service/pdf-types';
-
 @Injectable({ providedIn: 'root' })
 export class PdfService {
   private readonly dateTimePipe = inject(DateTimePipe);
@@ -234,7 +235,7 @@ export class PdfService {
           ? 'court'
           : 'applications';
 
-    const datePart = this.dateForFile();
+    const datePart = getDateStamp();
     doc.save(`${courtPart}-${datePart}-print-page.pdf`);
   }
 
@@ -544,11 +545,153 @@ export class PdfService {
 
     const courtPart =
       uniquePlaces.length === 1 ? uniquePlaces[0] : 'applications';
-    const datePart = this.dateForFile();
+    const datePart = getDateStamp();
     doc.save(`${courtPart}-${datePart}-print-cont.pdf`);
   }
 
+  async generateStandardApplicantsPdf(
+    dto: StandardApplicantPrintDto,
+  ): Promise<void> {
+    if (!dto) {
+      return;
+    }
+
+    const jsPDFMod = await import('jspdf');
+    const { jsPDF } = jsPDFMod;
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'a4',
+    }) as unknown as JsPDFLike;
+
+    const margin = 36;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const columnWidth = (pageWidth - margin * 2) / 4;
+    const reportTitle = dto.reportTitle?.trim() || 'Standard Applicants';
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.text(`${reportTitle} Report`, margin, 51);
+
+    const criteria = this.standardApplicantSearchCriteria(dto.searchCriteria);
+    if (criteria) {
+      doc.text(`Search Criteria: ${criteria}`, margin, 71);
+    }
+
+    const labels = [
+      ['Code', 'Use From'],
+      ['Name', 'Use To'],
+      ['Title', 'Address Line 1'],
+      ['Forename 1', 'Address Line 2'],
+      ['Forename 2', 'Address Line 3'],
+      ['Forename 3', 'Address Line 4'],
+      ['Surname', 'Address Line 5'],
+      ['Email Address', 'PostCode'],
+      ['Telephone Number', 'Mobile Number'],
+    ] as const;
+
+    const rows = dto.applicants ?? [];
+    let startY = criteria ? 89 : 69;
+
+    for (const applicant of rows) {
+      const body = labels.map(([leftLabel, rightLabel]) => [
+        leftLabel,
+        this.standardApplicantValue(applicant, leftLabel),
+        rightLabel,
+        this.standardApplicantValue(applicant, rightLabel),
+      ]);
+
+      autoTable(doc, {
+        body,
+        startY,
+        margin: { left: margin, right: margin, top: margin, bottom: margin },
+        tableWidth: pageWidth - margin * 2,
+        pageBreak: 'auto',
+        rowPageBreak: 'avoid',
+        theme: 'grid',
+        styles: {
+          font: 'helvetica',
+          fontStyle: 'normal',
+          fontSize: 10.5,
+          cellPadding: { top: 3.5, right: 5, bottom: 3.5, left: 5 },
+          lineColor: [0, 0, 0],
+          lineWidth: 0.5,
+          textColor: [0, 0, 0],
+          overflow: 'linebreak',
+        },
+        columnStyles: {
+          0: { cellWidth: columnWidth },
+          1: { cellWidth: columnWidth },
+          2: { cellWidth: columnWidth },
+          3: { cellWidth: columnWidth },
+        },
+      });
+
+      const finalY = (doc as unknown as { lastAutoTable?: { finalY: number } })
+        .lastAutoTable?.finalY;
+      startY = (finalY ?? pageHeight - margin) + 20;
+    }
+
+    const todaysDate = getDateStamp();
+    doc.save(`standard-applicant-pdf-${todaysDate}.pdf`);
+  }
+
   // -------------------- Mapping helpers --------------------
+
+  private standardApplicantSearchCriteria(
+    criteria: StandardApplicantPrintDto['searchCriteria'] | null | undefined,
+  ): string {
+    if (!criteria) {
+      return '';
+    }
+
+    return [
+      ['Code', criteria.code],
+      ['Name', criteria.name],
+    ]
+      .filter(([, value]) => value?.trim())
+      .map(([label, value]) => `${label}: ${value}`)
+      .join(', ');
+  }
+
+  private standardApplicantValue(
+    applicant: StandardApplicantPrintDto['applicants'][number],
+    label: string,
+  ): string {
+    const fieldByLabel: Record<string, keyof typeof applicant> = {
+      Code: 'code',
+      'Use From': 'useFrom',
+      Name: 'name',
+      'Use To': 'useTo',
+      Title: 'title',
+      'Address line 1': 'addressLine1',
+      'Forename 1': 'forename1',
+      'Address line 2': 'addressLine2',
+      'Forename 2': 'forename2',
+      'Address line 3': 'addressLine3',
+      'Forename 3': 'forename3',
+      'Address line 4': 'addressLine4',
+      Surname: 'surname',
+      'Address line 5': 'addressLine5',
+      'Email address': 'emailAddress',
+      PostCode: 'postcode',
+      'Telephone number': 'telephoneNumber',
+      'Mobile number': 'mobileNumber',
+    };
+    const field = fieldByLabel[label];
+    const value = field ? applicant[field] : null;
+
+    if (value === null || value === undefined) {
+      return '—';
+    }
+
+    if (field === 'useFrom' || field === 'useTo') {
+      return this.dateTimePipe.transform(value) ?? '—';
+    }
+
+    return String(value);
+  }
 
   private uniqueFileSafePlaces(dataArr: PdfList[]): string[] {
     return Array.from(
@@ -817,7 +960,7 @@ export class PdfService {
       return '';
     }
     // Collapse internal whitespace to single spaces; this reads better in PDF cells.
-    return t.split(/\s+/).join(' ');
+    return t.replaceAll(/\s+/g, ' ');
   }
 
   /** Titles like "Mr, Mrs" → pick first meaningful token. */
@@ -841,7 +984,7 @@ export class PdfService {
         continue;
       }
       const last = out.at(-1);
-      if (!last || last.toLowerCase() !== p.toLowerCase()) {
+      if (last?.toLowerCase() !== p.toLowerCase()) {
         out.push(p);
       }
     }
@@ -881,25 +1024,11 @@ export class PdfService {
       return '';
     }
     return raw
-      .split(/\s+/)
-      .join(' ')
+      .replaceAll(/\s+/g, ' ')
       .replaceAll(/[^\w\s-]+/g, '')
       .trim()
-      .split(/\s+/)
-      .join('-')
+      .replaceAll(/\s+/g, '-')
       .toLowerCase();
-  }
-
-  /** Prefer ISO input; else use today's date (YYYY-MM-DD). */
-  private dateForFile(isoMaybe?: string): string {
-    if (isoMaybe && /^\d{4}-\d{2}-\d{2}$/.test(isoMaybe)) {
-      return isoMaybe;
-    }
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
   }
 
   private cjaName(raw?: string): string {

@@ -3,7 +3,6 @@ import { HttpResponse } from '@angular/common/http';
 import {
   Component,
   DOCUMENT,
-  DestroyRef,
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
@@ -18,6 +17,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import {
   ErrorItem,
@@ -37,6 +37,7 @@ import {
 } from '@components/standard-applicant-select/util/standard-applicant-select-row-helpers';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { PdfService } from '@core/services/pdf.service';
 import {
   GetStandardApplicantsRequestParams,
   PrintStandardApplicantsRequestParams,
@@ -115,7 +116,7 @@ export class StandardApplicants implements OnInit {
   private readonly searchForm = inject(StandardApplicantsSearchFormService);
   private readonly searchState = inject(StandardApplicantsSearchStateService);
   private readonly document = inject(DOCUMENT);
-  private readonly componentDestroyRef = inject(DestroyRef);
+  private readonly pdfService = inject(PdfService);
 
   private readonly signalState = createSignalState<StandardApplicantsState>(
     initialStandardApplicantsState,
@@ -385,9 +386,23 @@ export class StandardApplicants implements OnInit {
         request: this.printRequest,
         load: (params: PrintStandardApplicantsRequestParams) =>
           this.saApi.printStandardApplicants(params),
-        onSuccess: (res) => {
-          console.log(res);
+        onSuccess: async (res) => {
+          if (!res?.applicants) {
+            this.signalState.patch({
+              searchErrors: [
+                {
+                  id: 'search',
+                  text:
+                    APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric +
+                    ' Please try again later',
+                },
+              ],
+              isActionLoading: false,
+            });
+            return;
+          }
 
+          await this.pdfService.generateStandardApplicantsPdf(res);
           this.printRequest.set(null);
           this.signalState.patch({
             isActionLoading: false,
