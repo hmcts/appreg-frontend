@@ -568,7 +568,7 @@ export class PdfService {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const columnWidth = (pageWidth - margin * 2) / 4;
-    const reportTitle = dto.reportTitle?.trim() || 'Standard Applicants';
+    const reportTitle = dto.reportTitle?.trim() || 'Standard applicants report';
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
@@ -576,19 +576,19 @@ export class PdfService {
 
     const criteria = this.standardApplicantSearchCriteria(dto.searchCriteria);
     if (criteria) {
-      doc.text(`Search Criteria: ${criteria}`, margin, 71);
+      doc.text(`Search criteria: ${criteria}`, margin, 71);
     }
 
     const labels = [
-      ['Code', 'Use From'],
-      ['Name', 'Use To'],
-      ['Title', 'Address Line 1'],
-      ['Forename 1', 'Address Line 2'],
-      ['Forename 2', 'Address Line 3'],
-      ['Forename 3', 'Address Line 4'],
-      ['Surname', 'Address Line 5'],
-      ['Email Address', 'PostCode'],
-      ['Telephone Number', 'Mobile Number'],
+      ['Code', 'Use from'],
+      ['Name', 'Use to'],
+      ['Title', 'Address line 1'],
+      ['Forename 1', 'Address line 2'],
+      ['Forename 2', 'Address line 3'],
+      ['Forename 3', 'Address line 4'],
+      ['Surname', 'Address line 5'],
+      ['Email address', 'Postcode'],
+      ['Telephone number', 'Mobile number'],
     ] as const;
 
     const rows = dto.applicants ?? [];
@@ -661,9 +661,9 @@ export class PdfService {
   ): string {
     const fieldByLabel: Record<string, keyof typeof applicant> = {
       Code: 'code',
-      'Use From': 'useFrom',
+      'Use from': 'useFrom',
       Name: 'name',
-      'Use To': 'useTo',
+      'Use to': 'useTo',
       Title: 'title',
       'Address line 1': 'addressLine1',
       'Forename 1': 'forename1',
@@ -675,7 +675,7 @@ export class PdfService {
       Surname: 'surname',
       'Address line 5': 'addressLine5',
       'Email address': 'emailAddress',
-      PostCode: 'postcode',
+      Postcode: 'postcode',
       'Telephone number': 'telephoneNumber',
       'Mobile number': 'mobileNumber',
     };

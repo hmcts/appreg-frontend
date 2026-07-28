@@ -366,18 +366,18 @@ describe('PdfService.generateStandardApplicantsPdf', () => {
       format: 'a4',
     });
     expect(textCallsContain('Standard Applicants Report')).toBe(true);
-    expect(textCallsContain('Search Criteria: Code: SA')).toBe(true);
+    expect(textCallsContain('Search criteria: Code: SA')).toBe(true);
     expect(autoTable).toHaveBeenCalledTimes(1);
     expect(autoTable.mock.calls[0][1].body).toEqual([
-      ['Code', 'SA001', 'Use From', '1 Jan 2020'],
-      ['Name', 'Citizen Advice Manchester', 'Use To', '—'],
-      ['Title', 'Mr', 'Address Line 1', '—'],
-      ['Forename 1', 'Test', 'Address Line 2', '—'],
-      ['Forename 2', '—', 'Address Line 3', '—'],
-      ['Forename 3', '—', 'Address Line 4', '—'],
-      ['Surname', 'Applicant', 'Address Line 5', '—'],
-      ['Email Address', '—', 'PostCode', 'M1 1AA'],
-      ['Telephone Number', '—', 'Mobile Number', '—'],
+      ['Code', 'SA001', 'Use from', '1 Jan 2020'],
+      ['Name', 'Citizen Advice Manchester', 'Use to', '—'],
+      ['Title', 'Mr', 'Address line 1', '1 Crown Sq'],
+      ['Forename 1', 'Test', 'Address line 2', 'Manchester'],
+      ['Forename 2', '—', 'Address line 3', '—'],
+      ['Forename 3', '—', 'Address line 4', '—'],
+      ['Surname', 'Applicant', 'Address line 5', '—'],
+      ['Email address', 'email@example.test', 'Postcode', 'M1 1AA'],
+      ['Telephone number', '01234567890', 'Mobile number', '—'],
     ]);
     expect(__instance.save).toHaveBeenCalledWith(
       'standard-applicant-pdf-2025-09-17.pdf',
@@ -484,7 +484,7 @@ describe('PdfService.generateStandardApplicantsPdf', () => {
       ['Surname', 'Applicant'],
       ['Address line 5', 'M1 1AA'],
       ['Email address', 'email@example.test'],
-      ['PostCode', 'M1 1AA'],
+      ['Postcode', 'M1 1AA'],
       ['Telephone number', '01234567890'],
       ['Mobile number', '07123456789'],
     ])('maps %s to its applicant value', (label, expected) => {
@@ -494,10 +494,10 @@ describe('PdfService.generateStandardApplicantsPdf', () => {
     });
 
     it('formats use dates with the DateTimePipe', () => {
-      expect(priv(service).standardApplicantValue(applicant, 'Use From')).toBe(
+      expect(priv(service).standardApplicantValue(applicant, 'Use from')).toBe(
         '1 Jan 2020',
       );
-      expect(priv(service).standardApplicantValue(applicant, 'Use To')).toBe(
+      expect(priv(service).standardApplicantValue(applicant, 'Use to')).toBe(
         '31 Dec 2020',
       );
     });
