@@ -660,7 +660,7 @@ Feature: API - Application List Entry
       | User  |
       | user1 |
 
-  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-229 @ARCPOC-1371
+  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-229 @ARCPOC-1371 @ARCPOC-1560
   Scenario Outline: Create Application List Entry with Court Location
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -842,15 +842,22 @@ Feature: API - Application List Entry
       | officials.3.forename                                | Anita                          |
       | officials.3.type                                    | MAGISTRATE                     |
     Then User Verify Response Status Code Should Be "201"
-    When User Makes GET API Request To "/application-lists/:listId/print"
+    When User Makes POST API Request To "/application-lists/print" With Json Body
+      """
+      {
+        "listIds": [
+          ":listId"
+        ]
+      }
+      """
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
-      | date                     | todayiso                          |
-      | time                     | timenowhhmm-2h                    |
-      | courtName                | Leeds Combined Court Centre Set 7 |
-      | cja                      | null                              |
-      | otherLocationDescription | null                              |
-      | duration                 | 2 Hours 22 Minutes                |
+      | [0].date                     | todayiso                          |
+      | [0].time                     | timenowhhmm-2h                    |
+      | [0].courtName                | Leeds Combined Court Centre Set 7 |
+      | [0].cja                      | null                              |
+      | [0].otherLocationDescription | null                              |
+      | [0].duration                 | 2 Hours 22 Minutes                |
     When User Makes GET API Request To "/application-list-entries?respondentOrganisation=Respondent Industries {RANDOM}"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
