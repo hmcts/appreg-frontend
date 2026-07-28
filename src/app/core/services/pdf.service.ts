@@ -568,11 +568,10 @@ export class PdfService {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const columnWidth = (pageWidth - margin * 2) / 4;
-    const reportTitle = dto.reportTitle?.trim() || 'Standard applicants report';
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
-    doc.text(reportTitle, margin, 51);
+    doc.text('Standard applicants report', margin, 51);
 
     const criteria = this.standardApplicantSearchCriteria(dto.searchCriteria);
     if (criteria) {
