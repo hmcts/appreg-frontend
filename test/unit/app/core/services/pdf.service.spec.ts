@@ -2,6 +2,7 @@ import { formatDate } from '@angular/common';
 import { LOCALE_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
+import { StandardApplicantPrintRowDto } from '@openapi';
 import { PdfService } from '@services/pdf.service';
 
 type JsPDFInstance = {
@@ -46,6 +47,10 @@ jest.mock('jspdf', () => {
   const jsPDF = jest.fn().mockImplementation(() => instance);
   return { jsPDF, __instance: instance };
 });
+
+jest.mock('jspdf-autotable', () => ({
+  autoTable: jest.fn(),
+}));
 
 function findTextCallContaining(
   textCalls: unknown[][],
@@ -300,6 +305,214 @@ describe('PdfService.generateApplicationListPdf', () => {
       { crestUrl: '/x.png' },
     );
     expect(__instance.addImage).toHaveBeenCalledTimes(0);
+  });
+});
+
+describe('PdfService.generateStandardApplicantsPdf', () => {
+  let service: PdfService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [PdfService, { provide: LOCALE_ID, useValue: 'en-GB' }],
+    });
+
+    service = TestBed.inject(PdfService);
+    const { autoTable } = jest.requireMock('jspdf-autotable');
+    autoTable.mockClear();
+  });
+
+  it('renders the report header, applicant fields, formatted dates, and filename', async () => {
+    const { __instance, jsPDF } = getJsPDF();
+    const { autoTable } = jest.requireMock('jspdf-autotable');
+
+    await service.generateStandardApplicantsPdf({
+      reportTitle: 'Standard Applicants',
+      searchCriteria: {
+        code: 'SA',
+        name: null,
+        addressLine1: null,
+        from: null,
+        to: null,
+      },
+      generatedAt: '2026-03-10T10:00:00Z',
+      recordCount: 1,
+      applicants: [
+        {
+          code: 'SA001',
+          useFrom: '2020-01-01',
+          name: 'Citizen Advice Manchester',
+          useTo: null,
+          title: 'Mr',
+          addressLine1: '1 Crown Sq',
+          forename1: 'Test',
+          addressLine2: 'Manchester',
+          forename2: null,
+          addressLine3: null,
+          forename3: null,
+          addressLine4: null,
+          surname: 'Applicant',
+          addressLine5: null,
+          emailAddress: 'email@example.test',
+          postcode: 'M1 1AA',
+          telephoneNumber: '01234567890',
+          mobileNumber: null,
+        },
+      ],
+    });
+
+    expect(jsPDF).toHaveBeenCalledWith({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'a4',
+    });
+    expect(textCallsContain('Standard applicants report')).toBe(true);
+    expect(textCallsContain('Search criteria: Code: SA')).toBe(true);
+    expect(autoTable).toHaveBeenCalledTimes(1);
+    expect(autoTable.mock.calls[0][1].body).toEqual([
+      ['Code', 'SA001', 'Use from', '1 Jan 2020'],
+      ['Name', 'Citizen Advice Manchester', 'Use to', '—'],
+      ['Title', 'Mr', 'Address line 1', '1 Crown Sq'],
+      ['Forename 1', 'Test', 'Address line 2', 'Manchester'],
+      ['Forename 2', '—', 'Address line 3', '—'],
+      ['Forename 3', '—', 'Address line 4', '—'],
+      ['Surname', 'Applicant', 'Address line 5', '—'],
+      ['Email address', 'email@example.test', 'Postcode', 'M1 1AA'],
+      ['Telephone number', '01234567890', 'Mobile number', '—'],
+    ]);
+    expect(__instance.save).toHaveBeenCalledWith(
+      'standard-applicant-pdf-2025-09-17.pdf',
+    );
+  });
+
+  it('does not create a document for a missing DTO', async () => {
+    const { jsPDF } = getJsPDF();
+
+    await service.generateStandardApplicantsPdf(null as never);
+
+    expect(jsPDF).not.toHaveBeenCalled();
+  });
+
+  describe('standardApplicantSearchCriteria', () => {
+    type PrivateFns = {
+      standardApplicantSearchCriteria: (
+        criteria:
+          | {
+              code: string | null;
+              name: string | null;
+              addressLine1: string | null;
+              from: string | null;
+              to: string | null;
+            }
+          | null
+          | undefined,
+      ) => string;
+    };
+
+    const priv = (s: PdfService): PrivateFns => s as unknown as PrivateFns;
+
+    it('formats populated code and name criteria', () => {
+      expect(
+        priv(service).standardApplicantSearchCriteria({
+          code: 'SA001',
+          name: 'Citizen Advice Manchester',
+          addressLine1: null,
+          from: null,
+          to: null,
+        }),
+      ).toBe('Code: SA001, Name: Citizen Advice Manchester');
+    });
+
+    it('omits blank criteria and returns an empty string when none are supplied', () => {
+      const emptyCriteria = {
+        code: '   ',
+        name: '\n\t',
+        addressLine1: 'ignored',
+        from: 'ignored',
+        to: 'ignored',
+      };
+
+      expect(priv(service).standardApplicantSearchCriteria(emptyCriteria)).toBe(
+        '',
+      );
+      expect(priv(service).standardApplicantSearchCriteria(null)).toBe('');
+      expect(priv(service).standardApplicantSearchCriteria(undefined)).toBe('');
+    });
+  });
+
+  describe('standardApplicantValue', () => {
+    type PrivateFns = {
+      standardApplicantValue: (
+        applicant: StandardApplicantPrintRowDto,
+        label: string,
+      ) => string;
+    };
+
+    const priv = (s: PdfService): PrivateFns => s as unknown as PrivateFns;
+
+    const applicant: StandardApplicantPrintRowDto = {
+      code: 'SA001',
+      useFrom: '2020-01-01',
+      name: 'Citizen Advice Manchester',
+      useTo: '2020-12-31',
+      title: 'Mr',
+      addressLine1: '1 Crown Sq',
+      forename1: 'John',
+      addressLine2: 'Manchester',
+      forename2: 'James',
+      addressLine3: 'Greater Manchester',
+      forename3: 'Joseph',
+      addressLine4: 'United Kingdom',
+      surname: 'Applicant',
+      addressLine5: 'M1 1AA',
+      emailAddress: 'email@example.test',
+      postcode: 'M1 1AA',
+      telephoneNumber: '01234567890',
+      mobileNumber: '07123456789',
+    };
+
+    it.each([
+      ['Code', 'SA001'],
+      ['Name', 'Citizen Advice Manchester'],
+      ['Title', 'Mr'],
+      ['Address line 1', '1 Crown Sq'],
+      ['Forename 1', 'John'],
+      ['Address line 2', 'Manchester'],
+      ['Forename 2', 'James'],
+      ['Address line 3', 'Greater Manchester'],
+      ['Forename 3', 'Joseph'],
+      ['Address line 4', 'United Kingdom'],
+      ['Surname', 'Applicant'],
+      ['Address line 5', 'M1 1AA'],
+      ['Email address', 'email@example.test'],
+      ['Postcode', 'M1 1AA'],
+      ['Telephone number', '01234567890'],
+      ['Mobile number', '07123456789'],
+    ])('maps %s to its applicant value', (label, expected) => {
+      expect(priv(service).standardApplicantValue(applicant, label)).toBe(
+        expected,
+      );
+    });
+
+    it('formats use dates with the DateTimePipe', () => {
+      expect(priv(service).standardApplicantValue(applicant, 'Use from')).toBe(
+        '1 Jan 2020',
+      );
+      expect(priv(service).standardApplicantValue(applicant, 'Use to')).toBe(
+        '31 Dec 2020',
+      );
+    });
+
+    it('returns an em dash for null, undefined, or unknown values', () => {
+      expect(
+        priv(service).standardApplicantValue(
+          { ...applicant, name: null },
+          'Name',
+        ),
+      ).toBe('—');
+      expect(
+        priv(service).standardApplicantValue(applicant, 'Unknown label'),
+      ).toBe('—');
+    });
   });
 });
 
