@@ -365,7 +365,7 @@ describe('PdfService.generateStandardApplicantsPdf', () => {
       unit: 'pt',
       format: 'a4',
     });
-    expect(textCallsContain('Standard Applicants Report')).toBe(true);
+    expect(textCallsContain('Standard Applicants')).toBe(true);
     expect(textCallsContain('Search criteria: Code: SA')).toBe(true);
     expect(autoTable).toHaveBeenCalledTimes(1);
     expect(autoTable.mock.calls[0][1].body).toEqual([

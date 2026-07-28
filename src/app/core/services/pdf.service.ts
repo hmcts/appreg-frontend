@@ -572,7 +572,7 @@ export class PdfService {
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
-    doc.text(`${reportTitle} Report`, margin, 51);
+    doc.text(reportTitle, margin, 51);
 
     const criteria = this.standardApplicantSearchCriteria(dto.searchCriteria);
     if (criteria) {
