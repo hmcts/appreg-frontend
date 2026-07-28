@@ -4,7 +4,6 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { SuggestionsFacade } from './facade/applications-list-form.facade';
 
-import { APPLICATIONS_LIST_CHOOSE_STATUS } from '@components/applications-list/util/applications-list.constants';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { DurationInputComponent } from '@components/duration-input/duration-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
@@ -16,6 +15,7 @@ import {
   isCourtSuggestionItem,
 } from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { APPLICATIONS_LIST_CHOOSE_STATUS } from '@constants/applications-list/applications-list.constants';
 import {
   ApplicationsListFormControls,
   ApplicationsListFormMode,

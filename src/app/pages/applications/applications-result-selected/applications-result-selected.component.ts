@@ -9,8 +9,6 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { ApplicationsColumns } from '../applications.component';
-
 import { AlertComponent } from '@components/alert/alert.component';
 import { focusSuccessBanner } from '@components/applications-list-entry-detail/util/banners.util';
 import { mapHttpErrorToSummary } from '@components/applications-list-entry-detail/util/errors.util';
@@ -22,6 +20,7 @@ import {
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
+import { ApplicationsColumns } from '@constants/applications/applications.constants';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import { BulkDeleteResultItemDto, ResultGetDto } from '@openapi';
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';

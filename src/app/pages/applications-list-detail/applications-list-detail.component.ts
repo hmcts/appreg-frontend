@@ -38,7 +38,6 @@ import {
 } from './util';
 import { mapEntrySummaryRows } from './util/map-entry-summary-rows';
 
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import {
   ApplicationsListDetailSearchComponent,
   ApplicationsListDetailSearchResult,
@@ -65,6 +64,7 @@ import {
   appListDetailColumns,
   appListDetailStatusOptions,
 } from '@constants/application-list-detail-update/form-table-structure';
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import { IF_MATCH } from '@context/concurrency-context';
 import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';

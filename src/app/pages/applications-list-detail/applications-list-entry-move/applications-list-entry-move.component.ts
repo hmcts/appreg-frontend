@@ -17,11 +17,6 @@ import {
   initialApplicationsListEntryMoveState,
 } from './util';
 
-import {
-  APPLICATIONS_LIST_COLUMNS_ACTION,
-  APPLICATIONS_LIST_FORM_ERROR_MESSAGES,
-  APPLICATION_LIST_SORT_MAP,
-} from '@components/applications-list/util/applications-list.constants';
 import { loadQuery } from '@components/applications-list/util/load-query';
 import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import {
@@ -42,6 +37,11 @@ import {
   SortableTableComponent,
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
+import {
+  APPLICATIONS_LIST_COLUMNS_ACTION,
+  APPLICATIONS_LIST_FORM_ERROR_MESSAGES,
+  APPLICATION_LIST_SORT_MAP,
+} from '@constants/applications-list/applications-list.constants';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
   ApplicationListGetSummaryDto,

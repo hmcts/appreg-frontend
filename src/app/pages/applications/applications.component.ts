@@ -28,7 +28,6 @@ import {
 } from './util/applications.state';
 import { mapToRow } from './util/table-mapper';
 
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -42,7 +41,12 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { ApplicationsColumns } from '@constants/applications/applications.constants';
 import { APPLICATIONS_ERROR_MAP } from '@constants/applications/error-messages';
+import {
+  APPLICATIONS_LIST_CHOOSE_STATUS,
+  APPLICATIONS_LIST_ERROR_MESSAGES,
+} from '@constants/applications-list/applications-list.constants';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
@@ -94,17 +98,6 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
   resulted: 'isResulted',
   status: 'status',
 };
-
-export const ApplicationsColumns = [
-  { header: 'Date', field: 'date', wrap: false },
-  { header: 'Applicant', field: 'applicant' },
-  { header: 'Respondent', field: 'respondent' },
-  { header: 'Application title', field: 'title' },
-  { header: 'Fee', field: 'fee' },
-  { header: 'Resulted', field: 'resulted' },
-  { header: 'Status', field: 'status' },
-  { header: 'Actions', field: 'actions', sortable: false },
-];
 
 @Component({
   selector: 'app-applications',
@@ -186,11 +179,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   columns = ApplicationsColumns;
 
-  status = [
-    { label: 'Choose', value: '' },
-    { label: 'Open', value: 'open' },
-    { label: 'Closed', value: 'closed' },
-  ];
+  status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 

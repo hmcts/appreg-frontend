@@ -39,7 +39,8 @@ import {
   APPLICATIONS_LIST_ERROR_MESSAGES,
   APPLICATIONS_LIST_FORM_ERROR_MESSAGES,
   APPLICATION_LIST_SORT_MAP,
-} from './util/applications-list.constants';
+} from '../../shared/constants/applications-list/applications-list.constants';
+
 import {
   ApplicationsListState,
   clearNotificationsPatch,

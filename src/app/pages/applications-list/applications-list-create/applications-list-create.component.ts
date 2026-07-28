@@ -28,7 +28,6 @@ import {
   initialApplicationsListCreateState,
 } from './util/applications-list-create.state';
 
-import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import {
   ApplicationEntriesResultContext,
   toRow,
@@ -40,6 +39,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import { ApplicationListCreateDto, ApplicationListsApi } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { buildApplicationsListErrorSummary } from '@services/applications-list/build-applications-list-error-summary';

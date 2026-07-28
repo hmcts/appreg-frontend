@@ -4,7 +4,7 @@ import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
 
-import { APPLICATIONS_LIST_COLUMNS } from '../util/applications-list.constants';
+import { APPLICATIONS_LIST_COLUMNS } from '../../../shared/constants/applications-list/applications-list.constants';
 
 import { AlertComponent } from '@components/alert/alert.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
