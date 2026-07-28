@@ -174,6 +174,13 @@ export class StandardApplicants implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
+    this.signalState.patch({
+      isLoading: false,
+      searchErrors: [],
+      exportSuccess: false,
+      printSuccess: false,
+    });
+
     const validationErrors = this.buildErrorSummary();
     this.signalState.patch({ searchErrors: validationErrors });
     this.persistFormState();
@@ -218,6 +225,7 @@ export class StandardApplicants implements OnInit {
     this.actionType.set('CSV');
     this.signalState.patch({
       exportSuccess: false,
+      printSuccess: false,
       searchErrors: [],
       isActionLoading: true,
     });
@@ -239,6 +247,7 @@ export class StandardApplicants implements OnInit {
     this.actionType.set('PDF');
     this.signalState.patch({
       printSuccess: false,
+      exportSuccess: false,
       searchErrors: [],
       isActionLoading: true,
     });
@@ -287,6 +296,7 @@ export class StandardApplicants implements OnInit {
     this.searchState.reset();
     this.loadRequest.set(null);
     this.exportRequest.set(null);
+    this.printRequest.set(null);
     this.form.reset();
     this.appliedFilters = {};
     this.signalState.patch({
@@ -297,6 +307,8 @@ export class StandardApplicants implements OnInit {
       isLoading: false,
       searchErrors: [],
       exportSuccess: false,
+      printSuccess: false,
+      isActionLoading: false,
     });
     this.preserveErrOnLoad.set(false);
   }
@@ -387,7 +399,7 @@ export class StandardApplicants implements OnInit {
         load: (params: PrintStandardApplicantsRequestParams) =>
           this.saApi.printStandardApplicants(params),
         onSuccess: async (res) => {
-          if (!res?.applicants) {
+          if (!res?.applicants.length) {
             this.signalState.patch({
               searchErrors: [
                 {
@@ -402,11 +414,24 @@ export class StandardApplicants implements OnInit {
             return;
           }
 
-          await this.pdfService.generateStandardApplicantsPdf(res);
-          this.printRequest.set(null);
-          this.signalState.patch({
-            isActionLoading: false,
-          });
+          try {
+            await this.pdfService.generateStandardApplicantsPdf(res);
+            this.signalState.patch({ printSuccess: true });
+          } catch {
+            this.signalState.patch({
+              searchErrors: [
+                {
+                  id: 'search',
+                  text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry,
+                },
+              ],
+            });
+          } finally {
+            this.printRequest.set(null);
+            this.signalState.patch({
+              isActionLoading: false,
+            });
+          }
         },
         onError: (err) => {
           this.signalState.patch({

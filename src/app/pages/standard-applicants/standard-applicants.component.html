@@ -141,6 +141,7 @@
             type="button"
             class="govuk-button moj-button-menu__item govuk-button--secondary"
             (click)="onExportButtonClick()"
+            [disabled]="vm().isActionLoading"
           >
             Export CSV
           </button>
@@ -149,6 +150,7 @@
             type="button"
             class="govuk-button moj-button-menu__item govuk-button--secondary"
             (click)="onPrintButtonClick()"
+            [disabled]="vm().isActionLoading"
           >
             Print PDF
           </button>

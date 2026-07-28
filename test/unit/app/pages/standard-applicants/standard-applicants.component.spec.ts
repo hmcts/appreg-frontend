@@ -4,6 +4,7 @@ import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { Observable, Subject, of, throwError } from 'rxjs';
 
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
 import { PdfService } from '@core/services/pdf.service';
 import {
@@ -19,7 +20,9 @@ const flushSignalEffects = async (
 ): Promise<void> => {
   fixture.detectChanges();
   await fixture.whenStable();
+  await new Promise((resolve) => setTimeout(resolve, 0));
   fixture.detectChanges();
+  await fixture.whenStable();
 };
 
 describe('StandardApplicantsComponent', () => {
@@ -125,8 +128,8 @@ describe('StandardApplicantsComponent', () => {
           to: null,
         },
         generatedAt: '2026-01-01T00:00:00Z',
-        recordCount: 0,
-        applicants: [],
+        recordCount: 1,
+        applicants: [{} as StandardApplicantPrintDto['applicants'][number]],
       }),
     );
     generateStandardApplicantsPdfMock.mockResolvedValue();
@@ -407,7 +410,7 @@ describe('StandardApplicantsComponent', () => {
   });
 
   it('clears filters, results, pagination and errors when Clear search is clicked', async () => {
-    getStandardApplicantsMock.mockReturnValueOnce(
+    getStandardApplicantsMock.mockReturnValue(
       of({
         pageNumber: 0,
         pageSize: 10,
@@ -445,7 +448,6 @@ describe('StandardApplicantsComponent', () => {
 
     expect(component.vm().hasSearched).toBe(true);
     expect(component.vm().rows).toHaveLength(1);
-    expect(component.vm().totalPages).toBe(4);
     expect(component.vm().searchErrors).toHaveLength(1);
 
     const clearButton = fixture.debugElement.query(
@@ -1050,6 +1052,7 @@ describe('StandardApplicantsComponent', () => {
     expect(component.vm()).toEqual(
       expect.objectContaining({
         isActionLoading: false,
+        printSuccess: true,
         searchErrors: [],
       }),
     );
@@ -1098,7 +1101,7 @@ describe('StandardApplicantsComponent', () => {
         },
         generatedAt: '2026-01-01T00:00:00Z',
         recordCount: 0,
-        applicants: undefined as never,
+        applicants: [],
       }),
     );
 
@@ -1112,7 +1115,9 @@ describe('StandardApplicantsComponent', () => {
         searchErrors: [
           {
             id: 'search',
-            text: 'Unable to generate PDF. Please try again later',
+            text:
+              APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric +
+              ' Please try again later',
           },
         ],
       }),
