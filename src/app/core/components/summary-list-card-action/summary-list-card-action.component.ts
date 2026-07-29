@@ -18,10 +18,10 @@ export class SummaryListCardActionComponent {
     $implicit: SummaryListCardAction;
   }> | null>(null);
 
-  onClick = output<SummaryListCardAction>();
+  cardClick = output<SummaryListCardAction>();
 
   onActionClick(action: SummaryListCardAction): void {
-    this.onClick.emit(action);
+    this.cardClick.emit(action);
   }
 
   getStatusTag(
