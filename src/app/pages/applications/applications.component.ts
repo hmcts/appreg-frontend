@@ -30,10 +30,7 @@ import { mapToRow } from './util/table-mapper';
 
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '@components/error-summary/error-summary.component';
+import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
@@ -70,12 +67,13 @@ import {
   DEFAULT_APPLICATIONS_SEARCH_FORM,
 } from '@services/applications/applications-search-form.service';
 import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
+import { buildErrorSummary } from '@services/applications-list/build-applications-list-error-summary';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
 import { toStatus } from '@util/application-status-helpers';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
-import { buildFormErrorSummary } from '@util/error-summary';
+import { getControlErrorItem } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
@@ -85,9 +83,6 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { trimStringToLowerCase } from '@util/string-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { atLeastOneRequiredValidator } from '@validators/at-least-one-value.validator';
-
-type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
-type ControlName = keyof AppErrorMap;
 
 const APPLICATIONS_SORT_MAP: Record<string, string> = {
   date: 'date',
@@ -154,7 +149,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     );
   });
 
-  private readonly errorMap = APPLICATIONS_ERROR_MAP;
+  readonly errorMap = APPLICATIONS_ERROR_MAP;
 
   private readonly printRequest = signal<BulkPrintRequest | null>(null);
 
@@ -187,6 +182,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
+
+  getControlErrorItem = getControlErrorItem;
 
   get selectedCount(): number {
     const vm = this.vm();
@@ -312,7 +309,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    const validationErrors = this.buildErrorSummary();
+    const validationErrors = buildErrorSummary(this.form, this.errorMap);
     this.persistFormState();
 
     if (validationErrors.length) {
@@ -322,19 +319,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       });
       return;
     }
-
-    // if (!this.hasAnyParams()) {
-    //   this.patchApp({
-    //     searchErrors: [
-    //       {
-    //         text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
-    //         id: 'search-error',
-    //       },
-    //     ],
-    //     isSelectingAll: false,
-    //   });
-    //   return;
-    // }
 
     const filter = this.loadQuery();
 
@@ -757,22 +741,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     };
   }
 
-  private buildErrorSummary(): ErrorItem[] {
-    let errors = buildFormErrorSummary(this.form, this.errorMap);
-
-    if (this.form.hasError('atLeastOneRequired')) {
-      errors = [
-        {
-          id: 'search-error',
-          href: '#search',
-          text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
-        },
-      ];
-    }
-
-    return errors;
-  }
-
   private patchPrintError(message: string): void {
     this.patchApp({
       errorSummary: [{ text: message }],
@@ -841,34 +809,5 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       this.patchApp({ errorSummary: [{ text: msg }] });
       return null;
     }
-  }
-
-  isControlInvalid<C extends ControlName>(controlName: C): boolean {
-    const c = this.form.get(String(controlName));
-    return !!(this.vm().submitted && c?.invalid);
-  }
-
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().searchErrors.find((e) => e.id === id);
-  }
-
-  getControlErrorMessages<C extends ControlName>(controlName: C): string[] {
-    const c = this.form.get(String(controlName));
-    if (!c?.errors) {
-      return [];
-    }
-
-    const msgMap = this.errorMap[controlName];
-    const msgs: string[] = [];
-
-    for (const k of Object.keys(c.errors)) {
-      if (!(k in msgMap)) {
-        continue;
-      }
-      const errorKey = k as keyof typeof msgMap;
-      msgs.push(msgMap[errorKey]);
-    }
-
-    return msgs;
   }
 }

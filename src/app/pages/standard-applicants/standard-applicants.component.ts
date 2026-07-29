@@ -17,7 +17,6 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import {
   ErrorItem,
@@ -37,6 +36,7 @@ import {
 } from '@components/standard-applicant-select/util/standard-applicant-select-row-helpers';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import { PdfService } from '@core/services/pdf.service';
 import {
   GetStandardApplicantsRequestParams,

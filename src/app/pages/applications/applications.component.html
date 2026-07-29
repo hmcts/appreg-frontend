@@ -76,8 +76,13 @@
       [suggestions]="state().filteredCourthouses"
       (selectItem)="onCourthouseSuggestionSelected($event)"
       [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
-      [showError]="vm().searchErrors.length > 0 && !!fieldError('court')"
-      [errorText]="fieldError('court')?.text ?? ''"
+      [showError]="
+        vm().submitted &&
+        !!getControlErrorItem(form.controls.court, 'court', errorMap)
+      "
+      [errorText]="
+        getControlErrorItem(form.controls.court, 'court', errorMap)?.text ?? ''
+      "
       containerWidthClass="govuk-grid-column-one-half"
       widthClass="govuk-!-width-two-thirds"
     />
@@ -146,7 +151,13 @@
           formControlName="respondentPostcode"
           label="Respondent post code"
           idPrefix="respondentPostcode"
-          [error]="getControlErrorMessages('respondentPostcode')[0]"
+          [error]="
+            getControlErrorItem(
+              form.controls.respondentPostcode,
+              'respondentPostcode',
+              errorMap
+            )?.text ?? null
+          "
           containerWidthClass="govuk-grid-column-one-quarter"
           widthClass="govuk-!-width-full"
         />
@@ -161,8 +172,10 @@
           [suggestions]="state().filteredCja"
           (selectItem)="onCjaSuggestionSelected($event)"
           [disabled]="!!state().courthouseSearch || !!form.get('court')?.value"
-          [showError]="vm().searchErrors.length > 0 && !!fieldError('cja')"
-          [errorText]="fieldError('cja')?.text ?? ''"
+          [showError]="vm().submitted && form.controls.cja.invalid"
+          [errorText]="
+            getControlErrorItem(form.controls.cja, 'cja', errorMap)?.text ?? ''
+          "
           containerWidthClass="govuk-grid-column-one-quarter"
           widthClass="govuk-!-width-full"
         />
@@ -288,7 +301,6 @@
               Print continuous
             </button>
 
-            <!-- TODO: arcpoc 1329 -->
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"

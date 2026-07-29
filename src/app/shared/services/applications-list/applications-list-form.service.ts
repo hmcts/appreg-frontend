@@ -6,6 +6,7 @@ import {
   ApplicationsListFormControls,
   ApplicationsListUpdateFormControls,
 } from '@shared-types/applications-list/applications-list-form';
+import { atLeastOneRequiredValidator } from '@validators/at-least-one-value.validator';
 
 type BuildOptions = {
   mode: 'search' | 'create' | 'update';
@@ -15,7 +16,9 @@ type BuildOptions = {
 @Injectable({ providedIn: 'root' })
 export class ApplicationsListFormService {
   createSearchForm(): FormGroup<ApplicationsListFormControls> {
-    return new FormGroup(this.buildControls({ mode: 'search' }));
+    return new FormGroup(this.buildControls({ mode: 'search' }), {
+      validators: [atLeastOneRequiredValidator()],
+    });
   }
 
   createCreateForm(): FormGroup<ApplicationsListFormControls> {

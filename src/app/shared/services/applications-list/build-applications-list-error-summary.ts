@@ -1,6 +1,7 @@
 import { FormGroup } from '@angular/forms';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import {
   BuildFormErrorSummaryOptions,
   FormErrorMessages,
@@ -25,4 +26,23 @@ export function buildApplicationsListErrorSummary<
       ...options?.hrefs,
     },
   });
+}
+
+export function buildErrorSummary<TErrorMessages extends FormErrorMessages>(
+  form: FormGroup,
+  messages: TErrorMessages,
+): ErrorItem[] {
+  let errors = buildApplicationsListErrorSummary(form, messages);
+
+  if (form.hasError('atLeastOneRequired')) {
+    errors = [
+      {
+        id: 'search-error',
+        href: '#search',
+        text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
+      },
+    ];
+  }
+
+  return errors;
 }

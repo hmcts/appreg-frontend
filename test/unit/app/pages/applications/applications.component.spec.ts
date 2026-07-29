@@ -497,6 +497,18 @@ describe('ApplicationsComponent', () => {
       ]);
     });
 
+    it('does not show a court error for an empty search', () => {
+      submitSearch();
+
+      const courtInput: HTMLInputElement =
+        fixture.nativeElement.querySelector('#court');
+
+      expect(
+        component.form.controls.court.hasError('courtOrLocCjaRequired'),
+      ).toBe(true);
+      expect(courtInput.classList).not.toContain('govuk-input--error');
+    });
+
     it('when submitted with a param: calls loadApplications (and API) rather than invalid search criteria', () => {
       getEntriesMock.mockClear();
 

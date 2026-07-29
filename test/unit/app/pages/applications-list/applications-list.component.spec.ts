@@ -367,17 +367,6 @@ describe('ApplicationsList – search', () => {
     ...extras,
   });
 
-  it('when hasParams=false, does not call API and surfaces validation error', () => {
-    service.getApplicationLists.mockClear();
-    patchUIState(component, { searchErrors: [] });
-    component.loadApplicationsLists(false);
-    expect(service.getApplicationLists).not.toHaveBeenCalled();
-    expect(getUIFlagState(component).searchErrors[0]).toEqual({
-      id: '',
-      text: 'Invalid search criteria. At least one field must be entered.',
-    });
-  });
-
   it('merges filter when hasParams=true', async () => {
     jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
       status: ApplicationListStatus.OPEN,
@@ -515,6 +504,8 @@ describe('ApplicationsList – search', () => {
   describe('onSubmit', () => {
     it('collects date/time validation errors and does not run search', () => {
       const spy = jest.spyOn(component, 'loadApplicationsLists');
+
+      component.form.controls.date.setValue('2000-15-54');
 
       component.form.controls.date.setErrors({
         dateInvalid: true,

@@ -79,7 +79,7 @@ import {
 } from '@openapi';
 import { ApplicationListRecordsService } from '@services/applications-list/application-list-records.service';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
-import { buildApplicationsListErrorSummary } from '@services/applications-list/build-applications-list-error-summary';
+import { buildErrorSummary } from '@services/applications-list/build-applications-list-error-summary';
 import {
   ApplicationListSearchFormService,
   DEFAULT_STATE,
@@ -350,10 +350,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     return this.vm().searchErrors.find((e) => e.id === id);
   }
 
-  private buildErrorSummary(): ErrorItem[] {
-    return buildApplicationsListErrorSummary(this.form, this.errorMap);
-  }
-
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
     this.submitAttempt.update((attempt) => attempt + 1);
@@ -367,7 +363,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    const validationErrors = this.buildErrorSummary();
+    const validationErrors = buildErrorSummary(this.form, this.errorMap);
     if (validationErrors.length) {
       this.storedRecordsState.patch({ submitted: true });
       this.appListSignalState.patch({ searchErrors: validationErrors });
@@ -476,18 +472,18 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    if (!hasParams) {
-      this.appListSignalState.patch({
-        searchErrors: [
-          ...this.appListState().searchErrors,
-          {
-            id: '',
-            text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
-          },
-        ],
-      });
-      return;
-    }
+    // if (!hasParams) {
+    //   this.appListSignalState.patch({
+    //     searchErrors: [
+    //       ...this.appListState().searchErrors,
+    //       {
+    //         id: '',
+    //         text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
+    //       },
+    //     ],
+    //   });
+    //   return;
+    // }
 
     this.searchForm.setState({
       ...DEFAULT_STATE,
