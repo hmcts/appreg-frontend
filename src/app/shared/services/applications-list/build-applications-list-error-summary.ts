@@ -32,16 +32,14 @@ export function buildErrorSummary<TErrorMessages extends FormErrorMessages>(
   form: FormGroup,
   messages: TErrorMessages,
 ): ErrorItem[] {
-  let errors = buildApplicationsListErrorSummary(form, messages);
+  const errors = buildApplicationsListErrorSummary(form, messages);
 
   if (form.hasError('atLeastOneRequired')) {
-    errors = [
-      {
-        id: 'search-error',
-        href: '#search',
-        text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
-      },
-    ];
+    errors.push({
+      id: 'search-error',
+      href: '#search',
+      text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
+    });
   }
 
   return errors;

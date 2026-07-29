@@ -35,10 +35,7 @@ import {
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '@components/error-summary/error-summary.component';
+import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import { ApplicationListCreateDto, ApplicationListsApi } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
@@ -88,7 +85,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
-  private readonly errorMap = APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES;
+  readonly errorMap = APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES;
 
   // Reactive form backing the template
   override form = this.formSvc.createCreateForm();
@@ -212,7 +209,12 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    const errors = this.buildErrorSummary();
+    const errors = buildApplicationsListErrorSummary(this.form, this.errorMap, {
+      priorityKeys: {
+        date: ['dateInvalid', 'required'],
+      },
+    });
+
     if (errors.length) {
       this.appListCreatesignalState.patch({
         createInvalid: true,
@@ -232,10 +234,6 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
     this.createRequest.set(payload);
   }
 
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().errorSummary.find((e) => e.id === id);
-  }
-
   onCancel(): void {
     const { listId, entriesToMove } = this.appListCreateState();
 
@@ -246,14 +244,6 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
     void this.router.navigate(['/applications-list', listId, 'move'], {
       state: { entriesToMove },
-    });
-  }
-
-  private buildErrorSummary(): ErrorItem[] {
-    return buildApplicationsListErrorSummary(this.form, this.errorMap, {
-      priorityKeys: {
-        date: ['dateInvalid', 'required'],
-      },
     });
   }
 }

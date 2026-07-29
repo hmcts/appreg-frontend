@@ -51,10 +51,7 @@ import {
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '@components/error-summary/error-summary.component';
+import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
@@ -170,7 +167,7 @@ export class ApplicationsListEntryMoveComponent
     return this.sortedRows().slice(start, start + this.pageSize);
   });
 
-  private readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
+  readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
 
   // Nav state to /applications-list/create
   get createListState(): {
@@ -297,10 +294,6 @@ export class ApplicationsListEntryMoveComponent
 
   onPageChangeSelected(page: number): void {
     this.currentPage.set(page);
-  }
-
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().searchErrors.find((e) => e.id === id);
   }
 
   toggleAdvancedSearch(): void {

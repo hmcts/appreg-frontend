@@ -80,7 +80,7 @@ describe('buildErrorSummary', () => {
     ]);
   });
 
-  it('returns the search-criteria error instead of individual control errors', () => {
+  it('returns the search-criteria error and individual control errors', () => {
     const form = new FormGroup({
       respondentPostcode: new FormControl<string>('AB12 3CDE'),
     });
@@ -88,6 +88,11 @@ describe('buildErrorSummary', () => {
     form.setErrors({ atLeastOneRequired: true });
 
     expect(buildErrorSummary(form, messages)).toEqual([
+      {
+        href: '#respondentPostcode',
+        id: 'respondentPostcode',
+        text: 'Postcode must be 8 characters or fewer',
+      },
       {
         id: 'search-error',
         href: '#search',

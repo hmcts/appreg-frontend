@@ -51,10 +51,7 @@ import { toRow } from '@components/applications-list-entry-detail/util/routing-s
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '@components/error-summary/error-summary.component';
+import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
@@ -84,7 +81,6 @@ import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
-import { getControlErrorItem } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
@@ -140,10 +136,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   // allows you to initialise effect in ngOnInit()
   private readonly envInjector = inject(EnvironmentInjector);
 
-  private readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
+  readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
-  readonly getControlError = (id: string): ErrorItem | undefined =>
-    getControlErrorItem(this.form.get(id), id, this.errorMap);
 
   // Create form
   override form = this.formSvc.createSearchForm();

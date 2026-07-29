@@ -376,7 +376,7 @@ describe('ApplicationsList – search', () => {
     service.getApplicationLists.mockReturnValue(of(pageStub([])));
 
     applicationsListsApiMock.getApplicationLists.mockClear();
-    component.loadApplicationsLists(true);
+    component.loadApplicationsLists();
     await flushSignalEffects(fixture);
     const args = service.getApplicationLists.mock
       .calls[0][0] as GetApplicationListsRequestParams;
@@ -402,7 +402,7 @@ describe('ApplicationsList – search', () => {
         ]),
       ),
     );
-    component.loadApplicationsLists(true);
+    component.loadApplicationsLists();
     await flushSignalEffects(fixture);
     expect(getRecordsState(component).rows).toHaveLength(1);
     expect(getRecordsState(component).rows[0].date).toBe('2025-09-17');
@@ -415,7 +415,7 @@ describe('ApplicationsList – search', () => {
       of(pageStub([], { totalElements: 10, totalPages: 2 })),
     );
 
-    component.loadApplicationsLists(true);
+    component.loadApplicationsLists();
     await flushSignalEffects(fixture);
     expect(getRecordsState(component).totalPages).toBe(2);
   });
@@ -442,7 +442,7 @@ describe('ApplicationsList – search', () => {
       totalPages: 3,
       submitted: false,
     });
-    component.loadApplicationsLists(true);
+    component.loadApplicationsLists();
     await flushSignalEffects(fixture);
     expect(getRecordsState(component).rows).toHaveLength(0);
     expect(getRecordsState(component).totalPages).toBe(0);
@@ -459,7 +459,7 @@ describe('ApplicationsList – search', () => {
     } as ApplicationListGetFilterDto);
 
     service.getApplicationLists.mockReturnValue(of(pageStub([])));
-    component.loadApplicationsLists(true);
+    component.loadApplicationsLists();
     await flushSignalEffects(fixture);
     const args = service.getApplicationLists.mock
       .calls[0][0] as GetApplicationListsRequestParams;
@@ -493,7 +493,7 @@ describe('ApplicationsList – search', () => {
 
     service.getApplicationLists.mockReturnValue(of(pageStub([])));
 
-    component.loadApplicationsLists(true);
+    component.loadApplicationsLists();
     await flushSignalEffects(fixture);
 
     const args = service.getApplicationLists.mock
@@ -566,7 +566,7 @@ describe('ApplicationsList – search', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('calls loadApplicationsLists(hasAnyParams) for search action when no validation errors', () => {
+    it('calls loadApplicationsLists for search action when no validation errors', () => {
       const spy = jest
         .spyOn(component, 'loadApplicationsLists')
         .mockImplementation(() => undefined);
@@ -584,7 +584,7 @@ describe('ApplicationsList – search', () => {
       expect(getRecordsState(component).submitted).toBe(true);
       expect(getUIFlagState(component).isSearch).toBe(true);
       expect(getRecordsState(component).currentPage).toBe(0);
-      expect(spy).toHaveBeenCalledWith(true);
+      expect(spy).toHaveBeenCalledWith();
     });
 
     it('defaults action to "search" when submitter is missing', () => {
@@ -599,7 +599,7 @@ describe('ApplicationsList – search', () => {
       const { e } = submitEvent(null);
       component.onSubmit(e);
 
-      expect(spy).toHaveBeenCalledWith(true);
+      expect(spy).toHaveBeenCalledWith();
     });
 
     it('blocks search and shows cjaNotFound when typed CJA is not a valid code', () => {
@@ -636,16 +636,6 @@ describe('ApplicationsList – search', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('maps a Court control error for the shared form component', () => {
-      component.form.controls.court.setErrors({ courtNotFound: true });
-
-      expect(component.getControlError('court')).toEqual({
-        id: 'court',
-        href: '#court',
-        text: APPLICATIONS_LIST_FORM_ERROR_MESSAGES.court.courtNotFound,
-      });
-    });
-
     it('allows search when CJA code exists in reference data', () => {
       const spy = jest
         .spyOn(component, 'loadApplicationsLists')
@@ -668,7 +658,7 @@ describe('ApplicationsList – search', () => {
       component.onSubmit(e);
 
       expect(getUIFlagState(component).searchErrors).toEqual([]);
-      expect(spy).toHaveBeenCalledWith(true);
+      expect(spy).toHaveBeenCalledWith();
     });
   });
 });

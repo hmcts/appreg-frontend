@@ -21,6 +21,7 @@ import {
   ApplicationsListFormMode,
   ApplicationsListUpdateFormControls,
 } from '@shared-types/applications-list/applications-list-form';
+import { ErrorMessageMap, getControlErrorItem } from '@util/error-summary';
 
 type AppListForm =
   | FormGroup<ApplicationsListFormControls>
@@ -61,6 +62,9 @@ export class ApplicationsListFormComponent {
 
   status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
+  errorMap = input.required<ErrorMessageMap>();
+  externalErrors = input<readonly ErrorItem[]>([]);
+
   isCreate = computed(() => this.mode() === 'create');
   isSearch = computed(() => this.mode() === 'search');
   isUpdate = computed(() => this.mode() === 'update');
@@ -70,11 +74,14 @@ export class ApplicationsListFormComponent {
   );
   showDuration = computed(() => this.mode() === 'update');
 
-  getError = input<((id: string) => ErrorItem | undefined) | null>(null);
+  // getError = input<((id: string) => ErrorItem | undefined) | null>(null);
 
-  showError = (id: string): boolean =>
-    this.submitted() && !!this.getError()?.(id);
-  errorText = (id: string): string => this.getError()?.(id)?.text ?? '';
+  showError(id: string): boolean {
+    return this.submitted() && !!this.getControlError(id);
+  }
+  errorText(id: string): string {
+    return this.submitted() ? (this.getControlError(id)?.text ?? '') : '';
+  }
 
   onAdvancedClick(e: Event): void {
     e.preventDefault();
@@ -91,5 +98,14 @@ export class ApplicationsListFormComponent {
     if (isCjaSuggestionItem(item)) {
       this.suggestions().selectCja(item);
     }
+  }
+
+  getControlError(id: string): ErrorItem | undefined {
+    const control = (this.form() as FormGroup).get(id);
+
+    return (
+      getControlErrorItem(control, id, this.errorMap()) ??
+      this.externalErrors().find((item) => item.id === id)
+    );
   }
 }

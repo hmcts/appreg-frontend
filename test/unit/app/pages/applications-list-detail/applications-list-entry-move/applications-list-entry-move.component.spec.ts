@@ -476,7 +476,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
     );
   });
 
-  it('returns field errors from search state', () => {
+  it('stores field errors in search state', () => {
     const error = { id: 'search', text: 'Problem' };
     (
       component as unknown as {
@@ -486,8 +486,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
       searchErrors: [error],
     });
 
-    expect(component.fieldError('search')).toEqual(error);
-    expect(component.fieldError('missing')).toBeUndefined();
+    expect(component.vm().searchErrors).toEqual([error]);
   });
 
   it('toggles advanced search state', () => {

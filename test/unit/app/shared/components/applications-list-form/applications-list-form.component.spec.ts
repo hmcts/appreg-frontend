@@ -1,16 +1,17 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import type { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
+import { APPLICATIONS_LIST_FORM_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 
 describe('ApplicationsListFormComponent (Jest)', () => {
   let fixture: ComponentFixture<ApplicationsListFormComponent>;
   let component: ApplicationsListFormComponent;
 
   const makeRequiredInputs = () => {
-    const form = new FormGroup({}) as unknown;
+    const form = new FormGroup({ court: new FormControl('') }) as unknown;
 
     const suggestions = {} as unknown as SuggestionsFacade;
 
@@ -36,6 +37,10 @@ describe('ApplicationsListFormComponent (Jest)', () => {
     const { form, suggestions } = makeRequiredInputs();
     fixture.componentRef.setInput('form', form);
     fixture.componentRef.setInput('suggestions', suggestions);
+    fixture.componentRef.setInput(
+      'errorMap',
+      APPLICATIONS_LIST_FORM_ERROR_MESSAGES,
+    );
 
     fixture.detectChanges();
   });
@@ -107,36 +112,62 @@ describe('ApplicationsListFormComponent (Jest)', () => {
   });
 
   describe('showError / errorText', () => {
-    it('showError returns false when not submitted (even if getError returns an item)', () => {
+    it('showError and errorText are empty when not submitted', () => {
       fixture.componentRef.setInput('submitted', false);
-      fixture.componentRef.setInput('getError', (id: string) => ({
-        id,
-        text: 'Oops',
-      }));
+      component.form().controls.court.setErrors({ courtNotFound: true });
       fixture.detectChanges();
 
       expect(component.showError('court')).toBe(false);
-      expect(component.errorText('court')).toBe('Oops');
+      expect(component.errorText('court')).toBe('');
     });
 
-    it('showError returns true when submitted and getError returns an item', () => {
+    it('showError and errorText return the mapped control error when submitted', () => {
       fixture.componentRef.setInput('submitted', true);
-      fixture.componentRef.setInput('getError', (id: string) => ({
-        id,
-        text: 'Court not found',
-      }));
+      component.form().controls.court.setErrors({ courtNotFound: true });
       fixture.detectChanges();
 
       expect(component.showError('court')).toBe(true);
-      expect(component.errorText('court')).toBe('Court not found');
+      expect(component.errorText('court')).toBe('Court location not found');
     });
 
-    it('errorText returns empty string when getError is null', () => {
-      fixture.componentRef.setInput('getError', null);
+    it('errorText returns empty string when the control has no mapped error', () => {
+      component.form().controls.court.setErrors(null);
       fixture.detectChanges();
 
       expect(component.errorText('court')).toBe('');
       expect(component.showError('court')).toBe(false);
+    });
+
+    it('uses an external error for a field when the control has no mapped error', () => {
+      fixture.componentRef.setInput('submitted', true);
+      fixture.componentRef.setInput('externalErrors', [
+        {
+          id: 'court',
+          href: '#court',
+          text: 'Court location no longer exists',
+        },
+      ]);
+      fixture.detectChanges();
+
+      expect(component.showError('court')).toBe(true);
+      expect(component.errorText('court')).toBe(
+        'Court location no longer exists',
+      );
+    });
+
+    it('prefers a mapped control error over an external error for the same field', () => {
+      fixture.componentRef.setInput('submitted', true);
+      fixture.componentRef.setInput('externalErrors', [
+        {
+          id: 'court',
+          href: '#court',
+          text: 'Court location no longer exists',
+        },
+      ]);
+      component.form().controls.court.setErrors({ courtNotFound: true });
+      fixture.detectChanges();
+
+      expect(component.errorText('court')).toBe('Court location not found');
     });
   });
 
