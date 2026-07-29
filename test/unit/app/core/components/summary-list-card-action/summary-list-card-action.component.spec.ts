@@ -27,7 +27,7 @@ const makeSummaryList = (
     <app-summary-list-card-action
       [summaryLists]="summaryLists"
       [cardBodyTemplate]="cardBody"
-      (onClick)="lastClicked = $event"
+      (cardClick)="lastClicked = $event"
     />
   `,
 })
@@ -92,7 +92,7 @@ describe('SummaryListCardActionComponent', () => {
     });
 
     it('emits clicked action when action link is clicked', () => {
-      const clickSpy = jest.spyOn(component.onClick, 'emit');
+      const clickSpy = jest.spyOn(component.cardClick, 'emit');
       const link = fixture.debugElement.query(
         By.css('.govuk-summary-card__action a'),
       );
@@ -152,7 +152,7 @@ describe('SummaryListCardActionComponent', () => {
       expect(host.textContent).not.toContain('Default wording');
     });
 
-    it('still emits onClick from wrapped component', () => {
+    it('still emits cardClick from wrapped component', () => {
       const link = fixture.debugElement.query(
         By.css('.govuk-summary-card__action a'),
       );

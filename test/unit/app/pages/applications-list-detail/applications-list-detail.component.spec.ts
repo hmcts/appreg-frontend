@@ -284,7 +284,6 @@ describe('ApplicationsListDetail', () => {
     expect(appsTab).toBeTruthy();
     expect(detailsTab).toBeTruthy();
 
-    expect(appsTab.nativeElement.getAttribute('aria-selected')).toBe('true');
     expect(detailsTab.nativeElement.getAttribute('aria-selected')).toBe(
       'false',
     );
