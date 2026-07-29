@@ -172,7 +172,10 @@
           [suggestions]="state().filteredCja"
           (selectItem)="onCjaSuggestionSelected($event)"
           [disabled]="!!state().courthouseSearch || !!form.get('court')?.value"
-          [showError]="vm().submitted && form.controls.cja.invalid"
+          [showError]="
+            vm().submitted &&
+            !!getControlErrorItem(form.controls.cja, 'cja', errorMap)
+          "
           [errorText]="
             getControlErrorItem(form.controls.cja, 'cja', errorMap)?.text ?? ''
           "
