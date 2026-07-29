@@ -1,5 +1,4 @@
 import { Location, isPlatformBrowser } from '@angular/common';
-import { FormGroup } from '@angular/forms';
 
 import {
   ApplicationCodeGetDetailDto,
@@ -9,7 +8,6 @@ import {
 } from '@openapi';
 import { CivilFeeMeta } from '@shared-types/civil-fee/civil-fee';
 import { hasStringProp, isRecord } from '@util/data-utils';
-import { has } from '@util/has';
 import { isNullableString } from '@util/string-helpers';
 import { normaliseTime } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
@@ -150,17 +148,4 @@ export function toRow(
     etag: null,
     rowVersion: 'version' in x ? x.version.toString() : null,
   };
-}
-
-export function hasAnyParams(form: FormGroup): boolean {
-  const values = form.getRawValue() as Record<string, unknown>;
-  return (
-    has(values['date']) ||
-    has(values['time']) ||
-    has(values['description']) ||
-    has(values['status']) ||
-    has(values['court']) ||
-    has(values['location']) ||
-    has(values['cja'])
-  );
 }

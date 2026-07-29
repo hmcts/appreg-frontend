@@ -1,3 +1,18 @@
+/**
+ * Move Application List Entries Confirmation
+ * Main Component for page /applications-list/:id/move/confirm
+ *
+ * Functionality:
+ * onConfirm():
+ * - POST request to move the selected Application List Entries
+ * - Redirects to the destination Application List on success
+ * - Redirects back to the source Application List on failure
+ *
+ * goBack():
+ * - Navigates back to the Move Application List Entries page
+ * - Restores the selected Application List Entries
+ */
+
 import { Location, isPlatformBrowser } from '@angular/common';
 import {
   Component,

@@ -1,3 +1,21 @@
+/**
+ * Result Selected Applications
+ * Main Component for page /applications-list/:id/result-selected
+ *
+ * Note:
+ * Selected entries are grouped by list before submission to the backend.
+ *
+ * Functionality:
+ * onSubmitResults():
+ * - Groups selected entryIds by Application List
+ * - Submits bulk result requests via the Results Facade
+ * - Displays success or mapped API validation errors
+ *
+ * onRemoveResult():
+ * - Removes previously created Result(s) matching the selected Result Code
+ * - Deletes logically equivalent results across all selected entries
+ */
+
 import { isPlatformBrowser } from '@angular/common';
 import {
   Component,

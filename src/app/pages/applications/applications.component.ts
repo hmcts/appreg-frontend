@@ -1,3 +1,26 @@
+/**
+ * Applications
+ * Main Component for page /applications
+ *
+ * Note:
+ * Bulk preview endpoint contains a BE limit of 2000 max selected applications
+ *
+ * Functionality:
+ * onSubmit():
+ * - GET request to Spring API which returns applications based on given params
+ * - Populates query based on fields that are  !null/!undefined/!defaultValue
+ *
+ * onPrintContinuous/Page():
+ * - Runs bulk preview endpoint to get selected row details
+ * - Runs print endpoint with entryIds + listIds
+ *
+ * onUpdateNotesClick():
+ * - Navigates to ./update-notes/update-notes.component.ts with row context
+ *
+ * onResultSelectedClick():
+ * - Navigates to ./applications-result-selected/applications-result-selected.component.ts with row context
+ */
+
 import { isPlatformBrowser } from '@angular/common';
 import {
   Component,

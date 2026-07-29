@@ -1,3 +1,17 @@
+/**
+ * Bulk Update Officials
+ * Main Component for page /applications-list/:id/update-officials
+ *
+ * Functionality:
+ * onSaveOfficials():
+ * - Validates official details
+ * - Ensures at least one official has been entered
+ * - Navigates to the confirmation page with the selected entries and officials
+ *
+ * goBack():
+ * - Navigates back to the parent Application List without applying changes
+ */
+
 import { Location, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';

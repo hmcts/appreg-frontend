@@ -5,7 +5,6 @@ Main Component for page /applications-list
 Functionality:
 onSubmit():
   - GET request to Spring API which returns applications lists based on given params
-  - If params are empty (user leaves fields empty or on default selected value) GET ALL is run
   - Populates query based on fields that are  !null/!undefined/!defaultValue
 
 Delete:
@@ -24,7 +23,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   EnvironmentInjector,
-  HostListener,
   OnInit,
   PLATFORM_ID,
   inject,
@@ -49,10 +47,7 @@ import {
 import { statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
 
-import {
-  hasAnyParams,
-  toRow,
-} from '@components/applications-list-entry-detail/util/routing-state-util';
+import { toRow } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
@@ -89,6 +84,7 @@ import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
+import { getControlErrorItem } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
@@ -131,9 +127,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  openMenuForId: string | null = null;
-  openPrintSelectForId: string | null = null;
-
   // Initialise signal state
   private readonly appListSignalState =
     createSignalState<ApplicationsListState>(initialApplicationsListState);
@@ -149,6 +142,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
   private readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
+  readonly getControlError = (id: string): ErrorItem | undefined =>
+    getControlErrorItem(this.form.get(id), id, this.errorMap);
 
   // Create form
   override form = this.formSvc.createSearchForm();
@@ -158,12 +153,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   // API signals
   private readonly loadRequest =
     signal<GetApplicationListsRequestParams | null>(null);
-  private readonly printPageRequest = signal<string | null>(null);
-  private readonly printContinuousRequest = signal<{
-    id: string;
-    isClosed: boolean;
-  } | null>(null);
-
   private readonly printRequest = signal<BulkPrintRequest | null>(null);
 
   readonly submitAttempt = signal(0);
@@ -200,7 +189,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     // Refresh applications lists after navigating back
     if (this.storedRecordsVm().rows.length > 0) {
-      this.loadApplicationsLists(hasAnyParams(this.form));
+      this.loadApplicationsLists();
     }
   }
 
@@ -338,16 +327,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
         },
         onError: () => {
           this.appListSignalState.patch({ pdfLoading: false });
-          this.printContinuousRequest.set(null);
+          this.printRequest.set(null);
           this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric);
         },
       },
       this.envInjector,
     );
-  }
-
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().searchErrors.find((e) => e.id === id);
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -370,21 +355,18 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const hasAny = hasAnyParams(this.form);
-
     if (action === 'search') {
       this.storedRecordsState.patch({ submitted: true, currentPage: 0 });
       this.appListSignalState.patch({
         isSearch: true,
       });
-      this.loadApplicationsLists(hasAny);
+      this.loadApplicationsLists();
     }
   }
 
   onPageChange(page: number): void {
     this.storedRecordsState.patch({ currentPage: page });
-    const hasAny = hasAnyParams(this.form);
-    this.loadApplicationsLists(hasAny);
+    this.loadApplicationsLists();
   }
 
   onCjaSearchChange(value: string): void {
@@ -394,12 +376,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     // refresh suggestions list
     this.onCjaInputChange();
-  }
-
-  @HostListener('document:click')
-  onDocClick(): void {
-    this.openPrintSelectForId = null;
-    this.openMenuForId = null;
   }
 
   onPrintPage(id: string): void {
@@ -458,32 +434,17 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       },
     });
     this.storedRecordsState.patch({ currentPage: 0 });
-
-    const hasAny = hasAnyParams(this.form);
-    this.loadApplicationsLists(hasAny);
+    this.loadApplicationsLists();
   }
 
   protected isOpen(row: ApplicationListRow): boolean {
     return row.status === ApplicationListStatus.OPEN;
   }
 
-  loadApplicationsLists(hasParams: boolean): void {
+  loadApplicationsLists(): void {
     if (this.appListState().isLoading) {
       return;
     }
-
-    // if (!hasParams) {
-    //   this.appListSignalState.patch({
-    //     searchErrors: [
-    //       ...this.appListState().searchErrors,
-    //       {
-    //         id: '',
-    //         text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
-    //       },
-    //     ],
-    //   });
-    //   return;
-    // }
 
     this.searchForm.setState({
       ...DEFAULT_STATE,
@@ -505,20 +466,11 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       pageNumber: r.currentPage,
       pageSize: r.pageSize,
       sort: paramSort,
-      ...(hasParams ? { filter: loadQuery(this.form) } : {}),
+      filter: loadQuery(this.form),
     };
 
     this.appListSignalState.patch({ isLoading: true });
     this.loadRequest.set(params);
-  }
-
-  focusField(id: string, e: Event): void {
-    e.preventDefault();
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.focus({ preventScroll: true });
-    }
   }
 
   toggleAdvancedSearch(): void {

@@ -1,3 +1,17 @@
+/**
+ * Delete Application List
+ * Main Component for page /applications-list/:id/delete
+ *
+ * Functionality:
+ * onDelete():
+ * - DELETE request to remove the selected Application List
+ * - Sends concurrency headers (ETag and row version)
+ * - Redirects back to /applications-list with success or error status
+ *
+ * goBack():
+ * - Navigates back to /applications-list without deleting the Application List
+ */
+
 import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';

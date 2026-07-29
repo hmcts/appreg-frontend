@@ -1,3 +1,26 @@
+/**
+ * Reports
+ * Main Component for page /reports
+ *
+ * Note:
+ * Supports asynchronous generation of multiple report types. Report creation,
+ * polling and download are handled using background jobs.
+ *
+ * Functionality:
+ * onDownload():
+ * - Validates the selected report form
+ * - Starts report generation for the selected report type
+ * - Polls the background job until completion
+ * - Downloads the generated CSV on success
+ *
+ * onClearFilters():
+ * - Resets the currently selected report form and validation state
+ *
+ * setupEffects():
+ * - Handles asynchronous report creation requests
+ * - Starts polling when report jobs are accepted
+ */
+
 import { DOCUMENT } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {

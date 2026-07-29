@@ -1,3 +1,28 @@
+/**
+ * Move Application List Entries
+ * Main Component for page /applications-list/:id/move
+ *
+ * Note:
+ * The source Application List is excluded from the search
+ * results and users may also create a new target Application List.
+ * Restricts searches to OPEN Application Lists only
+ *
+ * Functionality:
+ * onSearch():
+ * - GET request to search for eligible target Application Lists
+ * - Validates search criteria before submitting
+ *
+ * onSelect():
+ * - Navigates to the confirmation page with the selected target Application List
+ * and selected Application List Entries
+ *
+ * onSortChange()/onPageChange():
+ * - Supports server-side sorting and pagination of target Application Lists
+ *
+ * onSortChangeSelected()/onPageChangeSelected():
+ * - Provides client-side sorting and pagination of selected Application List Entries
+ */
+
 import { isPlatformBrowser } from '@angular/common';
 import {
   Component,

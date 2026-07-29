@@ -636,6 +636,16 @@ describe('ApplicationsList – search', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
+    it('maps a Court control error for the shared form component', () => {
+      component.form.controls.court.setErrors({ courtNotFound: true });
+
+      expect(component.getControlError('court')).toEqual({
+        id: 'court',
+        href: '#court',
+        text: APPLICATIONS_LIST_FORM_ERROR_MESSAGES.court.courtNotFound,
+      });
+    });
+
     it('allows search when CJA code exists in reference data', () => {
       const spy = jest
         .spyOn(component, 'loadApplicationsLists')
