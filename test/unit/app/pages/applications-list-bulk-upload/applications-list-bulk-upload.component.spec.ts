@@ -19,7 +19,7 @@ import { ApplicationsListBulkUploadState } from '@components/applications-list-d
 import {
   ApplicationListEntriesApi,
   JobAcknowledgement,
-  JobStatus2 as JobStatus,
+  JobStatus,
   JobType,
   ReportsApi,
 } from '@openapi';
