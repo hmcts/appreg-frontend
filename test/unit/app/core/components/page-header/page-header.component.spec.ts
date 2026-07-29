@@ -99,8 +99,10 @@ describe('PageHeaderComponent', () => {
     const btn = byId<HTMLButtonElement>(fixture, 'btn');
 
     expect(rl?.tagName).toBe('A');
+    expect(rl?.textContent?.trim()).toContain('Go to lists (internal link)');
     expect(ah?.tagName).toBe('A');
     expect(ah?.getAttribute('href')).toBe('/help');
+    expect(ah?.textContent?.trim()).toContain('Help (external link)');
     expect(btn?.tagName).toBe('BUTTON');
     expect(btn?.getAttribute('type')).toBe('button');
   });

@@ -71,7 +71,9 @@ describe('SuccessBannerComponent (external template)', () => {
       'Applications list successfully created',
     );
     expect(bodyP.textContent).toContain('You can return to the list.');
-    expect(linkEl.textContent.trim()).toBe('Click here to go back');
+    expect(linkEl.textContent.trim()).toBe(
+      'Click here to go back (internal link)',
+    );
 
     // Assert target using public RouterLink API (urlTree) + Router.serializeUrl
     expect(linkDir.urlTree).toBeTruthy();
@@ -83,7 +85,7 @@ describe('SuccessBannerComponent (external template)', () => {
     expect(
       bodyP.querySelectorAll('.govuk-notification-banner__link'),
     ).toHaveLength(1);
-    expect(bodyP.querySelectorAll('span')).toHaveLength(0);
+    expect(bodyP.querySelectorAll('span')).toHaveLength(2);
   });
 
   it('renders an href link when linkHref provided', () => {
@@ -98,7 +100,7 @@ describe('SuccessBannerComponent (external template)', () => {
       '.govuk-notification-banner__link',
     ) as HTMLAnchorElement;
 
-    expect(link.textContent.trim()).toBe('Open docs');
+    expect(link.textContent.trim()).toBe('Open docs (direct link)');
     expect(link.getAttribute('href')).toBe('/docs');
     expect(
       fixture.nativeElement.querySelectorAll(
@@ -107,7 +109,7 @@ describe('SuccessBannerComponent (external template)', () => {
     ).toHaveLength(1);
     expect(
       fixture.nativeElement.querySelectorAll('.govuk-body span'),
-    ).toHaveLength(0);
+    ).toHaveLength(2);
   });
 
   it('prefers linkHref when both linkHref and linkCommands are provided', () => {
@@ -123,7 +125,9 @@ describe('SuccessBannerComponent (external template)', () => {
 
     expect(links).toHaveLength(1);
     expect(link.getAttribute('href')).toBe('/docs');
-    expect(fixture.nativeElement.querySelector('.govuk-body span')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.govuk-body span'),
+    ).not.toBeNull();
   });
 
   it('emits linkClick when the banner link is clicked', () => {
@@ -161,7 +165,7 @@ describe('SuccessBannerComponent (external template)', () => {
 
     link.dispatchEvent(clickEvent);
 
-    expect(link.textContent?.trim()).toBe('Run action');
+    expect(link.textContent?.trim()).toBe('Run action (action link)');
     expect(clickEvent.defaultPrevented).toBe(true);
     expect(emitSpy).toHaveBeenCalledTimes(1);
   });
