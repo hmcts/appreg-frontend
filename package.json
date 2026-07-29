@@ -13,6 +13,7 @@
     "api:validate": "openapi-generator-cli validate -i tools/openapi/vendor/openapi/openapi.yaml",
     "api:generate": "openapi-generator-cli generate -c tools/openapi/generator-config.yaml",
     "api:bundle": "redocly bundle tools/openapi/vendor/openapi/openapi.yaml -o tools/dist/openapi.bundled.yaml",
+    "api:all:local-be": "install -m 644 ../appreg-api/openapi.yaml tools/openapi/vendor/openapi/openapi.yaml && yarn api:validate && yarn api:bundle && yarn api:clear && yarn api:generate",
     "api:all": "yarn api:fetch-unpack && yarn api:validate && yarn api:bundle && yarn api:clear && yarn api:generate",
     "api:all:force": "yarn api:fetch-unpack:force && yarn api:validate && yarn api:bundle && yarn api:clear && yarn api:generate",
     "mock:gen": "node scripts/gen-wiremock-mappings.mjs",

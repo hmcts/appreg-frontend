@@ -10,7 +10,7 @@ import { of } from 'rxjs';
 
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { FeesSectionComponent } from '@components/fees-section/fees-section.component';
-import { JobStatus2, JobType, ReportsApi } from '@openapi';
+import { JobStatus, JobType, ReportsApi } from '@openapi';
 
 describe('FeesSectionComponent', () => {
   let component: FeesSectionComponent;
@@ -24,7 +24,7 @@ describe('FeesSectionComponent', () => {
       of({
         id: 'job-id',
         type: JobType.FEES_REPORT,
-        status: JobStatus2.RECEIVED,
+        status: JobStatus.RECEIVED,
       }),
     );
 
