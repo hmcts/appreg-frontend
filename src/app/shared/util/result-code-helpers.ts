@@ -10,6 +10,7 @@ import {
   ResultGetDto,
   ResultPage,
   TemplateDetail,
+  TemplateKeyWithConstraint,
   TemplateSubstitution,
 } from '@openapi';
 import {
@@ -108,6 +109,12 @@ function fromTemplateDetail(
   }
 
   return constraints
-    .filter((c) => c?.key && typeof c.value === 'string')
-    .map((c) => ({ key: c.key!, value: c.value! }));
+    .filter(hasStringKeyAndValue)
+    .map((c) => ({ key: c.key, value: c.value }));
+}
+
+function hasStringKeyAndValue(
+  c: TemplateKeyWithConstraint | undefined,
+): c is TemplateKeyWithConstraint & { value: string } {
+  return typeof c?.key === 'string' && typeof c.value === 'string';
 }
