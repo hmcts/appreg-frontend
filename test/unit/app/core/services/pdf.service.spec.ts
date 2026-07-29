@@ -794,6 +794,182 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     expect(alphaIdx).not.toBe(betaIdx);
   });
 
+  describe('continuous report helper methods', () => {
+    type PrivateFns = {
+      renderContinuousApplicationLists: (
+        dataArr: unknown[],
+        dtos: unknown[],
+        drawListDivider: jest.Mock,
+        drawTwoColRow: jest.Mock,
+        drawFullRow: jest.Mock,
+      ) => void;
+      drawContinuousListHeader: (
+        data: unknown,
+        raw: unknown,
+        drawTwoColRow: jest.Mock,
+      ) => void;
+      drawContinuousEntry: (
+        entry: unknown,
+        entryIndex: number,
+        drawTwoColRow: jest.Mock,
+        drawFullRow: jest.Mock,
+      ) => void;
+      continuousApplicationContents: (entry: unknown) => string;
+      continuousNotes: (entry: unknown) => string;
+      toLinesPreserveBlanks: (
+        doc: { splitTextToSize: jest.Mock },
+        text: string,
+        valueWidth: number,
+      ) => string[];
+    };
+
+    const priv = (s: PdfService): PrivateFns => s as unknown as PrivateFns;
+
+    const entry = {
+      applicant: 'Applicant A',
+      respondent: 'Respondent B',
+      applicationCode: ' AP01 ',
+      applicationDescription: ' Interim relief ',
+      matter: ' Matter wording ',
+      judge: 'Judge C',
+      result: 'Granted',
+      notes: 'Decision recorded',
+      accountReference: ' ACC-1 ',
+      caseReference: ' CASE-2 ',
+    };
+
+    it('builds application content from populated fields and omits blank fields', () => {
+      expect(priv(service).continuousApplicationContents(entry)).toBe(
+        'Application Code: AP01\nApplication Title: Interim relief\nMatter wording',
+      );
+      expect(
+        priv(service).continuousApplicationContents({
+          applicationCode: ' ',
+          applicationDescription: '',
+          matter: '\n',
+        }),
+      ).toBe('');
+    });
+
+    it('builds notes with a blank separator before supplied references', () => {
+      expect(priv(service).continuousNotes(entry)).toBe(
+        'Decision recorded\n\nAccount Reference: ACC-1\nCase Reference: CASE-2',
+      );
+      expect(priv(service).continuousNotes({ notes: ' ' })).toBe('—');
+    });
+
+    it('draws the continuous list header with formatted time, duration, and location', () => {
+      const drawTwoColRow = jest.fn();
+
+      priv(service).drawContinuousListHeader(
+        {
+          listDate: '2025-09-17',
+          listTime: '09:30:59',
+          courtName: 'Bath Magistrates Court',
+        },
+        { duration: '45m' },
+        drawTwoColRow,
+      );
+
+      expect(drawTwoColRow).toHaveBeenCalledWith(
+        'Date & Time\nDuration',
+        expect.stringContaining('09:30\n45m'),
+        'Location',
+        'Bath Magistrates Court',
+        18,
+        6,
+      );
+    });
+
+    it('draws all entry rows with its sequential applicant label', () => {
+      const drawTwoColRow = jest.fn();
+      const drawFullRow = jest.fn();
+
+      priv(service).drawContinuousEntry(entry, 3, drawTwoColRow, drawFullRow);
+
+      expect(drawTwoColRow).toHaveBeenNthCalledWith(
+        1,
+        '3. Applicant',
+        'Applicant A',
+        'Respondent',
+        'Respondent B',
+        16,
+      );
+      expect(drawTwoColRow).toHaveBeenNthCalledWith(
+        2,
+        'Application',
+        'Application Code: AP01\nApplication Title: Interim relief\nMatter wording',
+        'This matter was before',
+        'Judge C',
+        20,
+      );
+      expect(drawFullRow).toHaveBeenNthCalledWith(1, 'Result', 'Granted', 18);
+      expect(drawFullRow).toHaveBeenNthCalledWith(
+        2,
+        'Notes',
+        'Decision recorded\n\nAccount Reference: ACC-1\nCase Reference: CASE-2',
+        22,
+      );
+    });
+
+    it('renders lists in order and inserts a divider between lists', () => {
+      const drawListDivider = jest.fn();
+      const drawTwoColRow = jest.fn();
+      const drawFullRow = jest.fn();
+      const dataArr = [
+        {
+          listDate: '2025-09-17',
+          listTime: '09:30',
+          courtName: 'Court A',
+          entries: [entry],
+        },
+        {
+          listDate: '2025-09-18',
+          listTime: '10:00',
+          courtName: 'Court B',
+          entries: [{ ...entry, applicant: 'Applicant D' }],
+        },
+      ];
+
+      priv(service).renderContinuousApplicationLists(
+        dataArr,
+        [{ duration: '30m' }, { duration: '60m' }],
+        drawListDivider,
+        drawTwoColRow,
+        drawFullRow,
+      );
+
+      expect(drawListDivider).toHaveBeenCalledTimes(1);
+      expect(drawTwoColRow).toHaveBeenCalledWith(
+        '1. Applicant',
+        'Applicant A',
+        'Respondent',
+        'Respondent B',
+        16,
+      );
+      expect(drawTwoColRow).toHaveBeenCalledWith(
+        '2. Applicant',
+        'Applicant D',
+        'Respondent',
+        'Respondent B',
+        16,
+      );
+    });
+
+    it('wraps text while preserving explicitly blank lines', () => {
+      const doc = {
+        splitTextToSize: jest.fn((line: string) =>
+          line === 'second' ? 'second' : ['first  ', 1, 'last  '],
+        ),
+      };
+
+      expect(
+        priv(service).toLinesPreserveBlanks(doc, 'first\n\nsecond', 100),
+      ).toEqual(['first', 'last', ' ', 'second']);
+      expect(priv(service).toLinesPreserveBlanks(doc, '  ', 100)).toEqual([]);
+    });
+  });
+
   describe('cja name formatter', () => {
     type PrivateFns = {
       cjaName: (raw?: string) => string;
@@ -986,14 +1162,13 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
       expect(call(undefined, 'longDate')).toBe(expected);
     });
 
-    it('falls back to today when value is an empty string', () => {
+    it.each([
+      ['an empty string', ''],
+      ['whitespace', '   '],
+      ['not parseable', 'not-a-date'],
+    ])('falls back to today when value is %s', (_description, value) => {
       const expected = formatDate(new Date(), 'longDate', 'en-GB');
-      expect(call('', 'longDate')).toBe(expected);
-    });
-
-    it('falls back to today when value is whitespace', () => {
-      const expected = formatDate(new Date(), 'longDate', 'en-GB');
-      expect(call('   ', 'longDate')).toBe(expected);
+      expect(call(value, 'longDate')).toBe(expected);
     });
 
     it('returns formatted date for a valid ISO string', () => {
@@ -1005,11 +1180,6 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     it('returns formatted date for a Date object', () => {
       const d = new Date('2026-06-06T00:00:00.000Z');
       expect(call(d, 'longDate')).toBe(formatDate(d, 'longDate', 'en-GB'));
-    });
-
-    it('falls back to today when value is not parseable', () => {
-      const expected = formatDate(new Date(), 'longDate', 'en-GB');
-      expect(call('not-a-date', 'longDate')).toBe(expected);
     });
   });
 });
