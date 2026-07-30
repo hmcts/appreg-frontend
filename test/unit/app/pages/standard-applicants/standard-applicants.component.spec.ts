@@ -258,12 +258,6 @@ describe('StandardApplicantsComponent', () => {
         }),
       ]),
     );
-    expect(component.fieldError('code')?.text).toBe(
-      'Code must be 10 characters or fewer',
-    );
-    expect(component.fieldError('name')?.text).toBe(
-      'Standard applicant name must be 100 characters or fewer',
-    );
 
     const errorMessages = fixture.debugElement
       .queryAll(By.css('.govuk-error-message'))

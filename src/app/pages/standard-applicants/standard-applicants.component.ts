@@ -36,6 +36,12 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import {
+  ErrorMessageMap,
+  buildFormErrorSummary,
+  getControlErrorItem,
+} from '../../core/util/error-summary';
+
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import {
   ErrorItem,
@@ -66,7 +72,6 @@ import {
 import { StandardApplicantsSearchFormService } from '@services/standard-applicants/standard-applicants-search-form.service';
 import { StandardApplicantsSearchStateService } from '@services/standard-applicants/standard-applicants-search-state.service';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
-import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { saveCsv as saveCsvFile } from '@util/save-csv';
@@ -151,10 +156,11 @@ export class StandardApplicants implements OnInit {
 
   readonly submitted = signal(false);
   readonly submitAttempt = signal(0);
-  private readonly errorMap: ErrorMessageMap =
-    STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
+  readonly errorMap: ErrorMessageMap = STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
   private appliedFilters: StandardApplicantFilters = {};
   onCreateErrorClick = onCreateErrorClickFn;
+
+  getControlErrorItem = getControlErrorItem;
 
   form = new FormGroup({
     code: new FormControl<string>('', {
@@ -282,10 +288,6 @@ export class StandardApplicants implements OnInit {
     }
 
     this.printRequest.set(params);
-  }
-
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().searchErrors.find((e) => e.id === id);
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
