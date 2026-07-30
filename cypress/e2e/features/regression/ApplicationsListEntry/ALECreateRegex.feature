@@ -115,7 +115,7 @@ Feature: Applications List Entry Create Regex Validations
       | Mobile number    |        |
       | Email address    |        |
     When User Clicks On The "Create entry" Button
-    Then User Sees Validation Error Banner "There is a problem Select a fee status Enter a valid status date Enter a first name Enter a last name Enter address line 1"
+    Then User Sees Validation Error Banner "There is a problem Select a fee status Enter a valid status date Enter respondent first name Enter respondent last name Enter respondent address line 1"
     When User Fills In The Respondent Details
       | Select type      | Person                                                                                                |
       | Select title     | Mr                                                                                                    |
@@ -322,7 +322,7 @@ Feature: Applications List Entry Create Regex Validations
       | Mobile number     |              |
       | Email address     |              |
     When User Clicks On The "Create entry" Button
-    Then User Sees Validation Error Banner "Enter organisation name Enter address line 1"
+    Then User Sees Validation Error Banner "Enter respondent organisation name Enter respondent address line 1"
     When User Fills In The Respondent Details
       | Select type       | Organisation                                                                                          |
       | Organisation name | MvVh@&Jwx1tF08W%*9PtbD3a@j&zXbkdCVN!+6hU@KtSw=NrvHFn3UVcCAfPczq#q=+RQ7zQwo%cVC@*dxdf08!xOJn2*=AtV*zda |
