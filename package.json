@@ -153,7 +153,7 @@
     "adm-zip": "^0.6.0",
     "ajv": "^8.17.1",
     "axe-core": "^4.10.3",
-    "concurrently": "^9.0.0",
+    "concurrently": "^10.0.4",
     "cypress": "15.15.0",
     "cypress-axe": "^1.7.0",
     "cypress-mochawesome-reporter": "^4.0.2",
@@ -220,7 +220,8 @@
     "undici": "^6.27.0",
     "@hono/node-server": "^2.0.0",
     "body-parser": "^2.3.0",
-    "@opentelemetry/propagator-jaeger": "^2.9.0"
+    "@opentelemetry/propagator-jaeger": "^2.9.0",
+    "shell-quote": "^1.9.0"
   },
   "packageManager": "yarn@4.10.3"
 }
