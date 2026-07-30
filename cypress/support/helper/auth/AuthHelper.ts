@@ -6,6 +6,10 @@ import { MicrosoftAuthHelper } from './MicrosoftAuthHelper';
 import { SessionValidator } from './SessionValidator';
 
 export class AuthHelper {
+  private static isBypassSsoEnabled(): boolean {
+    return Cypress.env('DEV_BYPASS_SSO') === true;
+  }
+
   static signInWithMicrosoftSSO(email: string, password: string): void {
     cy.log(`Starting SSO login for: ${email}`);
     cy.visit(APP_URLS.HOME);
@@ -13,6 +17,15 @@ export class AuthHelper {
 
     ButtonHelper.clickButton('Sign in', 40000);
     cy.screenshot('02-After-Clicking-SignIn-Button');
+
+    if (AuthHelper.isBypassSsoEnabled()) {
+      cy.log('DEV_BYPASS_SSO=true: skipping Microsoft login flow');
+      cy.visit(APP_URLS.APPLICATIONS_LIST);
+      SessionValidator.verifySessionIsValid();
+      cy.screenshot('06-Final-ApplicationsList-Page');
+      cy.log('Local bypass SSO login completed');
+      return;
+    }
 
     MicrosoftAuthHelper.performLogin(email, password);
 

@@ -337,6 +337,7 @@ module.exports = defineConfig({
         SCOPE: `api://${appConfigGet(appConfig, 'secrets.appreg.azure-app-id-fe')}/frontend`,
         API_BASE_URL: apiBaseUrl,
         SESSION_COOKIE_NAME: appConfigGet(appConfig, 'session.cookieName'),
+        DEV_BYPASS_SSO: process.env.DEV_BYPASS_SSO === 'true',
         ...(tags ? { TAGS: tags } : {}),
       };
 
