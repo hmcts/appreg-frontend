@@ -247,8 +247,8 @@ Feature: Applications List  - Bulk Result Selected
             | applicant.person.contactDetails.addressLine3  | Wales                          |
             | applicant.person.contactDetails.addressLine4  | United Kingdom                 |
             | applicant.person.contactDetails.postcode      | CF10 1AA                       |
-            | applicant.person.contactDetails.phone         | 029{RANDOM}                    |
-            | applicant.person.contactDetails.mobile        | 07900{RANDOM}                  |
+            | applicant.person.contactDetails.phone         | 029{RANDOM}11111               |
+            | applicant.person.contactDetails.mobile        | 07900{RANDOM}111               |
             | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
             | respondent.person.name.title                  | Mrs                            |
             | respondent.person.name.lastName               | Hughes {RANDOM}                |
@@ -258,8 +258,8 @@ Feature: Applications List  - Bulk Result Selected
             | respondent.person.contactDetails.addressLine3 | Wales                          |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
             | respondent.person.contactDetails.postcode     | CF10 2AA                       |
-            | respondent.person.contactDetails.phone        | 029{RANDOM}                    |
-            | respondent.person.contactDetails.mobile       | 07800{RANDOM}                  |
+            | respondent.person.contactDetails.phone        | 029{RANDOM}11111               |
+            | respondent.person.contactDetails.mobile       | 07800{RANDOM}111               |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-28y                   |
             | feeStatuses.0.paymentReference                |                                |
