@@ -279,6 +279,32 @@ export class PdfAssertions {
               `PDF should contain anchor: "${processedAnchor}"`,
             );
           });
+      }) as unknown as Cypress.Chainable<void>,
+    ) as unknown as Cypress.Chainable<void>;
+  }
+
+  static verifyLatestPdfDoesNotContainValues(
+    values: string[],
+  ): Cypress.Chainable<void> {
+    Cypress.log({
+      name: 'verifyLatestPdfDoesNotContainValues',
+      message: `Checking latest PDF excludes ${values.length} value(s)`,
+    });
+
+    return PdfDownloadHelper.getLatestPdfOrFail().then(
+      (latestPdf) =>
+        PdfDownloadHelper.getPdfText(latestPdf).then((text): void => {
+          const normalizedText = StringUtils.normalizeText(text);
+
+          for (const value of values) {
+            const processed = TestDataGenerator.parseValue(value);
+            const normalized = StringUtils.normalizeText(processed);
+
+            expect(normalizedText).not.to.include(
+              normalized,
+              `PDF should not contain value: "${processed}"`,
+            );
+          }
         }) as unknown as Cypress.Chainable<void>,
     ) as unknown as Cypress.Chainable<void>;
   }
