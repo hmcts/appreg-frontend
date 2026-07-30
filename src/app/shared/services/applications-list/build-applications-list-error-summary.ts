@@ -34,7 +34,7 @@ export function buildErrorSummary<TErrorMessages extends FormErrorMessages>(
 ): ErrorItem[] {
   const errors = buildApplicationsListErrorSummary(form, messages);
 
-  if (form.hasError('atLeastOneRequired')) {
+  if (form.hasError('atLeastOneRequired') && !errors.length) {
     errors.push({
       id: 'search-error',
       href: '#search',

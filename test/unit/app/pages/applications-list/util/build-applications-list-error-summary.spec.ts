@@ -80,24 +80,20 @@ describe('buildErrorSummary', () => {
     ]);
   });
 
-  it('returns the search-criteria error and individual control errors', () => {
+  it('returns the search-criteria error if no other errors exist', () => {
     const form = new FormGroup({
-      respondentPostcode: new FormControl<string>('AB12 3CDE'),
+      respondentPostcode: new FormControl<string>('AB12 3CD'),
     });
-    form.controls.respondentPostcode.setErrors({ maxlength: true });
     form.setErrors({ atLeastOneRequired: true });
 
     expect(buildErrorSummary(form, messages)).toEqual([
-      {
-        href: '#respondentPostcode',
-        id: 'respondentPostcode',
-        text: 'Postcode must be 8 characters or fewer',
-      },
       {
         id: 'search-error',
         href: '#search',
         text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
       },
     ]);
+
+    expect(buildErrorSummary(form, messages)).toHaveLength(1);
   });
 });
