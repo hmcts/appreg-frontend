@@ -74,7 +74,8 @@
     <app-activity-audit-section
       [group]="activityAuditGroup"
       [submitted]="vm().submitted"
-      [getError]="fieldError.bind(this)"
+      [errorMap]="errorMap"
+      [externalErrors]="vm().errorSummary"
     />
   }
   <!-- Fees section -->
@@ -83,7 +84,8 @@
       [group]="feesGroup"
       [suggestions]="suggestionsFacade"
       [submitted]="vm().submitted"
-      [getError]="fieldError.bind(this)"
+      [errorMap]="errorMap"
+      [externalErrors]="vm().errorSummary"
     />
   }
   <!-- List maintenance section -->
@@ -92,7 +94,8 @@
       [group]="listMaintenanceGroup"
       [suggestions]="suggestionsFacade"
       [submitted]="vm().submitted"
-      [getError]="fieldError.bind(this)"
+      [errorMap]="errorMap"
+      [externalErrors]="vm().errorSummary"
     />
   }
   <!-- Search warrants section -->
@@ -101,7 +104,8 @@
       [group]="searchWarrantsGroup"
       [suggestions]="suggestionsFacade"
       [submitted]="vm().submitted"
-      [getError]="fieldError.bind(this)"
+      [errorMap]="errorMap"
+      [externalErrors]="vm().errorSummary"
     />
   }
   <!-- Standard applicants section -->
@@ -110,7 +114,8 @@
       [group]="workloadGroup"
       [suggestions]="suggestionsFacade"
       [submitted]="vm().submitted"
-      [getError]="fieldError.bind(this)"
+      [errorMap]="errorMap"
+      [externalErrors]="vm().errorSummary"
     />
   }
   <!-- Duration section -->
@@ -119,7 +124,8 @@
       [group]="durationGroup"
       [suggestions]="suggestionsFacade"
       [submitted]="vm().submitted"
-      [getError]="fieldError.bind(this)"
+      [errorMap]="errorMap"
+      [externalErrors]="vm().errorSummary"
     />
   }
   <!-- Private prosecutors index section -->
@@ -128,7 +134,8 @@
       [group]="ppiGroup"
       [submitted]="vm().submitted"
       [suggestions]="suggestionsFacade"
-      [getError]="fieldError.bind(this)"
+      [errorMap]="errorMap"
+      [externalErrors]="vm().errorSummary"
     />
   }
 }

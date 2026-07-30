@@ -74,8 +74,6 @@ export class ApplicationsListFormComponent {
   );
   showDuration = computed(() => this.mode() === 'update');
 
-  // getError = input<((id: string) => ErrorItem | undefined) | null>(null);
-
   showError(id: string): boolean {
     return this.submitted() && !!this.getControlError(id);
   }

@@ -46,6 +46,7 @@ describe('DurationSectionComponent', () => {
 
     fixture.componentRef.setInput('group', group);
     fixture.componentRef.setInput('suggestions', suggestions);
+    fixture.componentRef.setInput('errorMap', {});
 
     fixture.detectChanges();
   });

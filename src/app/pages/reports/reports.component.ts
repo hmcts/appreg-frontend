@@ -188,7 +188,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
   onCreateErrorClick = onCreateErrorClickFn;
 
-  private readonly errorMap = REPORTS_FORM_ERROR_MESSAGES;
+  readonly errorMap = REPORTS_FORM_ERROR_MESSAGES;
 
   // Reactive form backing the template
   override form = new FormGroup({
@@ -694,10 +694,6 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       },
       this.envInjector,
     );
-  }
-
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().errorSummary.find((e) => e.id === id);
   }
 
   isReportInProgress(): boolean {

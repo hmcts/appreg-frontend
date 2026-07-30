@@ -10,6 +10,7 @@ import { By } from '@angular/platform-browser';
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { ReportsSharedFormComponent } from '@components/reports-shared-form/reports-shared-form.component';
 import { SearchWarrantsSectionComponent } from '@components/search-warrants-section/search-warrants-section.component';
+import { REPORTS_FORM_ERROR_MESSAGES } from '@constants/reports/report-err';
 
 describe('SearchWarrantsSectionComponent', () => {
   let component: SearchWarrantsSectionComponent;
@@ -47,6 +48,7 @@ describe('SearchWarrantsSectionComponent', () => {
 
     fixture.componentRef.setInput('group', group);
     fixture.componentRef.setInput('suggestions', suggestions);
+    fixture.componentRef.setInput('errorMap', REPORTS_FORM_ERROR_MESSAGES);
 
     fixture.detectChanges();
   });
@@ -67,9 +69,9 @@ describe('SearchWarrantsSectionComponent', () => {
   });
 
   it('passes inputs through to the shared reports form', () => {
-    const getError = jest.fn();
+    const externalErrors = [{ id: 'court', text: 'Court location not found' }];
 
-    fixture.componentRef.setInput('getError', getError);
+    fixture.componentRef.setInput('externalErrors', externalErrors);
     fixture.detectChanges();
 
     const sharedForm = fixture.debugElement.query(
@@ -78,7 +80,8 @@ describe('SearchWarrantsSectionComponent', () => {
 
     expect(sharedForm.group()).toBe(group);
     expect(sharedForm.suggestions()).toBe(suggestions);
-    expect(sharedForm.getError()).toBe(getError);
+    expect(sharedForm.errorMap()).toBe(REPORTS_FORM_ERROR_MESSAGES);
+    expect(sharedForm.externalErrors()).toBe(externalErrors);
   });
 
   it('binds the provided FormGroup in the shared form', () => {
