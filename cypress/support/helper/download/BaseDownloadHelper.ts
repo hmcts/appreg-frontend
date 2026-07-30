@@ -46,8 +46,8 @@ export class BaseDownloadHelper {
         const elapsed = Date.now() - startTime;
         if (elapsed >= timeout) {
           throw new Error(
-            `Expected at least 1 ${fileType} file in downloads folder `
-              + `(${this.DOWNLOADS_FOLDER}), but found none after ${timeout}ms`,
+            `Expected at least 1 ${fileType} file in downloads folder ` +
+              `(${this.DOWNLOADS_FOLDER}), but found none after ${timeout}ms`,
           );
         }
 
@@ -57,7 +57,9 @@ export class BaseDownloadHelper {
         });
         return cy
           .wait(DOWNLOAD_CONSTANTS.POLL_INTERVAL_MS)
-          .then(() => attemptGetLatest() as unknown) as Cypress.Chainable<string>;
+          .then(
+            () => attemptGetLatest() as unknown,
+          ) as Cypress.Chainable<string>;
       }) as Cypress.Chainable<string>;
     };
 
