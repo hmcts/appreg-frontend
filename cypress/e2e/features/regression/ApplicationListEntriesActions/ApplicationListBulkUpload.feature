@@ -141,14 +141,16 @@ Feature: Application List Bulk Upload
             | User  | APIDate  | Time           | Status | Description       | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkFail_{RANDOM} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
-    @applicationsList @applicationListEntry @ARCPOC-1502 @ARCPOC-1563
+    @regression @applicationsList @applicationListEntry @ARCPOC-1502 @ARCPOC-1563 @ARCPOC-1506
     Scenario Outline: Application List - Bulk Upload Fails - Verify CSV Import Error Table
+        # Application List Setup
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date      | time   | status   | description   | courtLocationCode   |
             | <APIDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
+        # Navigate To Bulk Upload
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
@@ -160,9 +162,26 @@ Feature: Application List Bulk Upload
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page
+        # Upload Invalid CSV And Wait For Validation Failure
+        Given User Has No Downloaded CSVs
         When User Uploads The File "bulk-upload-invalid-values-one-header-per-row.csv"
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
         Then User Sees Validation Error Banner "Bulk upload failed" Containing "The bulk upload could not be completed. See the table below for more details. Please re-try the upload once these errors have been resolved"
-        Then User Should See Row In Table "Import errors table" With Values:
-            | Error Type | Row | Affected column | Message | Applicant name | Address line 1 | Rejected value |
+        # Verify Error Table Details
+        Then User Should See Row In Table With Values:
+            | Error type | Row | Affected column | Message                       | Applicant name | Address line 1  | Rejected value |
+            | Data error | 2   | applicationCode | size must be between 1 and 10 | Bad Row null   | 1 Broken Street | APP-INVALID    |
+        # Export Failed Upload CSV
+        Then User Should See The Button "Export the file with errors shown" Is Enabled
+        When User Clicks On The "Export the file with errors shown" Button
+        Then User Verifies CSV "bulk-upload-export-error-csv" Is Downloaded
+        Then User Verifies Latest Downloaded CSV Contains Text "APPLICANT_CODE" In Row 1
+        Then User Verifies Latest Downloaded CSV Contains Text "APP/012" In Row 2
+        Then User Clears Downloaded CSVs
+        # Application List Cleanup
+        When User Makes DELETE API Request To "/application-lists/:listId"
+        Then User Verify Response Status Code Should Be "204"
+        Examples:
+            | User  | APIDate  | Time           | Status | Description           | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
+            | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkFailTable_{RANDOM} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |

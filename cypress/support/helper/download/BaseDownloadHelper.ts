@@ -7,8 +7,13 @@ export class BaseDownloadHelper {
   protected static readonly DOWNLOADS_FOLDER =
     DOWNLOAD_CONSTANTS.DOWNLOADS_FOLDER;
 
+  private static getSpecDownloadsFolder(): string {
+    const specSlug = Cypress.spec.name.replace(/\.[^/.]+$/, '');
+    return `${this.DOWNLOADS_FOLDER}/${specSlug}`;
+  }
+
   static getDownloadsPath(): string {
-    return `${Cypress.config('projectRoot')}/${this.DOWNLOADS_FOLDER}`;
+    return `${Cypress.config('projectRoot')}/${this.getSpecDownloadsFolder()}`;
   }
 
   static ensureDownloadsFolderExists(): Cypress.Chainable<null> {
@@ -32,7 +37,7 @@ export class BaseDownloadHelper {
     return this.listFiles(listTaskName).then((files) => {
       if (!files.length) {
         throw new Error(
-          `Expected at least 1 ${fileType} file in downloads folder (${this.DOWNLOADS_FOLDER}), but found none`,
+          `Expected at least 1 ${fileType} file in downloads folder (${this.getSpecDownloadsFolder()}), but found none`,
         );
       }
       const latest = files[files.length - 1];
