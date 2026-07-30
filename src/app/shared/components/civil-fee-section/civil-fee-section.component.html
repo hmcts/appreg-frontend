@@ -102,7 +102,7 @@
         label="Payment reference"
         hint="Enter the unique reference assigned to this payment"
         id="paymentRef"
-        [error]="getControlErrorMessages('paymentRef')[0]"
+        [error]="getControlError('paymentRef')?.text ?? null"
       />
     </div>
 

@@ -38,6 +38,10 @@ import {
   CivilFeeMeta,
 } from '@shared-types/civil-fee/civil-fee';
 import { buildCivilFeeHeading, feeStatusRowId } from '@util/civil-fee-utils';
+import {
+  buildFormErrorSummary,
+  getControlErrorItem,
+} from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
 
 export type CivilFeeForm = FormGroup<{
@@ -47,8 +51,6 @@ export type CivilFeeForm = FormGroup<{
   paymentRef: FormControl<string | null>;
   feeStatuses: FormControl<FeeStatus[] | null>;
 }>;
-
-type CivilFeeValidatedControlName = keyof typeof CIVIL_FEE_FIELD_MESSAGES;
 
 @Component({
   selector: 'app-civil-fee-section',
@@ -258,41 +260,25 @@ export class CivilFeeSectionComponent implements OnInit {
         }
       }
 
-      this.getControlErrorMessages('paymentRef').forEach((message) => {
-        entries.push({ id: 'paymentRef', text: message });
-      });
+      const paymentRefError = this.getControlError('paymentRef');
+      if (paymentRefError) {
+        entries.push(paymentRefError);
+      }
 
       return entries;
-    } else {
-      (['feeStatus', 'feeStatusDate', 'paymentRef'] as const).forEach(
-        (name) => {
-          this.getControlErrorMessages(name).forEach((message) => {
-            entries.push({ id: name, text: message });
-          });
-        },
-      );
     }
 
-    return entries;
+    return buildFormErrorSummary(this.feeForm(), CIVIL_FEE_FIELD_MESSAGES);
   }
 
-  getControlErrorMessages(controlName: CivilFeeValidatedControlName): string[] {
-    const ctrl = this.feeForm().controls[controlName];
-    const errors = ctrl.errors;
-    if (!errors) {
-      return [];
-    }
-
-    const map = CIVIL_FEE_FIELD_MESSAGES[controlName] ?? {};
-
-    return Object.keys(errors)
-      .map((errorKey) => map[errorKey])
-      .filter((msg): msg is string => !!msg);
-  }
-
-  isControlInvalid(controlName: keyof CivilFeeForm['controls']): boolean {
-    const ctrl = this.feeForm().controls[controlName];
-    return ctrl.invalid && (ctrl.dirty || ctrl.touched);
+  getControlError(
+    controlName: keyof typeof CIVIL_FEE_FIELD_MESSAGES,
+  ): ErrorItem | undefined {
+    return getControlErrorItem(
+      this.feeForm().controls[controlName],
+      controlName,
+      CIVIL_FEE_FIELD_MESSAGES,
+    );
   }
 
   feeHeadingText(): string {
