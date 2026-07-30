@@ -33,8 +33,8 @@ Feature: Duration Report
     When User Set Date Field "Date to" To "27/03/2026"
     Then User Selects "Cardiff Crown Court Set 4" From The Textbox "Court" Autocomplete By Typing "Cardiff"
     When User Clicks On The "Download CSV" Button
-    Then User Verifies CSV "<CSVFileName>" Is Downloaded
     Then User Sees Success Banner "Success Report downloaded The duration report has downloaded."
+    Then User Verifies CSV "<CSVFileName>" Is Downloaded
     Then User Verifies Latest Downloaded CSV Contains Text "Duration Report" In Row 1
     Then User Verifies The Downloaded CSV Has Headers In Row 2:
       | List Date             |
@@ -65,8 +65,8 @@ Feature: Duration Report
     Then User Selects "London" From The Textbox "Criminal Justice Area" Autocomplete By Typing "01"
     Then User Enters "Other location 1" Into The "Other location description" Textbox
     When User Clicks On The "Download CSV" Button
-    Then User Verifies CSV "<CSVFileName>" Is Downloaded
     Then User Sees Success Banner "Success Report downloaded The duration report has downloaded."
+    Then User Verifies CSV "<CSVFileName>" Is Downloaded
     Then User Verifies Latest Downloaded CSV Contains Text "Duration Report" In Row 1
     Then User Verifies The Downloaded CSV Has Headers In Row 2:
       | List Date             |
