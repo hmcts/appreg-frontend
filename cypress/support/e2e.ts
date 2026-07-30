@@ -1,9 +1,28 @@
 /// <reference types="cypress" />
 
 import './commands';
+import { BaseDownloadHelper } from './helper/download/BaseDownloadHelper';
 import { TestDataGenerator } from './utils/TestDataGenerator';
 
 const isApiSpec = Cypress.spec.relative.includes('/apiTests/');
+
+function configureSpecDownloadsFolder(): Cypress.Chainable {
+  const downloadsPath = BaseDownloadHelper.getDownloadsPath();
+
+  return BaseDownloadHelper.ensureDownloadsFolderExists().then(() => {
+    if (Cypress.browser.family !== 'chromium') {
+      return null;
+    }
+
+    return Cypress.automation('remote:debugger:protocol', {
+      command: 'Page.setDownloadBehavior',
+      params: {
+        behavior: 'allow',
+        downloadPath: downloadsPath,
+      },
+    });
+  });
+}
 
 if (isApiSpec) {
   Cypress.Screenshot.defaults({
@@ -12,15 +31,17 @@ if (isApiSpec) {
 }
 
 beforeEach(() => {
-  cy.request({
-    url: '/sso/logout',
-    failOnStatusCode: false,
-    followRedirect: false,
-  }).then(() => {
-    Cypress.session.clearAllSavedSessions().catch(() => {});
-    cy.clearCookies();
-    cy.clearLocalStorage();
-    cy.clearAllSessionStorage();
+  configureSpecDownloadsFolder().then(() => {
+    cy.request({
+      url: '/sso/logout',
+      failOnStatusCode: false,
+      followRedirect: false,
+    }).then(() => {
+      Cypress.session.clearAllSavedSessions().catch(() => {});
+      cy.clearCookies();
+      cy.clearLocalStorage();
+      cy.clearAllSessionStorage();
+    });
   });
 
   TestDataGenerator.resetScenario();
