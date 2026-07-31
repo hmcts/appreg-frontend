@@ -6,6 +6,10 @@ Then('User Should See The Button {string}', (buttonText: string) => {
   ButtonHelper.isButtonVisible(buttonText);
 });
 
+Then('User Should Not See The Button {string}', (buttonText: string) => {
+  ButtonHelper.isButtonNotVisible(buttonText);
+});
+
 Then('User Should See The Button {string} Is Enabled', (buttonText: string) => {
   ButtonHelper.isButtonEnabled(buttonText);
 });

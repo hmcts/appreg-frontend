@@ -37,6 +37,18 @@ Then(
   },
 );
 
+Then(
+  'User Verifies Latest Downloaded CSV Contains Text {string}',
+  (expectedText: string) => {
+    CsvDownloadHelper.getLatestCsvContent().then((content) => {
+      expect(content).to.include(
+        expectedText,
+        `Expected latest downloaded CSV to contain text "${expectedText}"`,
+      );
+    });
+  },
+);
+
 Then('User Verifies CSV {string} Is Downloaded', (partialName: string) => {
   CsvDownloadHelper.findCsvByName(partialName).then((filename) => {
     cy.log(`✓ CSV Downloaded: ${filename}`);

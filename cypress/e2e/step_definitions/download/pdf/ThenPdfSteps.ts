@@ -45,3 +45,10 @@ Then(
     PdfAssertions.verifyLatestPdfContainsValues(dataTable.rows());
   },
 );
+
+Then(
+  'User Verifies Latest Downloaded PDF Does Not Contain The Following Values:',
+  (dataTable: { raw: () => string[][] }) => {
+    PdfAssertions.verifyLatestPdfDoesNotContainValues(dataTable.raw().flat());
+  },
+);

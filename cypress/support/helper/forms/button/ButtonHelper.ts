@@ -15,6 +15,10 @@ export class ButtonHelper {
     return ButtonElement.findButton(buttonText).should('be.visible');
   }
 
+  static isButtonNotVisible(buttonText: string): Cypress.Chainable {
+    return ButtonElement.findButton(buttonText, 0).should('not.exist');
+  }
+
   static isButtonEnabled(buttonText: string): Cypress.Chainable {
     return ButtonElement.findButton(buttonText)
       .should('be.visible')
