@@ -69,7 +69,12 @@
       formControlName="code"
       label="Code"
       idPrefix="code"
-      [error]="fieldError('code')?.text ?? null"
+      [error]="
+        submitted()
+          ? (getControlErrorItem(form.controls.code, 'code', errorMap)?.text ??
+            null)
+          : null
+      "
       containerWidthClass="govuk-grid-column-one-half"
     />
   </div>
@@ -79,7 +84,12 @@
       formControlName="name"
       label="Standard applicant name"
       idPrefix="name"
-      [error]="fieldError('name')?.text ?? null"
+      [error]="
+        submitted()
+          ? (getControlErrorItem(form.controls.name, 'name', errorMap)?.text ??
+            null)
+          : null
+      "
       widthClass="govuk-input--width-20"
       containerWidthClass="govuk-grid-column-one-half"
     />

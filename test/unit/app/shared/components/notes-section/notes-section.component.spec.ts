@@ -50,42 +50,38 @@ describe('NotesSectionComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('getControlErrorMessages', () => {
-    it('returns an empty array when there are no errors', () => {
-      const messages = component.getControlErrorMessages('caseReference');
-      expect(messages).toEqual([]);
+  describe('getControlError', () => {
+    it('returns undefined when there are no errors', () => {
+      expect(component.getControlError('caseReference')).toBeUndefined();
     });
 
-    it('returns mapped messages for known error keys', () => {
+    it('returns the mapped error item for a known error key', () => {
       form.controls.caseReference.setErrors({ maxlength: true });
 
-      const messages = component.getControlErrorMessages('caseReference');
-
-      expect(messages).toContain(
-        component.NOTES_FIELD_MESSAGES.caseReference['maxlength'],
-      );
-      expect(messages).toHaveLength(1);
+      expect(component.getControlError('caseReference')).toEqual({
+        id: 'caseReference',
+        href: '#caseReference',
+        text: component.errorMap.caseReference['maxlength'],
+      });
     });
 
     it('ignores unknown error keys', () => {
       form.controls.caseReference.setErrors({ unknownRule: true } as never);
 
-      const messages = component.getControlErrorMessages('caseReference');
-
-      expect(messages).toEqual([]);
+      expect(component.getControlError('caseReference')).toBeUndefined();
     });
   });
 
-  describe('isControlInvalid', () => {
+  describe('showControlError', () => {
     it('returns false when control is valid', () => {
-      const result = component.isControlInvalid('notes');
+      const result = component.showControlError('notes');
       expect(result).toBe(false);
     });
 
     it('returns false when control has errors but is neither dirty nor touched', () => {
       form.controls.notes.setErrors({ maxlength: true });
 
-      const result = component.isControlInvalid('notes');
+      const result = component.showControlError('notes');
       expect(result).toBe(false);
     });
 
@@ -93,7 +89,7 @@ describe('NotesSectionComponent', () => {
       form.controls.notes.setErrors({ maxlength: true });
       form.controls.notes.markAsTouched();
 
-      const result = component.isControlInvalid('notes');
+      const result = component.showControlError('notes');
       expect(result).toBe(true);
     });
 
@@ -101,7 +97,7 @@ describe('NotesSectionComponent', () => {
       form.controls.notes.setErrors({ maxlength: true });
       form.controls.notes.markAsDirty();
 
-      const result = component.isControlInvalid('notes');
+      const result = component.showControlError('notes');
       expect(result).toBe(true);
     });
   });
@@ -117,7 +113,7 @@ describe('NotesSectionComponent', () => {
       expect(arg).toEqual([]);
     });
 
-    it('emits all mapped errors for notes, caseReference and accountReference', () => {
+    it('emits the mapped error for each notes control', () => {
       const emitSpy = jest.spyOn(component.notesErrors, 'emit');
 
       form.controls.notes.setErrors({ maxlength: true });
@@ -133,15 +129,18 @@ describe('NotesSectionComponent', () => {
         expect.arrayContaining<ErrorItem>([
           {
             id: 'notes',
-            text: component.NOTES_FIELD_MESSAGES.notes['maxlength'],
+            href: '#notes',
+            text: component.errorMap.notes['maxlength'],
           },
           {
             id: 'caseReference',
-            text: component.NOTES_FIELD_MESSAGES.caseReference['maxlength'],
+            href: '#caseReference',
+            text: component.errorMap.caseReference['maxlength'],
           },
           {
             id: 'accountReference',
-            text: component.NOTES_FIELD_MESSAGES.accountReference['maxlength'],
+            href: '#accountReference',
+            text: component.errorMap.accountReference['maxlength'],
           },
         ]),
       );

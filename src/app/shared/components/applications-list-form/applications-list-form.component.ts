@@ -4,7 +4,6 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { SuggestionsFacade } from './facade/applications-list-form.facade';
 
-import { APPLICATIONS_LIST_CHOOSE_STATUS } from '@components/applications-list/util/applications-list.constants';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { DurationInputComponent } from '@components/duration-input/duration-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
@@ -16,11 +15,13 @@ import {
   isCourtSuggestionItem,
 } from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { APPLICATIONS_LIST_CHOOSE_STATUS } from '@constants/applications-list/applications-list.constants';
 import {
   ApplicationsListFormControls,
   ApplicationsListFormMode,
   ApplicationsListUpdateFormControls,
 } from '@shared-types/applications-list/applications-list-form';
+import { ErrorMessageMap, getControlErrorItem } from '@util/error-summary';
 
 type AppListForm =
   | FormGroup<ApplicationsListFormControls>
@@ -61,6 +62,9 @@ export class ApplicationsListFormComponent {
 
   status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
+  errorMap = input.required<ErrorMessageMap>();
+  externalErrors = input<readonly ErrorItem[]>([]);
+
   isCreate = computed(() => this.mode() === 'create');
   isSearch = computed(() => this.mode() === 'search');
   isUpdate = computed(() => this.mode() === 'update');
@@ -70,11 +74,12 @@ export class ApplicationsListFormComponent {
   );
   showDuration = computed(() => this.mode() === 'update');
 
-  getError = input<((id: string) => ErrorItem | undefined) | null>(null);
-
-  showError = (id: string): boolean =>
-    this.submitted() && !!this.getError()?.(id);
-  errorText = (id: string): string => this.getError()?.(id)?.text ?? '';
+  showError(id: string): boolean {
+    return this.submitted() && !!this.getControlError(id);
+  }
+  errorText(id: string): string {
+    return this.submitted() ? (this.getControlError(id)?.text ?? '') : '';
+  }
 
   onAdvancedClick(e: Event): void {
     e.preventDefault();
@@ -91,5 +96,14 @@ export class ApplicationsListFormComponent {
     if (isCjaSuggestionItem(item)) {
       this.suggestions().selectCja(item);
     }
+  }
+
+  getControlError(id: string): ErrorItem | undefined {
+    const control = (this.form() as FormGroup).get(id);
+
+    return (
+      getControlErrorItem(control, id, this.errorMap()) ??
+      this.externalErrors().find((item) => item.id === id)
+    );
   }
 }

@@ -1,3 +1,28 @@
+/**
+ * Move Application List Entries
+ * Main Component for page /applications-list/:id/move
+ *
+ * Note:
+ * The source Application List is excluded from the search
+ * results and users may also create a new target Application List.
+ * Restricts searches to OPEN Application Lists only
+ *
+ * Functionality:
+ * onSearch():
+ * - GET request to search for eligible target Application Lists
+ * - Validates search criteria before submitting
+ *
+ * onSelect():
+ * - Navigates to the confirmation page with the selected target Application List
+ * and selected Application List Entries
+ *
+ * onSortChange()/onPageChange():
+ * - Supports server-side sorting and pagination of target Application Lists
+ *
+ * onSortChangeSelected()/onPageChangeSelected():
+ * - Provides client-side sorting and pagination of selected Application List Entries
+ */
+
 import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
@@ -17,11 +42,6 @@ import {
   initialApplicationsListEntryMoveState,
 } from './util';
 
-import {
-  APPLICATIONS_LIST_COLUMNS_ACTION,
-  APPLICATIONS_LIST_FORM_ERROR_MESSAGES,
-  APPLICATION_LIST_SORT_MAP,
-} from '@components/applications-list/util/applications-list.constants';
 import { loadQuery } from '@components/applications-list/util/load-query';
 import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import {
@@ -31,10 +51,7 @@ import {
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '@components/error-summary/error-summary.component';
+import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
@@ -42,6 +59,11 @@ import {
   SortableTableComponent,
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
+import {
+  APPLICATIONS_LIST_COLUMNS_ACTION,
+  APPLICATIONS_LIST_FORM_ERROR_MESSAGES,
+  APPLICATION_LIST_SORT_MAP,
+} from '@constants/applications-list/applications-list.constants';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
   ApplicationListGetSummaryDto,
@@ -145,7 +167,7 @@ export class ApplicationsListEntryMoveComponent
     return this.sortedRows().slice(start, start + this.pageSize);
   });
 
-  private readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
+  readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
 
   // Nav state to /applications-list/create
   get createListState(): {
@@ -272,10 +294,6 @@ export class ApplicationsListEntryMoveComponent
 
   onPageChangeSelected(page: number): void {
     this.currentPage.set(page);
-  }
-
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().searchErrors.find((e) => e.id === id);
   }
 
   toggleAdvancedSearch(): void {

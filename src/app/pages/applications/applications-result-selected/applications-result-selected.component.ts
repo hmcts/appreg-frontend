@@ -1,3 +1,21 @@
+/**
+ * Result Selected Applications
+ * Main Component for page /applications-list/:id/result-selected
+ *
+ * Note:
+ * Selected entries are grouped by list before submission to the backend.
+ *
+ * Functionality:
+ * onSubmitResults():
+ * - Groups selected entryIds by Application List
+ * - Submits bulk result requests via the Results Facade
+ * - Displays success or mapped API validation errors
+ *
+ * onRemoveResult():
+ * - Removes previously created Result(s) matching the selected Result Code
+ * - Deletes logically equivalent results across all selected entries
+ */
+
 import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
@@ -8,8 +26,6 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-
-import { ApplicationsColumns } from '../applications.component';
 
 import { AlertComponent } from '@components/alert/alert.component';
 import { focusSuccessBanner } from '@components/applications-list-entry-detail/util/banners.util';
@@ -22,6 +38,7 @@ import {
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
+import { ApplicationsColumns } from '@constants/applications/applications.constants';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import { BulkDeleteResultItemDto, ResultGetDto } from '@openapi';
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';

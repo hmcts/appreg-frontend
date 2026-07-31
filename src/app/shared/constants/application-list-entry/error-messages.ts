@@ -1,5 +1,5 @@
-import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { ApplicationNotesForm } from '@components/notes-section/notes-section.component';
+import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 
 type NotesControlName = keyof ApplicationNotesForm['controls'];
 

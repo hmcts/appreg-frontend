@@ -1,12 +1,32 @@
-/*
-Applications List Entry – Create (/applications-list/:id/create-entry)
-
-Functionality:
-  - Creates application list entry payload
-    - Validate against DTO
-    - Conform valid data to existing types/DTOs
-  - Run POST query with payload
-*/
+/**
+ * Create Application List Entry
+ * Main Component for page /applications-list/:id/create-entry
+ *
+ * Note:
+ * Creates a new Application List Entry using the selected Application Code,
+ * applicant, respondent, wording, fee, notes and officials.
+ *
+ * Application code drives application rules:
+ * - the wording template for the application
+ * - whether a fee is required
+ * - whether a respondent is required
+ * - whether bulk respondents are allowed
+ * - the fee type to be applied
+ *
+ * Functionality:
+ * onSubmit():
+ * - Validates all sections of the entry form
+ * - Builds the Entry Create DTO
+ * - POST request to create the Application List Entry
+ * - Navigates to the Entry Detail page on success
+ *
+ * onCodeSelected():
+ * - Retrieves Application Code metadata
+ * - Updates wording, fee and respondent requirements
+ *
+ * onAddFeeDetails():
+ * - Adds fee status rows to the Civil Fee table
+ */
 
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';

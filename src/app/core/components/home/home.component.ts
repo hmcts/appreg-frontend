@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, PLATFORM_ID, inject } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { SessionService } from '@services/session.service';
@@ -8,12 +8,12 @@ import { SessionService } from '@services/session.service';
   standalone: true,
   template: '',
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
 
-  constructor() {
+  ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       void this.run();
     }

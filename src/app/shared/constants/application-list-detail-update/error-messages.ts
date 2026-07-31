@@ -1,4 +1,4 @@
-import { APPLICATIONS_LIST_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import { APPLICATIONS_LIST_FORM_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 
 export const DETAIL_FIELD_MESSAGES = {
   date: {

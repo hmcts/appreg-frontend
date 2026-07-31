@@ -10,6 +10,7 @@ import { By } from '@angular/platform-browser';
 import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { ActivitySuggestionItem } from '@components/suggestions/suggestions.types';
+import { REPORTS_FORM_ERROR_MESSAGES } from '@constants/reports/report-err';
 import { ActivityType } from '@openapi';
 
 describe('ActivityAuditSectionComponent (with template)', () => {
@@ -33,6 +34,7 @@ describe('ActivityAuditSectionComponent (with template)', () => {
     });
 
     fixture.componentRef.setInput('group', group);
+    fixture.componentRef.setInput('errorMap', REPORTS_FORM_ERROR_MESSAGES);
 
     fixture.detectChanges();
   });
@@ -184,11 +186,7 @@ describe('ActivityAuditSectionComponent (with template)', () => {
 
   it('passes activity errors to the suggestions component after submit', () => {
     fixture.componentRef.setInput('submitted', true);
-    fixture.componentRef.setInput('getError', (id: string) =>
-      id === 'activity'
-        ? { id, text: 'At least 1 activity is required' }
-        : undefined,
-    );
+    group.controls.activity.setErrors({ required: true });
     fixture.detectChanges();
 
     const activitySuggestions = fixture.debugElement.query(
@@ -208,11 +206,7 @@ describe('ActivityAuditSectionComponent (with template)', () => {
 
   it('passes external date errors to date inputs', () => {
     fixture.componentRef.setInput('submitted', true);
-    fixture.componentRef.setInput('getError', (id: string) =>
-      id === 'dateTo'
-        ? { id, text: 'Date to must be on or after Date from' }
-        : undefined,
-    );
+    group.controls.dateTo.setErrors({ dateRange: true });
     fixture.detectChanges();
 
     const dateInputs = fixture.debugElement.queryAll(By.css('app-date-input'));

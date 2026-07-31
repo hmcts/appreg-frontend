@@ -1,3 +1,22 @@
+/**
+ * Standard Applicants
+ * Main Component for page /standard-applicants
+ *
+ * Functionality:
+ * onSubmit():
+ * - GET request to search Standard Applicants
+ * - Persists search filters, pagination and sort state
+ *
+ * onViewClick():
+ * - Navigates to the Standard Applicant details page
+ *
+ * onExportButtonClick():
+ * - Downloads matching Standard Applicants as a CSV
+ *
+ * onPrintButtonClick():
+ * - Generates and downloads a PDF of matching Standard Applicants
+ */
+
 import { isPlatformBrowser } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
@@ -17,7 +36,12 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import {
+  ErrorMessageMap,
+  buildFormErrorSummary,
+  getControlErrorItem,
+} from '../../core/util/error-summary';
+
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import {
   ErrorItem,
@@ -37,6 +61,7 @@ import {
 } from '@components/standard-applicant-select/util/standard-applicant-select-row-helpers';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import { PdfService } from '@core/services/pdf.service';
 import {
   GetStandardApplicantsRequestParams,
@@ -47,7 +72,6 @@ import {
 import { StandardApplicantsSearchFormService } from '@services/standard-applicants/standard-applicants-search-form.service';
 import { StandardApplicantsSearchStateService } from '@services/standard-applicants/standard-applicants-search-state.service';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
-import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { saveCsv as saveCsvFile } from '@util/save-csv';
@@ -132,10 +156,11 @@ export class StandardApplicants implements OnInit {
 
   readonly submitted = signal(false);
   readonly submitAttempt = signal(0);
-  private readonly errorMap: ErrorMessageMap =
-    STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
+  readonly errorMap: ErrorMessageMap = STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
   private appliedFilters: StandardApplicantFilters = {};
   onCreateErrorClick = onCreateErrorClickFn;
+
+  getControlErrorItem = getControlErrorItem;
 
   form = new FormGroup({
     code: new FormControl<string>('', {
@@ -263,10 +288,6 @@ export class StandardApplicants implements OnInit {
     }
 
     this.printRequest.set(params);
-  }
-
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().searchErrors.find((e) => e.id === id);
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
