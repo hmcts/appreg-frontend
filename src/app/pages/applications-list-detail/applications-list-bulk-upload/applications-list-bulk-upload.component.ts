@@ -87,7 +87,7 @@ interface ErrorDescription {
 const AffectedColumn: Record<string, string> = {
   standardApplicantCode: 'Standard applicant code',
   applicationCode: 'Application code',
-  name: 'Respondent name',
+  name: 'Name',
   addressLine1: 'Address line 1',
   addressLine2: 'Address line 2',
   addressLine3: 'Address line 3',

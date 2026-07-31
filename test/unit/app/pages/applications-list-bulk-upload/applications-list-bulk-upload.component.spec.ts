@@ -236,7 +236,7 @@ describe('ApplicationsListBulkUpload', () => {
       ).errorColumnReadable(column);
 
     it.each([
-      ['name', 'Respondent name'],
+      ['name', 'Name'],
       ['addressLine1', 'Address line 1'],
       [
         'RESP_NAME_ORG/RESP_FORENAME1/RESP_SURNAME/RESP_FIRST_NAME/RESP_LAST_NAME',
