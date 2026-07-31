@@ -2,6 +2,7 @@ import { formatDate } from '@angular/common';
 import { LOCALE_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
+import { StandardApplicantPrintRowDto } from '@openapi';
 import { PdfService } from '@services/pdf.service';
 
 type JsPDFInstance = {
@@ -46,6 +47,10 @@ jest.mock('jspdf', () => {
   const jsPDF = jest.fn().mockImplementation(() => instance);
   return { jsPDF, __instance: instance };
 });
+
+jest.mock('jspdf-autotable', () => ({
+  autoTable: jest.fn(),
+}));
 
 function findTextCallContaining(
   textCalls: unknown[][],
@@ -300,6 +305,214 @@ describe('PdfService.generateApplicationListPdf', () => {
       { crestUrl: '/x.png' },
     );
     expect(__instance.addImage).toHaveBeenCalledTimes(0);
+  });
+});
+
+describe('PdfService.generateStandardApplicantsPdf', () => {
+  let service: PdfService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [PdfService, { provide: LOCALE_ID, useValue: 'en-GB' }],
+    });
+
+    service = TestBed.inject(PdfService);
+    const { autoTable } = jest.requireMock('jspdf-autotable');
+    autoTable.mockClear();
+  });
+
+  it('renders the report header, applicant fields, formatted dates, and filename', async () => {
+    const { __instance, jsPDF } = getJsPDF();
+    const { autoTable } = jest.requireMock('jspdf-autotable');
+
+    await service.generateStandardApplicantsPdf({
+      reportTitle: 'Standard Applicants',
+      searchCriteria: {
+        code: 'SA',
+        name: null,
+        addressLine1: null,
+        from: null,
+        to: null,
+      },
+      generatedAt: '2026-03-10T10:00:00Z',
+      recordCount: 1,
+      applicants: [
+        {
+          code: 'SA001',
+          useFrom: '2020-01-01',
+          name: 'Citizen Advice Manchester',
+          useTo: null,
+          title: 'Mr',
+          addressLine1: '1 Crown Sq',
+          forename1: 'Test',
+          addressLine2: 'Manchester',
+          forename2: null,
+          addressLine3: null,
+          forename3: null,
+          addressLine4: null,
+          surname: 'Applicant',
+          addressLine5: null,
+          emailAddress: 'email@example.test',
+          postcode: 'M1 1AA',
+          telephoneNumber: '01234567890',
+          mobileNumber: null,
+        },
+      ],
+    });
+
+    expect(jsPDF).toHaveBeenCalledWith({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'a4',
+    });
+    expect(textCallsContain('Standard applicants report')).toBe(true);
+    expect(textCallsContain('Search criteria: Code: SA')).toBe(true);
+    expect(autoTable).toHaveBeenCalledTimes(1);
+    expect(autoTable.mock.calls[0][1].body).toEqual([
+      ['Code', 'SA001', 'Use from', '1 Jan 2020'],
+      ['Name', 'Citizen Advice Manchester', 'Use to', '—'],
+      ['Title', 'Mr', 'Address line 1', '1 Crown Sq'],
+      ['Forename 1', 'Test', 'Address line 2', 'Manchester'],
+      ['Forename 2', '—', 'Address line 3', '—'],
+      ['Forename 3', '—', 'Address line 4', '—'],
+      ['Surname', 'Applicant', 'Address line 5', '—'],
+      ['Email address', 'email@example.test', 'Postcode', 'M1 1AA'],
+      ['Telephone number', '01234567890', 'Mobile number', '—'],
+    ]);
+    expect(__instance.save).toHaveBeenCalledWith(
+      'standard-applicant-pdf-2025-09-17.pdf',
+    );
+  });
+
+  it('does not create a document for a missing DTO', async () => {
+    const { jsPDF } = getJsPDF();
+
+    await service.generateStandardApplicantsPdf(null as never);
+
+    expect(jsPDF).not.toHaveBeenCalled();
+  });
+
+  describe('standardApplicantSearchCriteria', () => {
+    type PrivateFns = {
+      standardApplicantSearchCriteria: (
+        criteria:
+          | {
+              code: string | null;
+              name: string | null;
+              addressLine1: string | null;
+              from: string | null;
+              to: string | null;
+            }
+          | null
+          | undefined,
+      ) => string;
+    };
+
+    const priv = (s: PdfService): PrivateFns => s as unknown as PrivateFns;
+
+    it('formats populated code and name criteria', () => {
+      expect(
+        priv(service).standardApplicantSearchCriteria({
+          code: 'SA001',
+          name: 'Citizen Advice Manchester',
+          addressLine1: null,
+          from: null,
+          to: null,
+        }),
+      ).toBe('Code: SA001, Name: Citizen Advice Manchester');
+    });
+
+    it('omits blank criteria and returns an empty string when none are supplied', () => {
+      const emptyCriteria = {
+        code: '   ',
+        name: '\n\t',
+        addressLine1: 'ignored',
+        from: 'ignored',
+        to: 'ignored',
+      };
+
+      expect(priv(service).standardApplicantSearchCriteria(emptyCriteria)).toBe(
+        '',
+      );
+      expect(priv(service).standardApplicantSearchCriteria(null)).toBe('');
+      expect(priv(service).standardApplicantSearchCriteria(undefined)).toBe('');
+    });
+  });
+
+  describe('standardApplicantValue', () => {
+    type PrivateFns = {
+      standardApplicantValue: (
+        applicant: StandardApplicantPrintRowDto,
+        label: string,
+      ) => string;
+    };
+
+    const priv = (s: PdfService): PrivateFns => s as unknown as PrivateFns;
+
+    const applicant: StandardApplicantPrintRowDto = {
+      code: 'SA001',
+      useFrom: '2020-01-01',
+      name: 'Citizen Advice Manchester',
+      useTo: '2020-12-31',
+      title: 'Mr',
+      addressLine1: '1 Crown Sq',
+      forename1: 'John',
+      addressLine2: 'Manchester',
+      forename2: 'James',
+      addressLine3: 'Greater Manchester',
+      forename3: 'Joseph',
+      addressLine4: 'United Kingdom',
+      surname: 'Applicant',
+      addressLine5: 'M1 1AA',
+      emailAddress: 'email@example.test',
+      postcode: 'M1 1AA',
+      telephoneNumber: '01234567890',
+      mobileNumber: '07123456789',
+    };
+
+    it.each([
+      ['Code', 'SA001'],
+      ['Name', 'Citizen Advice Manchester'],
+      ['Title', 'Mr'],
+      ['Address line 1', '1 Crown Sq'],
+      ['Forename 1', 'John'],
+      ['Address line 2', 'Manchester'],
+      ['Forename 2', 'James'],
+      ['Address line 3', 'Greater Manchester'],
+      ['Forename 3', 'Joseph'],
+      ['Address line 4', 'United Kingdom'],
+      ['Surname', 'Applicant'],
+      ['Address line 5', 'M1 1AA'],
+      ['Email address', 'email@example.test'],
+      ['Postcode', 'M1 1AA'],
+      ['Telephone number', '01234567890'],
+      ['Mobile number', '07123456789'],
+    ])('maps %s to its applicant value', (label, expected) => {
+      expect(priv(service).standardApplicantValue(applicant, label)).toBe(
+        expected,
+      );
+    });
+
+    it('formats use dates with the DateTimePipe', () => {
+      expect(priv(service).standardApplicantValue(applicant, 'Use from')).toBe(
+        '1 Jan 2020',
+      );
+      expect(priv(service).standardApplicantValue(applicant, 'Use to')).toBe(
+        '31 Dec 2020',
+      );
+    });
+
+    it('returns an em dash for null, undefined, or unknown values', () => {
+      expect(
+        priv(service).standardApplicantValue(
+          { ...applicant, name: null },
+          'Name',
+        ),
+      ).toBe('—');
+      expect(
+        priv(service).standardApplicantValue(applicant, 'Unknown label'),
+      ).toBe('—');
+    });
   });
 });
 
@@ -581,6 +794,182 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     expect(alphaIdx).not.toBe(betaIdx);
   });
 
+  describe('continuous report helper methods', () => {
+    type PrivateFns = {
+      renderContinuousApplicationLists: (
+        dataArr: unknown[],
+        dtos: unknown[],
+        drawListDivider: jest.Mock,
+        drawTwoColRow: jest.Mock,
+        drawFullRow: jest.Mock,
+      ) => void;
+      drawContinuousListHeader: (
+        data: unknown,
+        raw: unknown,
+        drawTwoColRow: jest.Mock,
+      ) => void;
+      drawContinuousEntry: (
+        entry: unknown,
+        entryIndex: number,
+        drawTwoColRow: jest.Mock,
+        drawFullRow: jest.Mock,
+      ) => void;
+      continuousApplicationContents: (entry: unknown) => string;
+      continuousNotes: (entry: unknown) => string;
+      toLinesPreserveBlanks: (
+        doc: { splitTextToSize: jest.Mock },
+        text: string,
+        valueWidth: number,
+      ) => string[];
+    };
+
+    const priv = (s: PdfService): PrivateFns => s as unknown as PrivateFns;
+
+    const entry = {
+      applicant: 'Applicant A',
+      respondent: 'Respondent B',
+      applicationCode: ' AP01 ',
+      applicationDescription: ' Interim relief ',
+      matter: ' Matter wording ',
+      judge: 'Judge C',
+      result: 'Granted',
+      notes: 'Decision recorded',
+      accountReference: ' ACC-1 ',
+      caseReference: ' CASE-2 ',
+    };
+
+    it('builds application content from populated fields and omits blank fields', () => {
+      expect(priv(service).continuousApplicationContents(entry)).toBe(
+        'Application Code: AP01\nApplication Title: Interim relief\nMatter wording',
+      );
+      expect(
+        priv(service).continuousApplicationContents({
+          applicationCode: ' ',
+          applicationDescription: '',
+          matter: '\n',
+        }),
+      ).toBe('');
+    });
+
+    it('builds notes with a blank separator before supplied references', () => {
+      expect(priv(service).continuousNotes(entry)).toBe(
+        'Decision recorded\n\nAccount Reference: ACC-1\nCase Reference: CASE-2',
+      );
+      expect(priv(service).continuousNotes({ notes: ' ' })).toBe('—');
+    });
+
+    it('draws the continuous list header with formatted time, duration, and location', () => {
+      const drawTwoColRow = jest.fn();
+
+      priv(service).drawContinuousListHeader(
+        {
+          listDate: '2025-09-17',
+          listTime: '09:30:59',
+          courtName: 'Bath Magistrates Court',
+        },
+        { duration: '45m' },
+        drawTwoColRow,
+      );
+
+      expect(drawTwoColRow).toHaveBeenCalledWith(
+        'Date & Time\nDuration',
+        expect.stringContaining('09:30\n45m'),
+        'Location',
+        'Bath Magistrates Court',
+        18,
+        6,
+      );
+    });
+
+    it('draws all entry rows with its sequential applicant label', () => {
+      const drawTwoColRow = jest.fn();
+      const drawFullRow = jest.fn();
+
+      priv(service).drawContinuousEntry(entry, 3, drawTwoColRow, drawFullRow);
+
+      expect(drawTwoColRow).toHaveBeenNthCalledWith(
+        1,
+        '3. Applicant',
+        'Applicant A',
+        'Respondent',
+        'Respondent B',
+        16,
+      );
+      expect(drawTwoColRow).toHaveBeenNthCalledWith(
+        2,
+        'Application',
+        'Application Code: AP01\nApplication Title: Interim relief\nMatter wording',
+        'This matter was before',
+        'Judge C',
+        20,
+      );
+      expect(drawFullRow).toHaveBeenNthCalledWith(1, 'Result', 'Granted', 18);
+      expect(drawFullRow).toHaveBeenNthCalledWith(
+        2,
+        'Notes',
+        'Decision recorded\n\nAccount Reference: ACC-1\nCase Reference: CASE-2',
+        22,
+      );
+    });
+
+    it('renders lists in order and inserts a divider between lists', () => {
+      const drawListDivider = jest.fn();
+      const drawTwoColRow = jest.fn();
+      const drawFullRow = jest.fn();
+      const dataArr = [
+        {
+          listDate: '2025-09-17',
+          listTime: '09:30',
+          courtName: 'Court A',
+          entries: [entry],
+        },
+        {
+          listDate: '2025-09-18',
+          listTime: '10:00',
+          courtName: 'Court B',
+          entries: [{ ...entry, applicant: 'Applicant D' }],
+        },
+      ];
+
+      priv(service).renderContinuousApplicationLists(
+        dataArr,
+        [{ duration: '30m' }, { duration: '60m' }],
+        drawListDivider,
+        drawTwoColRow,
+        drawFullRow,
+      );
+
+      expect(drawListDivider).toHaveBeenCalledTimes(1);
+      expect(drawTwoColRow).toHaveBeenCalledWith(
+        '1. Applicant',
+        'Applicant A',
+        'Respondent',
+        'Respondent B',
+        16,
+      );
+      expect(drawTwoColRow).toHaveBeenCalledWith(
+        '2. Applicant',
+        'Applicant D',
+        'Respondent',
+        'Respondent B',
+        16,
+      );
+    });
+
+    it('wraps text while preserving explicitly blank lines', () => {
+      const doc = {
+        splitTextToSize: jest.fn((line: string) =>
+          line === 'second' ? 'second' : ['first  ', 1, 'last  '],
+        ),
+      };
+
+      expect(
+        priv(service).toLinesPreserveBlanks(doc, 'first\n\nsecond', 100),
+      ).toEqual(['first', 'last', ' ', 'second']);
+      expect(priv(service).toLinesPreserveBlanks(doc, '  ', 100)).toEqual([]);
+    });
+  });
+
   describe('cja name formatter', () => {
     type PrivateFns = {
       cjaName: (raw?: string) => string;
@@ -773,14 +1162,13 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
       expect(call(undefined, 'longDate')).toBe(expected);
     });
 
-    it('falls back to today when value is an empty string', () => {
+    it.each([
+      ['an empty string', ''],
+      ['whitespace', '   '],
+      ['not parseable', 'not-a-date'],
+    ])('falls back to today when value is %s', (_description, value) => {
       const expected = formatDate(new Date(), 'longDate', 'en-GB');
-      expect(call('', 'longDate')).toBe(expected);
-    });
-
-    it('falls back to today when value is whitespace', () => {
-      const expected = formatDate(new Date(), 'longDate', 'en-GB');
-      expect(call('   ', 'longDate')).toBe(expected);
+      expect(call(value, 'longDate')).toBe(expected);
     });
 
     it('returns formatted date for a valid ISO string', () => {
@@ -792,11 +1180,6 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     it('returns formatted date for a Date object', () => {
       const d = new Date('2026-06-06T00:00:00.000Z');
       expect(call(d, 'longDate')).toBe(formatDate(d, 'longDate', 'en-GB'));
-    });
-
-    it('falls back to today when value is not parseable', () => {
-      const expected = formatDate(new Date(), 'longDate', 'en-GB');
-      expect(call('not-a-date', 'longDate')).toBe(expected);
     });
   });
 });

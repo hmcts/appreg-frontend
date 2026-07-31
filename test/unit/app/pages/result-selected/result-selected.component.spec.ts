@@ -31,18 +31,18 @@ describe('ResultSelectedComponent', () => {
   };
 
   let mockApi: {
+    bulkDeleteResultEntries: jest.Mock;
     bulkResultApplicationListEntries: jest.Mock;
     createApplicationListEntryResult: jest.Mock;
-    deleteApplicationListEntryResult: jest.Mock;
     getApplicationListEntryResults: jest.Mock;
     updateApplicationListEntryResult: jest.Mock;
   };
 
   beforeEach(async () => {
     mockApi = {
+      bulkDeleteResultEntries: jest.fn().mockReturnValue(of(null)),
       bulkResultApplicationListEntries: jest.fn().mockReturnValue(of([])),
       createApplicationListEntryResult: jest.fn().mockReturnValue(of(null)),
-      deleteApplicationListEntryResult: jest.fn().mockReturnValue(of(null)),
       getApplicationListEntryResults: jest
         .fn()
         .mockReturnValue(of({ content: [] })),
@@ -86,6 +86,29 @@ describe('ResultSelectedComponent', () => {
 
     expect(component.listId).toBe('73d0276f-42a3-4150-b2fd-d9b2d56b359c');
     expect(component.rows).toEqual(sampleRows);
+  });
+
+  it('sorts rows client-side and resets to the first page', () => {
+    component.rows = Array.from({ length: 11 }, (_, index) => ({
+      id: `r${index}`,
+      sequenceNumber: `${index}`,
+    })) as ApplicationEntriesResultContext[];
+    component.onPageChange(1);
+    component.onSortChange({ key: 'sequenceNumber', direction: 'desc' });
+
+    expect(component.currentPage()).toBe(0);
+    expect(component.paginatedRows()[0].sequenceNumber).toBe('10');
+    expect(component.totalPages()).toBe(2);
+  });
+
+  it('returns only the selected page of rows', () => {
+    component.rows = Array.from({ length: 21 }, (_, index) => ({
+      id: `r${index}`,
+    })) as ApplicationEntriesResultContext[];
+    component.onPageChange(2);
+
+    expect(component.paginatedRows()).toHaveLength(1);
+    expect(component.paginatedRows()[0].id).toBe('r20');
   });
 
   it('onPendingChange should call facade.setPending with provided rows', () => {

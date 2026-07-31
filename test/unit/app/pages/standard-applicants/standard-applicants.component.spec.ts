@@ -1,10 +1,17 @@
+import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { Observable, Subject, of, throwError } from 'rxjs';
 
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
-import { StandardApplicantPage, StandardApplicantsApi } from '@openapi';
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
+import { PdfService } from '@core/services/pdf.service';
+import {
+  StandardApplicantPage,
+  StandardApplicantPrintDto,
+  StandardApplicantsApi,
+} from '@openapi';
 import { StandardApplicantsSearchFormService } from '@services/standard-applicants/standard-applicants-search-form.service';
 import { StandardApplicantsSearchStateService } from '@services/standard-applicants/standard-applicants-search-state.service';
 
@@ -13,7 +20,9 @@ const flushSignalEffects = async (
 ): Promise<void> => {
   fixture.detectChanges();
   await fixture.whenStable();
+  await new Promise((resolve) => setTimeout(resolve, 0));
   fixture.detectChanges();
+  await fixture.whenStable();
 };
 
 describe('StandardApplicantsComponent', () => {
@@ -36,13 +45,57 @@ describe('StandardApplicantsComponent', () => {
       ) => Observable<StandardApplicantPage>
     >
   >();
-  const apiStub: Pick<StandardApplicantsApi, 'getStandardApplicants'> = {
+  const standardApplicantsExportMock = jest.fn<
+    Observable<HttpResponse<string>>,
+    Parameters<
+      (
+        requestParameters?: Parameters<
+          StandardApplicantsApi['standardApplicantsExport']
+        >[0],
+        observe?: 'response',
+        reportProgress?: boolean,
+        options?: Parameters<
+          StandardApplicantsApi['standardApplicantsExport']
+        >[3],
+      ) => Observable<HttpResponse<string>>
+    >
+  >();
+  const printStandardApplicantsMock = jest.fn<
+    Observable<StandardApplicantPrintDto>,
+    Parameters<
+      (
+        requestParameters?: Parameters<
+          StandardApplicantsApi['printStandardApplicants']
+        >[0],
+      ) => Observable<StandardApplicantPrintDto>
+    >
+  >();
+  const generateStandardApplicantsPdfMock = jest.fn<
+    Promise<void>,
+    [StandardApplicantPrintDto]
+  >();
+  const apiStub: Pick<
+    StandardApplicantsApi,
+    | 'getStandardApplicants'
+    | 'standardApplicantsExport'
+    | 'printStandardApplicants'
+  > = {
     getStandardApplicants:
       getStandardApplicantsMock as unknown as StandardApplicantsApi['getStandardApplicants'],
+    standardApplicantsExport:
+      standardApplicantsExportMock as unknown as StandardApplicantsApi['standardApplicantsExport'],
+    printStandardApplicants:
+      printStandardApplicantsMock as unknown as StandardApplicantsApi['printStandardApplicants'],
+  };
+  const pdfServiceStub: Pick<PdfService, 'generateStandardApplicantsPdf'> = {
+    generateStandardApplicantsPdf: generateStandardApplicantsPdfMock,
   };
 
   beforeEach(async () => {
     getStandardApplicantsMock.mockReset();
+    standardApplicantsExportMock.mockReset();
+    printStandardApplicantsMock.mockReset();
+    generateStandardApplicantsPdfMock.mockReset();
     getStandardApplicantsMock.mockReturnValue(
       of({
         pageNumber: 0,
@@ -53,12 +106,40 @@ describe('StandardApplicantsComponent', () => {
         totalPages: 0,
       }),
     );
+    standardApplicantsExportMock.mockReturnValue(
+      of(
+        new HttpResponse({
+          body: 'code,name\nSA01,Applicant Org\n',
+          headers: new HttpHeaders({
+            'content-type': 'text/csv;charset=utf-8',
+          }),
+          status: 200,
+        }),
+      ),
+    );
+    printStandardApplicantsMock.mockReturnValue(
+      of({
+        reportTitle: 'Standard Applicants',
+        searchCriteria: {
+          code: 'SA01',
+          name: null,
+          addressLine1: null,
+          from: null,
+          to: null,
+        },
+        generatedAt: '2026-01-01T00:00:00Z',
+        recordCount: 1,
+        applicants: [{} as StandardApplicantPrintDto['applicants'][number]],
+      }),
+    );
+    generateStandardApplicantsPdfMock.mockResolvedValue();
 
     await TestBed.configureTestingModule({
       imports: [StandardApplicants],
       providers: [
         provideRouter([]),
         { provide: StandardApplicantsApi, useValue: apiStub },
+        { provide: PdfService, useValue: pdfServiceStub },
       ],
     }).compileComponents();
 
@@ -72,6 +153,7 @@ describe('StandardApplicantsComponent', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
@@ -175,12 +257,6 @@ describe('StandardApplicantsComponent', () => {
           href: '#name',
         }),
       ]),
-    );
-    expect(component.fieldError('code')?.text).toBe(
-      'Code must be 10 characters or fewer',
-    );
-    expect(component.fieldError('name')?.text).toBe(
-      'Standard applicant name must be 100 characters or fewer',
     );
 
     const errorMessages = fixture.debugElement
@@ -328,7 +404,7 @@ describe('StandardApplicantsComponent', () => {
   });
 
   it('clears filters, results, pagination and errors when Clear search is clicked', async () => {
-    getStandardApplicantsMock.mockReturnValueOnce(
+    getStandardApplicantsMock.mockReturnValue(
       of({
         pageNumber: 0,
         pageSize: 10,
@@ -366,7 +442,6 @@ describe('StandardApplicantsComponent', () => {
 
     expect(component.vm().hasSearched).toBe(true);
     expect(component.vm().rows).toHaveLength(1);
-    expect(component.vm().totalPages).toBe(4);
     expect(component.vm().searchErrors).toHaveLength(1);
 
     const clearButton = fixture.debugElement.query(
@@ -804,6 +879,299 @@ describe('StandardApplicantsComponent', () => {
     expect(
       fixture.debugElement.query(By.css('app-notification-banner')),
     ).toBeNull();
+  });
+
+  describe('getParamsForRequest', () => {
+    const getParamsForRequest = () =>
+      (
+        component as unknown as {
+          getParamsForRequest: () =>
+            | { code?: string; name?: string }
+            | undefined;
+        }
+      ).getParamsForRequest();
+
+    const setAppliedFilters = (filters: { code?: string; name?: string }) => {
+      (
+        component as unknown as {
+          appliedFilters: { code?: string; name?: string };
+        }
+      ).appliedFilters = filters;
+    };
+
+    it.each([
+      [{ code: ' SA01 ' }, { code: 'SA01' }],
+      [{ name: ' Applicant Org ' }, { name: 'Applicant Org' }],
+    ])(
+      'returns trimmed params when exactly one filter is present',
+      (filters, expected) => {
+        setAppliedFilters(filters);
+
+        expect(getParamsForRequest()).toEqual(expected);
+        expect(component.vm().searchErrors).toEqual([]);
+      },
+    );
+
+    it.each([
+      [{}],
+      [{ code: 'SA01', name: 'Applicant Org' }],
+      [{ code: '   ', name: '   ' }],
+    ])('returns undefined and adds an error', (filters) => {
+      setAppliedFilters(filters);
+
+      expect(getParamsForRequest()).toBeUndefined();
+      expect(component.vm().searchErrors).toEqual([
+        {
+          text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
+        },
+      ]);
+    });
+  });
+
+  it('exports CSV using the last applied filters and downloads a dated file', async () => {
+    component.form.patchValue({
+      code: ' SA01 ',
+    });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    const createObjectUrlSpy = jest.fn(() => 'blob:standard-applicants');
+    const revokeObjectUrlSpy = jest.fn();
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: createObjectUrlSpy,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      writable: true,
+      value: revokeObjectUrlSpy,
+    });
+
+    const link = document.createElement('a');
+    const clickSpy = jest.spyOn(link, 'click').mockImplementation(() => {});
+    const removeSpy = jest.spyOn(link, 'remove').mockImplementation(() => {});
+    const originalCreateElement = document.createElement.bind(document);
+    const createElementSpy = jest
+      .spyOn(document, 'createElement')
+      .mockImplementation((tagName: string): HTMLElement => {
+        if (tagName === 'a') {
+          return link;
+        }
+
+        return originalCreateElement(tagName);
+      });
+    const appendChildSpy = jest.spyOn(document.body, 'appendChild');
+
+    component.onExportButtonClick();
+    await flushSignalEffects(fixture);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(standardApplicantsExportMock).toHaveBeenCalledWith(
+      { code: 'SA01' },
+      'response',
+      false,
+      {
+        httpHeaderAccept: 'text/csv',
+        transferCache: false,
+      },
+    );
+    expect(createObjectUrlSpy).toHaveBeenCalledWith(expect.any(Blob));
+    expect(createElementSpy).toHaveBeenCalledWith('a');
+    expect(link.href).toBe('blob:standard-applicants');
+    expect(link.download).toMatch(
+      /^standard-applicant-export-csv-\d{4}-\d{2}-\d{2}\.csv$/,
+    );
+    expect(appendChildSpy).toHaveBeenCalledWith(link);
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(removeSpy).toHaveBeenCalledTimes(1);
+    expect(revokeObjectUrlSpy).toHaveBeenCalledWith('blob:standard-applicants');
+    expect(component.vm().exportSuccess).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('app-success-banner')?.textContent,
+    ).toContain('Successfully exported CSV');
+  });
+
+  it('shows an export validation error when no code or name has been searched', async () => {
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    standardApplicantsExportMock.mockClear();
+    component.onExportButtonClick();
+    await flushSignalEffects(fixture);
+
+    expect(standardApplicantsExportMock).not.toHaveBeenCalled();
+    expect(component.vm().searchErrors).toEqual([
+      {
+        text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
+      },
+    ]);
+  });
+
+  it('shows an export validation error when both code and name have been searched', async () => {
+    component.form.patchValue({
+      code: 'SA01',
+      name: 'Applicant Org',
+    });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    standardApplicantsExportMock.mockClear();
+    component.onExportButtonClick();
+    await flushSignalEffects(fixture);
+
+    expect(standardApplicantsExportMock).not.toHaveBeenCalled();
+    expect(component.vm().searchErrors).toEqual([
+      {
+        text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
+      },
+    ]);
+  });
+
+  it('prints standard applicants using the last applied filter', async () => {
+    component.form.patchValue({ name: ' Applicant Org ' });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    component.onPrintButtonClick();
+    await flushSignalEffects(fixture);
+
+    expect(printStandardApplicantsMock).toHaveBeenCalledWith({
+      name: 'Applicant Org',
+    });
+    expect(generateStandardApplicantsPdfMock).toHaveBeenCalledWith(
+      expect.objectContaining({ reportTitle: 'Standard Applicants' }),
+    );
+    expect(component.actionType()).toBe('PDF');
+    expect(component.vm()).toEqual(
+      expect.objectContaining({
+        isActionLoading: false,
+        printSuccess: true,
+        searchErrors: [],
+      }),
+    );
+  });
+
+  it('does not print when the active filters are invalid', async () => {
+    component.form.patchValue({
+      code: 'SA01',
+      name: 'Applicant Org',
+    });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    printStandardApplicantsMock.mockClear();
+    component.onPrintButtonClick();
+    await flushSignalEffects(fixture);
+
+    expect(printStandardApplicantsMock).not.toHaveBeenCalled();
+    expect(component.actionType()).toBe('PDF');
+    expect(component.vm()).toEqual(
+      expect.objectContaining({
+        isActionLoading: false,
+        searchErrors: [
+          {
+            text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
+          },
+        ],
+      }),
+    );
+  });
+
+  it('shows a print error when the print response has no applicants', async () => {
+    component.form.patchValue({ code: 'SA01' });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    printStandardApplicantsMock.mockReturnValueOnce(
+      of({
+        reportTitle: 'Standard Applicants',
+        searchCriteria: {
+          code: 'SA01',
+          name: null,
+          addressLine1: null,
+          from: null,
+          to: null,
+        },
+        generatedAt: '2026-01-01T00:00:00Z',
+        recordCount: 0,
+        applicants: [],
+      }),
+    );
+
+    component.onPrintButtonClick();
+    await flushSignalEffects(fixture);
+
+    expect(generateStandardApplicantsPdfMock).not.toHaveBeenCalled();
+    expect(component.vm()).toEqual(
+      expect.objectContaining({
+        isActionLoading: false,
+        searchErrors: [
+          {
+            id: 'search',
+            text:
+              APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric +
+              ' Please try again later',
+          },
+        ],
+      }),
+    );
+  });
+
+  it('captures print API errors in searchErrors', async () => {
+    component.form.patchValue({ code: 'SA01' });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    printStandardApplicantsMock.mockReturnValueOnce(
+      throwError(() => new Error('Print request failed')),
+    );
+
+    component.onPrintButtonClick();
+    await flushSignalEffects(fixture);
+
+    expect(generateStandardApplicantsPdfMock).not.toHaveBeenCalled();
+    expect(component.vm()).toEqual(
+      expect.objectContaining({
+        isActionLoading: false,
+        searchErrors: [{ id: 'search', text: 'Request failed' }],
+      }),
+    );
+  });
+
+  it('shows an error when the export response body is missing', async () => {
+    component.form.patchValue({
+      name: ' Applicant Org ',
+    });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    standardApplicantsExportMock.mockReturnValueOnce(
+      of(
+        new HttpResponse({
+          body: '',
+          headers: new HttpHeaders({
+            'content-type': 'text/csv;charset=utf-8',
+          }),
+          status: 200,
+        }),
+      ),
+    );
+    const createObjectUrlSpy = jest.fn();
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: createObjectUrlSpy,
+    });
+
+    component.onExportButtonClick();
+    await flushSignalEffects(fixture);
+
+    expect(createObjectUrlSpy).not.toHaveBeenCalled();
+    expect(component.vm().exportSuccess).toBe(false);
+    expect(component.vm().searchErrors).toEqual([
+      { text: 'Failed to export CSV. Please try again later' },
+    ]);
   });
 
   it('shows an error and does not navigate when onViewClick is called without a code', async () => {

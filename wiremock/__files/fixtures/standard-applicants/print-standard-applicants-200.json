@@ -1,0 +1,54 @@
+{
+  "reportTitle": "Standard Applicants",
+  "searchCriteria": {
+    "code": "testCode",
+    "name": "testName",
+    "addressLine1": null,
+    "from": null,
+    "to": null
+  },
+  "generatedAt": "2026-03-10T10:00:00Z",
+  "recordCount": 2,
+  "applicants": [
+    {
+      "code": "SA001",
+      "useFrom": "2020-01-01",
+      "name": "Citizen Advice Manchester",
+      "useTo": "2020-01-01",
+      "title": "Mr",
+      "addressLine1": "1 Crown Sq",
+      "forename1": "test1",
+      "addressLine2": "test2",
+      "forename2": null,
+      "addressLine3": null,
+      "forename3": null,
+      "addressLine4": "Manchester",
+      "surname": "test3",
+      "addressLine5": "Greater Manchester",
+      "emailAddress": "email",
+      "postcode": "M1 1AA",
+      "telephoneNumber": "tele",
+      "mobileNumber": "mobile"
+    },
+    {
+      "code": "SA002",
+      "useFrom": "2019-05-10",
+      "name": "Legal Aid Board",
+      "useTo": null,
+      "title": null,
+      "addressLine1": "2 Market St",
+      "forename1": null,
+      "addressLine2": null,
+      "forename2": null,
+      "addressLine3": null,
+      "forename3": null,
+      "addressLine4": "Manchester",
+      "surname": null,
+      "addressLine5": "Greater Manchester",
+      "emailAddress": null,
+      "postcode": "M2 2BB",
+      "telephoneNumber": null,
+      "mobileNumber": null
+    }
+  ]
+}

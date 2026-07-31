@@ -4,7 +4,7 @@ Error summary - clickable error hints
 
 import { isPlatformBrowser } from '@angular/common';
 
-import { ErrorItem } from '@components/error-summary/error-summary.component';
+import type { ErrorItem } from '@components/error-summary/error-summary.component';
 
 function normaliseDomId(idOrHref: string): string {
   const raw = (idOrHref ?? '').trim();

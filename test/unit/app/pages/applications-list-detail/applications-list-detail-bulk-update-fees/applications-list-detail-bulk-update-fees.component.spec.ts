@@ -69,6 +69,33 @@ describe('ApplicationsListDetailBulkUpdateFeesComponent', () => {
     ]);
   });
 
+  it('sorts and paginates selected entries, resetting the page when sorted', () => {
+    history.replaceState(
+      {
+        entriesToUpdateFee: Array.from({ length: 11 }, (_, index) => ({
+          id: `entry-${11 - index}`,
+          applicant: 'Applicant',
+          respondent: 'Respondent',
+          title: 'Title',
+        })),
+      },
+      '',
+    );
+
+    const fixture = TestBed.createComponent(
+      ApplicationsListDetailBulkUpdateFeesComponent,
+    );
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+
+    component.onSortChange({ key: 'id', direction: 'asc' });
+    expect(component.currentPage()).toBe(0);
+    expect(component.paginatedRows()[0].id).toBe('entry-1');
+
+    component.onPageChange(1);
+    expect(component.paginatedRows()).toHaveLength(1);
+  });
+
   it('updates the offsite fee control when the checkbox changes', () => {
     history.replaceState(
       {
@@ -400,6 +427,44 @@ describe('ApplicationsListDetailBulkUpdateFeesComponent', () => {
           isOffSiteFee: true,
         },
       },
+    );
+  });
+
+  it('navigates to confirm when only the offsite fee is selected', () => {
+    history.replaceState(
+      {
+        entriesToUpdateFee: [
+          {
+            id: 'entry-1',
+            applicant: 'Applicant',
+            respondent: 'Respondent',
+            title: 'Title',
+          },
+        ],
+      },
+      '',
+    );
+
+    const fixture = TestBed.createComponent(
+      ApplicationsListDetailBulkUpdateFeesComponent,
+    );
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+    component.onOffsiteFeeChanged(true);
+    Object.defineProperty(component, 'civilFeeSection', {
+      value: { validateForSubmit: jest.fn(() => []) },
+    });
+
+    component.addFees();
+
+    expect(routerNavigate).toHaveBeenCalledWith(
+      ['/applications-list', 'list-123', 'bulk-update-fee', 'confirm'],
+      expect.objectContaining({
+        state: expect.objectContaining({
+          feeTable: null,
+          isOffSiteFee: true,
+        }),
+      }),
     );
   });
 

@@ -103,11 +103,10 @@ export const routes: Routes = [
             (m) => m.PaymentReferenceEditComponent,
           ),
       },
-
       {
         path: ':id/bulk-upload',
         loadComponent: () =>
-          import('@components/applications-list-bulk-upload/applications-list-bulk-upload.component').then(
+          import('@components/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component').then(
             (m) => m.ApplicationsListBulkUpload,
           ),
       },

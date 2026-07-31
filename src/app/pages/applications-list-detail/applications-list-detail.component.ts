@@ -1,11 +1,42 @@
-/*
-Main component for /application-list/:id
-
-Functionality:
-  On page load:
-    - Takes application list row from applications-list page and populates
-    list-detail page
-*/
+/**
+ * Application List Detail
+ * Main Component for page /applications-list/:id
+ *
+ * Note:
+ * Bulk preview endpoint contains a BE limit of 1050 max selected applications
+ *
+ * Functionality:
+ * ngOnInit():
+ * - Loads the Application List details and Application List Entries
+ * - Initialises the update form and restores navigation state
+ *
+ * onSearchStarted()/onSearchResult():
+ * - GET request to search and filter Application List Entries
+ * - Updates server-side pagination and selection state
+ *
+ * onUpdateOfficialsButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Bulk Update Officials
+ *
+ * onResultButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Bulk Result Selected
+ *
+ * onUpdateFeeButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Bulk Update Fees
+ *
+ * onMoveButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Move Application List Entries
+ *
+ * onPrintContinuousClick()/onPrintPageClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Generates Continuous or Page print PDFs
+ *
+ * openUpdate():
+ * - Navigates to the selected Application List Entry
+ */
 
 import { isPlatformBrowser } from '@angular/common';
 import {
@@ -15,22 +46,20 @@ import {
 } from '@angular/common/http';
 import {
   Component,
-  DestroyRef,
   EnvironmentInjector,
   NgZone,
   OnInit,
   PLATFORM_ID,
+  computed,
   inject,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription, firstValueFrom } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import { ApplicationsListUpdateComponent } from './applications-list-update/applications-list-update.component';
 import {
   ApplicationsListDetailState,
-  BulkUploadFeedback,
   UpdateReq,
   clearUpdateNotificationsPatch,
   initialApplicationsListDetailState,
@@ -40,7 +69,6 @@ import {
 } from './util';
 import { mapEntrySummaryRows } from './util/map-entry-summary-rows';
 
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import {
   ApplicationsListDetailSearchComponent,
   ApplicationsListDetailSearchResult,
@@ -67,29 +95,31 @@ import {
   appListDetailColumns,
   appListDetailStatusOptions,
 } from '@constants/application-list-detail-update/form-table-structure';
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import { IF_MATCH } from '@context/concurrency-context';
 import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListEntriesApi,
+  ApplicationListEntryBulkActionPreviewRequestDto,
+  ApplicationListEntryBulkActionSelectionDto,
   ApplicationListGetDetailDto,
   ApplicationListGetPrintDto,
   ApplicationListsApi,
-  EntryIdsDto,
+  BulkActionPreviewResponseDto,
+  BulkActionSelectionType,
+  BulkActionType,
   EntryPage,
+  PrintApplicationListsRequestParams,
 } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
-import {
-  JobPollingFacade,
-  PolledJobStatus,
-} from '@services/jobs/job-polling.facade';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
-import { PrintRequest } from '@shared-types/pdf/pdf.types';
+import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
-import { getProblemText } from '@util/http-error-to-text';
+import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import {
   handlePrintContinuous as handlePrintContinuousPdf,
@@ -99,11 +129,10 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
 import {
   ServerPaginatedSelectionPatch,
   buildPageSelectionPatch,
-  buildSelectAllMatchingPatch,
-  getVisibleSelectedRows,
   isAllMatchingSelected,
 } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { trimToUndefined } from '@util/string-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
@@ -143,17 +172,16 @@ const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
     ApplicationsListUpdateComponent,
     SortableTableComponent,
     PaginationComponent,
-    NotificationBannerComponent,
     MojButtonMenuDirective,
     ApplicationsListDetailSearchComponent,
     AsyncJobProgressComponent,
     HelpDetailsComponent,
+    NotificationBannerComponent,
   ],
   templateUrl: './applications-list-detail.component.html',
   styleUrls: ['./applications-list-detail.component.scss'],
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
-  private readonly componentDestroyRef = inject(DestroyRef);
   private readonly envInjector = inject(EnvironmentInjector);
   private readonly appListFormService = inject(ApplicationsListFormService);
   private readonly platformId = inject(PLATFORM_ID);
@@ -161,7 +189,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly appListApi = inject(ApplicationListsApi);
   private readonly pdf = inject(PdfService);
   private readonly appListEntriesApi = inject(ApplicationListEntriesApi);
-  private readonly jobPollingFacade = inject(JobPollingFacade);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
@@ -171,6 +198,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   listRow: ApplicationListRow | undefined = undefined;
   etag: string | null = null;
   entryCount: number = 0;
+
+  bulkUploadJobId = signal('');
+  bulkUploadedEntryIds: string[] | undefined = [];
 
   private readonly detailSignalState =
     createSignalState<ApplicationsListDetailState>(
@@ -182,12 +212,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly tableDataRequest = signal<tableDataReq | null>(null);
   private readonly listDetailRequest = signal<listDetailsReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
-  private readonly printRequest = signal<PrintRequest | null>(null);
+  private readonly printRequest = signal<BulkPrintRequest | null>(null);
 
   private readonly loadFailed = signal(false);
   readonly submitAttempt = signal(0);
   private selectAllRequestVersion = 0;
-  private bulkUploadPollingSub: Subscription | null = null;
 
   override form = this.appListFormService.createUpdateForm();
 
@@ -198,6 +227,25 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
+
+  readonly tableRows = computed(() => this.vm().rows);
+
+  readonly tableSelectedIds = computed(() => {
+    const vm = this.vm();
+
+    if (!vm.isFilterSelection) {
+      return vm.selectedIds;
+    }
+
+    return new Set(
+      this.tableRows()
+        .map((row) => row['id'])
+        .filter(
+          (id): id is string =>
+            typeof id === 'string' && !vm.excludedEntryIds.has(id),
+        ),
+    );
+  });
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
@@ -222,7 +270,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     if (isPlatformBrowser(this.platformId)) {
       this.loadApplicationsLists();
-      this.startBulkUploadPollingFromRoute();
     }
   }
 
@@ -256,131 +303,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  private startBulkUploadPollingFromRoute(): void {
-    const jobId = this.route.snapshot.queryParamMap.get('bulkUploadJobId');
-    if (!jobId) {
-      return;
-    }
-
-    this.startBulkUploadPolling(jobId);
-  }
-
-  private startBulkUploadPolling(jobId: string): void {
-    this.stopBulkUploadPolling();
-    this.detailSignalState.patch({
-      bulkUploadFeedback: {
-        kind: 'progress',
-        heading: 'Upload in progress',
-        body: 'Your bulk upload is being processed. This page will refresh automatically when it finishes.',
-      },
-    });
-
-    this.bulkUploadPollingSub = this.jobPollingFacade
-      .watchJob(jobId)
-      .pipe(takeUntilDestroyed(this.componentDestroyRef))
-      .subscribe({
-        next: (job) => this.handleBulkUploadStatus(job),
-        error: () => {
-          this.detailSignalState.patch({
-            bulkUploadFeedback: {
-              kind: 'error',
-              title: 'Error',
-              heading: 'Unable to load upload status',
-              body: 'Please try again later.',
-            },
-          });
-          this.stopBulkUploadPolling();
-        },
-      });
-  }
-
-  private stopBulkUploadPolling(): void {
-    this.bulkUploadPollingSub?.unsubscribe();
-    this.bulkUploadPollingSub = null;
-  }
-
-  private handleBulkUploadStatus(job: PolledJobStatus): void {
-    if (!job.isTerminal) {
-      return;
-    }
-
-    const feedback = this.toBulkUploadFeedback(job);
-    this.detailSignalState.patch({ bulkUploadFeedback: feedback });
-    this.stopBulkUploadPolling();
-
-    if (job.state === 'succeeded' || job.state === 'completed_with_errors') {
-      this.loadApplicationsLists();
-    }
-
-    void this.clearBulkUploadJobIdQueryParam();
-  }
-
-  private toBulkUploadFeedback(job: PolledJobStatus): BulkUploadFeedback {
-    switch (job.state) {
-      case 'succeeded':
-        return {
-          kind: 'success',
-          heading: 'Bulk upload complete',
-          body:
-            job.createdCount === null
-              ? 'All records were uploaded successfully.'
-              : `${this.formatCount(job.createdCount, 'record')} created.`,
-        };
-
-      case 'completed_with_errors':
-        return {
-          kind: 'warning',
-          title: 'Warning',
-          heading: 'Bulk upload completed with errors',
-          body: this.buildCompletedWithErrorsMessage(job),
-        };
-
-      case 'failed':
-        return {
-          kind: 'error',
-          title: 'Error',
-          heading: 'Bulk upload failed',
-          body: job.message ?? 'The bulk upload could not be completed.',
-        };
-
-      default:
-        return {
-          kind: 'progress',
-          heading: 'Upload in progress',
-          body: 'Your bulk upload is being processed. This page will refresh automatically when it finishes.',
-        };
-    }
-  }
-
-  private buildCompletedWithErrorsMessage(job: PolledJobStatus): string {
-    const parts: string[] = [];
-
-    if (job.createdCount !== null) {
-      parts.push(`${this.formatCount(job.createdCount, 'record')} created.`);
-    }
-
-    if (job.errorCount !== null) {
-      parts.push(`${this.formatCount(job.errorCount, 'record')} had errors.`);
-    }
-
-    return parts.length > 0
-      ? parts.join(' ')
-      : 'Some records were uploaded, but some could not be processed.';
-  }
-
-  private formatCount(count: number, noun: string): string {
-    return `${count} ${noun}${count === 1 ? '' : 's'}`;
-  }
-
-  private async clearBulkUploadJobIdQueryParam(): Promise<void> {
-    await this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { bulkUploadJobId: null },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    });
-  }
-
   setSuccessBanner(): void {
     if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
       this.vm().createDone = true;
@@ -406,6 +328,24 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       'true'
     ) {
       this.vm().updateFeesDone = true;
+    }
+
+    if (this.route.snapshot.queryParamMap.get('bulkUploadSuccess') === 'true') {
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
+      }
+
+      const uploadState = history.state as { msg: string; jobId: string };
+
+      if (!uploadState.msg || !uploadState.jobId) {
+        return;
+      }
+
+      this.vm().bulkUploadDone = true;
+      const returnedJobId = uploadState.jobId;
+      this.bulkUploadJobId.set(returnedJobId);
+
+      this.vm().bulkUploadBannerText = `${uploadState.msg}`;
     }
   }
 
@@ -486,6 +426,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       errorHint: 'There is a problem',
       errorSummary: [{ id: '', href: '', text: feeError }],
       preserveErrorSummaryOnLoad: true,
+      updateFeesDone: false,
     });
   }
 
@@ -686,13 +627,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       this.envInjector,
     );
 
-    // GET /application-lists/{listId}/print
+    // GET /application-lists/print
     setupLoadEffect(
       {
         request: this.printRequest,
-        load: (req: PrintRequest) =>
-          this.appListApi.printApplicationList(
-            { listId: req.id },
+        load: (req: BulkPrintRequest) =>
+          this.appListApi.printApplicationLists(
+            {
+              bulkGetApplicationListEntriesRequestDto:
+                req.body.bulkGetApplicationListEntriesRequestDto,
+            },
             undefined,
             undefined,
             {
@@ -702,15 +646,29 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         onSuccess: async (dto) => {
           const mode = this.printRequest()?.mode;
           this.printRequest.set(null);
-          try {
-            const filteredDto = this.filterEntriesToPrint(dto);
 
-            if (mode === 'page') {
-              await this.handlePrintPage(filteredDto);
+          if (!mode) {
+            return;
+          }
+
+          try {
+            if (!dto?.length) {
+              this.detailSignalState.patch({
+                errorSummary: [
+                  {
+                    text: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+                  },
+                ],
+              });
               return;
             }
 
-            await this.handlePrintContinuous(filteredDto);
+            if (mode === 'page') {
+              await this.handlePrintPage(dto);
+              return;
+            }
+
+            await this.handlePrintContinuous(dto);
           } finally {
             this.detailSignalState.patch({ pdfLoading: false });
           }
@@ -738,7 +696,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   get selectedCount(): number {
-    return this.vm().selectedIds.size;
+    const vm = this.vm();
+    return vm.isFilterSelection
+      ? Math.max(vm.totalEntries - vm.excludedEntryIds.size, 0)
+      : vm.selectedIds.size;
   }
 
   get hasSelection(): boolean {
@@ -784,11 +745,25 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onSelectedIdsChange(ids: Set<string>): void {
     const vm = this.vm();
     const selectedIds = new Set(ids);
+    const excludedEntryIds = new Set(vm.excludedEntryIds);
+
+    if (vm.isFilterSelection) {
+      const visibleIds = this.tableRows().map((row) => row['id']) as string[];
+      for (const id of visibleIds) {
+        if (!selectedIds.has(id)) {
+          excludedEntryIds.add(id);
+        } else {
+          excludedEntryIds.delete(id);
+        }
+      }
+    }
 
     this.detailSignalState.patch({
       selectedIds,
-      selectedRows: getVisibleSelectedRows(vm.rows, selectedIds),
-      allMatchingSelected: isAllMatchingSelected(selectedIds, vm.totalEntries),
+      allMatchingSelected: vm.isFilterSelection
+        ? excludedEntryIds.size === 0
+        : isAllMatchingSelected(selectedIds, vm.totalEntries),
+      excludedEntryIds,
     });
   }
 
@@ -798,76 +773,34 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   onHeaderSelectAllChange(checked: boolean): void {
     if (checked) {
-      void this.onSelectAllMatchingClick();
+      this.onSelectAllMatchingClick();
       return;
     }
 
     this.clearSelection();
   }
 
-  async onSelectAllMatchingClick(): Promise<void> {
+  onSelectAllMatchingClick(): void {
     if (!this.id) {
+      this.detailSignalState.patch({ isSelectingAll: false });
       return;
     }
 
-    const requestVersion = this.nextSelectAllRequestVersion();
-    const vm = this.vm();
-    const previousSelection = {
-      selectedIds: new Set(vm.selectedIds),
-      selectedRows: [...vm.selectedRows],
-      allMatchingSelected: vm.allMatchingSelected,
-    };
-    const visibleIds = new Set(
-      vm.rows
-        .map((row) => row['id'])
-        .filter(
-          (id): id is string | number =>
-            typeof id === 'string' || typeof id === 'number',
-        )
-        .map(String),
-    );
-    const optimisticSelectedIds = new Set([
-      ...previousSelection.selectedIds,
-      ...visibleIds,
-    ]);
+    const visibleRows = this.tableRows();
+    const selectedIds = new Set(
+      visibleRows.map((row) => row['id']),
+    ) as Set<string>;
 
     this.detailSignalState.patch({
-      isSelectingAll: true,
-      selectedIds: optimisticSelectedIds,
-      selectedRows: [...vm.rows],
-      allMatchingSelected:
-        visibleIds.size > 0 && visibleIds.size === vm.totalEntries,
+      isSelectingAll: false,
+      selectedIds,
+      selectedRows: visibleRows,
+      allMatchingSelected: true,
       errorSummary: [],
       errorHint: '',
+      isFilterSelection: true,
+      excludedEntryIds: new Set<string>(),
     });
-
-    try {
-      const dto = await firstValueFrom(
-        this.appListEntriesApi.getApplicationListEntryIds({
-          listId: this.id,
-          filter: this.vm().getFilters,
-        }),
-      );
-
-      if (requestVersion !== this.selectAllRequestVersion) {
-        return;
-      }
-
-      this.applySelectAllMatching(dto);
-    } catch (err) {
-      if (requestVersion !== this.selectAllRequestVersion) {
-        return;
-      }
-
-      const errMsg = getProblemText(err);
-      this.detailSignalState.patch({
-        isSelectingAll: false,
-        ...previousSelection,
-        updateInvalid: true,
-        errorHint: errMsg,
-        errorSummary: [{ text: errMsg }],
-      });
-    }
   }
 
   clearSelection(): void {
@@ -877,20 +810,24 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       selectedRows: [],
       isSelectingAll: false,
       allMatchingSelected: false,
+      isFilterSelection: false,
+      excludedEntryIds: new Set<string>(),
     });
   }
 
   async onUpdateOfficialsButtonClick(): Promise<void> {
-    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+    const preview = await this.getBulkPreview(BulkActionType.UPDATE_OFFICIALS);
 
-    if (selected.length === 0) {
+    if (!preview) {
       return;
     }
+
+    const rows = mapEntrySummaryRows(preview.entries);
 
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
 
-    const updateOfficialsApplications = selected.map((r) => ({
+    const updateOfficialsApplications = rows.map((r) => ({
       id: r.id,
       sequenceNumber: r.sequenceNumber,
       applicant: r.applicant,
@@ -907,16 +844,18 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async onResultButtonClick(): Promise<void> {
-    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+    const preview = await this.getBulkPreview(BulkActionType.RESULT_SELECTED);
 
-    if (selected.length === 0) {
+    if (!preview) {
       return;
     }
+
+    const rows = mapEntrySummaryRows(preview.entries);
 
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
 
-    const resultingApplications = selected.map((r) => ({
+    const resultingApplications = rows.map((r) => ({
       id: r.id,
       sequenceNumber: r.sequenceNumber,
       applicant: r.applicant,
@@ -933,34 +872,46 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async onUpdateFeeButtonClick(): Promise<void> {
-    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+    const preview = await this.getBulkPreview(
+      BulkActionType.UPDATE_FEE_DETAILS,
+    );
 
-    if (selected.length === 0) {
+    if (!preview) {
       return;
     }
 
     // clear any prior messages
-    this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
+    this.detailSignalState.patch(clearUpdateNotificationsPatch());
 
-    // Exclude entries with no fee required
-    const selectedFeesRequired = selected.filter(
-      (element) => element.feeReq !== 'No',
-    );
+    const rows = mapEntrySummaryRows(preview.entries);
 
-    if (selectedFeesRequired.length === 0) {
+    if (!rows.length) {
       this.detailSignalState.patch({
         errorSummary: [
           {
-            text: 'Cannot update application(s) that do not require a fee',
-            href: '',
-            id: '',
+            text: 'No rows have been selected. If you believe this is in error, contact support',
           },
         ],
       });
       return;
     }
 
-    const entriesToUpdateFee = selectedFeesRequired.map((r) => ({
+    const eligibleCount = preview?.eligibleCount;
+    const ineligibleCount = preview?.ineligibleCount;
+    const rowsToUpdate = rows.filter((row) => row.feeReq === 'Yes');
+
+    if (eligibleCount === 0 || !rowsToUpdate.length) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          {
+            text: 'Cannot update application(s) that do not require a fee',
+          },
+        ],
+      });
+      return;
+    }
+
+    const entriesToUpdateFee = rowsToUpdate.map((r) => ({
       id: r.id,
       applicant: r.applicant,
       respondent: r.respondent,
@@ -972,23 +923,24 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     await this.router.navigate(['bulk-update-fee'], {
       relativeTo: this.route,
       state: {
-        removedApplicationsWarning:
-          selectedFeesRequired.length < selected.length,
+        removedApplicationsWarning: ineligibleCount !== 0,
         entriesToUpdateFee,
       },
     });
   }
 
   async onMoveButtonClick(): Promise<void> {
-    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+    const preview = await this.getBulkPreview(BulkActionType.MOVE_ENTRIES);
 
-    if (selected.length === 0) {
+    if (!preview) {
       return;
     }
 
+    const rows = mapEntrySummaryRows(preview.entries);
+
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
 
-    const entriesToMove = selected.map((r) => ({
+    const entriesToMove = rows.map((r) => ({
       id: r.id,
       applicant: r.applicant,
       respondent: r.respondent,
@@ -1005,7 +957,27 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  onPrintContinuousClick(): void {
+  async onBulkUploadBannerClick(): Promise<void> {
+    await this.bulkImportGetIds(this.bulkUploadJobId());
+
+    if (!this.bulkUploadedEntryIds?.length) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          { text: 'Failed to get new bulk uploaded applications' },
+        ],
+      });
+      return;
+    }
+
+    // Set selected Ids as bulkUploadedEntryIds and then let existing function handle the rest
+    this.detailSignalState.patch({
+      selectedIds: new Set(this.bulkUploadedEntryIds),
+    });
+
+    void this.onUpdateFeeButtonClick();
+  }
+
+  async onPrintContinuousClick(): Promise<void> {
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
     this.detailSignalState.patch({ pdfLoading: true });
@@ -1014,13 +986,31 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    const preview = await this.getBulkPreview(BulkActionType.PRINT_CONTINUOUS);
+
+    if (!preview) {
+      this.detailSignalState.patch({ pdfLoading: false });
+      return;
+    }
+
+    const entryIds = preview.entryIds;
+
+    const params: PrintApplicationListsRequestParams = {
+      bulkGetApplicationListEntriesRequestDto: {
+        listIds: [this.id],
+        ...(entryIds.length !== 0 && {
+          entryIds: [...new Set(entryIds)], // Omitting this returns all entries
+        }),
+      },
+    };
+
     this.printRequest.set({
-      id: this.id,
+      body: params,
       mode: 'continuous',
     });
   }
 
-  onPrintPageClick(): void {
+  async onPrintPageClick(): Promise<void> {
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
     this.detailSignalState.patch({ pdfLoading: true });
@@ -1029,7 +1019,28 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    this.printRequest.set({ id: this.id, mode: 'page' });
+    const preview = await this.getBulkPreview(BulkActionType.PRINT_PAGE);
+
+    if (!preview) {
+      this.detailSignalState.patch({ pdfLoading: false });
+      return;
+    }
+
+    const entryIds = preview.entryIds;
+
+    const params: PrintApplicationListsRequestParams = {
+      bulkGetApplicationListEntriesRequestDto: {
+        listIds: [this.id],
+        ...(entryIds.length !== 0 && {
+          entryIds: [...new Set(entryIds)], // Omitting this returns all entries
+        }),
+      },
+    };
+
+    this.printRequest.set({
+      body: params,
+      mode: 'page',
+    });
   }
 
   readonly patchStateFn = (
@@ -1052,7 +1063,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         return [{ text: 'Resource changed. Reload and try again.' }];
 
       case 404:
-        // preserve your old behaviour: anchor to court field
         return [{ id: 'court', text: getProblemText(err) }];
 
       default:
@@ -1092,6 +1102,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       selectedRows: [],
       isSelectingAll: false,
       allMatchingSelected: false,
+      isFilterSelection: false,
+      excludedEntryIds: new Set<string>(),
     });
   }
 
@@ -1112,6 +1124,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       errorSummary: hasErrors ? result.errors : [],
       preserveErrorSummaryOnLoad: false,
       getFilters: filters,
+      isFilterSelection: false,
+      excludedEntryIds: new Set<string>(),
     });
   }
 
@@ -1129,6 +1143,38 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         },
       },
     );
+  }
+
+  private async bulkImportGetIds(jobId: string): Promise<void> {
+    const id = trimToUndefined(jobId);
+
+    if (!id) {
+      return;
+    }
+
+    try {
+      const newEntryIds = await firstValueFrom(
+        this.appListEntriesApi.getBulkResultApplicationListEntriesByJobId({
+          jobId: id,
+        }),
+      );
+
+      if (!newEntryIds.length) {
+        this.vm().errorSummary = [
+          { text: 'Failed to get new bulk uploaded IDs' },
+        ];
+        return;
+      }
+
+      this.bulkUploadedEntryIds = newEntryIds;
+    } catch (err) {
+      const msg = getProblemText(err);
+
+      this.detailSignalState.patch({
+        errorSummary: [{ text: msg }],
+        bulkUploadDone: false,
+      });
+    }
   }
 
   private patchLoadSuccessState(
@@ -1151,90 +1197,67 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  private filterEntriesToPrint(
-    dto: ApplicationListGetPrintDto,
-  ): ApplicationListGetPrintDto {
-    const selectedIds = this.detailSignalState.state().selectedIds;
-
-    const filteredEntries = dto.entries.filter((entry) =>
-      selectedIds.has(entry.id),
-    );
-
-    return {
-      ...dto,
-      entries: filteredEntries,
-    };
-  }
-
-  private applySelectAllMatching(dto: EntryIdsDto): void {
-    this.detailSignalState.patch({
-      isSelectingAll: false,
-      ...buildSelectAllMatchingPatch(
-        dto.ids ?? [],
-        this.vm().rows,
-        this.vm().totalEntries,
-      ),
-    });
-  }
-
-  private async resolveSelectedRows(): Promise<Row[]> {
-    const vm = this.vm();
-
-    if (vm.selectedIds.size === 0) {
-      return vm.selectedRows;
-    }
-
-    if (vm.selectedIds.size === vm.selectedRows.length) {
-      return vm.selectedRows;
-    }
-
-    const selectedIds = new Set(vm.selectedIds);
-    const apiSortKey =
-      APPLICATION_LIST_DETAIL_SORT_MAP[vm.sortField.key] ?? vm.sortField.key;
-    const sort = [`${apiSortKey},${vm.sortField.direction}`];
-    const pageCount =
-      vm.totalPages > 0 ? vm.totalPages : vm.totalEntries > 0 ? 1 : 0;
-    const selectedRows: Row[] = [];
-
-    for (let pageNumber = 0; pageNumber < pageCount; pageNumber += 1) {
-      const page = await firstValueFrom(
-        this.appListEntriesApi.getApplicationListEntries({
-          listId: this.id,
-          pageNumber,
-          pageSize: vm.pageSize,
-          sort,
-          filter: vm.getFilters,
-        }),
-      );
-
-      const rows = mapEntrySummaryRows(page.content ?? []);
-      for (const row of rows) {
-        if (selectedIds.has(row.id)) {
-          selectedRows.push(row);
-        }
-      }
-
-      if (selectedRows.length === selectedIds.size) {
-        break;
-      }
-    }
-
-    this.detailSignalState.patch({ selectedRows });
-
-    return selectedRows;
-  }
-
-  private nextSelectAllRequestVersion(): number {
-    this.selectAllRequestVersion += 1;
-    return this.selectAllRequestVersion;
-  }
-
   private invalidateSelectAllRequest(): void {
     this.selectAllRequestVersion += 1;
   }
 
+  private async getBulkPreview(
+    action: BulkActionType,
+    entryIds?: Set<string>,
+    forceIds = false,
+  ): Promise<BulkActionPreviewResponseDto | null> {
+    const vm = this.vm();
+    const listId = this.id;
+    const isFilterSelection = vm.isFilterSelection && !forceIds;
+
+    const selectionParams: ApplicationListEntryBulkActionSelectionDto = {
+      selectionType: isFilterSelection
+        ? BulkActionSelectionType.FILTER
+        : BulkActionSelectionType.IDS,
+      ...(!isFilterSelection && {
+        entryIds: [...(entryIds ?? vm.selectedIds)],
+      }),
+      ...(isFilterSelection && {
+        filter: vm.getFilters,
+      }),
+      ...(isFilterSelection &&
+        vm.excludedEntryIds.size > 0 && {
+          excludedEntryIds: [...vm.excludedEntryIds],
+        }),
+    };
+
+    const params: ApplicationListEntryBulkActionPreviewRequestDto = {
+      action,
+      selection: selectionParams,
+    };
+
+    try {
+      const response = await firstValueFrom(
+        this.appListEntriesApi.applicationListEntryBulkActionPreview({
+          listId,
+          applicationListEntryBulkActionPreviewRequestDto: params,
+        }),
+      );
+      this.detailSignalState.patch({ previewRows: response });
+      return response;
+    } catch (err) {
+      const code = getHttpStatus(err);
+      let msg: string;
+
+      if (code === 413) {
+        msg =
+          'Affected rows exceeds 1050. Please reduce the number of rows selected';
+      } else {
+        msg = getProblemText(err);
+      }
+
+      this.detailSignalState.patch({ errorSummary: [{ text: msg }] });
+      return null;
+    }
+  }
+
   private async handlePrintPage(
-    dto: ApplicationListGetPrintDto,
+    dto: ApplicationListGetPrintDto[],
   ): Promise<void> {
     await handlePrintPagePdf(dto, {
       pdf: this.pdf,
@@ -1247,7 +1270,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private async handlePrintContinuous(
-    dto: ApplicationListGetPrintDto,
+    dto: ApplicationListGetPrintDto[],
   ): Promise<void> {
     await handlePrintContinuousPdf(dto, {
       pdf: this.pdf,

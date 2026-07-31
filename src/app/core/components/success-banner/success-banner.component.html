@@ -27,17 +27,31 @@
             }
             @case ('link') {
               @if (seg.href) {
-                <a class="govuk-notification-banner__link" [href]="seg.href">{{
-                  seg.text
-                }}</a>
+                <a
+                  class="govuk-notification-banner__link"
+                  [href]="seg.href"
+                  (click)="linkClick.emit()"
+                  ><span>{{ seg.text }}</span
+                  ><span class="govuk-visually-hidden"> (direct link)</span></a
+                >
               } @else if (seg.commands) {
                 <a
                   class="govuk-notification-banner__link"
                   [routerLink]="seg.commands"
-                  >{{ seg.text }}</a
+                  (click)="linkClick.emit()"
+                  ><span>{{ seg.text }}</span
+                  ><span class="govuk-visually-hidden">
+                    (internal link)</span
+                  ></a
                 >
               } @else {
-                <span>{{ seg.text }}</span>
+                <a
+                  class="govuk-notification-banner__link"
+                  href="#"
+                  (click)="$event.preventDefault(); linkClick.emit()"
+                  ><span>{{ seg.text }}</span
+                  ><span class="govuk-visually-hidden"> (action link)</span></a
+                >
               }
             }
           }
@@ -52,18 +66,30 @@
           {{ body() }}
         }
         @if (linkText() && linkHref()) {
-          <a class="govuk-notification-banner__link" [href]="linkHref()">{{
-            linkText()
-          }}</a>
-        }
-        @if (linkText() && linkCommands()) {
+          <a
+            class="govuk-notification-banner__link"
+            [href]="linkHref()"
+            (click)="linkClick.emit()"
+            ><span>{{ linkText() }}</span
+            ><span class="govuk-visually-hidden"> (direct link)</span></a
+          >
+        } @else if (linkText() && linkCommands()) {
           <a
             class="govuk-notification-banner__link"
             [routerLink]="linkCommands()"
-            >{{ linkText() }}</a
+            (click)="linkClick.emit()"
+            ><span>{{ linkText() }}</span
+            ><span class="govuk-visually-hidden"> (internal link)</span></a
           >
-        }
-        @if (linkText() && !linkHref() && !linkCommands()) {
+        } @else if (linkText() && allowOnClick()) {
+          <a
+            class="govuk-link govuk-link--no-visited-state"
+            href="#"
+            (click)="$event.preventDefault(); linkClick.emit()"
+            ><span>{{ linkText() }}</span
+            ><span class="govuk-visually-hidden"> (action link)</span></a
+          >
+        } @else if (linkText()) {
           <span>{{ linkText() }}</span>
         }
       </p>

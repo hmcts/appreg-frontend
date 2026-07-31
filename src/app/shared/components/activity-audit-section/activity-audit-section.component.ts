@@ -9,7 +9,7 @@ import {
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
-import { ErrorItem } from '@components/error-summary/error-summary.component';
+import type { ErrorItem } from '@components/error-summary/error-summary.component';
 import { isActivityType } from '@components/reports/util';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import {
@@ -19,6 +19,7 @@ import {
 } from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ActivityType } from '@openapi';
+import { type ErrorMessageMap, getControlErrorItem } from '@util/error-summary';
 import { trimStringToLowerCase } from '@util/string-helpers';
 
 @Component({
@@ -37,9 +38,9 @@ export class ActivityAuditSectionComponent {
   /** Parent passes a nested FormGroup containing controls for this section. */
   readonly group = input.required<FormGroup>();
   readonly submitted = input(false);
-  readonly getError = input<((id: string) => ErrorItem | undefined) | null>(
-    null,
-  );
+
+  readonly errorMap = input.required<ErrorMessageMap>();
+  readonly externalErrors = input<readonly ErrorItem[]>([]);
 
   readonly activitySearch = signal('');
   readonly activityOptions = Object.values(ActivityType);
@@ -92,8 +93,10 @@ export class ActivityAuditSectionComponent {
   });
 
   showError = (id: string): boolean =>
-    this.submitted() && !!this.getError()?.(id);
-  errorText = (id: string): string => this.getError()?.(id)?.text ?? '';
+    this.submitted() && !!this.getControlError(id);
+  errorText(id: string): string {
+    return this.submitted() ? (this.getControlError(id)?.text ?? '') : '';
+  }
 
   setActivitySearch(value: string): void {
     this.activitySearch.set(value ?? '');
@@ -119,6 +122,15 @@ export class ActivityAuditSectionComponent {
   removeActivity(activity: ActivityType): void {
     this.setSelectedActivities(
       this.selectedActivities().filter((item) => item !== activity),
+    );
+  }
+
+  getControlError(id: string): ErrorItem | undefined {
+    const control = this.group().get(id);
+
+    return (
+      getControlErrorItem(control, id, this.errorMap()) ??
+      this.externalErrors().find((item) => item.id === id)
     );
   }
 

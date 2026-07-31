@@ -81,7 +81,7 @@ Feature: Standard Applicants
         Then User Should See The Table "<TableName>"
         Then User Should See Table "<TableName>" Has Rows
         Then User Should See The Button "Actions" Is Enabled
-        When User Clicks "Actions" Then Sees The Caption Menu With Options "Export, Print" In Table "<TableName>"
+        When User Clicks "Actions" Then Sees The Caption Menu With Options "Export CSV, Print PDF" In Table "<TableName>"
 
         Examples:
             | ExceedingLengthCode | ExceedingLengthName                                                                                             | InvalidCode | Code | TableName           |

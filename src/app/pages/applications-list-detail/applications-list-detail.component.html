@@ -47,42 +47,20 @@
   />
 }
 
+@if (vm().bulkUploadDone) {
+  <app-success-banner
+    heading="Bulk upload complete"
+    [body]="vm().bulkUploadBannerText"
+    linkText="Click here to update fee details on newly uploaded applications"
+    (linkClick)="onBulkUploadBannerClick()"
+    [allowOnClick]="true"
+  />
+}
+
 @if (vm().pdfLoading) {
   <app-async-job-progress
     heading="PDF in progress"
     body="Your PDF is being generated and will download automatically when ready."
-  />
-}
-
-@if (vm().bulkUploadFeedback?.kind === 'progress') {
-  <app-async-job-progress
-    [heading]="vm().bulkUploadFeedback?.heading ?? ''"
-    [body]="vm().bulkUploadFeedback?.body ?? ''"
-  />
-}
-
-@if (vm().bulkUploadFeedback?.kind === 'success') {
-  <app-success-banner
-    [heading]="vm().bulkUploadFeedback?.heading ?? ''"
-    [body]="vm().bulkUploadFeedback?.body ?? ''"
-  />
-}
-
-@if (vm().bulkUploadFeedback?.kind === 'warning') {
-  <app-notification-banner
-    variant="warning"
-    [title]="vm().bulkUploadFeedback?.title ?? 'Warning'"
-    [heading]="vm().bulkUploadFeedback?.heading ?? ''"
-    [body]="vm().bulkUploadFeedback?.body ?? ''"
-    [autoFocus]="true"
-  />
-}
-
-@if (vm().bulkUploadFeedback?.kind === 'error') {
-  <app-error-summary
-    [title]="vm().bulkUploadFeedback?.heading ?? 'There is a problem'"
-    [items]="[{ text: vm().bulkUploadFeedback?.body ?? '' }]"
-    [focusKey]="submitAttempt()"
   />
 }
 
@@ -110,7 +88,6 @@
         href="#applications"
         id="tab_applications"
         aria-controls="applications"
-        aria-selected="true"
         (click)="onTabSelected('applications')"
       >
         Applications
@@ -212,7 +189,7 @@
         (selectAllChange)="onHeaderSelectAllChange($event)"
         (selectedIdsChange)="onSelectedIdsChange($event)"
         (selectedRowsChange)="onSelectedRowsChange($event)"
-        [selectedIds]="vm().selectedIds"
+        [selectedIds]="tableSelectedIds()"
         appMojButtonMenu
       >
         <caption
@@ -221,11 +198,7 @@
         >
           <span class="table-caption__text"> Entries </span>
 
-          <span
-            class="table-caption__actions"
-            role="group"
-            aria-label="Table actions"
-          >
+          <span class="table-caption__actions" aria-label="Table actions">
             @if (!canUseBulkActions) {
               <button
                 type="button"

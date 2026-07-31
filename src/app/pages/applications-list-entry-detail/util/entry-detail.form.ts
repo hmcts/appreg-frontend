@@ -43,7 +43,10 @@ import {
   RespondentPersonFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
+  hasText,
   mapTitleToOptionValue,
+  toNullableInteger,
+  trimToNull,
   trimToString,
   trimToUndefined,
 } from '@util/string-helpers';
@@ -67,8 +70,20 @@ type MagSlot = {
   surKey: keyof ApplicationsListEntryFormValue;
 };
 
-const hasText = (v: unknown): v is string =>
-  typeof v === 'string' && v.trim().length > 0;
+type EntryUpdateDtoWithClears = Omit<
+  EntryUpdateDto,
+  | 'caseReference'
+  | 'accountNumber'
+  | 'notes'
+  | 'respondent'
+  | 'numberOfRespondents'
+> & {
+  caseReference?: string | null;
+  accountNumber?: string | null;
+  notes?: string | null;
+  respondent?: Respondent | null;
+  numberOfRespondents?: number | null;
+};
 
 const MAG_SLOTS: readonly MagSlot[] = [
   {
@@ -109,9 +124,13 @@ export function buildStandardApplicationForm(
   // Cross-field validators for fields that depend on other entry values.
   const formValidators = [
     crossFormValidation('mags1FirstName', 'mags1Surname'),
+    crossFormValidation('mags1Surname', 'mags1FirstName'),
     crossFormValidation('mags2FirstName', 'mags2Surname'),
+    crossFormValidation('mags2Surname', 'mags2FirstName'),
     crossFormValidation('mags3FirstName', 'mags3Surname'),
+    crossFormValidation('mags3Surname', 'mags3FirstName'),
     crossFormValidation('officialFirstName', 'officialSurname'),
+    crossFormValidation('officialSurname', 'officialFirstName'),
     accountReferenceRequiredForApplicationCode(),
   ];
 
@@ -295,7 +314,7 @@ export function buildEntryUpdateDtoFromForm(
     applicationCode: detail.applicationCode,
     applicant: detail.applicant,
     respondent: detail.respondent,
-    numberOfRespondents: detail.numberOfRespondents,
+    numberOfRespondents: detail.numberOfRespondents ?? undefined,
     wordingFields: toTemplateSubstitutions(
       getEntryWordingFields(detail),
       LEGACY_WORDING_KEYS,
@@ -308,6 +327,7 @@ export function buildEntryUpdateDtoFromForm(
     officials: detail.officials,
   };
 
+  const officialsPatch = buildOfficialsFromFormValue(formValue);
   const patch = {
     ...buildEntryCreateDto(
       formValue,
@@ -316,24 +336,46 @@ export function buildEntryUpdateDtoFromForm(
       respondentPersonValue,
       respondentOrgValue,
     ),
-    ...buildOfficialsFromFormValue(formValue),
+    ...officialsPatch,
   } as Partial<EntryUpdateDto> & { lodgementDate?: string };
 
   delete patch.lodgementDate;
 
-  const dto: EntryUpdateDto = {
+  const dto: EntryUpdateDtoWithClears = {
     ...base,
     ...patch,
   };
 
+  dto.caseReference = trimToNull(formValue.applicationNotes.caseReference);
+  dto.accountNumber = trimToNull(formValue.applicationNotes.accountReference);
+  dto.notes = trimToNull(formValue.applicationNotes.notes);
+
+  if (formValue.respondentEntryType === 'bulk') {
+    dto.respondent = null;
+    dto.numberOfRespondents = toNullableInteger(formValue.numberOfRespondents);
+  } else {
+    dto.respondent = dto.respondent ?? null;
+    dto.numberOfRespondents = null;
+  }
+
+  if (Array.isArray(formValue.wordingFields)) {
+    dto.wordingFields = patch.wordingFields ?? [];
+  }
+
+  if (Array.isArray(formValue.feeStatuses)) {
+    dto.feeStatuses = formValue.feeStatuses;
+  }
+
+  dto.officials = officialsPatch.officials ?? [];
+
   if (formValue.applicantType === 'standard') {
     dto.standardApplicantCode = (formValue.standardApplicantCode ?? '').trim();
     normalizeApplicantSelection(dto, 'standard');
-    return dto;
+    return dto as EntryUpdateDto;
   }
 
   normalizeApplicantSelection(dto, 'applicant');
-  return dto;
+  return dto as EntryUpdateDto;
 }
 
 export function buildContactDetailsFromRaw(v: ContactFormRaw): ContactDetails {
@@ -480,7 +522,7 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     applicationCode: detail.applicationCode,
     applicant: detail.applicant,
     respondent: detail.respondent,
-    numberOfRespondents: detail.numberOfRespondents,
+    numberOfRespondents: detail.numberOfRespondents ?? undefined,
     wordingFields: toTemplateSubstitutions(
       getEntryWordingFields(detail),
       LEGACY_WORDING_KEYS,
@@ -532,7 +574,10 @@ export function buildEntryUpdateDtoForFeeChange<K extends keyof EntryUpdateDto>(
 }
 
 function normalizeApplicantSelection(
-  dto: EntryUpdateDto,
+  dto: {
+    applicant?: Applicant;
+    standardApplicantCode?: string | null;
+  },
   mode: 'standard' | 'applicant',
 ): void {
   if (mode === 'standard') {

@@ -5,7 +5,6 @@ Main Component for page /applications-list
 Functionality:
 onSubmit():
   - GET request to Spring API which returns applications lists based on given params
-  - If params are empty (user leaves fields empty or on default selected value) GET ALL is run
   - Populates query based on fields that are  !null/!undefined/!defaultValue
 
 Delete:
@@ -24,7 +23,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   EnvironmentInjector,
-  HostListener,
   OnInit,
   PLATFORM_ID,
   inject,
@@ -32,14 +30,15 @@ import {
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
-import { map, take } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 
 import {
   APPLICATIONS_LIST_COLUMNS_ACTION,
   APPLICATIONS_LIST_ERROR_MESSAGES,
   APPLICATIONS_LIST_FORM_ERROR_MESSAGES,
   APPLICATION_LIST_SORT_MAP,
-} from './util/applications-list.constants';
+} from '../../shared/constants/applications-list/applications-list.constants';
+
 import {
   ApplicationsListState,
   clearNotificationsPatch,
@@ -48,17 +47,11 @@ import {
 import { statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
 
-import {
-  hasAnyParams,
-  toRow,
-} from '@components/applications-list-entry-detail/util/routing-state-util';
+import { toRow } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '@components/error-summary/error-summary.component';
+import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
@@ -74,10 +67,11 @@ import {
   ApplicationListStatus,
   ApplicationListsApi,
   GetApplicationListsRequestParams,
+  PrintApplicationListsRequestParams,
 } from '@openapi';
 import { ApplicationListRecordsService } from '@services/applications-list/application-list-records.service';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
-import { buildApplicationsListErrorSummary } from '@services/applications-list/build-applications-list-error-summary';
+import { buildErrorSummary } from '@services/applications-list/build-applications-list-error-summary';
 import {
   ApplicationListSearchFormService,
   DEFAULT_STATE,
@@ -85,9 +79,11 @@ import {
 } from '@services/applications-list/searchform/application-list-search-form.service';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
-import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
+import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
+import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
@@ -127,9 +123,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  openMenuForId: string | null = null;
-  openPrintSelectForId: string | null = null;
-
   // Initialise signal state
   private readonly appListSignalState =
     createSignalState<ApplicationsListState>(initialApplicationsListState);
@@ -143,7 +136,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   // allows you to initialise effect in ngOnInit()
   private readonly envInjector = inject(EnvironmentInjector);
 
-  private readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
+  readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
   // Create form
@@ -154,12 +147,10 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   // API signals
   private readonly loadRequest =
     signal<GetApplicationListsRequestParams | null>(null);
-  private readonly printPageRequest = signal<string | null>(null);
-  private readonly printContinuousRequest = signal<{
-    id: string;
-    isClosed: boolean;
-  } | null>(null);
+  private readonly printRequest = signal<BulkPrintRequest | null>(null);
+
   readonly submitAttempt = signal(0);
+  readonly listIsClosed = signal(false);
 
   columns: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
 
@@ -192,7 +183,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     // Refresh applications lists after navigating back
     if (this.storedRecordsVm().rows.length > 0) {
-      this.loadApplicationsLists(hasAnyParams(this.form));
+      this.loadApplicationsLists();
     }
   }
 
@@ -259,13 +250,16 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       this.envInjector,
     );
 
-    // Applications list print page
+    // POST /application-lists/print
     setupLoadEffect(
       {
-        request: this.printPageRequest,
-        load: (id) =>
-          this.appListsApi.printApplicationList(
-            { listId: id },
+        request: this.printRequest,
+        load: (req: BulkPrintRequest) =>
+          this.appListsApi.printApplicationLists(
+            {
+              bulkGetApplicationListEntriesRequestDto:
+                req.body.bulkGetApplicationListEntriesRequestDto,
+            },
             undefined,
             undefined,
             {
@@ -273,67 +267,51 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             },
           ),
         onSuccess: async (dto) => {
-          this.printPageRequest.set(null);
-          try {
-            if (!this.hasEntries(dto)) {
-              this.showInline(
-                APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
-              );
-              return;
-            }
+          const mode = this.printRequest()?.mode;
+          this.printRequest.set(null);
 
-            if (isPlatformBrowser(this.platformId)) {
-              await this.pdf.generatePagedApplicationListPdf(dto, {
+          if (!mode) {
+            return;
+          }
+
+          if (dto.length > 1) {
+            return;
+          }
+
+          if (!this.hasEntries(dto[0])) {
+            // We only expect 1 object here
+            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
+            return;
+          }
+
+          try {
+            if (mode === 'page') {
+              await handlePrintPage(dto, {
+                pdf: this.pdf,
+                isBrowser: isPlatformBrowser(this.platformId),
+                onError: (message) => this.showInline(message),
+                noEntriesMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+                generateErrorMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry,
                 crestUrl: '/assets/govuk-crest.png',
               });
             }
+
+            if (mode === 'continuous') {
+              await handlePrintContinuous(dto, {
+                pdf: this.pdf,
+                isBrowser: isPlatformBrowser(this.platformId),
+                onError: (message) => this.showInline(message),
+                noEntriesMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+                generateErrorMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
+                isClosed: this.listIsClosed(),
+              });
+            }
           } catch {
-            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
-          } finally {
             this.appListSignalState.patch({ pdfLoading: false });
-          }
-        },
-        onError: (err) => {
-          this.appListSignalState.patch({ pdfLoading: false });
-          this.printPageRequest.set(null);
-          const status = getHttpStatus(err);
-          if (status === 404) {
-            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.listNotFound);
-          } else {
-            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
-          }
-        },
-      },
-      this.envInjector,
-    );
-
-    // Applications list print cont
-    setupLoadEffect(
-      {
-        request: this.printContinuousRequest,
-        load: (req) =>
-          this.appListsApi
-            .printApplicationList({ listId: req.id }, undefined, undefined, {
-              transferCache: false,
-            })
-            .pipe(map((dto) => ({ dto, isClosed: req.isClosed }))),
-        onSuccess: async ({ dto, isClosed }) => {
-          this.printContinuousRequest.set(null);
-          try {
-            if (!this.hasEntries(dto)) {
-              this.showInline(
-                APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
-              );
-              return;
-            }
-
-            if (isPlatformBrowser(this.platformId)) {
-              await this.pdf.generateContinuousApplicationListsPdf(
-                [dto],
-                isClosed,
-              );
-            }
-          } catch {
             this.showInline(
               APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
             );
@@ -343,20 +321,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
         },
         onError: () => {
           this.appListSignalState.patch({ pdfLoading: false });
-          this.printContinuousRequest.set(null);
+          this.printRequest.set(null);
           this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric);
         },
       },
       this.envInjector,
     );
-  }
-
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().searchErrors.find((e) => e.id === id);
-  }
-
-  private buildErrorSummary(): ErrorItem[] {
-    return buildApplicationsListErrorSummary(this.form, this.errorMap);
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -372,28 +342,25 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    const validationErrors = this.buildErrorSummary();
+    const validationErrors = buildErrorSummary(this.form, this.errorMap);
     if (validationErrors.length) {
       this.storedRecordsState.patch({ submitted: true });
       this.appListSignalState.patch({ searchErrors: validationErrors });
       return;
     }
 
-    const hasAny = hasAnyParams(this.form);
-
     if (action === 'search') {
       this.storedRecordsState.patch({ submitted: true, currentPage: 0 });
       this.appListSignalState.patch({
         isSearch: true,
       });
-      this.loadApplicationsLists(hasAny);
+      this.loadApplicationsLists();
     }
   }
 
   onPageChange(page: number): void {
     this.storedRecordsState.patch({ currentPage: page });
-    const hasAny = hasAnyParams(this.form);
-    this.loadApplicationsLists(hasAny);
+    this.loadApplicationsLists();
   }
 
   onCjaSearchChange(value: string): void {
@@ -405,20 +372,27 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.onCjaInputChange();
   }
 
-  @HostListener('document:click')
-  onDocClick(): void {
-    this.openPrintSelectForId = null;
-    this.openMenuForId = null;
-  }
-
   onPrintPage(id: string): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     if (!id) {
       return;
     }
 
+    const params: PrintApplicationListsRequestParams = {
+      bulkGetApplicationListEntriesRequestDto: {
+        listIds: [id],
+      },
+    };
+
     this.appListSignalState.patch(clearNotificationsPatch());
     this.appListSignalState.patch({ pdfLoading: true });
-    this.printPageRequest.set(id);
+    this.printRequest.set({
+      body: params,
+      mode: 'page',
+    });
   }
 
   onPrintContinuous(id: string, isClosed: boolean): void {
@@ -430,9 +404,20 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    this.listIsClosed.set(isClosed);
+
+    const params: PrintApplicationListsRequestParams = {
+      bulkGetApplicationListEntriesRequestDto: {
+        listIds: [id],
+      },
+    };
+
     this.appListSignalState.patch(clearNotificationsPatch());
     this.appListSignalState.patch({ pdfLoading: true });
-    this.printContinuousRequest.set({ id, isClosed });
+    this.printRequest.set({
+      body: params,
+      mode: 'continuous',
+    });
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
@@ -443,30 +428,15 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       },
     });
     this.storedRecordsState.patch({ currentPage: 0 });
-
-    const hasAny = hasAnyParams(this.form);
-    this.loadApplicationsLists(hasAny);
+    this.loadApplicationsLists();
   }
 
   protected isOpen(row: ApplicationListRow): boolean {
     return row.status === ApplicationListStatus.OPEN;
   }
 
-  loadApplicationsLists(hasParams: boolean): void {
+  loadApplicationsLists(): void {
     if (this.appListState().isLoading) {
-      return;
-    }
-
-    if (!hasParams) {
-      this.appListSignalState.patch({
-        searchErrors: [
-          ...this.appListState().searchErrors,
-          {
-            id: '',
-            text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
-          },
-        ],
-      });
       return;
     }
 
@@ -490,20 +460,11 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       pageNumber: r.currentPage,
       pageSize: r.pageSize,
       sort: paramSort,
-      ...(hasParams ? { filter: loadQuery(this.form) } : {}),
+      filter: loadQuery(this.form),
     };
 
     this.appListSignalState.patch({ isLoading: true });
     this.loadRequest.set(params);
-  }
-
-  focusField(id: string, e: Event): void {
-    e.preventDefault();
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.focus({ preventScroll: true });
-    }
   }
 
   toggleAdvancedSearch(): void {

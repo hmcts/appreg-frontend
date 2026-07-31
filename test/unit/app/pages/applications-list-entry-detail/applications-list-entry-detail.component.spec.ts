@@ -802,7 +802,7 @@ describe('ApplicationsListEntryDetail', () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: 'applicationNotes.accountReference',
-          text: 'Enter an account reference for EF application codes',
+          text: 'Enter an account reference for enforcement application codes',
         }),
       ]),
     );

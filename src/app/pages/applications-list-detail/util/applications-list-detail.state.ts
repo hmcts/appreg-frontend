@@ -1,13 +1,9 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
-import { EntryApplicationListGetFilterDto } from '@openapi';
-
-export interface BulkUploadFeedback {
-  kind: 'progress' | 'success' | 'warning' | 'error';
-  heading: string;
-  body: string;
-  title?: string;
-}
+import {
+  BulkActionPreviewResponseDto,
+  EntryApplicationListGetFilterDto,
+} from '@openapi';
 
 export interface ApplicationsListDetailState {
   // paging
@@ -32,14 +28,14 @@ export interface ApplicationsListDetailState {
   updateInvalid: boolean;
   moveDone: boolean;
   updateFeesDone: boolean;
+  bulkUploadDone: boolean;
+
+  bulkUploadBannerText: string;
 
   // errors
   errorHint: string;
   errorSummary: ErrorItem[];
   preserveErrorSummaryOnLoad: boolean;
-
-  // bulk upload
-  bulkUploadFeedback: BulkUploadFeedback | null;
 
   // internal
   hasPrefilledFromApi: boolean;
@@ -48,6 +44,10 @@ export interface ApplicationsListDetailState {
   getFilters: EntryApplicationListGetFilterDto;
 
   pdfLoading: boolean;
+
+  previewRows: BulkActionPreviewResponseDto | null;
+  isFilterSelection: boolean;
+  excludedEntryIds: Set<string>;
 }
 
 export const initialApplicationsListDetailState: ApplicationsListDetailState = {
@@ -70,17 +70,23 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   updateInvalid: false,
   moveDone: false,
   updateFeesDone: false,
+  bulkUploadDone: false,
+
+  bulkUploadBannerText: '',
 
   errorHint: '',
   errorSummary: [],
   preserveErrorSummaryOnLoad: false,
-  bulkUploadFeedback: null,
 
   hasPrefilledFromApi: false,
 
   getFilters: {},
 
   pdfLoading: false,
+
+  previewRows: null,
+  isFilterSelection: false,
+  excludedEntryIds: new Set<string>(),
 };
 
 export const clearUpdateNotificationsPatch = (): Pick<
@@ -94,6 +100,7 @@ export const clearUpdateNotificationsPatch = (): Pick<
   | 'preserveErrorSummaryOnLoad'
   | 'moveDone'
   | 'updateFeesDone'
+  | 'bulkUploadDone'
 > => ({
   updateDone: false,
   updateOfficialsDone: false,
@@ -104,4 +111,5 @@ export const clearUpdateNotificationsPatch = (): Pick<
   preserveErrorSummaryOnLoad: false,
   moveDone: false,
   updateFeesDone: false,
+  bulkUploadDone: false,
 });

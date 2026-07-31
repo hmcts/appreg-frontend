@@ -97,7 +97,7 @@ function makeBlankRespondentPerson(): RespondentPersonFormValue {
 }
 
 describe('buildEntryCreateDto', () => {
-  it('omits applicant/respondent when they are not meaningfully populated', () => {
+  it('omits applicant and clears empty respondent fields when they are not meaningfully populated', () => {
     const formValue = makeBaseFormValue({
       applicantType: 'org',
       respondentEntryType: 'organisation',
@@ -119,7 +119,8 @@ describe('buildEntryCreateDto', () => {
 
     expect(payload['applicationCode']).toBe('A001');
     expect('applicant' in payload).toBe(false);
-    expect('respondent' in payload).toBe(false);
+    expect(payload['respondent']).toBeNull();
+    expect(payload['numberOfRespondents']).toBeNull();
   });
 
   it('includes applicant.organisation with trimmed name and prunes blank nested contact fields', () => {
@@ -162,7 +163,7 @@ describe('buildEntryCreateDto', () => {
     expect('email' in contact).toBe(false);
   });
 
-  it('omits respondent when only whitespace strings are provided', () => {
+  it('clears respondent when only whitespace strings are provided', () => {
     const formValue = makeBaseFormValue({
       applicationCode: 'X001',
       respondentEntryType: 'organisation',
@@ -187,7 +188,8 @@ describe('buildEntryCreateDto', () => {
     );
     const payload = roundTrip(dto as unknown as Record<string, unknown>);
 
-    expect('respondent' in payload).toBe(false);
+    expect(payload['respondent']).toBeNull();
+    expect(payload['numberOfRespondents']).toBeNull();
   });
 
   it('keeps both applicant and respondent when both are populated', () => {
@@ -233,6 +235,66 @@ describe('buildEntryCreateDto', () => {
 
     expect(applicant['person']).toBeDefined();
     expect(resp['organisation']).toBeDefined();
+    expect(payload['numberOfRespondents']).toBeNull();
+  });
+
+  it('sends only bulk respondent values when bulk mode is selected', () => {
+    const formValue = makeBaseFormValue({
+      respondentEntryType: 'bulk',
+      numberOfRespondents: 2,
+    });
+
+    const respondentPerson: RespondentPersonFormValue = {
+      ...makeBlankRespondentPerson(),
+      firstName: 'Stale',
+      surname: 'Person',
+      addressLine1: 'Stale address',
+    };
+    const respondentOrganisation: OrganisationFormValue = {
+      ...makeBlankOrganisation(),
+      name: 'Stale Org',
+      addressLine1: 'Stale address',
+    };
+
+    const dto = buildEntryCreateDto(
+      formValue,
+      makeBlankPerson(),
+      makeBlankOrganisation(),
+      respondentPerson,
+      respondentOrganisation,
+    );
+
+    const payload = roundTrip(dto as unknown as Record<string, unknown>);
+
+    expect(payload['numberOfRespondents']).toBe(2);
+    expect(payload['respondent']).toBeNull();
+  });
+
+  it('clears numberOfRespondents when respondent details mode is selected', () => {
+    const formValue = makeBaseFormValue({
+      respondentEntryType: 'person',
+      numberOfRespondents: 2,
+    });
+    const respondentPerson: RespondentPersonFormValue = {
+      ...makeBlankRespondentPerson(),
+      firstName: 'Respondent',
+      surname: 'Person',
+      addressLine1: '1 Street',
+    };
+
+    const dto = buildEntryCreateDto(
+      formValue,
+      makeBlankPerson(),
+      makeBlankOrganisation(),
+      respondentPerson,
+      makeBlankOrganisation(),
+    );
+
+    const payload = roundTrip(dto as unknown as Record<string, unknown>);
+    const respondent = payload['respondent'] as Record<string, unknown>;
+
+    expect(respondent['person']).toBeDefined();
+    expect(payload['numberOfRespondents']).toBeNull();
   });
 
   it('builds feeStatuses when any fee field is provided', () => {
@@ -533,6 +595,7 @@ describe('buildEntryCreateDto', () => {
 
   it('maps numberOfRespondents via toOptionalInteger ("12" -> 12)', () => {
     const formValue = makeBaseFormValue({
+      respondentEntryType: 'bulk',
       numberOfRespondents:
         '12' as unknown as ApplicationsListEntryFormValue['numberOfRespondents'],
     });
@@ -549,9 +612,10 @@ describe('buildEntryCreateDto', () => {
     expect(payload['numberOfRespondents']).toBe(12);
   });
 
-  it('omits numberOfRespondents when blank or non-numeric', () => {
+  it('sets numberOfRespondents to null in bulk mode when blank or non-numeric', () => {
     const makePayload = (v: unknown): Record<string, unknown> => {
       const formValue = makeBaseFormValue({
+        respondentEntryType: 'bulk',
         numberOfRespondents:
           v as ApplicationsListEntryFormValue['numberOfRespondents'],
       });
@@ -567,8 +631,8 @@ describe('buildEntryCreateDto', () => {
       return roundTrip(dto as unknown as Record<string, unknown>);
     };
 
-    expect('numberOfRespondents' in makePayload('')).toBe(false);
-    expect('numberOfRespondents' in makePayload('   ')).toBe(false);
-    expect('numberOfRespondents' in makePayload('abc')).toBe(false);
+    expect(makePayload('')['numberOfRespondents']).toBeNull();
+    expect(makePayload('   ')['numberOfRespondents']).toBeNull();
+    expect(makePayload('abc')['numberOfRespondents']).toBeNull();
   });
 });

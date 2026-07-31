@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if sh ./scripts/husky-skip-pre-push.sh; then
+  exit 0
+fi
+
 if ! yarn test:unit; then
   printf 'Unit tests failed: run `yarn test:unit` locally and fix the failing tests' >&2
   exit 1

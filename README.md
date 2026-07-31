@@ -201,6 +201,12 @@ Run below to run code using Staging connectivity (VPN required)
 yarn dev:stg
 ```
 
+Run the following command to setup pre-commit & pre-push checks
+
+```
+yarn prepare
+```
+
 ## Application Insights
 
 Frontend browser telemetry is configured at runtime from `GET /app/config`.
@@ -575,6 +581,7 @@ These are the scripts needed:
 - `yarn api:bundle` - Bundles the OpenAPI spec, schemas, responses into `tools/dist/openapi.bundled.yaml`
 - `yarn api:all` - Runs all API scripts (api:validate -> api:clear -> api:bundle -> api:generate)
 - `yarn api:all:force` - Force fetch spec and runs all API scripts (api:validate -> api:clear -> api:bundle -> api:generate)
+- `yarn api:all:local-be` - Copies `../appreg-api/openapi.yaml` into the frontend vendor-spec location and then runs `api:validate`, `api:bundle`, `api:clear`, and `api:generate`. Use this when you want to generate against local backend changes instead of the latest published artifact.
 
 If you want to use a specific OpenAPI spec version, you can edit `scripts/fetch-unpack-openapi.cjs` and change the following:
 

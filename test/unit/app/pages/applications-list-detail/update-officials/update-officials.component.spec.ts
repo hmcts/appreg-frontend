@@ -75,6 +75,22 @@ describe('UpdateOfficialsComponent', () => {
     expect(component.rows).toEqual(rows);
   });
 
+  it('sorts and paginates selected applications, resetting to the first page on sort', () => {
+    createComponent();
+    component.rows = Array.from({ length: 11 }, (_, index) => ({
+      ...rows[0],
+      id: `entry-${11 - index}`,
+      sequenceNumber: 11 - index,
+    }));
+
+    component.onSortChange({ key: 'sequenceNumber', direction: 'asc' });
+    expect(component.currentPage()).toBe(0);
+    expect(component.paginatedRows()[0].sequenceNumber).toBe(1);
+
+    component.onPageChange(1);
+    expect(component.paginatedRows()).toHaveLength(1);
+  });
+
   it('hydrates official form values from route state when returning from confirm', () => {
     locationState = {
       updateOfficialsApplications: rows,

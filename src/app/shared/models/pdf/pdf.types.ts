@@ -1,5 +1,7 @@
-export type PrintRequest = {
-  id: string;
+import { PrintApplicationListsRequestParams } from '@openapi';
+
+export type BulkPrintRequest = {
+  body: PrintApplicationListsRequestParams;
   mode: 'page' | 'continuous';
 };
 

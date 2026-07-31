@@ -76,8 +76,13 @@
       [suggestions]="state().filteredCourthouses"
       (selectItem)="onCourthouseSuggestionSelected($event)"
       [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
-      [showError]="vm().searchErrors.length > 0 && !!fieldError('court')"
-      [errorText]="fieldError('court')?.text ?? ''"
+      [showError]="
+        vm().submitted &&
+        !!getControlErrorItem(form.controls.court, 'court', errorMap)
+      "
+      [errorText]="
+        getControlErrorItem(form.controls.court, 'court', errorMap)?.text ?? ''
+      "
       containerWidthClass="govuk-grid-column-one-half"
       widthClass="govuk-!-width-two-thirds"
     />
@@ -146,7 +151,13 @@
           formControlName="respondentPostcode"
           label="Respondent post code"
           idPrefix="respondentPostcode"
-          [error]="getControlErrorMessages('respondentPostcode')[0]"
+          [error]="
+            getControlErrorItem(
+              form.controls.respondentPostcode,
+              'respondentPostcode',
+              errorMap
+            )?.text ?? null
+          "
           containerWidthClass="govuk-grid-column-one-quarter"
           widthClass="govuk-!-width-full"
         />
@@ -161,8 +172,13 @@
           [suggestions]="state().filteredCja"
           (selectItem)="onCjaSuggestionSelected($event)"
           [disabled]="!!state().courthouseSearch || !!form.get('court')?.value"
-          [showError]="vm().searchErrors.length > 0 && !!fieldError('cja')"
-          [errorText]="fieldError('cja')?.text ?? ''"
+          [showError]="
+            vm().submitted &&
+            !!getControlErrorItem(form.controls.cja, 'cja', errorMap)
+          "
+          [errorText]="
+            getControlErrorItem(form.controls.cja, 'cja', errorMap)?.text ?? ''
+          "
           containerWidthClass="govuk-grid-column-one-quarter"
           widthClass="govuk-!-width-full"
         />
@@ -233,7 +249,7 @@
     [selectable]="true"
     idField="id"
     [selectAllScope]="'external'"
-    [selectedIds]="vm().selectedIds"
+    [selectedIds]="tableSelectedIds()"
     (sortChange)="onSortChange($event)"
     (selectAllChange)="onHeaderSelectAllChange($event)"
     (selectedIdsChange)="onSelectedIdsChange($event)"
@@ -250,11 +266,7 @@
     >
       <span class="table-caption__text">Application list entries</span>
 
-      <span
-        class="table-caption__actions"
-        role="group"
-        aria-label="Table actions"
-      >
+      <span class="table-caption__actions" aria-label="Table actions">
         @if (!canUseBulkActions) {
           <button
             type="button"
@@ -288,7 +300,6 @@
               Print continuous
             </button>
 
-            <!-- TODO: arcpoc 1329 -->
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
@@ -302,37 +313,49 @@
     </caption>
 
     <ng-template #actionsTemplate let-row>
-      <div
-        class="moj-button-menu"
-        data-module="moj-button-menu"
-        data-button-text="Select"
-        data-button-classes="govuk-button"
-      >
-        <!-- Open -->
-        <button
-          type="button"
-          class="govuk-button moj-button-menu__item govuk-button--secondary"
-          [routerLink]="[
-            '/applications-list',
-            row.applicationListId,
-            'update-entry',
-            row.id,
-          ]"
-          [state]="{ fromApplicationsPage: true }"
-          [disabled]="row.status === 'CLOSED'"
+      <!-- Show button menu if row is open -->
+      @if (row.status === 'OPEN') {
+        <div
+          class="moj-button-menu"
+          data-module="moj-button-menu"
+          data-button-text="Select"
+          data-button-classes="govuk-button"
         >
-          Open
-        </button>
-
-        <!-- Update notes -->
-        <button
-          type="button"
-          class="govuk-button moj-button-menu__item govuk-button--secondary"
-          (click)="onUpdateNotesClick(row)"
-        >
-          Update notes
-        </button>
-      </div>
+          <!-- Open -->
+          <button
+            type="button"
+            class="govuk-button moj-button-menu__item govuk-button--secondary"
+            [routerLink]="[
+              '/applications-list',
+              row.applicationListId,
+              'update-entry',
+              row.id,
+            ]"
+            [state]="{ fromApplicationsPage: true }"
+            [disabled]="row.status === 'CLOSED'"
+          >
+            Open
+          </button>
+          <!-- Update notes -->
+          <button
+            type="button"
+            class="govuk-button moj-button-menu__item govuk-button--secondary"
+            (click)="onUpdateNotesClick(row)"
+          >
+            Update notes
+          </button>
+        </div>
+      } @else {
+        <div data-module="moj-button-menu">
+          <button
+            type="button"
+            class="govuk-button"
+            (click)="onUpdateNotesClick(row)"
+          >
+            Update notes
+          </button>
+        </div>
+      }
     </ng-template>
   </app-sortable-table>
 

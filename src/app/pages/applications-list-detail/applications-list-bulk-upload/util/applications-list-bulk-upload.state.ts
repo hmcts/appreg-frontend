@@ -1,6 +1,13 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { JobAcknowledgement } from '@openapi';
 
+export interface BulkUploadFeedback {
+  kind: 'progress' | 'success' | 'warning' | 'error';
+  heading: string;
+  body: string;
+  title?: string;
+}
+
 export interface ApplicationsListBulkUploadState {
   isValidCSV: boolean | null;
   errorSummary: ErrorItem[];
@@ -9,6 +16,9 @@ export interface ApplicationsListBulkUploadState {
   fileUploadStatus: 'error' | null;
   jobAcknowledgement: JobAcknowledgement | null;
   listId: string;
+  uploadSuccessful: boolean;
+  bulkUploadFeedback: BulkUploadFeedback | null | void;
+  currentPage: number;
 }
 
 export const InitialBulkUploadState: ApplicationsListBulkUploadState = {
@@ -19,6 +29,9 @@ export const InitialBulkUploadState: ApplicationsListBulkUploadState = {
   listId: '',
   file: null,
   jobAcknowledgement: null,
+  uploadSuccessful: false,
+  bulkUploadFeedback: null,
+  currentPage: 0,
 };
 
 export const clearFlags = (): Pick<

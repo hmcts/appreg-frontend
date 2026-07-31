@@ -1,4 +1,27 @@
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+/**
+ * Reports
+ * Main Component for page /reports
+ *
+ * Note:
+ * Supports asynchronous generation of multiple report types. Report creation,
+ * polling and download are handled using background jobs.
+ *
+ * Functionality:
+ * onDownload():
+ * - Validates the selected report form
+ * - Starts report generation for the selected report type
+ * - Polls the background job until completion
+ * - Downloads the generated CSV on success
+ *
+ * onClearFilters():
+ * - Resets the currently selected report form and validation state
+ *
+ * setupEffects():
+ * - Handles asynchronous report creation requests
+ * - Starts polling when report jobs are accepted
+ */
+
+import { DOCUMENT } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
   Component,
@@ -72,8 +95,12 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
+import { saveCsv as saveCsvFile } from '@util/save-csv';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
-import { getTrimmedStringOrNullFromGroup } from '@util/string-helpers';
+import {
+  getDateStamp,
+  getTrimmedStringOrNullFromGroup,
+} from '@util/string-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { dateToOnOrAfterDateFromValidator } from '@validators/date-range.validator';
 
@@ -161,7 +188,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
   onCreateErrorClick = onCreateErrorClickFn;
 
-  private readonly errorMap = REPORTS_FORM_ERROR_MESSAGES;
+  readonly errorMap = REPORTS_FORM_ERROR_MESSAGES;
 
   // Reactive form backing the template
   override form = new FormGroup({
@@ -669,10 +696,6 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     );
   }
 
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().errorSummary.find((e) => e.id === id);
-  }
-
   isReportInProgress(): boolean {
     return this.vm().reportFeedback?.kind === 'progress';
   }
@@ -889,21 +912,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    const url = URL.createObjectURL(response.body);
-    const link = this.document.createElement('a');
-    link.href = url;
-    link.download = this.getReportFilename();
-    link.style.display = 'none';
-
-    this.document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    saveCsvFile(
+      response,
+      this.getReportFilename(),
+      this.document,
+      this.platformId,
+    );
     this.showReportSuccess();
   }
 
@@ -911,16 +925,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     const reportId = this.getSelectedReportOption()?.id;
     const reportName = reportId ? `${reportId}-report` : 'report';
 
-    return `${reportName}-${this.getDateStamp()}.csv`;
-  }
-
-  private getDateStamp(): string {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
+    return `${reportName}-${getDateStamp()}.csv`;
   }
 
   private showReportProgress(): void {

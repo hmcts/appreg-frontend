@@ -230,6 +230,77 @@ export class ApiResponseHelper {
     });
   }
 
+  static verifyResponseBodyArrayPropertyShouldContainObjects(
+    arrayPropertyPath: string,
+    expectedObjects: Record<string, string>[],
+  ): void {
+    cy.get('@lastApiResponse').then((response) => {
+      const apiResponse = response as unknown as Cypress.Response<unknown>;
+      if (!apiResponse) {
+        throw new Error('No API response found to verify.');
+      }
+
+      const body = apiResponse.body as Record<string, unknown>;
+      const current = ApiResponseHelper.resolvePath(body, arrayPropertyPath);
+
+      if (!Array.isArray(current)) {
+        throw new TypeError(
+          `Expected an array for property ${arrayPropertyPath}, but got ${typeof current}`,
+        );
+      }
+
+      const verifyExpectedObject = (index: number): void => {
+        if (index >= expectedObjects.length) {
+          return;
+        }
+
+        const expectedObject = expectedObjects[index];
+        const populatedEntries = Object.entries(expectedObject).filter(
+          ([, value]) => value.trim() !== '',
+        );
+        let resolvedObjectChain: Cypress.Chainable<Record<string, unknown>> =
+          cy.wrap({}, { log: false });
+
+        for (const [key, value] of populatedEntries) {
+          resolvedObjectChain = resolvedObjectChain.then((resolvedObject) =>
+            ApiResponseHelper.resolveExpectedValue(value).then(
+              (resolvedValue) => {
+                resolvedObject[key] = resolvedValue;
+                return resolvedObject;
+              },
+            ),
+          );
+        }
+
+        resolvedObjectChain.then((resolvedExpectedObject) => {
+          const hasMatch = current.some((candidate: unknown) => {
+            if (!candidate || typeof candidate !== 'object') {
+              return false;
+            }
+
+            const candidateObject = candidate as Record<string, unknown>;
+            return Object.entries(resolvedExpectedObject).every(
+              ([key, expectedValue]) =>
+                Cypress._.isEqual(candidateObject[key], expectedValue),
+            );
+          });
+
+          cy.log(
+            `Assert array: ${arrayPropertyPath} contains object ${JSON.stringify(resolvedExpectedObject)} | Actual: ${JSON.stringify(current)}`,
+          );
+          expect(
+            hasMatch,
+            `${arrayPropertyPath} should contain an object matching ${JSON.stringify(resolvedExpectedObject)}`,
+          ).to.equal(true);
+
+          verifyExpectedObject(index + 1);
+        });
+      };
+
+      verifyExpectedObject(0);
+    });
+  }
+
   /**
    * Resolves expected values by handling aliases and dynamic placeholders
    * @param value Expected value (can contain :alias references or {RANDOM})

@@ -35,9 +35,20 @@
   id="entry-selected-table"
   [caption]="'You are moving the following application(s)'"
   [columns]="columnsEntries"
-  [data]="vm().selectedEntries"
+  [data]="paginatedRows()"
+  [clientOrServerSort]="'server'"
+  [sortState]="moveSort()"
+  (sortChange)="onSortChangeSelected($event)"
   appMojButtonMenu
 />
+
+@if (showPagination()) {
+  <app-pagination
+    [currentPage]="currentPage()"
+    [totalPages]="totalPages()"
+    (pageChange)="onPageChangeSelected($event)"
+  />
+}
 
 <!-- Nav to existing create page with params to adjust that page accordingly -->
 <div class="govuk-!-margin-top-6">
@@ -67,7 +78,7 @@
     [showStatusField]="false"
     [submitted]="storedRecordsVm().submitted"
     [suggestions]="suggestionsFacade"
-    [getError]="fieldError.bind(this)"
+    [errorMap]="errorMap"
     [advancedOpen]="searchFormState().isAdvancedSearch"
     [onToggleAdvanced]="toggleAdvancedSearch.bind(this)"
   />

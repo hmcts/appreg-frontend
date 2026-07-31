@@ -9,9 +9,8 @@ import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
-import { Subject, of, throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
 import {
@@ -20,6 +19,7 @@ import {
   mapEntrySummaryRows,
 } from '@components/applications-list-detail/util/map-entry-summary-rows';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
 import {
@@ -29,12 +29,14 @@ import {
   ApplicationListGetPrintDto,
   ApplicationListStatus,
   ApplicationListsApi,
+  BulkActionPreviewResponseDto,
+  BulkActionSelectionType,
+  BulkActionType,
   CriminalJusticeAreaGetDto,
   EntryGetSummaryDto,
   EntryIdsDto,
   EntryPage,
 } from '@openapi';
-import { JobPollingFacade } from '@services/jobs/job-polling.facade';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu } from '@util/moj-button-menu';
@@ -46,6 +48,8 @@ const flushSignalEffects = async (
   if (fixture) {
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
+    await Promise.resolve();
     fixture.detectChanges();
     return;
   }
@@ -60,7 +64,7 @@ type DetailSignalStateAccessor = {
 
 type PrintRequestSignalAccessor = {
   printRequest: {
-    set: (value: { id: string; mode: 'page' | 'continuous' } | null) => void;
+    set: (value: unknown) => void;
   };
 };
 
@@ -74,11 +78,14 @@ type PlaceFieldsSignalStateAccessor = {
 };
 
 type PrintHelpersAccessor = {
-  filterEntriesToPrint(
-    dto: ApplicationListGetPrintDto,
-  ): ApplicationListGetPrintDto;
   handlePrintPage(dto: ApplicationListGetPrintDto): Promise<void>;
   handlePrintContinuous(dto: ApplicationListGetPrintDto): Promise<void>;
+};
+
+type BulkPreviewAccessor = {
+  getBulkPreview(
+    action: BulkActionType,
+  ): Promise<BulkActionPreviewResponseDto | null>;
 };
 
 describe('ApplicationsListDetail', () => {
@@ -88,22 +95,27 @@ describe('ApplicationsListDetail', () => {
   const apiStub: jest.Mocked<
     Pick<
       ApplicationListsApi,
-      'getApplicationList' | 'updateApplicationList' | 'printApplicationList'
+      'getApplicationList' | 'updateApplicationList' | 'printApplicationLists'
     >
   > = {
     getApplicationList: jest.fn(),
     updateApplicationList: jest.fn(),
-    printApplicationList: jest.fn(),
+    printApplicationLists: jest.fn(),
   };
 
   const entriesApiStub: jest.Mocked<
     Pick<
       ApplicationListEntriesApi,
-      'getApplicationListEntries' | 'getApplicationListEntryIds'
+      | 'getApplicationListEntries'
+      | 'getApplicationListEntryIds'
+      | 'getBulkResultApplicationListEntriesByJobId'
+      | 'applicationListEntryBulkActionPreview'
     >
   > = {
     getApplicationListEntries: jest.fn(),
     getApplicationListEntryIds: jest.fn(),
+    getBulkResultApplicationListEntriesByJobId: jest.fn(),
+    applicationListEntryBulkActionPreview: jest.fn(),
   };
 
   const menuStub: jest.Mocked<Pick<MojButtonMenu, 'initAll'>> = {
@@ -124,10 +136,6 @@ describe('ApplicationsListDetail', () => {
   const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
     courtLocations$: of([]),
     cja$: of([] as CriminalJusticeAreaGetDto[]),
-  };
-
-  const jobPollingFacadeStub = {
-    watchJob: jest.fn(),
   };
 
   let historyStateSpy: jest.SpyInstance;
@@ -172,11 +180,11 @@ describe('ApplicationsListDetail', () => {
       ),
     );
 
-    apiStub.printApplicationList.mockReturnValue(
-      of({
-        entries: [{ id: 'entry-1' }, { id: 'entry-2' }],
-      } as ApplicationListGetPrintDto) as unknown as ReturnType<
-        ApplicationListsApi['printApplicationList']
+    apiStub.printApplicationLists.mockReturnValue(
+      of([
+        { entries: [{ id: 'entry-1' }, { id: 'entry-2' }] },
+      ] as ApplicationListGetPrintDto[]) as unknown as ReturnType<
+        ApplicationListsApi['printApplicationLists']
       >,
     );
 
@@ -247,7 +255,6 @@ describe('ApplicationsListDetail', () => {
         { provide: PLATFORM_ID, useValue: 'browser' },
         { provide: ApplicationListsApi, useValue: apiStub },
         { provide: ApplicationListEntriesApi, useValue: entriesApiStub },
-        { provide: JobPollingFacade, useValue: jobPollingFacadeStub },
         { provide: MojButtonMenu, useValue: menuStub },
         { provide: PdfService, useValue: pdfStub },
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
@@ -277,7 +284,6 @@ describe('ApplicationsListDetail', () => {
     expect(appsTab).toBeTruthy();
     expect(detailsTab).toBeTruthy();
 
-    expect(appsTab.nativeElement.getAttribute('aria-selected')).toBe('true');
     expect(detailsTab.nativeElement.getAttribute('aria-selected')).toBe(
       'false',
     );
@@ -290,169 +296,6 @@ describe('ApplicationsListDetail', () => {
     expect(
       fixture.debugElement.query(By.css('app-success-banner')),
     ).toBeTruthy();
-  });
-
-  describe('bulk upload polling', () => {
-    const startBulkUploadPolling = (jobId = 'job-1'): void => {
-      (
-        component as unknown as {
-          startBulkUploadPolling(jobId: string): void;
-        }
-      ).startBulkUploadPolling(jobId);
-    };
-
-    it('shows live progress content while the upload is being polled', async () => {
-      const jobUpdates = new Subject<unknown>();
-      jobPollingFacadeStub.watchJob.mockReturnValue(jobUpdates.asObservable());
-
-      startBulkUploadPolling();
-      await flushSignalEffects(fixture);
-
-      expect(jobPollingFacadeStub.watchJob).toHaveBeenCalledWith('job-1');
-      const progress = fixture.debugElement.query(
-        By.css('app-async-job-progress'),
-      );
-      expect(progress).toBeTruthy();
-      expect(progress.nativeElement.textContent).toContain(
-        'Upload in progress',
-      );
-    });
-
-    it('shows a success banner, refreshes the list, and clears the query param when the upload succeeds', async () => {
-      const loadSpy = jest
-        .spyOn(component, 'loadApplicationsLists')
-        .mockImplementation(() => undefined);
-      const router = TestBed.inject(Router);
-      const navigateSpy = jest
-        .spyOn(router, 'navigate')
-        .mockResolvedValue(true);
-
-      jobPollingFacadeStub.watchJob.mockReturnValue(
-        of({
-          id: 'job-1',
-          rawStatus: 'SUCCEEDED',
-          state: 'succeeded',
-          isTerminal: true,
-          createdCount: 3,
-          errorCount: null,
-          totalCount: 3,
-          message: null,
-          raw: {},
-        }),
-      );
-
-      startBulkUploadPolling();
-      await flushSignalEffects(fixture);
-
-      const banner = fixture.debugElement.query(By.css('app-success-banner'));
-      expect(banner).toBeTruthy();
-      expect(banner.nativeElement.textContent).toContain('3 records created.');
-      expect(loadSpy).toHaveBeenCalled();
-      expect(navigateSpy).toHaveBeenCalledWith([], {
-        relativeTo: TestBed.inject(ActivatedRoute),
-        queryParams: { bulkUploadJobId: null },
-        queryParamsHandling: 'merge',
-        replaceUrl: true,
-      });
-    });
-
-    it('shows a warning banner when the upload completes with errors', async () => {
-      const loadSpy = jest
-        .spyOn(component, 'loadApplicationsLists')
-        .mockImplementation(() => undefined);
-
-      jobPollingFacadeStub.watchJob.mockReturnValue(
-        of({
-          id: 'job-1',
-          rawStatus: 'COMPLETED_WITH_ERRORS',
-          state: 'completed_with_errors',
-          isTerminal: true,
-          createdCount: 4,
-          errorCount: 2,
-          totalCount: 6,
-          message: null,
-          raw: {},
-        }),
-      );
-
-      startBulkUploadPolling();
-      await flushSignalEffects(fixture);
-
-      const banner = fixture.debugElement.query(
-        By.css('.govuk-notification-banner'),
-      );
-      expect(banner).toBeTruthy();
-      expect(banner.nativeElement.getAttribute('role')).toBe('region');
-      expect(
-        banner.nativeElement.classList.contains(
-          'govuk-notification-banner--success',
-        ),
-      ).toBe(false);
-      expect(banner.nativeElement.textContent).toContain(
-        'Bulk upload completed with errors',
-      );
-      expect(banner.nativeElement.textContent).toContain('4 records created.');
-      expect(banner.nativeElement.textContent).toContain(
-        '2 records had errors.',
-      );
-      expect(
-        banner.nativeElement.querySelector('.govuk-notification-banner__link'),
-      ).toBeNull();
-      expect(loadSpy).toHaveBeenCalled();
-    });
-
-    it('shows a failure error summary with the backend message and does not reload the list', async () => {
-      const loadSpy = jest
-        .spyOn(component, 'loadApplicationsLists')
-        .mockImplementation(() => undefined);
-
-      jobPollingFacadeStub.watchJob.mockReturnValue(
-        of({
-          id: 'job-1',
-          rawStatus: 'FAILED',
-          state: 'failed',
-          isTerminal: true,
-          createdCount: null,
-          errorCount: null,
-          totalCount: null,
-          message: 'The uploaded file could not be processed.',
-          raw: {},
-        }),
-      );
-
-      startBulkUploadPolling();
-      await flushSignalEffects(fixture);
-
-      const summary = fixture.debugElement.query(
-        By.css('.govuk-error-summary'),
-      );
-      expect(summary).toBeTruthy();
-      expect(summary.nativeElement.textContent).toContain('Bulk upload failed');
-      expect(summary.nativeElement.textContent).toContain(
-        'The uploaded file could not be processed.',
-      );
-      expect(loadSpy).not.toHaveBeenCalled();
-    });
-
-    it('shows an inline error summary when polling fails', async () => {
-      jobPollingFacadeStub.watchJob.mockReturnValue(
-        throwError(() => new Error('boom')),
-      );
-
-      startBulkUploadPolling();
-      await flushSignalEffects(fixture);
-
-      const summary = fixture.debugElement.query(
-        By.css('.govuk-error-summary'),
-      );
-      expect(summary).toBeTruthy();
-      expect(summary.nativeElement.textContent).toContain(
-        'Unable to load upload status',
-      );
-      expect(summary.nativeElement.textContent).toContain(
-        'Please try again later.',
-      );
-    });
   });
 
   it('shows error summary when errorSummary has items', async () => {
@@ -667,41 +510,6 @@ describe('ApplicationsListDetail', () => {
     });
   });
 
-  describe('filterEntriesToPrint', () => {
-    const printHelpers = (): PrintHelpersAccessor =>
-      component as unknown as PrintHelpersAccessor;
-
-    it('returns only entries whose row ids are selected', () => {
-      patchDetailState({ selectedIds: new Set(['entry-1', 'entry-3']) });
-
-      const dto = {
-        entries: [{ id: 'entry-1' }, { id: 'entry-2' }, { id: 'entry-3' }],
-      } as ApplicationListGetPrintDto;
-
-      const result = printHelpers().filterEntriesToPrint(dto);
-
-      expect(result).toEqual({
-        ...dto,
-        entries: [{ id: 'entry-1' }, { id: 'entry-3' }],
-      });
-    });
-
-    it('returns the dto with an empty entries array when nothing is selected', () => {
-      patchDetailState({ selectedIds: new Set<string>() });
-
-      const dto = {
-        entries: [{ id: 'entry-1' }, { id: 'entry-2' }],
-      } as ApplicationListGetPrintDto;
-
-      const result = printHelpers().filterEntriesToPrint(dto);
-
-      expect(result).toEqual({
-        ...dto,
-        entries: [],
-      });
-    });
-  });
-
   describe('handlePrintPage', () => {
     const printHelpers = (): PrintHelpersAccessor =>
       component as unknown as PrintHelpersAccessor;
@@ -773,11 +581,18 @@ describe('ApplicationsListDetail', () => {
             feeReq: 'Yes',
             resulted: 'No',
             status: 'OPEN',
-          } as Row,
+          },
         ],
       });
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of({
+          entryIds: ['entry-1'],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
       component.id = 'list-123';
-      component.onPrintPageClick();
+      await component.onPrintPageClick();
       fixture.detectChanges();
       await Promise.resolve();
       fixture.detectChanges();
@@ -845,7 +660,7 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('onPrintContinuousClick', () => {
-    it('clears notifications and sets a continuous print request when id exists', () => {
+    it('clears notifications and sets a continuous print request when id exists', async () => {
       const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
       const setSpy = jest.spyOn(
         (component as unknown as PrintRequestSignalAccessor).printRequest,
@@ -853,8 +668,15 @@ describe('ApplicationsListDetail', () => {
       );
 
       component.id = 'list-123';
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of({
+          entryIds: ['entry-1'],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
 
-      component.onPrintContinuousClick();
+      await component.onPrintContinuousClick();
 
       expect(patchSpy).toHaveBeenCalledWith({
         updateDone: false,
@@ -862,18 +684,24 @@ describe('ApplicationsListDetail', () => {
         errorHint: '',
         errorSummary: [],
         createDone: false,
+        bulkUploadDone: false,
         preserveErrorSummaryOnLoad: false,
         moveDone: false,
         updateOfficialsDone: false,
         updateFeesDone: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
-        id: 'list-123',
+        body: {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-1'],
+          },
+        },
         mode: 'continuous',
       });
     });
 
-    it('clears notifications and does not set a print request when id is missing', () => {
+    it('clears notifications and does not set a print request when id is missing', async () => {
       const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
       const setSpy = jest.spyOn(
         (component as unknown as PrintRequestSignalAccessor).printRequest,
@@ -882,7 +710,7 @@ describe('ApplicationsListDetail', () => {
 
       component.id = '';
 
-      component.onPrintContinuousClick();
+      await component.onPrintContinuousClick();
 
       expect(patchSpy).toHaveBeenCalled();
       expect(setSpy).not.toHaveBeenCalled();
@@ -890,7 +718,7 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('onPrintPageClick', () => {
-    it('clears notifications and sets a page print request when id exists', () => {
+    it('clears notifications and sets a page print request when id exists', async () => {
       const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
       const setSpy = jest.spyOn(
         (component as unknown as PrintRequestSignalAccessor).printRequest,
@@ -898,8 +726,15 @@ describe('ApplicationsListDetail', () => {
       );
 
       component.id = 'list-123';
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of({
+          entryIds: ['entry-1'],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
 
-      component.onPrintPageClick();
+      await component.onPrintPageClick();
 
       expect(patchSpy).toHaveBeenCalledWith({
         updateDone: false,
@@ -907,18 +742,24 @@ describe('ApplicationsListDetail', () => {
         errorHint: '',
         errorSummary: [],
         createDone: false,
+        bulkUploadDone: false,
         preserveErrorSummaryOnLoad: false,
         moveDone: false,
         updateOfficialsDone: false,
         updateFeesDone: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
-        id: 'list-123',
+        body: {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-1'],
+          },
+        },
         mode: 'page',
       });
     });
 
-    it('clears notifications and does not set a print request when id is missing', () => {
+    it('clears notifications and does not set a print request when id is missing', async () => {
       const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
       const setSpy = jest.spyOn(
         (component as unknown as PrintRequestSignalAccessor).printRequest,
@@ -927,7 +768,7 @@ describe('ApplicationsListDetail', () => {
 
       component.id = '';
 
-      component.onPrintPageClick();
+      await component.onPrintPageClick();
 
       expect(patchSpy).toHaveBeenCalled();
       expect(setSpy).not.toHaveBeenCalled();
@@ -960,15 +801,32 @@ describe('ApplicationsListDetail', () => {
         .mockResolvedValue();
 
       patchDetailState({ selectedIds: new Set(['entry-1']) });
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of({
+          entryIds: ['entry-1'],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
 
       (component as unknown as PrintRequestSignalAccessor).printRequest.set({
-        id: 'list-123',
+        body: {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-1'],
+          },
+        },
         mode: 'page',
       });
       await flushSignalEffects(fixture);
 
-      expect(apiStub.printApplicationList).toHaveBeenCalledWith(
-        { listId: 'list-123' },
+      expect(apiStub.printApplicationLists).toHaveBeenCalledWith(
+        {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-1'],
+          },
+        },
         undefined,
         undefined,
         {
@@ -976,9 +834,9 @@ describe('ApplicationsListDetail', () => {
         },
       );
       expect(setSpy).toHaveBeenCalledWith(null);
-      expect(handlePrintPageSpy).toHaveBeenCalledWith({
-        entries: [{ id: 'entry-1' }],
-      });
+      expect(handlePrintPageSpy).toHaveBeenCalledWith([
+        { entries: [{ id: 'entry-1' }, { id: 'entry-2' }] },
+      ]);
       expect(handlePrintContinuousSpy).not.toHaveBeenCalled();
     });
 
@@ -1007,15 +865,32 @@ describe('ApplicationsListDetail', () => {
         .mockResolvedValue();
 
       patchDetailState({ selectedIds: new Set(['entry-2']) });
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of({
+          entryIds: ['entry-2'],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
 
       (component as unknown as PrintRequestSignalAccessor).printRequest.set({
-        id: 'list-123',
+        body: {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-2'],
+          },
+        },
         mode: 'continuous',
       });
       await flushSignalEffects(fixture);
 
-      expect(apiStub.printApplicationList).toHaveBeenCalledWith(
-        { listId: 'list-123' },
+      expect(apiStub.printApplicationLists).toHaveBeenCalledWith(
+        {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-2'],
+          },
+        },
         undefined,
         undefined,
         {
@@ -1023,9 +898,9 @@ describe('ApplicationsListDetail', () => {
         },
       );
       expect(setSpy).toHaveBeenCalledWith(null);
-      expect(handlePrintContinuousSpy).toHaveBeenCalledWith({
-        entries: [{ id: 'entry-2' }],
-      });
+      expect(handlePrintContinuousSpy).toHaveBeenCalledWith([
+        { entries: [{ id: 'entry-1' }, { id: 'entry-2' }] },
+      ]);
       expect(handlePrintPageSpy).not.toHaveBeenCalled();
     });
 
@@ -1041,12 +916,17 @@ describe('ApplicationsListDetail', () => {
       );
       const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
 
-      apiStub.printApplicationList.mockReturnValueOnce(
+      apiStub.printApplicationLists.mockReturnValueOnce(
         throwError(() => requestError),
       );
 
       (component as unknown as PrintRequestSignalAccessor).printRequest.set({
-        id: 'list-123',
+        body: {
+          bulkGetApplicationListEntriesRequestDto: {
+            listIds: ['list-123'],
+            entryIds: ['entry-1'],
+          },
+        },
         mode: 'page',
       });
       await flushSignalEffects(fixture);
@@ -1260,6 +1140,35 @@ describe('ApplicationsListDetail', () => {
     expect(vm().updateFeesDone).toBe(true);
   });
 
+  it('sets bulk upload success banner text and job id from navigation state', () => {
+    historyStateSpy.mockReturnValue({
+      row: {
+        id: 'id-1',
+        location: 'LOC1',
+        description: '',
+        status: 'OPEN',
+      },
+      msg: '3 records created.',
+      jobId: 'job-123',
+    });
+
+    const route = TestBed.inject(ActivatedRoute);
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => {
+        if (key === 'bulkUploadSuccess') {
+          return 'true';
+        }
+        return null;
+      });
+
+    component.setSuccessBanner();
+
+    expect(vm().bulkUploadDone).toBe(true);
+    expect(vm().bulkUploadBannerText).toBe('3 records created.');
+    expect(component.bulkUploadJobId()).toBe('job-123');
+  });
+
   it('preserves returned close errors when the detail page reload completes', async () => {
     patchDetailState({
       updateInvalid: true,
@@ -1412,29 +1321,70 @@ describe('ApplicationsListDetail', () => {
     it('shows an error when all selected applications do not require fees', async () => {
       const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
       jest
-        .spyOn(
-          component as unknown as {
-            resolveSelectedRows(): Promise<Row[]>;
-          },
-          'resolveSelectedRows',
-        )
-        .mockResolvedValue([
-          {
-            id: 'entry-1',
-            applicant: 'Applicant',
-            respondent: 'Respondent',
-            title: 'Title',
-            feeReq: 'No',
-          },
-        ]);
+        .spyOn(component as unknown as BulkPreviewAccessor, 'getBulkPreview')
+        .mockResolvedValue({
+          action: BulkActionType.UPDATE_FEE_DETAILS,
+          limit: 2000,
+          selectedCount: 1,
+          eligibleCount: 0,
+          ineligibleCount: 1,
+          entryIds: ['entry-1'],
+          entries: [
+            {
+              id: 'entry-1',
+              applicant: {
+                organisation: {
+                  name: 'Applicant 2',
+                  contactDetails: { addressLine1: 'Applicant address' },
+                },
+              },
+              respondent: {
+                organisation: {
+                  name: 'Respondent 2',
+                  contactDetails: { addressLine1: 'Respondent address' },
+                },
+              },
+              applicationTitle: 'Title 2',
+              isFeeRequired: true,
+              isResulted: true,
+              resulted: [{ resultCode: 'ADJ', title: 'Adjourned' }],
+              status: ApplicationListStatus.OPEN,
+            },
+          ],
+        });
 
       await component.onUpdateFeeButtonClick();
 
       expect(vm().errorSummary).toEqual([
         {
           text: 'Cannot update application(s) that do not require a fee',
-          href: '',
-          id: '',
+        },
+      ]);
+      expect(navigateSpy).not.toHaveBeenCalledWith(
+        ['bulk-update-fee'],
+        expect.anything(),
+      );
+    });
+
+    it('shows an error when bulk preview endpoint returns no rows', async () => {
+      const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
+      jest
+        .spyOn(component as unknown as BulkPreviewAccessor, 'getBulkPreview')
+        .mockResolvedValue({
+          action: BulkActionType.UPDATE_FEE_DETAILS,
+          limit: 2000,
+          selectedCount: 1,
+          eligibleCount: 0,
+          ineligibleCount: 1,
+          entryIds: ['entry-1'],
+          entries: [],
+        });
+
+      await component.onUpdateFeeButtonClick();
+
+      expect(vm().errorSummary).toEqual([
+        {
+          text: 'No rows have been selected. If you believe this is in error, contact support',
         },
       ]);
       expect(navigateSpy).not.toHaveBeenCalledWith(
@@ -1448,48 +1398,56 @@ describe('ApplicationsListDetail', () => {
         .spyOn(TestBed.inject(Router), 'navigate')
         .mockResolvedValue(true);
       jest
-        .spyOn(
-          component as unknown as {
-            resolveSelectedRows(): Promise<Row[]>;
-          },
-          'resolveSelectedRows',
-        )
-        .mockResolvedValue([
-          {
-            id: 'entry-1',
-            applicant: 'Applicant',
-            respondent: 'Respondent',
-            title: 'Title',
-            feeReq: 'No',
-            resulted: 'COST',
-          },
+        .spyOn(component as unknown as BulkPreviewAccessor, 'getBulkPreview')
+        .mockResolvedValue({
+          action: BulkActionType.UPDATE_FEE_DETAILS,
+          limit: 2000,
+          selectedCount: 2,
+          eligibleCount: 1,
+          ineligibleCount: 1,
+          entryIds: ['entry-2'],
+          entries: [
+            {
+              id: 'entry-2',
+              applicant: {
+                organisation: {
+                  name: 'Applicant 2',
+                  contactDetails: { addressLine1: 'Applicant address' },
+                },
+              },
+              respondent: {
+                organisation: {
+                  name: 'Respondent 2',
+                  contactDetails: { addressLine1: 'Respondent address' },
+                },
+              },
+              applicationTitle: 'Title 2',
+              isFeeRequired: true,
+              isResulted: true,
+              resulted: [{ resultCode: 'ADJ', title: 'Adjourned' }],
+              status: ApplicationListStatus.OPEN,
+            },
+          ],
+        });
+
+      await component.onUpdateFeeButtonClick();
+
+      expect(navigateSpy).toHaveBeenCalledTimes(1);
+      const [commands, navigationExtras] = navigateSpy.mock.calls[0];
+      expect(commands).toEqual(['bulk-update-fee']);
+      expect(navigationExtras?.relativeTo).toBe(TestBed.inject(ActivatedRoute));
+      expect(navigationExtras?.state).toEqual({
+        removedApplicationsWarning: true,
+        entriesToUpdateFee: [
           {
             id: 'entry-2',
             applicant: 'Applicant 2',
             respondent: 'Respondent 2',
             title: 'Title 2',
-            feeReq: 'Yes',
+            feeRequired: 'Yes',
             resulted: 'ADJ',
           },
-        ]);
-
-      await component.onUpdateFeeButtonClick();
-
-      expect(navigateSpy).toHaveBeenCalledWith(['bulk-update-fee'], {
-        relativeTo: TestBed.inject(ActivatedRoute),
-        state: {
-          removedApplicationsWarning: true,
-          entriesToUpdateFee: [
-            {
-              id: 'entry-2',
-              applicant: 'Applicant 2',
-              respondent: 'Respondent 2',
-              title: 'Title 2',
-              feeRequired: 'Yes',
-              resulted: 'ADJ',
-            },
-          ],
-        },
+        ],
       });
     });
 
@@ -1498,41 +1456,116 @@ describe('ApplicationsListDetail', () => {
         .spyOn(TestBed.inject(Router), 'navigate')
         .mockResolvedValue(true);
       jest
-        .spyOn(
-          component as unknown as {
-            resolveSelectedRows(): Promise<Row[]>;
-          },
-          'resolveSelectedRows',
-        )
-        .mockResolvedValue([
+        .spyOn(component as unknown as BulkPreviewAccessor, 'getBulkPreview')
+        .mockResolvedValue({
+          action: BulkActionType.UPDATE_FEE_DETAILS,
+          limit: 2000,
+          selectedCount: 1,
+          eligibleCount: 1,
+          ineligibleCount: 0,
+          entryIds: ['entry-2'],
+          entries: [
+            {
+              id: 'entry-2',
+              applicant: {
+                organisation: {
+                  name: 'Applicant 2',
+                  contactDetails: { addressLine1: 'Applicant address' },
+                },
+              },
+              respondent: {
+                organisation: {
+                  name: 'Respondent 2',
+                  contactDetails: { addressLine1: 'Respondent address' },
+                },
+              },
+              applicationTitle: 'Title 2',
+              isFeeRequired: true,
+              isResulted: true,
+              resulted: [{ resultCode: 'ADJ', title: 'Adjourned' }],
+              status: ApplicationListStatus.OPEN,
+            },
+          ],
+        });
+
+      await component.onUpdateFeeButtonClick();
+
+      expect(navigateSpy).toHaveBeenCalledTimes(1);
+      const [commands, navigationExtras] = navigateSpy.mock.calls[0];
+      expect(commands).toEqual(['bulk-update-fee']);
+      expect(navigationExtras?.relativeTo).toBe(TestBed.inject(ActivatedRoute));
+      expect(navigationExtras?.state).toEqual({
+        removedApplicationsWarning: false,
+        entriesToUpdateFee: [
           {
             id: 'entry-2',
             applicant: 'Applicant 2',
             respondent: 'Respondent 2',
             title: 'Title 2',
-            feeReq: 'Yes',
+            feeRequired: 'Yes',
             resulted: 'ADJ',
           },
-        ]);
-
-      await component.onUpdateFeeButtonClick();
-
-      expect(navigateSpy).toHaveBeenCalledWith(['bulk-update-fee'], {
-        relativeTo: TestBed.inject(ActivatedRoute),
-        state: {
-          removedApplicationsWarning: false,
-          entriesToUpdateFee: [
-            {
-              id: 'entry-2',
-              applicant: 'Applicant 2',
-              respondent: 'Respondent 2',
-              title: 'Title 2',
-              feeRequired: 'Yes',
-              resulted: 'ADJ',
-            },
-          ],
-        },
+        ],
       });
+    });
+  });
+
+  describe('onBulkUploadBannerClick', () => {
+    it('loads uploaded entry ids, patches selection, and opens bulk fee update', async () => {
+      entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReturnValue(
+        of(['entry-1', 'entry-2']) as never,
+      );
+      component.bulkUploadJobId.set('job-123');
+
+      const updateFeeSpy = jest
+        .spyOn(component, 'onUpdateFeeButtonClick')
+        .mockResolvedValue();
+
+      await component.onBulkUploadBannerClick();
+
+      expect(
+        entriesApiStub.getBulkResultApplicationListEntriesByJobId,
+      ).toHaveBeenCalledWith({ jobId: 'job-123' });
+      expect(vm().selectedIds).toEqual(new Set(['entry-1', 'entry-2']));
+      expect(updateFeeSpy).toHaveBeenCalled();
+    });
+
+    it('shows an error when no uploaded entry ids are returned', async () => {
+      entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReturnValue(
+        of([]) as never,
+      );
+      component.bulkUploadJobId.set('job-123');
+
+      const updateFeeSpy = jest
+        .spyOn(component, 'onUpdateFeeButtonClick')
+        .mockResolvedValue();
+
+      await component.onBulkUploadBannerClick();
+
+      expect(vm().errorSummary).toEqual([
+        { text: 'Failed to get new bulk uploaded applications' },
+      ]);
+      expect(updateFeeSpy).not.toHaveBeenCalled();
+    });
+
+    it('shows the backend error and hides the banner when loading uploaded ids fails', async () => {
+      const httpError = new HttpErrorResponse({
+        status: 500,
+        statusText: 'boom',
+      });
+
+      entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReturnValue(
+        throwError(() => httpError) as never,
+      );
+      patchDetailState({ bulkUploadDone: true });
+      component.bulkUploadJobId.set('job-123');
+
+      await component.onBulkUploadBannerClick();
+
+      expect(vm().bulkUploadDone).toBe(false);
+      expect(vm().errorSummary).toEqual([
+        { text: 'Failed to get new bulk uploaded applications' },
+      ]);
     });
   });
 
@@ -1722,7 +1755,7 @@ describe('ApplicationsListDetail', () => {
     expect(vm().selectedRows).toEqual(rows);
   });
 
-  it('onSelectedIdsChange patches selected ids, visible rows, and allMatchingSelected', () => {
+  it('onSelectedIdsChange patches selected ids and allMatchingSelected', () => {
     patchDetailState({
       rows: [
         { id: 'id-1', title: 'One' } as Row,
@@ -1734,17 +1767,12 @@ describe('ApplicationsListDetail', () => {
     component.onSelectedIdsChange(new Set(['id-1', 'id-2']));
 
     expect(vm().selectedIds).toEqual(new Set(['id-1', 'id-2']));
-    expect(vm().selectedRows).toEqual([
-      { id: 'id-1', title: 'One' },
-      { id: 'id-2', title: 'Two' },
-    ]);
+    expect(vm().selectedRows).toEqual([]);
     expect(vm().allMatchingSelected).toBe(true);
   });
 
   it('onHeaderSelectAllChange selects all matching rows when checked', () => {
-    const selectAllSpy = jest
-      .spyOn(component, 'onSelectAllMatchingClick')
-      .mockResolvedValue();
+    const selectAllSpy = jest.spyOn(component, 'onSelectAllMatchingClick');
 
     component.onHeaderSelectAllChange(true);
 
@@ -1767,13 +1795,7 @@ describe('ApplicationsListDetail', () => {
     expect(vm().allMatchingSelected).toBe(false);
   });
 
-  it('onSelectAllMatchingClick loads ids from the new endpoint', async () => {
-    entriesApiStub.getApplicationListEntryIds.mockReturnValueOnce(
-      of({ ids: ['abc', 'def'] } as EntryIdsDto) as unknown as ReturnType<
-        ApplicationListEntriesApi['getApplicationListEntryIds']
-      >,
-    );
-
+  it('onSelectAllMatchingClick selects visible rows as a filter selection', () => {
     patchDetailState({
       rows: [{ id: 'abc', title: 'Visible row' } as Row],
       totalEntries: 2,
@@ -1781,25 +1803,16 @@ describe('ApplicationsListDetail', () => {
     });
     component.id = 'list-123';
 
-    await component.onSelectAllMatchingClick();
+    component.onSelectAllMatchingClick();
 
-    expect(entriesApiStub.getApplicationListEntryIds).toHaveBeenCalledWith({
-      listId: 'list-123',
-      filter: { applicantName: 'Smith' },
-    });
-    expect(vm().selectedIds).toEqual(new Set(['abc', 'def']));
+    expect(entriesApiStub.getApplicationListEntryIds).not.toHaveBeenCalled();
+    expect(vm().selectedIds).toEqual(new Set(['abc']));
     expect(vm().selectedRows).toEqual([{ id: 'abc', title: 'Visible row' }]);
     expect(vm().allMatchingSelected).toBe(true);
+    expect(vm().isFilterSelection).toBe(true);
   });
 
-  it('onSelectAllMatchingClick selects visible rows immediately before ids request completes', async () => {
-    const ids$ = new Subject<EntryIdsDto>();
-    entriesApiStub.getApplicationListEntryIds.mockReturnValueOnce(
-      ids$ as unknown as ReturnType<
-        ApplicationListEntriesApi['getApplicationListEntryIds']
-      >,
-    );
-
+  it('tracks excluded visible rows when a filter selection is edited', () => {
     patchDetailState({
       rows: [
         { id: 'abc', title: 'Visible row' } as Row,
@@ -1809,57 +1822,79 @@ describe('ApplicationsListDetail', () => {
     });
     component.id = 'list-123';
 
-    const pending = component.onSelectAllMatchingClick();
+    component.onSelectAllMatchingClick();
+    component.onSelectedIdsChange(new Set(['abc']));
 
-    expect(vm().selectedIds).toEqual(new Set(['abc', 'def']));
-    expect(vm().selectedRows).toEqual([
-      { id: 'abc', title: 'Visible row' },
-      { id: 'def', title: 'Visible row 2' },
-    ]);
-    expect(vm().allMatchingSelected).toBe(false);
-
-    ids$.next({ ids: ['abc', 'def', 'ghi', 'jkl'] });
-    ids$.complete();
-    await pending;
-
-    expect(vm().selectedIds).toEqual(new Set(['abc', 'def', 'ghi', 'jkl']));
-    expect(vm().allMatchingSelected).toBe(true);
+    expect(vm().excludedEntryIds).toEqual(new Set(['def']));
+    expect(component.selectedCount).toBe(3);
+    expect(component.tableSelectedIds()).toEqual(new Set(['abc']));
   });
 
-  it('onSelectAllMatchingClick ignores stale responses after selection is cleared', async () => {
-    const ids$ = new Subject<EntryIdsDto>();
-    entriesApiStub.getApplicationListEntryIds.mockReturnValueOnce(
-      ids$ as unknown as ReturnType<
-        ApplicationListEntriesApi['getApplicationListEntryIds']
+  it('requests a bulk preview using filter selection and excluded ids', async () => {
+    jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+      of({
+        action: BulkActionType.RESULT_SELECTED,
+        limit: 2000,
+        selectedCount: 1,
+        eligibleCount: 1,
+        ineligibleCount: 0,
+        entryIds: ['abc'],
+        entries: [
+          {
+            id: 'abc',
+            sequenceNumber: 1,
+            applicationTitle: 'Application',
+            isFeeRequired: false,
+          },
+        ],
+      } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+        ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
       >,
     );
-
     patchDetailState({
-      rows: [{ id: 'abc', title: 'Visible row' } as Row],
-      totalEntries: 2,
+      isFilterSelection: true,
+      getFilters: { applicantName: 'Smith' },
+      excludedEntryIds: new Set(['def']),
     });
     component.id = 'list-123';
 
-    const pending = component.onSelectAllMatchingClick();
-    component.clearSelection();
+    await component.onResultButtonClick();
 
-    ids$.next({ ids: ['abc', 'def'] });
-    ids$.complete();
-    await pending;
-
-    expect(vm().selectedIds.size).toBe(0);
-    expect(vm().selectedRows).toEqual([]);
-    expect(vm().allMatchingSelected).toBe(false);
+    expect(
+      entriesApiStub.applicationListEntryBulkActionPreview,
+    ).toHaveBeenCalledWith({
+      listId: 'list-123',
+      applicationListEntryBulkActionPreviewRequestDto: {
+        action: BulkActionType.RESULT_SELECTED,
+        selection: {
+          selectionType: BulkActionSelectionType.FILTER,
+          filter: { applicantName: 'Smith' },
+          excludedEntryIds: ['def'],
+        },
+      },
+    });
   });
 
-  it('onSearchStarted clears selection and invalidates pending select all', async () => {
-    const ids$ = new Subject<EntryIdsDto>();
-    entriesApiStub.getApplicationListEntryIds.mockReturnValueOnce(
-      ids$ as unknown as ReturnType<
-        ApplicationListEntriesApi['getApplicationListEntryIds']
-      >,
+  it('reports the specific message when a bulk preview exceeds the row limit', async () => {
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
+    entriesApiStub.applicationListEntryBulkActionPreview.mockImplementationOnce(
+      () => throwError(() => new HttpErrorResponse({ status: 413 })),
     );
+    patchDetailState({ selectedIds: new Set(['abc']) });
+    component.id = 'list-123';
 
+    await component.onResultButtonClick();
+
+    expect(vm().errorSummary).toEqual([
+      {
+        text: 'Affected rows exceeds 1050. Please reduce the number of rows selected',
+      },
+    ]);
+  });
+
+  it('onSearchStarted clears selection', () => {
     patchDetailState({
       rows: [{ id: 'abc', title: 'Visible row' } as Row],
       totalEntries: 2,
@@ -1869,20 +1904,12 @@ describe('ApplicationsListDetail', () => {
     });
     component.id = 'list-123';
 
-    const pending = component.onSelectAllMatchingClick();
     component.onSearchStarted({ applicantName: 'New' });
 
     expect(vm().selectedIds.size).toBe(0);
     expect(vm().selectedRows).toEqual([]);
     expect(vm().getFilters).toEqual({ applicantName: 'New' });
     expect(vm().isSelectingAll).toBe(false);
-
-    ids$.next({ ids: ['abc', 'def'] });
-    ids$.complete();
-    await pending;
-
-    expect(vm().selectedIds.size).toBe(0);
-    expect(vm().selectedRows).toEqual([]);
   });
 
   it('prefillFromApi: sets listRow when navigation state row is missing', () => {
@@ -1941,6 +1968,18 @@ describe('ApplicationsListDetail', () => {
         ],
       });
 
+      jest
+        .spyOn(
+          component as unknown as { getBulkPreview: jest.Mock },
+          'getBulkPreview',
+        )
+        .mockResolvedValue({
+          entries: [
+            { id: 'entry-1', sequenceNumber: 1, applicationTitle: 'T1' },
+            { id: 'entry-2', sequenceNumber: 2, applicationTitle: 'T2' },
+          ],
+        } as never);
+
       await component.onResultButtonClick();
 
       expect(navSpy).toHaveBeenCalledTimes(1);
@@ -1951,15 +1990,17 @@ describe('ApplicationsListDetail', () => {
           state: {
             resultingApplications: [
               {
+                id: 'entry-1',
                 sequenceNumber: 1,
-                applicant: 'A',
-                respondent: 'R',
+                applicant: null,
+                respondent: null,
                 title: 'T1',
               },
               {
+                id: 'entry-2',
                 sequenceNumber: 2,
-                applicant: 'B',
-                respondent: 'S',
+                applicant: null,
+                respondent: null,
                 title: 'T2',
               },
             ],
@@ -1971,6 +2012,18 @@ describe('ApplicationsListDetail', () => {
     it('resolves rows across pages when selected ids exceed visible rows', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      jest
+        .spyOn(
+          component as unknown as { getBulkPreview: jest.Mock },
+          'getBulkPreview',
+        )
+        .mockResolvedValue({
+          entries: [
+            { id: 'entry-1', sequenceNumber: 1, applicationTitle: 'First' },
+            { id: 'entry-2', sequenceNumber: 2, applicationTitle: 'Second' },
+          ],
+        } as never);
 
       entriesApiStub.getApplicationListEntries.mockReturnValueOnce(
         of({

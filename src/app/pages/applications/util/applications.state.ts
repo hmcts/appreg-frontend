@@ -1,5 +1,9 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
-import { EntryGetFilterDto, EntryGetSummaryDto } from '@openapi';
+import {
+  BulkActionPreviewResponseDto,
+  EntryGetFilterDto,
+  EntryGetSummaryDto,
+} from '@openapi';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 
 export interface ApplicationsState {
@@ -26,10 +30,14 @@ export interface ApplicationsState {
   selectedIds: Set<string>;
   selectedRows: ApplicationRow[];
   allMatchingSelected: boolean;
+  isFilterSelection: boolean;
+  excludedEntryIds: Set<string>;
   isSelectingAll: boolean;
   getFilters: EntryGetFilterDto;
 
   loading: boolean;
+
+  previewRows: BulkActionPreviewResponseDto | null;
 }
 
 export const initialApplicationsState: ApplicationsState = {
@@ -51,9 +59,12 @@ export const initialApplicationsState: ApplicationsState = {
   selectedIds: new Set<string>(),
   selectedRows: [],
   allMatchingSelected: false,
+  isFilterSelection: false,
+  excludedEntryIds: new Set<string>(),
   isSelectingAll: false,
   getFilters: {},
   loading: false,
+  previewRows: null,
 };
 
 export const defaultApplicationsSort = (): ApplicationsState['sortField'] => ({

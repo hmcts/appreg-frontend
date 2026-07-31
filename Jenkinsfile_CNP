@@ -1,12 +1,12 @@
 #!groovy
 
-@Library('Infrastructure@2.4.0')
+@Library('Infrastructure@2.4.4')
 
 def type = 'angular'
 def product = 'appreg'
 def component = 'frontend'
 
-def branchesToSync = ['demo', 'ithc']
+def branchesToSync = ['demo']
 
 def vaultOverrides = [
   'dev': 'stg',

@@ -23,8 +23,19 @@
   id="update-officials-applications-table"
   [caption]="'Application(s) to update'"
   [columns]="columns"
-  [data]="rows"
+  [data]="paginatedRows()"
+  [clientOrServerSort]="'server'"
+  [sortState]="officialSort()"
+  (sortChange)="onSortChange($event)"
 />
+
+@if (showPagination()) {
+  <app-pagination
+    [currentPage]="currentPage()"
+    [totalPages]="totalPages()"
+    (pageChange)="onPageChange($event)"
+  />
+}
 
 <div class="govuk-!-margin-top-6">
   <app-officials-section

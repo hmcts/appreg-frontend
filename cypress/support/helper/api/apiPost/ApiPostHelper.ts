@@ -60,14 +60,16 @@ export class ApiPostHelper {
   ): void {
     if (fileName === 'bulk-upload-entries.csv') {
       const suffix = Cypress._.random(100000, 999999).toString();
-      cy.task<string>('buildBulkUploadCsv', { suffix }).then((fileContents) => {
-        ApiPostHelper.postMultipartFileContents(
-          endpoint,
-          fileName,
-          fileContents,
-          contentType,
-        );
-      });
+      cy.task<string>('buildBulkUploadCsv', { fileName, suffix }).then(
+        (fileContents) => {
+          ApiPostHelper.postMultipartFileContents(
+            endpoint,
+            fileName,
+            fileContents,
+            contentType,
+          );
+        },
+      );
       return;
     }
 

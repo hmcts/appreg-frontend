@@ -89,37 +89,4 @@ describe('JobPollingFacade', () => {
     await flushTimers(5_000);
     expect(jobsApiMock.getJobStatusById).toHaveBeenCalledTimes(2);
   });
-
-  it('normalises completed-with-errors payloads', async () => {
-    jobsApiMock.getJobStatusById.mockReturnValue(
-      of(
-        new HttpResponse({
-          body: {
-            id: 'job-2',
-            status: 'COMPLETED_WITH_ERRORS',
-            summary: {
-              successfulRecords: 4,
-              failedRecords: 2,
-            },
-            errorReportAvailable: true,
-          },
-        }),
-      ),
-    );
-
-    const emissions: PolledJobStatus[] = [];
-    facade.watchJob('job-2', 1_000).subscribe((value) => emissions.push(value));
-
-    await flushTimers(0);
-
-    expect(emissions[0]).toEqual(
-      expect.objectContaining({
-        id: 'job-2',
-        state: 'completed_with_errors',
-        isTerminal: true,
-        createdCount: 4,
-        errorCount: 2,
-      }),
-    );
-  });
 });

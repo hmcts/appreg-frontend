@@ -10,6 +10,46 @@ import { TableNavigation } from './TableNavigation';
  */
 export class TableSearch {
   /**
+   * Retries a boolean condition until it passes or times out.
+   * Used for table states that can lag briefly behind the triggering action.
+   */
+  private static retryUntil(
+    check: () => Cypress.Chainable<boolean>,
+    failureMessage: string,
+    timeoutMs: number = 5000,
+    intervalMs: number = 250,
+  ): Cypress.Chainable<void> {
+    const startedAt = Date.now();
+
+    const attempt = (): Cypress.Chainable<void> => {
+      return check()
+        .then((passed) => {
+          if (passed) {
+            return false;
+          }
+
+          if (Date.now() - startedAt >= timeoutMs) {
+            throw new Error(failureMessage);
+          }
+
+          return true;
+        })
+        .then((shouldRetry) => {
+          if (!shouldRetry) {
+            return undefined;
+          }
+
+          return cy
+            .wait(intervalMs, { log: false })
+            .then(() => attempt())
+            .then(() => undefined);
+        });
+    };
+
+    return attempt();
+  }
+
+  /**
    * Builds a map of column names to their indices
    */
   static buildColumnIndexMap(
@@ -116,6 +156,8 @@ export class TableSearch {
           matchedRow = Cypress.$(row);
           return false; // break the loop
         }
+
+        return undefined;
       });
 
       if (matchedRow && onMatch) {
@@ -230,16 +272,26 @@ export class TableSearch {
     const tableRef = caption ? `table "${caption}"` : 'table';
     cy.log(`Verifying NO row exists in ${tableRef} with: ${searchCriteria}`);
 
-    return TableSearch.findRowWithValues(columnValues, caption, true).then(
-      (found) => {
-        if (!found) {
-          cy.log(`✓ No row found with: ${searchCriteria}`);
-          return;
-        }
-        throw new Error(
-          `✗ Unexpected row found in ${tableRef} with values: ${searchCriteria}`,
-        );
-      },
-    ) as unknown as Cypress.Chainable<void>;
+    // Search results can briefly show stale rows after actions like delete.
+    // Poll until the row disappears, then do one final check for a clear error.
+    return TableSearch.retryUntil(
+      () =>
+        TableSearch.findRowWithValues(columnValues, caption, true).then(
+          (found) => !found,
+        ),
+      `✗ Unexpected row found in ${tableRef} with values: ${searchCriteria}`,
+    ).then(() => {
+      cy.log(`✓ No row found with: ${searchCriteria}`);
+      return TableSearch.findRowWithValues(columnValues, caption, true).then(
+        (found) => {
+          if (!found) {
+            return;
+          }
+          throw new Error(
+            `✗ Unexpected row found in ${tableRef} with values: ${searchCriteria}`,
+          );
+        },
+      );
+    }) as unknown as Cypress.Chainable<void>;
   }
 }

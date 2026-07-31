@@ -1,8 +1,23 @@
+/**
+ * Bulk Update Officials Confirmation
+ * Main Component for page /applications-list/:id/update-officials/confirm
+ *
+ * Functionality:
+ * onConfirm():
+ * - POST request to replace officials for the selected Application List Entries
+ * - Redirects back to the Application List on success
+ *
+ * goBack():
+ * - Navigates back to the Bulk Update Officials page
+ * - Restores the previously entered official details
+ */
+
 import { Location, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
+import { UpdateOfficialsTableBase } from '../update-officials-table.base';
 import {
   UpdateOfficialsApplication,
   UpdateOfficialsNavState,
@@ -17,6 +32,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { ApplicationListEntriesApi, Official, OfficialType } from '@openapi';
@@ -36,10 +52,14 @@ type OfficialSummaryRow = {
     ReviewConfirmComponent,
     SortableTableComponent,
     AlertComponent,
+    PaginationComponent,
   ],
   templateUrl: './update-officials-confirm.component.html',
 })
-export class UpdateOfficialsConfirmComponent implements OnInit {
+export class UpdateOfficialsConfirmComponent
+  extends UpdateOfficialsTableBase
+  implements OnInit
+{
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly location = inject(Location);

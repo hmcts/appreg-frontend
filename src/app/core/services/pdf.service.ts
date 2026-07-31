@@ -1,8 +1,8 @@
-// TODO: Look through this service and refactor
-
 import { Injectable, inject } from '@angular/core';
+import { autoTable } from 'jspdf-autotable';
 
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
+import { StandardApplicantPrintDto } from '@openapi';
 import { asArr, asObj, asStrOrNum } from '@util/data-utils';
 import {
   drawHr,
@@ -10,9 +10,67 @@ import {
   extractDuration as extractDurationFromDto,
   toLines,
 } from '@util/pdf-utils';
-import { trimToString } from '@util/string-helpers';
+import { getDateStamp, trimToString } from '@util/string-helpers';
 import { normaliseTime } from '@util/time-helpers';
 import { JsPDFLike, PdfList } from '@util/types/pdf-service/pdf-types';
+
+const PDF_PAGE_OPTIONS = {
+  unit: 'pt',
+  format: 'a4',
+} as const;
+const PDF_FONT = {
+  family: 'helvetica',
+  bold: 'bold',
+  normal: 'normal',
+} as const;
+
+const DEFAULT_CONTINUOUS_ROW_SPACING = 14;
+
+const PAGED_APPLICATION_LIST_LAYOUT = {
+  margin: 56,
+  labelWidth: 140,
+  columnGap: 20,
+  footerGutter: 64,
+  titleFontSize: 18,
+  labelFontSize: 11,
+  labelLineHeight: 14,
+  valueFontSize: 12,
+  valueLineHeight: 16,
+  crestWidth: 72,
+  crestHeight: 72,
+  crestYOffset: -6,
+  headerBodyGap: 56,
+  footerOffset: 22,
+} as const;
+
+const CONTINUOUS_APPLICATION_LIST_LAYOUT = {
+  margin: 40,
+  columnGap: 28,
+  labelWidth: 120,
+  innerGap: 10,
+  footerGutter: 40,
+  titleFontSize: 20,
+  labelFontSize: 12,
+  valueFontSize: 12,
+  labelLineHeight: 14,
+  valueLineHeight: 16,
+  headerBottomPadding: 25,
+} as const;
+
+type DrawContinuousTwoColumnRow = (
+  leftLabel: string,
+  leftValue: string,
+  rightLabel: string,
+  rightValue: string,
+  spacing?: number,
+  padY?: number,
+) => void;
+
+type DrawContinuousFullRow = (
+  label: string,
+  value: string,
+  spacing?: number,
+) => void;
 
 @Injectable({ providedIn: 'root' })
 export class PdfService {
@@ -35,29 +93,18 @@ export class PdfService {
 
     const doc = new jsPDF({
       orientation: 'portrait',
-      unit: 'pt',
-      format: 'a4',
+      ...PDF_PAGE_OPTIONS,
     });
 
-    // --- layout constants ---
-    const M = 56;
+    const layout = PAGED_APPLICATION_LIST_LAYOUT;
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
 
-    const LABEL_W = 140;
-    const GAP_X = 20;
-    const RIGHT_X = M + LABEL_W + GAP_X;
-    const RIGHT_W = pageW - RIGHT_X - M;
-
-    const FOOTER_GUTTER = 64;
-    const BOTTOM = pageH - M - FOOTER_GUTTER;
-
-    const TITLE_FS = 18;
-    const CREST_W = 72;
-    const CREST_H = 72;
-    const CREST_X = M;
-    const CREST_Y = M - 6;
-    const HEADER_BODY_GAP = 56;
+    const rightX = layout.margin + layout.labelWidth + layout.columnGap;
+    const rightWidth = pageW - rightX - layout.margin;
+    const bottom = pageH - layout.margin - layout.footerGutter;
+    const crestX = layout.margin;
+    const crestY = layout.margin + layout.crestYOffset;
 
     // Preload the crest once and reuse in every header
     let crestDataUrl: string | null = null;
@@ -70,21 +117,28 @@ export class PdfService {
 
     const hrLocal = (yy: number): void => {
       doc.setLineWidth(0.7);
-      doc.line(M, yy, pageW - M, yy);
+      doc.line(layout.margin, yy, pageW - layout.margin, yy);
     };
 
     // Header renders crest + centred title and returns body start Y
     const drawHeader = (data: PdfList): number => {
       if (crestDataUrl) {
         try {
-          doc.addImage(crestDataUrl, 'PNG', CREST_X, CREST_Y, CREST_W, CREST_H);
+          doc.addImage(
+            crestDataUrl,
+            'PNG',
+            crestX,
+            crestY,
+            layout.crestWidth,
+            layout.crestHeight,
+          );
         } catch {
           /* ignore */
         }
       }
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(TITLE_FS);
+      doc.setFont(PDF_FONT.family, PDF_FONT.bold);
+      doc.setFontSize(layout.titleFontSize);
 
       const title = this.fallbackText(
         data.courtName || `${data.location}\n${data.cja}`,
@@ -93,30 +147,32 @@ export class PdfService {
       const titleLines = toLines(
         doc as unknown as JsPDFLike,
         title,
-        pageW - 2 * M,
+        pageW - 2 * layout.margin,
       );
-      const lineH = TITLE_FS * 1.2;
+      const lineH = layout.titleFontSize * 1.2;
       const blockH = Math.max(lineH, titleLines.length * lineH);
 
-      const crestMidY = CREST_Y + CREST_H / 2;
-      const titleFirstBaselineY = crestMidY - blockH / 2 + TITLE_FS * 0.85;
+      const crestMidY = crestY + layout.crestHeight / 2;
+      const titleFirstBaselineY =
+        crestMidY - blockH / 2 + layout.titleFontSize * 0.85;
 
       doc.text(titleLines, pageW / 2, titleFirstBaselineY, { align: 'center' });
 
       const titleBottomBaseline =
         titleFirstBaselineY + (titleLines.length - 1) * lineH;
-      const headerBottom = Math.max(CREST_Y + CREST_H, titleBottomBaseline) + 8;
+      const headerBottom =
+        Math.max(crestY + layout.crestHeight, titleBottomBaseline) + 8;
 
       hrLocal(headerBottom);
-      return headerBottom + HEADER_BODY_GAP;
+      return headerBottom + layout.headerBodyGap;
     };
 
     const drawFooter = (): void => {
-      const baseY = pageH - M - 22;
+      const baseY = pageH - layout.margin - layout.footerOffset;
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.text('Produced on', M, baseY);
+      doc.setFont(PDF_FONT.family, PDF_FONT.bold);
+      doc.setFontSize(layout.labelFontSize);
+      doc.text('Produced on', layout.margin, baseY);
 
       const today = new Date();
       const todayDMY =
@@ -124,13 +180,13 @@ export class PdfService {
         `${String(today.getMonth() + 1).padStart(2, '0')}/` +
         `${today.getFullYear()}`;
 
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(12);
-      doc.text(todayDMY, RIGHT_X, baseY);
+      doc.setFont(PDF_FONT.family, PDF_FONT.normal);
+      doc.setFontSize(layout.valueFontSize);
+      doc.text(todayDMY, rightX, baseY);
     };
 
     const ensureSpace = (needed: number, data: PdfList): void => {
-      if (y + needed <= BOTTOM) {
+      if (y + needed <= bottom) {
         return;
       }
       doc.addPage();
@@ -147,34 +203,40 @@ export class PdfService {
     ): void => {
       const spacing = optsLV?.spacing ?? 12;
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
+      doc.setFont(PDF_FONT.family, PDF_FONT.bold);
+      doc.setFontSize(layout.labelFontSize);
       const labelLines = toLines(
         doc as unknown as JsPDFLike,
         labelText,
-        LABEL_W,
+        layout.labelWidth,
       );
-      const labelH = labelLines.length * 14;
+      const labelH = labelLines.length * layout.labelLineHeight;
 
       const valueToUse = valueText?.trim() ? valueText : '—';
-      doc.setFont('helvetica', optsLV?.emphasize ? 'bold' : 'normal');
-      doc.setFontSize(12);
+      doc.setFont(
+        PDF_FONT.family,
+        optsLV?.emphasize ? PDF_FONT.bold : PDF_FONT.normal,
+      );
+      doc.setFontSize(layout.valueFontSize);
       const valueLines = toLines(
         doc as unknown as JsPDFLike,
         valueToUse,
-        RIGHT_W,
+        rightWidth,
       );
-      const valueH = valueLines.length * 16;
+      const valueH = valueLines.length * layout.valueLineHeight;
 
       ensureSpace(Math.max(labelH, valueH), data);
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.text(labelLines, M, y);
+      doc.setFont(PDF_FONT.family, PDF_FONT.bold);
+      doc.setFontSize(layout.labelFontSize);
+      doc.text(labelLines, layout.margin, y);
 
-      doc.setFont('helvetica', optsLV?.emphasize ? 'bold' : 'normal');
-      doc.setFontSize(12);
-      doc.text(valueLines, RIGHT_X, y);
+      doc.setFont(
+        PDF_FONT.family,
+        optsLV?.emphasize ? PDF_FONT.bold : PDF_FONT.normal,
+      );
+      doc.setFontSize(layout.valueFontSize);
+      doc.text(valueLines, rightX, y);
 
       y += Math.max(labelH, valueH) + spacing;
     };
@@ -227,14 +289,17 @@ export class PdfService {
     }
 
     const uniquePlaces = this.uniqueFileSafePlaces(dataArr);
-    const courtPart =
-      uniquePlaces.length === 1
-        ? uniquePlaces[0]
-        : dataArr.length === 1
-          ? 'court'
-          : 'applications';
+    let courtPart: string;
 
-    const datePart = this.dateForFile();
+    if (uniquePlaces.length === 1) {
+      courtPart = uniquePlaces[0];
+    } else if (dataArr.length === 1) {
+      courtPart = 'court';
+    } else {
+      courtPart = 'applications';
+    }
+
+    const datePart = getDateStamp();
     doc.save(`${courtPart}-${datePart}-print-page.pdf`);
   }
 
@@ -246,70 +311,52 @@ export class PdfService {
     dtos: unknown[],
     isClosed: boolean,
   ): Promise<void> {
-    // TODO: Move font + layout consts out to a shared space.
     const dataArr = dtos.map((d) => this.normalise(d));
 
     const jsPDFMod = await import('jspdf');
     const { jsPDF } = jsPDFMod;
     const doc = new jsPDF({
       orientation: 'landscape',
-      unit: 'pt',
-      format: 'a4',
+      ...PDF_PAGE_OPTIONS,
     }) as unknown as JsPDFLike;
 
-    // --- page metrics (A4 landscape) ---
-    const M = 40; // outer margin
+    const layout = CONTINUOUS_APPLICATION_LIST_LAYOUT;
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
 
-    // 2-column grid inside the content area
-    const COL_GAP = 28;
-    const GRID_W = pageW - 2 * M;
-    const COL_W = Math.floor((GRID_W - COL_GAP) / 2);
-    const COL1_X = M;
-    const COL2_X = M + COL_W + COL_GAP;
-
-    const IN_LABEL_W = 120; // inner label width
-    const IN_GAP = 10;
-
-    const FOOTER_GUTTER = 40;
-    const BOTTOM = pageH - M - FOOTER_GUTTER;
-
-    // Type ramp & leading
-    const TITLE_FS = 20;
-    const LABEL_FS = 12;
-    const VALUE_FS = 12;
-    const LABEL_LEADING = LABEL_FS + 2;
-    const VALUE_LEADING = VALUE_FS + 4;
+    const gridWidth = pageW - 2 * layout.margin;
+    const columnWidth = Math.floor((gridWidth - layout.columnGap) / 2);
+    const secondColumnX = layout.margin + columnWidth + layout.columnGap;
+    const bottom = pageH - layout.margin - layout.footerGutter;
 
     let y = 0;
     let pageNo = 0;
 
-    const pageHeaderTitle =
-      isClosed === true ? 'Applications Register Report' : 'Check List Report';
+    const pageHeaderTitle = this.getContinuousPageHeader(isClosed);
 
-    const hr = (yy: number) => drawHr(doc, Math.round(yy), M, pageW);
+    const hr = (yy: number) =>
+      drawHr(doc, Math.round(yy), layout.margin, pageW);
 
     const drawHeader = (): void => {
       pageNo += 1;
 
-      const HEADER_BOTTOM_PAD = 25;
+      const headerY = Math.round(layout.margin + layout.titleFontSize);
 
-      const headerY = Math.round(M + TITLE_FS);
+      doc.setFont(PDF_FONT.family, PDF_FONT.bold);
+      doc.setFontSize(layout.titleFontSize);
+      doc.text(pageHeaderTitle, layout.margin, headerY);
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(TITLE_FS);
-      doc.text(pageHeaderTitle, M, headerY);
+      doc.setFont(PDF_FONT.family, PDF_FONT.bold);
+      doc.setFontSize(layout.labelFontSize + 1);
+      doc.text(`Page ${pageNo}`, pageW - layout.margin, headerY, {
+        align: 'right',
+      });
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(LABEL_FS + 1);
-      doc.text(`Page ${pageNo}`, pageW - M, headerY, { align: 'right' });
-
-      y = Math.round(headerY + HEADER_BOTTOM_PAD);
+      y = Math.round(headerY + layout.headerBottomPadding);
     };
 
     const ensureSpace = (needed: number): void => {
-      if (y + needed <= BOTTOM) {
+      if (y + needed <= bottom) {
         return;
       }
       doc.addPage();
@@ -321,28 +368,25 @@ export class PdfService {
       leftValue: string,
       rightLabel: string,
       rightValue: string,
-      spacing = 14,
+      spacing = DEFAULT_CONTINUOUS_ROW_SPACING,
       padY = 0, // inner vertical padding
     ): void => {
-      doc.setFont('helvetica', 'bold');
-      const leftLabelLines = toLines(doc, leftLabel, IN_LABEL_W);
-      const rightLabelLines = toLines(doc, rightLabel, IN_LABEL_W);
+      doc.setFont(PDF_FONT.family, PDF_FONT.bold);
+      const leftLabelLines = toLines(doc, leftLabel, layout.labelWidth);
+      const rightLabelLines = toLines(doc, rightLabel, layout.labelWidth);
 
-      doc.setFont('helvetica', 'normal');
-      const leftValLines = toLines(doc, leftValue, COL_W - IN_LABEL_W - IN_GAP);
-      const rightValLines = toLines(
-        doc,
-        rightValue,
-        COL_W - IN_LABEL_W - IN_GAP,
-      );
+      doc.setFont(PDF_FONT.family, PDF_FONT.normal);
+      const valueWidth = columnWidth - layout.labelWidth - layout.innerGap;
+      const leftValLines = toLines(doc, leftValue, valueWidth);
+      const rightValLines = toLines(doc, rightValue, valueWidth);
 
       const leftH = Math.max(
-        leftLabelLines.length * LABEL_LEADING,
-        leftValLines.length * VALUE_LEADING,
+        leftLabelLines.length * layout.labelLineHeight,
+        leftValLines.length * layout.valueLineHeight,
       );
       const rightH = Math.max(
-        rightLabelLines.length * LABEL_LEADING,
-        rightValLines.length * VALUE_LEADING,
+        rightLabelLines.length * layout.labelLineHeight,
+        rightValLines.length * layout.valueLineHeight,
       );
 
       const contentH = Math.max(leftH, rightH);
@@ -353,202 +397,398 @@ export class PdfService {
       const yy = Math.round(y + padY);
 
       // LEFT column
-      doc.setFont('helvetica', 'bold');
-      drawTextBlock(doc, leftLabelLines, COL1_X, yy, LABEL_FS, LABEL_LEADING);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont(PDF_FONT.family, PDF_FONT.bold);
+      drawTextBlock(
+        doc,
+        leftLabelLines,
+        layout.margin,
+        yy,
+        layout.labelFontSize,
+        layout.labelLineHeight,
+      );
+      doc.setFont(PDF_FONT.family, PDF_FONT.normal);
       drawTextBlock(
         doc,
         leftValLines,
-        COL1_X + IN_LABEL_W + IN_GAP,
+        layout.margin + layout.labelWidth + layout.innerGap,
         yy,
-        VALUE_FS,
-        VALUE_LEADING,
+        layout.valueFontSize,
+        layout.valueLineHeight,
       );
 
       // RIGHT column
-      doc.setFont('helvetica', 'bold');
-      drawTextBlock(doc, rightLabelLines, COL2_X, yy, LABEL_FS, LABEL_LEADING);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont(PDF_FONT.family, PDF_FONT.bold);
+      drawTextBlock(
+        doc,
+        rightLabelLines,
+        secondColumnX,
+        yy,
+        layout.labelFontSize,
+        layout.labelLineHeight,
+      );
+      doc.setFont(PDF_FONT.family, PDF_FONT.normal);
       drawTextBlock(
         doc,
         rightValLines,
-        COL2_X + IN_LABEL_W + IN_GAP,
+        secondColumnX + layout.labelWidth + layout.innerGap,
         yy,
-        VALUE_FS,
-        VALUE_LEADING,
+        layout.valueFontSize,
+        layout.valueLineHeight,
       );
 
       y = Math.round(y + blockH + spacing);
     };
 
-    const drawFullRow = (label: string, value: string, spacing = 14): void => {
-      const valueW = pageW - (COL1_X + IN_LABEL_W + IN_GAP) - M;
+    const drawFullRow = (
+      label: string,
+      value: string,
+      spacing = DEFAULT_CONTINUOUS_ROW_SPACING,
+    ): void => {
+      const valueW =
+        pageW -
+        (layout.margin + layout.labelWidth + layout.innerGap) -
+        layout.margin;
 
-      const toLinesPreserveBlanks = (text: string): string[] => {
-        const s = (text ?? '').replaceAll('\r\n', '\n');
-        if (!s.trim()) {
-          return [];
-        }
+      doc.setFont(PDF_FONT.family, PDF_FONT.bold);
+      const labLines = toLines(doc, label, layout.labelWidth);
 
-        const out: string[] = [];
-
-        for (const rawLine of s.split('\n')) {
-          // Preserve an explicit blank line as vertical space
-          if (rawLine.trim() === '') {
-            out.push(' ');
-            continue;
-          }
-
-          const wrapped: unknown = doc.splitTextToSize(rawLine, valueW);
-
-          if (typeof wrapped === 'string') {
-            out.push(wrapped);
-          } else if (Array.isArray(wrapped)) {
-            out.push(
-              ...(wrapped as unknown[])
-                .filter((x): x is string => typeof x === 'string')
-                // keep end spacing irrelevant
-                .map((x) => x.trimEnd()),
-            );
-          }
-        }
-
-        return out;
-      };
-
-      doc.setFont('helvetica', 'bold');
-      const labLines = toLines(doc, label, IN_LABEL_W);
-
-      doc.setFont('helvetica', 'normal');
-      const valLines = toLinesPreserveBlanks(value);
+      doc.setFont(PDF_FONT.family, PDF_FONT.normal);
+      const valLines = this.toLinesPreserveBlanks(doc, value, valueW);
 
       const blockH = Math.max(
-        labLines.length * LABEL_LEADING,
-        valLines.length * VALUE_LEADING,
+        labLines.length * layout.labelLineHeight,
+        valLines.length * layout.valueLineHeight,
       );
       ensureSpace(blockH);
 
-      doc.setFont('helvetica', 'bold');
-      drawTextBlock(doc, labLines, COL1_X, y, LABEL_FS, LABEL_LEADING);
+      doc.setFont(PDF_FONT.family, PDF_FONT.bold);
+      drawTextBlock(
+        doc,
+        labLines,
+        layout.margin,
+        y,
+        layout.labelFontSize,
+        layout.labelLineHeight,
+      );
 
-      doc.setFont('helvetica', 'normal');
+      doc.setFont(PDF_FONT.family, PDF_FONT.normal);
       drawTextBlock(
         doc,
         valLines,
-        COL1_X + IN_LABEL_W + IN_GAP,
+        layout.margin + layout.labelWidth + layout.innerGap,
         y,
-        VALUE_FS,
-        VALUE_LEADING,
+        layout.valueFontSize,
+        layout.valueLineHeight,
       );
 
       y = Math.round(y + blockH + spacing);
     };
 
     drawHeader();
-
-    let entryIndex = 0;
-    for (let li = 0; li < dataArr.length; li += 1) {
-      const data = dataArr[li];
-      const raw = dtos[li];
-
-      // Top meta row (LEFT: Date & Time + Duration; RIGHT: Location)
-      const normalisedTime = normaliseTime(data.listTime ?? '');
-
-      // date format = 17 Feb 2026
-      const date = this.safeFormatDate(data.listDate);
-
-      const dateTime = this.fallbackText(date + ' ' + normalisedTime); // YYYY-MM-DD HH:MM
-      const duration = this.fallbackText(extractDurationFromDto(raw), '—');
-      const leftLabels = 'Date & Time\nDuration';
-      const leftValues = `${dateTime}\n${duration}`;
-      const location = this.fallbackText(
-        data.courtName || `${data.location}\n${data.cja}`,
-        '-',
-      );
-
-      if (entryIndex > 0) {
+    this.renderContinuousApplicationLists(
+      dataArr,
+      dtos,
+      () => {
         ensureSpace(20);
         hr(y);
         y = Math.round(y + 14);
-      }
-
-      drawTwoColRow(leftLabels, leftValues, 'Location', location, 18, 6);
-
-      for (const e of data.entries) {
-        entryIndex += 1;
-
-        // Applicant / Respondent
-        const applicant = this.fallbackText(e.applicant);
-        const respondent = this.fallbackText(e.respondent);
-
-        drawTwoColRow(
-          `${entryIndex}. Applicant`,
-          `${applicant}`,
-          'Respondent',
-          respondent,
-          16,
-        );
-
-        // Application (Left), Officials(right)
-        const applicationsContentParts: string[] = [];
-        if (e.applicationCode?.trim()) {
-          applicationsContentParts.push(
-            `Application Code: ${e.applicationCode.trim()}`,
-          );
-        }
-        if (e.applicationDescription?.trim()) {
-          applicationsContentParts.push(
-            `Application Title: ${e.applicationDescription.trim()}`,
-          );
-        }
-        if (e.matter?.trim()) {
-          applicationsContentParts.push(e.matter.trim());
-        }
-
-        const applicationContents = applicationsContentParts.join('\n');
-        const judges = this.fallbackText(e.judge);
-        drawTwoColRow(
-          'Application',
-          applicationContents,
-          'This matter was before',
-          judges,
-          20,
-        );
-
-        // Result
-        const result = this.fallbackText(e.result);
-        drawFullRow('Result', result, 18);
-
-        // Notes
-        const notes = this.fallbackText(e.notes).trim();
-
-        const refLines = [
-          e.accountReference?.trim()
-            ? `Account Reference: ${e.accountReference.trim()}`
-            : null,
-          e.caseReference?.trim()
-            ? `Case Reference: ${e.caseReference.trim()}`
-            : null,
-        ].filter((line): line is string => !!line);
-
-        const value = [
-          notes,
-          ...(refLines.length ? ['', ...refLines] : []),
-        ].join('\n');
-
-        drawFullRow('Notes', value, 22);
-      }
-    }
+      },
+      drawTwoColRow,
+      drawFullRow,
+    );
 
     const uniquePlaces = this.uniqueFileSafePlaces(dataArr);
 
     const courtPart =
       uniquePlaces.length === 1 ? uniquePlaces[0] : 'applications';
-    const datePart = this.dateForFile();
+    const datePart = getDateStamp();
     doc.save(`${courtPart}-${datePart}-print-cont.pdf`);
   }
 
+  async generateStandardApplicantsPdf(
+    dto: StandardApplicantPrintDto,
+  ): Promise<void> {
+    if (!dto) {
+      return;
+    }
+
+    const jsPDFMod = await import('jspdf');
+    const { jsPDF } = jsPDFMod;
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      ...PDF_PAGE_OPTIONS,
+    }) as unknown as JsPDFLike;
+
+    const margin = 36;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const columnWidth = (pageWidth - margin * 2) / 4;
+
+    doc.setFont(PDF_FONT.family, PDF_FONT.normal);
+    doc.setFontSize(11);
+    doc.text('Standard applicants report', margin, 51);
+
+    const criteria = this.standardApplicantSearchCriteria(dto.searchCriteria);
+    if (criteria) {
+      doc.text(`Search criteria: ${criteria}`, margin, 71);
+    }
+
+    const labels = [
+      ['Code', 'Use from'],
+      ['Name', 'Use to'],
+      ['Title', 'Address line 1'],
+      ['Forename 1', 'Address line 2'],
+      ['Forename 2', 'Address line 3'],
+      ['Forename 3', 'Address line 4'],
+      ['Surname', 'Address line 5'],
+      ['Email address', 'Postcode'],
+      ['Telephone number', 'Mobile number'],
+    ] as const;
+
+    const rows = dto.applicants ?? [];
+    let startY = criteria ? 89 : 69;
+
+    for (const applicant of rows) {
+      const body = labels.map(([leftLabel, rightLabel]) => [
+        leftLabel,
+        this.standardApplicantValue(applicant, leftLabel),
+        rightLabel,
+        this.standardApplicantValue(applicant, rightLabel),
+      ]);
+
+      autoTable(doc, {
+        body,
+        startY,
+        margin: { left: margin, right: margin, top: margin, bottom: margin },
+        tableWidth: pageWidth - margin * 2,
+        pageBreak: 'auto',
+        rowPageBreak: 'avoid',
+        theme: 'grid',
+        styles: {
+          font: PDF_FONT.family,
+          fontStyle: PDF_FONT.normal,
+          fontSize: 10.5,
+          cellPadding: { top: 3.5, right: 5, bottom: 3.5, left: 5 },
+          lineColor: [0, 0, 0],
+          lineWidth: 0.5,
+          textColor: [0, 0, 0],
+          overflow: 'linebreak',
+        },
+        columnStyles: {
+          0: { cellWidth: columnWidth },
+          1: { cellWidth: columnWidth },
+          2: { cellWidth: columnWidth },
+          3: { cellWidth: columnWidth },
+        },
+      });
+
+      const finalY = (doc as unknown as { lastAutoTable?: { finalY: number } })
+        .lastAutoTable?.finalY;
+      startY = (finalY ?? pageHeight - margin) + 20;
+    }
+
+    const todaysDate = getDateStamp();
+    doc.save(`standard-applicant-pdf-${todaysDate}.pdf`);
+  }
+
   // -------------------- Mapping helpers --------------------
+
+  private renderContinuousApplicationLists(
+    dataArr: PdfList[],
+    dtos: unknown[],
+    drawListDivider: () => void,
+    drawTwoColRow: DrawContinuousTwoColumnRow,
+    drawFullRow: DrawContinuousFullRow,
+  ): void {
+    let entryIndex = 0;
+
+    for (let listIndex = 0; listIndex < dataArr.length; listIndex += 1) {
+      const data = dataArr[listIndex];
+      const raw = dtos[listIndex];
+
+      if (entryIndex > 0) {
+        drawListDivider();
+      }
+
+      this.drawContinuousListHeader(data, raw, drawTwoColRow);
+
+      for (const entry of data.entries) {
+        entryIndex += 1;
+        this.drawContinuousEntry(entry, entryIndex, drawTwoColRow, drawFullRow);
+      }
+    }
+  }
+
+  private drawContinuousListHeader(
+    data: PdfList,
+    raw: unknown,
+    drawTwoColRow: DrawContinuousTwoColumnRow,
+  ): void {
+    const normalisedTime = normaliseTime(data.listTime ?? '');
+    const date = this.safeFormatDate(data.listDate);
+    const dateTime = this.fallbackText(`${date} ${normalisedTime}`);
+    const duration = this.fallbackText(extractDurationFromDto(raw), '—');
+    const location = this.fallbackText(
+      data.courtName || `${data.location}\n${data.cja}`,
+      '-',
+    );
+
+    drawTwoColRow(
+      'Date & Time\nDuration',
+      `${dateTime}\n${duration}`,
+      'Location',
+      location,
+      18,
+      6,
+    );
+  }
+
+  private drawContinuousEntry(
+    entry: PdfList['entries'][number],
+    entryIndex: number,
+    drawTwoColRow: DrawContinuousTwoColumnRow,
+    drawFullRow: DrawContinuousFullRow,
+  ): void {
+    drawTwoColRow(
+      `${entryIndex}. Applicant`,
+      this.fallbackText(entry.applicant),
+      'Respondent',
+      this.fallbackText(entry.respondent),
+      16,
+    );
+    drawTwoColRow(
+      'Application',
+      this.continuousApplicationContents(entry),
+      'This matter was before',
+      this.fallbackText(entry.judge),
+      20,
+    );
+    drawFullRow('Result', this.fallbackText(entry.result), 18);
+    drawFullRow('Notes', this.continuousNotes(entry), 22);
+  }
+
+  private continuousApplicationContents(
+    entry: PdfList['entries'][number],
+  ): string {
+    return [
+      entry.applicationCode?.trim()
+        ? `Application Code: ${entry.applicationCode.trim()}`
+        : null,
+      entry.applicationDescription?.trim()
+        ? `Application Title: ${entry.applicationDescription.trim()}`
+        : null,
+      entry.matter?.trim() || null,
+    ]
+      .filter((part): part is string => Boolean(part))
+      .join('\n');
+  }
+
+  private continuousNotes(entry: PdfList['entries'][number]): string {
+    const notes = this.fallbackText(entry.notes).trim();
+    const referenceLines = [
+      entry.accountReference?.trim()
+        ? `Account Reference: ${entry.accountReference.trim()}`
+        : null,
+      entry.caseReference?.trim()
+        ? `Case Reference: ${entry.caseReference.trim()}`
+        : null,
+    ].filter((line): line is string => Boolean(line));
+
+    return [
+      notes,
+      ...(referenceLines.length ? ['', ...referenceLines] : []),
+    ].join('\n');
+  }
+
+  private toLinesPreserveBlanks(
+    doc: JsPDFLike,
+    text: string,
+    valueWidth: number,
+  ): string[] {
+    const normalisedText = (text ?? '').replaceAll('\r\n', '\n');
+    if (!normalisedText.trim()) {
+      return [];
+    }
+
+    const lines: string[] = [];
+
+    for (const rawLine of normalisedText.split('\n')) {
+      // Preserve an explicit blank line as vertical space.
+      if (rawLine.trim() === '') {
+        lines.push(' ');
+        continue;
+      }
+
+      const wrapped: unknown = doc.splitTextToSize(rawLine, valueWidth);
+
+      if (typeof wrapped === 'string') {
+        lines.push(wrapped);
+      } else if (Array.isArray(wrapped)) {
+        lines.push(
+          ...(wrapped as unknown[])
+            .filter((line): line is string => typeof line === 'string')
+            // keep end spacing irrelevant
+            .map((line) => line.trimEnd()),
+        );
+      }
+    }
+
+    return lines;
+  }
+
+  private standardApplicantSearchCriteria(
+    criteria: StandardApplicantPrintDto['searchCriteria'] | null | undefined,
+  ): string {
+    if (!criteria) {
+      return '';
+    }
+
+    return [
+      ['Code', criteria.code],
+      ['Name', criteria.name],
+    ]
+      .filter(([, value]) => value?.trim())
+      .map(([label, value]) => `${label}: ${value}`)
+      .join(', ');
+  }
+
+  private standardApplicantValue(
+    applicant: StandardApplicantPrintDto['applicants'][number],
+    label: string,
+  ): string {
+    const fieldByLabel: Record<string, keyof typeof applicant> = {
+      Code: 'code',
+      'Use from': 'useFrom',
+      Name: 'name',
+      'Use to': 'useTo',
+      Title: 'title',
+      'Address line 1': 'addressLine1',
+      'Forename 1': 'forename1',
+      'Address line 2': 'addressLine2',
+      'Forename 2': 'forename2',
+      'Address line 3': 'addressLine3',
+      'Forename 3': 'forename3',
+      'Address line 4': 'addressLine4',
+      Surname: 'surname',
+      'Address line 5': 'addressLine5',
+      'Email address': 'emailAddress',
+      Postcode: 'postcode',
+      'Telephone number': 'telephoneNumber',
+      'Mobile number': 'mobileNumber',
+    };
+    const field = fieldByLabel[label];
+    const value = field ? applicant[field] : null;
+
+    if (value === null || value === undefined) {
+      return '—';
+    }
+
+    if (field === 'useFrom' || field === 'useTo') {
+      return this.dateTimePipe.transform(value) ?? '—';
+    }
+
+    return String(value);
+  }
 
   private uniqueFileSafePlaces(dataArr: PdfList[]): string[] {
     return Array.from(
@@ -817,7 +1057,7 @@ export class PdfService {
       return '';
     }
     // Collapse internal whitespace to single spaces; this reads better in PDF cells.
-    return t.split(/\s+/).join(' ');
+    return t.replaceAll(/\s+/g, ' ');
   }
 
   /** Titles like "Mr, Mrs" → pick first meaningful token. */
@@ -841,7 +1081,7 @@ export class PdfService {
         continue;
       }
       const last = out.at(-1);
-      if (!last || last.toLowerCase() !== p.toLowerCase()) {
+      if (last?.toLowerCase() !== p.toLowerCase()) {
         out.push(p);
       }
     }
@@ -881,25 +1121,11 @@ export class PdfService {
       return '';
     }
     return raw
-      .split(/\s+/)
-      .join(' ')
+      .replaceAll(/\s+/g, ' ')
       .replaceAll(/[^\w\s-]+/g, '')
       .trim()
-      .split(/\s+/)
-      .join('-')
+      .replaceAll(/\s+/g, '-')
       .toLowerCase();
-  }
-
-  /** Prefer ISO input; else use today's date (YYYY-MM-DD). */
-  private dateForFile(isoMaybe?: string): string {
-    if (isoMaybe && /^\d{4}-\d{2}-\d{2}$/.test(isoMaybe)) {
-      return isoMaybe;
-    }
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
   }
 
   private cjaName(raw?: string): string {
@@ -936,5 +1162,9 @@ export class PdfService {
       // fallback to today's date
       return this.dateTimePipe.transform(todaysDate, format);
     }
+  }
+
+  private getContinuousPageHeader(isClosed: boolean): string {
+    return isClosed ? 'Applications Register Report' : 'Check List Report';
   }
 }

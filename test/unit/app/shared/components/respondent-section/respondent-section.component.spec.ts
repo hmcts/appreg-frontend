@@ -189,17 +189,19 @@ describe('RespondentSectionComponent - bulkAllowed behaviour', () => {
     );
   });
 
-  it('effect resets respondentEntryType from bulk to person when bulk becomes disallowed', () => {
+  it('effect resets respondentEntryType and numberOfRespondents when bulk becomes disallowed', () => {
     fixture.componentRef.setInput('bulkAllowed', true);
     fixture.detectChanges();
 
     component.form().controls.respondentEntryType.setValue('bulk');
+    component.form().controls.numberOfRespondents.setValue(2);
     fixture.detectChanges();
 
     fixture.componentRef.setInput('bulkAllowed', false);
     fixture.detectChanges();
 
     expect(component.form().controls.respondentEntryType.value).toBe('person');
+    expect(component.form().controls.numberOfRespondents.value).toBeNull();
   });
 
   it('clears numberOfRespondents when switching from bulk to non-bulk respondent type', () => {

@@ -11,6 +11,36 @@ export function trimToUndefined(v: unknown): string | undefined {
   return s === '' ? undefined : s;
 }
 
+export function trimToNull(v: unknown): string | null {
+  const s = trimToString(v);
+  return s === '' ? null : s;
+}
+
+export function hasText(v: unknown): v is string {
+  return trimToUndefined(v) !== undefined;
+}
+
+export function toNullableInteger(value: unknown): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && Number.isInteger(value) ? value : null;
+  }
+
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed || !/^\d+$/.test(trimmed)) {
+    return null;
+  }
+
+  return Number(trimmed);
+}
+
 export function isNullableString(x: unknown): x is string | null | undefined {
   return x === undefined || x === null || typeof x === 'string';
 }
@@ -77,11 +107,7 @@ export function getTrimmedStringOrNullFromGroup(
   name: string,
 ): string | null {
   const v: unknown = group.get(name)?.value;
-  if (typeof v !== 'string') {
-    return null;
-  }
-  const s = v.trim();
-  return s || null;
+  return trimToNull(v);
 }
 
 type PartyWithName = Pick<Applicant, 'person' | 'organisation'>;
@@ -112,4 +138,14 @@ export function returnOrgName(party?: PartyWithName): string | null {
 
 export function formatPartyName(party?: PartyWithName): string | null {
   return returnOrgName(party) ?? formatPersonName(party);
+}
+
+// Get today's date as a string
+export function getDateStamp(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
 }

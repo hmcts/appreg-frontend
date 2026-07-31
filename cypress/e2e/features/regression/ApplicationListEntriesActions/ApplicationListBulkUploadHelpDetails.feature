@@ -3,8 +3,8 @@ Feature: Application list bulk upload help details
   Background: Create applications list
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Body:
-      | date     | time  | status | description                       | courtLocationCode |
-      | todayiso | 10:20 | OPEN   | Bulk upload help list {RANDOM}    | LCCC065           |
+      | date     | time  | status | description                    | courtLocationCode |
+      | todayiso | 10:20 | OPEN   | Bulk upload help list {RANDOM} | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
 
@@ -13,7 +13,7 @@ Feature: Application list bulk upload help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Given User Navigates To The URL "/applications-list/:listId/bulk-upload"
-    Then User Sees Page Heading "Bulk Upload Applications"
+    Then User Sees Page Heading "Bulk upload applications"
     Then User Should See The Accordion "Help with bulk upload"
     When User Toggles The Accordion "Help with bulk upload"
     Then User Should See The Text "Use bulk upload to add applications to this list from a CSV file." In The Accordion "Help with bulk upload"

@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { MoveConfirmComponent } from '@components/applications-list-detail/applications-list-entry-move/move-confirm/move-confirm.component';
+import { ApplicationEntriesMoveContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationListEntriesApi, ApplicationListStatus } from '@openapi';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
@@ -44,20 +45,22 @@ describe('MoveConfirmComponent', () => {
     rowVersion: null,
   };
 
-  const entriesToMove = [
+  const entriesToMove: ApplicationEntriesMoveContext[] = [
     {
       id: 'entry-1',
-      sequenceNumber: '1',
       applicant: 'A Person',
       respondent: 'B Person',
       title: 'Case title',
+      feeRequired: 'Yes',
+      resulted: null,
     },
     {
       id: 'entry-1',
-      sequenceNumber: '1',
       applicant: 'A Person',
       respondent: 'B Person',
       title: 'Case title',
+      feeRequired: 'Yes',
+      resulted: null,
     },
   ];
 
@@ -137,6 +140,22 @@ describe('MoveConfirmComponent', () => {
     expect(component.entriesToMove).toEqual(entriesToMove);
   });
 
+  it('sorts and paginates entries on the confirmation page', () => {
+    component.entriesToMove = Array.from({ length: 11 }, (_, index) => ({
+      ...entriesToMove[0],
+      id: `entry-${11 - index}`,
+      feeRequired: 'Yes' as const,
+      resulted: null,
+    }));
+
+    component.onSortChange({ key: 'id', direction: 'asc' });
+    expect(component.currentPage()).toBe(0);
+    expect(component.paginatedRows()[0].id).toBe('entry-1');
+
+    component.onPageChange(1);
+    expect(component.paginatedRows()).toHaveLength(1);
+  });
+
   it('posts the move request and navigates to the target list on success', () => {
     const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
@@ -159,17 +178,19 @@ describe('MoveConfirmComponent', () => {
       ...entriesToMove,
       {
         id: 'entry-2',
-        sequenceNumber: '2',
         applicant: 'C Person',
         respondent: 'D Person',
         title: 'Another case',
+        feeRequired: 'Yes',
+        resulted: null,
       },
       {
         id: 'entry-2',
-        sequenceNumber: '2',
         applicant: 'C Person',
         respondent: 'D Person',
         title: 'Another case',
+        feeRequired: 'Yes',
+        resulted: null,
       },
     ];
 

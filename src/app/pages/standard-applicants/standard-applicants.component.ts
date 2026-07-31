@@ -1,6 +1,27 @@
+/**
+ * Standard Applicants
+ * Main Component for page /standard-applicants
+ *
+ * Functionality:
+ * onSubmit():
+ * - GET request to search Standard Applicants
+ * - Persists search filters, pagination and sort state
+ *
+ * onViewClick():
+ * - Navigates to the Standard Applicant details page
+ *
+ * onExportButtonClick():
+ * - Downloads matching Standard Applicants as a CSV
+ *
+ * onPrintButtonClick():
+ * - Generates and downloads a PDF of matching Standard Applicants
+ */
+
 import { isPlatformBrowser } from '@angular/common';
+import { HttpResponse } from '@angular/common/http';
 import {
   Component,
+  DOCUMENT,
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
@@ -15,6 +36,13 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import {
+  ErrorMessageMap,
+  buildFormErrorSummary,
+  getControlErrorItem,
+} from '../../core/util/error-summary';
+
+import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -31,19 +59,25 @@ import {
   mapSaToRow,
   standardAppColumns,
 } from '@components/standard-applicant-select/util/standard-applicant-select-row-helpers';
+import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
+import { PdfService } from '@core/services/pdf.service';
 import {
   GetStandardApplicantsRequestParams,
+  PrintStandardApplicantsRequestParams,
   StandardApplicantsApi,
+  StandardApplicantsExportRequestParams,
 } from '@openapi';
 import { StandardApplicantsSearchFormService } from '@services/standard-applicants/standard-applicants-search-form.service';
 import { StandardApplicantsSearchStateService } from '@services/standard-applicants/standard-applicants-search-state.service';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
-import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
+import { saveCsv as saveCsvFile } from '@util/save-csv';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
+import { getDateStamp, trimToUndefined } from '@util/string-helpers';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
 export type StandardApplicantFilters = Pick<
@@ -60,6 +94,9 @@ export type StandardApplicantsState = {
   rows: StandardApplicantRow[];
   isLoading: boolean;
   searchErrors: ErrorItem[];
+  exportSuccess: boolean;
+  printSuccess: boolean;
+  isActionLoading: boolean;
 };
 
 const initialStandardApplicantsState: StandardApplicantsState = {
@@ -71,6 +108,9 @@ const initialStandardApplicantsState: StandardApplicantsState = {
   rows: [],
   isLoading: false,
   searchErrors: [],
+  exportSuccess: false,
+  printSuccess: false,
+  isActionLoading: false,
 };
 
 @Component({
@@ -85,6 +125,8 @@ const initialStandardApplicantsState: StandardApplicantsState = {
     MojButtonMenuDirective,
     NotificationBannerComponent,
     HelpDetailsComponent,
+    SuccessBannerComponent,
+    AsyncJobProgressComponent,
   ],
   templateUrl: './standard-applicants.component.html',
   styleUrl: './standard-applicants.component.scss',
@@ -97,6 +139,8 @@ export class StandardApplicants implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly searchForm = inject(StandardApplicantsSearchFormService);
   private readonly searchState = inject(StandardApplicantsSearchStateService);
+  private readonly document = inject(DOCUMENT);
+  private readonly pdfService = inject(PdfService);
 
   private readonly signalState = createSignalState<StandardApplicantsState>(
     initialStandardApplicantsState,
@@ -105,12 +149,18 @@ export class StandardApplicants implements OnInit {
 
   private readonly loadRequest =
     signal<GetStandardApplicantsRequestParams | null>(null);
+  private readonly exportRequest =
+    signal<StandardApplicantsExportRequestParams | null>(null);
+  private readonly printRequest =
+    signal<PrintStandardApplicantsRequestParams | null>(null);
+
   readonly submitted = signal(false);
   readonly submitAttempt = signal(0);
-  private readonly errorMap: ErrorMessageMap =
-    STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
+  readonly errorMap: ErrorMessageMap = STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
   private appliedFilters: StandardApplicantFilters = {};
   onCreateErrorClick = onCreateErrorClickFn;
+
+  getControlErrorItem = getControlErrorItem;
 
   form = new FormGroup({
     code: new FormControl<string>('', {
@@ -129,6 +179,7 @@ export class StandardApplicants implements OnInit {
   ];
 
   preserveErrOnLoad = signal(false);
+  actionType = signal<'CSV' | 'PDF'>('CSV');
 
   ngOnInit(): void {
     this.setupEffects();
@@ -148,6 +199,13 @@ export class StandardApplicants implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
+    this.signalState.patch({
+      isLoading: false,
+      searchErrors: [],
+      exportSuccess: false,
+      printSuccess: false,
+    });
+
     const validationErrors = this.buildErrorSummary();
     this.signalState.patch({ searchErrors: validationErrors });
     this.persistFormState();
@@ -157,7 +215,11 @@ export class StandardApplicants implements OnInit {
     }
 
     this.appliedFilters = this.getTrimmedFilters();
-    this.signalState.patch({ hasSearched: true, currentPage: 0 });
+    this.signalState.patch({
+      hasSearched: true,
+      currentPage: 0,
+      exportSuccess: false,
+    });
     this.persistSearchState();
     this.loadStandardApplicants(0, this.appliedFilters);
   }
@@ -184,8 +246,48 @@ export class StandardApplicants implements OnInit {
     });
   }
 
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().searchErrors.find((e) => e.id === id);
+  onExportButtonClick(): void {
+    this.actionType.set('CSV');
+    this.signalState.patch({
+      exportSuccess: false,
+      printSuccess: false,
+      searchErrors: [],
+      isActionLoading: true,
+    });
+    this.submitAttempt.update((attempt) => attempt + 1);
+    this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    const params = this.getParamsForRequest();
+
+    if (!params) {
+      this.signalState.patch({ isActionLoading: false });
+      return;
+    }
+
+    this.exportRequest.set(params);
+  }
+
+  onPrintButtonClick(): void {
+    this.actionType.set('PDF');
+    this.signalState.patch({
+      printSuccess: false,
+      exportSuccess: false,
+      searchErrors: [],
+      isActionLoading: true,
+    });
+    this.submitAttempt.update((attempt) => attempt + 1);
+    this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    const params = this.getParamsForRequest();
+
+    if (!params) {
+      this.signalState.patch({ isActionLoading: false });
+      return;
+    }
+
+    this.printRequest.set(params);
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
@@ -214,6 +316,8 @@ export class StandardApplicants implements OnInit {
     this.searchForm.reset();
     this.searchState.reset();
     this.loadRequest.set(null);
+    this.exportRequest.set(null);
+    this.printRequest.set(null);
     this.form.reset();
     this.appliedFilters = {};
     this.signalState.patch({
@@ -223,11 +327,35 @@ export class StandardApplicants implements OnInit {
       rows: [],
       isLoading: false,
       searchErrors: [],
+      exportSuccess: false,
+      printSuccess: false,
+      isActionLoading: false,
     });
     this.preserveErrOnLoad.set(false);
   }
 
+  private saveCsv(response: HttpResponse<string>): void {
+    if (!response.body) {
+      this.signalState.patch({
+        exportSuccess: false,
+        searchErrors: [
+          { text: 'Failed to export CSV. Please try again later' },
+        ],
+      });
+      return;
+    }
+
+    saveCsvFile(
+      response,
+      `standard-applicant-export-csv-${getDateStamp()}.csv`,
+      this.document,
+      this.platformId,
+    );
+    this.signalState.patch({ exportSuccess: true });
+  }
+
   private setupEffects(): void {
+    // GET /standard-applicants
     setupLoadEffect(
       {
         request: this.loadRequest,
@@ -252,6 +380,86 @@ export class StandardApplicants implements OnInit {
             searchErrors: [{ id: 'search', text: getProblemText(err) }],
           });
           this.loadRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+
+    // GET /standard-applicants/export
+    setupLoadEffect(
+      {
+        request: this.exportRequest,
+        load: (params) =>
+          this.saApi.standardApplicantsExport(params, 'response', false, {
+            httpHeaderAccept: 'text/csv',
+            transferCache: false,
+          }),
+        onSuccess: (res) => {
+          this.saveCsv(res);
+          this.exportRequest.set(null);
+
+          this.signalState.patch({
+            isActionLoading: false,
+          });
+        },
+        onError: (err) => {
+          this.signalState.patch({
+            searchErrors: [{ id: 'search', text: getProblemText(err) }],
+            isActionLoading: false,
+          });
+          this.exportRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+
+    // GET /standard-applicants/reports/print
+    setupLoadEffect(
+      {
+        request: this.printRequest,
+        load: (params: PrintStandardApplicantsRequestParams) =>
+          this.saApi.printStandardApplicants(params),
+        onSuccess: async (res) => {
+          if (!res?.applicants.length) {
+            this.signalState.patch({
+              searchErrors: [
+                {
+                  id: 'search',
+                  text:
+                    APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric +
+                    ' Please try again later',
+                },
+              ],
+              isActionLoading: false,
+            });
+            return;
+          }
+
+          try {
+            await this.pdfService.generateStandardApplicantsPdf(res);
+            this.signalState.patch({ printSuccess: true });
+          } catch {
+            this.signalState.patch({
+              searchErrors: [
+                {
+                  id: 'search',
+                  text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry,
+                },
+              ],
+            });
+          } finally {
+            this.printRequest.set(null);
+            this.signalState.patch({
+              isActionLoading: false,
+            });
+          }
+        },
+        onError: (err) => {
+          this.signalState.patch({
+            searchErrors: [{ id: 'search', text: getProblemText(err) }],
+            isActionLoading: false,
+          });
+          this.printRequest.set(null);
         },
       },
       this.envInjector,
@@ -349,5 +557,33 @@ export class StandardApplicants implements OnInit {
     this.signalState.patch({
       searchErrors: [{ text: errMsg }],
     });
+  }
+
+  private getParamsForRequest():
+    | PrintStandardApplicantsRequestParams
+    | StandardApplicantsExportRequestParams
+    | undefined {
+    const values = this.appliedFilters;
+    const code = trimToUndefined(values.code);
+    const name = trimToUndefined(values.name);
+
+    if (!!code === !!name) {
+      // Endpoint only supports either code or name (XOR). Applies to the active filters, not the current form values.
+      this.signalState.patch({
+        searchErrors: [
+          {
+            text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
+          },
+        ],
+      });
+      return;
+    }
+
+    const params: PrintStandardApplicantsRequestParams = {
+      ...(code && { code }),
+      ...(name && { name }),
+    };
+
+    return params;
   }
 }

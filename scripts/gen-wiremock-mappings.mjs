@@ -81,6 +81,31 @@ async function ensureDir(p) {
   await fsp.mkdir(p, { recursive: true });
 }
 
+async function clearGeneratedMappings(dir) {
+  if (!(await fileExists(dir))) {
+    return;
+  }
+
+  const entries = await fsp.readdir(dir, { withFileTypes: true });
+  await Promise.all(
+    entries.map(async (entry) => {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        await clearGeneratedMappings(fullPath);
+        const remaining = await fsp.readdir(fullPath);
+        if (remaining.length === 0) {
+          await fsp.rmdir(fullPath);
+        }
+        return;
+      }
+
+      if (entry.isFile() && entry.name.endsWith('.json')) {
+        await fsp.unlink(fullPath);
+      }
+    }),
+  );
+}
+
 async function safeWriteJson(file, obj) {
   const json = JSON.stringify(obj, null, 2) + '\n';
   await ensureDir(path.dirname(file));
@@ -194,12 +219,47 @@ function slugPath(p) {
   return p.replace(/^\/+/, '').replace(/\/+/g, '_').replace(/[{}]/g, '');
 }
 
-function pathToUrlMatcher(p) {
+function staticSiblingSegmentsForPath(targetPath, allPaths) {
+  const targetSegments = targetPath.split('/').filter(Boolean);
+  return new Set(
+    Object.keys(allPaths)
+      .filter((candidate) => candidate !== targetPath)
+      .map((candidate) => candidate.split('/').filter(Boolean))
+      .filter(
+        (candidateSegments) =>
+          candidateSegments.length === targetSegments.length &&
+          targetSegments.some((segment) => /^\{[^}]+\}$/.test(segment)),
+      )
+      .filter((candidateSegments) =>
+        candidateSegments.every((segment, index) => {
+          const targetSegment = targetSegments[index];
+          return /^\{[^}]+\}$/.test(targetSegment) || targetSegment === segment;
+        }),
+      )
+      .flatMap((candidateSegments) =>
+        candidateSegments
+          .map((segment, index) =>
+            /^\{[^}]+\}$/.test(targetSegments[index]) ? segment : null,
+          )
+          .filter(Boolean),
+      ),
+  );
+}
+
+function pathToUrlMatcher(p, allPaths = {}) {
   if (/\{[^}]+}/.test(p)) {
+    const excludedSegments = staticSiblingSegmentsForPath(p, allPaths);
     const re = p.replace(/\{([^}]+)}/g, (_, name) => {
       const n = String(name).toLowerCase();
       if (n.includes('id') || n.includes('uuid')) {
         return '[0-9a-f-]{36}';
+      }
+      if (excludedSegments.size) {
+        return `(?!${Array.from(excludedSegments)
+          .map((segment) =>
+            segment.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`),
+          )
+          .join('$|')}$)[^/]+`;
       }
       return '[^/]+';
     });
@@ -369,7 +429,7 @@ function mkBaseRequest(method, url, hasBody, opParams = [], op /* optional */) {
 }
 
 // ---------- Fixture resolver ----------
-async function resolveFixture(group, opId, statusCode) {
+async function resolveFixture(group, opId, statusCode, extension = 'json') {
   if (!opId) {
     return null;
   }
@@ -385,13 +445,23 @@ async function resolveFixture(group, opId, statusCode) {
   const rel = path.posix.join(
     FIXTURE_ROOT,
     group,
-    `${kebab}-${statusCode}.json`,
+    `${kebab}-${statusCode}.${extension}`,
   );
   const abs = path.join(WM_FILES_DIR, rel);
   if (await fileExists(abs)) {
     return { rel, abs };
   }
   return null;
+}
+
+async function resolveSuccessBodyFileName(group, opId, statusCode, isCsv) {
+  if (!isCsv) {
+    const fixture = await resolveFixture(group, opId, statusCode);
+    return fixture ? fixture.rel : null;
+  }
+
+  const csvFixture = await resolveFixture(group, opId, statusCode, 'csv');
+  return csvFixture ? csvFixture.rel : REPORT_CSV_DEFAULT;
 }
 
 // ---------- Scenario helpers ----------
@@ -610,6 +680,7 @@ async function main() {
   }
 
   await ensureDir(MAPPINGS_DIR);
+  await clearGeneratedMappings(MAPPINGS_DIR);
 
   const emittedErrorKeys = new Set();
 
@@ -621,7 +692,7 @@ async function main() {
       }
 
       const group = toGroup(op || {});
-      const url = pathToUrlMatcher(p);
+      const url = pathToUrlMatcher(p, spec.paths || {});
       const hasBody = !!op.requestBody;
       const dir = path.join(MAPPINGS_DIR, group);
       await ensureDir(dir);
@@ -724,25 +795,29 @@ async function main() {
 
       // Prefer curated fixture if present (JSON only)
       let successResponse = {};
-      const maybeFixture =
-        !isCsv && (await resolveFixture(group, op.operationId, statusCode));
+      const successBodyFileName = await resolveSuccessBodyFileName(
+        group,
+        op.operationId,
+        statusCode,
+        isCsv,
+      );
 
       if (isCsv) {
-        // CSV download: serve the shared sample.csv
+        // CSV download: prefer a per-operation fixture, otherwise fall back.
         successResponse = {
           status: Number(statusCode),
           headers,
           ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
-          bodyFileName: REPORT_CSV_DEFAULT, // e.g. "reports/sample.csv"
+          bodyFileName: successBodyFileName,
         };
-      } else if (maybeFixture && String(statusCode) !== '204') {
+      } else if (successBodyFileName && String(statusCode) !== '204') {
         // JSON fixture
         successResponse = {
           status: Number(statusCode),
           headers,
           transformers: ['response-template'],
           ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
-          bodyFileName: maybeFixture.rel, // fixtures/<group>/<op>-200.json
+          bodyFileName: successBodyFileName,
         };
       } else {
         // Fallback: example/schema-based JSON body

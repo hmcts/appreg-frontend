@@ -14,6 +14,29 @@
   }
 }
 
+@if (vm().exportSuccess) {
+  <app-success-banner
+    heading="Successfully exported CSV"
+    body="Standard applicant CSV has been successfully exported"
+  />
+}
+
+@if (vm().printSuccess) {
+  <app-success-banner
+    heading="Successfully printed PDF"
+    body="Standard applicant PDF has been successfully printed"
+  />
+}
+
+@if (vm().isActionLoading) {
+  <app-async-job-progress
+    heading="{{ actionType() }} in progress"
+    body="Your {{
+      actionType()
+    }} is being generated and will download automatically when ready."
+  />
+}
+
 <h1 class="govuk-heading-xl">Standard applicants</h1>
 
 <app-help-details summary="Help with standard applicants">
@@ -46,7 +69,12 @@
       formControlName="code"
       label="Code"
       idPrefix="code"
-      [error]="fieldError('code')?.text ?? null"
+      [error]="
+        submitted()
+          ? (getControlErrorItem(form.controls.code, 'code', errorMap)?.text ??
+            null)
+          : null
+      "
       containerWidthClass="govuk-grid-column-one-half"
     />
   </div>
@@ -56,7 +84,12 @@
       formControlName="name"
       label="Standard applicant name"
       idPrefix="name"
-      [error]="fieldError('name')?.text ?? null"
+      [error]="
+        submitted()
+          ? (getControlErrorItem(form.controls.name, 'name', errorMap)?.text ??
+            null)
+          : null
+      "
       widthClass="govuk-input--width-20"
       containerWidthClass="govuk-grid-column-one-half"
     />
@@ -117,15 +150,19 @@
           <button
             type="button"
             class="govuk-button moj-button-menu__item govuk-button--secondary"
+            (click)="onExportButtonClick()"
+            [disabled]="vm().isActionLoading"
           >
-            Export
+            Export CSV
           </button>
 
           <button
             type="button"
             class="govuk-button moj-button-menu__item govuk-button--secondary"
+            (click)="onPrintButtonClick()"
+            [disabled]="vm().isActionLoading"
           >
-            Print
+            Print PDF
           </button>
         </div>
       </span>

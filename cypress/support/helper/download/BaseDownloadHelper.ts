@@ -7,8 +7,13 @@ export class BaseDownloadHelper {
   protected static readonly DOWNLOADS_FOLDER =
     DOWNLOAD_CONSTANTS.DOWNLOADS_FOLDER;
 
+  private static getSpecDownloadsFolder(): string {
+    const specSlug = Cypress.spec.name.replace(/\.[^/.]+$/, '');
+    return `${this.DOWNLOADS_FOLDER}/${specSlug}`;
+  }
+
   static getDownloadsPath(): string {
-    return `${Cypress.config('projectRoot')}/${this.DOWNLOADS_FOLDER}`;
+    return `${Cypress.config('projectRoot')}/${this.getSpecDownloadsFolder()}`;
   }
 
   static ensureDownloadsFolderExists(): Cypress.Chainable<null> {
@@ -28,20 +33,42 @@ export class BaseDownloadHelper {
   protected static getLatestOrFail(
     listTaskName: string,
     fileType: string,
+    timeout = DOWNLOAD_CONSTANTS.DEFAULT_FIND_TIMEOUT_MS,
   ): Cypress.Chainable<string> {
-    return this.listFiles(listTaskName).then((files) => {
-      if (!files.length) {
-        throw new Error(
-          `Expected at least 1 ${fileType} file in downloads folder (${this.DOWNLOADS_FOLDER}), but found none`,
-        );
-      }
-      const latest = files[files.length - 1];
-      Cypress.log({
-        name: `getLatest${fileType}OrFail`,
-        message: `Latest ${fileType} detected: "${latest}"`,
-      });
-      return latest;
-    });
+    const startTime = Date.now();
+
+    const attemptGetLatest = (): Cypress.Chainable<string> => {
+      return this.listFiles(listTaskName).then((files) => {
+        if (files.length) {
+          const latest = files[files.length - 1];
+          Cypress.log({
+            name: `getLatest${fileType}OrFail`,
+            message: `Latest ${fileType} detected: "${latest}"`,
+          });
+          return latest;
+        }
+
+        const elapsed = Date.now() - startTime;
+        if (elapsed >= timeout) {
+          throw new Error(
+            `Expected at least 1 ${fileType} file in downloads folder ` +
+              `(${this.getSpecDownloadsFolder()}), but found none after ${timeout}ms`,
+          );
+        }
+
+        Cypress.log({
+          name: `getLatest${fileType}OrFail`,
+          message: `${fileType} not found yet, retrying... (elapsed: ${elapsed}ms)`,
+        });
+        return cy
+          .wait(DOWNLOAD_CONSTANTS.POLL_INTERVAL_MS)
+          .then(
+            () => attemptGetLatest() as unknown,
+          ) as Cypress.Chainable<string>;
+      }) as Cypress.Chainable<string>;
+    };
+
+    return attemptGetLatest();
   }
 
   protected static findByName(

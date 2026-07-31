@@ -1,3 +1,14 @@
+/**
+ * View Standard Applicant
+ * Main Component for page /standard-applicants/:id
+ *
+ * Functionality:
+ * ngOnInit():
+ * - GET request to retrieve the selected Standard Applicant
+ * - Maps the response into summary list values for display
+ * - Redirects back to the Standard Applicants search page if loading fails
+ */
+
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 

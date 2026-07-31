@@ -2,6 +2,34 @@
 import { DropdownElement } from '../../../pageobjects/generic/dropdown/DropdownElement';
 
 export class DropdownHelper {
+  private static normalise(value: string): string {
+    return value.replaceAll('\u00a0', ' ').trim().toLowerCase();
+  }
+
+  private static retryUntil(
+    check: () => Cypress.Chainable<boolean>,
+    failureMessage: string,
+    timeoutMs: number = 5000,
+    intervalMs: number = 250,
+  ): Cypress.Chainable<void> {
+    const startedAt = Date.now();
+
+    const attempt = (): Cypress.Chainable<void> =>
+      check().then((passed) => {
+        if (passed) {
+          return;
+        }
+
+        if (Date.now() - startedAt >= timeoutMs) {
+          throw new Error(failureMessage);
+        }
+
+        return cy.wait(intervalMs).then(attempt);
+      });
+
+    return attempt();
+  }
+
   /**
    * Selects an option from a dropdown by its label and option text
    * @param dropdownLabel The label of the dropdown
@@ -58,39 +86,49 @@ export class DropdownHelper {
   static verifyDropdownOptionSelected(
     dropdownLabel: string,
     optionText: string,
-  ): void {
-    DropdownElement.findDropdown(dropdownLabel)
-      .invoke('val')
-      .then((val) => {
-        const valMatch = String(val).toLowerCase() === optionText.toLowerCase();
-        if (valMatch) {
-          cy.wrap(valMatch).should('be.true');
-        } else {
-          // Fall back to comparing text content
-          return DropdownElement.findDropdown(dropdownLabel).then(
-            ($dropdown) => {
-              const textMatch = $dropdown
-                .text()
-                .toLowerCase()
-                .includes(optionText.toLowerCase());
-              cy.wrap(textMatch).should('be.true');
-            },
+  ): Cypress.Chainable<void> {
+    const expected = this.normalise(optionText);
+
+    return this.retryUntil(
+      () =>
+        DropdownElement.findDropdown(dropdownLabel).then(($dropdown) => {
+          if (!$dropdown.is('select')) {
+            throw new Error(
+              `Dropdown "${dropdownLabel}" is not a native select`,
+            );
+          }
+
+          const actual = this.normalise(
+            $dropdown.find('option:selected').text(),
           );
-        }
-      });
+          return actual === expected;
+        }),
+      `Dropdown "${dropdownLabel}" did not select "${optionText}" within 5000ms`,
+    );
   }
 
   static verifyDropdownOptionNotSelected(
     dropdownLabel: string,
     optionText: string,
-  ): void {
-    DropdownElement.findDropdown(dropdownLabel)
-      .invoke('val')
-      .should((val) => {
-        expect(String(val).toLowerCase()).to.not.equal(
-          optionText.toLowerCase(),
-        );
-      });
+  ): Cypress.Chainable<void> {
+    const expected = this.normalise(optionText);
+
+    return this.retryUntil(
+      () =>
+        DropdownElement.findDropdown(dropdownLabel).then(($dropdown) => {
+          if (!$dropdown.is('select')) {
+            throw new Error(
+              `Dropdown "${dropdownLabel}" is not a native select`,
+            );
+          }
+
+          const actual = this.normalise(
+            $dropdown.find('option:selected').text(),
+          );
+          return actual !== expected;
+        }),
+      `Dropdown "${dropdownLabel}" was still set to "${optionText}" after 5000ms`,
+    );
   }
 
   static verifyDropdownIsDisabled(dropdownLabel: string): void {
@@ -149,7 +187,19 @@ export class DropdownHelper {
               );
             }
             if ($dropdown.is('select')) {
-              cy.wrap($dropdown).select(optionText);
+              cy.wrap($dropdown)
+                .should('be.visible')
+                .and('be.enabled')
+                .select(optionText);
+
+              cy.wrap($dropdown)
+                .find('option:selected')
+                .should(($option) => {
+                  const actual = this.normalise($option.text());
+                  const expected = this.normalise(optionText);
+
+                  expect(actual, 'Selected dropdown option').to.eq(expected);
+                });
             } else {
               cy.wrap($dropdown)
                 .click()
@@ -177,19 +227,30 @@ export class DropdownHelper {
     optionText: string,
     fieldsetLabel: string,
   ): void {
+    const expected = this.normalise(optionText);
+
     cy.contains('fieldset', fieldsetLabel, { matchCase: false }).then(
       ($fieldset) => {
-        DropdownElement.findDropdownWithin($fieldset, dropdownLabel).then(
+        DropdownElement.findDropdownWithin($fieldset, dropdownLabel).should(
           ($dropdown) => {
-            if (!$dropdown || $dropdown.length === 0) {
-              throw new Error(
-                `Dropdown "${dropdownLabel}" not found within fieldset "${fieldsetLabel}"`,
-              );
-            }
-            DropdownHelper.verifyDropdownOptionSelected(
-              dropdownLabel,
-              optionText,
+            expect(
+              $dropdown.length,
+              `Dropdown "${dropdownLabel}" within fieldset "${fieldsetLabel}"`,
+            ).to.be.greaterThan(0);
+
+            expect(
+              $dropdown.is('select'),
+              `Dropdown "${dropdownLabel}" within fieldset "${fieldsetLabel}" is a native select`,
+            ).to.eq(true);
+
+            const actual = this.normalise(
+              $dropdown.find('option:selected').text(),
             );
+
+            expect(
+              actual,
+              `Selected value in "${dropdownLabel}" within fieldset "${fieldsetLabel}"`,
+            ).to.eq(expected);
           },
         );
       },

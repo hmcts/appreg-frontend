@@ -74,6 +74,8 @@ export class ApplicationsListUpdateComponent {
 
   readonly listRow = input<ApplicationListRow | undefined>(undefined);
 
+  readonly errorMap = DETAIL_FIELD_MESSAGES;
+
   private readonly hrefs = {
     date: `#${DETAIL_ERROR_ANCHORS.date}`,
     time: `#${DETAIL_ERROR_ANCHORS.time}`,
@@ -146,10 +148,6 @@ export class ApplicationsListUpdateComponent {
         errorHint: msg,
       });
     }
-  }
-
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().errorSummary.find((e: ErrorItem) => e.id === id);
   }
 
   // Error hightlighting/summary for closing a list

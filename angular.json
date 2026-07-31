@@ -29,6 +29,7 @@
                 "appreg-frontend-staging.staging.platform.hmcts.net",
                 "appreg.apps.hmcts.net",
                 "appreg.ithc.apps.hmcts.net",
+                "appreg.test.apps.hmcts.net",
                 "*.dev.platform.hmcts.net",
                 "localhost"
               ]

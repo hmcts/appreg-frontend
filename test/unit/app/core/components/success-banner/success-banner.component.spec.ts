@@ -71,7 +71,9 @@ describe('SuccessBannerComponent (external template)', () => {
       'Applications list successfully created',
     );
     expect(bodyP.textContent).toContain('You can return to the list.');
-    expect(linkEl.textContent.trim()).toBe('Click here to go back');
+    expect(linkEl.textContent.trim()).toBe(
+      'Click here to go back (internal link)',
+    );
 
     // Assert target using public RouterLink API (urlTree) + Router.serializeUrl
     expect(linkDir.urlTree).toBeTruthy();
@@ -80,6 +82,10 @@ describe('SuccessBannerComponent (external template)', () => {
 
     // Optional: also assert the rendered href (jsdom makes it absolute)
     expect(linkEl.href.endsWith('/applications-list')).toBe(true);
+    expect(
+      bodyP.querySelectorAll('.govuk-notification-banner__link'),
+    ).toHaveLength(1);
+    expect(bodyP.querySelectorAll('span')).toHaveLength(2);
   });
 
   it('renders an href link when linkHref provided', () => {
@@ -94,8 +100,74 @@ describe('SuccessBannerComponent (external template)', () => {
       '.govuk-notification-banner__link',
     ) as HTMLAnchorElement;
 
-    expect(link.textContent.trim()).toBe('Open docs');
+    expect(link.textContent.trim()).toBe('Open docs (direct link)');
     expect(link.getAttribute('href')).toBe('/docs');
+    expect(
+      fixture.nativeElement.querySelectorAll(
+        '.govuk-notification-banner__link',
+      ),
+    ).toHaveLength(1);
+    expect(
+      fixture.nativeElement.querySelectorAll('.govuk-body span'),
+    ).toHaveLength(2);
+  });
+
+  it('prefers linkHref when both linkHref and linkCommands are provided', () => {
+    setInput('linkText', 'Open docs', false);
+    setInput('linkHref', '/docs', false);
+    setInput('linkCommands', ['/applications-list'], false);
+    fixture.detectChanges();
+
+    const links = fixture.nativeElement.querySelectorAll(
+      '.govuk-notification-banner__link',
+    );
+    const link = links[0] as HTMLAnchorElement;
+
+    expect(links).toHaveLength(1);
+    expect(link.getAttribute('href')).toBe('/docs');
+    expect(
+      fixture.nativeElement.querySelector('.govuk-body span'),
+    ).not.toBeNull();
+  });
+
+  it('emits linkClick when the banner link is clicked', () => {
+    setInput('heading', 'Done', false);
+    setInput('linkText', 'Open docs', false);
+    setInput('linkCommands', ['/applications-list'], false);
+    fixture.detectChanges();
+
+    const emitSpy = jest.spyOn(comp.linkClick, 'emit');
+    const link = fixture.debugElement.query(
+      By.css('.govuk-notification-banner__link'),
+    );
+    const clickEvent = new MouseEvent('click', { button: 0 });
+
+    link.nativeElement.dispatchEvent(clickEvent);
+
+    expect(emitSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a clickable anchor and emits linkClick without navigation inputs', () => {
+    setInput('heading', 'Done', false);
+    setInput('linkText', 'Run action', false);
+    setInput('linkHref', undefined, false);
+    setInput('linkCommands', undefined, false);
+    setInput('allowOnClick', true, true);
+
+    const emitSpy = jest.spyOn(comp.linkClick, 'emit');
+    const link = fixture.nativeElement.querySelector(
+      '.govuk-link',
+    ) as HTMLAnchorElement;
+    const clickEvent = new MouseEvent('click', {
+      button: 0,
+      cancelable: true,
+    });
+
+    link.dispatchEvent(clickEvent);
+
+    expect(link.textContent?.trim()).toBe('Run action (action link)');
+    expect(clickEvent.defaultPrevented).toBe(true);
+    expect(emitSpy).toHaveBeenCalledTimes(1);
   });
 
   it('autoFocus focuses the banner element after view init', () => {
