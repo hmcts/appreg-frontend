@@ -1375,7 +1375,7 @@ describe('ApplicationsListEntryDetail', () => {
     expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
 
     const updatePayload = mockUpdateApplicationListEntry.mock.calls[0][0]
-      .entryUpdateDto as Record<string, unknown>;
+      .entryUpdateDto as unknown as Record<string, unknown>;
 
     expect(updatePayload).not.toHaveProperty('lodgementDate');
     expect(updatePayload).not.toHaveProperty('id');
@@ -1447,7 +1447,7 @@ describe('ApplicationsListEntryDetail', () => {
     ).toBe(true);
   });
 
-  it('updates respondent required messages when respondent becomes populated after submit', () => {
+  it('does not rebuild respondent errors when respondent becomes populated after binding', () => {
     component['forms'].respondentPersonForm.reset();
     component['forms'].respondentOrganisationForm.reset();
     component['form'].patchValue({
@@ -1466,6 +1466,36 @@ describe('ApplicationsListEntryDetail', () => {
     component['forms'].respondentPersonForm.patchValue({
       firstName: 'Jane',
     });
+
+    expect(component.respondentErrorItems).toEqual([]);
+    expect(
+      component['appListEntryDetailState']().summaryErrors.some(
+        ({ text }) => text === 'Enter respondent last name',
+      ),
+    ).toBe(false);
+  });
+
+  it('rebuilds respondent errors when the application is submitted after respondent becomes populated', () => {
+    component['forms'].respondentPersonForm.reset();
+    component['forms'].respondentOrganisationForm.reset();
+    component['form'].patchValue({
+      respondentEntryType: 'person',
+      numberOfRespondents: null,
+    });
+    component['appListEntryDetailPatch']({
+      appCodeDetail: {
+        requiresRespondent: false,
+      } as ApplicationCodeGetDetailDto,
+      formSubmitted: true,
+    });
+
+    component['forms'].respondentPersonForm.patchValue({
+      firstName: 'Jane',
+    });
+
+    expect(component.respondentErrorItems).toEqual([]);
+
+    component.onUpdateApplication();
 
     expect(component.respondentErrorItems).toEqual(
       expect.arrayContaining([
