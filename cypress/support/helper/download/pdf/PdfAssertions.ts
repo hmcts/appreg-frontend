@@ -279,7 +279,7 @@ export class PdfAssertions {
               `PDF should contain anchor: "${processedAnchor}"`,
             );
           });
-      }) as unknown as Cypress.Chainable<void>,
+        }) as unknown as Cypress.Chainable<void>,
     ) as unknown as Cypress.Chainable<void>;
   }
 
