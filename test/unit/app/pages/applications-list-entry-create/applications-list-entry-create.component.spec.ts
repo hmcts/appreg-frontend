@@ -207,7 +207,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.respondentErrorItems).toEqual([]);
   });
 
-  it('updates respondent required messages when respondent becomes populated after submit', () => {
+  it('does not rebuild respondent errors when respondent becomes populated after submit', () => {
     (
       component as unknown as {
         appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
@@ -230,6 +230,40 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     component.forms.respondentPersonForm.patchValue({ firstName: 'Jane' });
 
     expect(component.respondentSubmittedAndRequired).toBe(true);
+    expect(component.respondentErrorItems).toEqual([]);
+    expect(
+      component
+        .vm()
+        .summaryErrors.some(
+          ({ text }) => text === 'Enter respondent last name',
+        ),
+    ).toBe(false);
+  });
+
+  it('rebuilds respondent errors on the next submission after respondent becomes populated', () => {
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({
+      appCodeDetail: { requiresRespondent: false },
+    });
+
+    component.form.patchValue({
+      applicationCode: '   ',
+      respondentEntryType: 'person',
+      numberOfRespondents: null,
+    });
+    component.forms.respondentPersonForm.reset();
+    component.forms.respondentOrganisationForm.reset();
+
+    component.onSubmit(new Event('submit'));
+    component.forms.respondentPersonForm.patchValue({ firstName: 'Jane' });
+
+    expect(component.respondentErrorItems).toEqual([]);
+
+    component.onSubmit(new Event('submit'));
+
     expect(component.respondentErrorItems).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

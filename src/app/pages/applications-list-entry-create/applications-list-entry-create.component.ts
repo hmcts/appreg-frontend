@@ -618,6 +618,8 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private bindRespondentValidationChanges(): void {
+    const hasBeenSubmmitted = this.vm().submitted;
+
     merge(
       this.form.controls.respondentEntryType.valueChanges,
       this.form.controls.numberOfRespondents.valueChanges,
@@ -626,7 +628,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        if (!this.appListEntryCreateState().submitted) {
+        if (!hasBeenSubmmitted) {
           return;
         }
 
