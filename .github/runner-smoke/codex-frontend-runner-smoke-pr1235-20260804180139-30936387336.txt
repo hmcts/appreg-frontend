@@ -1,0 +1,7 @@
+codex frontend runner smoke test
+runner_name=codex-frontend-azure-aks-4ch6r-runner-5g5kh
+runner_os=Linux
+runner_arch=X64
+repository=hmcts/appreg-frontend
+workflow_url=https://github.com/hmcts/appreg-frontend/actions/runs/30936387336
+timestamp_utc=2026-08-04T18:01:39Z
