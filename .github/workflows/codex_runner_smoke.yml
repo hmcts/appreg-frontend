@@ -35,10 +35,10 @@ jobs:
         with:
           openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
           responses-api-endpoint: https://eu.api.openai.com/v1/responses
-          permission-profile: ":read-only"
+          permission-profile: ':read-only'
           safety-strategy: unprivileged-user
           codex-user: codex
-          prompt: "Reply exactly CODEX_SMOKE_OK. Do not run commands or modify files."
+          prompt: 'Reply exactly CODEX_SMOKE_OK. Do not run commands or modify files.'
           codex-args: '["--ephemeral"]'
 
   branch-smoke:
