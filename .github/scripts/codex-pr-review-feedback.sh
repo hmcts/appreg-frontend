@@ -17,7 +17,6 @@ required_env "GITHUB_EVENT_PATH"
 required_env "GITHUB_REPOSITORY"
 required_env "OUTPUT_DIR"
 
-default_branch="${DEFAULT_BRANCH:-master}"
 run_id="${GITHUB_RUN_ID:-manual}"
 run_attempt="${GITHUB_RUN_ATTEMPT:-1}"
 artifact_dir="${RUNNER_TEMP:-/tmp}/codex-review-generate-${run_id}-${run_attempt}"
@@ -27,39 +26,13 @@ pr_json_path="${artifact_dir}/pull-request.json"
 review_comments_json_path="${artifact_dir}/review-comments.json"
 prompt_path="${artifact_dir}/codex-review-feedback-prompt.md"
 final_message_path="${output_dir}/codex-final-message.md"
-comment_body_path="${output_dir}/codex-review-comment.md"
-patch_path="${output_dir}/changes.patch"
 metadata_path="${output_dir}/metadata.env"
-trusted_pipeline_path="${artifact_dir}/trusted-codex-local-pipeline.sh"
-trusted_pipeline_sha=""
-codex_home="${artifact_dir}/codex-home"
-codex_tmp="${artifact_dir}/codex-tmp"
-codex_runner_temp="${artifact_dir}/codex-runner-temp"
 sanitized_home="${artifact_dir}/sanitized-home"
 sanitized_tmp="${artifact_dir}/sanitized-tmp"
-guardrail_changes_path="${output_dir}/guardrail-changes.txt"
-guardrail_review_required="false"
-usage_events_path="${artifact_dir}/codex-events.jsonl"
-usage_summary_path="${output_dir}/codex-usage-summary.json"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# shellcheck source=.github/scripts/codex-usage-metrics.sh
-source "${script_dir}/codex-usage-metrics.sh"
 # shellcheck source=.github/scripts/codex-action-runtime.sh
 source "${script_dir}/codex-action-runtime.sh"
-guardrail_pathspecs=(
-  "bin/codex-local-pipeline.sh"
-  ".github/scripts"
-  ".github/workflows"
-  "package.json"
-  "yarn.lock"
-  ".yarnrc.yml"
-  ".yarn"
-)
-
-prepare_codex_home() {
-  mkdir -p "${codex_home}/.codex" "${codex_home}/.cache" "${codex_home}/.config" "${codex_tmp}" "${codex_runner_temp}"
-}
 
 run_sanitized() {
   env -i \
@@ -76,29 +49,6 @@ run_sanitized() {
     "CI=${CI:-true}" \
     "GITHUB_ACTIONS=${GITHUB_ACTIONS:-true}" \
     "COREPACK_HOME=${sanitized_home}/.cache/corepack" \
-    "GIT_CONFIG_GLOBAL=/dev/null" \
-    "GIT_CONFIG_NOSYSTEM=1" \
-    "GIT_TERMINAL_PROMPT=0" \
-    "$@"
-}
-
-run_codex() {
-  run_codex_as_action_user env -i \
-    "HOME=${codex_home}" \
-    "CODEX_HOME=${CODEX_ACTION_HOME:-${codex_home}/.codex}" \
-    "XDG_CACHE_HOME=${codex_home}/.cache" \
-    "XDG_CONFIG_HOME=${codex_home}/.config" \
-    "PATH=${PATH:-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin}" \
-    "SHELL=${SHELL:-/bin/bash}" \
-    "USER=${CODEX_RUN_USER:-${USER:-runner}}" \
-    "LOGNAME=${CODEX_RUN_USER:-${LOGNAME:-${USER:-runner}}}" \
-    "LANG=${LANG:-C.UTF-8}" \
-    "LC_ALL=${LC_ALL:-${LANG:-C.UTF-8}}" \
-    "TERM=${TERM:-xterm}" \
-    "TMPDIR=${codex_tmp}" \
-    "RUNNER_TEMP=${codex_runner_temp}" \
-    "CI=${CI:-true}" \
-    "GITHUB_ACTIONS=${GITHUB_ACTIONS:-true}" \
     "GIT_CONFIG_GLOBAL=/dev/null" \
     "GIT_CONFIG_NOSYSTEM=1" \
     "GIT_TERMINAL_PROMPT=0" \
@@ -136,69 +86,11 @@ git_read_authenticated() {
     "$@"
 }
 
-file_sha256() {
-  local path="$1"
-
-  if command -v sha256sum >/dev/null 2>&1; then
-    sha256sum "${path}" | awk '{print $1}'
-  else
-    shasum -a 256 "${path}" | awk '{print $1}'
-  fi
-}
-
-verify_trusted_file() {
-  local path="$1"
-  local expected_sha="$2"
-  local label="$3"
-  local actual_sha
-
-  actual_sha="$(file_sha256 "${path}")"
-  if [[ "${actual_sha}" != "${expected_sha}" ]]; then
-    echo "::error::Trusted ${label} changed after capture; refusing to execute it." >&2
-    exit 1
-  fi
-}
-
-detect_guardrail_changes() {
-  local base_ref="${1:-}"
-  local guardrail_changes
-
-  guardrail_changes="$(
-    {
-      if [[ -n "${base_ref}" ]] && git_sanitized rev-parse --verify --quiet "${base_ref}" >/dev/null; then
-        git_sanitized diff --name-status "${base_ref}...HEAD" -- "${guardrail_pathspecs[@]}" || true
-      fi
-      git_sanitized status --short --untracked-files=normal -- "${guardrail_pathspecs[@]}" || true
-    } | sed '/^[[:space:]]*$/d'
-  )"
-
-  printf '%s\n' "${guardrail_changes}" >"${guardrail_changes_path}"
-  if [[ -n "${guardrail_changes}" ]]; then
-    guardrail_review_required="true"
-    echo "::warning::Codex changed workflow, runner, package, or verification files. Manual verification is required."
-    printf '%s\n' "${guardrail_changes}"
-  fi
-}
-
-write_guardrail_warning() {
-  if [[ "${guardrail_review_required}" != "true" ]]; then
-    return
-  fi
-
-  {
-    echo
-    echo "Manual verification required:"
-    echo
-    echo "Codex changed workflow, runner, package, or verification files. These changes can affect how checks execute and must be reviewed manually."
-    echo
-    echo "Changed verification-sensitive files:"
-    sed 's/^/- /' "${guardrail_changes_path}"
-    echo
-  } >>"${comment_body_path}"
-}
-
 mkdir -p "${artifact_dir}" "${sanitized_home}" "${sanitized_tmp}" "${output_dir}"
-prepare_codex_home
+collector_path="$(capture_codex_collector "${script_dir}/codex-pr-review-collect.sh")"
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+  echo "collector_path=${collector_path}" >>"${GITHUB_OUTPUT}"
+fi
 
 python3 - <<'PY' >"${feedback_env_path}"
 import json
@@ -429,62 +321,16 @@ PY
 git_read_authenticated fetch origin "${HEAD_REF}:refs/remotes/origin/${HEAD_REF}"
 git_read_authenticated fetch origin "${BASE_REF}:refs/remotes/origin/${BASE_REF}"
 git_sanitized checkout -B "${HEAD_REF}" "origin/${HEAD_REF}"
-git_sanitized show "origin/${BASE_REF}:bin/codex-local-pipeline.sh" >"${trusted_pipeline_path}"
-chmod +x "${trusted_pipeline_path}"
-trusted_pipeline_sha="$(file_sha256 "${trusted_pipeline_path}")"
 
 unset GH_TOKEN
 
 prepare_codex_action_runtime "${PWD}" "${artifact_dir}" "${output_dir}"
-arm_codex_action_proxy_shutdown
+trusted_feedback_env_path="$(capture_codex_metadata "${feedback_env_path}" "${collector_path}" review-feedback.env)"
 echo "Running Codex review feedback for PR #${PR_NUMBER} on ${HEAD_REF}"
-run_codex_exec_with_usage "pr-review-feedback" "${usage_events_path}" "${usage_summary_path}" \
-  run_codex codex exec \
-  --json \
-  --cd "${PWD}" \
-  --config 'default_permissions=":workspace"' \
-  --ephemeral \
-  --output-last-message "${final_message_path}" \
-  - <"${prompt_path}"
-shutdown_codex_action_proxy
-disarm_codex_action_proxy_shutdown
-
-if [[ ! -s "${final_message_path}" ]]; then
-  echo "Codex completed without writing a final message." >"${final_message_path}"
-fi
-
-if [[ -z "$(git_sanitized status --short --untracked-files=normal)" ]]; then
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   {
-    echo "Codex reviewed this feedback but did not produce any committable changes."
-    echo
-    echo "Feedback from @${COMMENT_AUTHOR}: ${COMMENT_URL}"
-    echo
-    echo "Codex final message:"
-    echo
-    sed -n '1,200p' "${final_message_path}"
-  } >"${comment_body_path}"
-  {
-  echo "has_changes=false"
-  echo "pr_number=${PR_NUMBER}"
-  echo "head_ref=${HEAD_REF}"
-  echo "base_ref=${BASE_REF}"
-} >"${metadata_path}"
-  exit 0
+    echo "prompt_path=${prompt_path}"
+    echo "final_message_path=${final_message_path}"
+    echo "feedback_env_path=${trusted_feedback_env_path}"
+  } >>"${GITHUB_OUTPUT}"
 fi
-
-git_sanitized add -A
-if git_sanitized diff --cached --quiet; then
-  echo "Codex produced changes, but none were staged for patch output." >&2
-  exit 1
-fi
-
-git_sanitized diff --cached --binary >"${patch_path}"
-
-{
-  echo "has_changes=true"
-  echo "pr_number=${PR_NUMBER}"
-  echo "head_ref=${HEAD_REF}"
-  echo "base_ref=${BASE_REF}"
-  echo "comment_author=${COMMENT_AUTHOR}"
-  echo "comment_url=${COMMENT_URL}"
-} >"${metadata_path}"

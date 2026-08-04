@@ -21,9 +21,6 @@ required_env "REPAIR_ATTEMPT"
 run_id="${GITHUB_RUN_ID:-manual}"
 run_attempt="${GITHUB_RUN_ATTEMPT:-1}"
 artifact_dir="${RUNNER_TEMP:-/tmp}/codex-review-repair-${run_id}-${run_attempt}-${REPAIR_ATTEMPT}"
-codex_home="${artifact_dir}/codex-home"
-codex_tmp="${artifact_dir}/codex-tmp"
-codex_runner_temp="${artifact_dir}/codex-runner-temp"
 sanitized_home="${artifact_dir}/sanitized-home"
 sanitized_tmp="${artifact_dir}/sanitized-tmp"
 input_dir="${INPUT_DIR}"
@@ -31,53 +28,18 @@ failure_dir="${FAILURE_DIR}"
 output_dir="${OUTPUT_DIR}"
 input_metadata_path="${input_dir}/metadata.env"
 input_patch_path="${input_dir}/changes.patch"
-input_comment_body_path="${input_dir}/codex-review-comment.md"
 failure_log_path="${failure_dir}/verification-failure.log"
 failure_summary_path="${failure_dir}/verification-failure-summary.log"
 prompt_path="${artifact_dir}/codex-review-repair-prompt.md"
 final_message_path="${output_dir}/codex-final-message.md"
-comment_body_path="${output_dir}/codex-review-comment.md"
-patch_path="${output_dir}/changes.patch"
-metadata_path="${output_dir}/metadata.env"
-usage_events_path="${artifact_dir}/codex-events.jsonl"
-usage_summary_path="${output_dir}/codex-usage-summary.json"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# shellcheck source=.github/scripts/codex-usage-metrics.sh
-source "${script_dir}/codex-usage-metrics.sh"
 # shellcheck source=.github/scripts/codex-action-runtime.sh
 source "${script_dir}/codex-action-runtime.sh"
 
 metadata_value() {
   local key="$1"
   awk -F= -v key="${key}" '$1 == key { sub(/^[^=]*=/, ""); print; exit }' "${input_metadata_path}"
-}
-
-prepare_codex_home() {
-  mkdir -p "${codex_home}/.codex" "${codex_home}/.cache" "${codex_home}/.config" "${codex_tmp}" "${codex_runner_temp}"
-}
-
-run_codex() {
-  run_codex_as_action_user env -i \
-    "HOME=${codex_home}" \
-    "CODEX_HOME=${CODEX_ACTION_HOME:-${codex_home}/.codex}" \
-    "XDG_CACHE_HOME=${codex_home}/.cache" \
-    "XDG_CONFIG_HOME=${codex_home}/.config" \
-    "PATH=${PATH:-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin}" \
-    "SHELL=${SHELL:-/bin/bash}" \
-    "USER=${CODEX_RUN_USER:-${USER:-runner}}" \
-    "LOGNAME=${CODEX_RUN_USER:-${LOGNAME:-${USER:-runner}}}" \
-    "LANG=${LANG:-C.UTF-8}" \
-    "LC_ALL=${LC_ALL:-${LANG:-C.UTF-8}}" \
-    "TERM=${TERM:-xterm}" \
-    "TMPDIR=${codex_tmp}" \
-    "RUNNER_TEMP=${codex_runner_temp}" \
-    "CI=${CI:-true}" \
-    "GITHUB_ACTIONS=${GITHUB_ACTIONS:-true}" \
-    "GIT_CONFIG_GLOBAL=/dev/null" \
-    "GIT_CONFIG_NOSYSTEM=1" \
-    "GIT_TERMINAL_PROMPT=0" \
-    "$@"
 }
 
 run_sanitized() {
@@ -129,7 +91,6 @@ git_read_authenticated() {
 }
 
 mkdir -p "${artifact_dir}" "${sanitized_home}" "${sanitized_tmp}" "${output_dir}"
-prepare_codex_home
 
 if [[ ! -s "${input_metadata_path}" ]]; then
   echo "Missing input metadata: ${input_metadata_path}" >&2
@@ -227,68 +188,18 @@ Trusted verification failure:
 Path(os.environ["PROMPT_PATH"]).write_text(prompt, encoding="utf-8")
 PY
 
+collector_path="$(capture_codex_collector "${script_dir}/codex-pr-review-repair-collect.sh")"
 prepare_codex_action_runtime "${PWD}" "${artifact_dir}" "${output_dir}"
-arm_codex_action_proxy_shutdown
 echo "Running Codex review repair attempt ${REPAIR_ATTEMPT} for PR #${pr_number} on ${head_ref}"
-run_codex_exec_with_usage "pr-review-repair-${REPAIR_ATTEMPT}" "${usage_events_path}" "${usage_summary_path}" \
-  run_codex codex exec \
-  --json \
-  --cd "${PWD}" \
-  --config 'default_permissions=":workspace"' \
-  --ephemeral \
-  --output-last-message "${final_message_path}" \
-  - <"${prompt_path}"
-shutdown_codex_action_proxy
-disarm_codex_action_proxy_shutdown
-
-if [[ ! -s "${final_message_path}" ]]; then
-  echo "Codex review repair completed without writing a final message." >"${final_message_path}"
-fi
-
-if [[ -s "${input_comment_body_path}" ]]; then
-  cp "${input_comment_body_path}" "${comment_body_path}"
-else
-  {
-    echo "Codex addressed review feedback for PR #${pr_number}."
-    echo
-    echo "Feedback from @${comment_author}: ${comment_url}"
-  } >"${comment_body_path}"
-fi
-
-{
-  echo
-  echo "## Codex Review Repair Attempt ${REPAIR_ATTEMPT}"
-  echo
-  sed -n '1,200p' "${final_message_path}"
-} >>"${comment_body_path}"
-
-if [[ -z "$(git_sanitized status --short --untracked-files=normal)" ]]; then
-  echo "Codex review repair left no committable changes." >&2
-  exit 1
-fi
-
-git_sanitized add -A
-if git_sanitized diff --cached --quiet; then
-  echo "Codex review repair produced no staged patch output." >&2
-  exit 1
-fi
-
-git_sanitized diff --cached --binary >"${patch_path}"
-
-{
-  echo "has_changes=true"
-  echo "pr_number=${pr_number}"
-  echo "head_ref=${head_ref}"
-  echo "base_ref=${base_ref}"
-  echo "comment_author=${comment_author}"
-  echo "comment_url=${comment_url}"
-  echo "repair_attempt=${REPAIR_ATTEMPT}"
-} >"${metadata_path}"
-
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   {
-    echo "has_changes=true"
+    echo "prompt_path=${prompt_path}"
+    echo "final_message_path=${final_message_path}"
     echo "pr_number=${pr_number}"
     echo "head_ref=${head_ref}"
+    echo "base_ref=${base_ref}"
+    echo "comment_author=${comment_author}"
+    echo "comment_url=${comment_url}"
+    echo "collector_path=${collector_path}"
   } >>"${GITHUB_OUTPUT}"
 fi
