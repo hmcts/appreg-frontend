@@ -30,9 +30,27 @@ metadata_path="${output_dir}/metadata.env"
 sanitized_home="${artifact_dir}/sanitized-home"
 sanitized_tmp="${artifact_dir}/sanitized-tmp"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+schema_source="${script_dir}/../schemas/codex-patch-result.schema.json"
 
 # shellcheck source=.github/scripts/codex-action-runtime.sh
 source "${script_dir}/codex-action-runtime.sh"
+
+skip_codex_action() {
+  local reason="$1"
+
+  echo "Skipping Codex review feedback: ${reason}"
+  {
+    echo "has_changes=false"
+    echo "skip_reason=${reason}"
+  } >"${metadata_path}"
+  if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+    {
+      echo "should_run=false"
+      echo "skip_reason=${reason}"
+    } >>"${GITHUB_OUTPUT}"
+  fi
+  exit 0
+}
 
 run_sanitized() {
   env -i \
@@ -87,10 +105,7 @@ git_read_authenticated() {
 }
 
 mkdir -p "${artifact_dir}" "${sanitized_home}" "${sanitized_tmp}" "${output_dir}"
-collector_path="$(capture_codex_collector "${script_dir}/codex-pr-review-collect.sh")"
-if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
-  echo "collector_path=${collector_path}" >>"${GITHUB_OUTPUT}"
-fi
+schema_path="$(capture_codex_patch_schema "${schema_source}" "${artifact_dir}")"
 
 python3 - <<'PY' >"${feedback_env_path}"
 import json
@@ -169,12 +184,7 @@ source "${feedback_env_path}"
 set +a
 
 if [[ -n "${SKIP_REASON}" ]]; then
-  echo "Skipping Codex review feedback: ${SKIP_REASON}"
-  {
-    echo "has_changes=false"
-    echo "skip_reason=${SKIP_REASON}"
-  } >"${metadata_path}"
-  exit 0
+  skip_codex_action "${SKIP_REASON}"
 fi
 
 if [[ "${COMMENT_KIND}" == "pull_request_review" && -n "${REVIEW_ID}" ]]; then
@@ -217,12 +227,7 @@ PY
 fi
 
 if [[ -z "${COMMENT_BODY}${REVIEW_COMMENTS}" ]]; then
-  echo "Skipping Codex review feedback: comment body is empty"
-  {
-    echo "has_changes=false"
-    echo "skip_reason=comment body is empty"
-  } >"${metadata_path}"
-  exit 0
+  skip_codex_action "comment body is empty"
 fi
 
 gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" >"${pr_json_path}"
@@ -254,21 +259,11 @@ source "${feedback_env_path}"
 set +a
 
 if [[ "${PR_STATE}" != "open" || "${HEAD_REPO}" != "${GITHUB_REPOSITORY}" || "${HEAD_REF}" != codex/* ]]; then
-  echo "Skipping Codex review feedback: PR is not an open Codex PR in this repository"
-  {
-    echo "has_changes=false"
-    echo "skip_reason=PR is not an open Codex PR in this repository"
-  } >"${metadata_path}"
-  exit 0
+  skip_codex_action "PR is not an open Codex PR in this repository"
 fi
 
 if ! git_read_authenticated ls-remote --exit-code --heads origin "${HEAD_REF}" >/dev/null 2>&1; then
-  echo "Skipping Codex review feedback: branch ${HEAD_REF} no longer exists on origin"
-  {
-    echo "has_changes=false"
-    echo "skip_reason=branch no longer exists"
-  } >"${metadata_path}"
-  exit 0
+  skip_codex_action "branch no longer exists"
 fi
 
 PROMPT_PATH="${prompt_path}" python3 - <<'PY'
@@ -324,13 +319,18 @@ git_sanitized checkout -B "${HEAD_REF}" "origin/${HEAD_REF}"
 
 unset GH_TOKEN
 
-prepare_codex_action_runtime "${PWD}" "${artifact_dir}" "${output_dir}"
-trusted_feedback_env_path="$(capture_codex_metadata "${feedback_env_path}" "${collector_path}" review-feedback.env)"
+schema_path="$(prepare_codex_patch_contract "${prompt_path}" "${schema_path}" "${artifact_dir}" full)"
+prepare_codex_action_runtime "${PWD}"
 echo "Running Codex review feedback for PR #${PR_NUMBER} on ${HEAD_REF}"
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   {
+    echo "should_run=true"
     echo "prompt_path=${prompt_path}"
-    echo "final_message_path=${final_message_path}"
-    echo "feedback_env_path=${trusted_feedback_env_path}"
+    echo "schema_path=${schema_path}"
+    echo "pr_number=${PR_NUMBER}"
+    echo "head_ref=${HEAD_REF}"
+    echo "base_ref=${BASE_REF}"
+    echo "comment_author=${COMMENT_AUTHOR}"
+    echo "comment_url=${COMMENT_URL}"
   } >>"${GITHUB_OUTPUT}"
 fi

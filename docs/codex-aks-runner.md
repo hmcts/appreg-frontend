@@ -12,13 +12,14 @@ unprivileged `codex` user and never receives the key in its environment. All
 invocations pin the Codex CLI and proxy to `0.146.0` and use the regional
 Responses endpoint `https://eu.api.openai.com/v1/responses`.
 
-Generation and repair jobs use trusted preparation and collectors captured
-before generated content is loaded. Repository formatters, tests, publishing,
-and other repository-controlled executables run only in separate jobs where
-neither the API key nor the proxy is available. The report-only parity workflow
-is stricter: the Codex Action is the final step on its runner, and a fresh
-dependent job validates the structured result and receives the Jira
-notification secret.
+Every workspace-writing Codex job ends with the official Action. Codex returns
+a schema-validated, size-bounded gzip/base64 patch through the Action's
+`final-message` job output; no privileged collector, Git command, or artifact
+action runs against the model-writable checkout afterward. A fresh dependent
+job checks out trusted workflow code, validates and materialises that untrusted
+patch, and passes it to the existing credential-free verification and trusted
+publication stages. The report-only parity workflow follows the same final-step
+boundary and gives its Jira notification secret only to a fresh dependent job.
 
 ## Cost and usage monitoring
 

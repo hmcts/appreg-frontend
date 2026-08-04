@@ -15,7 +15,6 @@ required_env "GH_TOKEN"
 required_env "GITHUB_REPOSITORY"
 required_env "INPUT_DIR"
 required_env "FAILURE_DIR"
-required_env "OUTPUT_DIR"
 required_env "REPAIR_ATTEMPT"
 
 run_id="${GITHUB_RUN_ID:-manual}"
@@ -25,14 +24,13 @@ sanitized_home="${artifact_dir}/sanitized-home"
 sanitized_tmp="${artifact_dir}/sanitized-tmp"
 input_dir="${INPUT_DIR}"
 failure_dir="${FAILURE_DIR}"
-output_dir="${OUTPUT_DIR}"
 input_metadata_path="${input_dir}/metadata.env"
 input_patch_path="${input_dir}/changes.patch"
 failure_log_path="${failure_dir}/verification-failure.log"
 failure_summary_path="${failure_dir}/verification-failure-summary.log"
 prompt_path="${artifact_dir}/codex-review-repair-prompt.md"
-final_message_path="${output_dir}/codex-final-message.md"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+schema_source="${script_dir}/../schemas/codex-patch-result.schema.json"
 
 # shellcheck source=.github/scripts/codex-action-runtime.sh
 source "${script_dir}/codex-action-runtime.sh"
@@ -90,10 +88,8 @@ git_read_authenticated() {
     "$@"
 }
 
-mkdir -p "${artifact_dir}" "${sanitized_home}" "${sanitized_tmp}" "${output_dir}"
-
-# Capture before the Codex PR branch and generated patch replace trusted files.
-collector_path="$(capture_codex_collector "${script_dir}/codex-pr-review-repair-collect.sh")"
+mkdir -p "${artifact_dir}" "${sanitized_home}" "${sanitized_tmp}"
+schema_path="$(capture_codex_patch_schema "${schema_source}" "${artifact_dir}")"
 
 if [[ ! -s "${input_metadata_path}" ]]; then
   echo "Missing input metadata: ${input_metadata_path}" >&2
@@ -192,17 +188,17 @@ Trusted verification failure:
 Path(os.environ["PROMPT_PATH"]).write_text(prompt, encoding="utf-8")
 PY
 
-prepare_codex_action_runtime "${PWD}" "${artifact_dir}" "${output_dir}"
+schema_path="$(prepare_codex_patch_contract "${prompt_path}" "${schema_path}" "${artifact_dir}" full)"
+prepare_codex_action_runtime "${PWD}"
 echo "Running Codex review repair attempt ${REPAIR_ATTEMPT} for PR #${pr_number} on ${head_ref}"
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   {
     echo "prompt_path=${prompt_path}"
-    echo "final_message_path=${final_message_path}"
+    echo "schema_path=${schema_path}"
     echo "pr_number=${pr_number}"
     echo "head_ref=${head_ref}"
     echo "base_ref=${base_ref}"
     echo "comment_author=${comment_author}"
     echo "comment_url=${comment_url}"
-    echo "collector_path=${collector_path}"
   } >>"${GITHUB_OUTPUT}"
 fi

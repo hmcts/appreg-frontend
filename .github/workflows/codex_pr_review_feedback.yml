@@ -135,7 +135,7 @@ jobs:
             echo "head_ref=${head_ref}"
           } >>"$GITHUB_OUTPUT"
 
-  codex-review-generate:
+  codex-review-generate-action:
     needs: detect-codex-pr
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true'
     runs-on: codex-frontend-azure-aks
@@ -143,6 +143,15 @@ jobs:
       contents: read
       pull-requests: read
       issues: read
+    outputs:
+      should_run: ${{ steps.prepare.outputs.should_run }}
+      skip_reason: ${{ steps.prepare.outputs.skip_reason }}
+      pr_number: ${{ steps.prepare.outputs.pr_number }}
+      head_ref: ${{ steps.prepare.outputs.head_ref }}
+      base_ref: ${{ steps.prepare.outputs.base_ref }}
+      comment_author: ${{ steps.prepare.outputs.comment_author }}
+      comment_url: ${{ steps.prepare.outputs.comment_url }}
+      codex_result: ${{ steps.codex-action.outputs.final-message }}
     timeout-minutes: 120
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
@@ -176,30 +185,42 @@ jobs:
           model: gpt-5.6-sol
           effort: ultra
           prompt-file: ${{ steps.prepare.outputs.prompt_path }}
-          output-file: ${{ steps.prepare.outputs.final_message_path }}
+          output-schema-file: ${{ steps.prepare.outputs.schema_path }}
           working-directory: .
           permission-profile: ':workspace'
           safety-strategy: unprivileged-user
           codex-user: codex
           codex-args: '["--ephemeral"]'
 
-      - name: Stop Codex API proxy
-        if: always() && steps.codex-action.outcome != 'skipped'
-        run: |
-          set -euo pipefail
-          server_info="/home/codex/.codex/${GITHUB_RUN_ID}.json"
-          test -s "$server_info"
-          proxy_port="$(jq -r '.port // empty' "$server_info")"
-          [[ "$proxy_port" =~ ^[0-9]+$ ]]
-          curl --fail --silent --show-error "http://127.0.0.1:${proxy_port}/shutdown" >/dev/null
+  codex-review-generate:
+    needs: [detect-codex-pr, codex-review-generate-action]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
 
-      - name: Collect review-feedback patch
+    steps:
+      - name: Checkout trusted collector
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.DEFAULT_BRANCH }}
+          persist-credentials: false
+
+      - name: Materialise review-feedback patch
         env:
+          CODEX_SHOULD_RUN: ${{ needs.codex-review-generate-action.outputs.should_run }}
+          CODEX_SKIP_REASON: ${{ needs.codex-review-generate-action.outputs.skip_reason }}
+          CODEX_RESULT: ${{ needs.codex-review-generate-action.outputs.codex_result }}
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
-          FINAL_MESSAGE_PATH: ${{ steps.prepare.outputs.final_message_path }}
-          FEEDBACK_ENV_PATH: ${{ steps.prepare.outputs.feedback_env_path }}
-          COLLECTOR_PATH: ${{ steps.prepare.outputs.collector_path }}
-        run: '"$COLLECTOR_PATH"'
+          PR_NUMBER: ${{ needs.codex-review-generate-action.outputs.pr_number }}
+          HEAD_REF: ${{ needs.codex-review-generate-action.outputs.head_ref }}
+          BASE_REF: ${{ needs.codex-review-generate-action.outputs.base_ref }}
+          COMMENT_AUTHOR: ${{ needs.codex-review-generate-action.outputs.comment_author }}
+          COMMENT_URL: ${{ needs.codex-review-generate-action.outputs.comment_url }}
+        run: ./.github/scripts/codex-pr-review-collect.sh
 
       - name: Upload Codex review output
         uses: actions/upload-artifact@v4
@@ -302,7 +323,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  codex-review-repair-1:
+  codex-review-repair-1-action:
     needs: [detect-codex-pr, codex-review-generate, codex-review-verify]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify.outputs.passed != 'true'
     runs-on: codex-frontend-azure-aks
@@ -312,7 +333,12 @@ jobs:
       issues: read
     timeout-minutes: 120
     outputs:
-      has_changes: ${{ steps.repair.outputs.has_changes }}
+      pr_number: ${{ steps.prepare.outputs.pr_number }}
+      head_ref: ${{ steps.prepare.outputs.head_ref }}
+      base_ref: ${{ steps.prepare.outputs.base_ref }}
+      comment_author: ${{ steps.prepare.outputs.comment_author }}
+      comment_url: ${{ steps.prepare.outputs.comment_url }}
+      codex_result: ${{ steps.codex-action.outputs.final-message }}
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       REPAIR_ATTEMPT: '1'
@@ -350,7 +376,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           INPUT_DIR: ${{ runner.temp }}/codex-input
           FAILURE_DIR: ${{ runner.temp }}/codex-failure
-          OUTPUT_DIR: ${{ runner.temp }}/codex-output
         run: ./.github/scripts/codex-pr-review-repair.sh
 
       - name: Run Codex review repair
@@ -363,36 +388,53 @@ jobs:
           model: gpt-5.6-sol
           effort: ultra
           prompt-file: ${{ steps.prepare.outputs.prompt_path }}
-          output-file: ${{ steps.prepare.outputs.final_message_path }}
+          output-schema-file: ${{ steps.prepare.outputs.schema_path }}
           working-directory: .
           permission-profile: ':workspace'
           safety-strategy: unprivileged-user
           codex-user: codex
           codex-args: '["--ephemeral"]'
 
-      - name: Stop Codex API proxy
-        if: always() && steps.codex-action.outcome != 'skipped'
-        run: |
-          set -euo pipefail
-          server_info="/home/codex/.codex/${GITHUB_RUN_ID}.json"
-          test -s "$server_info"
-          proxy_port="$(jq -r '.port // empty' "$server_info")"
-          [[ "$proxy_port" =~ ^[0-9]+$ ]]
-          curl --fail --silent --show-error "http://127.0.0.1:${proxy_port}/shutdown" >/dev/null
+  codex-review-repair-1:
+    needs: [detect-codex-pr, codex-review-verify, codex-review-repair-1-action]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify.outputs.passed != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    outputs:
+      has_changes: ${{ steps.repair.outputs.has_changes }}
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify.outputs.output_artifact }}
+      CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-1
 
-      - name: Collect repaired Codex review patch
+    steps:
+      - name: Checkout trusted collector
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.DEFAULT_BRANCH }}
+          persist-credentials: false
+
+      - name: Download Codex review output being repaired
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_INPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-input
+
+      - name: Materialise repaired Codex review patch
         id: repair
         env:
+          CODEX_RESULT: ${{ needs.codex-review-repair-1-action.outputs.codex_result }}
           INPUT_DIR: ${{ runner.temp }}/codex-input
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
-          FINAL_MESSAGE_PATH: ${{ steps.prepare.outputs.final_message_path }}
-          PR_NUMBER: ${{ steps.prepare.outputs.pr_number }}
-          HEAD_REF: ${{ steps.prepare.outputs.head_ref }}
-          BASE_REF: ${{ steps.prepare.outputs.base_ref }}
-          COMMENT_AUTHOR: ${{ steps.prepare.outputs.comment_author }}
-          COMMENT_URL: ${{ steps.prepare.outputs.comment_url }}
-          COLLECTOR_PATH: ${{ steps.prepare.outputs.collector_path }}
-        run: '"$COLLECTOR_PATH"'
+          REPAIR_ATTEMPT: '1'
+          PR_NUMBER: ${{ needs.codex-review-repair-1-action.outputs.pr_number }}
+          HEAD_REF: ${{ needs.codex-review-repair-1-action.outputs.head_ref }}
+          BASE_REF: ${{ needs.codex-review-repair-1-action.outputs.base_ref }}
+          COMMENT_AUTHOR: ${{ needs.codex-review-repair-1-action.outputs.comment_author }}
+          COMMENT_URL: ${{ needs.codex-review-repair-1-action.outputs.comment_url }}
+        run: ./.github/scripts/codex-pr-review-repair-collect.sh
 
       - name: Upload repaired Codex review output
         uses: actions/upload-artifact@v4
@@ -495,7 +537,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  codex-review-repair-2:
+  codex-review-repair-2-action:
     needs: [detect-codex-pr, codex-review-verify-1]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-1.outputs.passed == 'false'
     runs-on: codex-frontend-azure-aks
@@ -505,7 +547,12 @@ jobs:
       issues: read
     timeout-minutes: 120
     outputs:
-      has_changes: ${{ steps.repair.outputs.has_changes }}
+      pr_number: ${{ steps.prepare.outputs.pr_number }}
+      head_ref: ${{ steps.prepare.outputs.head_ref }}
+      base_ref: ${{ steps.prepare.outputs.base_ref }}
+      comment_author: ${{ steps.prepare.outputs.comment_author }}
+      comment_url: ${{ steps.prepare.outputs.comment_url }}
+      codex_result: ${{ steps.codex-action.outputs.final-message }}
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       REPAIR_ATTEMPT: '2'
@@ -543,7 +590,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           INPUT_DIR: ${{ runner.temp }}/codex-input
           FAILURE_DIR: ${{ runner.temp }}/codex-failure
-          OUTPUT_DIR: ${{ runner.temp }}/codex-output
         run: ./.github/scripts/codex-pr-review-repair.sh
 
       - name: Run Codex review repair
@@ -556,36 +602,53 @@ jobs:
           model: gpt-5.6-sol
           effort: ultra
           prompt-file: ${{ steps.prepare.outputs.prompt_path }}
-          output-file: ${{ steps.prepare.outputs.final_message_path }}
+          output-schema-file: ${{ steps.prepare.outputs.schema_path }}
           working-directory: .
           permission-profile: ':workspace'
           safety-strategy: unprivileged-user
           codex-user: codex
           codex-args: '["--ephemeral"]'
 
-      - name: Stop Codex API proxy
-        if: always() && steps.codex-action.outcome != 'skipped'
-        run: |
-          set -euo pipefail
-          server_info="/home/codex/.codex/${GITHUB_RUN_ID}.json"
-          test -s "$server_info"
-          proxy_port="$(jq -r '.port // empty' "$server_info")"
-          [[ "$proxy_port" =~ ^[0-9]+$ ]]
-          curl --fail --silent --show-error "http://127.0.0.1:${proxy_port}/shutdown" >/dev/null
+  codex-review-repair-2:
+    needs: [detect-codex-pr, codex-review-verify-1, codex-review-repair-2-action]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-1.outputs.passed == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    outputs:
+      has_changes: ${{ steps.repair.outputs.has_changes }}
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify-1.outputs.output_artifact }}
+      CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-2
 
-      - name: Collect repaired Codex review patch
+    steps:
+      - name: Checkout trusted collector
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.DEFAULT_BRANCH }}
+          persist-credentials: false
+
+      - name: Download Codex review output being repaired
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_INPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-input
+
+      - name: Materialise repaired Codex review patch
         id: repair
         env:
+          CODEX_RESULT: ${{ needs.codex-review-repair-2-action.outputs.codex_result }}
           INPUT_DIR: ${{ runner.temp }}/codex-input
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
-          FINAL_MESSAGE_PATH: ${{ steps.prepare.outputs.final_message_path }}
-          PR_NUMBER: ${{ steps.prepare.outputs.pr_number }}
-          HEAD_REF: ${{ steps.prepare.outputs.head_ref }}
-          BASE_REF: ${{ steps.prepare.outputs.base_ref }}
-          COMMENT_AUTHOR: ${{ steps.prepare.outputs.comment_author }}
-          COMMENT_URL: ${{ steps.prepare.outputs.comment_url }}
-          COLLECTOR_PATH: ${{ steps.prepare.outputs.collector_path }}
-        run: '"$COLLECTOR_PATH"'
+          REPAIR_ATTEMPT: '2'
+          PR_NUMBER: ${{ needs.codex-review-repair-2-action.outputs.pr_number }}
+          HEAD_REF: ${{ needs.codex-review-repair-2-action.outputs.head_ref }}
+          BASE_REF: ${{ needs.codex-review-repair-2-action.outputs.base_ref }}
+          COMMENT_AUTHOR: ${{ needs.codex-review-repair-2-action.outputs.comment_author }}
+          COMMENT_URL: ${{ needs.codex-review-repair-2-action.outputs.comment_url }}
+        run: ./.github/scripts/codex-pr-review-repair-collect.sh
 
       - name: Upload repaired Codex review output
         uses: actions/upload-artifact@v4
@@ -688,7 +751,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  codex-review-repair-3:
+  codex-review-repair-3-action:
     needs: [detect-codex-pr, codex-review-verify-2]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-2.outputs.passed == 'false'
     runs-on: codex-frontend-azure-aks
@@ -698,7 +761,12 @@ jobs:
       issues: read
     timeout-minutes: 120
     outputs:
-      has_changes: ${{ steps.repair.outputs.has_changes }}
+      pr_number: ${{ steps.prepare.outputs.pr_number }}
+      head_ref: ${{ steps.prepare.outputs.head_ref }}
+      base_ref: ${{ steps.prepare.outputs.base_ref }}
+      comment_author: ${{ steps.prepare.outputs.comment_author }}
+      comment_url: ${{ steps.prepare.outputs.comment_url }}
+      codex_result: ${{ steps.codex-action.outputs.final-message }}
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       REPAIR_ATTEMPT: '3'
@@ -736,7 +804,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           INPUT_DIR: ${{ runner.temp }}/codex-input
           FAILURE_DIR: ${{ runner.temp }}/codex-failure
-          OUTPUT_DIR: ${{ runner.temp }}/codex-output
         run: ./.github/scripts/codex-pr-review-repair.sh
 
       - name: Run Codex review repair
@@ -749,36 +816,53 @@ jobs:
           model: gpt-5.6-sol
           effort: ultra
           prompt-file: ${{ steps.prepare.outputs.prompt_path }}
-          output-file: ${{ steps.prepare.outputs.final_message_path }}
+          output-schema-file: ${{ steps.prepare.outputs.schema_path }}
           working-directory: .
           permission-profile: ':workspace'
           safety-strategy: unprivileged-user
           codex-user: codex
           codex-args: '["--ephemeral"]'
 
-      - name: Stop Codex API proxy
-        if: always() && steps.codex-action.outcome != 'skipped'
-        run: |
-          set -euo pipefail
-          server_info="/home/codex/.codex/${GITHUB_RUN_ID}.json"
-          test -s "$server_info"
-          proxy_port="$(jq -r '.port // empty' "$server_info")"
-          [[ "$proxy_port" =~ ^[0-9]+$ ]]
-          curl --fail --silent --show-error "http://127.0.0.1:${proxy_port}/shutdown" >/dev/null
+  codex-review-repair-3:
+    needs: [detect-codex-pr, codex-review-verify-2, codex-review-repair-3-action]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-2.outputs.passed == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    outputs:
+      has_changes: ${{ steps.repair.outputs.has_changes }}
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify-2.outputs.output_artifact }}
+      CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-3
 
-      - name: Collect repaired Codex review patch
+    steps:
+      - name: Checkout trusted collector
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.DEFAULT_BRANCH }}
+          persist-credentials: false
+
+      - name: Download Codex review output being repaired
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_INPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-input
+
+      - name: Materialise repaired Codex review patch
         id: repair
         env:
+          CODEX_RESULT: ${{ needs.codex-review-repair-3-action.outputs.codex_result }}
           INPUT_DIR: ${{ runner.temp }}/codex-input
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
-          FINAL_MESSAGE_PATH: ${{ steps.prepare.outputs.final_message_path }}
-          PR_NUMBER: ${{ steps.prepare.outputs.pr_number }}
-          HEAD_REF: ${{ steps.prepare.outputs.head_ref }}
-          BASE_REF: ${{ steps.prepare.outputs.base_ref }}
-          COMMENT_AUTHOR: ${{ steps.prepare.outputs.comment_author }}
-          COMMENT_URL: ${{ steps.prepare.outputs.comment_url }}
-          COLLECTOR_PATH: ${{ steps.prepare.outputs.collector_path }}
-        run: '"$COLLECTOR_PATH"'
+          REPAIR_ATTEMPT: '3'
+          PR_NUMBER: ${{ needs.codex-review-repair-3-action.outputs.pr_number }}
+          HEAD_REF: ${{ needs.codex-review-repair-3-action.outputs.head_ref }}
+          BASE_REF: ${{ needs.codex-review-repair-3-action.outputs.base_ref }}
+          COMMENT_AUTHOR: ${{ needs.codex-review-repair-3-action.outputs.comment_author }}
+          COMMENT_URL: ${{ needs.codex-review-repair-3-action.outputs.comment_url }}
+        run: ./.github/scripts/codex-pr-review-repair-collect.sh
 
       - name: Upload repaired Codex review output
         uses: actions/upload-artifact@v4
