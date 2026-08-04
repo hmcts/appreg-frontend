@@ -319,7 +319,7 @@ describe('ApplicationsListBulkUpload', () => {
       );
       expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledWith('job-1');
       expect(getState(component).jobAcknowledgement).toBe(ack);
-      expect(getState(component).isUploadInProgress).toBe(false);
+      expect(getState(component).isUploadInProgress).toBe(true);
       expect(getState(component).bulkUploadFeedback).toMatchObject({
         kind: 'progress',
         heading: 'Upload in progress',

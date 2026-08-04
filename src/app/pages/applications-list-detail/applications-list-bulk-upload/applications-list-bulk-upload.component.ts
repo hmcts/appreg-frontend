@@ -68,10 +68,20 @@ const BulkUploadErrorTableColumns: TableColumn[] = [
   { header: 'Error type', field: 'errorType', wrap: false },
   { header: 'Row', field: 'rowNumber' },
   { header: 'Affected column', field: 'location' },
-  { header: 'Message', field: 'message' },
+  { header: 'Message', field: 'message', minWidth: '10rem', maxWidth: '28rem' },
   { header: 'Applicant', field: 'name' },
-  { header: 'Address line 1', field: 'addressLine1' },
-  { header: 'Rejected value', field: 'rejectedValue' },
+  {
+    header: 'Address line 1',
+    field: 'addressLine1',
+    minWidth: '10rem',
+    maxWidth: '28rem',
+  },
+  {
+    header: 'Rejected value',
+    field: 'rejectedValue',
+    minWidth: '10rem',
+    maxWidth: '28rem',
+  },
 ];
 
 interface ErrorDescription {
@@ -229,6 +239,7 @@ export class ApplicationsListBulkUpload implements OnInit {
               heading: 'Unable to load upload status',
               body: 'Please try again later.',
             },
+            isUploadInProgress: false,
           });
           this.submitAttempt.update((attempt) => attempt + 1);
         },
@@ -249,6 +260,7 @@ export class ApplicationsListBulkUpload implements OnInit {
     this.bulkUploadPatch({
       bulkUploadFeedback: this.toBulkUploadFeedback(job),
       uploadSuccessful: job.state === 'succeeded',
+      isUploadInProgress: false,
     });
   }
 
@@ -347,7 +359,6 @@ export class ApplicationsListBulkUpload implements OnInit {
 
     if (res.status === 202 && jobAcknowledgement?.id) {
       this.bulkUploadPatch({
-        isUploadInProgress: false,
         fileUploadStatus: null,
       });
       this.startBulkUploadPolling(jobAcknowledgement.id);
