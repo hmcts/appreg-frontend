@@ -610,7 +610,8 @@ jobs:
           codex-args: '["--ephemeral"]'
 
   codex-review-repair-2:
-    needs: [detect-codex-pr, codex-review-verify-1, codex-review-repair-2-action]
+    needs:
+      [detect-codex-pr, codex-review-verify-1, codex-review-repair-2-action]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-1.outputs.passed == 'false'
     runs-on: ubuntu-latest
     permissions:
@@ -824,7 +825,8 @@ jobs:
           codex-args: '["--ephemeral"]'
 
   codex-review-repair-3:
-    needs: [detect-codex-pr, codex-review-verify-2, codex-review-repair-3-action]
+    needs:
+      [detect-codex-pr, codex-review-verify-2, codex-review-repair-3-action]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-2.outputs.passed == 'false'
     runs-on: ubuntu-latest
     permissions:

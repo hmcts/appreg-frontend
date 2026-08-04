@@ -19,10 +19,5 @@
       "maxLength": 4000
     }
   },
-  "required": [
-    "has_changes",
-    "patch_gzip_base64",
-    "summary",
-    "testing"
-  ]
+  "required": ["has_changes", "patch_gzip_base64", "summary", "testing"]
 }
