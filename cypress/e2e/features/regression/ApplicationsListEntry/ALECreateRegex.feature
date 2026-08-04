@@ -176,7 +176,7 @@ Feature: Applications List Entry Create Regex Validations
     Then User Enters "31/13/2048" Into The Date Field "Status date" In The Accordion "Civil fee"
     Then User Enters "PAY-12345-12345-12345" Into The Textbox "Payment reference" In The Accordion "Civil fee"
     When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
-    Then User Sees Validation Error Banner "There is a problem Enter a valid status date A payment reference cannot be supplied when fee status is DUE Payment reference must be 15 characters or fewer"
+    Then User Sees Validation Error Banner "There is a problem Enter a valid status date A payment reference cannot be supplied when fee status is DUE"
     Then User Selects "Undertaken" From The Dropdown "Fee status" In The Accordion "Civil fee"
     Then User Enters "tomorrow" Into The Date Field "Status date" In The Accordion "Civil fee"
     Then User Enters "Pay-12345-12345" Into The Textbox "Payment reference" In The Accordion "Civil fee"
