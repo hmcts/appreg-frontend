@@ -20,13 +20,8 @@ final_message_path="${FINAL_MESSAGE_PATH}"
 comment_body_path="${output_dir}/codex-comment.md"
 patch_path="${output_dir}/changes.patch"
 metadata_path="${output_dir}/metadata.env"
-usage_summary_path="${output_dir}/codex-usage-summary.json"
 sanitized_home="${RUNNER_TEMP:-/tmp}/codex-review-repair-collect-home"
 sanitized_tmp="${RUNNER_TEMP:-/tmp}/codex-review-repair-collect-tmp"
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# shellcheck source=.github/scripts/codex-usage-metrics.sh
-source "${script_dir}/codex-usage-metrics.sh"
 
 run_sanitized() {
   env -i \
@@ -92,8 +87,6 @@ git_sanitized diff --cached --binary >"${patch_path}"
   echo "comment_url=${COMMENT_URL}"
   echo "repair_attempt=${REPAIR_ATTEMPT}"
 } >"${metadata_path}"
-
-write_codex_usage_summary /dev/null "${usage_summary_path}" "pr-review-repair-${REPAIR_ATTEMPT}" 0
 
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   {
