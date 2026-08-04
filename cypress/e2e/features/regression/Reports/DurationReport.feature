@@ -97,3 +97,22 @@ Feature: Duration Report
     Then User Verifies The Date field "Date from" Is Empty
     Then User Verifies The Date field "Date to" Is Empty
     Then User Verifies The "Court" Textbox Is Empty
+
+  @regression @reports @ARCPOC-1401
+  Scenario: Duration Report - verify "Clear search" button functionality (CJA + Other location)
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "user1"
+    Then User Clicks On The Link Using Exact Text Match "Reports"
+    Then User Verify The Page URL Contains "/reports"
+    Then User See "Reports" On The Page
+    Then User See "Select the report you wish to download?" On The Page
+    When User Selects The Radio Button "Duration"
+    When User Set Date Field "Date from" To "27/02/2026"
+    When User Set Date Field "Date to" To "27/03/2026"
+    Then User Selects "London" From The Textbox "Criminal Justice Area" Autocomplete By Typing "01"
+    Then User Enters "Other location 1" Into The "Other location description" Textbox
+    When User Clicks On The "Clear filters" Button
+    Then User Verifies The Date field "Date from" Is Empty
+    Then User Verifies The Date field "Date to" Is Empty
+    Then User Verifies The "Criminal Justice Area" Textbox Is Empty
+    Then User Verifies The "Other location description" Textbox Is Empty
