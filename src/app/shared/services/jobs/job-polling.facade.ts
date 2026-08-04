@@ -11,11 +11,7 @@ import { Observable, exhaustMap, map, takeWhile, timer } from 'rxjs';
 
 import { JobAcknowledgement, JobStatus, JobsApi } from '@openapi';
 
-export type PolledJobState =
-  | 'in_progress'
-  | 'succeeded'
-  | 'completed_with_errors'
-  | 'failed';
+export type PolledJobState = 'in_progress' | 'succeeded' | 'failed';
 
 export interface PolledJobStatus {
   id: string;
