@@ -58,8 +58,6 @@ jobs:
           persist-credentials: false
 
       - name: Verify runner toolchain and Codex auth
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: ./.github/scripts/codex-runner-preflight.sh
 
       - name: Run Codex and create patch artifact
@@ -198,8 +196,6 @@ jobs:
           persist-credentials: false
 
       - name: Verify runner toolchain and Codex auth
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: ./.github/scripts/codex-runner-preflight.sh
 
       - name: Download Codex output to repair
@@ -352,8 +348,6 @@ jobs:
           persist-credentials: false
 
       - name: Verify runner toolchain and Codex auth
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: ./.github/scripts/codex-runner-preflight.sh
 
       - name: Download Codex output to repair
@@ -506,8 +500,6 @@ jobs:
           persist-credentials: false
 
       - name: Verify runner toolchain and Codex auth
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: ./.github/scripts/codex-runner-preflight.sh
 
       - name: Download Codex output to repair
@@ -853,8 +845,6 @@ jobs:
           persist-credentials: false
 
       - name: Verify runner toolchain and Codex auth
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: ./.github/scripts/codex-runner-preflight.sh
 
       - name: Download Codex output to repair

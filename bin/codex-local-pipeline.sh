@@ -21,8 +21,8 @@ Options:
 
 Environment:
   BASE_BRANCH                  Alternative way to set --base.
-  OPENAI_API_KEY               Used by codex mode if present; otherwise existing
-                              Codex CLI login is used.
+  CODEX_API_KEY                Required by codex mode for API-key authentication.
+  CODEX_OPENAI_BASE_URL        Required regional OpenAI API endpoint.
   FRONTEND_FAST_COMMAND        Verification command for fast mode.
                               Default: yarn cichecks.
   FRONTEND_FULL_COMMAND        Additional verification command for full mode.
