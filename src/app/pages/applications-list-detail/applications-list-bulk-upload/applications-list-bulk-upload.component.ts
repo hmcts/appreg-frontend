@@ -104,6 +104,7 @@ const AffectedColumn: Record<string, string> = {
   firstName: 'Respondent first name',
   lastName: 'Respondent last name',
   title: 'Respondent title',
+  RESPONDENT: 'Respondent details',
 };
 
 @Component({
