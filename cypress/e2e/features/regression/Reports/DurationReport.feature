@@ -107,6 +107,7 @@ Feature: Duration Report
     Then User See "Reports" On The Page
     Then User See "Select the report you wish to download?" On The Page
     When User Selects The Radio Button "Duration"
+    When User Toggles The Accordion "Advanced filters"
     When User Set Date Field "Date from" To "27/02/2026"
     When User Set Date Field "Date to" To "27/03/2026"
     Then User Selects "London" From The Textbox "Criminal Justice Area" Autocomplete By Typing "01"
