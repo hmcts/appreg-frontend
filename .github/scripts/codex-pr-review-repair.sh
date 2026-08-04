@@ -92,6 +92,9 @@ git_read_authenticated() {
 
 mkdir -p "${artifact_dir}" "${sanitized_home}" "${sanitized_tmp}" "${output_dir}"
 
+# Capture before the Codex PR branch and generated patch replace trusted files.
+collector_path="$(capture_codex_collector "${script_dir}/codex-pr-review-repair-collect.sh")"
+
 if [[ ! -s "${input_metadata_path}" ]]; then
   echo "Missing input metadata: ${input_metadata_path}" >&2
   exit 1
@@ -125,6 +128,7 @@ if [[ -n "${base_ref}" ]]; then
 fi
 git_sanitized checkout -B "${head_ref}" "origin/${head_ref}"
 git_sanitized apply --binary "${input_patch_path}"
+unset GH_TOKEN
 
 export PR_NUMBER="${pr_number}"
 export HEAD_REF="${head_ref}"
@@ -188,7 +192,6 @@ Trusted verification failure:
 Path(os.environ["PROMPT_PATH"]).write_text(prompt, encoding="utf-8")
 PY
 
-collector_path="$(capture_codex_collector "${script_dir}/codex-pr-review-repair-collect.sh")"
 prepare_codex_action_runtime "${PWD}" "${artifact_dir}" "${output_dir}"
 echo "Running Codex review repair attempt ${REPAIR_ATTEMPT} for PR #${pr_number} on ${head_ref}"
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then

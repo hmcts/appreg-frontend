@@ -146,7 +146,6 @@ jobs:
     timeout-minutes: 120
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      GH_TOKEN: ${{ github.token }}
 
     steps:
       - name: Checkout default branch
@@ -162,6 +161,7 @@ jobs:
       - name: Prepare review-feedback prompt
         id: prepare
         env:
+          GH_TOKEN: ${{ github.token }}
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
         run: ./.github/scripts/codex-pr-review-feedback.sh
 
@@ -172,6 +172,7 @@ jobs:
         with:
           openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
           responses-api-endpoint: https://eu.api.openai.com/v1/responses
+          codex-version: '0.146.0'
           model: gpt-5.6-sol
           effort: ultra
           prompt-file: ${{ steps.prepare.outputs.prompt_path }}
@@ -314,7 +315,6 @@ jobs:
       has_changes: ${{ steps.repair.outputs.has_changes }}
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      GH_TOKEN: ${{ github.token }}
       REPAIR_ATTEMPT: '1'
       MAX_CODEX_REPAIR_ATTEMPTS: '3'
       CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify.outputs.output_artifact }}
@@ -347,6 +347,7 @@ jobs:
       - name: Prepare Codex review-repair prompt
         id: prepare
         env:
+          GH_TOKEN: ${{ github.token }}
           INPUT_DIR: ${{ runner.temp }}/codex-input
           FAILURE_DIR: ${{ runner.temp }}/codex-failure
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
@@ -358,6 +359,7 @@ jobs:
         with:
           openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
           responses-api-endpoint: https://eu.api.openai.com/v1/responses
+          codex-version: '0.146.0'
           model: gpt-5.6-sol
           effort: ultra
           prompt-file: ${{ steps.prepare.outputs.prompt_path }}
@@ -506,7 +508,6 @@ jobs:
       has_changes: ${{ steps.repair.outputs.has_changes }}
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      GH_TOKEN: ${{ github.token }}
       REPAIR_ATTEMPT: '2'
       MAX_CODEX_REPAIR_ATTEMPTS: '3'
       CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify-1.outputs.output_artifact }}
@@ -539,6 +540,7 @@ jobs:
       - name: Prepare Codex review-repair prompt
         id: prepare
         env:
+          GH_TOKEN: ${{ github.token }}
           INPUT_DIR: ${{ runner.temp }}/codex-input
           FAILURE_DIR: ${{ runner.temp }}/codex-failure
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
@@ -550,6 +552,7 @@ jobs:
         with:
           openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
           responses-api-endpoint: https://eu.api.openai.com/v1/responses
+          codex-version: '0.146.0'
           model: gpt-5.6-sol
           effort: ultra
           prompt-file: ${{ steps.prepare.outputs.prompt_path }}
@@ -698,7 +701,6 @@ jobs:
       has_changes: ${{ steps.repair.outputs.has_changes }}
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      GH_TOKEN: ${{ github.token }}
       REPAIR_ATTEMPT: '3'
       MAX_CODEX_REPAIR_ATTEMPTS: '3'
       CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify-2.outputs.output_artifact }}
@@ -731,6 +733,7 @@ jobs:
       - name: Prepare Codex review-repair prompt
         id: prepare
         env:
+          GH_TOKEN: ${{ github.token }}
           INPUT_DIR: ${{ runner.temp }}/codex-input
           FAILURE_DIR: ${{ runner.temp }}/codex-failure
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
@@ -742,6 +745,7 @@ jobs:
         with:
           openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
           responses-api-endpoint: https://eu.api.openai.com/v1/responses
+          codex-version: '0.146.0'
           model: gpt-5.6-sol
           effort: ultra
           prompt-file: ${{ steps.prepare.outputs.prompt_path }}
