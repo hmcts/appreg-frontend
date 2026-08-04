@@ -25,6 +25,10 @@ Then(
   },
 );
 
+Then('User Verifies The Date field {string} Is Empty', (fieldLabel: string) => {
+  DateTimeHelper.verifyDateFieldEmpty(fieldLabel);
+});
+
 Then(
   'User Verifies The Time field {string} Has Value {string}',
   (fieldLabel: string, expectedValue: string) => {
