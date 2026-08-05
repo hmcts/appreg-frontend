@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   PLATFORM_ID,
@@ -19,6 +20,7 @@ export type ErrorItem = { text: string; href?: string; id?: string };
   selector: 'app-error-summary',
   standalone: true,
   imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: 'error-summary.component.html',
 })
 export class ErrorSummaryComponent {

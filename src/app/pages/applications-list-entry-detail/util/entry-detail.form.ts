@@ -8,7 +8,6 @@ import { PERSON_TITLE_OPTIONS } from './entry-detail.constants';
 
 import { toOptionalTrimmed } from '@components/applications-list-entry-create/util';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
-import { ApplicationNotesForm } from '@components/notes-section/notes-section.component';
 import {
   ADDRESS_REGEX,
   APPLICATION_CODE_REGEX,
@@ -178,7 +177,7 @@ export function buildStandardApplicationForm(
         accountReference: fb.control<string | null>(null, {
           validators: [Validators.maxLength(20)],
         }),
-      }) as ApplicationNotesForm,
+      }),
 
       lodgementDate: fb.control<string | null>(null, {
         validators: [REQUIRED],
@@ -278,12 +277,12 @@ export function buildPersonForm(
     return fb.group({
       dob: fb.control<string | null>(null),
       ...commonFormGroup,
-    }) as RespondentPersonForm;
+    });
   }
 
   return fb.group({
     ...commonFormGroup,
-  }) as PersonForm;
+  });
 }
 
 export function buildOrganisationForm(
@@ -294,7 +293,7 @@ export function buildOrganisationForm(
       validators: [REQUIRED, MAX_100, Validators.pattern(NAME_REGEX)],
     }),
     ...buildPersonOrgSharedControls(fb),
-  }) as OrganisationForm;
+  });
 }
 
 // Preserve stable fallback keys for wording values that may arrive without keys.

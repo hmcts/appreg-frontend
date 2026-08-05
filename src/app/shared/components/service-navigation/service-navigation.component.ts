@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   DOCUMENT,
   PLATFORM_ID,
@@ -23,6 +24,7 @@ import { SessionService } from '@services/session.service';
   templateUrl: './service-navigation.component.html',
   standalone: true,
   imports: [RouterLinkActive, RouterLink],
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './service-navigation.component.scss',
 })
 export class ServiceNavigationComponent {

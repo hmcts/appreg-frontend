@@ -14,6 +14,7 @@
 
 import { Location, isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   OnInit,
   PLATFORM_ID,
@@ -59,6 +60,7 @@ type FeeTableRow = {
     SortableTableComponent,
     PaginationComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './fee-update-confirm.component.html',
 })
 export class FeeUpdateConfirmComponent implements OnInit {

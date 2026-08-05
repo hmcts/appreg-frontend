@@ -12,6 +12,7 @@
  */
 
 import {
+  ChangeDetectionStrategy,
   Component,
   OnInit,
   PLATFORM_ID,
@@ -53,6 +54,7 @@ import { sortRows } from '@util/table-sort';
     SuccessBannerComponent,
     ErrorSummaryComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './result-selected.component.html',
 })
 export class ResultSelected implements OnInit {

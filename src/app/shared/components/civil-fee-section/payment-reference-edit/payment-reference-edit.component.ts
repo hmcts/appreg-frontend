@@ -1,4 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -18,6 +24,7 @@ const PAYMENT_REF_EDIT_ERRORS = {
 @Component({
   selector: 'app-payment-reference-edit',
   imports: [ReactiveFormsModule, DateTimePipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './payment-reference-edit.component.html',
 })
 export class PaymentReferenceEditComponent implements OnInit {

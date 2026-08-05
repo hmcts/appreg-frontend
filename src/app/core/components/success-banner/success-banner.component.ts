@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   ViewChild,
@@ -16,6 +17,7 @@ export type BannerSegment =
   selector: 'app-success-banner',
   standalone: true,
   imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: 'success-banner.component.html',
 })
 export class SuccessBannerComponent implements AfterViewInit {

@@ -43,8 +43,8 @@ describe('RespondentBulkApplicationComponent', () => {
 
   it('should build errorByDomId from errors input', () => {
     const errors: ErrorItem[] = [
-      { text: 'Error A', href: '#field-a' } as ErrorItem,
-      { text: 'Error B', href: '#field-b' } as ErrorItem,
+      { text: 'Error A', href: '#field-a' },
+      { text: 'Error B', href: '#field-b' },
     ];
 
     const mapping = {

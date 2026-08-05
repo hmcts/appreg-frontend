@@ -15,6 +15,7 @@
 
 import { Location, isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   OnInit,
   PLATFORM_ID,
@@ -55,6 +56,7 @@ type MoveConfirmNavState = {
     SortableTableComponent,
     PaginationComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './move-confirm.component.html',
 })
 export class MoveConfirmComponent implements OnInit {

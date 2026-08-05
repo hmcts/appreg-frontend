@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   ViewChild,
@@ -13,6 +14,7 @@ type BannerVariant = 'default' | 'success' | 'warning';
   selector: 'app-notification-banner',
   standalone: true,
   imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: 'notification-banner.component.html',
 })
 export class NotificationBannerComponent implements AfterViewInit {

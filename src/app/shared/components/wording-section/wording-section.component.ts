@@ -1,4 +1,10 @@
-import { Component, ViewChild, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ViewChild,
+  input,
+  output,
+} from '@angular/core';
 
 import { AlertComponent } from '@components/alert/alert.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
@@ -11,6 +17,7 @@ import { TemplateDetail, TemplateSubstitution } from '@openapi';
 @Component({
   selector: 'app-wording-section',
   imports: [WordingParserComponent, AlertComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './wording-section.component.html',
 })
 export class WordingSectionComponent {

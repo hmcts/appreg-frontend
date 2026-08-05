@@ -102,7 +102,7 @@ export class PdfAssertions {
     });
     return PdfDownloadHelper.getLatestPdfOrFail().then((latestPdf) =>
       this.verifyPdfContainsText(latestPdf, expectedText),
-    ) as unknown as Cypress.Chainable<void>;
+    );
   }
 
   static verifyLatestPdfContainsEntries(
@@ -125,7 +125,7 @@ export class PdfAssertions {
           `Expected ${expectedCount} "${entryType}" entries in PDF, but found ${actualCount}`,
         ).to.equal(expectedCount);
       }) as unknown as Cypress.Chainable<void>;
-    }) as unknown as Cypress.Chainable<void>;
+    });
   }
 
   static verifyLatestPdfIsNotEmpty(
@@ -137,7 +137,7 @@ export class PdfAssertions {
     });
     return PdfDownloadHelper.getLatestPdfOrFail().then((latestPdf) =>
       this.verifyFileNotEmpty(latestPdf, minSize),
-    ) as unknown as Cypress.Chainable<void>;
+    );
   }
 
   static verifyLatestPdfPageCount(
@@ -149,7 +149,7 @@ export class PdfAssertions {
     });
     return PdfDownloadHelper.getLatestPdfOrFail().then((latestPdf) =>
       this.verifyPdfPageCount(latestPdf, expectedPages),
-    ) as unknown as Cypress.Chainable<void>;
+    );
   }
 
   static verifyLatestPdfContainsValues(
@@ -249,7 +249,7 @@ export class PdfAssertions {
             }
           }
         }) as unknown as Cypress.Chainable<void>,
-    ) as unknown as Cypress.Chainable<void>;
+    );
   }
 
   static verifyLatestPdfHasAnchors(anchors: string[]): Cypress.Chainable<void> {
@@ -280,7 +280,7 @@ export class PdfAssertions {
             );
           });
         }) as unknown as Cypress.Chainable<void>,
-    ) as unknown as Cypress.Chainable<void>;
+    );
   }
 
   static verifyLatestPdfDoesNotContainValues(
@@ -306,7 +306,7 @@ export class PdfAssertions {
             );
           }
         }) as unknown as Cypress.Chainable<void>,
-    ) as unknown as Cypress.Chainable<void>;
+    );
   }
 
   private static logPdfSnippet({

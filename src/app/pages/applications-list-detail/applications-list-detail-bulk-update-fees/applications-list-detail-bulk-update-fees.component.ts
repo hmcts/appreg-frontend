@@ -17,6 +17,7 @@
 
 import { isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   OnInit,
   PLATFORM_ID,
@@ -85,6 +86,7 @@ type BulkUpdateFeeSnapshot = {
     CivilFeeHelpComponent,
     PaginationComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-detail-bulk-update-fees.component.html',
 })
 export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {

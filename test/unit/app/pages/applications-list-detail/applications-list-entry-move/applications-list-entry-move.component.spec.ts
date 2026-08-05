@@ -88,10 +88,10 @@ describe('ApplicationsListEntryMoveComponent', () => {
 
   const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
     courtLocations$: of<CourtLocationGetSummaryDto[]>([
-      { locationCode: 'A1', name: 'Alpha Court' } as CourtLocationGetSummaryDto,
+      { locationCode: 'A1', name: 'Alpha Court' },
     ]),
     cja$: of<CriminalJusticeAreaGetDto[]>([
-      { code: 'C1', description: 'Area One' } as CriminalJusticeAreaGetDto,
+      { code: 'C1', description: 'Area One' },
     ]),
   };
 
@@ -385,9 +385,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
   });
 
   it('navigates to move confirm with selected target list state', () => {
-    const navigateSpy = jest
-      .spyOn(router, 'navigate')
-      .mockResolvedValue(true as never);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
     const targetList: ApplicationListRow = {
       id: 'target-list-id',
       date: '2026-03-26',
@@ -415,9 +413,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
   });
 
   it('does not navigate when the target list selection is incomplete', () => {
-    const navigateSpy = jest
-      .spyOn(router, 'navigate')
-      .mockResolvedValue(true as never);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
     component.onSelect({
       id: '',

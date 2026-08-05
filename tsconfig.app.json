@@ -5,5 +5,13 @@
     "types": ["node"]
   },
   "include": ["server/**/*.ts", "src/**/*.ts", "server/msal.ts"],
-  "exclude": ["src/**/*.spec.ts", "test"]
+  "exclude": ["src/**/*.spec.ts", "test"],
+  "angularCompilerOptions": {
+    "extendedDiagnostics": {
+      "checks": {
+        "nullishCoalescingNotNullable": "suppress",
+        "optionalChainNotNullable": "suppress"
+      }
+    }
+  }
 }

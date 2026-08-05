@@ -7,7 +7,7 @@ function isCva(x: unknown): x is { writeValue: (v: string | null) => void } {
     typeof x === 'object' &&
     x !== null &&
     'writeValue' in x &&
-    typeof (x as { writeValue: unknown }).writeValue === 'function'
+    typeof x.writeValue === 'function'
   );
 }
 

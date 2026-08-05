@@ -20,6 +20,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   OnInit,
@@ -84,6 +85,7 @@ const MAX_APPLICATION_NOTES_LENGTH = 4000;
     SuccessBannerComponent,
     DateTimePipe,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './update-notes.component.html',
 })
 export class UpdateNotesComponent implements OnInit {

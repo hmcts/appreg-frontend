@@ -1,8 +1,9 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-help-details',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <details class="govuk-details">
       <summary class="govuk-details__summary">

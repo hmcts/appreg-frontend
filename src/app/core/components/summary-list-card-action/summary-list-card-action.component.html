@@ -15,7 +15,11 @@
                 @if (getStatusTag(list.status)) {
                   <strong
                     class="govuk-tag govuk-!-margin-right-2"
-                    [ngClass]="getStatusTag(list.status)?.className"
+                    [ngClass]="
+                      $safeNavigationMigration(
+                        getStatusTag(list.status)?.className
+                      )
+                    "
                   >
                     {{ getStatusTag(list.status)?.text }}
                   </strong>

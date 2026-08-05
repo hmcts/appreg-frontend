@@ -144,11 +144,7 @@ export class PdfService {
         data.courtName || `${data.location}\n${data.cja}`,
         'Court Missing',
       );
-      const titleLines = toLines(
-        doc as unknown as JsPDFLike,
-        title,
-        pageW - 2 * layout.margin,
-      );
+      const titleLines = toLines(doc, title, pageW - 2 * layout.margin);
       const lineH = layout.titleFontSize * 1.2;
       const blockH = Math.max(lineH, titleLines.length * lineH);
 
@@ -205,11 +201,7 @@ export class PdfService {
 
       doc.setFont(PDF_FONT.family, PDF_FONT.bold);
       doc.setFontSize(layout.labelFontSize);
-      const labelLines = toLines(
-        doc as unknown as JsPDFLike,
-        labelText,
-        layout.labelWidth,
-      );
+      const labelLines = toLines(doc, labelText, layout.labelWidth);
       const labelH = labelLines.length * layout.labelLineHeight;
 
       const valueToUse = valueText?.trim() ? valueText : '—';
@@ -218,11 +210,7 @@ export class PdfService {
         optsLV?.emphasize ? PDF_FONT.bold : PDF_FONT.normal,
       );
       doc.setFontSize(layout.valueFontSize);
-      const valueLines = toLines(
-        doc as unknown as JsPDFLike,
-        valueToUse,
-        rightWidth,
-      );
+      const valueLines = toLines(doc, valueToUse, rightWidth);
       const valueH = valueLines.length * layout.valueLineHeight;
 
       ensureSpace(Math.max(labelH, valueH), data);

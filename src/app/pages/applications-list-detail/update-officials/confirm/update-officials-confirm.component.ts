@@ -13,7 +13,14 @@
  */
 
 import { Location, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
@@ -54,6 +61,7 @@ type OfficialSummaryRow = {
     AlertComponent,
     PaginationComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './update-officials-confirm.component.html',
 })
 export class UpdateOfficialsConfirmComponent

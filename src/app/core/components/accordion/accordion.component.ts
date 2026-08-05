@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, TemplateRef, effect, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  TemplateRef,
+  effect,
+  input,
+  signal,
+} from '@angular/core';
 
 export interface AccordionItem {
   heading: string;
@@ -15,6 +22,7 @@ export interface AccordionItem {
   selector: 'app-accordion',
   standalone: true,
   imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './accordion.component.html',
 })
 export class AccordionComponent {

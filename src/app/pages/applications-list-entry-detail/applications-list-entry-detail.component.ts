@@ -19,6 +19,7 @@
 */
 import { Location } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   OnInit,
@@ -184,6 +185,7 @@ export const ERROR_HREFS = {
     ApplicationWordingHelpComponent,
     CivilFeeHelpComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-entry-detail.component.html',
 })
 export class ApplicationsListEntryDetail implements OnInit {
@@ -872,7 +874,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.submitEntryUpdate(
       this.buildEntryUpdateDto(),
-      ENTRY_SUCCESS_MESSAGES.officialsUpdated as SuccessBanner,
+      ENTRY_SUCCESS_MESSAGES.officialsUpdated,
     );
   }
 

@@ -23,6 +23,7 @@
 
 import { isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   EnvironmentInjector,
   OnInit,
@@ -138,6 +139,7 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
     HelpDetailsComponent,
   ],
   templateUrl: './applications.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./applications.component.scss'],
 })
 export class Applications extends PlaceFieldsBase implements OnInit {

@@ -220,7 +220,7 @@ describe('formatFullName', () => {
 describe('formatPersonName', () => {
   it('returns null when applicant or person name is missing', () => {
     expect(formatPersonName()).toBeNull();
-    expect(formatPersonName({} as Applicant)).toBeNull();
+    expect(formatPersonName({})).toBeNull();
     expect(formatPersonName({ person: {} } as Applicant)).toBeNull();
   });
 
@@ -257,7 +257,7 @@ describe('formatPersonName', () => {
 describe('returnOrgName', () => {
   it('returns null when applicant or organisation is missing', () => {
     expect(returnOrgName()).toBeNull();
-    expect(returnOrgName({} as Applicant)).toBeNull();
+    expect(returnOrgName({})).toBeNull();
   });
 
   it('returns the organisation name when present', () => {

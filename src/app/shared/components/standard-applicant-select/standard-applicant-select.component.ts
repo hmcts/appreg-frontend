@@ -3,6 +3,7 @@
  */
 
 import {
+  ChangeDetectionStrategy,
   Component,
   EnvironmentInjector,
   OnChanges,
@@ -65,6 +66,7 @@ type StandardApplicantFilters = Pick<
     SortableTableComponent,
     PaginationComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './standard-applicant-select.component.html',
 })
 export class StandardApplicantSelectComponent implements OnInit, OnChanges {

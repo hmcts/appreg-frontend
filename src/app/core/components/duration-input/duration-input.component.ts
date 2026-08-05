@@ -1,4 +1,10 @@
-import { Component, forwardRef, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  input,
+  signal,
+} from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -22,6 +28,7 @@ export type DurationMode = 'clock' | 'duration';
   standalone: true,
   imports: [FormsModule, ReactiveFormsModule],
   templateUrl: './duration-input.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -9,6 +9,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   AfterViewChecked,
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ContentChild,
@@ -54,6 +55,7 @@ export type TableColumn = {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './sortable-table.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './sortable-table.component.scss',
 })
 export class SortableTableComponent

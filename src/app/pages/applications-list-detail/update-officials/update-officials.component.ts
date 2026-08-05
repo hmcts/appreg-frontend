@@ -13,7 +13,14 @@
  */
 
 import { Location, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { UpdateOfficialsTableBase } from './update-officials-table.base';
@@ -48,6 +55,7 @@ import { buildFormErrorSummary } from '@util/error-summary';
     SortableTableComponent,
     PaginationComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './update-officials.component.html',
 })
 export class UpdateOfficialsComponent

@@ -61,7 +61,7 @@ function makePrintDto(
     time: '10:00',
     entries: [],
     ...overrides,
-  } as ApplicationListGetPrintDto;
+  };
 }
 
 function makeSelectedRow(
@@ -223,7 +223,7 @@ describe('ApplicationsComponent', () => {
         ineligibleCount: 0,
         entryIds: entries.map((entry) => entry.id),
         entries,
-      } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+      }) as unknown as ReturnType<
         ApplicationListEntriesApi['bulkActionPreview']
       >;
     });
@@ -1356,9 +1356,7 @@ describe('ApplicationsComponent', () => {
               statusText: 'Server Error',
               error: { detail: 'Resolve failed' },
             }),
-        ) as unknown as ReturnType<
-          ApplicationListEntriesApi['bulkActionPreview']
-        >,
+        ),
       );
 
       await component.onPrintContinuousClick();

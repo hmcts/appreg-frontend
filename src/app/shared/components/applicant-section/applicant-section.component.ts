@@ -1,4 +1,10 @@
-import { Component, computed, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  output,
+} from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import {
@@ -26,6 +32,7 @@ import { ApplicantType } from '@shared-types/applications-list-entry-create/appl
     ReactiveFormsModule,
     HelpDetailsComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applicant-section.component.html',
 })
 export class ApplicantSectionComponent {

@@ -24,6 +24,7 @@
 import { DOCUMENT } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   EnvironmentInjector,
@@ -151,6 +152,7 @@ const REPORT_LOCATION_RESET_VALUE = {
     AsyncJobProgressComponent,
     HelpDetailsComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './reports.component.html',
 })
 export class Reports extends PlaceFieldsBase implements OnInit {

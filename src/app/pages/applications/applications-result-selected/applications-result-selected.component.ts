@@ -18,6 +18,7 @@
 
 import { isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   OnInit,
   PLATFORM_ID,
@@ -67,6 +68,7 @@ type ApplicationsResultContext = Pick<
     AlertComponent,
   ],
   templateUrl: './applications-result-selected.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './applications-result-selected.component.scss',
 })
 export class ApplicationsResultSelectedComponent implements OnInit {

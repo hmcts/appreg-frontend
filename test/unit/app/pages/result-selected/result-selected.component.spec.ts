@@ -16,7 +16,6 @@ import {
   BulkResultRemoval,
 } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
-import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 
 describe('ResultSelectedComponent', () => {
   let component: ResultSelected;
@@ -136,7 +135,7 @@ describe('ResultSelectedComponent', () => {
           },
         ],
         wording: 'This is a test 12345678 with a 31/12/2026',
-      } as PendingResultRow,
+      },
     ];
 
     component.onPendingChange(pendingRows);
@@ -186,7 +185,7 @@ describe('ResultSelectedComponent', () => {
           template: 'Same wording',
           'substitution-key-constraints': [],
         },
-      } as ResultGetDto,
+      },
       {
         id: 'result-2',
         entryId: 'entry-2',
@@ -195,7 +194,7 @@ describe('ResultSelectedComponent', () => {
           template: 'Same wording',
           'substitution-key-constraints': [],
         },
-      } as ResultGetDto,
+      },
       {
         id: 'result-3',
         entryId: 'entry-3',
@@ -204,7 +203,7 @@ describe('ResultSelectedComponent', () => {
           template: 'Different wording',
           'substitution-key-constraints': [],
         },
-      } as ResultGetDto,
+      },
     ]);
 
     expect(component.createdEntryResults()).toHaveLength(2);
@@ -231,7 +230,7 @@ describe('ResultSelectedComponent', () => {
     component.onSubmitResults({
       pendingToCreate: [],
       existingToUpdate: [],
-    } as ResultSectionSubmitPayload);
+    });
 
     expect(submitSpy).not.toHaveBeenCalled();
     expect(component.isSubmitting()).toBe(false);

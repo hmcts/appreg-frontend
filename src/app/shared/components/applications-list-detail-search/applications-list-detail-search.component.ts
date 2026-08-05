@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -59,6 +60,7 @@ export type ApplicationsListDetailSearchResult = {
     TextInputComponent,
     SelectInputComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-detail-search.component.html',
 })
 export class ApplicationsListDetailSearchComponent {

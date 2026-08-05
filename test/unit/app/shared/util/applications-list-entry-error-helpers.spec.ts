@@ -1,6 +1,5 @@
 import { FormControl, FormGroup } from '@angular/forms';
 
-import type { ErrorItem } from '@components/error-summary/error-summary.component';
 import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
 import { buildFormErrorSummary } from '@util/error-summary';
 
@@ -33,9 +32,7 @@ describe('buildRespondentErrors', () => {
 
     respondentBulkControl = new FormControl<number | null>(null);
 
-    buildFormErrorSummaryMock.mockReturnValue([
-      { text: 'x', href: '#x' } as ErrorItem,
-    ]);
+    buildFormErrorSummaryMock.mockReturnValue([{ text: 'x', href: '#x' }]);
   });
 
   it('returns person errors and triggers validation when respondentEntryType is person', () => {
@@ -72,7 +69,7 @@ describe('buildRespondentErrors', () => {
       },
     );
 
-    expect(result).toEqual([{ text: 'x', href: '#x' } as ErrorItem]);
+    expect(result).toEqual([{ text: 'x', href: '#x' }]);
   });
 
   it('returns organisation errors and triggers validation when respondentEntryType is organisation', () => {
@@ -109,7 +106,7 @@ describe('buildRespondentErrors', () => {
       },
     );
 
-    expect(result).toEqual([{ text: 'x', href: '#x' } as ErrorItem]);
+    expect(result).toEqual([{ text: 'x', href: '#x' }]);
   });
 
   it('returns bulk errors and triggers validation when respondentEntryType is bulk', () => {
@@ -150,7 +147,7 @@ describe('buildRespondentErrors', () => {
     expect(passedMessages).toBe(errorMessages);
     expect(passedOpts).toEqual({ hrefs: respondentBulkHrefs });
 
-    expect(result).toEqual([{ text: 'x', href: '#x' } as ErrorItem]);
+    expect(result).toEqual([{ text: 'x', href: '#x' }]);
   });
 
   it('returns empty array when respondentEntryType is null/undefined', () => {

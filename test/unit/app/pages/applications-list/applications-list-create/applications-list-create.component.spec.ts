@@ -35,12 +35,12 @@ afterAll(() => warnSpy.mockRestore());
 
 const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
   courtLocations$: of<CourtLocationGetSummaryDto[]>([
-    { name: 'Alpha Court', locationCode: 'A1' } as CourtLocationGetSummaryDto,
-    { name: 'Beta Court', locationCode: 'B2' } as CourtLocationGetSummaryDto,
+    { name: 'Alpha Court', locationCode: 'A1' },
+    { name: 'Beta Court', locationCode: 'B2' },
   ]),
   cja$: of<CriminalJusticeAreaGetDto[]>([
-    { code: 'C1', description: 'Area One' } as CriminalJusticeAreaGetDto,
-    { code: 'C2', description: 'Area Two' } as CriminalJusticeAreaGetDto,
+    { code: 'C1', description: 'Area One' },
+    { code: 'C2', description: 'Area Two' },
   ]),
 };
 

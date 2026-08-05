@@ -107,7 +107,7 @@ export class ApiBaseHelper {
       if (match) {
         const aliasName = match[1] ?? match[2];
         return cy.get(`@${aliasName}`).then((aliasValue) => {
-          return aliasValue as unknown;
+          return aliasValue;
         });
       }
     }

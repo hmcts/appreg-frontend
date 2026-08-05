@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { HelpDetailsComponent } from './help-details.component';
 
@@ -6,6 +6,7 @@ import { HelpDetailsComponent } from './help-details.component';
   selector: 'app-application-wording-help',
   standalone: true,
   imports: [HelpDetailsComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <app-help-details summary="Help with application wording">
       <p class="govuk-body">

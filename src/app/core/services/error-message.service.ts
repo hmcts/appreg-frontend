@@ -242,5 +242,5 @@ function coerceProblemDetails(value: unknown): ProblemDetails | null {
     'detail' in v ||
     'instance' in v;
 
-  return hasAnyKey ? (v as ProblemDetails) : null;
+  return hasAnyKey ? v : null;
 }

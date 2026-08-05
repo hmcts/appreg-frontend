@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   forwardRef,
@@ -45,6 +46,7 @@ type DateField = 'day' | 'month' | 'year';
       multi: true,
     },
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule],
 })
 export class DateInputComponent implements ControlValueAccessor, Validator {
@@ -133,7 +135,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
       }),
     },
     { validators: [this.groupValidator] },
-  ) as DateForm;
+  );
 
   private ctrl(name: DateField) {
     return this.dateForm.get(name);

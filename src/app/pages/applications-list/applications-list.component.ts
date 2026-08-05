@@ -21,6 +21,7 @@ onPrintContinuous():
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   EnvironmentInjector,
   OnInit,
@@ -110,6 +111,7 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
     AsyncJobProgressComponent,
     HelpDetailsComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list.component.html',
 })
 export class ApplicationsList extends PlaceFieldsBase implements OnInit {

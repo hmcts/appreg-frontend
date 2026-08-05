@@ -1,4 +1,11 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 
 import { ALERT_ICON_PATHS, AlertType } from './alert-icons';
 
@@ -9,6 +16,7 @@ import { ALERT_ICON_PATHS, AlertType } from './alert-icons';
   },
   standalone: true,
   imports: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './alert.component.html',
 })
 export class AlertComponent {

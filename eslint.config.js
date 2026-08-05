@@ -23,6 +23,7 @@ module.exports = defineConfig([
   globalIgnores([
     '.angular/',
     'dist/',
+    'out-tsc/',
     'node_modules/',
     '.yarn/',
     'coverage/',

@@ -190,7 +190,7 @@ describe('PageHeaderComponent', () => {
           typeof act === 'object' &&
           act !== null &&
           'id' in act &&
-          (act as { id: unknown }).id === 'sec'
+          act.id === 'sec'
         );
       });
     const isWarningSpy = jest
@@ -200,7 +200,7 @@ describe('PageHeaderComponent', () => {
           typeof act === 'object' &&
           act !== null &&
           'id' in act &&
-          (act as { id: unknown }).id === 'warn'
+          act.id === 'warn'
         );
       });
 

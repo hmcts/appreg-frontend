@@ -85,7 +85,7 @@ export class HmctsLoggerBridge {
           continue;
         }
 
-        const wrapped: typeof original = ((...args: unknown[]) => {
+        const wrapped: typeof original = (...args: unknown[]) => {
           const err = args.find((a) => a instanceof Error);
           if (err) {
             trackExceptionSafely(client, err);
@@ -94,7 +94,7 @@ export class HmctsLoggerBridge {
           trackTraceSafely(client, level, args);
 
           return original.apply(base as unknown as object, args);
-        }) as typeof original;
+        };
 
         base[level] = wrapped;
       }
@@ -102,6 +102,6 @@ export class HmctsLoggerBridge {
       this.wrapped.add(base);
     }
 
-    return base as unknown as HmctsLogger;
+    return base;
   }
 }

@@ -5,7 +5,13 @@
  */
 
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  signal,
+} from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
@@ -29,6 +35,7 @@ import { type ErrorMessageMap, getControlErrorItem } from '@util/error-summary';
     ReactiveFormsModule,
     SuggestionsComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './reports-shared-form.component.html',
 })
 export class ReportsSharedFormComponent {

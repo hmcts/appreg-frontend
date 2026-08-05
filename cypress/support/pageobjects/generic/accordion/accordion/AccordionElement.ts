@@ -61,9 +61,7 @@ export class AccordionElement {
       this.detailsSummarySelector,
     ).then(($el) => {
       const $section = $el.closest(this.accordionSectionSelector);
-      return cy.wrap($section) as unknown as Cypress.Chainable<
-        JQuery<HTMLElement>
-      >;
+      return cy.wrap($section);
     });
   }
 
@@ -76,9 +74,7 @@ export class AccordionElement {
       this.detailsSummarySelector,
     ).then(($el) => {
       const $button = $el.closest(this.accordionButtonSelector);
-      return cy.wrap($button) as unknown as Cypress.Chainable<
-        JQuery<HTMLElement>
-      >;
+      return cy.wrap($button);
     });
   }
 

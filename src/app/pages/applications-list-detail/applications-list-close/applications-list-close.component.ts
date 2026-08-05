@@ -14,7 +14,13 @@
 
 import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpContext, HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { AlertComponent } from '@components/alert/alert.component';
@@ -41,6 +47,7 @@ type CloseErrorNavigationState = {
     DateTimePipe,
     AlertComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-close.component.html',
 })
 export class ApplicationsListCloseComponent implements OnInit {
