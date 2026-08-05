@@ -80,8 +80,7 @@ describe('MoveConfirmComponent', () => {
 
   const apiStub: Pick<ApplicationListEntriesApi, 'moveApplicationListEntries'> =
     {
-      moveApplicationListEntries:
-        moveApplicationListEntriesMock as unknown as ApplicationListEntriesApi['moveApplicationListEntries'],
+      moveApplicationListEntries: moveApplicationListEntriesMock,
     };
 
   const createComponent = async ({

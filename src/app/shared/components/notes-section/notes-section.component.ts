@@ -1,4 +1,9 @@
-import { Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  output,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import type { ErrorItem } from '@components/error-summary/error-summary.component';
@@ -18,6 +23,7 @@ export type ApplicationNotesForm = FormGroup<{
 @Component({
   selector: 'app-notes-section',
   imports: [GovukTextareaComponent, ReactiveFormsModule, HelpDetailsComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './notes-section.component.html',
 })
 export class NotesSectionComponent {

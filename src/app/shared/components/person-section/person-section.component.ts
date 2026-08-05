@@ -1,4 +1,9 @@
-import { Component, computed, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+} from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
@@ -16,6 +21,7 @@ import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
     TextInputComponent,
     DateInputComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './person-section.component.html',
 })
 export class PersonSectionComponent {

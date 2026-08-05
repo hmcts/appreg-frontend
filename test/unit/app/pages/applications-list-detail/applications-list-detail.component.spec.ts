@@ -241,9 +241,7 @@ describe('ApplicationsListDetail', () => {
     entriesApiStub.getApplicationListEntryIds.mockReturnValue(
       of({
         ids: ['abc'],
-      } as EntryIdsDto) as unknown as ReturnType<
-        ApplicationListEntriesApi['getApplicationListEntryIds']
-      >,
+      } as EntryIdsDto),
     );
 
     await TestBed.configureTestingModule({
@@ -945,7 +943,7 @@ describe('ApplicationsListDetail', () => {
   describe('formatPersonName', () => {
     it('returns null when applicant or name is missing', () => {
       expect(formatPersonName()).toBeNull();
-      expect(formatPersonName({} as Applicant)).toBeNull();
+      expect(formatPersonName({})).toBeNull();
     });
 
     it('formats title, forenames, and surname', () => {
@@ -1271,7 +1269,7 @@ describe('ApplicationsListDetail', () => {
 
     patchDetailState({
       selectedIds: new Set(['a', 'b']),
-      selectedRows: [{ id: 'a' } as Row],
+      selectedRows: [{ id: 'a' }],
     });
 
     component.onPageChange(3);
@@ -1290,7 +1288,7 @@ describe('ApplicationsListDetail', () => {
     patchDetailState({
       selectedIds: new Set(['a', 'b']),
       allMatchingSelected: true,
-      selectedRows: [{ id: 'a' } as Row],
+      selectedRows: [{ id: 'a' }],
     });
 
     component.onPageChange(2);
@@ -1555,7 +1553,7 @@ describe('ApplicationsListDetail', () => {
       });
 
       entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReturnValue(
-        throwError(() => httpError) as never,
+        throwError(() => httpError),
       );
       patchDetailState({ bulkUploadDone: true });
       component.bulkUploadJobId.set('job-123');
@@ -1750,7 +1748,7 @@ describe('ApplicationsListDetail', () => {
   });
 
   it('onSelectedRowsChange: patches selectedRows in state', () => {
-    const rows: Row[] = [{ id: 'id-1', resulted: 'No' } as unknown as Row];
+    const rows: Row[] = [{ id: 'id-1', resulted: 'No' }];
     component.onSelectedRowsChange(rows);
     expect(vm().selectedRows).toEqual(rows);
   });
@@ -1758,8 +1756,8 @@ describe('ApplicationsListDetail', () => {
   it('onSelectedIdsChange patches selected ids and allMatchingSelected', () => {
     patchDetailState({
       rows: [
-        { id: 'id-1', title: 'One' } as Row,
-        { id: 'id-2', title: 'Two' } as Row,
+        { id: 'id-1', title: 'One' },
+        { id: 'id-2', title: 'Two' },
       ],
       totalEntries: 2,
     });
@@ -1782,7 +1780,7 @@ describe('ApplicationsListDetail', () => {
   it('onHeaderSelectAllChange clears selection when unchecked', () => {
     patchDetailState({
       selectedIds: new Set(['id-1']),
-      selectedRows: [{ id: 'id-1' } as Row],
+      selectedRows: [{ id: 'id-1' }],
       isSelectingAll: true,
       allMatchingSelected: true,
     });
@@ -1797,7 +1795,7 @@ describe('ApplicationsListDetail', () => {
 
   it('onSelectAllMatchingClick selects visible rows as a filter selection', () => {
     patchDetailState({
-      rows: [{ id: 'abc', title: 'Visible row' } as Row],
+      rows: [{ id: 'abc', title: 'Visible row' }],
       totalEntries: 2,
       getFilters: { applicantName: 'Smith' },
     });
@@ -1815,8 +1813,8 @@ describe('ApplicationsListDetail', () => {
   it('tracks excluded visible rows when a filter selection is edited', () => {
     patchDetailState({
       rows: [
-        { id: 'abc', title: 'Visible row' } as Row,
-        { id: 'def', title: 'Visible row 2' } as Row,
+        { id: 'abc', title: 'Visible row' },
+        { id: 'def', title: 'Visible row 2' },
       ],
       totalEntries: 4,
     });
@@ -1896,10 +1894,10 @@ describe('ApplicationsListDetail', () => {
 
   it('onSearchStarted clears selection', () => {
     patchDetailState({
-      rows: [{ id: 'abc', title: 'Visible row' } as Row],
+      rows: [{ id: 'abc', title: 'Visible row' }],
       totalEntries: 2,
       selectedIds: new Set(['abc']),
-      selectedRows: [{ id: 'abc', title: 'Visible row' } as Row],
+      selectedRows: [{ id: 'abc', title: 'Visible row' }],
       getFilters: { applicantName: 'Old' },
     });
     component.id = 'list-123';
@@ -1978,7 +1976,7 @@ describe('ApplicationsListDetail', () => {
             { id: 'entry-1', sequenceNumber: 1, applicationTitle: 'T1' },
             { id: 'entry-2', sequenceNumber: 2, applicationTitle: 'T2' },
           ],
-        } as never);
+        });
 
       await component.onResultButtonClick();
 
@@ -2023,7 +2021,7 @@ describe('ApplicationsListDetail', () => {
             { id: 'entry-1', sequenceNumber: 1, applicationTitle: 'First' },
             { id: 'entry-2', sequenceNumber: 2, applicationTitle: 'Second' },
           ],
-        } as never);
+        });
 
       entriesApiStub.getApplicationListEntries.mockReturnValueOnce(
         of({
@@ -2066,9 +2064,7 @@ describe('ApplicationsListDetail', () => {
 
       patchDetailState({
         selectedIds: new Set(['entry-1', 'entry-2']),
-        selectedRows: [
-          { id: 'entry-1', sequenceNumber: 1, title: 'First' } as Row,
-        ],
+        selectedRows: [{ id: 'entry-1', sequenceNumber: 1, title: 'First' }],
         totalEntries: 2,
         totalPages: 1,
       });

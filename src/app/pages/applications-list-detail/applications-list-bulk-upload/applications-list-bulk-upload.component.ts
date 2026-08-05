@@ -10,6 +10,7 @@ Functionality:
 import { DOCUMENT } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   EnvironmentInjector,
@@ -131,6 +132,7 @@ const AffectedColumn: Record<string, string> = {
     PaginationComponent,
   ],
   templateUrl: './applications-list-bulk-upload.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './applications-list-bulk-upload.component.scss',
 })
 export class ApplicationsListBulkUpload implements OnInit {

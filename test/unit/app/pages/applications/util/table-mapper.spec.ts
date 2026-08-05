@@ -10,7 +10,7 @@ import {
 
 const contactDetailsStub: ContactDetails = {
   addressLine1: '',
-} as ContactDetails;
+};
 
 function makePerson(
   overrides?: {
@@ -32,7 +32,7 @@ function makePerson(
       ...contactDetailsStub,
       ...contactDetails,
     },
-  } as Person;
+  };
 }
 
 function makeOrg(
@@ -49,7 +49,7 @@ function makeOrg(
       ...contactDetailsStub,
       ...contactDetails,
     },
-  } as Organisation;
+  };
 }
 
 function makeApplicant(overrides?: Partial<Applicant>): Applicant {
@@ -57,7 +57,7 @@ function makeApplicant(overrides?: Partial<Applicant>): Applicant {
     person: undefined,
     organisation: undefined,
     ...overrides,
-  } as Applicant;
+  };
 }
 
 function makeDto(overrides?: Partial<EntryGetSummaryDto>): EntryGetSummaryDto {
@@ -68,7 +68,7 @@ function makeDto(overrides?: Partial<EntryGetSummaryDto>): EntryGetSummaryDto {
     isResulted: false,
     status: 'OPEN' as ApplicationListStatus,
     ...overrides,
-  } as EntryGetSummaryDto;
+  };
 }
 
 describe('mapToRow', () => {

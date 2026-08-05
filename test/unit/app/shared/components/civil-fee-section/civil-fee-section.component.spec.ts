@@ -26,7 +26,7 @@ function makeFeeForm(): CivilFeeForm {
     feeStatusDate: new FormControl<string | null>(null),
     paymentRef: new FormControl<string | null>(null),
     feeStatuses: new FormControl<FeeStatus[] | null>(null),
-  }) as unknown as CivilFeeForm;
+  });
 }
 
 describe('CivilFeeSectionComponent', () => {
@@ -620,7 +620,7 @@ describe('CivilFeeSectionComponent', () => {
     fixture.componentRef.setInput('parentSubmitted', true);
     fixture.detectChanges();
 
-    const lastCall = emitSpy.mock.calls.at(-1) as [ErrorItem[]] | undefined;
+    const lastCall = emitSpy.mock.calls.at(-1);
 
     const emitted = lastCall?.[0] ?? [];
 
@@ -645,7 +645,7 @@ describe('CivilFeeSectionComponent', () => {
     fixture.detectChanges();
 
     const errors = component.validateForSubmit();
-    const lastCall = emitSpy.mock.calls.at(-1) as [ErrorItem[]] | undefined;
+    const lastCall = emitSpy.mock.calls.at(-1);
 
     expect(errors).toEqual(
       expect.arrayContaining([
@@ -681,7 +681,7 @@ describe('CivilFeeSectionComponent', () => {
     fixture.detectChanges();
 
     const errors = component.validateForSubmit();
-    const lastCall = emitSpy.mock.calls.at(-1) as [ErrorItem[]] | undefined;
+    const lastCall = emitSpy.mock.calls.at(-1);
 
     expect(errors).toEqual([]);
     expect(lastCall?.[0]).toEqual([]);

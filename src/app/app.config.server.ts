@@ -1,4 +1,8 @@
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import {
+  provideHttpClient,
+  withInterceptors,
+  withXhr,
+} from '@angular/common/http';
 import { ApplicationConfig, mergeApplicationConfig } from '@angular/core';
 import { provideServerRendering, withRoutes } from '@angular/ssr';
 
@@ -10,7 +14,7 @@ import { serverCookieInterceptor } from '@interceptors/server-cookie.interceptor
 const serverConfig: ApplicationConfig = {
   providers: [
     provideServerRendering(withRoutes(serverRoutes)),
-    provideHttpClient(withInterceptors([serverCookieInterceptor])),
+    provideHttpClient(withXhr(), withInterceptors([serverCookieInterceptor])),
   ],
 };
 

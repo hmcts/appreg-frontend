@@ -1,9 +1,15 @@
-import { Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  output,
+} from '@angular/core';
 
 type PageItem = number | '…';
 
 @Component({
   selector: 'app-pagination',
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './pagination.component.html',
 })
 export class PaginationComponent {

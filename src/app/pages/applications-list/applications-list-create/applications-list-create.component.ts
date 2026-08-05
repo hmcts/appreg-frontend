@@ -11,6 +11,7 @@ Functionality:
 
 import { isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   EnvironmentInjector,
   OnInit,
@@ -59,6 +60,7 @@ import { addLocationValidatorsToForm } from '@validators/add-location-validators
     ErrorSummaryComponent,
     ApplicationsListFormComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-create.component.html',
 })
 export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
@@ -230,7 +232,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
       errorSummary: [],
     });
 
-    const payload = this.buildPayload(this.form.getRawValue() as CreateFormRaw);
+    const payload = this.buildPayload(this.form.getRawValue());
     this.createRequest.set(payload);
   }
 

@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   OnDestroy,
   OnInit,
@@ -18,6 +19,7 @@ import { HeaderService } from '@services/header.service';
   selector: 'app-review-confirm',
   standalone: true,
   imports: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './review-confirm.component.html',
 })
 export class ReviewConfirmComponent

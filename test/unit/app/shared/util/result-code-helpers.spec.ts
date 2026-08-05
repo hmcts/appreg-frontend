@@ -25,7 +25,7 @@ function makeCode(
     resultCode: '',
     title: '',
     ...overrides,
-  } as unknown as ResultCodeGetSummaryDto;
+  };
 }
 function makeCodesPage(overrides: Partial<ResultCodePage>): ResultCodePage {
   return { content: [], ...overrides } as unknown as ResultCodePage;
@@ -179,7 +179,7 @@ describe('result-code helpers', () => {
             wording: {
               template: 'No placeholders',
               'substitution-key-constraints': [],
-            } as TemplateDetail,
+            },
           }),
         ],
         codes,

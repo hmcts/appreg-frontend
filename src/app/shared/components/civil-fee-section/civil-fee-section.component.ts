@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   Injector,
   OnInit,
@@ -62,6 +63,7 @@ export type CivilFeeForm = FormGroup<{
     ReactiveFormsModule,
     DateTimePipe,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './civil-fee-section.component.html',
 })
 export class CivilFeeSectionComponent implements OnInit {

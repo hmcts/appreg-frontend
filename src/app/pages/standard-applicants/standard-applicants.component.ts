@@ -20,6 +20,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   DOCUMENT,
   EnvironmentInjector,
@@ -129,6 +130,7 @@ const initialStandardApplicantsState: StandardApplicantsState = {
     AsyncJobProgressComponent,
   ],
   templateUrl: './standard-applicants.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './standard-applicants.component.scss',
 })
 export class StandardApplicants implements OnInit {

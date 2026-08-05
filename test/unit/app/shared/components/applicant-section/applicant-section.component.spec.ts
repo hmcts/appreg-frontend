@@ -76,7 +76,7 @@ describe('ApplicantSectionComponent', () => {
     fixture.componentRef.setInput('form', buildForm(fb));
     fixture.componentRef.setInput('personGroup', fb.group({}));
     fixture.componentRef.setInput('organisationGroup', fb.group({}));
-    fixture.componentRef.setInput('applicantType', 'person' as ApplicantType);
+    fixture.componentRef.setInput('applicantType', 'person');
 
     fixture.detectChanges();
   });
@@ -90,7 +90,7 @@ describe('ApplicantSectionComponent', () => {
   });
 
   it('shows person section when applicantType is person', () => {
-    fixture.componentRef.setInput('applicantType', 'person' as ApplicantType);
+    fixture.componentRef.setInput('applicantType', 'person');
     fixture.detectChanges();
 
     expect(
@@ -105,7 +105,7 @@ describe('ApplicantSectionComponent', () => {
   });
 
   it('shows organisation section when applicantType is org', () => {
-    fixture.componentRef.setInput('applicantType', 'org' as ApplicantType);
+    fixture.componentRef.setInput('applicantType', 'org');
     fixture.detectChanges();
 
     expect(
@@ -118,7 +118,7 @@ describe('ApplicantSectionComponent', () => {
   });
 
   it('shows standard applicant select when applicantType is standard', () => {
-    fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
+    fixture.componentRef.setInput('applicantType', 'standard');
     fixture.detectChanges();
 
     expect(
@@ -131,7 +131,7 @@ describe('ApplicantSectionComponent', () => {
   });
 
   it('renders the saved standard applicant tag and text when saved values exist', () => {
-    fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
+    fixture.componentRef.setInput('applicantType', 'standard');
     fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
     fixture.componentRef.setInput('savedStandardApplicantName', 'Example Org');
     fixture.detectChanges();
@@ -146,7 +146,7 @@ describe('ApplicantSectionComponent', () => {
   });
 
   it('renders the current standard applicant tag and text when current values exist', () => {
-    fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
+    fixture.componentRef.setInput('applicantType', 'standard');
     fixture.componentRef.setInput('currentStandardApplicantSummary', {
       code: 'SA-999',
       name: 'Current Org',
@@ -166,7 +166,7 @@ describe('ApplicantSectionComponent', () => {
   });
 
   it('does not render duplicate current and saved tags for the same applicant', () => {
-    fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
+    fixture.componentRef.setInput('applicantType', 'standard');
     fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
     fixture.componentRef.setInput('savedStandardApplicantName', 'Example Org');
     fixture.componentRef.setInput('currentStandardApplicantSummary', {
@@ -182,7 +182,7 @@ describe('ApplicantSectionComponent', () => {
   });
 
   it('does not render saved standard applicant text without a saved name', () => {
-    fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
+    fixture.componentRef.setInput('applicantType', 'standard');
     fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
     fixture.detectChanges();
 
@@ -190,7 +190,7 @@ describe('ApplicantSectionComponent', () => {
   });
 
   it('renders a warning with the raw saved standard applicant code when details are unavailable', () => {
-    fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
+    fixture.componentRef.setInput('applicantType', 'standard');
     fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
     fixture.componentRef.setInput(
       'savedStandardApplicantDetailsUnavailable',

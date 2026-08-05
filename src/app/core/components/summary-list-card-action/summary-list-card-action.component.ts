@@ -1,5 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, TemplateRef, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  TemplateRef,
+  input,
+  output,
+} from '@angular/core';
 
 import { SummaryListCardAction } from '@core-types/summary-list-card-action/summary-list-card.type';
 
@@ -7,6 +13,7 @@ import { SummaryListCardAction } from '@core-types/summary-list-card-action/summ
   selector: 'app-summary-list-card-action',
   imports: [CommonModule],
   templateUrl: './summary-list-card-action.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './summary-list-card-action.component.scss',
 })
 export class SummaryListCardActionComponent {

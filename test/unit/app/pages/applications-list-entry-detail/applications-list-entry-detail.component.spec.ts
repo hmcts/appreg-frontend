@@ -766,13 +766,14 @@ describe('ApplicationsListEntryDetail', () => {
       { emitEvent: false },
     );
 
-    component['submitEntryUpdate'] = jest.fn();
+    const submitEntryUpdateMock = jest.fn();
+    component['submitEntryUpdate'] = submitEntryUpdateMock;
 
     component.onUpdateApplication();
 
     expect(component['appListEntryDetailState']().formSubmitted).toBe(true);
 
-    expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
+    expect(submitEntryUpdateMock).not.toHaveBeenCalled();
   });
 
   it('onUpdateApplication returns early when EF application code has no account reference', () => {
@@ -793,11 +794,12 @@ describe('ApplicationsListEntryDetail', () => {
       },
     });
     component.onStandardApplicantCodeChanged('SA-123');
-    component['submitEntryUpdate'] = jest.fn();
+    const submitEntryUpdateMock = jest.fn();
+    component['submitEntryUpdate'] = submitEntryUpdateMock;
 
     component.onUpdateApplication();
 
-    expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
+    expect(submitEntryUpdateMock).not.toHaveBeenCalled();
     expect(component['appListEntryDetailState']().summaryErrors).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -850,13 +852,14 @@ describe('ApplicationsListEntryDetail', () => {
       { emitEvent: false },
     );
 
-    component['submitEntryUpdate'] = jest.fn();
+    const submitEntryUpdateMock = jest.fn();
+    component['submitEntryUpdate'] = submitEntryUpdateMock;
 
     component.onUpdateApplication();
 
     expect(component['appListEntryDetailState']().formSubmitted).toBe(true);
 
-    expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
+    expect(submitEntryUpdateMock).not.toHaveBeenCalled();
   });
 
   it('onUpdateApplication builds dto and calls submitEntryUpdate when validation passes', () => {
@@ -2104,7 +2107,8 @@ describe('ApplicationsListEntryDetail', () => {
     component.resultAppliedBannerVisible.set(true);
     component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
     component['buildEntryUpdateDto'] = jest.fn().mockReturnValue(expectedDto);
-    component['submitEntryUpdate'] = jest.fn();
+    const submitEntryUpdateMock = jest.fn();
+    component['submitEntryUpdate'] = submitEntryUpdateMock;
     const submitResultsSpy = jest
       .spyOn(component.resultsFacade, 'submitResultChanges')
       .mockImplementation((_listId, _entryId, _payload, onSuccess) => {
@@ -2124,7 +2128,7 @@ describe('ApplicationsListEntryDetail', () => {
     );
     expect(component.resultAppliedBannerVisible()).toBe(false);
     expect(component['appListEntryDetailState']().pendingResults).toBe(false);
-    expect(component['submitEntryUpdate']).toHaveBeenCalledWith(
+    expect(submitEntryUpdateMock).toHaveBeenCalledWith(
       expectedDto,
       ENTRY_SUCCESS_MESSAGES.listUpdated,
     );
@@ -2150,8 +2154,10 @@ describe('ApplicationsListEntryDetail', () => {
     });
     component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
     component['buildEntryUpdateDto'] = jest.fn().mockReturnValue(expectedDto);
-    component['submitEntryUpdate'] = jest.fn();
-    component['applyMappedError'] = jest.fn();
+    const submitEntryUpdateMock = jest.fn();
+    const applyMappedErrorMock = jest.fn();
+    component['submitEntryUpdate'] = submitEntryUpdateMock;
+    component['applyMappedError'] = applyMappedErrorMock;
     jest
       .spyOn(component.resultsFacade, 'submitResultChanges')
       .mockImplementation(
@@ -2162,56 +2168,55 @@ describe('ApplicationsListEntryDetail', () => {
 
     component.onUpdateApplication();
 
-    expect(component['applyMappedError']).toHaveBeenCalledWith(error);
+    expect(applyMappedErrorMock).toHaveBeenCalledWith(error);
     expect(component['appListEntryDetailState']().pendingResults).toBe(true);
-    expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
+    expect(submitEntryUpdateMock).not.toHaveBeenCalled();
   });
 });
 
 describe('officials mapping', () => {
   const createFormValue = (
     overrides: Partial<ApplicationsListEntryFormValue> = {},
-  ): ApplicationsListEntryFormValue =>
-    ({
-      applicationTitle: null,
-      applicantType: 'person',
-      applicant: null,
-      standardApplicantCode: null,
-      applicationCode: null,
-      respondentEntryType: 'person',
-      respondent: null,
-      numberOfRespondents: null,
-      wordingFields: null,
-      feeStatuses: null,
-      hasOffsiteFee: null,
-      feeStatus: null,
-      feeStatusDate: null,
-      paymentRef: null,
-      applicationNotes: {
-        notes: null,
-        caseReference: null,
-        accountReference: null,
-      },
-      lodgementDate: null,
-      courtName: null,
-      organisationName: null,
+  ): ApplicationsListEntryFormValue => ({
+    applicationTitle: null,
+    applicantType: 'person',
+    applicant: null,
+    standardApplicantCode: null,
+    applicationCode: null,
+    respondentEntryType: 'person',
+    respondent: null,
+    numberOfRespondents: null,
+    wordingFields: null,
+    feeStatuses: null,
+    hasOffsiteFee: null,
+    feeStatus: null,
+    feeStatusDate: null,
+    paymentRef: null,
+    applicationNotes: {
+      notes: null,
+      caseReference: null,
       accountReference: null,
-      applicationDetails: null,
-      resultCode: null,
-      mags1Title: null,
-      mags1FirstName: null,
-      mags1Surname: null,
-      mags2Title: null,
-      mags2FirstName: null,
-      mags2Surname: null,
-      mags3Title: null,
-      mags3FirstName: null,
-      mags3Surname: null,
-      officialTitle: null,
-      officialFirstName: null,
-      officialSurname: null,
-      ...overrides,
-    }) as ApplicationsListEntryFormValue;
+    },
+    lodgementDate: null,
+    courtName: null,
+    organisationName: null,
+    accountReference: null,
+    applicationDetails: null,
+    resultCode: null,
+    mags1Title: null,
+    mags1FirstName: null,
+    mags1Surname: null,
+    mags2Title: null,
+    mags2FirstName: null,
+    mags2Surname: null,
+    mags3Title: null,
+    mags3FirstName: null,
+    mags3Surname: null,
+    officialTitle: null,
+    officialFirstName: null,
+    officialSurname: null,
+    ...overrides,
+  });
 
   describe('buildOfficialsFromFormValue', () => {
     it('returns empty object when no magistrate or official names are filled', () => {

@@ -4,7 +4,6 @@ import { Subject, of, throwError } from 'rxjs';
 
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import { ApplicationCodesApi } from '@openapi';
-import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import * as helpers from '@util/application-code-helpers';
 import { CodeRow, CodeRowsResult } from '@util/application-code-helpers';
 
@@ -459,7 +458,7 @@ describe('ApplicationCodeSearchComponent', () => {
         applicationCode: 'APP01',
         applicationTitle: 'Title',
       },
-    } as ApplicationsListEntryForm);
+    });
 
     component.ngOnInit();
 
@@ -490,7 +489,7 @@ describe('ApplicationCodeSearchComponent', () => {
         applicationCode: 'APP01',
         applicationTitle: 'Title',
       },
-    } as ApplicationsListEntryForm);
+    });
 
     component.ngOnInit();
 
@@ -510,7 +509,7 @@ describe('ApplicationCodeSearchComponent', () => {
     componentRef.setInput('patchedFormData', {
       value: {},
       get,
-    } as unknown as ApplicationsListEntryForm);
+    });
 
     component.ngOnInit();
     component.form.controls.lodgementDate.setValue('2026-01-01');
@@ -528,7 +527,7 @@ describe('ApplicationCodeSearchComponent', () => {
         lodgementDate: '2023-01-01',
       },
       get,
-    } as unknown as ApplicationsListEntryForm);
+    });
 
     component.ngOnInit();
 

@@ -45,6 +45,7 @@ import {
   HttpResponse,
 } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   EnvironmentInjector,
   NgZone,
@@ -179,6 +180,7 @@ const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
     NotificationBannerComponent,
   ],
   templateUrl: './applications-list-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./applications-list-detail.component.scss'],
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {

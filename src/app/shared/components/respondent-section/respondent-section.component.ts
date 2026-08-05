@@ -30,7 +30,13 @@
     If allowed, the user can only enter a whole integer
  */
 
-import { Component, computed, effect, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  input,
+} from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
@@ -57,6 +63,7 @@ type Option<T extends string> = { value: T; label: string };
     OrganisationSectionComponent,
     RespondentBulkApplicationComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './respondent-section.component.html',
 })
 export class RespondentSectionComponent {

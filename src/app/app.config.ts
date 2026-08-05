@@ -3,6 +3,7 @@ import {
   HttpInterceptorFn,
   provideHttpClient,
   withInterceptors,
+  withXhr,
   withXsrfConfiguration,
 } from '@angular/common/http';
 import localeEnGb from '@angular/common/locales/en-GB';
@@ -65,6 +66,7 @@ export const appConfig: ApplicationConfig = {
         .then(() => telemetryService.initialize());
     }),
     provideHttpClient(
+      withXhr(),
       withXsrfConfiguration({
         cookieName: 'XSRF-TOKEN',
         headerName: 'X-XSRF-TOKEN',

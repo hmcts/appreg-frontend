@@ -1,4 +1,10 @@
-import { Component, computed, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  output,
+} from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { PERSON_TITLE_OPTIONS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
@@ -10,6 +16,7 @@ import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
 @Component({
   selector: 'app-officials-section',
   imports: [TextInputComponent, SelectInputComponent, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './officials-section.component.html',
 })
 export class OfficialsSectionComponent {

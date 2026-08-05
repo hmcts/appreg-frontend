@@ -10,7 +10,13 @@
   On close, navigate to applications-list/:id/close confirmation page
  */
 
-import { Component, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -47,6 +53,7 @@ import { ApplicationListRow } from '@util/types/application-list/types';
     ApplicationsListFormComponent,
     HelpDetailsComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-update.component.html',
 })
 export class ApplicationsListUpdateComponent {
@@ -168,11 +175,8 @@ export class ApplicationsListUpdateComponent {
   }
 
   durationCloseErrorText(): string {
-    const errors = this.form().get('duration')?.errors as
-      | Record<string, unknown>
-      | null
-      | undefined;
-    const v = errors?.['durationErrorText'];
+    const errors = this.form().get('duration')?.errors;
+    const v = errors?.['durationErrorText'] as string;
     return typeof v === 'string' ? v : '';
   }
 

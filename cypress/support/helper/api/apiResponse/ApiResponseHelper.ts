@@ -318,10 +318,10 @@ export class ApiResponseHelper {
           try {
             return JSON.parse(aliasValue) as unknown;
           } catch {
-            return aliasValue as unknown;
+            return aliasValue;
           }
         }
-        return aliasValue as unknown;
+        return aliasValue;
       });
     }
 
