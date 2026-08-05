@@ -206,13 +206,15 @@ Feature: Application List Entries Bulk Update Fees
         Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
             | Fee Status | Payment Ref  |
             | UNDERTAKEN | PAYA{RANDOM} |
-            | PAID       | PAY-{RANDOM} |
+        Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
+            | Fee Status | Status Date  | Payment Ref  |
+            | PAID       | todaydisplay | PAY-{RANDOM} |
         Then User Verifies "Change" Link Is Not Visible In Row Of Table In The Accordion "Civil fee" With:
             | Fee Status | Payment Ref  |
             | UNDERTAKEN | PAYA{RANDOM} |
         Then User Verifies "Change" Link Is Visible In Row Of Table In The Accordion "Civil fee" With:
-            | Fee Status | Payment Ref  |
-            | PAID       | PAY-{RANDOM} |
+            | Fee Status | Status Date  | Payment Ref  |
+            | PAID       | todaydisplay | PAY-{RANDOM} |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"

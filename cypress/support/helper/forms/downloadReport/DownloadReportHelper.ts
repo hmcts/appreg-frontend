@@ -1,17 +1,11 @@
 /// <reference types="cypress" />
 
-import { DownloadReportElement } from '../../../pageobjects/generic/downloadreport/DownloadReportElement';
-
 export class DownloadReportHelper {
   static waitForReportDownloadToComplete(): void {
-    cy.contains('app-async-job-progress', 'Report in progress').should(
-      'be.visible',
-    );
-    DownloadReportElement.findDownloadProgressMessage(
-      'Report in progress',
-    ).should('be.visible');
-    DownloadReportElement.findDownloadProgressMessage(
-      'Your CSV is being generated and will download automatically when ready.',
-    ).should('be.visible');
+    // A fast backend can replace the progress component before Cypress sees it,
+    // so wait for the durable terminal state rather than a transient frame.
+    cy.contains('app-success-banner', 'Report downloaded', {
+      timeout: 120000,
+    }).should('be.visible');
   }
 }

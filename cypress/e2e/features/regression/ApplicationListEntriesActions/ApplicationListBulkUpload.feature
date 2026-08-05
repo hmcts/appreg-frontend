@@ -170,8 +170,8 @@ Feature: Application List Bulk Upload
         Then User Sees Validation Error Banner "Bulk upload failed" Containing "The bulk upload could not be completed. See the table below for more details. Please re-try the upload once these errors have been resolved"
         # Verify Error Table Details
         Then User Should See Row In Table With Values:
-            | Error type | Row | Affected column | Message                       | Applicant name | Address line 1  | Rejected value |
-            | Data error | 2   | applicationCode | size must be between 1 and 10 | Bad Row null   | 1 Broken Street | APP-INVALID    |
+            | Error type | Row | Affected column | Message                       | Applicant    | Address line 1  | Rejected value |
+            | Data error | 2   | applicationCode | size must be between 1 and 10 | Bad Row null | 1 Broken Street | APP-INVALID    |
         # Export Failed Upload CSV
         Then User Should See The Button "Export the file with errors shown" Is Enabled
         When User Clicks On The "Export the file with errors shown" Button
