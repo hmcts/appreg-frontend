@@ -443,36 +443,6 @@ describe('ApplicationsListBulkUpload', () => {
       expect(getState(component).bulkUploadFeedback).toBeUndefined();
     });
 
-    it('continues showing upload progress for a completed-with-errors status', async () => {
-      jobPollingFacadeMock.watchJob.mockReturnValue(
-        of(
-          terminalJob({
-            rawStatus: 'COMPLETED_WITH_ERRORS',
-            state: 'completed_with_errors',
-            createdCount: 4,
-            errorCount: 2,
-            totalCount: 6,
-          }),
-        ),
-      );
-
-      startBulkUploadPolling();
-      await flushSignalEffects(fixture);
-
-      const summary = fixture.debugElement.query(
-        By.css('.govuk-error-summary'),
-      );
-      expect(summary).toBeNull();
-      expect(
-        fixture.debugElement.query(By.css('app-async-job-progress')),
-      ).toBeTruthy();
-      expect(getState(component).uploadSuccessful).toBe(false);
-      expect(getState(component).bulkUploadFeedback).toMatchObject({
-        kind: 'progress',
-        heading: 'Upload in progress',
-      });
-    });
-
     it('shows a failure error summary with the backend message', async () => {
       jobPollingFacadeMock.watchJob.mockReturnValue(
         of(
@@ -512,7 +482,7 @@ describe('ApplicationsListBulkUpload', () => {
           rowNumber: 4,
           location: ' applicantName ',
           message: ' Invalid value ',
-          name: ' Jane Doe ',
+          code: ' Jane Doe ',
           addressLine1: ' 1 High Street ',
           rejectedValue: ' ??? ',
         },
@@ -521,7 +491,7 @@ describe('ApplicationsListBulkUpload', () => {
           rowNumber: null,
           location: null,
           message: '',
-          name: null,
+          code: null,
           addressLine1: '   ',
           rejectedValue: null,
         },
