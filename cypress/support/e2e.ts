@@ -24,6 +24,43 @@ function configureSpecDownloadsFolder(): Cypress.Chainable {
   });
 }
 
+function clearAuthenticationState(): Cypress.Chainable {
+  const baseUrl = Cypress.config('baseUrl');
+
+  if (!baseUrl) {
+    throw new Error('Cypress baseUrl is required to clear the SSO session');
+  }
+
+  // A GET seeds the CSRF cookie required by the real POST-only logout route.
+  return cy
+    .request({
+      url: '/',
+      failOnStatusCode: false,
+    })
+    .then(() => cy.getCookie('XSRF-TOKEN'))
+    .then((xsrfCookie) => {
+      if (!xsrfCookie) {
+        throw new Error('SSO logout requires an XSRF-TOKEN cookie');
+      }
+
+      return cy.request({
+        method: 'POST',
+        url: '/sso/logout',
+        headers: { origin: new URL(baseUrl).origin },
+        form: true,
+        body: { _csrf: xsrfCookie.value },
+        followRedirect: false,
+      });
+    })
+    .then((response) => {
+      expect(response.status).to.eq(302);
+      Cypress.session.clearAllSavedSessions().catch(() => {});
+      cy.clearCookies();
+      cy.clearLocalStorage();
+      cy.clearAllSessionStorage();
+    });
+}
+
 if (isApiSpec) {
   Cypress.Screenshot.defaults({
     screenshotOnRunFailure: false,
@@ -32,16 +69,7 @@ if (isApiSpec) {
 
 beforeEach(() => {
   configureSpecDownloadsFolder().then(() => {
-    cy.request({
-      url: '/sso/logout',
-      failOnStatusCode: false,
-      followRedirect: false,
-    }).then(() => {
-      Cypress.session.clearAllSavedSessions().catch(() => {});
-      cy.clearCookies();
-      cy.clearLocalStorage();
-      cy.clearAllSessionStorage();
-    });
+    clearAuthenticationState();
   });
 
   TestDataGenerator.resetScenario();
