@@ -12,6 +12,33 @@ unprivileged `codex` user and never receives the key in its environment. All
 invocations pin the Codex CLI and proxy to `0.146.0` and use the regional
 Responses endpoint `https://eu.api.openai.com/v1/responses`.
 
+## Planning and approval
+
+Each Jira dispatch starts with a separate read-only Codex invocation. The
+planner intentionally omits the `model` and `effort` inputs so Codex uses its
+defaults, while the Action commit, CLI version, regional endpoint,
+unprivileged user and `:read-only` permission profile remain pinned. The
+planner returns structured JSON containing the root cause, scope decision,
+alternatives, implementation paths, tests, acceptance criteria, risks,
+assumptions and blockers.
+
+A fresh GitHub-hosted job validates and size-limits the untrusted JSON, rejects
+protected automation paths, and stores a canonical plan plus its SHA-256 hash
+as the `codex-jira-plan` artefact. Tickets that are not ready stop before any
+workspace-writing model invocation. Plans marked high risk or cross-system
+wait on the `codex-plan-approval` GitHub environment.
+
+Repository administrators must create that environment and configure required
+reviewers before enabling this workflow. Without required reviewers, GitHub
+does not provide a human approval gate. Reviewers inspect the validator job
+summary or downloaded plan artefact before approving.
+
+Implementation checks out the exact commit inspected by the planner and uses
+`gpt-5.6-sol` with `ultra` effort. The validated plan is included in the
+implementation prompt and the generated PR body. Verification repairs reuse
+the original plan; they stop and request a new planning run when repository
+evidence invalidates the planned architecture or scope.
+
 Every workspace-writing Codex job ends with the official Action. Codex returns
 a schema-validated, size-bounded gzip/base64 patch through the Action's
 `final-message` job output; no privileged collector, Git command, or artifact
