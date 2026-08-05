@@ -123,6 +123,7 @@ PYTHONPYCACHEPREFIX="${python_cache}" python3 -m py_compile .github/scripts/*.py
 PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-collect-parity-result.py
 PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-collect-codex-patch-result.py
 PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-codex-patch-export.py
+PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-codex-jira-verify.py
 PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-codex-pr-review-handoff.py
 PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-validate-codex-plan.py
 PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-codex-plan-handoff.py
@@ -314,6 +315,45 @@ repair_collectors.each do |job_name, job|
          job.inspect.include?("PLAN_DIR")
     errors << "#{jira_path}:#{job_name} must enforce the original plan in the fresh collector"
   end
+end
+
+jira_verifiers = jira_jobs.select { |_job_name, job| job.inspect.include?("codex-jira-verify.sh") }
+unless jira_verifiers.length == 7
+  errors << "#{jira_path}:expected seven trusted Jira verifier paths"
+end
+jira_verifiers.each do |job_name, job|
+  verifier_steps = Array(job.fetch("steps", [])).select do |step|
+    step.is_a?(Hash) && step.fetch("run", "").include?("codex-jira-verify.sh")
+  end
+  unless Array(job.fetch("needs", [])).include?("validate-codex-plan") &&
+         job.inspect.include?("CODEX_PLAN_PAYLOAD") &&
+         job.inspect.include?("EXPECTED_PLAN_SHA") &&
+         job.inspect.include?("--materialize") &&
+         verifier_steps.length == 1 &&
+         (verifier_steps.first.fetch("env", {}) || {}).fetch("PLAN_DIR", "").include?("runner.temp")
+    errors << "#{jira_path}:#{job_name} must materialise the original validated plan for verification"
+  end
+end
+
+jira_verifier_path = ".github/scripts/codex-jira-verify.sh"
+jira_verifier = File.read(jira_verifier_path)
+jira_verifier_lines = jira_verifier.lines
+unscoped_adds = jira_verifier_lines.select { |line| line.include?("git_sanitized add -A") }
+unless jira_verifier.include?('required_env "PLAN_DIR"') &&
+       jira_verifier.include?('validated_codex_plan_path "${PLAN_DIR}"') &&
+       jira_verifier.include?("git_sanitized ls-files --others --exclude-standard") &&
+       unscoped_adds == [%(      git_sanitized add -A -- "${pathspec}"\n)] &&
+       jira_verifier.include?('-- "${allowed_pathspecs[@]}" >"${rebuilt_patch_path}"')
+  errors << "#{jira_verifier_path} must reject out-of-plan worktree changes and rebuild only exact planned paths"
+end
+sonar_run_index = jira_verifier_lines.rindex { |line| line.strip == "run_frontend_sonar_analysis" }
+final_scope_index = jira_verifier_lines.rindex do |line|
+  line.include?('assert_worktree_within_plan "Sonar verification"')
+end
+rebuild_index = jira_verifier_lines.rindex { |line| line.strip == "rebuild_verified_patch" }
+unless sonar_run_index && final_scope_index && rebuild_index &&
+       sonar_run_index < final_scope_index && final_scope_index < rebuild_index
+  errors << "#{jira_verifier_path} must scope-check after repository tooling and before replacing the patch"
 end
 
 jira_collector = File.read(".github/scripts/codex-jira-collect.sh")

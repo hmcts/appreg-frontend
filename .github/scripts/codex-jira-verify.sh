@@ -14,6 +14,7 @@ required_env() {
 required_env "OUTPUT_DIR"
 required_env "EXPECTED_BRANCH_NAME"
 required_env "GH_TOKEN"
+required_env "PLAN_DIR"
 
 default_branch="${DEFAULT_BRANCH:-master}"
 output_dir="${OUTPUT_DIR}"
@@ -26,8 +27,13 @@ artifact_dir="${RUNNER_TEMP:-/tmp}/codex-jira-verify-${GITHUB_RUN_ID:-manual}-${
 sanitized_home="${artifact_dir}/sanitized-home"
 sanitized_tmp="${artifact_dir}/sanitized-tmp"
 trusted_pipeline_path="${artifact_dir}/trusted-codex-local-pipeline.sh"
+changed_paths_path="${artifact_dir}/changed-paths.bin"
+rebuilt_patch_path="${artifact_dir}/changes.patch"
 trusted_pipeline_sha=""
+trusted_allowed_paths=""
 guardrail_review_required="false"
+allowed_paths=()
+allowed_pathspecs=()
 guardrail_pathspecs=(
   "bin/codex-local-pipeline.sh"
   ".github/scripts"
@@ -37,6 +43,10 @@ guardrail_pathspecs=(
   ".yarnrc.yml"
   ".yarn"
 )
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# shellcheck source=.github/scripts/codex-action-runtime.sh
+source "${script_dir}/codex-action-runtime.sh"
 
 metadata_value() {
   local key="$1"
@@ -120,6 +130,109 @@ verify_trusted_file() {
   fi
 }
 
+assert_path_file_within_plan() {
+  local phase="$1"
+
+  TRUSTED_ALLOWED_PATHS="${trusted_allowed_paths}" CHANGED_PATHS_FILE="${changed_paths_path}" PHASE="${phase}" \
+    python3 -I - <<'PY'
+import os
+from pathlib import Path
+
+allowed = set(os.environ["TRUSTED_ALLOWED_PATHS"].splitlines())
+if not allowed:
+    raise SystemExit("Validated Codex allowed-path set is empty")
+
+raw_paths = Path(os.environ["CHANGED_PATHS_FILE"]).read_bytes()
+try:
+    changed = {
+        value.decode("utf-8")
+        for value in raw_paths.split(b"\0")
+        if value
+    }
+except UnicodeDecodeError as error:
+    raise SystemExit(f"Changed repository path is not UTF-8: {error}") from error
+
+unexpected = sorted(changed - allowed)
+if unexpected:
+    detail = ", ".join(repr(path) for path in unexpected)
+    raise SystemExit(
+        f"Refusing to verify {os.environ['PHASE']} changes outside the validated plan: {detail}"
+    )
+PY
+}
+
+assert_worktree_within_plan() {
+  local phase="$1"
+
+  : >"${changed_paths_path}"
+  git_sanitized diff \
+    --cached \
+    --name-only \
+    -z \
+    --no-renames \
+    --no-ext-diff \
+    HEAD \
+    -- . >>"${changed_paths_path}"
+  git_sanitized diff \
+    --name-only \
+    -z \
+    --no-renames \
+    --no-ext-diff \
+    -- . >>"${changed_paths_path}"
+  git_sanitized ls-files --others --exclude-standard -z -- . >>"${changed_paths_path}"
+  assert_path_file_within_plan "${phase}"
+}
+
+assert_staged_patch_within_plan() {
+  git_sanitized diff \
+    --cached \
+    --name-only \
+    -z \
+    --no-renames \
+    --no-ext-diff \
+    HEAD \
+    -- . >"${changed_paths_path}"
+  assert_path_file_within_plan "staged patch"
+}
+
+rebuild_verified_patch() {
+  local path
+  local pathspec
+
+  assert_worktree_within_plan "post-verification"
+
+  for path in "${allowed_paths[@]}"; do
+    pathspec=":(top,literal)${path}"
+    if [[ -e "${path}" || -L "${path}" ]] ||
+      git_sanitized ls-files --error-unmatch -- "${pathspec}" >/dev/null 2>&1; then
+      git_sanitized add -A -- "${pathspec}"
+    fi
+  done
+  assert_worktree_within_plan "staged post-verification"
+  assert_staged_patch_within_plan
+
+  if git_sanitized diff --cached --quiet --no-ext-diff HEAD -- "${allowed_pathspecs[@]}"; then
+    echo "Codex patch has no staged changes after verification." >&2
+    exit 1
+  fi
+
+  git_sanitized diff \
+    --cached \
+    --binary \
+    --full-index \
+    --no-ext-diff \
+    --no-textconv \
+    --no-renames \
+    HEAD \
+    -- "${allowed_pathspecs[@]}" >"${rebuilt_patch_path}"
+  if [[ ! -s "${rebuilt_patch_path}" ]]; then
+    echo "Failed to rebuild the verified Codex patch." >&2
+    exit 1
+  fi
+
+  mv "${rebuilt_patch_path}" "${patch_path}"
+}
+
 detect_guardrail_changes() {
   local guardrail_changes
 
@@ -188,15 +301,8 @@ format_verified_patch() {
 
   ensure_frontend_formatter
   echo "Applying Prettier before verifying and publishing the Codex patch."
-  run_sanitized node .yarn/releases/yarn-4.10.3.cjs prettier --write --ignore-unknown "${changed_files[@]}"
-
-  git_sanitized add -A
-  if git_sanitized diff --cached --quiet; then
-    echo "Codex patch has no staged changes after formatting." >&2
-    exit 1
-  fi
-
-  git_sanitized diff --cached --binary >"${patch_path}"
+  run_sanitized node .yarn/releases/yarn-4.10.3.cjs prettier --write --ignore-unknown -- "${changed_files[@]}"
+  assert_worktree_within_plan "formatter"
 }
 
 run_frontend_sonar_analysis() {
@@ -255,6 +361,19 @@ run_frontend_sonar_analysis() {
 
 mkdir -p "${artifact_dir}" "${sanitized_home}" "${sanitized_tmp}"
 
+validated_codex_plan_path "${PLAN_DIR}" >/dev/null
+trusted_allowed_paths="$(<"${PLAN_DIR}/allowed-paths.txt")"
+while IFS= read -r path; do
+  [[ -n "${path}" ]] || continue
+  allowed_paths+=("${path}")
+  allowed_pathspecs+=(":(top,literal)${path}")
+done <<<"${trusted_allowed_paths}"
+if [[ "${#allowed_pathspecs[@]}" -eq 0 ]]; then
+  echo "Validated Codex plan contains no allowed paths." >&2
+  exit 1
+fi
+unset PLAN_DIR
+
 branch_name="$(metadata_value branch_name)"
 if [[ "${branch_name}" != "${EXPECTED_BRANCH_NAME}" || "${branch_name}" != codex/* ]]; then
   echo "Refusing to verify unexpected Codex branch name: ${branch_name}" >&2
@@ -274,9 +393,9 @@ git_read_authenticated fetch origin "${default_branch}:refs/remotes/origin/${def
 unset GH_TOKEN
 git_sanitized checkout -B "${default_branch}" "origin/${default_branch}"
 git_sanitized apply --index --binary "${patch_path}"
+assert_worktree_within_plan "applied patch"
 
 format_verified_patch
-patch_sha="$(file_sha256 "${patch_path}")"
 
 detect_guardrail_changes
 append_guardrail_warning
@@ -287,9 +406,13 @@ if [[ "${SKIP_LOCAL_PIPELINE:-false}" == "true" ]]; then
 else
   verify_trusted_file "${trusted_pipeline_path}" "${trusted_pipeline_sha}" "pipeline wrapper"
   run_sanitized "${trusted_pipeline_path}" "${local_pipeline_mode}" --base "${default_branch}" --no-fetch
+  assert_worktree_within_plan "local verification"
 fi
 
 run_frontend_sonar_analysis
+assert_worktree_within_plan "Sonar verification"
+rebuild_verified_patch
+patch_sha="$(file_sha256 "${patch_path}")"
 
 {
   echo "branch_name=${branch_name}"

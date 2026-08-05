@@ -364,7 +364,7 @@ jobs:
           retention-days: 1
 
   verify-codex-output:
-    needs: codex-generate
+    needs: [codex-generate, validate-codex-plan]
     if: needs.codex-generate.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -394,6 +394,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Materialise validated Codex plan
+        env:
+          CODEX_PLAN_PAYLOAD: ${{ needs.validate-codex-plan.outputs.plan_payload }}
+          EXPECTED_PLAN_SHA: ${{ needs.validate-codex-plan.outputs.plan_sha256 }}
+          OUTPUT_DIR: ${{ runner.temp }}/codex-plan
+        run: ./.github/scripts/validate-codex-plan.py --materialize
+
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
@@ -415,6 +422,7 @@ jobs:
         id: verify
         env:
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
+          PLAN_DIR: ${{ runner.temp }}/codex-plan
         run: |
           set +e
           ./.github/scripts/codex-jira-verify.sh >"$RUNNER_TEMP/codex-verification.log" 2>&1
@@ -596,7 +604,7 @@ jobs:
           retention-days: 1
 
   verify-codex-output-1:
-    needs: [codex-generate, repair-codex-output-1]
+    needs: [codex-generate, repair-codex-output-1, validate-codex-plan]
     if: needs.repair-codex-output-1.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -626,6 +634,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Materialise validated Codex plan
+        env:
+          CODEX_PLAN_PAYLOAD: ${{ needs.validate-codex-plan.outputs.plan_payload }}
+          EXPECTED_PLAN_SHA: ${{ needs.validate-codex-plan.outputs.plan_sha256 }}
+          OUTPUT_DIR: ${{ runner.temp }}/codex-plan
+        run: ./.github/scripts/validate-codex-plan.py --materialize
+
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
@@ -647,6 +662,7 @@ jobs:
         id: verify
         env:
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
+          PLAN_DIR: ${{ runner.temp }}/codex-plan
         run: |
           set +e
           ./.github/scripts/codex-jira-verify.sh >"$RUNNER_TEMP/codex-verification.log" 2>&1
@@ -828,7 +844,7 @@ jobs:
           retention-days: 1
 
   verify-codex-output-2:
-    needs: [codex-generate, repair-codex-output-2]
+    needs: [codex-generate, repair-codex-output-2, validate-codex-plan]
     if: needs.repair-codex-output-2.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -858,6 +874,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Materialise validated Codex plan
+        env:
+          CODEX_PLAN_PAYLOAD: ${{ needs.validate-codex-plan.outputs.plan_payload }}
+          EXPECTED_PLAN_SHA: ${{ needs.validate-codex-plan.outputs.plan_sha256 }}
+          OUTPUT_DIR: ${{ runner.temp }}/codex-plan
+        run: ./.github/scripts/validate-codex-plan.py --materialize
+
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
@@ -879,6 +902,7 @@ jobs:
         id: verify
         env:
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
+          PLAN_DIR: ${{ runner.temp }}/codex-plan
         run: |
           set +e
           ./.github/scripts/codex-jira-verify.sh >"$RUNNER_TEMP/codex-verification.log" 2>&1
@@ -1060,7 +1084,7 @@ jobs:
           retention-days: 1
 
   verify-codex-output-3:
-    needs: [codex-generate, repair-codex-output-3]
+    needs: [codex-generate, repair-codex-output-3, validate-codex-plan]
     if: needs.repair-codex-output-3.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -1090,6 +1114,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Materialise validated Codex plan
+        env:
+          CODEX_PLAN_PAYLOAD: ${{ needs.validate-codex-plan.outputs.plan_payload }}
+          EXPECTED_PLAN_SHA: ${{ needs.validate-codex-plan.outputs.plan_sha256 }}
+          OUTPUT_DIR: ${{ runner.temp }}/codex-plan
+        run: ./.github/scripts/validate-codex-plan.py --materialize
+
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
@@ -1111,6 +1142,7 @@ jobs:
         id: verify
         env:
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
+          PLAN_DIR: ${{ runner.temp }}/codex-plan
         run: |
           set +e
           ./.github/scripts/codex-jira-verify.sh >"$RUNNER_TEMP/codex-verification.log" 2>&1
@@ -1240,7 +1272,7 @@ jobs:
           } >>"$GITHUB_STEP_SUMMARY"
 
   verify-published-pr:
-    needs: [codex-generate, publish-pr]
+    needs: [codex-generate, publish-pr, validate-codex-plan]
     if: always() && needs.publish-pr.outputs.pr_number != ''
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -1284,6 +1316,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Materialise validated Codex plan
+        env:
+          CODEX_PLAN_PAYLOAD: ${{ needs.validate-codex-plan.outputs.plan_payload }}
+          EXPECTED_PLAN_SHA: ${{ needs.validate-codex-plan.outputs.plan_sha256 }}
+          OUTPUT_DIR: ${{ runner.temp }}/codex-plan
+        run: ./.github/scripts/validate-codex-plan.py --materialize
+
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
@@ -1305,6 +1344,7 @@ jobs:
         id: verify
         env:
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
+          PLAN_DIR: ${{ runner.temp }}/codex-plan
         run: |
           set +e
           (
@@ -1486,7 +1526,7 @@ jobs:
           retention-days: 1
 
   verify-published-pr-repair-1:
-    needs: [codex-generate, repair-published-pr-1]
+    needs: [codex-generate, repair-published-pr-1, validate-codex-plan]
     if: needs.repair-published-pr-1.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -1523,6 +1563,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Materialise validated Codex plan
+        env:
+          CODEX_PLAN_PAYLOAD: ${{ needs.validate-codex-plan.outputs.plan_payload }}
+          EXPECTED_PLAN_SHA: ${{ needs.validate-codex-plan.outputs.plan_sha256 }}
+          OUTPUT_DIR: ${{ runner.temp }}/codex-plan
+        run: ./.github/scripts/validate-codex-plan.py --materialize
+
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
@@ -1544,6 +1591,7 @@ jobs:
         id: verify
         env:
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
+          PLAN_DIR: ${{ runner.temp }}/codex-plan
         run: |
           set +e
           ./.github/scripts/codex-jira-verify.sh >"$RUNNER_TEMP/codex-pr-repair-verification.log" 2>&1
@@ -1649,7 +1697,13 @@ jobs:
         run: '$RUNNER_TEMP/codex-jira-publish.sh'
 
   verify-published-pr-1:
-    needs: [codex-generate, publish-pr, publish-published-pr-repair-1]
+    needs:
+      [
+        codex-generate,
+        publish-pr,
+        publish-published-pr-repair-1,
+        validate-codex-plan,
+      ]
     if: always() && needs.publish-published-pr-repair-1.outputs.pr_number != ''
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -1684,6 +1738,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Materialise validated Codex plan
+        env:
+          CODEX_PLAN_PAYLOAD: ${{ needs.validate-codex-plan.outputs.plan_payload }}
+          EXPECTED_PLAN_SHA: ${{ needs.validate-codex-plan.outputs.plan_sha256 }}
+          OUTPUT_DIR: ${{ runner.temp }}/codex-plan
+        run: ./.github/scripts/validate-codex-plan.py --materialize
+
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
@@ -1705,6 +1766,7 @@ jobs:
         id: verify
         env:
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
+          PLAN_DIR: ${{ runner.temp }}/codex-plan
         run: |
           ./.github/scripts/codex-jira-verify.sh
           ./.github/scripts/codex-check-sonar-quality-gate.sh
