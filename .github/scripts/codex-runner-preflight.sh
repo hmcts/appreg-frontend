@@ -24,7 +24,7 @@ enable_corepack_local() {
   corepack enable --install-directory "${corepack_bin}"
 }
 
-for command_name in git gh java node corepack python3 codex; do
+for command_name in git gh java node corepack python3 codex gzip base64 mktemp tr wc; do
   require_command "$command_name"
 done
 

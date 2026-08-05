@@ -31,6 +31,7 @@ sanitized_home="${artifact_dir}/sanitized-home"
 sanitized_tmp="${artifact_dir}/sanitized-tmp"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 schema_source="${script_dir}/../schemas/codex-patch-result.schema.json"
+exporter_source="${script_dir}/codex-patch-export.sh"
 
 # shellcheck source=.github/scripts/codex-action-runtime.sh
 source "${script_dir}/codex-action-runtime.sh"
@@ -106,6 +107,7 @@ git_read_authenticated() {
 
 mkdir -p "${artifact_dir}" "${sanitized_home}" "${sanitized_tmp}" "${output_dir}"
 schema_path="$(capture_codex_patch_schema "${schema_source}" "${artifact_dir}")"
+exporter_path="$(capture_codex_patch_exporter "${exporter_source}" "${artifact_dir}")"
 
 python3 - <<'PY' >"${feedback_env_path}"
 import json
@@ -319,7 +321,7 @@ git_sanitized checkout -B "${HEAD_REF}" "origin/${HEAD_REF}"
 
 unset GH_TOKEN
 
-schema_path="$(prepare_codex_patch_contract "${prompt_path}" "${schema_path}" "${artifact_dir}" full)"
+schema_path="$(prepare_codex_patch_contract "${prompt_path}" "${schema_path}" "${exporter_path}" "${artifact_dir}" full)"
 prepare_codex_action_runtime "${PWD}"
 echo "Running Codex review feedback for PR #${PR_NUMBER} on ${HEAD_REF}"
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then

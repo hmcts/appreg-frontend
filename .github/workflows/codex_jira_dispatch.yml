@@ -40,6 +40,7 @@ jobs:
     outputs:
       branch_name: ${{ steps.prepare.outputs.branch_name }}
       codex_result: ${{ steps.codex-action.outputs.final-message }}
+      trusted_sha: ${{ steps.trusted.outputs.sha }}
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       ISSUE_KEY: ${{ inputs.issueKey }}
@@ -56,6 +57,10 @@ jobs:
           ref: ${{ env.DEFAULT_BRANCH }}
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Capture trusted checkout SHA
+        id: trusted
+        run: echo "sha=$(git rev-parse HEAD)" >>"$GITHUB_OUTPUT"
 
       - name: Verify runner toolchain
         run: ./.github/scripts/codex-runner-preflight.sh
@@ -90,6 +95,7 @@ jobs:
     outputs:
       branch_name: ${{ steps.codex.outputs.branch_name }}
       has_changes: ${{ steps.codex.outputs.has_changes }}
+      trusted_sha: ${{ steps.trusted.outputs.sha }}
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       ISSUE_KEY: ${{ inputs.issueKey }}
@@ -100,8 +106,17 @@ jobs:
       - name: Checkout trusted collector
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate-action.outputs.trusted_sha }}
           persist-credentials: false
+
+      - name: Confirm trusted checkout SHA
+        id: trusted
+        env:
+          EXPECTED_TRUSTED_SHA: ${{ needs.codex-generate-action.outputs.trusted_sha }}
+        run: |
+          actual_sha="$(git rev-parse HEAD)"
+          test "${actual_sha}" = "${EXPECTED_TRUSTED_SHA}"
+          echo "sha=${actual_sha}" >>"$GITHUB_OUTPUT"
 
       - name: Materialise Codex patch result
         id: codex
@@ -147,7 +162,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -237,7 +252,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -281,7 +296,7 @@ jobs:
           codex-args: '["--ephemeral"]'
 
   repair-codex-output-1:
-    needs: [verify-codex-output, repair-codex-output-1-action]
+    needs: [codex-generate, verify-codex-output, repair-codex-output-1-action]
     if: needs.verify-codex-output.outputs.passed != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -302,7 +317,7 @@ jobs:
       - name: Checkout trusted collector
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           persist-credentials: false
 
       - name: Download Codex output being repaired
@@ -357,7 +372,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -447,7 +462,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -491,7 +506,7 @@ jobs:
           codex-args: '["--ephemeral"]'
 
   repair-codex-output-2:
-    needs: [verify-codex-output-1, repair-codex-output-2-action]
+    needs: [codex-generate, verify-codex-output-1, repair-codex-output-2-action]
     if: needs.verify-codex-output-1.outputs.passed != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -512,7 +527,7 @@ jobs:
       - name: Checkout trusted collector
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           persist-credentials: false
 
       - name: Download Codex output being repaired
@@ -567,7 +582,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -657,7 +672,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -701,7 +716,7 @@ jobs:
           codex-args: '["--ephemeral"]'
 
   repair-codex-output-3:
-    needs: [verify-codex-output-2, repair-codex-output-3-action]
+    needs: [codex-generate, verify-codex-output-2, repair-codex-output-3-action]
     if: needs.verify-codex-output-2.outputs.passed != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -722,7 +737,7 @@ jobs:
       - name: Checkout trusted collector
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           persist-credentials: false
 
       - name: Download Codex output being repaired
@@ -777,7 +792,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -885,7 +900,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -971,7 +986,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -1060,7 +1075,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -1104,7 +1119,7 @@ jobs:
           codex-args: '["--ephemeral"]'
 
   repair-published-pr-1:
-    needs: [verify-published-pr, repair-published-pr-1-action]
+    needs: [codex-generate, verify-published-pr, repair-published-pr-1-action]
     if: always() && needs.verify-published-pr.outputs.passed == 'false' && needs.repair-published-pr-1-action.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1125,7 +1140,7 @@ jobs:
       - name: Checkout trusted collector
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           persist-credentials: false
 
       - name: Download Codex output being repaired
@@ -1187,7 +1202,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -1282,7 +1297,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -1317,7 +1332,7 @@ jobs:
         run: '$RUNNER_TEMP/codex-jira-publish.sh'
 
   verify-published-pr-1:
-    needs: [publish-pr, publish-published-pr-repair-1]
+    needs: [codex-generate, publish-pr, publish-published-pr-repair-1]
     if: always() && needs.publish-published-pr-repair-1.outputs.pr_number != ''
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -1348,7 +1363,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 

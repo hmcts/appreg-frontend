@@ -15,9 +15,9 @@ for name in CODEX_RESULT OUTPUT_DIR INPUT_DIR REPAIR_ATTEMPT PR_NUMBER HEAD_REF 
 done
 
 output_dir="${OUTPUT_DIR}"
-input_comment_body_path="${INPUT_DIR}/codex-comment.md"
+input_comment_body_path="${INPUT_DIR}/codex-review-comment.md"
 final_message_path="${output_dir}/codex-final-message.md"
-comment_body_path="${output_dir}/codex-comment.md"
+comment_body_path="${output_dir}/codex-review-comment.md"
 metadata_path="${output_dir}/metadata.env"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
