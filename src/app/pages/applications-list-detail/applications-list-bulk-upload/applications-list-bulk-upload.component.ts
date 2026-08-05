@@ -91,7 +91,7 @@ interface ErrorDescription {
   rejectedValue: string | null;
   message: string | null;
   addressLine1: string | null;
-  name: string | null;
+  code: string | null;
   errorType: 'HEADER_ERROR' | 'DATA_ERROR';
 }
 
@@ -326,7 +326,7 @@ export class ApplicationsListBulkUpload implements OnInit {
           rowNumber,
           location,
           message,
-          name,
+          code,
           addressLine1,
           rejectedValue,
         }) => ({
@@ -334,7 +334,7 @@ export class ApplicationsListBulkUpload implements OnInit {
           rowNumber,
           location: this.errorColumnReadable(trimToUndefined(location) ?? '—'),
           message: trimToUndefined(message) ?? '—',
-          name: trimToUndefined(name) ?? '—',
+          name: trimToUndefined(code) ?? '—',
           addressLine1: trimToUndefined(addressLine1) ?? '—',
           rejectedValue: trimToUndefined(rejectedValue) ?? '—',
         }),
