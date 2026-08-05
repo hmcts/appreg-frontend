@@ -4,8 +4,8 @@ import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { Observable, Subject, of, throwError } from 'rxjs';
 
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import { PdfService } from '@core/services/pdf.service';
 import {
   StandardApplicantPage,
@@ -257,12 +257,6 @@ describe('StandardApplicantsComponent', () => {
           href: '#name',
         }),
       ]),
-    );
-    expect(component.fieldError('code')?.text).toBe(
-      'Code must be 10 characters or fewer',
-    );
-    expect(component.fieldError('name')?.text).toBe(
-      'Standard applicant name must be 100 characters or fewer',
     );
 
     const errorMessages = fixture.debugElement

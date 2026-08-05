@@ -42,7 +42,7 @@ Feature: Application List Entries Bulk Update Fees
             | wordingFields.0.value                         | {RANDOM}                       |
             | feeStatuses.0.paymentReference                | PAYA{RANDOM}                   |
             | feeStatuses.0.paymentStatus                   | UNDERTAKEN                     |
-            | feeStatuses.0.statusDate                      | todayiso                       |
+            | feeStatuses.0.statusDate                      | yesterdayiso                   |
             | hasOffsiteFee                                 | true                           |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-E1-{RANDOM}                |
@@ -204,15 +204,15 @@ Feature: Application List Entries Bulk Update Fees
         Then User Sees Page Heading "Applications list entry update"
         When User Clicks On The "Show all sections" Button
         Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
-            | Fee Status | Status Date  | Payment Ref  |
-            | UNDERTAKEN | todaydisplay | PAYA{RANDOM} |
-            | PAID       | todaydisplay | PAY-{RANDOM} |
+            | Fee Status | Payment Ref  |
+            | UNDERTAKEN | PAYA{RANDOM} |
+            | PAID       | PAY-{RANDOM} |
         Then User Verifies "Change" Link Is Not Visible In Row Of Table In The Accordion "Civil fee" With:
-            | Fee Status | Status Date  | Payment Ref  |
-            | UNDERTAKEN | todaydisplay | PAYA{RANDOM} |
+            | Fee Status | Payment Ref  |
+            | UNDERTAKEN | PAYA{RANDOM} |
         Then User Verifies "Change" Link Is Visible In Row Of Table In The Accordion "Civil fee" With:
-            | Fee Status | Status Date  | Payment Ref  |
-            | PAID       | todaydisplay | PAY-{RANDOM} |
+            | Fee Status | Payment Ref  |
+            | PAID       | PAY-{RANDOM} |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"

@@ -88,7 +88,6 @@
         href="#applications"
         id="tab_applications"
         aria-controls="applications"
-        aria-selected="true"
         (click)="onTabSelected('applications')"
       >
         Applications
@@ -199,11 +198,7 @@
         >
           <span class="table-caption__text"> Entries </span>
 
-          <span
-            class="table-caption__actions"
-            role="group"
-            aria-label="Table actions"
-          >
+          <span class="table-caption__actions" aria-label="Table actions">
             @if (!canUseBulkActions) {
               <button
                 type="button"

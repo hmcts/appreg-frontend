@@ -1,3 +1,16 @@
+/**
+ * Result Application List Entries
+ * Main Component for page /applications-list/:id/result-selected
+ *
+ * Functionality:
+ * onSubmitResults():
+ * - Creates or updates Result Codes for the selected Application List Entries
+ * - Displays success or mapped API validation errors
+ *
+ * onRemoveResult():
+ * - Removes previously created Result Codes from the selected entries
+ */
+
 import {
   Component,
   OnInit,

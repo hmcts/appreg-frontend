@@ -5,6 +5,7 @@ import { By } from '@angular/platform-browser';
 
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { ReportsSharedFormComponent } from '@components/reports-shared-form/reports-shared-form.component';
+import { REPORTS_FORM_ERROR_MESSAGES } from '@constants/reports/report-err';
 
 const createReportsGroup = (): FormGroup =>
   new FormGroup({
@@ -32,7 +33,11 @@ const createSuggestionsFacade = (): SuggestionsFacade => ({
   standalone: true,
   imports: [ReportsSharedFormComponent],
   template: `
-    <app-reports-shared-form [group]="group" [suggestions]="suggestions">
+    <app-reports-shared-form
+      [group]="group"
+      [suggestions]="suggestions"
+      [errorMap]="errorMap"
+    >
       <div id="projected-before-court" reportsAfterDateBeforeCourt>
         Projected field
       </div>
@@ -42,6 +47,7 @@ const createSuggestionsFacade = (): SuggestionsFacade => ({
 class ReportsSharedFormHostComponent {
   group = createReportsGroup();
   suggestions = createSuggestionsFacade();
+  errorMap = REPORTS_FORM_ERROR_MESSAGES;
 }
 
 describe('ReportsSharedFormComponent', () => {
@@ -62,6 +68,7 @@ describe('ReportsSharedFormComponent', () => {
 
     fixture.componentRef.setInput('group', group);
     fixture.componentRef.setInput('suggestions', suggestions);
+    fixture.componentRef.setInput('errorMap', REPORTS_FORM_ERROR_MESSAGES);
     fixture.detectChanges();
   });
 
@@ -167,11 +174,9 @@ describe('ReportsSharedFormComponent', () => {
   it('opens advanced filters when an advanced field has an error', () => {
     fixture.componentRef.setInput('advancedFilters', true);
     fixture.componentRef.setInput('submitted', true);
-    fixture.componentRef.setInput('getError', (id: string) =>
-      id === 'cja'
-        ? { id, text: 'Criminal justice area not found' }
-        : undefined,
-    );
+    fixture.componentRef.setInput('externalErrors', [
+      { id: 'cja', text: 'Criminal justice area not found' },
+    ]);
     fixture.detectChanges();
 
     const details = fixture.nativeElement.querySelector(
@@ -185,9 +190,9 @@ describe('ReportsSharedFormComponent', () => {
     fixture.componentRef.setInput('advancedFilters', true);
     fixture.componentRef.setInput('courtInAdvancedFilters', true);
     fixture.componentRef.setInput('submitted', true);
-    fixture.componentRef.setInput('getError', (id: string) =>
-      id === 'court' ? { id, text: 'Court location not found' } : undefined,
-    );
+    fixture.componentRef.setInput('externalErrors', [
+      { id: 'court', text: 'Court location not found' },
+    ]);
     fixture.detectChanges();
 
     const details = fixture.nativeElement.querySelector(
@@ -197,19 +202,16 @@ describe('ReportsSharedFormComponent', () => {
     expect(details.open).toBe(true);
   });
 
-  it('shows field errors from the supplied getError callback after submit', () => {
+  it('shows mapped control errors and external errors after submit', () => {
     fixture.componentRef.setInput('submitted', true);
-    fixture.componentRef.setInput('getError', (id: string) => {
-      const errors = {
-        court: 'Court location not found',
-        cja: 'Criminal justice area not found',
-        otherLocation: 'Other location has an error',
-      } as const;
-
-      return id in errors
-        ? { id, text: errors[id as keyof typeof errors] }
-        : undefined;
-    });
+    group.controls.court.setErrors({ courtNotFound: true });
+    group.controls.cja.setErrors({ cjaNotFound: true });
+    fixture.componentRef.setInput('externalErrors', [
+      {
+        id: 'otherLocation',
+        text: 'Other location has an error',
+      },
+    ]);
     fixture.detectChanges();
 
     expect(component.showError('court')).toBe(true);

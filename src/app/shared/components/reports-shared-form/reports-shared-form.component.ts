@@ -10,7 +10,7 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { DateInputComponent } from '@components/date-input/date-input.component';
-import { ErrorItem } from '@components/error-summary/error-summary.component';
+import type { ErrorItem } from '@components/error-summary/error-summary.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import {
   SuggestionsItem,
@@ -18,6 +18,7 @@ import {
   isCourtSuggestionItem,
 } from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { type ErrorMessageMap, getControlErrorItem } from '@util/error-summary';
 
 @Component({
   selector: 'app-reports-shared-form',
@@ -35,7 +36,8 @@ export class ReportsSharedFormComponent {
   suggestions = input.required<SuggestionsFacade>();
 
   submitted = input(false);
-  getError = input<((id: string) => ErrorItem | undefined) | null>(null);
+  errorMap = input.required<ErrorMessageMap>();
+  externalErrors = input<readonly ErrorItem[]>([]);
   advancedFilters = input(false);
   advancedOpen = input<boolean | null>(null);
   advancedLabel = input('Advanced filters');
@@ -51,8 +53,16 @@ export class ReportsSharedFormComponent {
   );
 
   showError = (id: string): boolean =>
-    this.submitted() && !!this.getError()?.(id);
-  errorText = (id: string): string => this.getError()?.(id)?.text ?? '';
+    this.submitted() && !!this.getControlError(id);
+  errorText = (id: string): string =>
+    this.submitted() ? (this.getControlError(id)?.text ?? '') : '';
+
+  getControlError(id: string): ErrorItem | undefined {
+    return (
+      getControlErrorItem(this.group().get(id), id, this.errorMap()) ??
+      this.externalErrors().find((item) => item.id === id)
+    );
+  }
 
   onAdvancedClick(e: Event): void {
     e.preventDefault();

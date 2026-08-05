@@ -116,3 +116,27 @@ function addControlErrors(
     break;
   }
 }
+
+export function getControlErrorItem(
+  control: AbstractControl | null,
+  controlName: string,
+  messages: ErrorMessageMap,
+): ErrorItem | undefined {
+  if (!control?.errors) {
+    return undefined;
+  }
+
+  for (const key of Object.keys(control.errors)) {
+    const text = messages[controlName]?.[key];
+
+    if (text) {
+      return {
+        id: controlName,
+        href: `#${controlName}`,
+        text,
+      };
+    }
+  }
+
+  return undefined;
+}

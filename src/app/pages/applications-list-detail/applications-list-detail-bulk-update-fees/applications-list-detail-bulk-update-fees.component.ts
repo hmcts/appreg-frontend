@@ -1,3 +1,20 @@
+/**
+ * Bulk Update Fees
+ * Main Component for page /applications-list/:id/bulk-update-fee
+ *
+ * Note:
+ * Allows fee details and off-site fees to be applied to multiple selected
+ * Application List Entries.
+ *
+ * Functionality:
+ * addFees():
+ * - Validates Civil Fee section
+ * - Navigates to the confirmation page with selected entries and fee details
+ *
+ * onAddFeeDetails():
+ * - Adds fee status rows to the Civil Fee table
+ */
+
 import { isPlatformBrowser } from '@angular/common';
 import {
   Component,

@@ -340,9 +340,9 @@ export class DateTimeHelper {
     // Build Date object from resolved date
     const [dayStr, monthStr, yearStr] = resolvedDate.split('/');
     const expectedDate = new Date(
-      parseInt(yearStr, 10),
-      parseInt(monthStr, 10) - 1,
-      parseInt(dayStr, 10),
+      Number.parseInt(yearStr, 10),
+      Number.parseInt(monthStr, 10) - 1,
+      Number.parseInt(dayStr, 10),
     );
 
     // Normalised expected values using DateTimeUtil
@@ -352,10 +352,10 @@ export class DateTimeHelper {
     // Verify Day
     DateTimeElement.findDayInput(fieldLabel).should(($input) => {
       const actualValue = ($input.val() as string) || '0';
-      const actualNum = parseInt(actualValue, 10) || 0;
+      const actualNum = Number.parseInt(actualValue, 10) || 0;
 
       const normalizedActual = actualNum.toString();
-      const normalizedExpected = parseInt(expDay, 10).toString();
+      const normalizedExpected = Number.parseInt(expDay, 10).toString();
 
       expect(normalizedActual).to.equal(normalizedExpected);
     });
@@ -363,16 +363,22 @@ export class DateTimeHelper {
     // Verify Month
     DateTimeElement.findMonthInput(fieldLabel).should(($input) => {
       const actualValue = ($input.val() as string) || '0';
-      const actualNum = parseInt(actualValue, 10) || 0;
+      const actualNum = Number.parseInt(actualValue, 10) || 0;
 
       const normalizedActual = actualNum.toString();
-      const normalizedExpected = parseInt(expMonth, 10).toString();
+      const normalizedExpected = Number.parseInt(expMonth, 10).toString();
 
       expect(normalizedActual).to.equal(normalizedExpected);
     });
 
     // Verify Year
     DateTimeElement.findYearInput(fieldLabel).should('have.value', expYear);
+  }
+
+  static verifyDateFieldEmpty(fieldLabel: string): void {
+    DateTimeElement.findDayInput(fieldLabel).should('have.value', '');
+    DateTimeElement.findMonthInput(fieldLabel).should('have.value', '');
+    DateTimeElement.findYearInput(fieldLabel).should('have.value', '');
   }
 
   static verifyTimeFieldValue(fieldLabel: string, timeValue: string): void {

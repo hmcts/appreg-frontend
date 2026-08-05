@@ -1,3 +1,26 @@
+/**
+ * Applications
+ * Main Component for page /applications
+ *
+ * Note:
+ * Bulk preview endpoint contains a BE limit of 2000 max selected applications
+ *
+ * Functionality:
+ * onSubmit():
+ * - GET request to Spring API which returns applications based on given params
+ * - Populates query based on fields that are  !null/!undefined/!defaultValue
+ *
+ * onPrintContinuous/Page():
+ * - Runs bulk preview endpoint to get selected row details
+ * - Runs print endpoint with entryIds + listIds
+ *
+ * onUpdateNotesClick():
+ * - Navigates to ./update-notes/update-notes.component.ts with row context
+ *
+ * onResultSelectedClick():
+ * - Navigates to ./applications-result-selected/applications-result-selected.component.ts with row context
+ */
+
 import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
@@ -28,13 +51,9 @@ import {
 } from './util/applications.state';
 import { mapToRow } from './util/table-mapper';
 
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '@components/error-summary/error-summary.component';
+import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
@@ -42,7 +61,12 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { ApplicationsColumns } from '@constants/applications/applications.constants';
 import { APPLICATIONS_ERROR_MAP } from '@constants/applications/error-messages';
+import {
+  APPLICATIONS_LIST_CHOOSE_STATUS,
+  APPLICATIONS_LIST_ERROR_MESSAGES,
+} from '@constants/applications-list/applications-list.constants';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
@@ -66,13 +90,13 @@ import {
   DEFAULT_APPLICATIONS_SEARCH_FORM,
 } from '@services/applications/applications-search-form.service';
 import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
+import { buildErrorSummary } from '@services/applications-list/build-applications-list-error-summary';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
 import { toStatus } from '@util/application-status-helpers';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
-import { buildFormErrorSummary } from '@util/error-summary';
-import { has } from '@util/has';
+import { getControlErrorItem } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
@@ -81,9 +105,7 @@ import { isAllMatchingSelected } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { trimStringToLowerCase } from '@util/string-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
-
-type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
-type ControlName = keyof AppErrorMap;
+import { atLeastOneRequiredValidator } from '@validators/at-least-one-value.validator';
 
 const APPLICATIONS_SORT_MAP: Record<string, string> = {
   date: 'date',
@@ -94,17 +116,6 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
   resulted: 'isResulted',
   status: 'status',
 };
-
-export const ApplicationsColumns = [
-  { header: 'Date', field: 'date', wrap: false },
-  { header: 'Applicant', field: 'applicant' },
-  { header: 'Respondent', field: 'respondent' },
-  { header: 'Application title', field: 'title' },
-  { header: 'Fee', field: 'fee' },
-  { header: 'Resulted', field: 'resulted' },
-  { header: 'Status', field: 'status' },
-  { header: 'Actions', field: 'actions', sortable: false },
-];
 
 @Component({
   selector: 'app-applications',
@@ -161,38 +172,41 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     );
   });
 
-  private readonly errorMap = APPLICATIONS_ERROR_MAP;
+  readonly errorMap = APPLICATIONS_ERROR_MAP;
 
   private readonly printRequest = signal<BulkPrintRequest | null>(null);
 
   readonly submitAttempt = signal(0);
 
-  override form = new FormGroup({
-    date: new FormControl<string | null>(null),
-    applicantOrg: new FormControl<string>(''),
-    respondentOrg: new FormControl<string>(''),
-    applicantSurname: new FormControl<string>(''),
-    respondentSurname: new FormControl<string>(''),
-    location: new FormControl<string>(''),
-    standardApplicantCode: new FormControl<string>(''),
-    respondentPostcode: new FormControl<string>('', {
-      validators: [Validators.maxLength(8)],
-    }),
-    accountReference: new FormControl<string>(''),
-    court: new FormControl<string>(''),
-    cja: new FormControl<string>(''),
-    status: new FormControl<string | null>(null),
-  });
+  override form = new FormGroup(
+    {
+      date: new FormControl<string | null>(null),
+      applicantOrg: new FormControl<string>(''),
+      respondentOrg: new FormControl<string>(''),
+      applicantSurname: new FormControl<string>(''),
+      respondentSurname: new FormControl<string>(''),
+      location: new FormControl<string>(''),
+      standardApplicantCode: new FormControl<string>(''),
+      respondentPostcode: new FormControl<string>('', {
+        validators: [Validators.maxLength(8)],
+      }),
+      accountReference: new FormControl<string>(''),
+      court: new FormControl<string>(''),
+      cja: new FormControl<string>(''),
+      status: new FormControl<string | null>(null),
+    },
+    {
+      validators: [atLeastOneRequiredValidator()],
+    },
+  );
 
   columns = ApplicationsColumns;
 
-  status = [
-    { label: 'Choose', value: '' },
-    { label: 'Open', value: 'open' },
-    { label: 'Closed', value: 'closed' },
-  ];
+  status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
+
+  getControlErrorItem = getControlErrorItem;
 
   get selectedCount(): number {
     const vm = this.vm();
@@ -318,25 +332,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    const validationErrors = this.buildErrorSummary();
+    const validationErrors = buildErrorSummary(this.form, this.errorMap);
     this.persistFormState();
 
     if (validationErrors.length) {
       this.patchApp({
         searchErrors: validationErrors,
-        isSelectingAll: false,
-      });
-      return;
-    }
-
-    if (!this.hasAnyParams()) {
-      this.patchApp({
-        searchErrors: [
-          {
-            text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
-            id: 'search-error',
-          },
-        ],
         isSelectingAll: false,
       });
       return;
@@ -638,25 +639,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   // Helpers
-  private hasAnyParams(): boolean {
-    const v = this.form.getRawValue();
-
-    return (
-      has(v.date) ||
-      has(v.applicantOrg) ||
-      has(v.respondentOrg) ||
-      has(v.applicantSurname) ||
-      has(v.respondentSurname) ||
-      has(v.location) ||
-      has(v.standardApplicantCode) ||
-      has(v.respondentPostcode) ||
-      has(v.accountReference) ||
-      has(v.court) ||
-      has(v.cja) ||
-      has(v.status)
-    );
-  }
-
   private loadQuery(): EntryGetFilterDto {
     const v = this.form.getRawValue();
     const filter: EntryGetFilterDto = {};
@@ -782,10 +764,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     };
   }
 
-  private buildErrorSummary(): ErrorItem[] {
-    return buildFormErrorSummary(this.form, this.errorMap);
-  }
-
   private patchPrintError(message: string): void {
     this.patchApp({
       errorSummary: [{ text: message }],
@@ -854,34 +832,5 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       this.patchApp({ errorSummary: [{ text: msg }] });
       return null;
     }
-  }
-
-  isControlInvalid<C extends ControlName>(controlName: C): boolean {
-    const c = this.form.get(String(controlName));
-    return !!(this.vm().submitted && c?.invalid);
-  }
-
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().searchErrors.find((e) => e.id === id);
-  }
-
-  getControlErrorMessages<C extends ControlName>(controlName: C): string[] {
-    const c = this.form.get(String(controlName));
-    if (!c?.errors) {
-      return [];
-    }
-
-    const msgMap = this.errorMap[controlName];
-    const msgs: string[] = [];
-
-    for (const k of Object.keys(c.errors)) {
-      if (!(k in msgMap)) {
-        continue;
-      }
-      const errorKey = k as keyof typeof msgMap;
-      msgs.push(msgMap[errorKey]);
-    }
-
-    return msgs;
   }
 }

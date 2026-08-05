@@ -87,3 +87,23 @@ Feature: Activity Audit Report
     Examples:
       | CSVFileName                    |
       | activity-audit-report-todayiso |
+
+  @regression @reports @ARCPOC-1401
+  Scenario: Activity Audit Report - verify "Clear search" button functionality
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "user1"
+    Then User Clicks On The Link Using Exact Text Match "Reports"
+    Then User Verify The Page URL Contains "/reports"
+    Then User See "Reports" On The Page
+    Then User See "Select the report you wish to download?" On The Page
+    When User Selects The Radio Button "Activity audit"
+    When User Set Date Field "Date from" To "27/02/2026"
+    When User Set Date Field "Date to" To "27/03/2026"
+    Then User Should Not See The Link "Remove"
+    Then User Selects "Add application" From The Textbox "Activity" Autocomplete By Typing "Add application"
+    Then User Enters "user1" Into The "Username" Textbox
+    When User Clicks On The "Clear filters" Button
+    Then User Verifies The Date field "Date from" Is Empty
+    Then User Verifies The Date field "Date to" Is Empty
+    Then User Verifies The "Username" Textbox Is Empty
+    Then User Verifies The "Activity" Textbox Is Empty

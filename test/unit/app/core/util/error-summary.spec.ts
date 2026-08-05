@@ -4,6 +4,7 @@ import type { ErrorItem } from '@components/error-summary/error-summary.componen
 import {
   type ErrorMessageMap,
   buildFormErrorSummary,
+  getControlErrorItem,
 } from '@util/error-summary';
 
 describe('buildFormErrorSummary', () => {
@@ -401,5 +402,35 @@ describe('buildFormErrorSummary', () => {
     expect(result).toEqual<ErrorItem[]>([
       { id: 'date', href: '#date', text: 'Enter day, month and year' },
     ]);
+  });
+});
+
+describe('getControlErrorItem', () => {
+  const messages: ErrorMessageMap = {
+    court: {
+      courtNotFound: 'Court location not found',
+    },
+  };
+
+  it('returns the mapped error for an invalid control', () => {
+    const control = new FormControl<string>('Unknown court');
+    control.setErrors({ courtNotFound: true });
+
+    expect(getControlErrorItem(control, 'court', messages)).toEqual({
+      id: 'court',
+      href: '#court',
+      text: 'Court location not found',
+    });
+  });
+
+  it('returns undefined when the control has no mapped errors', () => {
+    const control = new FormControl<string>('Unknown court');
+    control.setErrors({ unknownError: true });
+
+    expect(getControlErrorItem(control, 'court', messages)).toBeUndefined();
+  });
+
+  it('returns undefined when the control is null', () => {
+    expect(getControlErrorItem(null, 'court', messages)).toBeUndefined();
   });
 });

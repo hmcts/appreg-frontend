@@ -227,6 +227,29 @@ describe('ApplicationsListBulkUpload', () => {
     });
   });
 
+  describe('errorColumnReadable', () => {
+    const errorColumnReadable = (column: string | null | undefined): string =>
+      (
+        component as unknown as {
+          errorColumnReadable: (value: string | null | undefined) => string;
+        }
+      ).errorColumnReadable(column);
+
+    it.each([
+      ['name', 'Name'],
+      ['addressLine1', 'Address line 1'],
+      [
+        'RESP_NAME_ORG/RESP_FORENAME1/RESP_SURNAME/RESP_FIRST_NAME/RESP_LAST_NAME',
+        'Respondent names',
+      ],
+      ['unknownColumn', 'unknownColumn'],
+      [null, '—'],
+      [undefined, '—'],
+    ])('returns the readable value for %p', (column, expected) => {
+      expect(errorColumnReadable(column)).toBe(expected);
+    });
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
@@ -296,7 +319,7 @@ describe('ApplicationsListBulkUpload', () => {
       );
       expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledWith('job-1');
       expect(getState(component).jobAcknowledgement).toBe(ack);
-      expect(getState(component).isUploadInProgress).toBe(false);
+      expect(getState(component).isUploadInProgress).toBe(true);
       expect(getState(component).bulkUploadFeedback).toMatchObject({
         kind: 'progress',
         heading: 'Upload in progress',

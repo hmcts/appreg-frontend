@@ -10,12 +10,12 @@ import {
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsList } from '@components/applications-list/applications-list.component';
-import { APPLICATIONS_LIST_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import {
   ApplicationsListState,
   clearNotificationsPatch,
 } from '@components/applications-list/util/applications-list.state';
 import * as LoadQuery from '@components/applications-list/util/load-query';
+import { APPLICATIONS_LIST_FORM_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import {
   ApplicationListGetFilterDto,
   ApplicationListGetPrintDto,
@@ -367,17 +367,6 @@ describe('ApplicationsList – search', () => {
     ...extras,
   });
 
-  it('when hasParams=false, does not call API and surfaces validation error', () => {
-    service.getApplicationLists.mockClear();
-    patchUIState(component, { searchErrors: [] });
-    component.loadApplicationsLists(false);
-    expect(service.getApplicationLists).not.toHaveBeenCalled();
-    expect(getUIFlagState(component).searchErrors[0]).toEqual({
-      id: '',
-      text: 'Invalid search criteria. At least one field must be entered.',
-    });
-  });
-
   it('merges filter when hasParams=true', async () => {
     jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
       status: ApplicationListStatus.OPEN,
@@ -387,7 +376,7 @@ describe('ApplicationsList – search', () => {
     service.getApplicationLists.mockReturnValue(of(pageStub([])));
 
     applicationsListsApiMock.getApplicationLists.mockClear();
-    component.loadApplicationsLists(true);
+    component.loadApplicationsLists();
     await flushSignalEffects(fixture);
     const args = service.getApplicationLists.mock
       .calls[0][0] as GetApplicationListsRequestParams;
@@ -413,7 +402,7 @@ describe('ApplicationsList – search', () => {
         ]),
       ),
     );
-    component.loadApplicationsLists(true);
+    component.loadApplicationsLists();
     await flushSignalEffects(fixture);
     expect(getRecordsState(component).rows).toHaveLength(1);
     expect(getRecordsState(component).rows[0].date).toBe('2025-09-17');
@@ -426,7 +415,7 @@ describe('ApplicationsList – search', () => {
       of(pageStub([], { totalElements: 10, totalPages: 2 })),
     );
 
-    component.loadApplicationsLists(true);
+    component.loadApplicationsLists();
     await flushSignalEffects(fixture);
     expect(getRecordsState(component).totalPages).toBe(2);
   });
@@ -453,7 +442,7 @@ describe('ApplicationsList – search', () => {
       totalPages: 3,
       submitted: false,
     });
-    component.loadApplicationsLists(true);
+    component.loadApplicationsLists();
     await flushSignalEffects(fixture);
     expect(getRecordsState(component).rows).toHaveLength(0);
     expect(getRecordsState(component).totalPages).toBe(0);
@@ -470,7 +459,7 @@ describe('ApplicationsList – search', () => {
     } as ApplicationListGetFilterDto);
 
     service.getApplicationLists.mockReturnValue(of(pageStub([])));
-    component.loadApplicationsLists(true);
+    component.loadApplicationsLists();
     await flushSignalEffects(fixture);
     const args = service.getApplicationLists.mock
       .calls[0][0] as GetApplicationListsRequestParams;
@@ -504,7 +493,7 @@ describe('ApplicationsList – search', () => {
 
     service.getApplicationLists.mockReturnValue(of(pageStub([])));
 
-    component.loadApplicationsLists(true);
+    component.loadApplicationsLists();
     await flushSignalEffects(fixture);
 
     const args = service.getApplicationLists.mock
@@ -515,6 +504,8 @@ describe('ApplicationsList – search', () => {
   describe('onSubmit', () => {
     it('collects date/time validation errors and does not run search', () => {
       const spy = jest.spyOn(component, 'loadApplicationsLists');
+
+      component.form.controls.date.setValue('2000-15-54');
 
       component.form.controls.date.setErrors({
         dateInvalid: true,
@@ -575,7 +566,7 @@ describe('ApplicationsList – search', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('calls loadApplicationsLists(hasAnyParams) for search action when no validation errors', () => {
+    it('calls loadApplicationsLists for search action when no validation errors', () => {
       const spy = jest
         .spyOn(component, 'loadApplicationsLists')
         .mockImplementation(() => undefined);
@@ -593,7 +584,7 @@ describe('ApplicationsList – search', () => {
       expect(getRecordsState(component).submitted).toBe(true);
       expect(getUIFlagState(component).isSearch).toBe(true);
       expect(getRecordsState(component).currentPage).toBe(0);
-      expect(spy).toHaveBeenCalledWith(true);
+      expect(spy).toHaveBeenCalledWith();
     });
 
     it('defaults action to "search" when submitter is missing', () => {
@@ -608,7 +599,7 @@ describe('ApplicationsList – search', () => {
       const { e } = submitEvent(null);
       component.onSubmit(e);
 
-      expect(spy).toHaveBeenCalledWith(true);
+      expect(spy).toHaveBeenCalledWith();
     });
 
     it('blocks search and shows cjaNotFound when typed CJA is not a valid code', () => {
@@ -667,7 +658,7 @@ describe('ApplicationsList – search', () => {
       component.onSubmit(e);
 
       expect(getUIFlagState(component).searchErrors).toEqual([]);
-      expect(spy).toHaveBeenCalledWith(true);
+      expect(spy).toHaveBeenCalledWith();
     });
   });
 });

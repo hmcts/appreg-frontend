@@ -66,12 +66,22 @@ const UPLOAD_IN_PROGRESS_FEEDBACK = {
 
 const BulkUploadErrorTableColumns: TableColumn[] = [
   { header: 'Error type', field: 'errorType', wrap: false },
-  { header: 'Row', field: 'rowNumber', wrap: false },
+  { header: 'Row', field: 'rowNumber' },
   { header: 'Affected column', field: 'location' },
-  { header: 'Message', field: 'message' },
-  { header: 'Applicant name', field: 'name' },
-  { header: 'Address line 1', field: 'addressLine1', wrap: false },
-  { header: 'Rejected value', field: 'rejectedValue', wrap: false },
+  { header: 'Message', field: 'message', minWidth: '10rem', maxWidth: '28rem' },
+  { header: 'Applicant', field: 'name' },
+  {
+    header: 'Address line 1',
+    field: 'addressLine1',
+    minWidth: '10rem',
+    maxWidth: '28rem',
+  },
+  {
+    header: 'Rejected value',
+    field: 'rejectedValue',
+    minWidth: '10rem',
+    maxWidth: '28rem',
+  },
 ];
 
 interface ErrorDescription {
@@ -83,6 +93,29 @@ interface ErrorDescription {
   name: string | null;
   errorType: 'HEADER_ERROR' | 'DATA_ERROR';
 }
+
+const AffectedColumn: Record<string, string> = {
+  standardApplicantCode: 'Standard applicant code',
+  applicationCode: 'Application code',
+  name: 'Name',
+  addressLine1: 'Address line 1',
+  addressLine2: 'Address line 2',
+  addressLine3: 'Address line 3',
+  addressLine4: 'Address line 4',
+  addressLine5: 'Address line 5',
+  postcode: 'Postcode',
+  email: 'Respondent email',
+  phone: 'Respondent phone',
+  mobile: 'Respondent mobile',
+  accountNumber: 'Account number',
+  APPLICATION_TEXT: 'Application text',
+  'RESP_NAME_ORG/RESP_FORENAME1/RESP_SURNAME/RESP_FIRST_NAME/RESP_LAST_NAME':
+    'Respondent names',
+  firstName: 'Respondent first name',
+  lastName: 'Respondent last name',
+  title: 'Respondent title',
+  RESPONDENT: 'Respondent details',
+};
 
 @Component({
   selector: 'app-applications-list-bulk-upload',
@@ -206,6 +239,7 @@ export class ApplicationsListBulkUpload implements OnInit {
               heading: 'Unable to load upload status',
               body: 'Please try again later.',
             },
+            isUploadInProgress: false,
           });
           this.submitAttempt.update((attempt) => attempt + 1);
         },
@@ -226,6 +260,7 @@ export class ApplicationsListBulkUpload implements OnInit {
     this.bulkUploadPatch({
       bulkUploadFeedback: this.toBulkUploadFeedback(job),
       uploadSuccessful: job.state === 'succeeded',
+      isUploadInProgress: false,
     });
   }
 
@@ -295,7 +330,7 @@ export class ApplicationsListBulkUpload implements OnInit {
         }) => ({
           errorType: errorType === 'DATA_ERROR' ? 'Data error' : 'Header error',
           rowNumber,
-          location: trimToUndefined(location) ?? '—',
+          location: this.errorColumnReadable(trimToUndefined(location) ?? '—'),
           message: trimToUndefined(message) ?? '—',
           name: trimToUndefined(name) ?? '—',
           addressLine1: trimToUndefined(addressLine1) ?? '—',
@@ -324,7 +359,6 @@ export class ApplicationsListBulkUpload implements OnInit {
 
     if (res.status === 202 && jobAcknowledgement?.id) {
       this.bulkUploadPatch({
-        isUploadInProgress: false,
         fileUploadStatus: null,
       });
       this.startBulkUploadPolling(jobAcknowledgement.id);
@@ -464,5 +498,9 @@ export class ApplicationsListBulkUpload implements OnInit {
       this.document,
       this.platformId,
     );
+  }
+
+  private errorColumnReadable(column: string): string {
+    return AffectedColumn[column] ?? column ?? '—';
   }
 }

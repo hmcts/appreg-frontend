@@ -1,7 +1,6 @@
 /*
 Polls /jobs/{jobId} for async bulk-upload jobs.
-Normalises the currently expected terminal states (SUCCEEDED,
-COMPLETED_WITH_ERRORS and FAILED), treats COMPLETED as success for
+Normalises the currently expected terminal states (SUCCEEDED, FAILED), treats COMPLETED as success for
 compatibility, and reads counts/messages from a few possible response shapes
 while the job-status contract is still settling.
 */
@@ -12,11 +11,7 @@ import { Observable, exhaustMap, map, takeWhile, timer } from 'rxjs';
 
 import { JobAcknowledgement, JobStatus, JobsApi } from '@openapi';
 
-export type PolledJobState =
-  | 'in_progress'
-  | 'succeeded'
-  | 'completed_with_errors'
-  | 'failed';
+export type PolledJobState = 'in_progress' | 'succeeded' | 'failed';
 
 export interface PolledJobStatus {
   id: string;

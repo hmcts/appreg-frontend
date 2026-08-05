@@ -1,11 +1,42 @@
-/*
-Main component for /application-list/:id
-
-Functionality:
-  On page load:
-    - Takes application list row from applications-list page and populates
-    list-detail page
-*/
+/**
+ * Application List Detail
+ * Main Component for page /applications-list/:id
+ *
+ * Note:
+ * Bulk preview endpoint contains a BE limit of 1050 max selected applications
+ *
+ * Functionality:
+ * ngOnInit():
+ * - Loads the Application List details and Application List Entries
+ * - Initialises the update form and restores navigation state
+ *
+ * onSearchStarted()/onSearchResult():
+ * - GET request to search and filter Application List Entries
+ * - Updates server-side pagination and selection state
+ *
+ * onUpdateOfficialsButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Bulk Update Officials
+ *
+ * onResultButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Bulk Result Selected
+ *
+ * onUpdateFeeButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Bulk Update Fees
+ *
+ * onMoveButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Move Application List Entries
+ *
+ * onPrintContinuousClick()/onPrintPageClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Generates Continuous or Page print PDFs
+ *
+ * openUpdate():
+ * - Navigates to the selected Application List Entry
+ */
 
 import { isPlatformBrowser } from '@angular/common';
 import {
@@ -38,7 +69,6 @@ import {
 } from './util';
 import { mapEntrySummaryRows } from './util/map-entry-summary-rows';
 
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import {
   ApplicationsListDetailSearchComponent,
   ApplicationsListDetailSearchResult,
@@ -65,6 +95,7 @@ import {
   appListDetailColumns,
   appListDetailStatusOptions,
 } from '@constants/application-list-detail-update/form-table-structure';
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import { IF_MATCH } from '@context/concurrency-context';
 import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';

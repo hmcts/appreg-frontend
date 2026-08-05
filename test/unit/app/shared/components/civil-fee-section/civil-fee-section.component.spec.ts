@@ -307,6 +307,7 @@ describe('CivilFeeSectionComponent', () => {
     expect(errorsSpy).toHaveBeenCalledWith([
       {
         id: 'paymentRef',
+        href: '#paymentRef',
         text: 'A payment reference cannot be supplied when fee status is DUE',
       },
     ]);
@@ -329,6 +330,7 @@ describe('CivilFeeSectionComponent', () => {
     expect(errorsSpy).toHaveBeenCalledWith([
       {
         id: 'paymentRef',
+        href: '#paymentRef',
         text: 'Payment reference must be 15 characters or fewer',
       },
     ]);
@@ -379,19 +381,14 @@ describe('CivilFeeSectionComponent', () => {
     expect(emitSpy).toHaveBeenCalledWith([]);
   });
 
-  it('isControlInvalid returns true only when invalid and touched/dirty', () => {
-    const f = component.feeForm().controls;
-
-    // Attach validators by "submit" (lazy attach)
+  it('maps control errors through the shared error utility', () => {
     component.onAddFeeDetailsClick();
 
-    // invalid + touched => true
-    expect(component.isControlInvalid('feeStatus')).toBe(true);
-
-    // make valid => false
-    f.feeStatus.setValue('paid');
-    f.feeStatus.updateValueAndValidity({ emitEvent: false });
-    expect(component.isControlInvalid('feeStatus')).toBe(false);
+    expect(component.getControlError('feeStatus')).toEqual({
+      id: 'feeStatus',
+      href: '#feeStatus',
+      text: 'Select a fee status',
+    });
   });
 
   it('feeHeadingText uses util (mocked) and returns heading string', () => {

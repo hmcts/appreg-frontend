@@ -16,7 +16,7 @@
   <div class="govuk-grid-column-one-quarter">
     <div
       class="govuk-form-group"
-      [class.govuk-form-group--error]="isControlInvalid('caseReference')"
+      [class.govuk-form-group--error]="showControlError('caseReference')"
     >
       <label class="govuk-label govuk-label--s" for="caseReference"
         >Case reference</label
@@ -27,22 +27,22 @@
       </div>
 
       <!-- Case reference -->
-      @if (isControlInvalid('caseReference')) {
+      @if (showControlError('caseReference')) {
         <p id="case-reference-error" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span>
-          {{ getControlErrorMessages('caseReference')[0] }}
+          {{ getControlError('caseReference')?.text }}
         </p>
       }
       <input
         class="govuk-input govuk-input--width-10"
-        [class.govuk-input--error]="isControlInvalid('caseReference')"
+        [class.govuk-input--error]="showControlError('caseReference')"
         id="caseReference"
         name="caseReference"
         type="text"
         formControlName="caseReference"
         [attr.aria-describedby]="
           'case-reference-hint' +
-          (isControlInvalid('caseReference') ? ' case-reference-error' : '')
+          (showControlError('caseReference') ? ' case-reference-error' : '')
         "
       />
     </div>
@@ -52,7 +52,7 @@
   <div class="govuk-grid-column-one-quarter">
     <div
       class="govuk-form-group"
-      [class.govuk-form-group--error]="isControlInvalid('accountReference')"
+      [class.govuk-form-group--error]="showControlError('accountReference')"
     >
       <label class="govuk-label govuk-label--s" for="accountReference"
         >Account reference</label
@@ -63,22 +63,22 @@
       </div>
 
       <!-- Case reference -->
-      @if (isControlInvalid('accountReference')) {
+      @if (showControlError('accountReference')) {
         <p id="account-reference-error" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span>
-          {{ getControlErrorMessages('accountReference')[0] }}
+          {{ getControlError('accountReference')?.text }}
         </p>
       }
       <input
         class="govuk-input govuk-input--width-10"
-        [class.govuk-input--error]="isControlInvalid('accountReference')"
+        [class.govuk-input--error]="showControlError('accountReference')"
         id="accountReference"
         name="accountReference"
         type="text"
         formControlName="accountReference"
         [attr.aria-describedby]="
           'account-reference-hint' +
-          (isControlInvalid('accountReference')
+          (showControlError('accountReference')
             ? ' account-reference-error'
             : '')
         "
@@ -110,10 +110,7 @@
       [rows]="5"
       [maxCharacterLimit]="4000"
       [characterCountEnabled]="true"
-      [isInvalid]="
-        form().controls.notes.invalid &&
-        (form().controls.notes.dirty || form().controls.notes.touched)
-      "
+      [isInvalid]="showControlError('notes')"
     />
   </div>
 </div>

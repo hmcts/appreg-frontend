@@ -1,12 +1,26 @@
+/**
+ * Close Application List
+ * Main Component for page /applications-list/:id/close
+ *
+ * Functionality:
+ * onConfirm():
+ * - PUT request to close the selected Application List
+ * - Sends the prepared update payload with concurrency headers
+ * - Redirects back to /applications-list with success or error status
+ *
+ * goBack():
+ * - Navigates back to the Application List details page without closing the list
+ */
+
 import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { AlertComponent } from '@components/alert/alert.component';
-import { APPLICATIONS_LIST_COLUMNS } from '@components/applications-list/util/applications-list.constants';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { TableComponent } from '@components/table/table.component';
+import { APPLICATIONS_LIST_COLUMNS } from '@constants/applications-list/applications-list.constants';
 import { IF_MATCH } from '@context/concurrency-context';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { ApplicationListsApi } from '@openapi';

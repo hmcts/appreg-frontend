@@ -1,19 +1,11 @@
 import { Location } from '@angular/common';
-import type { FormGroup } from '@angular/forms';
 
 import {
   EntryDetailNavState,
-  hasAnyParams,
   readNavState,
   toRow,
 } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationListStatus } from '@openapi';
-
-function makeForm(raw: unknown): FormGroup {
-  return {
-    getRawValue: () => raw,
-  } as unknown as FormGroup;
-}
 
 describe('readNavState', () => {
   const makeLocation = (state: unknown): Location =>
@@ -191,36 +183,6 @@ describe('readNavState', () => {
     );
 
     expect(res).toEqual(state);
-  });
-});
-
-describe('hasAnyParams', () => {
-  it('returns false when all fields are empty/default', () => {
-    const form = makeForm({
-      date: null,
-      time: null,
-      description: '',
-      status: null,
-      court: '',
-      location: '',
-      cja: '',
-    });
-
-    expect(hasAnyParams(form)).toBe(false);
-  });
-
-  it('returns true when any field has a value', () => {
-    const form = makeForm({
-      date: '2025-12-15',
-      time: null,
-      description: '',
-      status: null,
-      court: '',
-      location: '',
-      cja: '',
-    });
-
-    expect(hasAnyParams(form)).toBe(true);
   });
 });
 

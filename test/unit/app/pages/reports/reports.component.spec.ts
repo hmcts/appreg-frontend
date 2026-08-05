@@ -169,7 +169,8 @@ describe('ReportsComponent', () => {
 
     expect(section.group()).toBe(component.searchWarrantsGroup);
     expect(section.suggestions()).toBe(component.suggestionsFacade);
-    expect(section.getError()).toEqual(expect.any(Function));
+    expect(section.errorMap()).toBe(component.errorMap);
+    expect(section.externalErrors()).toBe(component.vm().errorSummary);
   });
 
   it('passes the workload group and suggestions facade to the section', () => {
@@ -182,7 +183,8 @@ describe('ReportsComponent', () => {
 
     expect(section.group()).toBe(component.workloadGroup);
     expect(section.suggestions()).toBe(component.suggestionsFacade);
-    expect(section.getError()).toEqual(expect.any(Function));
+    expect(section.errorMap()).toBe(component.errorMap);
+    expect(section.externalErrors()).toBe(component.vm().errorSummary);
   });
 
   it('passes the duration group and suggestions facade to the section', () => {
@@ -195,7 +197,8 @@ describe('ReportsComponent', () => {
 
     expect(section.group()).toBe(component.durationGroup);
     expect(section.suggestions()).toBe(component.suggestionsFacade);
-    expect(section.getError()).toEqual(expect.any(Function));
+    expect(section.errorMap()).toBe(component.errorMap);
+    expect(section.externalErrors()).toBe(component.vm().errorSummary);
   });
 
   it('createPpiReport delegates to the PPI request mapper and start helper', () => {
@@ -556,9 +559,6 @@ describe('ReportsComponent', () => {
     component.onDownload();
     fixture.detectChanges();
 
-    expect(component.fieldError('court')?.text).toBe(
-      'Court location not found',
-    );
     expect(
       fixture.nativeElement
         .querySelector('input#court')
@@ -581,9 +581,6 @@ describe('ReportsComponent', () => {
     component.onDownload();
     fixture.detectChanges();
 
-    expect(component.fieldError('cja')?.text).toBe(
-      'Criminal justice area not found',
-    );
     expect(
       fixture.nativeElement
         .querySelector('input#cja')

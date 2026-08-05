@@ -7,8 +7,8 @@ import { of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
 import { type ApplicationsState } from '@components/applications/util/applications.state';
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import { PdfService } from '@core/services/pdf.service';
 import {
   ApplicationListEntriesApi,
@@ -495,6 +495,18 @@ describe('ApplicationsComponent', () => {
           text: expect.stringContaining('Invalid search criteria'),
         }),
       ]);
+    });
+
+    it('does not show a court error for an empty search', () => {
+      submitSearch();
+
+      const courtInput: HTMLInputElement =
+        fixture.nativeElement.querySelector('#court');
+
+      expect(
+        component.form.controls.court.hasError('courtOrLocCjaRequired'),
+      ).toBe(true);
+      expect(courtInput.classList).not.toContain('govuk-input--error');
     });
 
     it('when submitted with a param: calls loadApplications (and API) rather than invalid search criteria', () => {

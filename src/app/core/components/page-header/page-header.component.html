@@ -20,7 +20,8 @@
             [class.govuk-button--disabled]="a.disabled || null"
             (click)="a.disabled ? $event.preventDefault() : null"
           >
-            {{ a.label }}
+            <span>{{ a.label }}</span>
+            <span class="govuk-visually-hidden"> (internal link)</span>
             @if (a.startIcon) {
               <svg
                 class="govuk-button__start-icon"
@@ -47,7 +48,8 @@
             [class.govuk-button--disabled]="a.disabled || null"
             (click)="a.disabled ? $event.preventDefault() : null"
           >
-            {{ a.label }}
+            <span>{{ a.label }}</span>
+            <span class="govuk-visually-hidden"> (external link)</span>
             @if (a.startIcon) {
               <svg
                 class="govuk-button__start-icon"
