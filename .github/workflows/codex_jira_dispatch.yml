@@ -532,7 +532,13 @@ jobs:
           codex-args: '["--ephemeral"]'
 
   repair-codex-output-1:
-    needs: [codex-generate, verify-codex-output, repair-codex-output-1-action, validate-codex-plan]
+    needs:
+      [
+        codex-generate,
+        verify-codex-output,
+        repair-codex-output-1-action,
+        validate-codex-plan,
+      ]
     if: needs.verify-codex-output.outputs.passed != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -758,7 +764,13 @@ jobs:
           codex-args: '["--ephemeral"]'
 
   repair-codex-output-2:
-    needs: [codex-generate, verify-codex-output-1, repair-codex-output-2-action, validate-codex-plan]
+    needs:
+      [
+        codex-generate,
+        verify-codex-output-1,
+        repair-codex-output-2-action,
+        validate-codex-plan,
+      ]
     if: needs.verify-codex-output-1.outputs.passed != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -984,7 +996,13 @@ jobs:
           codex-args: '["--ephemeral"]'
 
   repair-codex-output-3:
-    needs: [codex-generate, verify-codex-output-2, repair-codex-output-3-action, validate-codex-plan]
+    needs:
+      [
+        codex-generate,
+        verify-codex-output-2,
+        repair-codex-output-3-action,
+        validate-codex-plan,
+      ]
     if: needs.verify-codex-output-2.outputs.passed != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1324,7 +1342,8 @@ jobs:
           retention-days: 1
 
   repair-published-pr-1-action:
-    needs: [codex-generate, publish-pr, verify-published-pr, validate-codex-plan]
+    needs:
+      [codex-generate, publish-pr, verify-published-pr, validate-codex-plan]
     if: always() && needs.verify-published-pr.outputs.passed == 'false'
     runs-on: codex-frontend-azure-aks
     timeout-minutes: 120
@@ -1403,7 +1422,13 @@ jobs:
           codex-args: '["--ephemeral"]'
 
   repair-published-pr-1:
-    needs: [codex-generate, verify-published-pr, repair-published-pr-1-action, validate-codex-plan]
+    needs:
+      [
+        codex-generate,
+        verify-published-pr,
+        repair-published-pr-1-action,
+        validate-codex-plan,
+      ]
     if: always() && needs.verify-published-pr.outputs.passed == 'false' && needs.repair-published-pr-1-action.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
