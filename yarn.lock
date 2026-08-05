@@ -5959,9 +5959,9 @@ __metadata:
   linkType: hard
 
 "@types/lodash@npm:^4.14.197":
-  version: 4.17.24
-  resolution: "@types/lodash@npm:4.17.24"
-  checksum: 10/0f2082565f60f9787eefc046edc38458054512be5a8b3584ef0bad5fd9e85d0ab55ec5a1fbfae1ed6ba015cf1f9e837d5fb4da1f99fc60b8f74b2a46146fb00f
+  version: 4.17.25
+  resolution: "@types/lodash@npm:4.17.25"
+  checksum: 10/f786e05664439cc8d327fd97c62c060d81b3c4ed52127d01fbc926139e1a669c1554bf3cd0dbb43f8fcc7d9b5c6c23c543cc36de8dc815c9f289ea852b26ebd6
   languageName: node
   linkType: hard
 
@@ -9281,15 +9281,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:3.4.12":
-  version: 3.4.12
-  resolution: "dompurify@npm:3.4.12"
+"dompurify@npm:3.4.13":
+  version: 3.4.13
+  resolution: "dompurify@npm:3.4.13"
   dependencies:
     "@types/trusted-types": "npm:^2.0.7"
   dependenciesMeta:
     "@types/trusted-types":
       optional: true
-  checksum: 10/f826b68920887eb75115a162facb42380d1c3fac441548217b30068c9fadeed14f63fa1f7a1d2ab6f63613e5a0f897aa245c9224d4abf7939cd8ae58c04646af
+  checksum: 10/0db0a309a868a38aca042f606b37446977c35ee4501850a8c1bf2781337d79871daf1f4344bbf5b545f2a8c62e4d4e192c8fd6f1ff49ecec7c865c55a0aefee3
   languageName: node
   linkType: hard
 
@@ -12911,13 +12911,13 @@ __metadata:
   linkType: hard
 
 "js-yaml@npm:^5.2.2":
-  version: 5.2.2
-  resolution: "js-yaml@npm:5.2.2"
+  version: 5.2.3
+  resolution: "js-yaml@npm:5.2.3"
   dependencies:
     argparse: "npm:^2.0.1"
   bin:
     js-yaml: bin/js-yaml.mjs
-  checksum: 10/2b4c2933af12c97e1c4894a4f27fe9b06dab70a64a96bb50624b4429bef6bf11008bde20d868bce52a36784473314efc30078ba6025b58cf7537961e23b1ae9c
+  checksum: 10/5d2562f2d7e7bc51bd678b43d2dbc3965129ac854222c794157369c8904d249cfc78325dff8fc64becb505a2506242548c54c8fa50cdb24554bb1a557e460004
   languageName: node
   linkType: hard
 
