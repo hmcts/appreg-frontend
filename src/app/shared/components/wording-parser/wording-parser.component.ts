@@ -1,5 +1,6 @@
 import { NgClass } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   computed,
@@ -34,6 +35,7 @@ export type WordingValidationOptions = {
   selector: 'app-wording-parser',
   imports: [ReactiveFormsModule, NgClass],
   templateUrl: './wording-parser.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: `
     .wording-parser-text {
       line-height: 1.9;

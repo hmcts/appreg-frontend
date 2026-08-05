@@ -228,8 +228,7 @@ describe('applications-list entry form builders', () => {
     const mkPerson = (): Person => ({}) as Person;
     const mkOrg = (): Organisation => ({}) as Organisation;
 
-    const mkRespondent = (r: Partial<Respondent>): Respondent =>
-      r as Respondent;
+    const mkRespondent = (r: Partial<Respondent>): Respondent => r;
 
     it('returns explicit type when it matches payload', () => {
       const r1 = mkRespondent({ person: mkPerson() });
@@ -332,10 +331,10 @@ describe('applications-list entry form builders', () => {
             accountReference: null,
           },
         } as never,
+        blankPerson,
+        blankOrg,
         blankPerson as never,
-        blankOrg as never,
-        blankPerson as never,
-        blankOrg as never,
+        blankOrg,
       );
 
       expect(dto.standardApplicantCode).toBe('STD-123');
@@ -400,10 +399,10 @@ describe('applications-list entry form builders', () => {
           firstName: 'John',
           surname: 'Smith',
           addressLine1: '1 Street',
-        } as never,
-        blankOrg as never,
+        },
+        blankOrg,
         blankPerson as never,
-        blankOrg as never,
+        blankOrg,
       );
 
       expect(dto.wordingFields).toEqual([
@@ -466,10 +465,10 @@ describe('applications-list entry form builders', () => {
           firstName: 'John',
           surname: 'Smith',
           addressLine1: '1 Street',
-        } as never,
-        blankOrg as never,
+        },
+        blankOrg,
         blankPerson as never,
-        blankOrg as never,
+        blankOrg,
       );
 
       expect(dto.caseReference).toBeNull();
@@ -512,10 +511,10 @@ describe('applications-list entry form builders', () => {
           firstName: 'John',
           surname: 'Smith',
           addressLine1: '1 Street',
-        } as never,
-        blankOrg as never,
+        },
+        blankOrg,
         blankPerson as never,
-        blankOrg as never,
+        blankOrg,
       );
 
       const payload = dto as Record<string, unknown>;

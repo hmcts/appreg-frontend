@@ -9,7 +9,13 @@
  * - Redirects back to the Standard Applicants search page if loading fails
  */
 
-import { Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -37,6 +43,7 @@ interface StandardApplicantSummaryListValues {
   selector: 'app-standard-applicants-view',
   standalone: true,
   imports: [BreadcrumbsComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './standard-applicants-view.component.html',
 })
 export class StandardApplicantsViewComponent implements OnInit {

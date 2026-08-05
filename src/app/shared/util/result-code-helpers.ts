@@ -87,9 +87,7 @@ export function toExistingRows(
       resultCode: r.resultCode,
       display: formatResultCodeLabel(r.resultCode, codes),
       wordingFields: resolvedFields,
-      wording: wordingFromFields(
-        resolvedFields as (string | TemplateSubstitution)[],
-      ),
+      wording: wordingFromFields(resolvedFields),
     };
   });
 }

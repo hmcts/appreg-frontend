@@ -428,7 +428,7 @@ describe('ApplicationListEntryResultsFacade', () => {
         resultCode: 'RC2',
       });
       entryResultsApi.bulkResultApplicationListEntries.mockReturnValueOnce(
-        of([createdForEntry1, createdForEntry2]) as unknown,
+        of([createdForEntry1, createdForEntry2]),
       );
 
       facade.submitResultChangesForEntries(
@@ -480,13 +480,9 @@ describe('ApplicationListEntryResultsFacade', () => {
       const onSuccess = jest.fn();
 
       entryResultsApi.bulkResultApplicationListEntries
+        .mockReturnValueOnce(of([makeResult({ id: 'R-10', entryId: 'E-1' })]))
         .mockReturnValueOnce(
-          of([makeResult({ id: 'R-10', entryId: 'E-1' })]) as unknown,
-        )
-        .mockReturnValueOnce(
-          of([
-            makeResult({ id: 'R-11', entryId: 'E-1', resultCode: 'RC3' }),
-          ]) as unknown,
+          of([makeResult({ id: 'R-11', entryId: 'E-1', resultCode: 'RC3' })]),
         );
 
       facade.submitResultChangesForEntries(
@@ -808,7 +804,7 @@ describe('ApplicationListEntryResultsFacade', () => {
         } as PendingResultRow,
       ]);
       entryResultsApi.bulkResultEntries.mockReturnValueOnce(
-        of([createdForEntry1, createdForEntry2]) as unknown,
+        of([createdForEntry1, createdForEntry2]),
       );
 
       facade.submitResultsWithManyListIds(
@@ -855,14 +851,10 @@ describe('ApplicationListEntryResultsFacade', () => {
 
       entryResultsApi.bulkResultEntries
         .mockReturnValueOnce(
-          of([
-            makeResult({ id: 'R-30', entryId: 'E-1', resultCode: 'RC2' }),
-          ]) as unknown,
+          of([makeResult({ id: 'R-30', entryId: 'E-1', resultCode: 'RC2' })]),
         )
         .mockReturnValueOnce(
-          of([
-            makeResult({ id: 'R-31', entryId: 'E-1', resultCode: 'RC3' }),
-          ]) as unknown,
+          of([makeResult({ id: 'R-31', entryId: 'E-1', resultCode: 'RC3' })]),
         );
 
       facade.submitResultsWithManyListIds(
@@ -1031,9 +1023,7 @@ describe('ApplicationListEntryResultsFacade', () => {
       ]);
       entryResultsApi.bulkResultEntries
         .mockReturnValueOnce(
-          of([
-            makeResult({ id: 'R-40', entryId: 'E-1', resultCode: 'RC2' }),
-          ]) as unknown,
+          of([makeResult({ id: 'R-40', entryId: 'E-1', resultCode: 'RC2' })]),
         )
         .mockReturnValueOnce(throwError(() => error));
 
@@ -1353,10 +1343,8 @@ describe('ApplicationListEntryResultsFacade', () => {
             { key: 'Date', value: '2026-03-02', constraint: { length: 10 } },
           ],
         } as unknown as TemplateDetail,
-      } as unknown as Partial<ResultCodeGetDetailDto>);
-      resultCodesApi.getResultCodeByCodeAndDate.mockReturnValueOnce(
-        of(detail) as unknown,
-      );
+      });
+      resultCodesApi.getResultCodeByCodeAndDate.mockReturnValueOnce(of(detail));
 
       facade.setPending([{ resultCode: 'RC3' } as PendingResultRow]);
 

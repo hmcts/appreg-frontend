@@ -225,7 +225,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
               },
             },
           }),
-      ) as ReturnType<ApplicationListEntriesApi['getApplicationListEntries']>,
+      ),
     );
 
     component.form.patchValue({
@@ -254,9 +254,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
 
   it('emits a fallback error for non-problem API errors', async () => {
     entriesApiStub.getApplicationListEntries.mockReturnValue(
-      throwError(() => new Error('boom')) as ReturnType<
-        ApplicationListEntriesApi['getApplicationListEntries']
-      >,
+      throwError(() => new Error('boom')),
     );
 
     component.form.patchValue({

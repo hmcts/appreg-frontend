@@ -21,8 +21,7 @@ describe('SessionService (browser platform)', () => {
 
   beforeEach(() => {
     fetchMock = jest.fn<FetchRet, FetchArgs>();
-    (globalThis as { fetch: typeof fetch }).fetch =
-      fetchMock as unknown as typeof fetch;
+    (globalThis as { fetch: typeof fetch }).fetch = fetchMock;
 
     TestBed.configureTestingModule({
       providers: [
@@ -119,8 +118,7 @@ describe('SessionService (server platform)', () => {
 
   beforeEach(() => {
     fetchMock = jest.fn<FetchRet, FetchArgs>();
-    (globalThis as { fetch: typeof fetch }).fetch =
-      fetchMock as unknown as typeof fetch;
+    (globalThis as { fetch: typeof fetch }).fetch = fetchMock;
 
     TestBed.configureTestingModule({
       providers: [SessionService, { provide: PLATFORM_ID, useValue: 'server' }],

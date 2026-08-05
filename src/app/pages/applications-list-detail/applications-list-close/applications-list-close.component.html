@@ -10,7 +10,7 @@
 >
   <app-table [rows]="[listToClose]" [columns]="columns">
     <ng-template #dateTemplate let-row>
-      {{ row?.date | dateTime }}
+      {{ $safeNavigationMigration(row?.date) | dateTime }}
     </ng-template>
   </app-table>
 </app-review-confirm>

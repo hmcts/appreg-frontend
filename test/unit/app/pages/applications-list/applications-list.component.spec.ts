@@ -17,7 +17,6 @@ import {
 import * as LoadQuery from '@components/applications-list/util/load-query';
 import { APPLICATIONS_LIST_FORM_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import {
-  ApplicationListGetFilterDto,
   ApplicationListGetPrintDto,
   ApplicationListGetSummaryDto,
   ApplicationListPage,
@@ -362,7 +361,7 @@ describe('ApplicationsList – search', () => {
     first: pageNumber === 0,
     last: false,
     elementsOnPage: content.length,
-    sort: {} as unknown as ApplicationListPage['sort'],
+    sort: {},
     content: content as ApplicationListGetSummaryDto[],
     ...extras,
   });
@@ -371,7 +370,7 @@ describe('ApplicationsList – search', () => {
     jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
       status: ApplicationListStatus.OPEN,
       courtLocationCode: 'LOC1',
-    } as ApplicationListGetFilterDto);
+    });
 
     service.getApplicationLists.mockReturnValue(of(pageStub([])));
 
@@ -456,7 +455,7 @@ describe('ApplicationsList – search', () => {
   it('includes filter object when hasParams=true even if partial', async () => {
     jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
       status: ApplicationListStatus.CLOSED,
-    } as ApplicationListGetFilterDto);
+    });
 
     service.getApplicationLists.mockReturnValue(of(pageStub([])));
     component.loadApplicationsLists();
@@ -485,7 +484,7 @@ describe('ApplicationsList – search', () => {
   it('maps the stored UI sort key to the backend sort param when loading', async () => {
     jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
       status: ApplicationListStatus.OPEN,
-    } as ApplicationListGetFilterDto);
+    });
 
     patchUIState(component, {
       sortField: { key: 'entries', direction: 'desc' },
@@ -615,8 +614,8 @@ describe('ApplicationsList – search', () => {
       patchPlaceState(component, {
         cjaSearch: 'dhhs',
         cja: [
-          { code: '01', description: 'Area 01' } as CriminalJusticeAreaGetDto,
-          { code: '02', description: 'Area 02' } as CriminalJusticeAreaGetDto,
+          { code: '01', description: 'Area 01' },
+          { code: '02', description: 'Area 02' },
         ],
       });
 
@@ -646,9 +645,7 @@ describe('ApplicationsList – search', () => {
 
       patchPlaceState(component, {
         cjaSearch: '01 - Area 01',
-        cja: [
-          { code: '01', description: 'Area 01' } as CriminalJusticeAreaGetDto,
-        ],
+        cja: [{ code: '01', description: 'Area 01' }],
       });
 
       // Selected/entered code is valid
@@ -834,7 +831,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
     const { comp, api, patchSpy, fixture } = createInstance('browser');
     patchSpy.mockClear();
 
-    const dto = makePrintDto([{ a: 1 } as unknown]);
+    const dto = makePrintDto([{ a: 1 }]);
     api.printApplicationLists.mockReturnValue(of([dto]));
 
     comp.onPrintContinuous('abc-123', false);
@@ -886,7 +883,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
     const { comp, api, pdf, showInlineSpy, fixture } =
       createInstance('browser');
 
-    const dto = makePrintDto([{ x: 1 } as unknown]);
+    const dto = makePrintDto([{ x: 1 }]);
     api.printApplicationLists.mockReturnValue(of([dto]));
     pdf.generateContinuousApplicationListsPdf.mockRejectedValueOnce(
       new Error('pdf fail'),
@@ -951,7 +948,7 @@ describe('ApplicationsList date rendering', () => {
           description: 'List description',
           entries: 2,
           status: ApplicationListStatus.OPEN,
-        } as unknown as ApplicationListRow,
+        },
       ],
     });
 

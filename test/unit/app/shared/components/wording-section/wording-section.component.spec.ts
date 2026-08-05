@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
-import { TemplateDetail, TemplateSubstitution } from '@openapi';
+import { TemplateSubstitution } from '@openapi';
 
 describe('WordingSectionComponent', () => {
   let component: WordingSectionComponent;
@@ -16,7 +16,7 @@ describe('WordingSectionComponent', () => {
     fixture = TestBed.createComponent(WordingSectionComponent);
     component = fixture.componentInstance;
 
-    fixture.componentRef.setInput('wordingObject', {} as TemplateDetail);
+    fixture.componentRef.setInput('wordingObject', {});
     fixture.componentRef.setInput('wordingSubmitAttempt', 0);
 
     fixture.detectChanges();

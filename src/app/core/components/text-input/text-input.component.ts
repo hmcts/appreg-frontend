@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, forwardRef, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import {
   ControlValueAccessor,
   FormsModule,
@@ -12,6 +19,7 @@ import {
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './text-input.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

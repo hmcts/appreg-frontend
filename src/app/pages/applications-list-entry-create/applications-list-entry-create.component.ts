@@ -31,6 +31,7 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   OnInit,
@@ -149,6 +150,7 @@ const ENTRY_CREATE_ERROR_HREFS = {
   viewProviders: [
     { provide: ControlContainer, useExisting: FormGroupDirective },
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-entry-create.component.html',
 })
 export class ApplicationsListEntryCreate implements OnInit {

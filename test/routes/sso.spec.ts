@@ -1,7 +1,7 @@
 import cookieParser from 'cookie-parser';
 import type { Express, Request, Response } from 'express';
 import express, { NextFunction } from 'express';
-import session, { Session, SessionData } from 'express-session';
+import session, { Session } from 'express-session';
 import request from 'supertest';
 
 type RoutesModule = {
@@ -20,14 +20,6 @@ type RoutesModule = {
 };
 
 type Account = { name?: string; username?: string };
-
-type AppSession = Session &
-  Partial<SessionData> & {
-    authState?: string;
-    nonce?: string;
-    account?: { name?: string; username?: string };
-    tokenCache?: string;
-  };
 
 // Deterministic host for dynamic redirect tests (not PR-specific)
 const TEST_HOST = 'sso.test.local';
@@ -144,7 +136,7 @@ function installDestroySpy(
           cb?.(undefined);
         }
         // Return value matches express-session typing
-        return s as unknown as DestroyRet;
+        return s;
       });
 
     next();
@@ -333,7 +325,7 @@ async function createAppWithRealSession(opts?: {
 
   if (opts?.presetAuthState) {
     app.use((req: Request, _res: Response, next) => {
-      (req.session as AppSession).authState = opts.presetAuthState;
+      req.session.authState = opts.presetAuthState;
       next();
     });
   }
@@ -461,7 +453,7 @@ describe('GET /sso/login-callback', () => {
 
     if (presetAuthState) {
       app.use((req: Request, _res: Response, next) => {
-        (req.session as AppSession).authState = presetAuthState;
+        req.session.authState = presetAuthState;
         next();
       });
     }
@@ -507,7 +499,7 @@ describe('GET /sso/login-callback', () => {
 
     // Helper endpoint to inspect session after callback
     app.get('/__session', (req: Request, res: Response) => {
-      const s = req.session as AppSession;
+      const s = req.session;
       res.json({
         authState: s.authState,
         account: s.account ?? null,
@@ -569,7 +561,7 @@ describe('GET /sso/login-callback', () => {
     await mountRoutes(app);
 
     app.get('/__session', (req: Request, res: Response) => {
-      const s = req.session as AppSession;
+      const s = req.session;
       res.json({
         authState: s.authState ?? null,
         account: s.account ?? null,

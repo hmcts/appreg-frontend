@@ -83,9 +83,7 @@ export function closePermitted(
       });
     }
 
-    return noClose.length
-      ? ({ closeNotPermitted: { noClose } } as ValidationErrors)
-      : null;
+    return noClose.length ? { closeNotPermitted: { noClose } } : null;
   };
 }
 

@@ -6,7 +6,6 @@ import {
   ResultCodeGetSummaryDto,
   ResultGetDto,
   TemplateConstraintTypeEnum,
-  TemplateDetail,
 } from '@openapi';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultRow } from '@util/result-code-helpers';
@@ -47,15 +46,12 @@ describe('ResultWordingSectionComponent', () => {
     );
     fixture.componentRef.setInput('resultCodesList', codes);
     fixture.componentRef.setInput('existingResults', [] as ResultGetDto[]);
-    fixture.componentRef.setInput(
-      'wordingByCode',
-      {} as Record<string, string>,
-    );
+    fixture.componentRef.setInput('wordingByCode', {});
     fixture.componentRef.setInput('resultCodeTemplateByCode', {
       RC1: { template: "Result 'RC1' applied." },
       RC2: { template: "Result 'RC2' applied." },
       AB9: { template: "Result 'AB9' applied." },
-    } as Record<string, TemplateDetail>);
+    });
     fixture.componentRef.setInput('clearPendingToken', 0);
 
     fixture.detectChanges();
@@ -222,7 +218,7 @@ describe('ResultWordingSectionComponent', () => {
           },
         ],
       },
-    } as Record<string, TemplateDetail>);
+    });
     fixture.detectChanges();
 
     component.selectResultCode(codes[0]);
@@ -259,7 +255,7 @@ describe('ResultWordingSectionComponent', () => {
         template: "Result '{{ Place }}' applied.",
         'substitution-key-constraints': [],
       },
-    } as Record<string, TemplateDetail>);
+    });
     fixture.detectChanges();
 
     const pendingEmitSpy = jest.spyOn(component.pendingChange, 'emit');
@@ -295,7 +291,7 @@ describe('ResultWordingSectionComponent', () => {
         template: "Result '{{ Place }}' applied.",
         'substitution-key-constraints': [],
       },
-    } as Record<string, TemplateDetail>);
+    });
     fixture.detectChanges();
 
     const submitSpy = jest.spyOn(component.submitResults, 'emit');
@@ -334,7 +330,7 @@ describe('ResultWordingSectionComponent', () => {
         template: "Result '{{ Date }}' applied.",
         'substitution-key-constraints': [],
       },
-    } as Record<string, TemplateDetail>);
+    });
     fixture.detectChanges();
 
     const submitSpy = jest.spyOn(component.submitResults, 'emit');
@@ -368,7 +364,7 @@ describe('ResultWordingSectionComponent', () => {
         template: "Result '{{ Date }}' applied.",
         'substitution-key-constraints': [],
       },
-    } as Record<string, TemplateDetail>);
+    });
     fixture.detectChanges();
 
     component.selectResultCode(codes[0]);

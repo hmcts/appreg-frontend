@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   computed,
   effect,
@@ -20,6 +21,7 @@ import { trimStringToLowerCase } from '@util/string-helpers';
   imports: [CommonModule],
   templateUrl: './suggestions.component.html',
   styleUrl: './suggestions.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

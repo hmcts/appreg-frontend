@@ -25,6 +25,7 @@
 
 import { isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   EnvironmentInjector,
   OnInit,
@@ -100,6 +101,7 @@ import { addLocationValidatorsToForm } from '@validators/add-location-validators
     ErrorSummaryComponent,
     NotificationBannerComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-entry-move.component.html',
 })
 export class ApplicationsListEntryMoveComponent

@@ -1,32 +1,8 @@
-import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { AlertComponent, AlertType } from '@components/alert/alert.component';
-
-@Component({
-  standalone: true,
-  imports: [AlertComponent],
-  template: `
-    <app-alert
-      [alertType]="alertType"
-      [title]="title"
-      [message]="message"
-      [allowDismiss]="allowDismiss"
-      [href]="href"
-    />
-  `,
-})
-class HostComponent {
-  alertType: AlertType = 'information';
-  title = 'The finance section has moved';
-  message = 'You can now find it in the';
-  allowDismiss = false;
-  href: { href: string; msg: string } | null = {
-    href: '/dashboard',
-    msg: 'dashboard',
-  };
-}
+import { AlertType } from '@components/alert/alert-icons';
+import { AlertComponent } from '@components/alert/alert.component';
 
 describe('AlertComponent', () => {
   const alertTypes: AlertType[] = [
@@ -36,21 +12,31 @@ describe('AlertComponent', () => {
     'error',
   ];
 
-  let fixture: ComponentFixture<HostComponent>;
-  let host: HostComponent;
+  let fixture: ComponentFixture<AlertComponent>;
+
+  const setInputs = (allowDismiss = false) => {
+    fixture.componentRef.setInput('alertType', 'information');
+    fixture.componentRef.setInput('title', 'The finance section has moved');
+    fixture.componentRef.setInput('message', 'You can now find it in the');
+    fixture.componentRef.setInput('allowDismiss', allowDismiss);
+    fixture.componentRef.setInput('href', {
+      href: '/dashboard',
+      msg: 'dashboard',
+    });
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HostComponent],
+      imports: [AlertComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(HostComponent);
-    host = fixture.componentInstance;
+    fixture = TestBed.createComponent(AlertComponent);
+    setInputs();
     fixture.detectChanges();
   });
 
   it.each(alertTypes)('renders the %s variant', (alertType) => {
-    host.alertType = alertType;
+    fixture.componentRef.setInput('alertType', alertType);
     fixture.detectChanges();
 
     const alert = fixture.debugElement.query(By.css('.moj-alert'));
@@ -68,8 +54,12 @@ describe('AlertComponent', () => {
     const content = fixture.debugElement.query(By.css('.moj-alert__content'));
     const link = fixture.debugElement.query(By.css('.moj-alert__content a'));
 
-    expect(heading.nativeElement.textContent.trim()).toBe(host.title);
-    expect(content.nativeElement.textContent).toContain(host.message);
+    expect(heading.nativeElement.textContent.trim()).toBe(
+      'The finance section has moved',
+    );
+    expect(content.nativeElement.textContent).toContain(
+      'You can now find it in the',
+    );
     expect(link.nativeElement.getAttribute('href')).toBe('/dashboard');
     expect(link.nativeElement.textContent.trim()).toBe('dashboard');
   });
@@ -81,7 +71,7 @@ describe('AlertComponent', () => {
 
     expect(dismissButton.nativeElement.hidden).toBe(true);
 
-    host.allowDismiss = true;
+    fixture.componentRef.setInput('allowDismiss', true);
     fixture.detectChanges();
 
     dismissButton = fixture.debugElement.query(By.css('.moj-alert__dismiss'));
@@ -89,7 +79,7 @@ describe('AlertComponent', () => {
   });
 
   it('dismisses the alert when the dismiss button is clicked', () => {
-    host.allowDismiss = true;
+    fixture.componentRef.setInput('allowDismiss', true);
     fixture.detectChanges();
 
     const dismissButton = fixture.debugElement.query(

@@ -14,7 +14,13 @@
 
 import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpContext, HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs';
 
@@ -37,6 +43,7 @@ import { ApplicationListRow } from '@util/types/application-list/types';
     DateTimePipe,
     AlertComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-delete.component.html',
 })
 export class ApplicationsListDeleteComponent implements OnInit {

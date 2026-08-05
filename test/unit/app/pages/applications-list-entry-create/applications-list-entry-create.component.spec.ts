@@ -1062,7 +1062,7 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     getApplicationCodeByCodeAndDateMock.mockReturnValue(
       new Observable((subscriber) => {
         subscriber.error(new Error('boom'));
-      }) as never,
+      }),
     );
 
     component.onCodeSelected({ code: 'A001', date: '2026-02-01' });

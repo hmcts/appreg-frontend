@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 
-import { ErrorDisplay, ErrorMessage } from '@core-types/error/http-error.types';
+import { ErrorMessage } from '@core-types/error/http-error.types';
 import { ErrorMessageService } from '@services/error-message.service';
 
 describe('ErrorMessageService', () => {
@@ -352,7 +352,7 @@ describe('ErrorMessageService', () => {
 
     it('updateDisplayType no-ops when there is no current message', () => {
       svc.clearErrorMessage();
-      svc.updateDisplayType('PAGE' as ErrorDisplay);
+      svc.updateDisplayType('PAGE');
 
       expect(svc.errorMessage()).toBeNull();
     });

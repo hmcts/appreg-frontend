@@ -1,4 +1,9 @@
-import { Component, forwardRef, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  input,
+} from '@angular/core';
 import {
   ControlValueAccessor,
   FormsModule,
@@ -23,6 +28,7 @@ export interface ReportOption {
       multi: true,
     },
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './report-selector.component.html',
 })
 export class ReportSelectorComponent implements ControlValueAccessor {

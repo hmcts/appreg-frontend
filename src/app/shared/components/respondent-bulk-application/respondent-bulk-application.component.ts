@@ -1,4 +1,9 @@
-import { Component, computed, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+} from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
@@ -9,6 +14,7 @@ import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
   selector: 'app-respondent-bulk-application',
   standalone: true,
   imports: [ReactiveFormsModule, TextInputComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './respondent-bulk-application.component.html',
 })
 export class RespondentBulkApplicationComponent {

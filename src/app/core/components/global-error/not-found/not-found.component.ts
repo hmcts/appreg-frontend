@@ -1,4 +1,10 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 import { HeaderService } from '@services/header.service';
@@ -8,6 +14,7 @@ import { SessionService } from '@services/session.service';
   selector: 'app-not-found',
   standalone: true,
   imports: [RouterModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './not-found.component.html',
 })
 export class NotFoundComponent implements OnInit, OnDestroy {

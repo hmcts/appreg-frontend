@@ -8,8 +8,10 @@ import {
 
 type TimeInput = Parameters<typeof toTimeString>[0];
 
-const makeDuration = (hours: number, minutes: number): TimeInput =>
-  ({ hours, minutes }) as unknown as TimeInput;
+const makeDuration = (hours: number, minutes: number): TimeInput => ({
+  hours,
+  minutes,
+});
 
 describe('toTimeString', () => {
   it('returns trimmed HH:mm for a valid string input', () => {
@@ -101,10 +103,8 @@ describe('requireTime', () => {
   });
 
   it('throws an error when toTimeString returns undefined (invalid time)', () => {
-    expect(() => requireTime('24:00' as TimeInput)).toThrow('time required');
-    expect(() => requireTime('not-a-time' as TimeInput)).toThrow(
-      'time required',
-    );
+    expect(() => requireTime('24:00')).toThrow('time required');
+    expect(() => requireTime('not-a-time')).toThrow('time required');
   });
 
   it('throws an error for null or undefined input', () => {

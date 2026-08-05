@@ -9,6 +9,7 @@
 */
 
 import {
+  ChangeDetectionStrategy,
   Component,
   computed,
   effect,
@@ -59,6 +60,7 @@ import { ResultRow, toExistingRows } from '@util/result-code-helpers';
 @Component({
   selector: 'app-result-wording-section',
   templateUrl: './result-wording-section.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     SuggestionsComponent,
     SummaryListCardActionComponent,

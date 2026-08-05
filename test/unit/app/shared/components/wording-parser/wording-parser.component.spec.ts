@@ -48,7 +48,7 @@ describe('WordingParserComponent', () => {
       'substitution-key-constraints': [
         { key: 'name', value: '', constraint: { length: 50 } },
       ],
-    } as unknown as TemplateDetail);
+    });
 
     fixture.detectChanges();
   });

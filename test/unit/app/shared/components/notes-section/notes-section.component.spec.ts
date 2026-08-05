@@ -20,7 +20,7 @@ class HostComponent {
     notes: new FormControl<string | null>(null),
     caseReference: new FormControl<string | null>(null),
     accountReference: new FormControl<string | null>(null),
-  }) as ApplicationNotesForm;
+  });
 }
 
 describe('NotesSectionComponent', () => {
@@ -66,7 +66,7 @@ describe('NotesSectionComponent', () => {
     });
 
     it('ignores unknown error keys', () => {
-      form.controls.caseReference.setErrors({ unknownRule: true } as never);
+      form.controls.caseReference.setErrors({ unknownRule: true });
 
       expect(component.getControlError('caseReference')).toBeUndefined();
     });

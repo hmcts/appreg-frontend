@@ -1,9 +1,10 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-async-job-progress',
   standalone: true,
   templateUrl: './async-job-progress.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './async-job-progress.component.scss',
 })
 export class AsyncJobProgressComponent {

@@ -67,7 +67,7 @@ export class TableComponent<T = unknown> {
     const first = this.rows()[0] as Record<string, unknown>;
     return Object.keys(first).map((k) => ({
       header: this.humanize(k),
-      field: k as KeyOf<T> | string,
+      field: k,
     }));
   }
 

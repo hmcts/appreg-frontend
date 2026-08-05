@@ -24,7 +24,7 @@ enable_corepack_local() {
   corepack enable --install-directory "${corepack_bin}"
 }
 
-for command_name in git gh java node corepack python3 codex; do
+for command_name in git gh java node corepack python3 codex gzip base64 mktemp tr wc; do
   require_command "$command_name"
 done
 
@@ -46,11 +46,15 @@ else
   echo "::warning::docker is not installed or not on PATH. Frontend unit/build checks do not require Docker, but Cypress or mock-service checks may need it."
 fi
 
-if [[ -n "${OPENAI_API_KEY:-}" ]]; then
-  echo "Authenticating Codex CLI with repository secret."
-  printf '%s' "$OPENAI_API_KEY" | codex login --with-api-key >/dev/null
-else
-  echo "::notice::OPENAI_API_KEY not set; using runner-provisioned Codex auth."
+if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+  id codex
+  sudo -n -u codex -- true
+  test -d /opt/codex-trusted
+  test -w /opt/codex-trusted
+  if sudo -n -u codex -- test -r /opt/codex-trusted; then
+    echo "The Codex user must not be able to access trusted post-action scripts." >&2
+    exit 1
+  fi
 fi
 
-codex login status
+echo "Runner toolchain is ready; Codex authentication is verified separately through the official action proxy."

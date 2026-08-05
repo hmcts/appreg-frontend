@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   OnInit,
@@ -27,6 +28,7 @@ type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };
     HeaderComponent,
     ServiceNavigationComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './app.html',
 })
 export class App implements OnInit, AfterViewInit {

@@ -135,7 +135,7 @@ jobs:
             echo "head_ref=${head_ref}"
           } >>"$GITHUB_OUTPUT"
 
-  codex-review-generate:
+  codex-review-generate-action:
     needs: detect-codex-pr
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true'
     runs-on: codex-frontend-azure-aks
@@ -143,10 +143,19 @@ jobs:
       contents: read
       pull-requests: read
       issues: read
+    outputs:
+      should_run: ${{ steps.prepare.outputs.should_run }}
+      skip_reason: ${{ steps.prepare.outputs.skip_reason }}
+      pr_number: ${{ steps.prepare.outputs.pr_number }}
+      head_ref: ${{ steps.prepare.outputs.head_ref }}
+      base_ref: ${{ steps.prepare.outputs.base_ref }}
+      comment_author: ${{ steps.prepare.outputs.comment_author }}
+      comment_url: ${{ steps.prepare.outputs.comment_url }}
+      codex_result: ${{ steps.codex-action.outputs.final-message }}
+      trusted_sha: ${{ steps.trusted.outputs.sha }}
     timeout-minutes: 120
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      GH_TOKEN: ${{ github.token }}
 
     steps:
       - name: Checkout default branch
@@ -156,16 +165,78 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Verify runner toolchain and Codex auth
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Capture trusted checkout SHA
+        id: trusted
+        run: echo "sha=$(git rev-parse HEAD)" >>"$GITHUB_OUTPUT"
+
+      - name: Verify runner toolchain
         run: ./.github/scripts/codex-runner-preflight.sh
 
-      - name: Run Codex on review feedback and create patch artifact
-        id: codex
+      - name: Prepare review-feedback prompt
+        id: prepare
         env:
+          GH_TOKEN: ${{ github.token }}
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
         run: ./.github/scripts/codex-pr-review-feedback.sh
+
+      - name: Run Codex on review feedback
+        id: codex-action
+        if: steps.prepare.outputs.prompt_path != ''
+        uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1
+        with:
+          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
+          responses-api-endpoint: https://eu.api.openai.com/v1/responses
+          codex-version: '0.146.0'
+          model: gpt-5.6-sol
+          effort: ultra
+          prompt-file: ${{ steps.prepare.outputs.prompt_path }}
+          output-schema-file: ${{ steps.prepare.outputs.schema_path }}
+          working-directory: .
+          permission-profile: ':workspace'
+          safety-strategy: unprivileged-user
+          codex-user: codex
+          codex-args: '["--ephemeral"]'
+
+  codex-review-generate:
+    needs: [detect-codex-pr, codex-review-generate-action]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      trusted_sha: ${{ steps.trusted.outputs.sha }}
+    timeout-minutes: 10
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+
+    steps:
+      - name: Checkout trusted collector
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.codex-review-generate-action.outputs.trusted_sha }}
+          persist-credentials: false
+
+      - name: Confirm trusted checkout SHA
+        id: trusted
+        env:
+          EXPECTED_TRUSTED_SHA: ${{ needs.codex-review-generate-action.outputs.trusted_sha }}
+        run: |
+          actual_sha="$(git rev-parse HEAD)"
+          test "${actual_sha}" = "${EXPECTED_TRUSTED_SHA}"
+          echo "sha=${actual_sha}" >>"$GITHUB_OUTPUT"
+
+      - name: Materialise review-feedback patch
+        env:
+          CODEX_SHOULD_RUN: ${{ needs.codex-review-generate-action.outputs.should_run }}
+          CODEX_SKIP_REASON: ${{ needs.codex-review-generate-action.outputs.skip_reason }}
+          CODEX_RESULT: ${{ needs.codex-review-generate-action.outputs.codex_result }}
+          OUTPUT_DIR: ${{ runner.temp }}/codex-output
+          PR_NUMBER: ${{ needs.codex-review-generate-action.outputs.pr_number }}
+          HEAD_REF: ${{ needs.codex-review-generate-action.outputs.head_ref }}
+          BASE_REF: ${{ needs.codex-review-generate-action.outputs.base_ref }}
+          COMMENT_AUTHOR: ${{ needs.codex-review-generate-action.outputs.comment_author }}
+          COMMENT_URL: ${{ needs.codex-review-generate-action.outputs.comment_url }}
+        run: ./.github/scripts/codex-pr-review-collect.sh
 
       - name: Upload Codex review output
         uses: actions/upload-artifact@v4
@@ -206,7 +277,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.repository.default_branch }}
+          ref: ${{ needs.codex-review-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -268,7 +339,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  codex-review-repair-1:
+  codex-review-repair-1-action:
     needs: [detect-codex-pr, codex-review-generate, codex-review-verify]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify.outputs.passed != 'true'
     runs-on: codex-frontend-azure-aks
@@ -278,10 +349,14 @@ jobs:
       issues: read
     timeout-minutes: 120
     outputs:
-      has_changes: ${{ steps.repair.outputs.has_changes }}
+      pr_number: ${{ steps.prepare.outputs.pr_number }}
+      head_ref: ${{ steps.prepare.outputs.head_ref }}
+      base_ref: ${{ steps.prepare.outputs.base_ref }}
+      comment_author: ${{ steps.prepare.outputs.comment_author }}
+      comment_url: ${{ steps.prepare.outputs.comment_url }}
+      codex_result: ${{ steps.codex-action.outputs.final-message }}
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      GH_TOKEN: ${{ github.token }}
       REPAIR_ATTEMPT: '1'
       MAX_CODEX_REPAIR_ATTEMPTS: '3'
       CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify.outputs.output_artifact }}
@@ -292,13 +367,11 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-review-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Verify runner toolchain and Codex auth
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Verify runner toolchain
         run: ./.github/scripts/codex-runner-preflight.sh
 
       - name: Download Codex review output to repair
@@ -313,13 +386,77 @@ jobs:
           name: ${{ env.CODEX_FAILURE_ARTIFACT }}
           path: ${{ runner.temp }}/codex-failure
 
-      - name: Repair Codex review patch
-        id: repair
+      - name: Prepare Codex review-repair prompt
+        id: prepare
         env:
+          GH_TOKEN: ${{ github.token }}
           INPUT_DIR: ${{ runner.temp }}/codex-input
           FAILURE_DIR: ${{ runner.temp }}/codex-failure
-          OUTPUT_DIR: ${{ runner.temp }}/codex-output
         run: ./.github/scripts/codex-pr-review-repair.sh
+
+      - name: Run Codex review repair
+        id: codex-action
+        uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1
+        with:
+          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
+          responses-api-endpoint: https://eu.api.openai.com/v1/responses
+          codex-version: '0.146.0'
+          model: gpt-5.6-sol
+          effort: ultra
+          prompt-file: ${{ steps.prepare.outputs.prompt_path }}
+          output-schema-file: ${{ steps.prepare.outputs.schema_path }}
+          working-directory: .
+          permission-profile: ':workspace'
+          safety-strategy: unprivileged-user
+          codex-user: codex
+          codex-args: '["--ephemeral"]'
+
+  codex-review-repair-1:
+    needs:
+      [
+        detect-codex-pr,
+        codex-review-generate,
+        codex-review-verify,
+        codex-review-repair-1-action,
+      ]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify.outputs.passed != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    outputs:
+      has_changes: ${{ steps.repair.outputs.has_changes }}
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify.outputs.output_artifact }}
+      CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-1
+
+    steps:
+      - name: Checkout trusted collector
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.codex-review-generate.outputs.trusted_sha }}
+          persist-credentials: false
+
+      - name: Download Codex review output being repaired
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_INPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-input
+
+      - name: Materialise repaired Codex review patch
+        id: repair
+        env:
+          CODEX_RESULT: ${{ needs.codex-review-repair-1-action.outputs.codex_result }}
+          INPUT_DIR: ${{ runner.temp }}/codex-input
+          OUTPUT_DIR: ${{ runner.temp }}/codex-output
+          REPAIR_ATTEMPT: '1'
+          PR_NUMBER: ${{ needs.codex-review-repair-1-action.outputs.pr_number }}
+          HEAD_REF: ${{ needs.codex-review-repair-1-action.outputs.head_ref }}
+          BASE_REF: ${{ needs.codex-review-repair-1-action.outputs.base_ref }}
+          COMMENT_AUTHOR: ${{ needs.codex-review-repair-1-action.outputs.comment_author }}
+          COMMENT_URL: ${{ needs.codex-review-repair-1-action.outputs.comment_url }}
+        run: ./.github/scripts/codex-pr-review-repair-collect.sh
 
       - name: Upload repaired Codex review output
         uses: actions/upload-artifact@v4
@@ -330,7 +467,7 @@ jobs:
           retention-days: 1
 
   codex-review-verify-1:
-    needs: [detect-codex-pr, codex-review-repair-1]
+    needs: [detect-codex-pr, codex-review-generate, codex-review-repair-1]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-repair-1.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -360,7 +497,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.repository.default_branch }}
+          ref: ${{ needs.codex-review-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -422,8 +559,8 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  codex-review-repair-2:
-    needs: [detect-codex-pr, codex-review-verify-1]
+  codex-review-repair-2-action:
+    needs: [detect-codex-pr, codex-review-generate, codex-review-verify-1]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-1.outputs.passed == 'false'
     runs-on: codex-frontend-azure-aks
     permissions:
@@ -432,10 +569,14 @@ jobs:
       issues: read
     timeout-minutes: 120
     outputs:
-      has_changes: ${{ steps.repair.outputs.has_changes }}
+      pr_number: ${{ steps.prepare.outputs.pr_number }}
+      head_ref: ${{ steps.prepare.outputs.head_ref }}
+      base_ref: ${{ steps.prepare.outputs.base_ref }}
+      comment_author: ${{ steps.prepare.outputs.comment_author }}
+      comment_url: ${{ steps.prepare.outputs.comment_url }}
+      codex_result: ${{ steps.codex-action.outputs.final-message }}
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      GH_TOKEN: ${{ github.token }}
       REPAIR_ATTEMPT: '2'
       MAX_CODEX_REPAIR_ATTEMPTS: '3'
       CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify-1.outputs.output_artifact }}
@@ -446,13 +587,11 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-review-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Verify runner toolchain and Codex auth
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Verify runner toolchain
         run: ./.github/scripts/codex-runner-preflight.sh
 
       - name: Download Codex review output to repair
@@ -467,13 +606,77 @@ jobs:
           name: ${{ env.CODEX_FAILURE_ARTIFACT }}
           path: ${{ runner.temp }}/codex-failure
 
-      - name: Repair Codex review patch
-        id: repair
+      - name: Prepare Codex review-repair prompt
+        id: prepare
         env:
+          GH_TOKEN: ${{ github.token }}
           INPUT_DIR: ${{ runner.temp }}/codex-input
           FAILURE_DIR: ${{ runner.temp }}/codex-failure
-          OUTPUT_DIR: ${{ runner.temp }}/codex-output
         run: ./.github/scripts/codex-pr-review-repair.sh
+
+      - name: Run Codex review repair
+        id: codex-action
+        uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1
+        with:
+          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
+          responses-api-endpoint: https://eu.api.openai.com/v1/responses
+          codex-version: '0.146.0'
+          model: gpt-5.6-sol
+          effort: ultra
+          prompt-file: ${{ steps.prepare.outputs.prompt_path }}
+          output-schema-file: ${{ steps.prepare.outputs.schema_path }}
+          working-directory: .
+          permission-profile: ':workspace'
+          safety-strategy: unprivileged-user
+          codex-user: codex
+          codex-args: '["--ephemeral"]'
+
+  codex-review-repair-2:
+    needs:
+      [
+        detect-codex-pr,
+        codex-review-generate,
+        codex-review-verify-1,
+        codex-review-repair-2-action,
+      ]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-1.outputs.passed == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    outputs:
+      has_changes: ${{ steps.repair.outputs.has_changes }}
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify-1.outputs.output_artifact }}
+      CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-2
+
+    steps:
+      - name: Checkout trusted collector
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.codex-review-generate.outputs.trusted_sha }}
+          persist-credentials: false
+
+      - name: Download Codex review output being repaired
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_INPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-input
+
+      - name: Materialise repaired Codex review patch
+        id: repair
+        env:
+          CODEX_RESULT: ${{ needs.codex-review-repair-2-action.outputs.codex_result }}
+          INPUT_DIR: ${{ runner.temp }}/codex-input
+          OUTPUT_DIR: ${{ runner.temp }}/codex-output
+          REPAIR_ATTEMPT: '2'
+          PR_NUMBER: ${{ needs.codex-review-repair-2-action.outputs.pr_number }}
+          HEAD_REF: ${{ needs.codex-review-repair-2-action.outputs.head_ref }}
+          BASE_REF: ${{ needs.codex-review-repair-2-action.outputs.base_ref }}
+          COMMENT_AUTHOR: ${{ needs.codex-review-repair-2-action.outputs.comment_author }}
+          COMMENT_URL: ${{ needs.codex-review-repair-2-action.outputs.comment_url }}
+        run: ./.github/scripts/codex-pr-review-repair-collect.sh
 
       - name: Upload repaired Codex review output
         uses: actions/upload-artifact@v4
@@ -484,7 +687,7 @@ jobs:
           retention-days: 1
 
   codex-review-verify-2:
-    needs: [detect-codex-pr, codex-review-repair-2]
+    needs: [detect-codex-pr, codex-review-generate, codex-review-repair-2]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-repair-2.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -514,7 +717,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.repository.default_branch }}
+          ref: ${{ needs.codex-review-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -576,8 +779,8 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  codex-review-repair-3:
-    needs: [detect-codex-pr, codex-review-verify-2]
+  codex-review-repair-3-action:
+    needs: [detect-codex-pr, codex-review-generate, codex-review-verify-2]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-2.outputs.passed == 'false'
     runs-on: codex-frontend-azure-aks
     permissions:
@@ -586,10 +789,14 @@ jobs:
       issues: read
     timeout-minutes: 120
     outputs:
-      has_changes: ${{ steps.repair.outputs.has_changes }}
+      pr_number: ${{ steps.prepare.outputs.pr_number }}
+      head_ref: ${{ steps.prepare.outputs.head_ref }}
+      base_ref: ${{ steps.prepare.outputs.base_ref }}
+      comment_author: ${{ steps.prepare.outputs.comment_author }}
+      comment_url: ${{ steps.prepare.outputs.comment_url }}
+      codex_result: ${{ steps.codex-action.outputs.final-message }}
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      GH_TOKEN: ${{ github.token }}
       REPAIR_ATTEMPT: '3'
       MAX_CODEX_REPAIR_ATTEMPTS: '3'
       CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify-2.outputs.output_artifact }}
@@ -600,13 +807,11 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-review-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Verify runner toolchain and Codex auth
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Verify runner toolchain
         run: ./.github/scripts/codex-runner-preflight.sh
 
       - name: Download Codex review output to repair
@@ -621,13 +826,77 @@ jobs:
           name: ${{ env.CODEX_FAILURE_ARTIFACT }}
           path: ${{ runner.temp }}/codex-failure
 
-      - name: Repair Codex review patch
-        id: repair
+      - name: Prepare Codex review-repair prompt
+        id: prepare
         env:
+          GH_TOKEN: ${{ github.token }}
           INPUT_DIR: ${{ runner.temp }}/codex-input
           FAILURE_DIR: ${{ runner.temp }}/codex-failure
-          OUTPUT_DIR: ${{ runner.temp }}/codex-output
         run: ./.github/scripts/codex-pr-review-repair.sh
+
+      - name: Run Codex review repair
+        id: codex-action
+        uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1
+        with:
+          openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
+          responses-api-endpoint: https://eu.api.openai.com/v1/responses
+          codex-version: '0.146.0'
+          model: gpt-5.6-sol
+          effort: ultra
+          prompt-file: ${{ steps.prepare.outputs.prompt_path }}
+          output-schema-file: ${{ steps.prepare.outputs.schema_path }}
+          working-directory: .
+          permission-profile: ':workspace'
+          safety-strategy: unprivileged-user
+          codex-user: codex
+          codex-args: '["--ephemeral"]'
+
+  codex-review-repair-3:
+    needs:
+      [
+        detect-codex-pr,
+        codex-review-generate,
+        codex-review-verify-2,
+        codex-review-repair-3-action,
+      ]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-2.outputs.passed == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    outputs:
+      has_changes: ${{ steps.repair.outputs.has_changes }}
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify-2.outputs.output_artifact }}
+      CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-3
+
+    steps:
+      - name: Checkout trusted collector
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.codex-review-generate.outputs.trusted_sha }}
+          persist-credentials: false
+
+      - name: Download Codex review output being repaired
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_INPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-input
+
+      - name: Materialise repaired Codex review patch
+        id: repair
+        env:
+          CODEX_RESULT: ${{ needs.codex-review-repair-3-action.outputs.codex_result }}
+          INPUT_DIR: ${{ runner.temp }}/codex-input
+          OUTPUT_DIR: ${{ runner.temp }}/codex-output
+          REPAIR_ATTEMPT: '3'
+          PR_NUMBER: ${{ needs.codex-review-repair-3-action.outputs.pr_number }}
+          HEAD_REF: ${{ needs.codex-review-repair-3-action.outputs.head_ref }}
+          BASE_REF: ${{ needs.codex-review-repair-3-action.outputs.base_ref }}
+          COMMENT_AUTHOR: ${{ needs.codex-review-repair-3-action.outputs.comment_author }}
+          COMMENT_URL: ${{ needs.codex-review-repair-3-action.outputs.comment_url }}
+        run: ./.github/scripts/codex-pr-review-repair-collect.sh
 
       - name: Upload repaired Codex review output
         uses: actions/upload-artifact@v4
@@ -638,7 +907,7 @@ jobs:
           retention-days: 1
 
   codex-review-verify-3:
-    needs: [detect-codex-pr, codex-review-repair-3]
+    needs: [detect-codex-pr, codex-review-generate, codex-review-repair-3]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-repair-3.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -668,7 +937,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.repository.default_branch }}
+          ref: ${{ needs.codex-review-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -765,7 +1034,7 @@ jobs:
       - name: Checkout default branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.DEFAULT_BRANCH }}
+          ref: ${{ needs.codex-review-generate.outputs.trusted_sha }}
           fetch-depth: 0
           persist-credentials: false
 
