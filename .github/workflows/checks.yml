@@ -17,5 +17,7 @@ jobs:
         with:
           node-version: 24.15.0
       - run: corepack enable && yarn --version
+      - name: Validate Codex workflow scripts
+        run: ./bin/codex-local-pipeline.sh checks-only --no-fetch
       - run: yarn install
       - run: yarn cichecks
