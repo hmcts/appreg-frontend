@@ -127,13 +127,21 @@ Feature: Application List Bulk Upload
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page
+        # File other than Pipe Seperated CSV is uploaded and validation error is displayed
         When User Uploads The File "sample.txt"
         Then User Sees Validation Error Banner "There is a problem" Containing "Please upload a valid CSV file."
-        # Then User See "Please upload a valid CSV file." On The Page
+        # File with No headers is uploaded and validation error is displayed
+        When User Uploads The File "bulk-upload-entries_FileWithNoHeaders.csv"
+        When User Clicks On The "Upload file" Button
+        Then User Sees Validation Error Banner "There is a problem" Containing "Uploaded file must be a valid CSV file"
+        # File with wrong headers is uploaded and validation error is displayed
         When User Uploads The File "bulk-upload-wrong-headers.csv"
         When User Clicks On The "Upload file" Button
         Then User Sees Validation Error Banner "There is a problem" Containing "Uploaded file must be a valid CSV file"
-        # Then User See "Uploaded file must be a valid CSV file" On The Page
+        # File with Invalid Delimiter is uploaded and validation error is displayed
+        When User Uploads The File "bulk-upload-entries_Invalid_delimiter.csv"
+        When User Clicks On The "Upload file" Button
+        Then User Sees Validation Error Banner "There is a problem" Containing "Uploaded file must be a valid CSV file"
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
@@ -183,5 +191,78 @@ Feature: Application List Bulk Upload
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | APIDate  | Time           | Status | Description           | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
+            | User  | APIDate  | Time           | Status | Description            | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkFailTable_{RANDOM} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
+
+    @regression @applicationsList @applicationListEntry @ARCPOC-1502 @tp
+    Scenario: Application List - Bulk Upload Fails - Verify CSV Import Error Table With Pagination Enabled and Sorting Functionality
+        # Application List Setup
+        Given User Authenticates Via API As "user1"
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date     | time           | status | description                   | courtLocationCode |
+            | todayiso | timenowhhmm-2h | OPEN   | BulkFailSortingTable_{RANDOM} | RCJ001            |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        # Navigate To Bulk Upload
+        Given User Is On The Portal Page
+        When User Signs In With Microsoft SSO As "user1"
+        When User Searches Application List With:
+            | Date  | Time | Description                   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+            | today |      | BulkFailSortingTable_{RANDOM} |             |       | OPEN   |                |     |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date         | Time           | Location                      | Description                   | Entries | Status |
+            | todaydisplay | timenowhhmm-2h | Royal Courts of Justice Set 1 | BulkFailSortingTable_{RANDOM} | 0       | OPEN   |
+        Then User See "Applications" On The Page
+        Then User Clicks On The Link "Bulk upload"
+        Then User See "Bulk upload applications" On The Page
+        # Upload Invalid CSV And Wait For Validation Failure
+        Given User Has No Downloaded CSVs
+        When User Uploads The File "bulk-upload-modernised-invalid-data-row-values.csv"
+        When User Clicks On The "Upload file" Button
+        When User Waits For The File Upload To Complete
+        Then User Sees Validation Error Banner "Bulk upload failed" Containing "The bulk upload could not be completed. See the table below for more details. Please re-try the upload once these errors have been resolved"
+        Then User Should See Table "Error table" Has Sortable Headers "Error type, Row, Affected column, Message, Applicant, Address line 1, Rejected value"
+        # Verify default sort order
+        Then User Should See Table "Error table" Header "Error type" Has Sort Order "none"
+        Then User Should See Table "Error table" Header "Row" Has Sort Order "none"
+        Then User Should See Table "Error table" Header "Affected column" Has Sort Order "none"
+        Then User Should See Table "Error table" Header "Message" Has Sort Order "none"
+        Then User Should See Table "Error table" Header "Applicant" Has Sort Order "none"
+        Then User Should See Table "Error table" Header "Address line 1" Has Sort Order "none"
+        Then User Should See Table "Error table" Header "Rejected value" Has Sort Order "none"
+        # Test Error type column
+        When User Clicks On Table Header "Error type" In Table "Error table"
+        Then User Should See Table "Error table" Header "Error type" Has Sort Order "ascending"
+        When User Clicks On Table Header "Error type" In Table "Error table"
+        Then User Should See Table "Error table" Header "Error type" Has Sort Order "descending"
+        # Test Row column
+        When User Clicks On Table Header "Row" In Table "Error table"
+        Then User Should See Table "Error table" Header "Row" Has Sort Order "ascending"
+        When User Clicks On Table Header "Row" In Table "Error table"
+        Then User Should See Table "Error table" Header "Row" Has Sort Order "descending"
+        # Test Affected column
+        When User Clicks On Table Header "Affected column" In Table "Error table"
+        Then User Should See Table "Error table" Header "Affected column" Has Sort Order "ascending"
+        When User Clicks On Table Header "Affected column" In Table "Error table"
+        Then User Should See Table "Error table" Header "Affected column" Has Sort Order "descending"
+        # Test Message column
+        When User Clicks On Table Header "Message" In Table "Error table"
+        Then User Should See Table "Error table" Header "Message" Has Sort Order "ascending"
+        When User Clicks On Table Header "Message" In Table "Error table"
+        Then User Should See Table "Error table" Header "Message" Has Sort Order "descending"
+        # Test Applicant column
+        When User Clicks On Table Header "Applicant" In Table "Error table"
+        Then User Should See Table "Error table" Header "Applicant" Has Sort Order "ascending"
+        When User Clicks On Table Header "Applicant" In Table "Error table"
+        Then User Should See Table "Error table" Header "Applicant" Has Sort Order "descending"
+        # Test Address line 1 column
+        When User Clicks On Table Header "Address line 1" In Table "Error table"
+        Then User Should See Table "Error table" Header "Address line 1" Has Sort Order "ascending"
+        When User Clicks On Table Header "Address line 1" In Table "Error table"
+        Then User Should See Table "Error table" Header "Address line 1" Has Sort Order "descending"
+        # Test Rejected value column
+        When User Clicks On Table Header "Rejected value" In Table "Error table"
+        Then User Should See Table "Error table" Header "Rejected value" Has Sort Order "ascending"
+        When User Clicks On Table Header "Rejected value" In Table "Error table"
+        Then User Should See Table "Error table" Header "Rejected value" Has Sort Order "descending"
+
