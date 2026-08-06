@@ -179,6 +179,9 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
           await this.router.navigate(['applications-list', response.id], {
             queryParams: { listCreated: true },
             fragment: 'list-details',
+            state: {
+              created: true,
+            },
           });
           this.createRequest.set(null);
         },

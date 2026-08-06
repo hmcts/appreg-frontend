@@ -197,6 +197,9 @@ describe('ApplicationsListCreate', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['applications-list', 123], {
       queryParams: { listCreated: true },
       fragment: 'list-details',
+      state: {
+        created: true,
+      },
     });
   });
 

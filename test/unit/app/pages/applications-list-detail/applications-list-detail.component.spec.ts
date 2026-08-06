@@ -1259,6 +1259,10 @@ describe('ApplicationsListDetail', () => {
     expect(patchSpy).toHaveBeenCalledWith({
       updateDone: false,
       updateOfficialsDone: false,
+      createDone: false,
+      updateFeesDone: false,
+      moveDone: false,
+      bulkUploadDone: false,
     });
   });
 
@@ -1687,6 +1691,7 @@ describe('ApplicationsListDetail', () => {
     const routeSpy = jest
       .spyOn(route.snapshot.queryParamMap, 'get')
       .mockReturnValue('true');
+    historyStateSpy.mockReturnValue({ created: true });
 
     component.setSuccessBanner();
 

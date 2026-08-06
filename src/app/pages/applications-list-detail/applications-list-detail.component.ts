@@ -36,6 +36,9 @@
  *
  * openUpdate():
  * - Navigates to the selected Application List Entry
+ *
+ * onUndoClick():
+ * - Navigates to undo application list creation page
  */
 
 import { isPlatformBrowser } from '@angular/common';
@@ -140,7 +143,7 @@ import { addLocationValidatorsToForm } from '@validators/add-location-validators
 import { closePermitted } from '@validators/applications-list-close.validator';
 
 type ApplicationsListDetailHistoryState = {
-  row?: ApplicationListRow;
+  created?: boolean;
   closeError?: {
     status?: number;
     title?: string;
@@ -302,14 +305,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.detailSignalState.patch({
       updateDone: false,
       updateOfficialsDone: false,
+      createDone: false,
+      updateFeesDone: false,
+      moveDone: false,
+      bulkUploadDone: false,
     });
   }
 
   setSuccessBanner(): void {
     if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
       this.vm().createDone = true;
-      const createState = history.state as ApplicationsListDetailHistoryState;
-      this.listRow = createState.row ?? undefined;
     }
 
     if (
@@ -349,6 +354,20 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
       this.vm().bulkUploadBannerText = `${uploadState.msg}`;
     }
+
+    // Ensure stale banners are cleared on refresh/revisit
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        listCreated: null,
+        moveEntriesSuccessful: null,
+        updateOfficialsSuccessful: null,
+        bulkFeeUpdateSuccessful: null,
+        bulkUploadSuccess: null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   private setCloseErrorFromNavigation(): void {
@@ -1043,6 +1062,15 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       body: params,
       mode: 'page',
     });
+  }
+
+  onUndoClick(): void {
+    const listDetails = this.listRow;
+    const listId = this.id;
+
+    if (!listId || !listDetails) {
+      return;
+    }
   }
 
   readonly patchStateFn = (
