@@ -183,4 +183,4 @@ Feature: Application List Entries Bulk Update Officials
         Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | APIDate  | Time  | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Court                     | Entries | Magistrate1Value1      | Magistrate2Value1       | Magistrate3Value1        | CourtOfficialValue1           |
-            | user1 | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todaydisplay | Bristol Crown Court Set 3 | 2       | Mr John Smith_{RANDOM} | Dr Emily Davis_{RANDOM} | Miss Jane Hardy_{RANDOM} | Mrs Violette Zanetti_{RANDOM} |
+            | user1 | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} | BCC026            | today      | todaydisplay | Bristol Crown Court Set 3 | 2       | Mr John Smith_{RANDOM} | Dr Emily Davis_{RANDOM} | Miss Jane Hardy_{RANDOM} | Mrs Violette Zanetti_{RANDOM} |

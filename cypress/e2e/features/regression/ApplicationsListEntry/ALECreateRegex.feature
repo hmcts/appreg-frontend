@@ -12,13 +12,7 @@ Feature: Applications List Entry Create Regex Validations
     Then User Stores Response Body Property "id" As "listId"
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    # Search Created Application List
-    When User Searches Application List With:
-      | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      | <SearchDate> |      |                  |             |       | <Status>           |                            |                       |           |
-    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
-      | Date          | Time   | Location | Description   | Entries   | Status   |
-      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+    Given User Navigates To The URL "/applications-list/:listId"
     ## Create Application under Application List
     Then User Clicks On The Link "Create application"
     When User Clicks On The "Show all sections" Button
@@ -226,7 +220,7 @@ Feature: Applications List Entry Create Regex Validations
 
     Examples:
       | User  | TableName | SearchDate | DisplayDate  | DOB       | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationTitle           | WordingText                                      | placeholder                  | WordingValue        | CaseReference | AccountReference | OffsiteFeeString                                                                                         | OffsiteFeeCode | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       |
-      | user1 | Lists     | today      | todaydisplay | today-30y | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | case12345     | account12345     | Selecting this will automatically apply the off site fee to the entry. This change is saved immediately. | CO1.1          | Off Site Fee Amount: £30.00 | Total Fee Amount: £284.00 | Fee Reference: CO8.1 | Amount: £284.00 |
+      | user1 | Lists     | today      | todaydisplay | today-30y | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   | Select           | Open       | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | case12345     | account12345     | Selecting this will automatically apply the off site fee to the entry. This change is saved immediately. | CO1.1          | Off Site Fee Amount: £30.00 | Total Fee Amount: £284.00 | Fee Reference: CO8.1 | Amount: £284.00 |
 
   @ARCPOC-222 @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319 @SC2
   Scenario Outline: Create an ALE With Regex Validations where Applicant = Oraganisation and Respondent = Organisation, using an Application Code with Fee Required = N and Respondent Required = Y
@@ -239,13 +233,7 @@ Feature: Applications List Entry Create Regex Validations
     Then User Stores Response Body Property "id" As "listId"
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    # Search Created Application List
-    When User Searches Application List With:
-      | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      | <SearchDate> |      |                  |             |       | <Status>           |                            |                       |           |
-    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
-      | Date          | Time   | Location | Description   | Entries   | Status   |
-      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+    Given User Navigates To The URL "/applications-list/:listId"
     ## Create Application under Application List
     Then User Clicks On The Link "Create application"
     When User Clicks On The "Show all sections" Button
@@ -362,7 +350,7 @@ Feature: Applications List Entry Create Regex Validations
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
     Examples:
       | User  | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationTitle                               | WordingText                                                                                                                                                        | placeholder       | TableName | CaseReference | AccountReference |
-      | user1 | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | Lists     | case{RANDOM}  | account{RANDOM}  |
+      | user1 | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   | Select           | Open       | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | Lists     | case{RANDOM}  | account{RANDOM}  |
 
   @regression @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319 @SC3
   Scenario Outline: Create an ALE With Regex Validations where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
@@ -375,13 +363,7 @@ Feature: Applications List Entry Create Regex Validations
     Then User Stores Response Body Property "id" As "listId"
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    # Search Created Application List
-    When User Searches Application List With:
-      | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      | <SearchDate> |      |                  |             |       | <Status>           |                            |                       |           |
-    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
-      | Date          | Time   | Location | Description   | Entries   | Status   |
-      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+    Given User Navigates To The URL "/applications-list/:listId"
     ## Create Application under Application List
     Then User Clicks On The Link "Create application"
     When User Clicks On The "Show all sections" Button
@@ -444,4 +426,4 @@ Feature: Applications List Entry Create Regex Validations
 
     Examples:
       | User  | TableName | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationTitle                                           | WordingText                                                                                                                     | placeholder  | WordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode                | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | StdAppCode | StdAppName  |
-      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | Request for Certificate of Refusal to State a Case (Civil) | Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on | Enter a Date | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | Off Site Fee Reference: CO1.1 | Off Site Fee Amount: £30.00 | Total Fee Amount: £135.00 | Fee Reference: CO3.1 | Amount: £105.00 | APP025     | Ava Johnson |
+      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   | Select           | Open       | Request for Certificate of Refusal to State a Case (Civil) | Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on | Enter a Date | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | Off Site Fee Reference: CO1.1 | Off Site Fee Amount: £30.00 | Total Fee Amount: £135.00 | Fee Reference: CO3.1 | Amount: £105.00 | APP025     | Ava Johnson |
