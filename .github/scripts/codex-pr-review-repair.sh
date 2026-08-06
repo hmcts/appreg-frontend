@@ -16,6 +16,7 @@ required_env "GITHUB_REPOSITORY"
 required_env "INPUT_DIR"
 required_env "FAILURE_DIR"
 required_env "REPAIR_ATTEMPT"
+required_env "EXPECTED_HEAD_SHA"
 
 run_id="${GITHUB_RUN_ID:-manual}"
 run_attempt="${GITHUB_RUN_ATTEMPT:-1}"
@@ -124,8 +125,15 @@ git_read_authenticated fetch origin "${head_ref}:refs/remotes/origin/${head_ref}
 if [[ -n "${base_ref}" ]]; then
   git_read_authenticated fetch origin "${base_ref}:refs/remotes/origin/${base_ref}"
 fi
-git_sanitized checkout -B "${head_ref}" "origin/${head_ref}"
-git_sanitized apply --binary "${input_patch_path}"
+actual_head_sha="$(git_sanitized rev-parse "refs/remotes/origin/${head_ref}")"
+if [[ "${actual_head_sha}" != "${EXPECTED_HEAD_SHA}" ]]; then
+  echo "::error title=PR branch moved::The remote ${head_ref} branch moved before Codex repair preparation. Re-run the feedback workflow." >&2
+  exit 1
+fi
+git_sanitized checkout -B "${head_ref}" "${EXPECTED_HEAD_SHA}"
+if [[ "${SOURCE_INCLUDES_INPUT_PATCH:-false}" != "true" ]]; then
+  git_sanitized apply --binary "${input_patch_path}"
+fi
 unset GH_TOKEN
 
 export PR_NUMBER="${pr_number}"

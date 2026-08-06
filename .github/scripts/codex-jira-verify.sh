@@ -305,6 +305,7 @@ if ! git_sanitized rev-parse --verify --quiet "refs/remotes/origin/${default_bra
   exit 1
 fi
 git_sanitized checkout -B "${default_branch}" "origin/${default_branch}"
+base_sha="$(git_sanitized rev-parse "refs/remotes/origin/${default_branch}")"
 git_sanitized apply --index --binary "${patch_path}"
 assert_worktree_within_plan "applied patch"
 
@@ -328,6 +329,7 @@ patch_sha="$(file_sha256 "${patch_path}")"
 
 {
   echo "branch_name=${branch_name}"
+  echo "base_sha=${base_sha}"
   echo "patch_sha=${patch_sha}"
   echo "guardrail_review_required=${guardrail_review_required}"
 } >"${verification_path}"
