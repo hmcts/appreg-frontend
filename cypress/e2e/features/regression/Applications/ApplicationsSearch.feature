@@ -44,7 +44,7 @@ Feature: Applications Search
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                             | durationHours | durationMinutes | courtLocationCode |
-            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | LCCC065           |
+            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{RANDOM} | 2             | 22              | LCCC065           |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
@@ -199,7 +199,7 @@ Feature: Applications Search
         Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         Examples:
             | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant             | Respondent           | ApplicationTitle                               | Fee | Resulted | Status |
-            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{SCENARIO_ID} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              | Taylor {RANDOM}  |               |                   | Open         | BS15               | 01        | London |               |               |                  | Application list entries | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
+            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              | Taylor {RANDOM}  |               |                   | Open         | BS15               | 01        | London |               |               |                  | Application list entries | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083 @ARCPOC-1343
     Scenario Outline: Verify Validation Error Messages on Application list entry Search Page

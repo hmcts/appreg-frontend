@@ -5,16 +5,6 @@ import { TableHelper } from '../../../../../support/helper/table/TableHelper';
 import { TableSearch } from '../../../../../support/helper/table/TableSearch';
 import { TableVerification } from '../../../../../support/helper/table/TableVerification';
 
-const rowHasLinkText = (
-  row: JQuery<HTMLElement>,
-  linkText: string,
-): boolean => {
-  return row
-    .find('a')
-    .toArray()
-    .some((link) => Cypress.$(link).text().includes(linkText));
-};
-
 const waitForPostRowButtonClickState = (selectButtonText: string): void => {
   if (selectButtonText.toLowerCase() !== 'add code') {
     return;
@@ -46,34 +36,14 @@ Then(
     if (rows.length === 0) {
       throw new Error('DataTable must have at least one row of data');
     }
-
-    return rows.reduce<Cypress.Chainable<void>>(
-      (chain, rowData) =>
-        chain.then(() => {
-          AccordionHelper.within(accordionTitle, () => {
-            TableSearch.retryUntil(
-              () =>
-                TableSearch.findRowElementWithPagination(
-                  rowData,
-                  undefined,
-                  true,
-                ).then((row) => {
-                  expect(
-                    row,
-                    `Row should exist before checking "${linkText}" link visibility`,
-                  ).to.not.equal(null);
-
-                  return !rowHasLinkText(row as JQuery<HTMLElement>, linkText);
-                }),
-              `Link "${linkText}" should not be visible in row ${JSON.stringify(
-                rowData,
-              )}`,
-              20000,
-            );
-          });
-        }),
-      cy.wrap(undefined),
-    );
+    for (const rowData of rows) {
+      AccordionHelper.within(accordionTitle, () => {
+        TableSearch.searchWithPagination(rowData, undefined, true, (row) => {
+          cy.wrap(row).find(`a:contains("${linkText}")`).should('not.exist');
+          return cy.wrap(undefined) as unknown as Cypress.Chainable<void>;
+        });
+      });
+    }
   },
 );
 
@@ -88,32 +58,14 @@ Then(
     if (rows.length === 0) {
       throw new Error('DataTable must have at least one row of data');
     }
-
-    return rows.reduce<Cypress.Chainable<void>>(
-      (chain, rowData) =>
-        chain.then(() => {
-          AccordionHelper.within(accordionTitle, () => {
-            TableSearch.findRowElementWithPagination(
-              rowData,
-              undefined,
-              true,
-            ).then((row) => {
-              expect(
-                row,
-                `Row should exist before checking "${linkText}" link visibility`,
-              ).to.not.equal(null);
-
-              expect(
-                rowHasLinkText(row as JQuery<HTMLElement>, linkText),
-                `Link "${linkText}" should be visible in row ${JSON.stringify(
-                  rowData,
-                )}`,
-              ).to.equal(true);
-            });
-          });
-        }),
-      cy.wrap(undefined),
-    );
+    for (const rowData of rows) {
+      AccordionHelper.within(accordionTitle, () => {
+        TableSearch.searchWithPagination(rowData, undefined, true, (row) => {
+          cy.wrap(row).find(`a:contains("${linkText}")`).should('exist');
+          return cy.wrap(undefined) as unknown as Cypress.Chainable<void>;
+        });
+      });
+    }
   },
 );
 

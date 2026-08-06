@@ -6,7 +6,7 @@ Feature: Applications Bulk Result Selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                             | durationHours | durationMinutes | courtLocationCode |
-            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | LCCC065           |
+            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{RANDOM} | 2             | 22              | LCCC065           |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         # Entry 1 - Standard applicant + Person respondent

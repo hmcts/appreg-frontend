@@ -13,7 +13,12 @@ Feature: Application List Entries Details Bulk Action Preview Limit Validation
         Then User Stores Response Body Property "id" As "listId"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
-        Given User Navigates To The URL "/applications-list/:listId"
+        When User Searches Application List With:
+            | Date  | Time | Description                       | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+            | today |      | Test Data List 1051 ALEs {RANDOM} |             |       | OPEN   |                |     |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date         | Time           | Location                          | Description                       | Entries | Status |
+            | todaydisplay | timenowhhmm-2h | Leeds Combined Court Centre Set 7 | Test Data List 1051 ALEs {RANDOM} | 0       | OPEN   |
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page
