@@ -393,4 +393,4 @@ Feature: Applications List  - Bulk Result Selected
         Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | APIDate  | Time           | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     | feeStatusDue | feeStatusDate |
-            | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todayDisplay | 8       | Bristol Crown Court Set 3 | DUE          | todayiso      |
+            | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{SCENARIO_ID} | BCC026            | today      | todayDisplay | 8       | Bristol Crown Court Set 3 | DUE          | todayiso      |

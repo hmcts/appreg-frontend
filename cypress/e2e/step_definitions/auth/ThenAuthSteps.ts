@@ -1,6 +1,6 @@
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
-import { MicrosoftAuthHelper } from '../../../support/helper/auth/MicrosoftAuthHelper';
+import { AuthHelper } from '../../../support/helper/auth/AuthHelper';
 import { SessionValidator } from '../../../support/helper/auth/SessionValidator';
 
 Then('User Verify The {string} Cookie Should Exist', (cookieName: string) => {
@@ -19,6 +19,6 @@ Then('User Verify The Session Is Valid', () => {
 });
 
 Then('User Signs Out From The Application', () => {
-  MicrosoftAuthHelper.performSignOut();
+  AuthHelper.aadSignOut();
   cy.screenshot('AADSignOut');
 });

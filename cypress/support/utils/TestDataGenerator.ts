@@ -5,16 +5,17 @@ import { DateTimeUtil } from './DateTimeUtil';
  */
 export class TestDataGenerator {
   private static scenarioRandom: string | null = null;
+  private static scenarioId: string | null = null;
 
   /**
-   * Initializes a new random value for the current scenario
-   * Uses timestamp + random to ensure uniqueness across scenarios
-   * Generates 6-digit number: 4 from timestamp + 2 from random
+    * Initializes a new random value for the current scenario
+   * Keeps the token to six digits because feature data uses it in valid phone numbers.
+   * It wraps every ~17 minutes, so use a longer token if those field constraints are removed.
    */
   static initializeScenario(): void {
-    const random = Math.floor(Math.random() * 100); // 0-99
-    const timestamp = Date.now().toString().slice(-4); // Last 4 digits of timestamp
-    this.scenarioRandom = `${timestamp}${random.toString().padStart(2, '0')}`;
+    const now = Date.now();
+    this.scenarioRandom = now.toString().slice(-6);
+    this.scenarioId = `${now.toString(36)}-${this.getRandomString(8)}`;
   }
 
   /**
@@ -22,12 +23,14 @@ export class TestDataGenerator {
    */
   static resetScenario(): void {
     this.scenarioRandom = null;
+    this.scenarioId = null;
   }
 
   /**
-   * Replaces {RANDOM} placeholders with the same random number for the entire scenario
-   * @param text The text containing {RANDOM} placeholders
-   * @returns Text with {RANDOM} replaced by scenario-consistent random number
+   * Replaces scenario placeholders with values stable for the current scenario.
+   * {RANDOM} stays six digits for phone fields; {SCENARIO_ID} is for unconstrained lookup values.
+   * @param text The text containing scenario placeholders
+   * @returns Text with placeholders replaced by scenario-consistent values
    */
   static replaceRandomPlaceholders(text: string): string {
     // Initialize scenario random value if not already set
@@ -35,7 +38,9 @@ export class TestDataGenerator {
       this.initializeScenario();
     }
 
-    return text.replace(/{RANDOM}/g, this.scenarioRandom!);
+    return text
+      .replace(/{RANDOM}/g, this.scenarioRandom!)
+      .replace(/{SCENARIO_ID}/g, this.scenarioId!);
   }
 
   /**

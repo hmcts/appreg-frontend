@@ -13,7 +13,7 @@ export class TableSearch {
    * Retries a boolean condition until it passes or times out.
    * Used for table states that can lag briefly behind the triggering action.
    */
-  private static retryUntil(
+  static retryUntil(
     check: () => Cypress.Chainable<boolean>,
     failureMessage: string,
     timeoutMs: number = 5000,
@@ -113,6 +113,37 @@ export class TableSearch {
     );
   }
 
+  static findRowElementWithPagination(
+    columnValues: Record<string, string>,
+    caption?: string,
+    searchAllPages: boolean = true,
+  ): Cypress.Chainable<JQuery<HTMLElement> | null> {
+    return TableSearch.findRowElementInCurrentPage(columnValues, caption).then(
+      (matchedRow) => {
+        if (matchedRow) {
+          return cy.wrap(matchedRow, { log: false });
+        }
+
+        if (!searchAllPages) {
+          return cy.wrap(null, { log: false });
+        }
+
+        return TableNavigation.goToNextPageIfExists().then((hasNext) => {
+          if (!hasNext) {
+            return cy.wrap(null, { log: false });
+          }
+
+          cy.log('Row not found on current page, checking next page...');
+          return TableSearch.findRowElementWithPagination(
+            columnValues,
+            caption,
+            searchAllPages,
+          );
+        });
+      },
+    );
+  }
+
   /**
    * Searches for matching row in current page
    */
@@ -129,6 +160,37 @@ export class TableSearch {
         columnIndexMap,
         onMatch,
       );
+    });
+  }
+
+  private static findRowElementInCurrentPage(
+    columnValues: Record<string, string>,
+    caption?: string,
+  ): Cypress.Chainable<JQuery<HTMLElement> | null> {
+    return TableElement.getTableHeaders(caption).then(($headers) => {
+      const columnIndexMap = TableSearch.buildColumnIndexMap($headers);
+
+      return TableElement.getTableRows(caption).then(($rows) => {
+        let matchedRow: JQuery<HTMLElement> | null = null;
+
+        $rows.each((_rowIndex: number, row: HTMLElement) => {
+          if (
+            TableSearch.rowMatchesValues(
+              Cypress.$(row),
+              columnValues,
+              columnIndexMap,
+              caption,
+            )
+          ) {
+            matchedRow = Cypress.$(row);
+            return false;
+          }
+
+          return undefined;
+        });
+
+        return cy.wrap(matchedRow, { log: false });
+      });
     });
   }
 
