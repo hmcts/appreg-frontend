@@ -1,5 +1,4 @@
 import {
-  FormGroup,
   NonNullableFormBuilder,
   ValidatorFn,
   Validators,
@@ -58,8 +57,8 @@ import {
   ContactFormRaw,
   OrganisationFormRaw,
 } from '@util/types/applications-list-entry/types';
-import { setControlError } from '@util/validation-helpers';
 import { accountReferenceRequiredForApplicationCode } from '@validators/account-reference.validator';
+import { officialRowRequiredValidator } from '@validators/official-row-required.validator';
 import { optional } from '@validators/optional.validator';
 import { standardApplicantCodeConditionalRequired } from '@validators/standard-applicant-code.validator';
 import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format.validator';
@@ -241,44 +240,6 @@ export function buildStandardApplicationForm(
     },
     { validators: formValidators },
   ) as ApplicationsListEntryForm;
-}
-
-function officialRowRequiredValidator(
-  titleControl: string,
-  firstNameControl: string,
-  surnameControl: string,
-): ValidatorFn {
-  return (control) => {
-    if (!(control instanceof FormGroup)) {
-      return null;
-    }
-
-    const title: unknown = control.get(titleControl)?.value;
-    const firstName: unknown = control.get(firstNameControl)?.value;
-    const surname: unknown = control.get(surnameControl)?.value;
-    const rowStarted = hasText(title) || hasText(firstName) || hasText(surname);
-
-    setControlError(
-      control,
-      titleControl,
-      'required',
-      rowStarted && !hasText(title),
-    );
-    setControlError(
-      control,
-      firstNameControl,
-      'required',
-      rowStarted && !hasText(firstName),
-    );
-    setControlError(
-      control,
-      surnameControl,
-      'required',
-      rowStarted && !hasText(surname),
-    );
-
-    return null;
-  };
 }
 
 export function buildPersonOrgSharedControls(

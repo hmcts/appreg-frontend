@@ -234,25 +234,21 @@ describe('applications-list entry form builders', () => {
       expect(form.controls.officialFirstName.errors).toHaveProperty('required');
     });
 
-    it('requires title when an official row has a first name or surname', () => {
+    it('does not require title when an official row has first name and surname', () => {
       const form = buildStandardApplicationForm(fb);
 
       form.controls.mags1FirstName.setValue('John');
       form.controls.mags1Surname.setValue('Smith');
-      form.updateValueAndValidity();
-      expect(form.controls.mags1Title.errors).toHaveProperty('required');
-
-      form.controls.mags1Title.setValue('HHJ');
       form.updateValueAndValidity();
       expect(form.controls.mags1Title.errors).toBeNull();
 
       form.controls.officialFirstName.setValue('Clara');
       form.controls.officialSurname.setValue('Jones');
       form.updateValueAndValidity();
-      expect(form.controls.officialTitle.errors).toHaveProperty('required');
+      expect(form.controls.officialTitle.errors).toBeNull();
     });
 
-    it('requires first name and surname when an official row has a title', () => {
+    it('requires first name and surname when an official row only has a title', () => {
       const form = buildStandardApplicationForm(fb);
 
       form.controls.mags1Title.setValue('DJ');

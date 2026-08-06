@@ -159,7 +159,7 @@ describe('UpdateOfficialsComponent', () => {
     });
   });
 
-  it('does not post when official title validation fails', () => {
+  it('navigates to confirm when an official title is omitted', () => {
     createComponent();
 
     component.form.patchValue({
@@ -170,15 +170,44 @@ describe('UpdateOfficialsComponent', () => {
 
     component.onSaveOfficials();
 
+    expect(routerMock.navigate).toHaveBeenCalledWith(['confirm'], {
+      relativeTo: activatedRouteMock,
+      state: expect.objectContaining({
+        officials: [
+          {
+            type: OfficialType.MAGISTRATE,
+            title: undefined,
+            forename: 'John',
+            surname: 'Smith',
+          },
+        ],
+      }),
+    });
+  });
+
+  it('does not continue when only an official title is entered', () => {
+    createComponent();
+
+    component.form.patchValue({
+      mags1Title: 'HHJ',
+    });
+
+    component.onSaveOfficials();
+
     expect(routerMock.navigate).not.toHaveBeenCalledWith(
       ['confirm'],
       expect.anything(),
     );
     expect(component.errorSummary()).toEqual([
       {
-        id: 'mags1Title',
-        href: '#officials-mags1-title',
-        text: 'Magistrates 1 title is required',
+        id: 'mags1FirstName',
+        href: '#officials-mags1-first-name',
+        text: 'Magistrates 1 first name is required',
+      },
+      {
+        id: 'mags1Surname',
+        href: '#officials-mags1-surname',
+        text: 'Magistrates 1 last name is required',
       },
     ]);
   });
