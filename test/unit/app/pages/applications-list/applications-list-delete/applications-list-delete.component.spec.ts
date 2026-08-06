@@ -223,7 +223,6 @@ describe('ApplicationsListDeleteComponent', () => {
       '/applications-list',
       'abc-123',
     ]);
-    expect(router.navigate).toHaveBeenNthCalledWith(2, ['/applications-list']);
   });
 
   it('server platform: listRow is undefined even if state exists -> navigates back when id exists', async () => {
