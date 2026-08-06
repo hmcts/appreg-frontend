@@ -16,6 +16,7 @@ RUN yarn build:ssr
 FROM hmctsprod.azurecr.io/base/node:24-alpine
 
 WORKDIR /app
+
 USER root
 
 RUN apk add --no-cache curl bash
