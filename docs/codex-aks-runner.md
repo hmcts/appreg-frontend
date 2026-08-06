@@ -12,6 +12,51 @@ unprivileged `codex` user and never receives the key in its environment. All
 invocations pin the Codex CLI and proxy to `0.146.0` and use the regional
 Responses endpoint `https://eu.api.openai.com/v1/responses`.
 
+## Planning and eligibility
+
+Each Jira dispatch starts with a separate read-only Codex invocation. Planning
+uses `gpt-5.6-sol` with `ultra` effort, while the Action commit, CLI version,
+regional endpoint, unprivileged user and `:read-only` permission profile also
+remain pinned. The planner returns structured JSON containing the root cause,
+scope decision, alternatives, implementation paths, tests, acceptance criteria, risks,
+assumptions and blockers.
+
+A fresh GitHub-hosted job validates and size-limits the untrusted JSON, rejects
+protected automation paths, and emits a canonical plan plus its SHA-256 hash as
+a bounded private job output. Raw plan content is not uploaded as an artefact,
+written to a workflow summary, or copied into the generated PR body. Tickets
+that are not ready produce an explicit terminal `codex-plan-blocked` failure
+before any workspace-writing model invocation.
+
+Eligible validated plans marked ready proceed automatically to implementation;
+no GitHub environment approval is required. High-risk and cross-system plans
+are normalised to a blocked result and stop before implementation, as do plans
+that the planner marks not ready. This keeps the small-bug workflow moving
+without silently extending it into broader or higher-risk work.
+
+Planning uses `gpt-5.6-sol` with `ultra` effort. Implementation checks out the
+exact commit inspected by the planner and uses `gpt-5.6-sol` with `medium`
+effort; repair, PR-feedback, and conflict-resolution invocations use the same
+implementation configuration. The validated plan is included only in the
+implementation and repair prompts. Its exact file paths constrain both the
+captured patch exporter and every fresh trusted collector; any other changed
+path is rejected. Verification repairs reuse the original plan and stop for a
+new planning run when repository evidence invalidates its scope.
+
+The workflow rejects plans that target package-manager, runner, workflow or
+verification tooling. A trusted preparation job archives the exact planned
+repository revision without executing it. Patch application, formatting, Yarn
+and all repository tests then run from that archive in jobs with
+`permissions: {}` and no GitHub or Sonar credentials. Authenticated
+publication and status/Sonar API checks run later in separate trusted jobs that
+never apply or execute the model-generated patch.
+
+The current Azure Function implementation callback accepts only genuine
+PR-created payloads and transitions Jira to Dev Review. It has no blocker or
+failure result contract, so a blocked plan cannot truthfully notify Jira from
+this workflow; the failed job and audit hash are the terminal result until that
+external API and Jira Automation rule are extended.
+
 Every workspace-writing Codex job ends with the official Action. Codex returns
 a schema-validated, size-bounded gzip/base64 patch through the Action's
 `final-message` job output; no privileged collector, Git command, or artifact
