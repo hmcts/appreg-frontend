@@ -6,6 +6,11 @@ import { TestDataGenerator } from '../../utils/TestDataGenerator';
 import { TableNavigation } from './TableNavigation';
 import { TableSearch } from './TableSearch';
 
+const numericAwareCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: 'base',
+});
+
 /**
  * Handles table verification and assertion logic
  */
@@ -220,7 +225,9 @@ export class TableVerification {
         return dateA.getTime() - dateB.getTime();
       });
     } else {
-      sorted = [...nonEmptyValues].sort((a, b) => a.localeCompare(b));
+      sorted = [...nonEmptyValues].sort((a, b) =>
+        numericAwareCollator.compare(a, b),
+      );
     }
 
     if (sortOrder === 'descending') {
