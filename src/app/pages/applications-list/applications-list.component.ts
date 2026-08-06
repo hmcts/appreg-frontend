@@ -90,7 +90,10 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
-type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
+type DeleteFlash =
+  | { kind: 'success' }
+  | { kind: 'error'; code: number }
+  | { kind: 'undo success' };
 
 @Component({
   selector: 'app-applications-list',
@@ -495,6 +498,15 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private handleDeleteFlash(flash: DeleteFlash): void {
     this.appListSignalState.patch(clearNotificationsPatch());
 
+    if (flash.kind === 'undo success') {
+      this.appListSignalState.patch({
+        undoDone: true,
+        deleteInvalid: false,
+        errorSummary: [],
+      });
+      return;
+    }
+
     if (flash.kind === 'success') {
       this.appListSignalState.patch({
         deleteDone: true,
@@ -516,13 +528,19 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private clearFlashParams(): void {
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { delete: null, code: null },
+      queryParams: { delete: null, code: null, undo: null },
       replaceUrl: true,
     });
   }
 
   private readDeleteFlash(q: ParamMap): DeleteFlash | null {
     const del = q.get('delete');
+    const undo = q.get('undo');
+
+    if (undo === 'success') {
+      return { kind: 'undo success' };
+    }
+
     if (del === 'success') {
       return { kind: 'success' };
     }

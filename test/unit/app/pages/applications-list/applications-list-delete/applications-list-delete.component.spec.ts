@@ -159,6 +159,20 @@ describe('ApplicationsListDeleteComponent', () => {
     });
   });
 
+  it('onDelete: undo create success -> navigates with undo=success', async () => {
+    await setup({ navStateRow: makeRow(), undoCreate: true });
+
+    (api.deleteApplicationList as jest.Mock).mockReturnValue(
+      of(new HttpResponse({ status: 204 })),
+    );
+
+    component.onDelete();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/applications-list'], {
+      queryParams: { undo: 'success' },
+    });
+  });
+
   it('onDelete: HttpErrorResponse -> navigates with delete=error and code=status', async () => {
     await setup({ navStateRow: makeRow() });
 

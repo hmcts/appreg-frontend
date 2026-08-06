@@ -110,10 +110,16 @@ export class ApplicationsListDeleteComponent implements OnInit {
       .pipe(map((resp) => resp.status))
       .subscribe({
         next: () => {
+          let queryParamToSend: { delete?: string; undo?: string } = {
+            delete: 'success',
+          };
+
+          if (this.undoCreateIsTrue) {
+            queryParamToSend = { undo: 'success' };
+          }
+
           void this.router.navigate(['/applications-list'], {
-            queryParams: {
-              delete: 'success',
-            },
+            queryParams: queryParamToSend,
           });
         },
         error: (err: unknown) => {

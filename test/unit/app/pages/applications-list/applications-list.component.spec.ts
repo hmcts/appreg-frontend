@@ -250,7 +250,7 @@ describe('ApplicationsList - delete flash query param', () => {
 
     expect(navigateSpy).toHaveBeenCalledWith([], {
       relativeTo: routeStub as ActivatedRoute,
-      queryParams: { delete: null, code: null },
+      queryParams: { delete: null, code: null, undo: null },
       replaceUrl: true,
     });
   });
@@ -270,7 +270,26 @@ describe('ApplicationsList - delete flash query param', () => {
 
     expect(navigateSpy).toHaveBeenCalledWith([], {
       relativeTo: routeStub as ActivatedRoute,
-      queryParams: { delete: null, code: null },
+      queryParams: { delete: null, code: null, undo: null },
+      replaceUrl: true,
+    });
+  });
+
+  it('undo=success -> sets undoDone and clears all flash params', async () => {
+    const { fixture, comp, routeStub, navigateSpy } = createInstanceWithQuery({
+      undo: 'success',
+    });
+
+    await flushSignalEffects(fixture);
+
+    expect(getUIFlagState(comp).undoDone).toBe(true);
+    expect(getUIFlagState(comp).deleteDone).toBe(false);
+    expect(getUIFlagState(comp).deleteInvalid).toBe(false);
+    expect(getUIFlagState(comp).errorSummary).toEqual([]);
+
+    expect(navigateSpy).toHaveBeenCalledWith([], {
+      relativeTo: routeStub as ActivatedRoute,
+      queryParams: { delete: null, code: null, undo: null },
       replaceUrl: true,
     });
   });
