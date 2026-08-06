@@ -2,6 +2,7 @@
 
 import './commands';
 import { AUTH_CONSTANTS } from './constants/ProjectConstants';
+import { AuthHelper } from './helper/auth/AuthHelper';
 import { BaseDownloadHelper } from './helper/download/BaseDownloadHelper';
 import { TestDataGenerator } from './utils/TestDataGenerator';
 
@@ -89,6 +90,8 @@ beforeEach(() => {
 });
 
 afterEach(function () {
+  AuthHelper.releaseSsoLoginLock();
+
   if (isApiSpec) {
     return;
   }

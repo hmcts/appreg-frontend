@@ -159,7 +159,7 @@ Feature: Application List Entries - Move
         Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | APIDate  | Time           | TargetTime     | Status | SourceDescription                    | TargetDescription                     | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     |
-            | user2 | todayiso | timenowhhmm-3h | timenowhhmm-4h | OPEN   | Source list to move at Test_{RANDOM} | Target list for move at Test_{RANDOM} | BCC026            | today      | todayDisplay | 3       | Bristol Crown Court Set 3 |
+            | user2 | todayiso | timenowhhmm-3h | timenowhhmm-4h | OPEN   | Source list to move at Test_{SCENARIO_ID} | Target list for move at Test_{SCENARIO_ID} | BCC026            | today      | todayDisplay | 3       | Bristol Crown Court Set 3 |
 
     @regression @applicationsList @ARCPOC-446
     Scenario Outline: Application List - Move Selected Entries to a New List with Validation
@@ -335,4 +335,4 @@ Feature: Application List Entries - Move
         Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | APIDate  | SourceTime     | Status | SourceDescription                    | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     | InvalidDate | InvalidTime | NewListTime    | NewListDescription                     | OtherLocation           | CJA           | CJASearch |
-            | user2 | todayiso | timenowhhmm-3h | OPEN   | Source list to move at Test_{RANDOM} | BCC026            | today      | todayDisplay | 3       | Bristol Crown Court Set 3 | 32/13/2024  | 25:61       | timenowhhmm-4h | New target list for move Test_{RANDOM} | Other Location_{RANDOM} | Wolverhampton | B9        |
+            | user2 | todayiso | timenowhhmm-3h | OPEN   | Source list to move at Test_{SCENARIO_ID} | BCC026            | today      | todayDisplay | 3       | Bristol Crown Court Set 3 | 32/13/2024  | 25:61       | timenowhhmm-4h | New target list for move Test_{SCENARIO_ID} | Other Location_{RANDOM} | Wolverhampton | B9        |
