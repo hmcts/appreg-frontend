@@ -121,10 +121,10 @@ describe('UpdateOfficialsComponent', () => {
     createComponent();
 
     component.form.patchValue({
-      mags1Title: 'mr',
+      mags1Title: ' HHJ ',
       mags1FirstName: 'John',
       mags1Surname: 'Smith',
-      officialTitle: 'mrs',
+      officialTitle: ' D.J. ',
       officialFirstName: 'Clara',
       officialSurname: 'Jones',
     });
@@ -144,13 +144,13 @@ describe('UpdateOfficialsComponent', () => {
         officials: [
           {
             type: OfficialType.MAGISTRATE,
-            title: 'mr',
+            title: 'HHJ',
             forename: 'John',
             surname: 'Smith',
           },
           {
             type: OfficialType.CLERK,
-            title: 'mrs',
+            title: 'D.J.',
             forename: 'Clara',
             surname: 'Jones',
           },
@@ -159,12 +159,13 @@ describe('UpdateOfficialsComponent', () => {
     });
   });
 
-  it('does not post when official validation fails', () => {
+  it('does not post when official title validation fails', () => {
     createComponent();
 
     component.form.patchValue({
+      mags1Title: null,
       mags1FirstName: 'John',
-      mags1Surname: null,
+      mags1Surname: 'Smith',
     });
 
     component.onSaveOfficials();
@@ -175,9 +176,9 @@ describe('UpdateOfficialsComponent', () => {
     );
     expect(component.errorSummary()).toEqual([
       {
-        id: 'mags1Surname',
-        href: '#officials-mags1-surname',
-        text: 'Magistrates 1 last name is required',
+        id: 'mags1Title',
+        href: '#officials-mags1-title',
+        text: 'Magistrates 1 title is required',
       },
     ]);
   });

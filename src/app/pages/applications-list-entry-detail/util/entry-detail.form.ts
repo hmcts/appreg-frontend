@@ -1,4 +1,5 @@
 import {
+  FormGroup,
   NonNullableFormBuilder,
   ValidatorFn,
   Validators,
@@ -57,8 +58,8 @@ import {
   ContactFormRaw,
   OrganisationFormRaw,
 } from '@util/types/applications-list-entry/types';
+import { setControlError } from '@util/validation-helpers';
 import { accountReferenceRequiredForApplicationCode } from '@validators/account-reference.validator';
-import { crossFormValidation } from '@validators/cross-form.validator';
 import { optional } from '@validators/optional.validator';
 import { standardApplicantCodeConditionalRequired } from '@validators/standard-applicant-code.validator';
 import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format.validator';
@@ -104,6 +105,7 @@ const MAG_SLOTS: readonly MagSlot[] = [
 
 //Assuming 60 max char length for names/addresses
 const MAX_35 = Validators.maxLength(35);
+const MAX_15 = Validators.maxLength(15);
 const MAX_60 = Validators.maxLength(60);
 const MAX_100 = Validators.maxLength(100);
 const REQUIRED: ValidatorFn = (c) => Validators.required(c);
@@ -122,14 +124,26 @@ export function buildStandardApplicationForm(
 ): ApplicationsListEntryForm {
   // Cross-field validators for fields that depend on other entry values.
   const formValidators = [
-    crossFormValidation('mags1FirstName', 'mags1Surname'),
-    crossFormValidation('mags1Surname', 'mags1FirstName'),
-    crossFormValidation('mags2FirstName', 'mags2Surname'),
-    crossFormValidation('mags2Surname', 'mags2FirstName'),
-    crossFormValidation('mags3FirstName', 'mags3Surname'),
-    crossFormValidation('mags3Surname', 'mags3FirstName'),
-    crossFormValidation('officialFirstName', 'officialSurname'),
-    crossFormValidation('officialSurname', 'officialFirstName'),
+    officialRowRequiredValidator(
+      'mags1Title',
+      'mags1FirstName',
+      'mags1Surname',
+    ),
+    officialRowRequiredValidator(
+      'mags2Title',
+      'mags2FirstName',
+      'mags2Surname',
+    ),
+    officialRowRequiredValidator(
+      'mags3Title',
+      'mags3FirstName',
+      'mags3Surname',
+    ),
+    officialRowRequiredValidator(
+      'officialTitle',
+      'officialFirstName',
+      'officialSurname',
+    ),
     accountReferenceRequiredForApplicationCode(),
   ];
 
@@ -188,28 +202,36 @@ export function buildStandardApplicationForm(
       applicationDetails: fb.control<string | null>(null),
       resultCode: fb.control<string | null>(null),
 
-      mags1Title: fb.control<string | null>('mr'),
+      mags1Title: fb.control<string | null>(null, {
+        validators: [MAX_15],
+      }),
       mags1FirstName: fb.control<string | null>(null, {
         validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
       mags1Surname: fb.control<string | null>(null, {
         validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
-      mags2Title: fb.control<string | null>('mr'),
+      mags2Title: fb.control<string | null>(null, {
+        validators: [MAX_15],
+      }),
       mags2FirstName: fb.control<string | null>(null, {
         validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
       mags2Surname: fb.control<string | null>(null, {
         validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
-      mags3Title: fb.control<string | null>('mr'),
+      mags3Title: fb.control<string | null>(null, {
+        validators: [MAX_15],
+      }),
       mags3FirstName: fb.control<string | null>(null, {
         validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
       mags3Surname: fb.control<string | null>(null, {
         validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
-      officialTitle: fb.control<string | null>('mr'),
+      officialTitle: fb.control<string | null>(null, {
+        validators: [MAX_15],
+      }),
       officialFirstName: fb.control<string | null>(null, {
         validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
@@ -219,6 +241,44 @@ export function buildStandardApplicationForm(
     },
     { validators: formValidators },
   ) as ApplicationsListEntryForm;
+}
+
+function officialRowRequiredValidator(
+  titleControl: string,
+  firstNameControl: string,
+  surnameControl: string,
+): ValidatorFn {
+  return (control) => {
+    if (!(control instanceof FormGroup)) {
+      return null;
+    }
+
+    const title: unknown = control.get(titleControl)?.value;
+    const firstName: unknown = control.get(firstNameControl)?.value;
+    const surname: unknown = control.get(surnameControl)?.value;
+    const rowStarted = hasText(title) || hasText(firstName) || hasText(surname);
+
+    setControlError(
+      control,
+      titleControl,
+      'required',
+      rowStarted && !hasText(title),
+    );
+    setControlError(
+      control,
+      firstNameControl,
+      'required',
+      rowStarted && !hasText(firstName),
+    );
+    setControlError(
+      control,
+      surnameControl,
+      'required',
+      rowStarted && !hasText(surname),
+    );
+
+    return null;
+  };
 }
 
 export function buildPersonOrgSharedControls(
@@ -490,16 +550,13 @@ export function officialsToFormPatch(
   magistrates.slice(0, magSlots.length).forEach((m, i) => {
     const slot = magSlots[i];
 
-    patch[slot.title] = mapTitleToOptionValue(m.title, PERSON_TITLE_OPTIONS);
+    patch[slot.title] = m.title ?? null;
     patch[slot.first] = m.forename ?? null;
     patch[slot.sur] = m.surname ?? null;
   });
 
   if (clerk) {
-    patch.officialTitle = mapTitleToOptionValue(
-      clerk.title,
-      PERSON_TITLE_OPTIONS,
-    );
+    patch.officialTitle = clerk.title ?? null;
     patch.officialFirstName = clerk.forename ?? null;
     patch.officialSurname = clerk.surname ?? null;
   }

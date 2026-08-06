@@ -746,12 +746,12 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
             respondent: { organisation: { name: 'Widgets Ltd' } },
             officials: [
               {
-                title: 'Mr',
+                title: 'HHJ',
                 surname: 'Alpha',
                 forename: 'A',
                 type: 'MAGISTRATE',
               },
-              { title: 'Ms', surname: 'Beta', forename: 'B', type: 'JUDGE' },
+              { title: 'D.J.', surname: 'Beta', forename: 'B', type: 'JUDGE' },
             ],
           },
         ]),
@@ -766,6 +766,8 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
 
     expect(alphaCall).toBeTruthy();
     expect(betaCall).toBeTruthy();
+    expect(findTextCallContaining(calls, 'HHJ')).toBeTruthy();
+    expect(findTextCallContaining(calls, 'D.J.')).toBeTruthy();
 
     // If they were rendered in separate doc. text calls, the Y coordinates should differ.
     if (alphaCall !== betaCall) {

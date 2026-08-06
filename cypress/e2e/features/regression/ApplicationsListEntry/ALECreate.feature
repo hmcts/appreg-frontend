@@ -207,19 +207,19 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Result code" In The Accordion "Result wording" Is Empty
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details
-    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 1" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's title" Under "Magistrate 1" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 1" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 1" FieldSet In The Accordion "Officials"
 
-    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 2" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's title" Under "Magistrate 2" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 2" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 2" FieldSet In The Accordion "Officials"
 
-    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 3" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's title" Under "Magistrate 3" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 3" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
 
-    Then User Verifies Dropdown "Select court official's title" Is Visible Under "Court official" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Court official's title" Under "Court official" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
 
@@ -360,19 +360,19 @@ Feature: Applications List Entry Create
       | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | Issue of liability order summons - council tax |
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details
-    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 1" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's title" Under "Magistrate 1" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 1" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 1" FieldSet In The Accordion "Officials"
 
-    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 2" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's title" Under "Magistrate 2" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 2" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 2" FieldSet In The Accordion "Officials"
 
-    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 3" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's title" Under "Magistrate 3" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 3" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
 
-    Then User Verifies Dropdown "Select court official's title" Is Visible Under "Court official" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Court official's title" Under "Court official" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
 
@@ -491,19 +491,19 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Result code" In The Accordion "Result wording" Is Empty
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details
-    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 1" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's title" Under "Magistrate 1" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 1" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 1" FieldSet In The Accordion "Officials"
 
-    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 2" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's title" Under "Magistrate 2" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 2" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 2" FieldSet In The Accordion "Officials"
 
-    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 3" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's title" Under "Magistrate 3" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 3" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
 
-    Then User Verifies Dropdown "Select court official's title" Is Visible Under "Court official" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Court official's title" Under "Court official" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
 

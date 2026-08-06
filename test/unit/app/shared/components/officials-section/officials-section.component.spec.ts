@@ -39,9 +39,17 @@ describe('OfficialsSectionComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should expose title options', () => {
-    expect(component.titleOptions).toBeTruthy();
-    expect(Array.isArray(component.titleOptions)).toBe(true);
+  it('renders official title fields as text inputs', () => {
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('input#officials-mags1-title')).toBeTruthy();
+    expect(element.querySelector('input#officials-mags2-title')).toBeTruthy();
+    expect(element.querySelector('input#officials-mags3-title')).toBeTruthy();
+    expect(
+      element.querySelector('input#officials-official-title'),
+    ).toBeTruthy();
+    expect(element.querySelector('select#officials-mags1-title')).toBeNull();
+    expect(element.querySelector('select#officials-official-title')).toBeNull();
   });
 
   it('should emit saveOfficialsClicked when onSaveOfficials is called', () => {
