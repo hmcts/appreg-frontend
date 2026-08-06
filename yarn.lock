@@ -477,13 +477,14 @@ __metadata:
   linkType: hard
 
 "@apidevtools/json-schema-ref-parser@npm:^15.1.2":
-  version: 15.4.0
-  resolution: "@apidevtools/json-schema-ref-parser@npm:15.4.0"
+  version: 15.5.1
+  resolution: "@apidevtools/json-schema-ref-parser@npm:15.5.1"
   dependencies:
-    js-yaml: "npm:^4.2.0"
+    js-yaml: "npm:^5.2.2"
+    undici: "npm:^6.28.0"
   peerDependencies:
     "@types/json-schema": ^7.0.15
-  checksum: 10/8335539209a7a3a0feb0db16f124b7c5b0739e08229ef4196a9978d7004e3b34a6c73626351e7316e55de2733cf6a0f02c6486cb4341d7bf34ecca34aa074273
+  checksum: 10/34e23798566cfba2bd623e24bbd09a144ed961cd424c08ff27b88cd53b25614cdfa53e89e00d946d9d7ca970f307d27ee213ddf5ae043abd3fb09ae36d2006f4
   languageName: node
   linkType: hard
 
@@ -2249,11 +2250,11 @@ __metadata:
   linkType: hard
 
 "@hono/node-server@npm:^2.0.0":
-  version: 2.0.12
-  resolution: "@hono/node-server@npm:2.0.12"
+  version: 2.1.0
+  resolution: "@hono/node-server@npm:2.1.0"
   peerDependencies:
     hono: ^4
-  checksum: 10/7900669baa2c62c97a25c2cd9dc4ba9e56bba572834fc392e8ce9d3d1aac7b78fdad6b72d2cb47bb668295253a964763a6098e546f0484cf9b96edb1d38ccdf3
+  checksum: 10/a8fbbfe017c60cc625e13cf37da5604340968037e748dab6dbe0c225880a56eac6eefd02089e3fcebe11a9ecbdc7c50bac7827ef99a654148b7f64b1c66b3ecb
   languageName: node
   linkType: hard
 
