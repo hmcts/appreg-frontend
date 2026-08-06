@@ -144,6 +144,7 @@ import { closePermitted } from '@validators/applications-list-close.validator';
 
 type ApplicationsListDetailHistoryState = {
   created?: boolean;
+  createdList?: ApplicationListRow;
   closeError?: {
     status?: number;
     title?: string;
@@ -315,6 +316,15 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   setSuccessBanner(): void {
     if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
       this.vm().createDone = true;
+      const createState = history.state as ApplicationsListDetailHistoryState;
+      const createRow: ApplicationListRow | undefined = createState.createdList;
+
+      if (!createRow) {
+        return;
+      }
+
+      // Although we already get the list row from a get request, this allows us to instantly nav to undo page
+      this.listRow = createRow;
     }
 
     if (

@@ -154,10 +154,9 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             applicationListCreateDto: params,
           }),
         onSuccess: async (response) => {
+          const createdList: ApplicationListRow = toRow(response);
           // Nav to move-confirm page instead
           if (this.fromMoveApplications()) {
-            const targetListDetails: ApplicationListRow = toRow(response);
-
             void this.router.navigate(
               [
                 'applications-list',
@@ -167,7 +166,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
               ],
               {
                 state: {
-                  targetList: targetListDetails,
+                  targetList: createdList,
                   originalListId: this.appListCreateState().listId,
                   entriesToMove: this.appListCreateState().entriesToMove,
                 },
@@ -181,6 +180,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             fragment: 'list-details',
             state: {
               created: true,
+              createdListRow: createdList,
             },
           });
           this.createRequest.set(null);
