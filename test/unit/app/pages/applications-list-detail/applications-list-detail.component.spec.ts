@@ -236,11 +236,6 @@ describe('ApplicationsListDetail', () => {
         }),
       ),
     );
-    entriesApiStub.getApplicationListEntryIds.mockReturnValue(
-      of({
-        ids: ['abc'],
-      }),
-    );
 
     await TestBed.configureTestingModule({
       imports: [ApplicationsListDetail],
