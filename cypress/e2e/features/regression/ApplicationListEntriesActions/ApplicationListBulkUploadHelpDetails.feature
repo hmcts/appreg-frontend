@@ -12,7 +12,12 @@ Feature: Application list bulk upload help details
   Scenario: Expand and collapse bulk upload help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
-    Given User Navigates To The URL "/applications-list/:listId/bulk-upload"
+    When User Searches Application List With:
+      | Date  | Time | Description                    | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+      | today |      | Bulk upload help list {RANDOM} | LCCC065     |       |        |                |     |           |
+    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+      | Date         | Time  | Location                          | Description                    | Entries | Status |
+      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Bulk upload help list {RANDOM} | 1       | OPEN   |
     Then User Sees Page Heading "Bulk upload applications"
     Then User Should See The Accordion "Help with bulk upload"
     When User Toggles The Accordion "Help with bulk upload"

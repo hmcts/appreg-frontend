@@ -3,8 +3,8 @@ Feature: Application list entries bulk update fees help details
   Background: Create fee-required application list entry
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Body:
-      | date     | time  | status | description                              | courtLocationCode |
-      | todayiso | 10:20 | OPEN   | Bulk fee help details list {RANDOM}      | LCCC065           |
+      | date     | time  | status | description                         | courtLocationCode |
+      | todayiso | 10:20 | OPEN   | Bulk fee help details list {RANDOM} | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
@@ -44,10 +44,15 @@ Feature: Application list entries bulk update fees help details
   Scenario: Expand and collapse bulk update fees help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
-    Given User Navigates To The URL "/applications-list/:listId"
+    When User Searches Application List With:
+      | Date  | Time | Description                         | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+      | today |      | Bulk fee help details list {RANDOM} | LCCC065     |       |        |                |     |           |
+    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+      | Date         | Time  | Location                          | Description                         | Entries | Status |
+      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Bulk fee help details list {RANDOM} | 1       | OPEN   |
     When User Checks The Checkbox In Row Of Table "Entries" With:
-      | Sequence number | Account number    | Applicant             | Respondent           | Postcode | Title                      | Fee | Resulted |
-      | 1               | ACC-FEE-{RANDOM}  | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
+      | Sequence number | Account number   | Applicant             | Respondent           | Postcode | Title                      | Fee | Resulted |
+      | 1               | ACC-FEE-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
     Then User Should See The Button "Actions" Is Enabled
     When User Clicks "Actions" Then "Update fee details" From Caption Menu In Table "Entries"
     Then User Sees Page Heading "Update fee details"

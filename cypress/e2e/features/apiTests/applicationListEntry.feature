@@ -99,7 +99,7 @@ Feature: API - Application List Entry
     Then User Stores Response Body Property "id" As "listId"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                         | null                           |
-      | applicationCode                               | CT99002                        |
+      | applicationCode                               | AP99001                        |
       | applicant.person.name.title                   | Mr                             |
       | applicant.person.name.firstName               | Detail                         |
       | applicant.person.name.lastName                | Applicant{RANDOM}              |
@@ -124,8 +124,8 @@ Feature: API - Application List Entry
       | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
       | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
       | respondent.person.dateOfBirth                 | todayiso-25y                   |
-      | wordingFields.0.key                           | Reference                      |
-      | wordingFields.0.value                         | REF-{RANDOM}                   |
+      | wordingFields.0.key                           | Date of Hearing                |
+      | wordingFields.0.value                         | {RANDOM}                       |
       | hasOffsiteFee                                 | true                           |
       | caseReference                                 | CASE-{RANDOM}                  |
       | accountNumber                                 | ACC-{RANDOM}                   |
@@ -142,14 +142,14 @@ Feature: API - Application List Entry
     Then User Verify Response Body Should Have:
       | id                                            | :entryId                    |
       | listId                                        | :listId                     |
-      | applicationCode                               | CT99002                     |
+      | applicationCode                               | AP99001                     |
       | applicant.person.name.firstName               | Detail                      |
       | applicant.person.name.lastName                | Applicant{RANDOM}           |
       | respondent.person.name.firstName              | Sarah                       |
       | respondent.person.name.lastName               | Respondent{RANDOM}          |
       | respondent.person.dateOfBirth                 | todayiso-25y                |
-      | wording.substitution-key-constraints[0].key   | Reference                   |
-      | wording.substitution-key-constraints[0].value | REF-{RANDOM}                |
+      | wording.substitution-key-constraints[0].key   | Date of Hearing             |
+      | wording.substitution-key-constraints[0].value | "{RANDOM}"                  |
       | notes                                         | Entry detail notes {RANDOM} |
 
     Examples:
@@ -200,7 +200,7 @@ Feature: API - Application List Entry
     Then User Stores Response Body Property "id" As "entryId1"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                         | APP013                    |
-      | applicationCode                               | CT99002                   |
+      | applicationCode                               | AP99001                   |
       | respondent.person.name.title                  | Mrs                       |
       | respondent.person.name.firstName              | Page                      |
       | respondent.person.name.lastName               | Second{RANDOM}            |
@@ -211,8 +211,8 @@ Feature: API - Application List Entry
       | respondent.person.contactDetails.mobile       | 07360{RANDOM}             |
       | respondent.person.contactDetails.email        | page2{RANDOM}@example.com |
       | respondent.person.dateOfBirth                 | todayiso-33y              |
-      | wordingFields.0.key                           | Reference                 |
-      | wordingFields.0.value                         | PAGE-{RANDOM}             |
+      | wordingFields.0.key                           | Date of Hearing           |
+      | wordingFields.0.value                         | "{RANDOM}""               |
       | hasOffsiteFee                                 | false                     |
       | caseReference                                 | CASE-P2-{RANDOM}          |
       | accountNumber                                 | ACC-P2-{RANDOM}           |
@@ -284,7 +284,7 @@ Feature: API - Application List Entry
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                              | null                           |
-      | applicationCode                                    | CT99002                        |
+      | applicationCode                                    | AP99001                        |
       | applicant.organisation.name                        | Applicant Industries {RANDOM}  |
       | applicant.organisation.contactDetails.addressLine1 | {RANDOM} King Street           |
       | applicant.organisation.contactDetails.addressLine2 | Westminster                    |
@@ -307,8 +307,8 @@ Feature: API - Application List Entry
       | respondent.person.contactDetails.mobile            | 07984{RANDOM}                  |
       | respondent.person.contactDetails.email             | respondent{RANDOM}@example.com |
       | respondent.person.dateOfBirth                      | todayiso-25y                   |
-      | wordingFields.0.key                                | Reference                      |
-      | wordingFields.0.value                              | {RANDOM}                       |
+      | wordingFields.0.key                                | Date of Hearing                |
+      | wordingFields.0.value                              | "{RANDOM}"                     |
       | hasOffsiteFee                                      | false                          |
       | caseReference                                      | CASE-F2-{RANDOM}               |
       | accountNumber                                      | ACC-F2-{RANDOM}                |
@@ -321,7 +321,7 @@ Feature: API - Application List Entry
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                         | APP036                       |
-      | applicationCode                               | CT99002                      |
+      | applicationCode                               | AP99001                      |
       | respondent.person.name.title                  | Mrs                          |
       | respondent.person.name.firstName              | Claire                       |
       | respondent.person.name.lastName               | Quinn{RANDOM}                |
@@ -332,8 +332,8 @@ Feature: API - Application List Entry
       | respondent.person.contactDetails.mobile       | 07360{RANDOM}                |
       | respondent.person.contactDetails.email        | standard{RANDOM}@example.com |
       | respondent.person.dateOfBirth                 | todayiso-33y                 |
-      | wordingFields.0.key                           | Reference                    |
-      | wordingFields.0.value                         | STD-{RANDOM}                 |
+      | wordingFields.0.key                           | Date of Hearing              |
+      | wordingFields.0.value                         | "{RANDOM}"                   |
       | hasOffsiteFee                                 | false                        |
       | caseReference                                 | CASE-F3-{RANDOM}             |
       | accountNumber                                 | ACC-F3-{RANDOM}              |
@@ -352,11 +352,11 @@ Feature: API - Application List Entry
       | elementsOnPage                         | 1                        |
       | content[0].id                          | :standardEntryId         |
       | content[0].applicant.organisation.name | Innovative Solutions Inc |
-    When User Makes GET API Request To "/application-codes/CT99002?date=todayiso"
+    When User Makes GET API Request To "/application-codes/AP99001?date=todayiso"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
-      | applicationCode | CT99002                                        |
-      | title           | Issue of liability order summons - council tax |
+      | applicationCode | AP99001                 |
+      | title           | "Appeal to Crown Court" |
 
     Examples:
       | User  |
@@ -514,7 +514,7 @@ Feature: API - Application List Entry
     Then User Stores Response Body Property "id" As "listId"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                         | APP013                    |
-      | applicationCode                               | CT99002                   |
+      | applicationCode                               | AP99001                   |
       | respondent.person.name.title                  | Mrs                       |
       | respondent.person.name.firstName              | Claire                    |
       | respondent.person.name.lastName               | Abbott{RANDOM}            |
@@ -525,8 +525,8 @@ Feature: API - Application List Entry
       | respondent.person.contactDetails.mobile       | 07470{RANDOM}             |
       | respondent.person.contactDetails.email        | sort1{RANDOM}@example.com |
       | respondent.person.dateOfBirth                 | todayiso-31y              |
-      | wordingFields.0.key                           | Reference                 |
-      | wordingFields.0.value                         | {RANDOM}                  |
+      | wordingFields.0.key                           | Date of Hearing           |
+      | wordingFields.0.value                         | "{RANDOM}"                |
       | hasOffsiteFee                                 | false                     |
       | caseReference                                 | CASE-S1-{RANDOM}          |
       | accountNumber                                 | ACC-S1-{RANDOM}           |
@@ -540,7 +540,7 @@ Feature: API - Application List Entry
     Then User Stores Response Body Property "id" As "entryId1"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                              | null                           |
-      | applicationCode                                    | CT99002                        |
+      | applicationCode                                    | AP99001                        |
       | applicant.organisation.name                        | Beta Org                       |
       | applicant.organisation.contactDetails.addressLine1 | {RANDOM} King Street           |
       | applicant.organisation.contactDetails.addressLine2 | Westminster                    |
@@ -563,8 +563,8 @@ Feature: API - Application List Entry
       | respondent.person.contactDetails.mobile            | 07984{RANDOM}                  |
       | respondent.person.contactDetails.email             | respondent{RANDOM}@example.com |
       | respondent.person.dateOfBirth                      | todayiso-25y                   |
-      | wordingFields.0.key                                | Reference                      |
-      | wordingFields.0.value                              | {RANDOM}                       |
+      | wordingFields.0.key                                | Date of Hearing                |
+      | wordingFields.0.value                              | "{RANDOM}"                     |
       | hasOffsiteFee                                      | false                          |
       | caseReference                                      | CASE-S2-{RANDOM}               |
       | accountNumber                                      | ACC-S2-{RANDOM}                |
@@ -619,11 +619,11 @@ Feature: API - Application List Entry
       | content[2].id                              | :entryId3     |
       | sort.orders[0].property                    | applicantName |
       | sort.orders[0].direction                   | asc           |
-    When User Makes GET API Request To "/application-codes/CT99002?date=todayiso"
+    When User Makes GET API Request To "/application-codes/AP99001?date=todayiso"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
-      | applicationCode | CT99002                                        |
-      | title           | Issue of liability order summons - council tax |
+      | applicationCode | AP99001               |
+      | title           | Appeal to Crown Court |
 
     Examples:
       | User  |
@@ -675,7 +675,7 @@ Feature: API - Application List Entry
     Then User Stores Response Body Property "id" As "listId"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                         | null                           |
-      | applicationCode                               | CT99002                        |
+      | applicationCode                               | AP99001                        |
       | applicant.person.name.title                   | Mr                             |
       | applicant.person.name.lastName                | Taylor {RANDOM}                |
       | applicant.person.name.firstName               | Henry                          |
@@ -702,8 +702,8 @@ Feature: API - Application List Entry
       | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
       | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
       | respondent.person.dateOfBirth                 | todayiso-25y                   |
-      | wordingFields.0.key                           | Reference                      |
-      | wordingFields.0.value                         | {RANDOM}                       |
+      | wordingFields.0.key                           | Date of Hearing                |
+      | wordingFields.0.value                         | "{RANDOM}"                     |
       | hasOffsiteFee                                 | true                           |
       | caseReference                                 | CASE-{RANDOM}                  |
       | accountNumber                                 | ACC-{RANDOM}                   |
@@ -729,7 +729,7 @@ Feature: API - Application List Entry
     Then User Stores Response Body Property "id" As "entryId"
     When User Makes PUT API Request To "/application-lists/:listId/entries/:entryId" With Object Builder:
       | standardApplicantCode                         | null                                 |
-      | applicationCode                               | CT99002                              |
+      | applicationCode                               | AP99001                              |
       | applicant.person.name.title                   | Mr                                   |
       | applicant.person.name.lastName                | Taylor {RANDOM}                      |
       | applicant.person.name.firstName               | Henry                                |
@@ -756,8 +756,8 @@ Feature: API - Application List Entry
       | respondent.person.contactDetails.mobile       | 07984{RANDOM}                        |
       | respondent.person.contactDetails.email        | {RANDOM}@example.com                 |
       | respondent.person.dateOfBirth                 | todayiso-25y                         |
-      | wordingFields.0.key                           | Reference                            |
-      | wordingFields.0.value                         | {RANDOM}                             |
+      | wordingFields.0.key                           | Date of Hearing                      |
+      | wordingFields.0.value                         | "{RANDOM}"                           |
       | hasOffsiteFee                                 | true                                 |
       | caseReference                                 | CASE-{RANDOM}                        |
       | accountNumber                                 | ACC-{RANDOM}                         |
@@ -798,7 +798,7 @@ Feature: API - Application List Entry
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                               | null                           |
-      | applicationCode                                     | CT99002                        |
+      | applicationCode                                     | AP99001                        |
       | applicant.organisation.name                         | Applicant Industries {RANDOM}  |
       | applicant.organisation.contactDetails.addressLine1  | {RANDOM} King Street           |
       | applicant.organisation.contactDetails.addressLine2  | Westminster                    |
@@ -818,8 +818,8 @@ Feature: API - Application List Entry
       | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                   |
       | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                  |
       | respondent.organisation.contactDetails.email        | respondent{RANDOM}@example.com |
-      | wordingFields.0.key                                 | Reference                      |
-      | wordingFields.0.value                               | {RANDOM}                       |
+      | wordingFields.0.key                                 | Date of Hearing                |
+      | wordingFields.0.value                               | "{RANDOM}"                     |
       | hasOffsiteFee                                       | true                           |
       | caseReference                                       | CASE-{RANDOM}                  |
       | accountNumber                                       | ACC-{RANDOM}                   |

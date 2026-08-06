@@ -44,11 +44,12 @@ Feature: Applications result selected help details
   Scenario: Expand and collapse applications result selected help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
-    Given User Navigates To The URL "/applications"
+    Then User Clicks On The Link Using Exact Text Match "Applications"
+    Then User Verify The Page URL Contains "/applications"
     Then User Sees Page Heading "Applications"
     When User Searches Applications With:
-      | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference    |
-      | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         |                      |
+      | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
+      | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         |                   |
     Then User Should See Table "Application list entries" Has Rows
     Then User Should See Row In Table "Application list entries" With Values:
       | Date         | Applicant             | Respondent           | Application title          | Fee | Resulted | Status |

@@ -4,7 +4,8 @@ Feature: Applications help details
   Scenario: Expand and collapse applications search help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
-    Given User Navigates To The URL "/applications"
+    Then User Clicks On The Link Using Exact Text Match "Applications"
+    Then User Verify The Page URL Contains "/applications"
     Then User Sees Page Heading "Applications"
     Then User Should See The Accordion "Help with searching applications"
     When User Toggles The Accordion "Help with searching applications"
