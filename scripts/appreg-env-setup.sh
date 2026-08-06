@@ -28,8 +28,8 @@ echo "======== Setup up script complete ========";
 echo "NVM installed, version is:"
 nvm --version;
 
-echo "Installing node 24.14.0";
-nvm install 24.14.0;
+echo "Installing node 24.15.0";
+nvm install 24.15.0;
 
 if [[ $? -ne 0 ]]; then
     echo "Node installation failed, exit code: $?";
@@ -37,11 +37,11 @@ else
     echo "Node installed successfully";
     NODE_VERSION=$(node --version);
 
-    if [[ ${NODE_VERSION} == "v24.14.0" ]]; then
+    if [[ ${NODE_VERSION} == "v24.15.0" ]]; then
         echo "Correct node version found";
     else
         echo "Incorrect node version, attempting to use the correct version";
-        nvm use 24.14.0;
+        nvm use 24.15.0;
     fi
 fi
 
