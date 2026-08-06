@@ -6,23 +6,14 @@ import {
 } from '../../constants/ProjectConstants';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
 
-import { AuthHelper } from './AuthHelper';
-
 export class AuthErrorScenarios {
   static signInWithInvalidEmailAndVerifyError(
     invalidEmail: string,
     expectedError: string,
   ): void {
     cy.visit(APP_URLS.HOME);
-    AuthHelper.acquireSsoLoginLock();
-
-    // Invalid-credential scenarios still enter Microsoft SSO, so serialize the
-    // redirect/login stage with the successful-login tests during parallel runs.
-    ButtonHelper.clickButton(UI_CONSTANTS.BUTTON_TEXT_SIGN_IN, 40000);
-    cy.url({ timeout: 40000 }).should(
-      'include',
-      AUTH_CONSTANTS.MICROSOFT_LOGIN_DOMAIN,
-    );
+    ButtonHelper.clickButton(UI_CONSTANTS.BUTTON_TEXT_SIGN_IN);
+    cy.url().should('include', AUTH_CONSTANTS.MICROSOFT_LOGIN_DOMAIN);
 
     cy.origin(
       'https://login.microsoftonline.com',
@@ -35,7 +26,6 @@ export class AuthErrorScenarios {
         cy.contains(errorArg, { timeout: 10000 }).should('be.visible');
       },
     );
-    AuthHelper.releaseSsoLoginLock();
   }
 
   static signInWithValidEmailInvalidPasswordAndVerifyError(
@@ -44,15 +34,8 @@ export class AuthErrorScenarios {
     expectedError: string,
   ): void {
     cy.visit(APP_URLS.HOME);
-    AuthHelper.acquireSsoLoginLock();
-
-    // Invalid-credential scenarios still enter Microsoft SSO, so serialize the
-    // redirect/login stage with the successful-login tests during parallel runs.
-    ButtonHelper.clickButton(UI_CONSTANTS.BUTTON_TEXT_SIGN_IN, 40000);
-    cy.url({ timeout: 40000 }).should(
-      'include',
-      AUTH_CONSTANTS.MICROSOFT_LOGIN_DOMAIN,
-    );
+    ButtonHelper.clickButton(UI_CONSTANTS.BUTTON_TEXT_SIGN_IN);
+    cy.url().should('include', AUTH_CONSTANTS.MICROSOFT_LOGIN_DOMAIN);
 
     cy.origin(
       'https://login.microsoftonline.com',
@@ -73,6 +56,5 @@ export class AuthErrorScenarios {
         cy.contains(errorArg, { timeout: 10000 }).should('be.visible');
       },
     );
-    AuthHelper.releaseSsoLoginLock();
   }
 }

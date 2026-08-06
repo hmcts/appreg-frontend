@@ -42,7 +42,7 @@ Feature: Application List Entries Bulk Update Fees
             | wordingFields.0.value                         | {RANDOM}                       |
             | feeStatuses.0.paymentReference                | PAYA{RANDOM}                   |
             | feeStatuses.0.paymentStatus                   | UNDERTAKEN                     |
-            | feeStatuses.0.statusDate                      | yesterdayiso                   |
+            | feeStatuses.0.statusDate                      | todayiso                       |
             | hasOffsiteFee                                 | true                           |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-E1-{RANDOM}                |
@@ -204,9 +204,13 @@ Feature: Application List Entries Bulk Update Fees
         Then User Sees Page Heading "Applications list entry update"
         When User Clicks On The "Show all sections" Button
         Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
-            | Fee Status | Payment Ref  |
-            | UNDERTAKEN | PAYA{RANDOM} |
-        Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
+            | Fee Status | Status Date  | Payment Ref  |
+            | UNDERTAKEN | todaydisplay | PAYA{RANDOM} |
+            | PAID       | todaydisplay | PAY-{RANDOM} |
+        Then User Verifies "Change" Link Is Not Visible In Row Of Table In The Accordion "Civil fee" With:
+            | Fee Status | Status Date  | Payment Ref  |
+            | UNDERTAKEN | todaydisplay | PAYA{RANDOM} |
+        Then User Verifies "Change" Link Is Visible In Row Of Table In The Accordion "Civil fee" With:
             | Fee Status | Status Date  | Payment Ref  |
             | PAID       | todaydisplay | PAY-{RANDOM} |
         # Application List Cleanup
@@ -215,7 +219,7 @@ Feature: Application List Entries Bulk Update Fees
 
         Examples:
             | User  | SearchDate | APIDate  | Time  | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Court                     | Entries | PaymentReference |
-            | user1 | today      | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} | BCC026            | today      | todaydisplay | Bristol Crown Court Set 3 | 3       | PAYD{RANDOM}     |
+            | user1 | today      | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todaydisplay | Bristol Crown Court Set 3 | 3       | PAYD{RANDOM}     |
 
     @regression @applicationsListEntries @ARCPOC-222 @ARCPOC-630
     Scenario Outline: Application List Entries - Bulk Update Fees - 2 ALEs with Fee Required = N and Respondent Required = Y
@@ -305,4 +309,4 @@ Feature: Application List Entries Bulk Update Fees
 
         Examples:
             | User  | SearchDate | APIDate  | Time  | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Court                     | Entries | PaymentReference |
-            | user1 | today      | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} | BCC026            | today      | todaydisplay | Bristol Crown Court Set 3 | 2       | PAYD{RANDOM}     |
+            | user1 | today      | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todaydisplay | Bristol Crown Court Set 3 | 2       | PAYD{RANDOM}     |

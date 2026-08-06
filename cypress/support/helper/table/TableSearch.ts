@@ -10,46 +10,6 @@ import { TableNavigation } from './TableNavigation';
  */
 export class TableSearch {
   /**
-   * Retries a boolean condition until it passes or times out.
-   * Used for table states that can lag briefly behind the triggering action.
-   */
-  static retryUntil(
-    check: () => Cypress.Chainable<boolean>,
-    failureMessage: string,
-    timeoutMs: number = 5000,
-    intervalMs: number = 250,
-  ): Cypress.Chainable<void> {
-    const startedAt = Date.now();
-
-    const attempt = (): Cypress.Chainable<void> => {
-      return check()
-        .then((passed) => {
-          if (passed) {
-            return false;
-          }
-
-          if (Date.now() - startedAt >= timeoutMs) {
-            throw new Error(failureMessage);
-          }
-
-          return true;
-        })
-        .then((shouldRetry) => {
-          if (!shouldRetry) {
-            return undefined;
-          }
-
-          return cy
-            .wait(intervalMs, { log: false })
-            .then(() => attempt())
-            .then(() => undefined);
-        });
-    };
-
-    return attempt();
-  }
-
-  /**
    * Builds a map of column names to their indices
    */
   static buildColumnIndexMap(
@@ -88,89 +48,84 @@ export class TableSearch {
     searchAllPages: boolean = true,
     onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
   ): Cypress.Chainable<boolean> {
-    return TableSearch.findRowElementWithPagination(
-      columnValues,
-      caption,
-      searchAllPages,
-    ).then((matchedRow) => {
-      if (!matchedRow) {
-        return cy.wrap(false);
-      }
-
-      if (!onMatch) {
-        return cy.wrap(true);
-      }
-
-      return cy
-        .wrap(undefined)
-        .then(() => onMatch(matchedRow))
-        .then(() => true);
-    });
-  }
-
-  /**
-   * Finds the matching row across table pages and returns it for row-level assertions.
-   */
-  static findRowElementWithPagination(
-    columnValues: Record<string, string>,
-    caption?: string,
-    searchAllPages: boolean = true,
-  ): Cypress.Chainable<JQuery<HTMLElement> | null> {
-    return TableSearch.findRowElementInCurrentPage(columnValues, caption).then(
-      (matchedRow) => {
-        if (matchedRow) {
-          return cy.wrap(matchedRow, { log: false });
+    return TableSearch.searchInCurrentPage(columnValues, caption, onMatch).then(
+      (found) => {
+        if (found) {
+          return cy.wrap(true);
         }
-
         if (!searchAllPages) {
-          return cy.wrap(null, { log: false });
+          return cy.wrap(false);
         }
-
         cy.screenshot(`table-page-${caption || 'table'}`);
         return TableNavigation.goToNextPageIfExists().then((hasNext) => {
-          if (!hasNext) {
-            return cy.wrap(null, { log: false });
+          if (hasNext) {
+            cy.log('Row not found on current page, checking next page...');
+            return TableSearch.searchWithPagination(
+              columnValues,
+              caption,
+              searchAllPages,
+              onMatch,
+            );
           }
-
-          cy.log('Row not found on current page, checking next page...');
-          return TableSearch.findRowElementWithPagination(
-            columnValues,
-            caption,
-            searchAllPages,
-          );
+          return cy.wrap(false);
         });
       },
     );
   }
 
-  private static findRowElementInCurrentPage(
+  /**
+   * Searches for matching row in current page
+   */
+  private static searchInCurrentPage(
     columnValues: Record<string, string>,
     caption?: string,
-  ): Cypress.Chainable<JQuery<HTMLElement> | null> {
+    onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
+  ): Cypress.Chainable<boolean> {
     return TableElement.getTableHeaders(caption).then(($headers) => {
       const columnIndexMap = TableSearch.buildColumnIndexMap($headers);
+      return TableSearch.searchRowsInTable(
+        columnValues,
+        caption,
+        columnIndexMap,
+        onMatch,
+      );
+    });
+  }
 
-      return TableElement.getTableRows(caption).then(($rows) => {
-        let matchedRow: JQuery<HTMLElement> | null = null;
+  /**
+   * Searches through table rows for a match
+   */
+  private static searchRowsInTable(
+    columnValues: Record<string, string>,
+    caption: string | undefined,
+    columnIndexMap: Record<string, number>,
+    onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
+  ): Cypress.Chainable<boolean> {
+    return TableElement.getTableRows(caption).then(($rows) => {
+      let matchedRow: JQuery<HTMLElement> | null = null;
 
-        $rows.each((_rowIndex: number, row: HTMLElement) => {
-          if (
-            TableSearch.rowMatchesValues(
-              Cypress.$(row),
-              columnValues,
-              columnIndexMap,
-              caption,
-            )
-          ) {
-            matchedRow = Cypress.$(row);
-            return false;
-          }
-
-          return undefined;
-        });
-
-        return cy.wrap(matchedRow, { log: false });
+      $rows.each((_rowIndex: number, row: HTMLElement) => {
+        if (
+          TableSearch.rowMatchesValues(
+            Cypress.$(row),
+            columnValues,
+            columnIndexMap,
+            caption,
+          )
+        ) {
+          matchedRow = Cypress.$(row);
+          return false; // break the loop
+        }
       });
+
+      if (matchedRow && onMatch) {
+        return cy
+          .wrap(undefined)
+          .then(() => onMatch(matchedRow as JQuery<HTMLElement>))
+          .then(() => true);
+      }
+
+      return cy.wrap(Boolean(matchedRow));
     });
   }
 
@@ -275,26 +230,16 @@ export class TableSearch {
     const tableRef = caption ? `table "${caption}"` : 'table';
     cy.log(`Verifying NO row exists in ${tableRef} with: ${searchCriteria}`);
 
-    // Search results can briefly show stale rows after actions like delete.
-    // Poll until the row disappears, then do one final check for a clear error.
-    return TableSearch.retryUntil(
-      () =>
-        TableSearch.findRowWithValues(columnValues, caption, true).then(
-          (found) => !found,
-        ),
-      `✗ Unexpected row found in ${tableRef} with values: ${searchCriteria}`,
-    ).then(() => {
-      cy.log(`✓ No row found with: ${searchCriteria}`);
-      return TableSearch.findRowWithValues(columnValues, caption, true).then(
-        (found) => {
-          if (!found) {
-            return;
-          }
-          throw new Error(
-            `✗ Unexpected row found in ${tableRef} with values: ${searchCriteria}`,
-          );
-        },
-      );
-    }) as unknown as Cypress.Chainable<void>;
+    return TableSearch.findRowWithValues(columnValues, caption, true).then(
+      (found) => {
+        if (!found) {
+          cy.log(`✓ No row found with: ${searchCriteria}`);
+          return;
+        }
+        throw new Error(
+          `✗ Unexpected row found in ${tableRef} with values: ${searchCriteria}`,
+        );
+      },
+    ) as unknown as Cypress.Chainable<void>;
   }
 }

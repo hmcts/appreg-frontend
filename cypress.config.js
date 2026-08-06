@@ -7,7 +7,6 @@ const {
   createEsbuildPlugin,
 } = require('@badeball/cypress-cucumber-preprocessor/esbuild');
 const { PDFParse } = require('pdf-parse');
-const { createSsoLoginLock } = require('./cypress/support/node/SsoLoginLock');
 
 // Use process.stdout.write for direct output (no ESLint warnings)
 const cypressLog = {
@@ -99,9 +98,6 @@ module.exports = defineConfig({
     async setupNodeEvents(on, config) {
       const fs = require('node:fs');
       const path = require('node:path');
-      const ssoLoginLock = createSsoLoginLock(
-        path.join(config.projectRoot, 'cypress/reports/sso-login.lock'),
-      );
 
       await addCucumberPreprocessorPlugin(on, config);
 
@@ -138,12 +134,6 @@ module.exports = defineConfig({
         // Secure env access from Node context
         getEnv(key) {
           return config.env[key] || null;
-        },
-        acquireSsoLoginLock() {
-          return ssoLoginLock.acquire();
-        },
-        releaseSsoLoginLock() {
-          return ssoLoginLock.release();
         },
         logA11yViolations(violations) {
           const logPath = path.join(

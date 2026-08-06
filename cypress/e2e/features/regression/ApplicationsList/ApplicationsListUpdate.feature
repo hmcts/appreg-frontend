@@ -44,7 +44,7 @@ Feature: Applications List Update
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description   | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription    | UpdatedOtherLocation   | SuccessBanner                                                                      |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{SCENARIO_ID} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{SCENARIO_ID} | Updated Location_21442 | Success Application list updatedThe application list has been successfully updated |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{RANDOM} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{RANDOM} | Updated Location_21442 | Success Application list updatedThe application list has been successfully updated |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
     Scenario Outline: Update applications list Successfully with Court selected
@@ -92,7 +92,7 @@ Feature: Applications List Update
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
             | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description   | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessBanner                                                                      |
-            | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{SCENARIO_ID} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        | Success Application list updatedThe application list has been successfully updated |
+            | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{RANDOM} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        | Success Application list updatedThe application list has been successfully updated |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-852
     Scenario Outline: Update applications list Successfully with field validations
@@ -175,11 +175,15 @@ Feature: Applications List Update
             | date      | time   | description   | status               | courtLocationCode | durationHours | durationMinutes |
             | <APIDate> | <Time> | <Description> | <BeforeUpdateStatus> | <Court>           |               |                 |
         Then User Verify Response Status Code Should Be "201"
-        Then User Stores Response Body Property "id" As "listId"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        # Open the exact API-created list so parallel scenarios cannot select a matching row.
-        Given User Navigates To The URL "/applications-list/:listId#list-details"
+        When User Searches Application List With:
+            | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <Description> |             |       |        |                |     |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "<TableName>" With:
+            | Date          | Time   | Location        | Description   | Entries | Status |
+            | <DisplayDate> | <Time> | <courtLocation> | <Description> | 0       | OPEN   |
+        Then User Clicks On The Link "List details"
         Then User Verify The Page URL Contains "#list-details"
         Then User Verifies "<BeforeUpdateStatus>" Is Selected In The " Select list status " Dropdown
         Then User Selects "<Status>" In The "Select list status" Dropdown
@@ -201,8 +205,8 @@ Feature: Applications List Update
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Success Application list closed successfully If you believe this was in error, please contact support."
         Examples:
-            | User  | APIDate  | Time           | Court  | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes |
-            | user1 | todayiso | timenowhhmm-3h | RCJ001 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               |
+            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes |
+            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567
     Scenario Outline: Close application list with One ALE
@@ -253,8 +257,13 @@ Feature: Applications List Update
         Then User Stores Response Body Property "id" As "entryId"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        # Open the exact API-created list so later API updates and UI actions share one list.
-        Given User Navigates To The URL "/applications-list/:listId#list-details"
+        When User Searches Application List With:
+            | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <Description> |             |       |        |                |     |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "<TableName>" With:
+            | Date          | Time   | Location        | Description   | Entries | Status |
+            | <DisplayDate> | <Time> | <courtLocation> | <Description> | 1       | OPEN   |
+        Then User Clicks On The Link "List details"
         Then User Verify The Page URL Contains "#list-details"
         Then User Verifies "<BeforeUpdateStatus>" Is Selected In The " Select list status " Dropdown
         Then User Selects "<Status>" In The "Select list status" Dropdown
@@ -410,5 +419,5 @@ Feature: Applications List Update
             | <DisplayDate> | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Application for order re public health measures (person) | Yes | Yes      | CLOSED |
 
         Examples:
-            | User  | APIDate  | DisplayDate  | Time           | Court  | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes | feeStatusPaidReference | feeStatusDue | feeStatusDate | feeStatusPaid |
-            | user1 | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               | REF-{RANDOM}           | DUE          | todayiso      | PAID          |
+            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes | feeStatusPaidReference | feeStatusDue | feeStatusDate | feeStatusPaid |
+            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               | REF-{RANDOM}           | DUE          | todayiso      | PAID          |
