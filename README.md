@@ -17,7 +17,7 @@ This README contains a setup guide for setting up your dev environment (Copied f
 
 ---
 
-## MacOS & Linux
+## macOS & Linux
 
 You can either run a provided script or install manually.
 
@@ -84,7 +84,7 @@ sudo chmod +x appreg-env-setup.sh
 
 ### Curl not found
 
-- Curl should come preinstalled on Linux and MacOS
+- Curl should come preinstalled on Linux and macOS
 - Verify with:
 
   ```bash
@@ -100,7 +100,7 @@ sudo chmod +x appreg-env-setup.sh
   sudo apt-get install curl
   ```
 
-  **MacOS:**
+  **macOS:**
   - Install Homebrew from [brew.sh](https://brew.sh/)
   - Run:
 
@@ -143,7 +143,7 @@ sudo chmod +x appreg-env-setup.sh
 
 ### Using WSL
 
-- Follow the **MacOS & Linux** steps (since WSL is a Linux environment)
+- Follow the **macOS & Linux** steps (since WSL is a Linux environment)
 
 ### Native Windows
 
