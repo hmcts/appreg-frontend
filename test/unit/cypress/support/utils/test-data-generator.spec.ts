@@ -11,9 +11,9 @@ describe('TestDataGenerator', () => {
 
     TestDataGenerator.initializeScenario();
 
-    expect(TestDataGenerator.replaceRandomPlaceholders('Test {RANDOM}-{RANDOM}')).toBe(
-      'Test 036223-036223',
-    );
+    expect(
+      TestDataGenerator.replaceRandomPlaceholders('Test {RANDOM}-{RANDOM}'),
+    ).toBe('Test 036223-036223');
   });
 
   it('does not repeat a token when timestamps share the same final four digits', () => {
@@ -26,7 +26,9 @@ describe('TestDataGenerator', () => {
     TestDataGenerator.initializeScenario();
 
     expect(firstToken).toBe('996257');
-    expect(TestDataGenerator.replaceRandomPlaceholders('{RANDOM}')).toBe('036223');
+    expect(TestDataGenerator.replaceRandomPlaceholders('{RANDOM}')).toBe(
+      '036223',
+    );
   });
 
   it('uses one longer identifier throughout a scenario', () => {

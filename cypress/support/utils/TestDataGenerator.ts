@@ -8,7 +8,7 @@ export class TestDataGenerator {
   private static scenarioId: string | null = null;
 
   /**
-    * Initializes a new random value for the current scenario
+   * Initializes a new random value for the current scenario
    * Keeps the token to six digits because feature data uses it in valid phone numbers.
    * It wraps every ~17 minutes, so use a longer token if those field constraints are removed.
    */
