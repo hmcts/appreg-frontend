@@ -34,13 +34,13 @@ import {
   BulkActionType,
   CriminalJusticeAreaGetDto,
   EntryGetSummaryDto,
-  EntryIdsDto,
   EntryPage,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu } from '@util/moj-button-menu';
 import { formatPersonName } from '@util/string-helpers';
+import { ApplicationListRow } from '@util/types/application-list/types';
 
 const flushSignalEffects = async (
   fixture?: ComponentFixture<ApplicationsListDetail>,
@@ -107,13 +107,11 @@ describe('ApplicationsListDetail', () => {
     Pick<
       ApplicationListEntriesApi,
       | 'getApplicationListEntries'
-      | 'getApplicationListEntryIds'
       | 'getBulkResultApplicationListEntriesByJobId'
       | 'applicationListEntryBulkActionPreview'
     >
   > = {
     getApplicationListEntries: jest.fn(),
-    getApplicationListEntryIds: jest.fn(),
     getBulkResultApplicationListEntriesByJobId: jest.fn(),
     applicationListEntryBulkActionPreview: jest.fn(),
   };
@@ -238,12 +236,6 @@ describe('ApplicationsListDetail', () => {
         }),
       ),
     );
-    entriesApiStub.getApplicationListEntryIds.mockReturnValue(
-      of({
-        ids: ['abc'],
-      } as EntryIdsDto),
-    );
-
     await TestBed.configureTestingModule({
       imports: [ApplicationsListDetail],
       providers: [
@@ -273,6 +265,44 @@ describe('ApplicationsListDetail', () => {
 
   it('creates', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('onUndoClick', () => {
+    it('does nothing when the list id or row is unavailable', async () => {
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest
+        .spyOn(router, 'navigate')
+        .mockResolvedValue(true);
+
+      component.id = '';
+      component.listRow = undefined;
+      await component.onUndoClick();
+
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+
+    it('navigates to delete with the selected row and undo-create state', async () => {
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest
+        .spyOn(router, 'navigate')
+        .mockResolvedValue(true);
+      const row = {
+        id: 'list-1',
+        entriesCount: 0,
+      } as unknown as ApplicationListRow;
+      component.id = 'list-1';
+      component.listRow = row;
+
+      await component.onUndoClick();
+
+      expect(navigateSpy).toHaveBeenCalledWith(
+        ['delete'],
+        expect.objectContaining({
+          relativeTo: TestBed.inject(ActivatedRoute),
+          state: { listRow: row, undoCreate: true },
+        }),
+      );
+    });
   });
 
   it('renders tabs with correct selection', () => {
@@ -1808,7 +1838,6 @@ describe('ApplicationsListDetail', () => {
 
     component.onSelectAllMatchingClick();
 
-    expect(entriesApiStub.getApplicationListEntryIds).not.toHaveBeenCalled();
     expect(vm().selectedIds).toEqual(new Set(['abc']));
     expect(vm().selectedRows).toEqual([{ id: 'abc', title: 'Visible row' }]);
     expect(vm().allMatchingSelected).toBe(true);
