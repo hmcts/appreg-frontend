@@ -14,7 +14,10 @@ required_env() {
 required_env "OUTPUT_DIR"
 required_env "EXPECTED_PR_NUMBER"
 required_env "EXPECTED_HEAD_REF"
-required_env "GH_TOKEN"
+required_env "EXPECTED_BASE_REF"
+required_env "EXPECTED_HEAD_SHA"
+required_env "EXPECTED_BASE_SHA"
+required_env "TRUSTED_PIPELINE_PATH"
 
 output_dir="${OUTPUT_DIR}"
 metadata_path="${output_dir}/metadata.env"
@@ -70,29 +73,6 @@ git_sanitized() {
   run_sanitized git \
     -c core.hooksPath=/dev/null \
     -c credential.helper= \
-    -c protocol.file.allow=never \
-    "$@"
-}
-
-git_read_authenticated() {
-  env -i \
-    "HOME=${sanitized_home}" \
-    "PATH=${PATH:-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin}" \
-    "SHELL=${SHELL:-/bin/bash}" \
-    "USER=${USER:-runner}" \
-    "LOGNAME=${LOGNAME:-${USER:-runner}}" \
-    "LANG=${LANG:-C.UTF-8}" \
-    "LC_ALL=${LC_ALL:-${LANG:-C.UTF-8}}" \
-    "TERM=${TERM:-xterm}" \
-    "TMPDIR=${sanitized_tmp}" \
-    "GIT_CONFIG_GLOBAL=/dev/null" \
-    "GIT_CONFIG_NOSYSTEM=1" \
-    "GIT_TERMINAL_PROMPT=0" \
-    "GH_TOKEN=${GH_TOKEN}" \
-    git \
-    -c core.hooksPath=/dev/null \
-    -c credential.helper= \
-    -c credential.helper='!f() { test "$1" = get && echo username=x-access-token && echo "password=$GH_TOKEN"; }; f' \
     -c protocol.file.allow=never \
     "$@"
 }
@@ -155,17 +135,6 @@ append_guardrail_warning() {
   } >>"${comment_body_path}"
 }
 
-block_sonar_for_guardrail_changes() {
-  if [[ "${guardrail_review_required}" != "true" ]]; then
-    return
-  fi
-
-  echo "::error::Refusing to run Sonar with SONAR_TOKEN because Codex changed verification-sensitive files." >&2
-  echo "Manual review is required before exposing Sonar credentials to changed package, workflow, runner, or verification tooling." >&2
-  sed 's/^/- /' "${guardrail_changes_path}" >&2
-  exit 1
-}
-
 ensure_frontend_formatter() {
   if [[ -x "node_modules/.bin/prettier" ]]; then
     return
@@ -199,46 +168,6 @@ format_verified_patch() {
   git_sanitized diff --cached --binary >"${patch_path}"
 }
 
-run_frontend_sonar_analysis() {
-  if [[ "${RUN_SONAR:-true}" != "true" ]]; then
-    echo "Skipping Sonar analysis because RUN_SONAR is not true."
-    return
-  fi
-
-  block_sonar_for_guardrail_changes
-
-  if [[ -z "${SONAR_TOKEN:-}" ]]; then
-    echo "::error::SONAR_TOKEN is required for Codex review verification Sonar analysis." >&2
-    exit 1
-  fi
-
-  local sonar_host_url="${SONAR_HOST_URL:-https://sonarcloud.io}"
-  local sonar_organization="${SONAR_ORGANIZATION:-hmcts}"
-  local sonar_quality_gate_timeout="${SONAR_QUALITY_GATE_TIMEOUT_SECONDS:-300}"
-  local sonar_args=(
-    -Dproject.settings=sonar-project.properties
-    "-Dsonar.host.url=${sonar_host_url}"
-    "-Dsonar.pullrequest.key=${pr_number}"
-    "-Dsonar.pullrequest.branch=${head_ref}"
-    "-Dsonar.pullrequest.base=${base_ref:-master}"
-    "-Dsonar.qualitygate.wait=true"
-    "-Dsonar.qualitygate.timeout=${sonar_quality_gate_timeout}"
-  )
-
-  if [[ -n "${sonar_organization}" ]]; then
-    sonar_args+=("-Dsonar.organization=${sonar_organization}")
-  fi
-
-  ensure_frontend_formatter
-  echo "Generating frontend coverage for Sonar analysis."
-  run_sanitized node .yarn/releases/yarn-4.10.3.cjs test:coverage --runInBand
-
-  echo "Running Sonar analysis for Codex review PR #${pr_number}."
-  run_sanitized env "SONAR_TOKEN=${SONAR_TOKEN}" \
-    node .yarn/releases/yarn-4.10.3.cjs \
-    dlx -p sonarqube-scanner sonar-scanner "${sonar_args[@]}"
-}
-
 mkdir -p "${artifact_dir}" "${sanitized_home}" "${sanitized_tmp}"
 
 has_changes="$(metadata_value has_changes)"
@@ -256,7 +185,7 @@ if [[ "${has_changes}" != "true" ]]; then
   exit 0
 fi
 
-if [[ "${pr_number}" != "${EXPECTED_PR_NUMBER}" || "${head_ref}" != "${EXPECTED_HEAD_REF}" || "${head_ref}" != codex/* ]]; then
+if [[ "${pr_number}" != "${EXPECTED_PR_NUMBER}" || "${head_ref}" != "${EXPECTED_HEAD_REF}" || "${base_ref}" != "${EXPECTED_BASE_REF}" || "${head_ref}" != codex/* ]]; then
   echo "Refusing to verify unexpected review artifact metadata." >&2
   exit 1
 fi
@@ -266,16 +195,17 @@ if [[ ! -s "${patch_path}" ]]; then
   exit 1
 fi
 
-cp bin/codex-local-pipeline.sh "${trusted_pipeline_path}"
+cp "${TRUSTED_PIPELINE_PATH}" "${trusted_pipeline_path}"
 chmod +x "${trusted_pipeline_path}"
 trusted_pipeline_sha="$(file_sha256 "${trusted_pipeline_path}")"
 
-git_read_authenticated fetch origin "${head_ref}:refs/remotes/origin/${head_ref}"
-if [[ -n "${base_ref}" ]]; then
-  git_read_authenticated fetch origin "${base_ref}:refs/remotes/origin/${base_ref}"
+actual_head_sha="$(git_sanitized rev-parse HEAD)"
+actual_base_sha="$(git_sanitized rev-parse "refs/remotes/origin/${base_ref}")"
+if [[ "${actual_head_sha}" != "${EXPECTED_HEAD_SHA}" || "${actual_base_sha}" != "${EXPECTED_BASE_SHA}" ]]; then
+  echo "Credential-free verification source does not match the trusted PR revisions." >&2
+  exit 1
 fi
-unset GH_TOKEN
-git_sanitized checkout -B "${head_ref}" "origin/${head_ref}"
+git_sanitized checkout -B "${head_ref}" "${EXPECTED_HEAD_SHA}"
 git_sanitized apply --index --binary "${patch_path}"
 
 format_verified_patch
@@ -291,8 +221,6 @@ else
   verify_trusted_file "${trusted_pipeline_path}" "${trusted_pipeline_sha}" "pipeline wrapper"
   run_sanitized "${trusted_pipeline_path}" "${local_pipeline_mode}" --base "${base_ref:-master}" --no-fetch
 fi
-
-run_frontend_sonar_analysis
 
 {
   echo "has_changes=true"
