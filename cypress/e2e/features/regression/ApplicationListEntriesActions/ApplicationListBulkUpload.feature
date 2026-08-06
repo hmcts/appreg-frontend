@@ -10,12 +10,7 @@ Feature: Application List Bulk Upload
         Then User Stores Response Body Property "id" As "listId"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        When User Searches Application List With:
-            | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
-            | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-            | Date          | Time   | Location | Description   | Entries   | Status   |
-            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+        Given User Navigates To The URL "/applications-list/:listId"
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page
@@ -54,12 +49,7 @@ Feature: Application List Bulk Upload
         Then User Stores Response Body Property "id" As "listId"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        When User Searches Application List With:
-            | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
-            | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-            | Date          | Time   | Location | Description   | Entries   | Status   |
-            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+        Given User Navigates To The URL "/applications-list/:listId"
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page
@@ -118,12 +108,7 @@ Feature: Application List Bulk Upload
         Then User Stores Response Body Property "id" As "listId"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        When User Searches Application List With:
-            | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
-            | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-            | Date          | Time   | Location | Description   | Entries   | Status   |
-            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+        Given User Navigates To The URL "/applications-list/:listId"
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page
@@ -161,12 +146,7 @@ Feature: Application List Bulk Upload
         # Navigate To Bulk Upload
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        When User Searches Application List With:
-            | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
-            | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-            | Date          | Time   | Location | Description   | Entries   | Status   |
-            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+        Given User Navigates To The URL "/applications-list/:listId"
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page

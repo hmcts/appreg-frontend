@@ -25,6 +25,8 @@ export class AuthHelper {
       return;
     }
 
+    AuthHelper.acquireSsoLoginLock();
+
     ButtonHelper.clickButton('Sign in', 40000);
     cy.screenshot('02-After-Clicking-SignIn-Button');
 
@@ -32,12 +34,32 @@ export class AuthHelper {
 
     cy.url({ timeout: 30000 }).should('include', '/applications-list');
     SessionValidator.waitForSessionEstablishment();
+    SessionValidator.verifySessionIsValid();
     cy.screenshot('06-Final-ApplicationsList-Page');
     cy.log('SSO login completed');
+    AuthHelper.releaseSsoLoginLock();
+  }
+
+  static acquireSsoLoginLock(): void {
+    cy.task<string>('acquireSsoLoginLock').then(() => {
+      cy.log('Acquired shared SSO login lock');
+    });
+  }
+
+  static releaseSsoLoginLock(): void {
+    cy.task<boolean>('releaseSsoLoginLock', null, { log: false }).then(
+      (released) => {
+        if (released) {
+          cy.log('Released shared SSO login lock');
+        }
+      },
+    );
   }
 
   static aadSignOut(): void {
+    AuthHelper.acquireSsoLoginLock();
     MicrosoftAuthHelper.performSignOut();
+    AuthHelper.releaseSsoLoginLock();
   }
 
   static clearCookiesAndStorage(): void {

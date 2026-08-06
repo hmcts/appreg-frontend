@@ -34,7 +34,6 @@ import {
   BulkActionType,
   CriminalJusticeAreaGetDto,
   EntryGetSummaryDto,
-  EntryIdsDto,
   EntryPage,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
@@ -241,7 +240,7 @@ describe('ApplicationsListDetail', () => {
     entriesApiStub.getApplicationListEntryIds.mockReturnValue(
       of({
         ids: ['abc'],
-      } as EntryIdsDto),
+      }),
     );
 
     await TestBed.configureTestingModule({
