@@ -6,19 +6,19 @@ Feature: API -Reference Data
         When User Makes GET API Request To "/court-locations"
         Then User Verify Response Status Code Should Be "200"
         Then User Verify Response Body Should Have:
-            | pageNumber              | 0                         |
-            | pageSize                | 10                        |
-            | totalPages              | 6                         |
-            | totalElements           | 56                        |
-            | first                   | true                      |
-            | last                    | false                     |
-            | elementsOnPage          | 10                        |
-            | content[0].name         | Bristol Crown Court Set 3 |
-            | content[0].locationCode | BCC026                    |
-            | content[1].name         | Bristol Crown Court Set 4 |
-            | content[1].locationCode | BCC036                    |
-            | content[9].name         | Cardiff Crown Court Set 1 |
-            | content[9].locationCode | CCC003                    |
+            | pageNumber              | 0                                     |
+            | pageSize                | 10                                    |
+            | totalPages              | 39                                    |
+            | totalElements           | 384                                   |
+            | first                   | true                                  |
+            | last                    | false                                 |
+            | elementsOnPage          | 10                                    |
+            | content[0].name         | Belmarsh Magistrates' Court           |
+            | content[0].locationCode | B01BE00                               |
+            | content[1].name         | Bexley Magistrates' Court             |
+            | content[1].locationCode | B01BH00                               |
+            | content[9].name         | Inner London Family Proceedings Court |
+            | content[9].locationCode | B01HG00                               |
         Examples:
             | User  |
             | user1 |
@@ -87,8 +87,8 @@ Feature: API -Reference Data
         Then User Verify Response Body Should Have:
             | pageNumber     | 0     |
             | pageSize       | 10    |
-            | totalPages     | 22    |
-            | totalElements  | 219   |
+            | totalPages     | 21    |
+            | totalElements  | 210   |
             | first          | true  |
             | last           | false |
             | elementsOnPage | 10    |
@@ -116,7 +116,7 @@ Feature: API -Reference Data
             | feeDescription                                            | Rights of entry warrant                                             |
             | feeAmount.value                                           | 2200                                                                |
             | feeAmount.currency                                        | GBP                                                                 |
-            | offsiteFeeAmount.value                                    | 3000                                                                |
+            | offsiteFeeAmount.value                                    | 2800                                                                |
             | offsiteFeeAmount.currency                                 | GBP                                                                 |
             | startDate                                                 | 2016-01-01                                                          |
         When User Makes GET API Request To "/application-codes/XX99999?date=2016-01-01"

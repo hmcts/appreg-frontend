@@ -11,7 +11,7 @@ Feature: Applications List  - Bulk Result Selected
         # Entry 1 - Organisation applicant + Organisation respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                               | null                          |
-            | applicationCode                                     | CT99002                       |
+            | applicationCode                                     | AP99001                       |
             | applicant.organisation.name                         | Test Acme Industries {RANDOM} |
             | applicant.organisation.contactDetails.addressLine1  | {RANDOM} King Street          |
             | applicant.organisation.contactDetails.addressLine2  | Westminster                   |
@@ -30,8 +30,8 @@ Feature: Applications List  - Bulk Result Selected
             | respondent.organisation.contactDetails.postcode     | BS15 5AA                      |
             | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                  |
             | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                 |
-            | wordingFields.0.key                                 | Reference                     |
-            | wordingFields.0.value                               | {RANDOM}                      |
+            | wordingFields.0.key                                 | Date of Hearing               |
+            | wordingFields.0.value                               | "{RANDOM}"                    |
             | hasOffsiteFee                                       | true                          |
             | caseReference                                       | CASE-{RANDOM}                 |
             | notes                                               | Case noted with ref {RANDOM}  |
@@ -44,7 +44,7 @@ Feature: Applications List  - Bulk Result Selected
         # Entry 2 - Person applicant + Person respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | null                           |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | applicant.person.name.title                   | Mr                             |
             | applicant.person.name.lastName                | Taylor {RANDOM}                |
             | applicant.person.name.firstName               | Henry                          |
@@ -71,8 +71,8 @@ Feature: Applications List  - Bulk Result Selected
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.key                           | Date of Hearing                |
+            | wordingFields.0.value                         | "{RANDOM}"                     |
             | hasOffsiteFee                                 | true                           |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-E2-{RANDOM}                |
@@ -112,7 +112,7 @@ Feature: Applications List  - Bulk Result Selected
         # Entry 4 - Organisation applicant + Person respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                              | null                           |
-            | applicationCode                                    | CT99002                        |
+            | applicationCode                                    | AP99001                        |
             | applicant.organisation.name                        | Apex Solutions Ltd {RANDOM}    |
             | applicant.organisation.contactDetails.addressLine1 | {RANDOM} King Street           |
             | applicant.organisation.contactDetails.addressLine2 | Leeds                          |
@@ -133,8 +133,8 @@ Feature: Applications List  - Bulk Result Selected
             | respondent.person.contactDetails.mobile            | 07500{RANDOM}                  |
             | respondent.person.contactDetails.email             | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                      | todayiso-30y                   |
-            | wordingFields.0.key                                | Reference                      |
-            | wordingFields.0.value                              | {RANDOM}                       |
+            | wordingFields.0.key                                | Date of Hearing                |
+            | wordingFields.0.value                              | "{RANDOM}"                     |
             | hasOffsiteFee                                      | true                           |
             | caseReference                                      | CASE-{RANDOM}                  |
             | notes                                              | Case noted with ref {RANDOM}   |
@@ -195,7 +195,7 @@ Feature: Applications List  - Bulk Result Selected
         # Entry 6 - Standard applicant APP036 + Person respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | APP036                         |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | respondent.person.name.title                  | Mr                             |
             | respondent.person.name.lastName               | Wilson {RANDOM}                |
             | respondent.person.name.firstName              | Robert                         |
@@ -207,8 +207,8 @@ Feature: Applications List  - Bulk Result Selected
             | respondent.person.contactDetails.mobile       | 07200{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-40y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.key                           | Date of Hearing                |
+            | wordingFields.0.value                         | "{RANDOM}"                     |
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-E6-{RANDOM}                |
@@ -292,12 +292,12 @@ Feature: Applications List  - Bulk Result Selected
         # Verify all 8 rows
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number  | Applicant                     | Respondent                     | Postcode | Title                                                      | Fee | Resulted |
-            | 1               |                 | Test Acme Industries {RANDOM} | Test Respondent Ltd {RANDOM}   | BS15 5AA | Issue of liability order summons - council tax             | No  |          |
-            | 2               | ACC-E2-{RANDOM} | Henry Taylor {RANDOM}         | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax             | No  |          |
+            | 1               |                 | Test Acme Industries {RANDOM} | Test Respondent Ltd {RANDOM}   | BS15 5AA | Appeal to Crown Court                                      | No  |          |
+            | 2               | ACC-E2-{RANDOM} | Henry Taylor {RANDOM}         | Emily Clark {RANDOM}           | BS15 5AA | Appeal to Crown Court                                      | No  |          |
             | 3               | ACC-E3-{RANDOM} | Sarah Johnson {RANDOM}        | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account               | No  |          |
-            | 4               |                 | Apex Solutions Ltd {RANDOM}   | John Smith {RANDOM}            | LS1 1AA  | Issue of liability order summons - council tax             | No  |          |
+            | 4               |                 | Apex Solutions Ltd {RANDOM}   | John Smith {RANDOM}            | LS1 1AA  | Appeal to Crown Court                                      | No  |          |
             | 5               | ACC-E5-{RANDOM} | James Brown {RANDOM}          | Laura Davis {RANDOM}           | L1 1AA   | Collection Order - Financial Penalty Account               | No  | RTC      |
-            | 6               | ACC-E6-{RANDOM} | Innovative Solutions Inc      | Robert Wilson {RANDOM}         | NE1 1AA  | Issue of liability order summons - council tax             | No  |          |
+            | 6               | ACC-E6-{RANDOM} | Innovative Solutions Inc      | Robert Wilson {RANDOM}         | NE1 1AA  | Appeal to Crown Court                                      | No  |          |
             | 7               | ACC-E7-{RANDOM} | Amelia Hall                   | Metro Finance Ltd {RANDOM}     | EH1 1AA  | Collection Order - Financial Penalty Account               | No  |          |
             | 8               | ACC-E8-{RANDOM} | Daniel Hughes {RANDOM}        | Claire Hughes {RANDOM}         | CF10 2AA | Application for order re public health measures (premises) | Yes |          |
         # Sort by each column ascending and verify sort order changes
@@ -331,19 +331,19 @@ Feature: Applications List  - Bulk Result Selected
         Then User Should See The Button "Actions" Is Disabled
         # Select rows 2, 3 and 5 in one step
         When User Checks The Checkbox In Row Of Table "Entries" With:
-            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                          | Fee | Resulted |
-            | 2               | ACC-E2-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax | No  |          |
-            | 3               | ACC-E3-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  |          |
-            | 5               | ACC-E5-{RANDOM} | James Brown {RANDOM}   | Laura Davis {RANDOM}           | L1 1AA   | Collection Order - Financial Penalty Account   | No  | RTC      |
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
+            | 2               | ACC-E2-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Appeal to Crown Court                        | No  |          |
+            | 3               | ACC-E3-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
+            | 5               | ACC-E5-{RANDOM} | James Brown {RANDOM}   | Laura Davis {RANDOM}           | L1 1AA   | Collection Order - Financial Penalty Account | No  | RTC      |
         Then User Should See The Button "Actions" Is Enabled
         When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Entries"
         Then User See "Result applications" On The Page
         # Verify all 3 selected rows appear on the result page
         Then User Should See Row In Table "Application(s) to result" With Values:
-            | Sequence number | Applicant              | Respondent                     | Application title                              |
-            | 2               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax |
-            | 3               | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   |
-            | 5               | James Brown {RANDOM}   | Laura Davis {RANDOM}           | Collection Order - Financial Penalty Account   |
+            | Sequence number | Applicant              | Respondent                     | Application title                            |
+            | 2               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Appeal to Crown Court                        |
+            | 3               | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account |
+            | 5               | James Brown {RANDOM}   | Laura Davis {RANDOM}           | Collection Order - Financial Penalty Account |
         Then User Should See The Button "Save changes" Is Disabled
         Then User Selects " " From The Textbox "Result code" Autocomplete By Typing "abc"
         Then User Verifies "No results found" Is Visible Under The "Result code" Textbox
@@ -384,10 +384,10 @@ Feature: Applications List  - Bulk Result Selected
         Then User Clicks On The Breadcrumb Link "Applications list details"
         # Verify rows 2, 3, 5 have PROA and COST applied; row 5 retains pre-existing RTC; rows 1, 4, 6, 7, 8 unchanged
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                          | Fee | Resulted        |
-            | 2               | ACC-E2-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax | No  | PROA, COST      |
-            | 3               | ACC-E3-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  | PROA, COST      |
-            | 5               | ACC-E5-{RANDOM} | James Brown {RANDOM}   | Laura Davis {RANDOM}           | L1 1AA   | Collection Order - Financial Penalty Account   | No  | RTC, PROA, COST |
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted        |
+            | 2               | ACC-E2-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Appeal to Crown Court                        | No  | PROA, COST      |
+            | 3               | ACC-E3-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  | PROA, COST      |
+            | 5               | ACC-E5-{RANDOM} | James Brown {RANDOM}   | Laura Davis {RANDOM}           | L1 1AA   | Collection Order - Financial Penalty Account | No  | RTC, PROA, COST |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"

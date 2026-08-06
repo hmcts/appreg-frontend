@@ -3,8 +3,8 @@ Feature: Applications list detail help details
   Background: Create applications list
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Body:
-      | date     | time  | status | description                  | courtLocationCode |
-      | todayiso | 10:20 | OPEN   | Help details list {RANDOM}   | LCCC065           |
+      | date     | time  | status | description                | courtLocationCode |
+      | todayiso | 10:20 | OPEN   | Help details list {RANDOM} | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
 
@@ -12,7 +12,12 @@ Feature: Applications list detail help details
   Scenario: Expand and collapse applications tab help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
-    Given User Navigates To The URL "/applications-list/:listId"
+    When User Searches Application List With:
+      | Date  | Time | List description           | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | today |      | Help details list {RANDOM} |             |       | OPEN               |                            |                       |           |
+    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+      | Date         | Time  | Location                          | Description                | Entries | Status |
+      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Help details list {RANDOM} | 0       | OPEN   |
     Then User Sees Page Heading "Applications list"
     Then User Should See The Accordion "Help with applications"
     When User Toggles The Accordion "Help with applications"
@@ -25,12 +30,7 @@ Feature: Applications list detail help details
     Then User Should See The Text "Print page prints each selected entry starting on a new page." In The Accordion "Help with applications"
     Then User Takes Screenshot "HelpDetails-ApplicationsListDetail-Applications-Expanded"
     When User Toggles The Accordion "Help with applications"
-
-  @regression @applicationsList @helpDetails
-  Scenario: Expand and collapse list details tab help details
-    Given User Is On The Portal Page
-    When User Signs In With Microsoft SSO As "user1"
-    Given User Navigates To The URL "/applications-list/:listId"
+    # List details help details
     Then User Clicks On The Link Using Exact Text Match "List details"
     Then User Should See The Accordion "Help with application list details"
     When User Toggles The Accordion "Help with application list details"
