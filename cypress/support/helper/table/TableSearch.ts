@@ -88,31 +88,29 @@ export class TableSearch {
     searchAllPages: boolean = true,
     onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
   ): Cypress.Chainable<boolean> {
-    return TableSearch.searchInCurrentPage(columnValues, caption, onMatch).then(
-      (found) => {
-        if (found) {
-          return cy.wrap(true);
-        }
-        if (!searchAllPages) {
-          return cy.wrap(false);
-        }
-        cy.screenshot(`table-page-${caption || 'table'}`);
-        return TableNavigation.goToNextPageIfExists().then((hasNext) => {
-          if (hasNext) {
-            cy.log('Row not found on current page, checking next page...');
-            return TableSearch.searchWithPagination(
-              columnValues,
-              caption,
-              searchAllPages,
-              onMatch,
-            );
-          }
-          return cy.wrap(false);
-        });
-      },
-    );
+    return TableSearch.findRowElementWithPagination(
+      columnValues,
+      caption,
+      searchAllPages,
+    ).then((matchedRow) => {
+      if (!matchedRow) {
+        return cy.wrap(false);
+      }
+
+      if (!onMatch) {
+        return cy.wrap(true);
+      }
+
+      return cy
+        .wrap(undefined)
+        .then(() => onMatch(matchedRow))
+        .then(() => true);
+    });
   }
 
+  /**
+   * Finds the matching row across table pages and returns it for row-level assertions.
+   */
   static findRowElementWithPagination(
     columnValues: Record<string, string>,
     caption?: string,
@@ -128,6 +126,7 @@ export class TableSearch {
           return cy.wrap(null, { log: false });
         }
 
+        cy.screenshot(`table-page-${caption || 'table'}`);
         return TableNavigation.goToNextPageIfExists().then((hasNext) => {
           if (!hasNext) {
             return cy.wrap(null, { log: false });
@@ -142,25 +141,6 @@ export class TableSearch {
         });
       },
     );
-  }
-
-  /**
-   * Searches for matching row in current page
-   */
-  private static searchInCurrentPage(
-    columnValues: Record<string, string>,
-    caption?: string,
-    onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
-  ): Cypress.Chainable<boolean> {
-    return TableElement.getTableHeaders(caption).then(($headers) => {
-      const columnIndexMap = TableSearch.buildColumnIndexMap($headers);
-      return TableSearch.searchRowsInTable(
-        columnValues,
-        caption,
-        columnIndexMap,
-        onMatch,
-      );
-    });
   }
 
   private static findRowElementInCurrentPage(
@@ -191,45 +171,6 @@ export class TableSearch {
 
         return cy.wrap(matchedRow, { log: false });
       });
-    });
-  }
-
-  /**
-   * Searches through table rows for a match
-   */
-  private static searchRowsInTable(
-    columnValues: Record<string, string>,
-    caption: string | undefined,
-    columnIndexMap: Record<string, number>,
-    onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
-  ): Cypress.Chainable<boolean> {
-    return TableElement.getTableRows(caption).then(($rows) => {
-      let matchedRow: JQuery<HTMLElement> | null = null;
-
-      $rows.each((_rowIndex: number, row: HTMLElement) => {
-        if (
-          TableSearch.rowMatchesValues(
-            Cypress.$(row),
-            columnValues,
-            columnIndexMap,
-            caption,
-          )
-        ) {
-          matchedRow = Cypress.$(row);
-          return false; // break the loop
-        }
-
-        return undefined;
-      });
-
-      if (matchedRow && onMatch) {
-        return cy
-          .wrap(undefined)
-          .then(() => onMatch(matchedRow as JQuery<HTMLElement>))
-          .then(() => true);
-      }
-
-      return cy.wrap(Boolean(matchedRow));
     });
   }
 
