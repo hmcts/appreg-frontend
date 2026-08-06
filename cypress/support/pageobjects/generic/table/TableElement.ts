@@ -219,6 +219,16 @@ export class TableElement {
    * @param $body The body element to search within
    * @returns JQuery element of the pagination container
    */
+
+  /**
+   * Get last page link from pagination
+   * @param $body The body element to search within
+   * @returns JQuery element of the last page link
+   */
+  static getLastPageLink($body: JQuery<HTMLElement>): JQuery<HTMLElement> {
+    return $body.find('a[aria-label="Last page"]');
+  }
+
   static getPaginationContainer(
     $body: JQuery<HTMLElement>,
   ): JQuery<HTMLElement> {
