@@ -24,7 +24,7 @@ Feature: Applications List Create
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
     Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
-    When User Clicks On The "Yes - delete" Button
+    When User Clicks On The "Confirm" Button
     Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
 
     Examples:
@@ -53,7 +53,7 @@ Feature: Applications List Create
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
     Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
-    When User Clicks On The "Yes - delete" Button
+    When User Clicks On The "Confirm" Button
     Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
     Examples:
       | User  | Date  | Time           | Description   | Status | SuccessMessage                                                                     | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
@@ -109,7 +109,7 @@ Feature: Applications List Create
       | <DisplayDate> | <Time> | <CJA>    | <Description> | <Entries> | <Status> |
     Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
-    When User Clicks On The "Yes - delete" Button
+    When User Clicks On The "Confirm" Button
     Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
 
     Examples:
