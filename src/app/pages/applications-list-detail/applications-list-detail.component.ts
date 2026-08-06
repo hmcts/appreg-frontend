@@ -1064,13 +1064,21 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  onUndoClick(): void {
+  async onUndoClick(): Promise<void> {
     const listDetails = this.listRow;
     const listId = this.id;
 
     if (!listId || !listDetails) {
       return;
     }
+
+    await this.router.navigate(['delete'], {
+      relativeTo: this.route,
+      state: {
+        listRow: listDetails,
+        undoCreate: true,
+      },
+    });
   }
 
   readonly patchStateFn = (

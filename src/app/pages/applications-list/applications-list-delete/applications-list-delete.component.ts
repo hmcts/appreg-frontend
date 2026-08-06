@@ -61,7 +61,20 @@ export class ApplicationsListDeleteComponent implements OnInit {
 
   idFromUrl = this.route.snapshot.paramMap.get('id');
 
+  // From undo create path - determines wording & navigation
+  undoCreateIsTrue: boolean | undefined = isPlatformBrowser(this.platformId)
+    ? (this.location.getState() as AppListNavState).undoCreate
+    : false;
+
   columns = APPLICATIONS_LIST_COLUMNS;
+
+  title: string = this.undoCreateIsTrue
+    ? 'Are you sure you want to undo the creation of this application list?'
+    : 'Are you sure you want to delete this application list?';
+
+  warningBannerText: string = this.undoCreateIsTrue
+    ? 'You are about to undo the creation of this Application List. This action cannot be undone.'
+    : 'You are about to delete this Application List and all of the Application List Entries. This action cannot be undone.';
 
   ngOnInit(): void {
     if (!this.listToDelete && this.idFromUrl) {
@@ -74,6 +87,10 @@ export class ApplicationsListDeleteComponent implements OnInit {
   }
 
   goBack(): void {
+    if (this.undoCreateIsTrue && this.idFromUrl) {
+      void this.router.navigate(['/applications-list', this.idFromUrl]);
+    }
+
     void this.router.navigate(['/applications-list']);
   }
 
