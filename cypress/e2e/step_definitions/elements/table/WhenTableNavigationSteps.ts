@@ -27,3 +27,17 @@ When('User Goes To Last Page', () => {
 When('User Goes To Next Page', () => {
   TableNavigation.goToNextPageIfExists();
 });
+
+/**
+ * Verifies that the user is on the first page of a paginated table
+ */
+When('User Is On First Page', () => {
+  TableNavigation.verifyOnFirstPage();
+});
+
+/**
+ * Verifies that the user is on the last page of a paginated table
+ */
+When('User Is On Last Page', () => {
+  TableNavigation.verifyOnLastPage();
+});

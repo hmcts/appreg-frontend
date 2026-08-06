@@ -125,4 +125,27 @@ export class TableNavigation {
       return cy.wrap($pageLinks.length > 1);
     });
   }
+
+  static verifyOnFirstPage(): Cypress.Chainable<void> {
+    return cy.root().then(($body) => {
+      const $page1Link = TableElement.getFirstPageLink($body);
+      if ($page1Link.length === 0) {
+        throw new Error('No pagination found in the table');
+      }
+      return cy
+        .wrap($page1Link)
+        .should('have.attr', 'aria-current', 'page')
+        .then(() => undefined);
+    });
+  }
+
+  static verifyOnLastPage(): Cypress.Chainable<boolean> {
+    return cy.root().then(($body) => {
+      const $lastPageLink = TableElement.getLastPageLink($body);
+      if ($lastPageLink.length === 0) {
+        throw new Error('No pagination found in the table');
+      }
+      return cy.wrap($lastPageLink.attr('aria-current') === 'page');
+    });
+  }
 }
