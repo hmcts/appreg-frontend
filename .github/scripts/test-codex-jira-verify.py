@@ -172,7 +172,6 @@ class CodexJiraVerifyTest(unittest.TestCase):
             **os.environ,
             "DEFAULT_BRANCH": "master",
             "EXPECTED_BRANCH_NAME": "codex/formatter-side-effect",
-            "GH_TOKEN": "unused-test-token",
             "GITHUB_ACTIONS": "true",
             "GITHUB_RUN_ATTEMPT": "1",
             "GITHUB_RUN_ID": "formatter-side-effect-test",
@@ -180,9 +179,10 @@ class CodexJiraVerifyTest(unittest.TestCase):
             "PATH": f"{self.fake_bin}{os.pathsep}{os.environ['PATH']}",
             "PLAN_DIR": str(self.plan_dir),
             "RUNNER_TEMP": str(self.runner_temp),
-            "RUN_SONAR": "false",
             "SKIP_LOCAL_PIPELINE": "true",
         }
+        environment.pop("GH_TOKEN", None)
+        environment.pop("SONAR_TOKEN", None)
         return run(
             ["bash", ".github/scripts/codex-jira-verify.sh"],
             cwd=self.repo,

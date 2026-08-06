@@ -316,21 +316,43 @@ repair_collectors.each do |job_name, job|
   end
 end
 
+verification_source = jira_jobs.fetch("prepare-codex-verification-source", {})
+unless verification_source.fetch("permissions", {}) == { "contents" => "read" } &&
+       verification_source.inspect.include?("codex-verification-source.tar.gz") &&
+       !verification_source.inspect.match?(/codex-jira-verify|codex-local-pipeline|yarn lint/)
+  errors << "#{jira_path}:prepare-codex-verification-source must only archive the trusted checkout"
+end
+
 jira_verifiers = jira_jobs.select { |_job_name, job| job.inspect.include?("codex-jira-verify.sh") }
 unless jira_verifiers.length == 7
-  errors << "#{jira_path}:expected seven trusted Jira verifier paths"
+  errors << "#{jira_path}:expected seven credential-free Jira verifier paths"
 end
 jira_verifiers.each do |job_name, job|
   verifier_steps = Array(job.fetch("steps", [])).select do |step|
     step.is_a?(Hash) && step.fetch("run", "").include?("codex-jira-verify.sh")
   end
-  unless Array(job.fetch("needs", [])).include?("validate-codex-plan") &&
+  unless job.fetch("permissions", nil) == {} &&
+         Array(job.fetch("needs", [])).include?("prepare-codex-verification-source") &&
+         Array(job.fetch("needs", [])).include?("validate-codex-plan") &&
          job.inspect.include?("CODEX_PLAN_PAYLOAD") &&
          job.inspect.include?("EXPECTED_PLAN_SHA") &&
          job.inspect.include?("--materialize") &&
          verifier_steps.length == 1 &&
-         (verifier_steps.first.fetch("env", {}) || {}).fetch("PLAN_DIR", "").include?("runner.temp")
-    errors << "#{jira_path}:#{job_name} must materialise the original validated plan for verification"
+         (verifier_steps.first.fetch("env", {}) || {}).fetch("PLAN_DIR", "").include?("runner.temp") &&
+         !job.inspect.match?(/GH_TOKEN|SONAR_TOKEN|secrets\./) &&
+         !job.inspect.include?("actions/checkout@") &&
+         job.inspect.include?("Download credential-free verification source")
+    errors << "#{jira_path}:#{job_name} must materialise the plan and execute the patch without permissions or credentials"
+  end
+end
+
+%w[verify-published-pr verify-published-pr-1].each do |job_name|
+  status_job = jira_jobs.fetch(job_name, {})
+  if status_job.inspect.include?("codex-jira-verify.sh") ||
+     status_job.inspect.include?("codex-local-pipeline.sh") ||
+     !status_job.inspect.include?("codex-wait-pr-status.sh") ||
+     !status_job.inspect.include?("codex-check-sonar-quality-gate.sh")
+    errors << "#{jira_path}:#{job_name} must query external status without executing the generated patch"
   end
 end
 
@@ -345,13 +367,13 @@ unless jira_verifier.include?('required_env "PLAN_DIR"') &&
        jira_verifier.include?('-- "${allowed_pathspecs[@]}" >"${rebuilt_patch_path}"')
   errors << "#{jira_verifier_path} must reject out-of-plan worktree changes and rebuild only exact planned paths"
 end
-sonar_run_index = jira_verifier_lines.rindex { |line| line.strip == "run_frontend_sonar_analysis" }
 final_scope_index = jira_verifier_lines.rindex do |line|
-  line.include?('assert_worktree_within_plan "Sonar verification"')
+  line.include?('assert_worktree_within_plan "credential-free verification"')
 end
 rebuild_index = jira_verifier_lines.rindex { |line| line.strip == "rebuild_verified_patch" }
-unless sonar_run_index && final_scope_index && rebuild_index &&
-       sonar_run_index < final_scope_index && final_scope_index < rebuild_index
+unless final_scope_index && rebuild_index && final_scope_index < rebuild_index &&
+       !jira_verifier.include?("SONAR_TOKEN") &&
+       !jira_verifier.include?("GH_TOKEN")
   errors << "#{jira_verifier_path} must scope-check after repository tooling and before replacing the patch"
 end
 
@@ -361,6 +383,10 @@ if jira_collector.include?("## Codex Plan") || jira_collector.include?("plan.md"
 end
 unless jira_collector.include?("ALLOWED_PATHS_FILE") && jira_collector.include?("validated_codex_plan_path")
   errors << ".github/scripts/codex-jira-collect.sh must enforce planned paths in every fresh collector"
+end
+unless jira_collector.include?("Model-generated implementation summary") &&
+       jira_collector.include?("Model-generated testing details")
+  errors << ".github/scripts/codex-jira-collect.sh must retain bounded model-generated PR details"
 end
 %w[.github/scripts/codex-jira-implement.sh .github/scripts/codex-jira-repair.sh].each do |path|
   source = File.read(path)
