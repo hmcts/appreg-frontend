@@ -366,6 +366,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         bulkUploadSuccess: null,
       },
       queryParamsHandling: 'merge',
+      preserveFragment: true,
       replaceUrl: true,
     });
   }
