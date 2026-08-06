@@ -206,4 +206,4 @@ Feature: Application List Entries Print
         Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | APIDate  | Time           | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | DisplayDateLong  | Entries | Court                     | Pages | PDFNameContinuous                             | PDFNamePage                                   |
-            | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{SCENARIO_ID} | BCC026            | today      | todayDisplay | todaydisplaylong | 3       | Bristol Crown Court Set 3 | 3     | bristol-crown-court-set-3-todayiso-print-cont | bristol-crown-court-set-3-todayiso-print-page |
+            | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todayDisplay | todaydisplaylong | 3       | Bristol Crown Court Set 3 | 3     | bristol-crown-court-set-3-todayiso-print-cont | bristol-crown-court-set-3-todayiso-print-page |

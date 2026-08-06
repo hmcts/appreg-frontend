@@ -6,7 +6,7 @@ Feature: Applications List Entry Update
         # Create Application List
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time  | status | description                             | courtLocationCode |
-            | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} | LCCC065           |
+            | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} | LCCC065           |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         # Create Application List Entry - Person applicant + Person respondent, Application Code with Fee Required = Y and Respondent Required = Y
@@ -47,7 +47,13 @@ Feature: Applications List Entry Update
         Then User Stores Response Body Property "id" As "entryId1"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
-        Given User Navigates To The URL "/applications-list/:listId"
+        # Search and Open Created Application List
+        When User Searches Application List With:
+            | Date  | Time | List description                        | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+            | today |      | Applications to review at Test_{RANDOM} |             |       | OPEN               |                            |                       |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date         | Time  | Location                          | Description                             | Entries | Status |
+            | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 1       | OPEN   |
         # Search and Open Created Application List Entry
         When User Clicks "Open" Button In Row Of Table "Entries" With:
             | Sequence number | Account number | Applicant             | Respondent           | Postcode | Title                      | Fee | Resulted |

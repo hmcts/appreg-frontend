@@ -10,7 +10,12 @@ Feature: Application List Bulk Upload
         Then User Stores Response Body Property "id" As "listId"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Given User Navigates To The URL "/applications-list/:listId"
+        When User Searches Application List With:
+            | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page
@@ -49,7 +54,12 @@ Feature: Application List Bulk Upload
         Then User Stores Response Body Property "id" As "listId"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Given User Navigates To The URL "/applications-list/:listId"
+        When User Searches Application List With:
+            | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page
@@ -108,7 +118,12 @@ Feature: Application List Bulk Upload
         Then User Stores Response Body Property "id" As "listId"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Given User Navigates To The URL "/applications-list/:listId"
+        When User Searches Application List With:
+            | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page
@@ -146,7 +161,12 @@ Feature: Application List Bulk Upload
         # Navigate To Bulk Upload
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Given User Navigates To The URL "/applications-list/:listId"
+        When User Searches Application List With:
+            | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page
@@ -158,8 +178,8 @@ Feature: Application List Bulk Upload
         Then User Sees Validation Error Banner "Bulk upload failed" Containing "The bulk upload could not be completed. See the table below for more details. Please re-try the upload once these errors have been resolved"
         # Verify Error Table Details
         Then User Should See Row In Table With Values:
-            | Error type | Row | Affected column | Message                       | Applicant    | Address line 1  | Rejected value |
-            | Data error | 2   | applicationCode | size must be between 1 and 10 | Bad Row null | 1 Broken Street | APP-INVALID    |
+            | Error type | Row | Affected column | Message                       | Applicant      | Address line 1  | Rejected value |
+            | Data error | 2   | applicationCode | size must be between 1 and 10 | Bad Row null   | 1 Broken Street | APP-INVALID    |
         # Export Failed Upload CSV
         Then User Should See The Button "Export the file with errors shown" Is Enabled
         When User Clicks On The "Export the file with errors shown" Button
@@ -245,4 +265,3 @@ Feature: Application List Bulk Upload
         Then User Should See Table "Error table" Header "Rejected value" Has Sort Order "ascending"
         When User Clicks On Table Header "Rejected value" In Table "Error table"
         Then User Should See Table "Error table" Header "Rejected value" Has Sort Order "descending"
-

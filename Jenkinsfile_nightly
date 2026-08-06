@@ -8,7 +8,7 @@ properties([
     booleanParam(name: 'Regression', defaultValue: true, description: 'Run regression tests'),
   ])
 ])
-@Library('Infrastructure@2.4.9')
+@Library('Infrastructure@2.4.4')
 def type = 'angular'
 def product = 'appreg'
 def component = 'frontend'
@@ -65,7 +65,6 @@ withNightlyPipeline(type, product, component) {
             yarnBuilder.yarn('test:parallel:smoke:chrome')
           } finally {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/parallel-weights.json'
             junit allowEmptyResults: true, testResults: 'functional-output/**/*.xml,cypress/reports/junit/**/*.xml'
 
             publishHTML target: [
@@ -88,7 +87,6 @@ withNightlyPipeline(type, product, component) {
             yarnBuilder.yarn('test:parallel:regression:chrome')
           } finally {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/parallel-weights.json'
             junit allowEmptyResults: true, testResults: 'functional-output/**/*.xml,cypress/reports/junit/**/*.xml'
             publishHTML target: [
               allowMissing         : true,

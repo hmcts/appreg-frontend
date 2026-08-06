@@ -48,7 +48,7 @@ Feature: Applications result selected help details
     Then User Sees Page Heading "Applications"
     When User Searches Applications With:
       | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference    |
-      | today |             |       |                        | Taylor {RANDOM}   |                         | Clark {RANDOM}     |                           |                      |           |                       |                            |                         |                      |
+      | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         |                      |
     Then User Should See Table "Application list entries" Has Rows
     Then User Should See Row In Table "Application list entries" With Values:
       | Date         | Applicant             | Respondent           | Application title          | Fee | Resulted | Status |
