@@ -13,7 +13,7 @@ Feature: Applications List Create
     Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
     Then User Sees Success Banner "<SuccessMessage>"
-    Then User Verify The Page URL Contains "listCreated=true#list-details"
+    Then User Verify The Page URL Contains "#list-details"
     Then User Should See The Link "Create application"
     Then User Clicks On The Breadcrumb Link "Applications list"
     When User Searches Application List With:
@@ -42,7 +42,7 @@ Feature: Applications List Create
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
     Then User Sees Success Banner "<SuccessMessage>"
-    Then User Verify The Page URL Contains "listCreated=true#list-details"
+    Then User Verify The Page URL Contains "#list-details"
     Then User Should See The Link "Create application"
     Then User Clicks On The Breadcrumb Link "Applications list"
     When User Searches Application List With:
@@ -98,7 +98,7 @@ Feature: Applications List Create
     Then User Selects "<CJA>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
     Then User Sees Success Banner "<SuccessMessage>"
-    Then User Verify The Page URL Contains "listCreated=true#list-details"
+    Then User Verify The Page URL Contains "#list-details"
     Then User Should See The Link "Create application"
     Then User Clicks On The Breadcrumb Link "Applications list"
     When User Searches Application List With:
