@@ -34,7 +34,6 @@ import {
   BulkActionType,
   CriminalJusticeAreaGetDto,
   EntryGetSummaryDto,
-  EntryIdsDto,
   EntryPage,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
