@@ -79,7 +79,9 @@ export class ApplicationsListDeleteComponent implements OnInit {
 
   goBack(): void {
     if (this.isFromListDetails && this.idFromUrl) {
-      void this.router.navigate(['/applications-list', this.idFromUrl]);
+      void this.router.navigate(['/applications-list', this.idFromUrl], {
+        fragment: 'list-details',
+      });
       return;
     }
 
