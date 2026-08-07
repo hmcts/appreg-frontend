@@ -8,7 +8,7 @@ Feature: Application List Entries Bulk Update Officials
             | <APIDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
-        # Entry 1 - Person applicant + Person respondent (CT99002)
+        # Entry 1 - Person applicant + Person respondent (AP99001)
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | null                           |
             | applicationCode                               | AP99001                        |
@@ -94,17 +94,17 @@ Feature: Application List Entries Bulk Update Officials
         Then User Should See The Button "Actions" Is Disabled
         # Select all entries
         When User Checks The Checkbox In Row Of Table "Entries" With:
-            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                          | Fee | Resulted |
-            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax | No  |          |
-            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  |          |
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Appeal to Crown Court                        | No  |          |
+            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
         Then User Should See The Button "Actions" Is Enabled
         # Update Officials for Both Entries
         When User Clicks "Actions" Then "Update officials" From Caption Menu In Table "Entries"
         Then User Sees Page Heading "Update officials"
         And User Should See Row In Table "Application(s) to update" With Values:
-            | Sequence number | Applicant              | Respondent            | Application title                              |
-            | 1               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}  | Issue of liability order summons - council tax |
-            | 2               | Sarah Johnson {RANDOM} | Greenfield Consulting | Collection Order - Financial Penalty Account   |
+            | Sequence number | Applicant              | Respondent            | Application title                            |
+            | 1               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}  | Appeal to Crown Court                        |
+            | 2               | Sarah Johnson {RANDOM} | Greenfield Consulting | Collection Order - Financial Penalty Account |
         # Magistrate 1
         Then User Selects "Mr" From The "Select magistrate's title" Dropdown Within The "Magistrate 1" FieldSet
         Then User Fills In The "Magistrate's first name" Textbox With "John" Within The "Magistrate 1" FieldSet
@@ -134,8 +134,8 @@ Feature: Application List Entries Bulk Update Officials
         Then User Sees Success Banner "Officials updated" Containing "The officials have been successfully updated"
         # Verfiy Updated Officials for ALE 1
         When User Clicks "Open" Button In Row Of Table "Entries" With:
-            | Sequence number | Account number  | Applicant             | Respondent           | Postcode | Title                                          | Fee | Resulted |
-            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  |          |
+            | Sequence number | Account number  | Applicant             | Respondent           | Postcode | Title                 | Fee | Resulted |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Appeal to Crown Court | No  |          |
         Then User Sees Page Heading "Applications list entry update"
         When User Clicks On The "Show all sections" Button
         # Magistrate 1
