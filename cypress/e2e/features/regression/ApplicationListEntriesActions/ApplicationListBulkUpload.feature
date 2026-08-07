@@ -24,6 +24,8 @@ Feature: Application List Bulk Upload
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
         Then User Sees Success Banner "Success Bulk upload complete All records were uploaded successfully." Containing Link "Click here to update fee details on newly uploaded applications"
+        # Export must not be offered when there are no validation errors
+        Then User Should Not See The Button "Export the file with errors shown"
         Then User See "Applications list" On The Page
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number | Applicant                 | Respondent                      | Postcode | Title                                            | Fee | Resulted |
@@ -68,6 +70,8 @@ Feature: Application List Bulk Upload
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
         Then User Sees Success Banner "Success Bulk upload complete All records were uploaded successfully." Containing Link "Click here to update fee details on newly uploaded applications"
+        # Export must not be offered when there are no validation errors
+        Then User Should Not See The Button "Export the file with errors shown"
         Then User See "Applications list" On The Page
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number | Applicant                 | Respondent                      | Postcode | Title                                  | Fee | Resulted |
@@ -287,7 +291,7 @@ Feature: Application List Bulk Upload
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-1502 @tp
+    @regression @applicationsList @applicationListEntry @ARCPOC-1502
     Scenario: Application List - Bulk Upload Fails - Display a header-level validation error and Identify all Validation error for a single row in the CSV file
         # Application List Setup
         Given User Authenticates Via API As "user1"
