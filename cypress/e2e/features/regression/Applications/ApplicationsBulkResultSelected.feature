@@ -229,24 +229,24 @@ Feature: Applications Bulk Result Selected
             | todaydisplay | Sarah Johnson {RANDOM}       | Finance Corp LTD {RANDOM} | Rights of Entry Warrant - Electricity Operator | Yes | Yes      | OPEN   |
             | todaydisplay | ACME Industries LTD {RANDOM} | Emma Williams {RANDOM}    | Condemnation of Unfit Food                     | Yes | Yes      | OPEN   |
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Application list entries" With:
-            | Date         | Applicant                | Respondent          | Application title | Fee | Resulted | Status |
-            | todaydisplay | Innovative Solutions Inc | John Smith {RANDOM} | Copy documents    | Yes | Yes      | OPEN   |
+            | Applicant                | Respondent          |
+            | Innovative Solutions Inc | John Smith {RANDOM} |
         Then User Sees Page Heading "Applications list entry update"
         Then User Should See Tag "Existing" In Summary Card "RTC - Refer to Court"
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications"
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Application list entries" With:
-            | Date         | Applicant              | Respondent                | Application title                              | Fee | Resulted | Status |
-            | todaydisplay | Sarah Johnson {RANDOM} | Finance Corp LTD {RANDOM} | Rights of Entry Warrant - Electricity Operator | Yes | Yes      | OPEN   |
+            | Applicant              | Respondent                |
+            | Sarah Johnson {RANDOM} | Finance Corp LTD {RANDOM} |
         Then User Sees Page Heading "Applications list entry update"
         Then User Should See Tag "Existing" In Summary Card "RTC - Refer to Court"
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications"
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Application list entries" With:
-            | Date         | Applicant                    | Respondent             | Application title          | Fee | Resulted | Status |
-            | todaydisplay | ACME Industries LTD {RANDOM} | Emma Williams {RANDOM} | Condemnation of Unfit Food | Yes | Yes      | OPEN   |
+            | Applicant                    | Respondent             |
+            | ACME Industries LTD {RANDOM} | Emma Williams {RANDOM} |
         Then User Sees Page Heading "Applications list entry update"
         Then User Should See Tag "Existing" In Summary Card "RTC - Refer to Court"
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
