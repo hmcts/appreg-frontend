@@ -57,6 +57,25 @@ failure result contract, so a blocked plan cannot truthfully notify Jira from
 this workflow; the failed job and audit hash are the terminal result until that
 external API and Jira Automation rule are extended.
 
+## Trusted GitHub publication
+
+Codex branches, pull requests, review updates and conflict-resolution commits
+are published by an HMCTS-owned GitHub App. Each trusted publication job mints
+a short-lived installation token restricted to `appreg-frontend`, with explicit
+write access to Contents, Pull requests, Issues and Workflows. The App is used
+for branch pushes, pull requests, comments and workflow-file changes; it does
+not receive Actions administration permission. The default GitHub Actions
+identity is not used for publication.
+
+Publisher credentials are exposed only to the trusted identity-verification and
+publication steps. Before each push, `.github/scripts/codex-verify-publisher.py`
+checks the App slug, installation ID, HMCTS installation owner, explicit
+permissions, bot identity and push access to this exact repository. The bot
+login and noreply email are derived from the verified App identity rather than
+stored as repository configuration. Model-facing, verification and PR-check
+jobs never receive the App private key or installation token, and their checkout
+credentials are not persisted.
+
 Every workspace-writing Codex job ends with the official Action. Codex returns
 a schema-validated, size-bounded gzip/base64 patch through the Action's
 `final-message` job output; no privileged collector, Git command, or artifact
@@ -102,8 +121,13 @@ and [organisation usage dashboard](https://platform.openai.com/settings/organiza
 ## Required repository secrets
 
 - `CODEX_OPENAI_API_KEY`: OpenAI API key used only by the official Codex Action proxy.
+- `CODEX_GITHUB_APP_PRIVATE_KEY`: private key for the HMCTS-owned Codex GitHub App, used only to mint repository-scoped installation tokens in trusted jobs.
 - `CODEX_JIRA_PR_NOTIFY_URL`: Azure Function URL, including its function key, for PR-created notifications.
 - `CODEX_JIRA_PARITY_NOTIFY_URL`: Azure Function URL, including its function key, for parity-result notifications.
+
+## Required repository variables
+
+- `CODEX_GITHUB_APP_CLIENT_ID`: client ID of the HMCTS-owned Codex GitHub App.
 
 ## Optional repository variables
 
