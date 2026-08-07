@@ -61,7 +61,9 @@ describe('ApplicationsListDeleteComponent', () => {
     };
 
     location = {
-      getState: jest.fn().mockReturnValue({ listRow: navStateRow }),
+      getState: jest.fn().mockReturnValue({
+        listRow: navStateRow,
+      }),
     };
 
     const snapshot = {
@@ -190,6 +192,19 @@ describe('ApplicationsListDeleteComponent', () => {
     component.goBack();
 
     expect(router.navigate).toHaveBeenCalledWith(['/applications-list']);
+  });
+
+  it('goBack: when opened from list details, returns to the list detail page', async () => {
+    await setup({ navStateRow: makeRow() });
+    component.isFromListDetails = true;
+
+    (router.navigate as jest.Mock).mockClear();
+    component.goBack();
+
+    expect(router.navigate).toHaveBeenCalledWith(
+      ['/applications-list', 'abc-123'],
+      { fragment: 'list-details' },
+    );
   });
 
   it('server platform: listRow is undefined even if state exists -> navigates back when id exists', async () => {

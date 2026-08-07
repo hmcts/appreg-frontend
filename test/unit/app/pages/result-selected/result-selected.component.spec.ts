@@ -5,10 +5,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
+import { ResultSelected } from '@components/applications-list-detail/result-selected/result-selected.component';
 import * as bannersUtil from '@components/applications-list-entry-detail/util/banners.util';
 import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
-import { ResultSelected } from '@components/result-selected/result-selected.component';
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { ApplicationListEntryResultsApi, ResultGetDto } from '@openapi';
 import {

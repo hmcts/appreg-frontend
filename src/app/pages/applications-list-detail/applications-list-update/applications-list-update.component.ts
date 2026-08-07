@@ -32,6 +32,7 @@ import { ApplicationsListFormComponent } from '@components/applications-list-for
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
+import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { DETAIL_ERROR_ANCHORS } from '@constants/application-list-detail-update/error-hrefs';
 import {
   CLOSE_MESSAGES,
@@ -52,9 +53,11 @@ import { ApplicationListRow } from '@util/types/application-list/types';
     ReactiveFormsModule,
     ApplicationsListFormComponent,
     HelpDetailsComponent,
+    PageHeaderComponent,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-update.component.html',
+  styleUrl: '../applications-list-detail.component.scss',
 })
 export class ApplicationsListUpdateComponent {
   private readonly router = inject(Router);

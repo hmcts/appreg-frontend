@@ -24,6 +24,7 @@ export type ApplicationsListFormMode = 'search' | 'create' | 'update';
 export type AppListNavState = {
   listRow?: ApplicationListRow;
   closeRequest?: AppListCloseRequest;
+  fromListDetails?: boolean;
 };
 
 export type AppListCloseRequest = {
