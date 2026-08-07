@@ -63,7 +63,7 @@ Codex branches, pull requests, review updates and conflict-resolution commits
 are published with a fine-grained token belonging to a dedicated HMCTS machine
 user. The machine user must be a trusted collaborator on this repository, and
 the token must be limited to `appreg-frontend` with read/write access to
-Contents, Pull requests and Issues. PR task workflows run from the normal
+Contents and Pull requests. PR task workflows run from the normal
 `pull_request` events emitted by the trusted publisher, so the token does not
 require Actions write access. The default GitHub Actions identity is not used
 for publication.
