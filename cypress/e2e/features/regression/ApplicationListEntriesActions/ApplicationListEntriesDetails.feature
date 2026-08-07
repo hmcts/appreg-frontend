@@ -11,7 +11,7 @@ Feature: Application List Entries Search
         # Entry 1 - Person applicant + Person respondent, no fee, resulted
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | null                           |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | applicant.person.name.title                   | Mr                             |
             | applicant.person.name.lastName                | Taylor {RANDOM}                |
             | applicant.person.name.firstName               | Henry                          |
@@ -32,8 +32,8 @@ Feature: Application List Entries Search
             | respondent.person.contactDetails.mobile       | 07700900001                    |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.key                           | Date of Hearing                |
+            | wordingFields.0.value                         | "{RANDOM}"                     |
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASEE1{RANDOM}                 |
             | accountNumber                                 | ACCSE1{RANDOM}                 |
@@ -77,7 +77,7 @@ Feature: Application List Entries Search
         # Entry 3 - Standard applicant + Person respondent, no fee
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | APP036                         |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | respondent.person.name.title                  | Mr                             |
             | respondent.person.name.lastName               | Davies {RANDOM}                |
             | respondent.person.name.firstName              | Owen                           |
@@ -88,8 +88,8 @@ Feature: Application List Entries Search
             | respondent.person.contactDetails.mobile       | 07700900001                    |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-35y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.key                           | Date of Hearing                |
+            | wordingFields.0.value                         | "{RANDOM}"                     |
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASEE3{RANDOM}                 |
             | accountNumber                                 | ACCSE3{RANDOM}                 |
@@ -178,19 +178,19 @@ Feature: Application List Entries Search
         Then User See "Applications" On The Page
         Then User Should See Table "Entries" Has Sortable Headers "Sequence number, Account number, Applicant, Respondent, Postcode, Title, Fee, Resulted"
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number | Applicant                  | Respondent                    | Postcode | Title                                          | Fee | Resulted |
-            | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM}      | Emily Clark {RANDOM}          | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH     |
-            | 2               | ACCSE2{RANDOM} | Finance Authority {RANDOM} | Payment Services Ltd {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  |          |
-            | 3               | ACCSE3{RANDOM} | Innovative Solutions Inc   | Owen Davies {RANDOM}          | LS1 1AA  | Issue of liability order summons - council tax | No  |          |
-            | 4               | ACCSE4{RANDOM} | Fiona Morgan {RANDOM}      | Civic Respondent Ltd {RANDOM} | CF1 1AA  | Condemnation of Unfit Food                     | Yes |          |
-            | 5               | ACCSE5{RANDOM} | Registry Services {RANDOM} | Liam Wilson {RANDOM}          | NE1 2AA  | Condemnation of Unfit Food                     | Yes | AUTH     |
+            | Sequence number | Account number | Applicant                  | Respondent                    | Postcode | Title                                        | Fee | Resulted |
+            | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM}      | Emily Clark {RANDOM}          | BS15 5AA | Appeal for Crown Court                       | No  | AUTH     |
+            | 2               | ACCSE2{RANDOM} | Finance Authority {RANDOM} | Payment Services Ltd {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
+            | 3               | ACCSE3{RANDOM} | Innovative Solutions Inc   | Owen Davies {RANDOM}          | LS1 1AA  | Appeal for Crown Court                       | No  |          |
+            | 4               | ACCSE4{RANDOM} | Fiona Morgan {RANDOM}      | Civic Respondent Ltd {RANDOM} | CF1 1AA  | Condemnation of Unfit Food                   | Yes |          |
+            | 5               | ACCSE5{RANDOM} | Registry Services {RANDOM} | Liam Wilson {RANDOM}          | NE1 2AA  | Condemnation of Unfit Food                   | Yes | AUTH     |
         # Search by applicant across person, organisation and standard applicant entries
         When User Searches Application List Entries With:
             | Applicant | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
             | Taylor    |            |                     |                 |                |                   |     |          |
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number | Applicant             | Respondent           | Postcode | Title                                          | Fee | Resulted |
-            | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH     |
+            | Sequence number | Account number | Applicant             | Respondent           | Postcode | Title                  | Fee | Resulted |
+            | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Appeal for Crown Court | No  | AUTH     |
         # Search by respondent across organisation and person respondents
         When User Searches Application List Entries With:
             | Applicant | Respondent       | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
@@ -217,9 +217,9 @@ Feature: Application List Entries Search
             | Applicant | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
             |           |            |                     |                 |                |                   |     | AUTH     |
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number | Applicant                  | Respondent           | Postcode | Title                                          | Fee | Resulted |
-            | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM}      | Emily Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH     |
-            | 5               | ACCSE5{RANDOM} | Registry Services {RANDOM} | Liam Wilson {RANDOM} | NE1 2AA  | Condemnation of Unfit Food                     | Yes | AUTH     |
+            | Sequence number | Account number | Applicant                  | Respondent           | Postcode | Title                      | Fee | Resulted |
+            | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM}      | Emily Clark {RANDOM} | BS15 5AA | Appeal for Crown Court     | No  | AUTH     |
+            | 5               | ACCSE5{RANDOM} | Registry Services {RANDOM} | Liam Wilson {RANDOM} | NE1 2AA  | Condemnation of Unfit Food | Yes | AUTH     |
         # Search with no matching entries
         When User Searches Application List Entries With:
             | Applicant           | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
