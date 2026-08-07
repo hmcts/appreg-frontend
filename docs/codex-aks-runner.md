@@ -57,6 +57,23 @@ failure result contract, so a blocked plan cannot truthfully notify Jira from
 this workflow; the failed job and audit hash are the terminal result until that
 external API and Jira Automation rule are extended.
 
+## Trusted GitHub publication
+
+Codex branches, pull requests, review updates and conflict-resolution commits
+are published with a fine-grained token belonging to a dedicated HMCTS machine
+user. The machine user must be a trusted collaborator on this repository, and
+the token must be limited to `appreg-frontend` with read/write access to
+Actions, Contents, Pull requests and Issues. Actions write access is required
+only because the trusted publisher dispatches the existing PR task workflow
+after opening a PR. The default GitHub Actions identity is not used for
+publication.
+
+Publisher credentials are exposed only to the trusted identity-verification and
+publication steps. Before each push, `.github/scripts/codex-verify-publisher.py`
+checks that the token resolves to `CODEX_PUBLISHER_LOGIN` and has push access to
+this exact repository. Model-facing, verification and PR-check jobs never
+receive the publisher token, and their checkout credentials are not persisted.
+
 Every workspace-writing Codex job ends with the official Action. Codex returns
 a schema-validated, size-bounded gzip/base64 patch through the Action's
 `final-message` job output; no privileged collector, Git command, or artifact
@@ -102,8 +119,13 @@ and [organisation usage dashboard](https://platform.openai.com/settings/organiza
 ## Required repository secrets
 
 - `CODEX_OPENAI_API_KEY`: OpenAI API key used only by the official Codex Action proxy.
+- `CODEX_GITHUB_TOKEN`: fine-grained token for the dedicated trusted Codex publisher machine user.
 - `CODEX_JIRA_PR_NOTIFY_URL`: Azure Function URL, including its function key, for PR-created notifications.
 - `CODEX_JIRA_PARITY_NOTIFY_URL`: Azure Function URL, including its function key, for parity-result notifications.
+
+## Required repository variables
+
+- `CODEX_PUBLISHER_LOGIN`: exact GitHub login of the machine user that owns `CODEX_GITHUB_TOKEN`.
 
 ## Optional repository variables
 
