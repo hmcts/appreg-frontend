@@ -49,7 +49,7 @@ Feature: Applications Search
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                               | null                           |
-            | applicationCode                                     | CT99002                        |
+            | applicationCode                                     | AP99001                        |
             | applicant.organisation.name                         | Applicant Industries {RANDOM}  |
             | applicant.organisation.contactDetails.addressLine1  | {RANDOM} King Street           |
             | applicant.organisation.contactDetails.addressLine2  | Westminster                    |
@@ -69,9 +69,9 @@ Feature: Applications Search
             | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.organisation.contactDetails.email        | respondent{RANDOM}@example.com |
-            | wordingFields.0.key                                 | Reference                      |
+            | wordingFields.0.key                                 | Date of Hearing                |
             | wordingFields.0.value                               | {RANDOM}                       |
-            | hasOffsiteFee                                       | true                           |
+            | hasOffsiteFee                                       | false                          |
             | caseReference                                       | CASE-{RANDOM}                  |
             | accountNumber                                       | ACC-{RANDOM}                   |
             | notes                                               | Case noted with ref {RANDOM}   |
@@ -115,7 +115,7 @@ Feature: Applications Search
         Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         Examples:
             | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                  | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                     | Respondent                     | ApplicationTitle                               | Fee | Resulted | Status |
-            | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {RANDOM} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {RANDOM} | Respondent Industries {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
+            | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {RANDOM} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {RANDOM} | Respondent Industries {RANDOM} | Appeal to Crown Court | No  | No       | OPEN   |
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1343 @ARCPOC-1437 @ARCPOC-1445
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Other Location and CJA, Applicant Person and Respondent Person
@@ -127,7 +127,7 @@ Feature: Applications Search
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | null                           |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | applicant.person.name.title                   | Mr                             |
             | applicant.person.name.lastName                | Taylor {RANDOM}                |
             | applicant.person.name.firstName               | Henry                          |
@@ -154,9 +154,9 @@ Feature: Applications Search
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | wordingFields.0.key                           | Reference                      |
+            | wordingFields.0.key                           | Date of Hearing                |
             | wordingFields.0.value                         | {RANDOM}                       |
-            | hasOffsiteFee                                 | true                           |
+            | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-{RANDOM}                   |
             | notes                                         | Case noted with ref {RANDOM}   |
@@ -199,7 +199,7 @@ Feature: Applications Search
         Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         Examples:
             | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant             | Respondent           | ApplicationTitle                               | Fee | Resulted | Status |
-            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              | Taylor {RANDOM}  |               |                   | Open         | BS15               | 01        | London |               |               |                  | Application list entries | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
+            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              | Taylor {RANDOM}  |               |                   | Open         | BS15               | 01        | London |               |               |                  | Application list entries | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Appeal to Crown Court | No  | No       | OPEN   |
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083 @ARCPOC-1343
     Scenario Outline: Verify Validation Error Messages on Application list entry Search Page
