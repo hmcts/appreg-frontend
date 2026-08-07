@@ -292,6 +292,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         this.detailSignalState.patch({
           errorHint: 'There is a problem',
           errorSummary: statusSummary(Number.isFinite(code) ? code : 500),
+          preserveErrorSummaryOnLoad: true,
         });
 
         void this.router.navigate([], {
