@@ -111,6 +111,9 @@ export const CIVIL_FEE_FIELD_MESSAGES: CivilFeeErrorMap = {
 } as const;
 
 export const OFFICIAL_FIELD_MESSAGES = {
+  mags1Title: {
+    maxlength: 'Title must be 15 characters or fewer',
+  },
   mags1FirstName: {
     required: 'Magistrates 1 first name is required',
     maxlength: 'First name must be 100 characters or fewer',
@@ -120,6 +123,9 @@ export const OFFICIAL_FIELD_MESSAGES = {
     required: 'Magistrates 1 last name is required',
     maxlength: 'Last name must be 100 characters or fewer',
     pattern: 'Last name contains invalid characters',
+  },
+  mags2Title: {
+    maxlength: 'Title must be 15 characters or fewer',
   },
   mags2FirstName: {
     required: 'Magistrates 2 first name is required',
@@ -131,6 +137,9 @@ export const OFFICIAL_FIELD_MESSAGES = {
     maxlength: 'Last name must be 100 characters or fewer',
     pattern: 'Last name contains invalid characters',
   },
+  mags3Title: {
+    maxlength: 'Title must be 15 characters or fewer',
+  },
   mags3FirstName: {
     required: 'Magistrates 3 first name is required',
     maxlength: 'First name must be 100 characters or fewer',
@@ -140,6 +149,9 @@ export const OFFICIAL_FIELD_MESSAGES = {
     required: 'Magistrates 3 last name is required',
     maxlength: 'Last name must be 100 characters or fewer',
     pattern: 'Last name contains invalid characters',
+  },
+  officialTitle: {
+    maxlength: 'Title must be 15 characters or fewer',
   },
   officialFirstName: {
     required: "Official's first name is required",

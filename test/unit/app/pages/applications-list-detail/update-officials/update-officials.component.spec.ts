@@ -121,10 +121,10 @@ describe('UpdateOfficialsComponent', () => {
     createComponent();
 
     component.form.patchValue({
-      mags1Title: 'mr',
+      mags1Title: ' HHJ ',
       mags1FirstName: 'John',
       mags1Surname: 'Smith',
-      officialTitle: 'mrs',
+      officialTitle: ' D.J. ',
       officialFirstName: 'Clara',
       officialSurname: 'Jones',
     });
@@ -144,13 +144,13 @@ describe('UpdateOfficialsComponent', () => {
         officials: [
           {
             type: OfficialType.MAGISTRATE,
-            title: 'mr',
+            title: 'HHJ',
             forename: 'John',
             surname: 'Smith',
           },
           {
             type: OfficialType.CLERK,
-            title: 'mrs',
+            title: 'D.J.',
             forename: 'Clara',
             surname: 'Jones',
           },
@@ -159,12 +159,37 @@ describe('UpdateOfficialsComponent', () => {
     });
   });
 
-  it('does not post when official validation fails', () => {
+  it('navigates to confirm when an official title is omitted', () => {
     createComponent();
 
     component.form.patchValue({
+      mags1Title: null,
       mags1FirstName: 'John',
-      mags1Surname: null,
+      mags1Surname: 'Smith',
+    });
+
+    component.onSaveOfficials();
+
+    expect(routerMock.navigate).toHaveBeenCalledWith(['confirm'], {
+      relativeTo: activatedRouteMock,
+      state: expect.objectContaining({
+        officials: [
+          {
+            type: OfficialType.MAGISTRATE,
+            title: undefined,
+            forename: 'John',
+            surname: 'Smith',
+          },
+        ],
+      }),
+    });
+  });
+
+  it('does not continue when only an official title is entered', () => {
+    createComponent();
+
+    component.form.patchValue({
+      mags1Title: 'HHJ',
     });
 
     component.onSaveOfficials();
@@ -174,6 +199,11 @@ describe('UpdateOfficialsComponent', () => {
       expect.anything(),
     );
     expect(component.errorSummary()).toEqual([
+      {
+        id: 'mags1FirstName',
+        href: '#officials-mags1-first-name',
+        text: 'Magistrates 1 first name is required',
+      },
       {
         id: 'mags1Surname',
         href: '#officials-mags1-surname',

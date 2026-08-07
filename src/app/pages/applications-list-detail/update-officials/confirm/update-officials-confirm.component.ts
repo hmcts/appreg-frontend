@@ -31,10 +31,7 @@ import {
 } from '../update-officials.types';
 
 import { AlertComponent } from '@components/alert/alert.component';
-import {
-  APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS,
-  PERSON_TITLE_OPTIONS,
-} from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -79,10 +76,6 @@ export class UpdateOfficialsConfirmComponent
   readonly isSubmitting = signal(false);
   readonly submitAttempt = signal(0);
   readonly onCreateErrorClick = onCreateErrorClickFn;
-
-  private readonly titleLabels = new Map(
-    PERSON_TITLE_OPTIONS.map((option) => [option.value, option.label]),
-  );
 
   listId = this.route.snapshot.paramMap.get('id') ?? '';
   rows: UpdateOfficialsApplication[] = [];
@@ -180,11 +173,7 @@ export class UpdateOfficialsConfirmComponent
   }
 
   private formatOfficialName(official: Official): string {
-    const title = official.title
-      ? (this.titleLabels.get(official.title) ?? official.title)
-      : undefined;
-
-    return [title, official.forename, official.surname]
+    return [official.title, official.forename, official.surname]
       .filter((part): part is string => !!part?.trim())
       .join(' ');
   }

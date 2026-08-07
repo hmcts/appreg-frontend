@@ -2358,17 +2358,17 @@ describe('officials mapping', () => {
       expect(officialsToFormPatch([])).toEqual({});
     });
 
-    it('maps magistrates into form slots in order', () => {
+    it('maps magistrates into form slots in order and preserves title values', () => {
       const result = officialsToFormPatch([
         {
           type: OfficialType.MAGISTRATE,
-          title: 'Mr',
+          title: 'HHJ',
           forename: 'John',
           surname: 'Smith',
         },
         {
           type: OfficialType.MAGISTRATE,
-          title: 'Mrs',
+          title: 'D.J.',
           forename: 'Jane',
           surname: 'Doe',
         },
@@ -2376,10 +2376,10 @@ describe('officials mapping', () => {
 
       expect(result).toEqual(
         expect.objectContaining({
-          mags1Title: 'mr',
+          mags1Title: 'HHJ',
           mags1FirstName: 'John',
           mags1Surname: 'Smith',
-          mags2Title: 'mrs',
+          mags2Title: 'D.J.',
           mags2FirstName: 'Jane',
           mags2Surname: 'Doe',
         }),
@@ -2397,13 +2397,13 @@ describe('officials mapping', () => {
       ]);
 
       expect(result).toEqual({
-        officialTitle: 'dr',
+        officialTitle: 'Dr',
         officialFirstName: 'Alex',
         officialSurname: 'Taylor',
       });
     });
 
-    it('maps null clerk names back to empty string', () => {
+    it('maps null clerk names back to null title', () => {
       const result = officialsToFormPatch([
         {
           type: OfficialType.CLERK,
@@ -2414,11 +2414,43 @@ describe('officials mapping', () => {
       ]);
 
       expect(result).toEqual({
-        officialTitle: '',
+        officialTitle: null,
         officialFirstName: null,
         officialSurname: null,
       });
     });
+
+    it.each([
+      'HHJ',
+      'hhj',
+      'HHJ.',
+      'DJ',
+      'dj',
+      'D.J.',
+      'Mr',
+      'Mrs',
+      'Miss',
+      'Dr',
+      'Other',
+    ])(
+      'preserves existing official title value %s in the form patch',
+      (title) => {
+        const result = officialsToFormPatch([
+          {
+            type: OfficialType.MAGISTRATE,
+            title,
+            forename: 'John',
+            surname: 'Smith',
+          },
+        ]);
+
+        expect(result).toEqual(
+          expect.objectContaining({
+            mags1Title: title,
+          }),
+        );
+      },
+    );
 
     it('only maps the first three magistrates', () => {
       const result = officialsToFormPatch([
@@ -2450,13 +2482,13 @@ describe('officials mapping', () => {
 
       expect(result).toEqual(
         expect.objectContaining({
-          mags1Title: 'mr',
+          mags1Title: 'Mr',
           mags1FirstName: 'One',
           mags1Surname: 'A',
-          mags2Title: 'mrs',
+          mags2Title: 'Mrs',
           mags2FirstName: 'Two',
           mags2Surname: 'B',
-          mags3Title: 'miss',
+          mags3Title: 'Miss',
           mags3FirstName: 'Three',
           mags3Surname: 'C',
         }),

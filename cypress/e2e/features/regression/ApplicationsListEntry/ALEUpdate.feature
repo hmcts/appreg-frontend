@@ -87,19 +87,19 @@ Feature: Applications List Entry Update
         Then User Sees Success Alert "Results applied to this entry. Save the entry to keep these changes."
         Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
         # Officials
-        Then User Should Select "Mr" From The Dropdown "Select magistrate's title" Under "Magistrate 1" FieldSet In The Accordion "Officials"
+        Then User Enters "HHJ" In The Textbox "Magistrate's title" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         Then User Enters "John" In The Textbox "Magistrate's first name" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         Then User Enters "Smith{RANDOM}" In The Textbox "Magistrate's surname" Under "Magistrate 1" FieldSet In The Accordion "Officials"
 
-        Then User Should Select "Dr" From The Dropdown "Select magistrate's title" Under "Magistrate 2" FieldSet In The Accordion "Officials"
+        Then User Enters "DJ" In The Textbox "Magistrate's title" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         Then User Enters "Emily" In The Textbox "Magistrate's first name" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         Then User Enters "Davis{RANDOM}" In The Textbox "Magistrate's surname" Under "Magistrate 2" FieldSet In The Accordion "Officials"
 
-        Then User Should Select "Miss" From The Dropdown "Select magistrate's title" Under "Magistrate 3" FieldSet In The Accordion "Officials"
+        Then User Enters "Miss" In The Textbox "Magistrate's title" Under "Magistrate 3" FieldSet In The Accordion "Officials"
         Then User Enters "Jane" In The Textbox "Magistrate's first name" Under "Magistrate 3" FieldSet In The Accordion "Officials"
         Then User Enters "Hardy{RANDOM}" In The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
 
-        Then User Should Select "Mrs" From The Dropdown "Select court official's title" Under "Court official" FieldSet In The Accordion "Officials"
+        Then User Enters "Mrs" In The Textbox "Court official's title" Under "Court official" FieldSet In The Accordion "Officials"
         Then User Enters "Violette" In The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
         Then User Enters "Zanetti{RANDOM}" In The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
         When User Clicks On The "Save recording officials" Button

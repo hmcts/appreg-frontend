@@ -36,13 +36,13 @@ describe('UpdateOfficialsConfirmComponent', () => {
   const officials: Official[] = [
     {
       type: OfficialType.MAGISTRATE,
-      title: 'mr',
+      title: 'HHJ',
       forename: 'John',
       surname: 'Smith',
     },
     {
       type: OfficialType.CLERK,
-      title: 'mrs',
+      title: 'D.J.',
       forename: 'Clara',
       surname: 'Jones',
     },
@@ -110,8 +110,8 @@ describe('UpdateOfficialsConfirmComponent', () => {
     expect(component.rows).toEqual(rows);
     expect(component.officials).toEqual(officials);
     expect(component.officialRows).toEqual([
-      { label: 'Magistrate 1', value: 'Mr John Smith' },
-      { label: 'Court official', value: 'Mrs Clara Jones' },
+      { label: 'Magistrate 1', value: 'HHJ John Smith' },
+      { label: 'Court official', value: 'D.J. Clara Jones' },
     ]);
   });
 
