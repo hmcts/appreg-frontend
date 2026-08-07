@@ -80,7 +80,8 @@ Feature: Applications List Entry Notes Update
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Success Application list closed successfully If you believe this was in error, please contact support."
-        Given User Navigates To The URL "/applications"
+        Then User Clicks On The Link Using Exact Text Match "Applications"
+        Then User Verify The Page URL Contains "/applications"
         Then User Enters "Taylor {RANDOM}" Into The "Applicant surname" Textbox
         Then User Should See The Button "Search" Is Enabled
         When User Clicks On The "Search" Button

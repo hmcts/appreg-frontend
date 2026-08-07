@@ -12,7 +12,7 @@ Feature: Application List Entries - Move
         # Entry 1 - Person applicant + Person respondent (CT99002)
         When User Makes POST API Request To "/application-lists/:sourceListId/entries" With Object Builder:
             | standardApplicantCode                         | null                           |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | applicant.person.name.title                   | Mr                             |
             | applicant.person.name.lastName                | Taylor {RANDOM}                |
             | applicant.person.name.firstName               | Henry                          |
@@ -36,8 +36,8 @@ Feature: Application List Entries - Move
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.key                           | Date of Hearing                |
+            | wordingFields.0.value                         | "{RANDOM}"                     |
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-E1-{RANDOM}                |
@@ -79,7 +79,7 @@ Feature: Application List Entries - Move
         # Entry 3 - Standard applicant APP036 + Person respondent (CT99002)
         When User Makes POST API Request To "/application-lists/:sourceListId/entries" With Object Builder:
             | standardApplicantCode                         | APP036                         |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | respondent.person.name.title                  | Mr                             |
             | respondent.person.name.lastName               | Owen {RANDOM}                  |
             | respondent.person.name.firstName              | Davies                         |
@@ -91,8 +91,8 @@ Feature: Application List Entries - Move
             | respondent.person.contactDetails.mobile       | 07200{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-40y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.key                           | Date of Hearing                |
+            | wordingFields.0.value                         | "{RANDOM}"                     |
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-E3-{RANDOM}                |
@@ -119,16 +119,16 @@ Feature: Application List Entries - Move
         Then User Should See The Button "Actions" Is Disabled
         # Select entries 1 and 2 to move
         When User Checks The Checkbox In Row Of Table "Entries" With:
-            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                          | Fee | Resulted |
-            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax | No  |          |
-            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  |          |
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Appeal to Crown Court                        | No  |          |
+            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
         Then User Should See The Button "Actions" Is Enabled
         When User Clicks "Actions" Then "Move entries" From Caption Menu In Table "Entries"
         Then User See "Move applications" On The Page
         Then User Should See Row In Table "You are moving the following application(s)" With Values:
-            | Applicant              | Respondent                     | Application title                              | Fee required | Resulted |
-            | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax | No           |          |
-            | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   | No           |          |
+            | Applicant              | Respondent                     | Application title                            | Fee required | Resulted |
+            | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Appeal to Crown Court                        | No           |          |
+            | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account | No           |          |
         When User Searches Application List With:
             | Date         | Time | List Description    | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      | <TargetDescription> | <courtLocationCode> | <Court> |        |                |     |           |
@@ -138,9 +138,9 @@ Feature: Application List Entries - Move
         # ── Move confirm page ───────────────────────────────────────────────────
         Then User See "Are you sure you want to move these applications to this application list?" On The Page
         Then User Should See Row In Table "You are moving the following application(s)" With Values:
-            | Applicant              | Respondent                     | Application title                              | Fee required | Resulted |
-            | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax | No           |          |
-            | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   | No           |          |
+            | Applicant              | Respondent                     | Application title                            | Fee required | Resulted |
+            | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Appeal to Crown Court                        | No           |          |
+            | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account | No           |          |
         Then User Should See Row In Table "To this applications list" With Values:
             | Date          | Time         | Location | Description         | Entries | Status   |
             | <DisplayDate> | <TargetTime> | <Court>  | <TargetDescription> | 0       | <Status> |
@@ -149,9 +149,9 @@ Feature: Application List Entries - Move
         Then User See "Applications" On The Page
         Then User Sees Success Banner "Applications successfully moved" Containing "Applications have been successfully moved to the selected applications list"
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                          | Fee | Resulted |
-            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax | No  |          |
-            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  |          |
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Appeal to Crown Court                        | No  |          |
+            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:sourceListId"
         Then User Verify Response Status Code Should Be "204"
@@ -173,7 +173,7 @@ Feature: Application List Entries - Move
         # Entry 1 - Person applicant + Person respondent (CT99002)
         When User Makes POST API Request To "/application-lists/:sourceListId/entries" With Object Builder:
             | standardApplicantCode                         | null                           |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | applicant.person.name.title                   | Mr                             |
             | applicant.person.name.lastName                | Taylor {RANDOM}                |
             | applicant.person.name.firstName               | Henry                          |
@@ -197,8 +197,8 @@ Feature: Application List Entries - Move
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.key                           | Date of Hearing                |
+            | wordingFields.0.value                         | "{RANDOM}"                     |
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-E1-{RANDOM}                |
@@ -240,7 +240,7 @@ Feature: Application List Entries - Move
         # Entry 3 - Standard applicant APP036 + Person respondent (CT99002)
         When User Makes POST API Request To "/application-lists/:sourceListId/entries" With Object Builder:
             | standardApplicantCode                         | APP036                         |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | respondent.person.name.title                  | Mr                             |
             | respondent.person.name.lastName               | Owen {RANDOM}                  |
             | respondent.person.name.firstName              | Davies                         |
@@ -252,8 +252,8 @@ Feature: Application List Entries - Move
             | respondent.person.contactDetails.mobile       | 07200{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-40y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.key                           | Date of Hearing                |
+            | wordingFields.0.value                         | "{RANDOM}"                     |
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-E3-{RANDOM}                |
@@ -274,17 +274,17 @@ Feature: Application List Entries - Move
         Then User Should See The Button "Actions" Is Disabled
         # Select entries 1 and 2 to move
         When User Checks The Checkbox In Row Of Table "Entries" With:
-            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                          | Fee | Resulted |
-            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax | No  |          |
-            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  |          |
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Appeal to Crown Court                        | No  |          |
+            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
         Then User Should See The Button "Actions" Is Enabled
         When User Clicks "Actions" Then "Move entries" From Caption Menu In Table "Entries"
         Then User See "Move applications" On The Page
         # Verify selected entries shown on Move page
         Then User Should See Row In Table "You are moving the following application(s)" With Values:
-            | Applicant              | Respondent                     | Application title                              | Fee required | Resulted |
-            | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax | No           |          |
-            | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   | No           |          |
+            | Applicant              | Respondent                     | Application title                            | Fee required | Resulted |
+            | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Appeal to Crown Court                        | No           |          |
+            | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account | No           |          |
         # Navigate to Create new list form from Move page
         Then User Clicks On The Link "Create new list"
         # ── Validation checks on Create form ────────────────────────────────────
@@ -316,9 +316,9 @@ Feature: Application List Entries - Move
         # ── Move confirm page ────────────────────────────────────────────────────
         Then User See "Are you sure you want to move these applications to this application list?" On The Page
         Then User Should See Row In Table "You are moving the following application(s)" With Values:
-            | Applicant              | Respondent                     | Application title                              | Fee required | Resulted |
-            | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax | No           |          |
-            | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   | No           |          |
+            | Applicant              | Respondent                     | Application title                            | Fee required | Resulted |
+            | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Appeal to Crown Court                        | No           |          |
+            | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account | No           |          |
         Then User Should See Row In Table "To this applications list" With Values:
             | Date          | Time          | Location        | Description          | Entries | Status |
             | <DisplayDate> | <NewListTime> | <OtherLocation> | <NewListDescription> | 0       | Open   |
@@ -327,9 +327,9 @@ Feature: Application List Entries - Move
         Then User See "Applications" On The Page
         Then User Sees Success Banner "Applications successfully moved" Containing "Applications have been successfully moved to the selected applications list"
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                          | Fee | Resulted |
-            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax | No  |          |
-            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  |          |
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Appeal to Crown Court                        | No  |          |
+            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:sourceListId"
         Then User Verify Response Status Code Should Be "204"
