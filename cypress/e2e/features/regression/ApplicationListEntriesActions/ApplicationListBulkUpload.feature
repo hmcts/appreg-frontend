@@ -98,8 +98,8 @@ Feature: Application List Bulk Upload
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Fees updated" Containing "Fees have been successfully updated"
         When User Clicks "Open" Button In Row Of Table "Entries" With:
-            | Sequence number | Account number | Applicant      | Respondent                      | Postcode | Title                                  | Fee | Resulted |
-            | 1               | AC-{RANDOM}-1  | Benjamin Young | Globex Corporation {RANDOM} Ltd | WS1 1SY  | Rights of Entry Warrant - Gas Operator | Yes |          |
+            | Sequence number | Account number | Applicant      | Respondent                      | Postcode | Fee |
+            | 1               | AC-{RANDOM}-1  | Benjamin Young | Globex Corporation {RANDOM} Ltd | WS1 1SY  | Yes |
         Then User Sees Page Heading "Applications list entry update"
         When User Clicks On The "Show all sections" Button
         Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
@@ -332,5 +332,4 @@ Feature: Application List Bulk Upload
         # cleanup listId
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
-
 
