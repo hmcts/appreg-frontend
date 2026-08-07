@@ -578,10 +578,9 @@ These are the scripts needed:
 - `yarn api:validate` - Validates the OpenAPI spec (`tools/openapi/vendor/openapi/openapi.yaml`)
 - `yarn api:clear` - Recursively deletes current OpenAPI generated files held at `src/generated/openapi`
 - `yarn api:generate` - Generates files based on the OpenAPI spec and the config file at `tools/openapi/generator-config.yaml`
-- `yarn api:bundle` - Bundles the OpenAPI spec, schemas, responses into `tools/dist/openapi.bundled.yaml`
-- `yarn api:all` - Runs all API scripts (api:validate -> api:clear -> api:bundle -> api:generate)
-- `yarn api:all:force` - Force fetch spec and runs all API scripts (api:validate -> api:clear -> api:bundle -> api:generate)
-- `yarn api:all:local-be` - Copies `../appreg-api/openapi.yaml` into the frontend vendor-spec location and then runs `api:validate`, `api:bundle`, `api:clear`, and `api:generate`. Use this when you want to generate against local backend changes instead of the latest published artifact.
+- `yarn api:all` - Runs all API scripts (api:validate -> api:clear -> api:generate)
+- `yarn api:all:force` - Force fetch spec and runs all API scripts (api:validate -> api:clear -> api:generate)
+- `yarn api:all:local-be` - Copies `../appreg-api/openapi.yaml` into the frontend vendor-spec location and then runs `api:validate`, `api:clear`, and `api:generate`. Use this when you want to generate against local backend changes instead of the latest published artifact.
 
 If you want to use a specific OpenAPI spec version, you can edit `scripts/fetch-unpack-openapi.cjs` and change the following:
 
