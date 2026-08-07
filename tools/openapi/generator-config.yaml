@@ -1,5 +1,5 @@
 generatorName: typescript-angular
-inputSpec: tools/dist/openapi.bundled.yaml
+inputSpec: tools/openapi/vendor/openapi/bundledOpenApi.yaml
 outputDir: src/generated/openapi
 additionalProperties:
   fileNaming: kebab-case
