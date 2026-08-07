@@ -201,10 +201,10 @@ describe('ApplicationsListDeleteComponent', () => {
     (router.navigate as jest.Mock).mockClear();
     component.goBack();
 
-    expect(router.navigate).toHaveBeenCalledWith([
-      '/applications-list',
-      'abc-123',
-    ]);
+    expect(router.navigate).toHaveBeenCalledWith(
+      ['/applications-list', 'abc-123'],
+      { fragment: 'list-details' },
+    );
   });
 
   it('server platform: listRow is undefined even if state exists -> navigates back when id exists', async () => {
