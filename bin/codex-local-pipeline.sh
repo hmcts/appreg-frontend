@@ -129,7 +129,7 @@ PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-codex-jira-ve
 PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-codex-pr-review-handoff.py
 PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-validate-codex-plan.py
 PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-codex-plan-handoff.py
-PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-codex-approve-pr-workflows.py
+PYTHONPYCACHEPREFIX="${python_cache}" python3 .github/scripts/test-codex-verify-publisher.py
 
 log "Validating workflow YAML syntax"
 if command -v ruby >/dev/null 2>&1; then
@@ -642,6 +642,95 @@ revision_pinned_workflows.each do |workflow_name|
       errors << "#{path}:#{job_name} must check out the captured trusted SHA"
     end
   end
+end
+
+publisher_token = "${{ secrets.CODEX_GITHUB_TOKEN }}"
+publisher_login = "${{ vars.CODEX_PUBLISHER_LOGIN }}"
+publisher_specs = [
+  [".github/workflows/codex_jira_dispatch.yml", "publish-pr", "publish"],
+  [".github/workflows/codex_jira_dispatch.yml", "publish-published-pr-repair-1", "publish"],
+  [".github/workflows/codex_pr_review_feedback.yml", "codex-review-publish", "publish"],
+  [".github/workflows/codex_pr_review_feedback.yml", "codex-review-external-republish", "publish"],
+  [".github/workflows/codex_merge_conflict_resolution.yml", "publish-conflict-resolution", "publish"],
+  [".github/workflows/codex_runner_smoke.yml", "branch-smoke", "smoke"],
+]
+publisher_job_keys = publisher_specs.map { |path, job_name, _| [path, job_name] }
+
+publisher_specs.each do |path, job_name, publish_step_id|
+  workflow = YAML.load_file(path)
+  job = workflow.fetch("jobs", {}).fetch(job_name, {})
+  permissions = job.fetch("permissions", {}) || {}
+  unless permissions == { "contents" => "read" }
+    errors << "#{path}:#{job_name} must give the default GITHUB_TOKEN contents: read only"
+  end
+
+  job_env = job.fetch("env", {}) || {}
+  if job_env.key?("GH_TOKEN") || job_env.key?("CODEX_PUBLISHER_LOGIN")
+    errors << "#{path}:#{job_name} must not expose publisher credentials at job scope"
+  end
+
+  steps = job.fetch("steps", [])
+  verify_index = steps.index do |step|
+    step.is_a?(Hash) &&
+      step.fetch("run", "") == "python3 -I .github/scripts/codex-verify-publisher.py"
+  end
+  publish_index = steps.index do |step|
+    step.is_a?(Hash) && step.fetch("id", "") == publish_step_id
+  end
+
+  if verify_index.nil? || publish_index.nil? || verify_index >= publish_index
+    errors << "#{path}:#{job_name} must verify the trusted publisher before publishing"
+    next
+  end
+
+  [verify_index, publish_index].each do |index|
+    env = steps.fetch(index).fetch("env", {}) || {}
+    unless env.fetch("GH_TOKEN", "") == publisher_token &&
+           env.fetch("CODEX_PUBLISHER_LOGIN", "") == publisher_login
+      errors << "#{path}:#{job_name} must scope the trusted publisher secret and login to verifier/publisher steps"
+    end
+  end
+
+  steps.each_with_index do |step, index|
+    next unless step.is_a?(Hash)
+    next if [verify_index, publish_index].include?(index)
+    if step.inspect.include?("CODEX_GITHUB_TOKEN")
+      errors << "#{path}:#{job_name} exposes the publisher token outside verifier/publisher steps"
+    end
+  end
+end
+
+Dir[".github/workflows/*.yml", ".github/workflows/*.yaml"].each do |path|
+  workflow = YAML.load_file(path)
+  workflow.fetch("jobs", {}).each do |job_name, job|
+    if job.inspect.include?("CODEX_GITHUB_TOKEN") &&
+       !publisher_job_keys.include?([path, job_name])
+      errors << "#{path}:#{job_name} must not receive the trusted publisher token"
+    end
+  end
+end
+
+if File.exist?(".github/workflows/codex_approve_pr_workflows.yml") ||
+   Dir[".github/workflows/*"].any? { |path| File.read(path).include?("codex_approve_pr_workflows") }
+  errors << "unsupported pull-request workflow auto-approval machinery must not be present"
+end
+checks_workflow = YAML.load_file(".github/workflows/checks.yml")
+unless checks_workflow.fetch("permissions", {}) == { "contents" => "read" }
+  errors << ".github/workflows/checks.yml must use contents: read permissions"
+end
+checks_checkout = checks_workflow.fetch("jobs", {}).fetch("build", {}).fetch("steps", []).find do |step|
+  step.is_a?(Hash) && step.fetch("uses", "").start_with?("actions/checkout@")
+end
+unless checks_checkout && checks_checkout.fetch("with", {}).fetch("persist-credentials", true) == false
+  errors << ".github/workflows/checks.yml must disable persisted checkout credentials"
+end
+
+codeql_workflow = YAML.load_file(".github/workflows/codeql.yaml")
+codeql_checkout = codeql_workflow.fetch("jobs", {}).fetch("analyze", {}).fetch("steps", []).find do |step|
+  step.is_a?(Hash) && step.fetch("uses", "").start_with?("actions/checkout@")
+end
+unless codeql_checkout && codeql_checkout.fetch("with", {}).fetch("persist-credentials", true) == false
+  errors << ".github/workflows/codeql.yaml must disable persisted checkout credentials"
 end
 
 abort(errors.join("\n")) unless errors.empty?
