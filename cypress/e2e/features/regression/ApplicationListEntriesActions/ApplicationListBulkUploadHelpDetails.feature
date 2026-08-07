@@ -17,7 +17,8 @@ Feature: Application list bulk upload help details
       | today |      | Bulk upload help list {RANDOM} | LCCC065     |       |        |                |     |           |
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
       | Date         | Time  | Location                          | Description                    | Entries | Status |
-      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Bulk upload help list {RANDOM} | 1       | OPEN   |
+      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Bulk upload help list {RANDOM} | 0       | OPEN   |
+    Then User Clicks On The Link "Bulk upload"
     Then User Sees Page Heading "Bulk upload applications"
     Then User Should See The Accordion "Help with bulk upload"
     When User Toggles The Accordion "Help with bulk upload"
