@@ -59,7 +59,9 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, take } from 'rxjs';
+
+import { statusSummary } from '../applications-list/util/delete-status';
 
 import { ApplicationsListUpdateComponent } from './applications-list-update/applications-list-update.component';
 import {
@@ -277,6 +279,28 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.loadApplicationsLists();
     }
+
+    this.route.queryParamMap.pipe(take(1)).subscribe((q) => {
+      const flash = q.get('delete');
+      if (!flash) {
+        return;
+      }
+
+      if (flash === 'error') {
+        const raw = q.get('code');
+        const code = raw ? Number(raw) : Number.NaN;
+        this.detailSignalState.patch({
+          errorHint: 'There is a problem',
+          errorSummary: statusSummary(Number.isFinite(code) ? code : 500),
+        });
+
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { delete: null, code: null },
+          replaceUrl: true,
+        });
+      }
+    });
   }
 
   onTabSelected(tab: string): void {
@@ -316,15 +340,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   setSuccessBanner(): void {
     if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
       this.vm().createDone = true;
-      const createState = history.state as ApplicationsListDetailHistoryState;
-      const createRow: ApplicationListRow | undefined = createState.createdList;
-
-      if (!createRow) {
-        return;
-      }
-
-      // Although we already get the list row from a get request, this allows us to instantly nav to undo page
-      this.listRow = createRow;
     }
 
     if (
@@ -1072,23 +1087,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.printRequest.set({
       body: params,
       mode: 'page',
-    });
-  }
-
-  async onUndoClick(): Promise<void> {
-    const listDetails = this.listRow;
-    const listId = this.id;
-
-    if (!listId || !listDetails) {
-      return;
-    }
-
-    await this.router.navigate(['delete'], {
-      relativeTo: this.route,
-      state: {
-        listRow: listDetails,
-        undoCreate: true,
-      },
     });
   }
 

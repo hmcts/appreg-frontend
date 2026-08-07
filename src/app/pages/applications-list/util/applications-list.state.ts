@@ -10,7 +10,6 @@ export interface ApplicationsListState {
   sortField: { key: string; direction: 'desc' | 'asc' };
   listCloseDone: boolean;
   pdfLoading: boolean;
-  undoDone: boolean;
 }
 
 export const initialApplicationsListState: ApplicationsListState = {
@@ -23,7 +22,6 @@ export const initialApplicationsListState: ApplicationsListState = {
   sortField: { key: 'date', direction: 'desc' },
   listCloseDone: false,
   pdfLoading: false,
-  undoDone: false,
 };
 
 // Clear all error/success/notification states
@@ -35,7 +33,6 @@ export const clearNotificationsPatch = (): Pick<
   | 'searchErrors'
   | 'sortField'
   | 'listCloseDone'
-  | 'undoDone'
 > => ({
   deleteDone: false,
   deleteInvalid: false,
@@ -43,5 +40,4 @@ export const clearNotificationsPatch = (): Pick<
   searchErrors: [],
   sortField: { key: 'date', direction: 'desc' },
   listCloseDone: false,
-  undoDone: false,
 });

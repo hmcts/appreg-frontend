@@ -40,7 +40,7 @@ Feature: Applications List Update
             | <DisplayDate> | <Time> | <CJAValue> | <UpdatedDescription> | <Entries> | <Status> |
         Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
-        When User Clicks On The "Confirm" Button
+        When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description   | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription    | UpdatedOtherLocation   | SuccessBanner                                                                      |
@@ -88,7 +88,7 @@ Feature: Applications List Update
             | <DisplayDate> | <Time> | <OptionText> | <UpdatedDescription> | <Entries> | <Status> |
         Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
-        When User Clicks On The "Confirm" Button
+        When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
             | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description   | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessBanner                                                                      |

@@ -23,8 +23,8 @@ export type ApplicationsListFormMode = 'search' | 'create' | 'update';
 
 export type AppListNavState = {
   listRow?: ApplicationListRow;
-  undoCreate?: boolean;
   closeRequest?: AppListCloseRequest;
+  fromListDetails?: boolean;
 };
 
 export type AppListCloseRequest = {

@@ -59,22 +59,13 @@ export class ApplicationsListDeleteComponent implements OnInit {
     ? (this.location.getState() as AppListNavState).listRow
     : undefined;
 
-  idFromUrl = this.route.snapshot.paramMap.get('id');
-
-  // From undo create path - determines wording & navigation
-  undoCreateIsTrue: boolean | undefined = isPlatformBrowser(this.platformId)
-    ? (this.location.getState() as AppListNavState).undoCreate
+  isFromListDetails: boolean | undefined = isPlatformBrowser(this.platformId)
+    ? (this.location.getState() as AppListNavState).fromListDetails
     : false;
 
+  idFromUrl = this.route.snapshot.paramMap.get('id');
+
   columns = APPLICATIONS_LIST_COLUMNS;
-
-  title: string = this.undoCreateIsTrue
-    ? 'Are you sure you want to undo the creation of this application list?'
-    : 'Are you sure you want to delete this application list?';
-
-  warningBannerText: string = this.undoCreateIsTrue
-    ? 'You are about to undo the creation of this Application List. This action cannot be undone.'
-    : 'You are about to delete this Application List and all of the Application List Entries. This action cannot be undone.';
 
   ngOnInit(): void {
     if (!this.listToDelete && this.idFromUrl) {
@@ -87,7 +78,7 @@ export class ApplicationsListDeleteComponent implements OnInit {
   }
 
   goBack(): void {
-    if (this.undoCreateIsTrue && this.idFromUrl) {
+    if (this.isFromListDetails && this.idFromUrl) {
       void this.router.navigate(['/applications-list', this.idFromUrl]);
       return;
     }
@@ -110,23 +101,20 @@ export class ApplicationsListDeleteComponent implements OnInit {
       .pipe(map((resp) => resp.status))
       .subscribe({
         next: () => {
-          let queryParamToSend: { delete?: string; undo?: string } = {
-            delete: 'success',
-          };
-
-          if (this.undoCreateIsTrue) {
-            queryParamToSend = { undo: 'success' };
-          }
-
           void this.router.navigate(['/applications-list'], {
-            queryParams: queryParamToSend,
+            queryParams: { delete: 'success' },
           });
         },
         error: (err: unknown) => {
           const code =
             err instanceof HttpErrorResponse ? err.status : undefined;
 
-          void this.router.navigate(['/applications-list'], {
+          let routerLinkNav = ['/applications-list'];
+          if (this.isFromListDetails && this.idFromUrl) {
+            routerLinkNav = ['/applications-list', this.idFromUrl];
+          }
+
+          void this.router.navigate(routerLinkNav, {
             queryParams: {
               delete: 'error',
               code: code ?? 500,

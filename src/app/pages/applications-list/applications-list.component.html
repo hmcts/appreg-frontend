@@ -33,13 +33,6 @@
   />
 }
 
-@if (vm().undoDone) {
-  <app-success-banner
-    heading="Application list creation reversed"
-    body="Successfully undone the creation of the application list"
-  />
-}
-
 @if (vm().listCloseDone) {
   <app-success-banner
     heading="Application list closed successfully"
