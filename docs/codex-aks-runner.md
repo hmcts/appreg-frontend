@@ -70,7 +70,7 @@ for publication.
 
 Publisher credentials are exposed only to the trusted identity-verification and
 publication steps. Before each push, `.github/scripts/codex-verify-publisher.py`
-checks that the token resolves to `CODEX_PUBLISHER_LOGIN` and has push access to
+checks that the token resolves to `BOT_PUBLISHER_LOGIN` and has push access to
 this exact repository. Model-facing, verification and PR-check jobs never
 receive the publisher token, and their checkout credentials are not persisted.
 
@@ -119,13 +119,13 @@ and [organisation usage dashboard](https://platform.openai.com/settings/organiza
 ## Required repository secrets
 
 - `CODEX_OPENAI_API_KEY`: OpenAI API key used only by the official Codex Action proxy.
-- `CODEX_GITHUB_TOKEN`: fine-grained token for the dedicated trusted Codex publisher machine user.
+- `BOT_GITHUB_TOKEN`: fine-grained token for the dedicated trusted Codex publisher machine user.
 - `CODEX_JIRA_PR_NOTIFY_URL`: Azure Function URL, including its function key, for PR-created notifications.
 - `CODEX_JIRA_PARITY_NOTIFY_URL`: Azure Function URL, including its function key, for parity-result notifications.
 
 ## Required repository variables
 
-- `CODEX_PUBLISHER_LOGIN`: exact GitHub login of the machine user that owns `CODEX_GITHUB_TOKEN`.
+- `BOT_PUBLISHER_LOGIN`: exact GitHub login of the machine user that owns `BOT_GITHUB_TOKEN`.
 
 ## Optional repository variables
 
