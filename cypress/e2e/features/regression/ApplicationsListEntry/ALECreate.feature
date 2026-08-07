@@ -78,7 +78,7 @@ Feature: Applications List Entry Create
     Then User Verifies The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee" Is Unchecked
     Then User Checks The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee"
     Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-    Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
+    Then User Should See The Text "Off Site Fee Amount: £29.00" In The Accordion "Civil fee"
     Then User Should See The Text "Total Fee Amount: £314.00" In The Accordion "Civil fee"
     Then User Should See The Text "Update fee status" In The Accordion "Civil fee"
     Then User Selects "Undertaken" From The Dropdown "Fee status" In The Accordion "Civil fee"
@@ -183,7 +183,7 @@ Feature: Applications List Entry Create
     Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
     Then User Should See The Text "Amount: £284.00" In The Accordion "Civil fee"
     Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-    Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
+    Then User Should See The Text "Off Site Fee Amount: £29.00" In The Accordion "Civil fee"
     Then User Should See The Text "Total Fee Amount: £314.00" In The Accordion "Civil fee"
     Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
       | Fee Status | Status Date  | Payment Ref       |
@@ -259,16 +259,16 @@ Feature: Applications List Entry Create
       | Mobile number         | 07123 456789                                |
       | Email address         | john.smith_{RANDOM}test@example.com         |
     # Application Codes
-    Then User Enters "CT99002" Into The Textbox "Application code" In The Accordion "Application codes"
+    Then User Enters "AP99001" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
     Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
     Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
-      | Code    | Title                                          | Bulk | Fee required |
-      | CT99002 | Issue of liability order summons - council tax | No   | No           |
-    Then User Verifies The "Application Title" Textbox Has Value "Issue of liability order summons - council tax"
+      | Code    | Title                 | Bulk | Fee required |
+      | CT99002 | Appeal to Crown Court | No   | No           |
+    Then User Verifies The "Application Title" Textbox Has Value "Appeal to Crown Court"
     # Wording Details
-    Then User Verifies The "Wording" Accordion Has Value "Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference"
-    Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Reference" and Enters "TestRef-001"
+    Then User Verifies The "Wording" Accordion Has Value ""Notice of appeal in respect of a case heard on"
+    Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Date of Hearing" and Enters "{RANDOM}"
     # (Bug raised ARCPOC-1230/ARCPOC-1205/AARCPOC-1253 for below statement)
     When User Clicks On The "Apply wording" Button In The Accordion "Wording"
     Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
@@ -304,8 +304,8 @@ Feature: Applications List Entry Create
 
     Then User Clicks On The Breadcrumb Link "Applications list details"
     When User Clicks "Open" Button In Row Of Table "Entries" With:
-      | Sequence number | Account number  | Applicant                                   | Respondent                            | Postcode | Title                                          | Fee | Resulted |
-      | 1               | account{RANDOM} | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | LS10 1PJ | Issue of liability order summons - council tax | No  |          |
+      | Sequence number | Account number  | Applicant                                   | Respondent                            | Postcode | Title                 | Fee | Resulted |
+      | 1               | account{RANDOM} | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | LS10 1PJ | Appeal to Crown Court | No  |          |
     When User Clicks On The "Show all sections" Button
     Then User Should See The Button "Hide all sections"
     Then User Sees Page Heading "Applications list entry update"
@@ -324,13 +324,13 @@ Feature: Applications List Entry Create
       | Mobile number         | 07123 456789                                |
       | Email address         | john.smith_{RANDOM}test@example.com         |
     # Verify Application Codes Details
-    Then User Verifies The Textbox "Application code" Contains "CT99002" In The Accordion "Application codes"
-    Then User Verifies The Textbox "Application title" Contains "Issue of liability order summons - council tax" In The Accordion "Application codes"
+    Then User Verifies The Textbox "Application code" Contains "AP99001" In The Accordion "Application codes"
+    Then User Verifies The Textbox "Application title" Contains "Appeal to Crown Court" In The Accordion "Application codes"
     Then User Verifies The Date field "Lodgement date" Has Value "today"
     Then User Verifies Date Field "Lodgement date" Is Disabled In The Accordion "Application codes"
     # Verify Wording Details
-    Then User Verifies The "Wording" Accordion Has Value "Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference"
-    Then User Verifies Textbox With Placeholder "Enter a Reference" Contains "TestRef-001" In The Accordion "Wording"
+    Then User Verifies The "Wording" Accordion Has Value "Notice of appeal in respect of a case heard on"
+    Then User Verifies Textbox With Placeholder "Enter a Date of Hearing" Contains "{RANDOM}" In The Accordion "Wording"
     # Verify Respondent Details
     When User Verifies In The Respondent Details
       | Select type       | Organisation                              |

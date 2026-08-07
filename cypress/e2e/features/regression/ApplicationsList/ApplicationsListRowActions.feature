@@ -43,7 +43,7 @@ Feature: Application List Row Actions
             """
             {
                 "standardApplicantCode": null,
-                "applicationCode": "CT99002",
+                "applicationCode": "AP99001",
                 "applicant": {
                     "person": {
                         "name": {
@@ -92,7 +92,7 @@ Feature: Application List Row Actions
                 "numberOfRespondents": null,
                 "wordingFields": [
                     {
-                        "key": "Reference",
+                        "key": "Date of Hearing",
                         "value": "{RANDOM}"
                     }
                 ],
@@ -203,9 +203,9 @@ Feature: Application List Row Actions
             | Applicant              | Mr Henry James Taylor {RANDOM}                                                                                                            |
             | Respondent             | Ms Emily Rose Clark {RANDOM}                                                                                                              |
             | Case Reference         | CASE-{RANDOM}                                                                                                                             |
-            | Application Code       | CT99002                                                                                                                                   |
+            | Application Code       | AP99001                                                                                                                                   |
             | Account Reference      | ACC-{RANDOM}                                                                                                                              |
-            | Application Title      | Issue of liability order summons - council tax                                                                                            |
+            | Application Title      | Appeal to Crown Court                                                                                                                     |
             | Result                 | -                                                                                                                                         |
             | Notes                  | Case noted with ref {RANDOM}                                                                                                              |
             | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
@@ -230,7 +230,7 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
             | Application brought by | Mr Henry James Taylor {RANDOM}                                                                                                            |
             | Respondent             | Ms Emily Rose Clark {RANDOM}                                                                                                              |
-            | Matter considered      | Issue of liability order summons - council tax                                                                                            |
+            | Matter considered      | Appeal to Crown Court                                                                                                                     |
             | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
             | Dated                  | <DisplayDateLong>                                                                                                                         |
             | Produced on            | <SearchDate>                                                                                                                              |
@@ -533,7 +533,7 @@ Feature: Application List Row Actions
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | null                           |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | applicant.person.name.title                   | Mr                             |
             | applicant.person.name.lastName                | Taylor {RANDOM}                |
             | applicant.person.name.firstName               | Henry                          |
@@ -560,8 +560,8 @@ Feature: Application List Row Actions
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.key                           | Date of Hearing                |
+            | wordingFields.0.value                         | "{RANDOM}"                     |
             | hasOffsiteFee                                 | true                           |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-{RANDOM}                   |

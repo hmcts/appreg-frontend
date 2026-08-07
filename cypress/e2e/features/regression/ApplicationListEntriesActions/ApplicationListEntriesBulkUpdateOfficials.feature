@@ -11,7 +11,7 @@ Feature: Application List Entries Bulk Update Officials
         # Entry 1 - Person applicant + Person respondent (CT99002)
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | null                           |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | applicant.person.name.title                   | Mr                             |
             | applicant.person.name.lastName                | Taylor {RANDOM}                |
             | applicant.person.name.firstName               | Henry                          |
@@ -38,8 +38,8 @@ Feature: Application List Entries Bulk Update Officials
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.key                           | Date of Hearing                |
+            | wordingFields.0.value                         | "{RANDOM}"                     |
             | hasOffsiteFee                                 | true                           |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-E1-{RANDOM}                |

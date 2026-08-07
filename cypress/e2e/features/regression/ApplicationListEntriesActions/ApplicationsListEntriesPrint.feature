@@ -11,7 +11,7 @@ Feature: Application List Entries Print
         # Entry 1 - Person applicant + Person respondent (CT99002)
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | null                           |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | applicant.person.name.title                   | Mr                             |
             | applicant.person.name.lastName                | Taylor {RANDOM}                |
             | applicant.person.name.firstName               | Henry                          |
@@ -38,8 +38,8 @@ Feature: Application List Entries Print
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.key                           | Date of Hearing                |
+            | wordingFields.0.value                         | "{RANDOM}"                     |
             | hasOffsiteFee                                 | true                           |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-E1-{RANDOM}                |
@@ -54,7 +54,7 @@ Feature: Application List Entries Print
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId1/results" With Json Body
             """
             {
-            "resultCode": "AUTH"
+                "resultCode": "AUTH"
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -92,14 +92,14 @@ Feature: Application List Entries Print
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId2/results" With Json Body
             """
             {
-            "resultCode": "AUTH"
+                "resultCode": "AUTH"
             }
             """
         Then User Verify Response Status Code Should Be "201"
         # Entry 3 - Standard applicant APP036 + Person respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | APP036                         |
-            | applicationCode                               | CT99002                        |
+            | applicationCode                               | AP99001                        |
             | respondent.person.name.title                  | Mr                             |
             | respondent.person.name.lastName               | Davies {RANDOM}                |
             | respondent.person.name.firstName              | Owen                           |
@@ -111,8 +111,8 @@ Feature: Application List Entries Print
             | respondent.person.contactDetails.mobile       | 07500{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-35y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.key                           | Date of Hearing                |
+            | wordingFields.0.value                         | "{RANDOM}"                     |
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-E3-{RANDOM}                |
@@ -123,7 +123,7 @@ Feature: Application List Entries Print
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId3/results" With Json Body
             """
             {
-            "resultCode": "AUTH"
+                "resultCode": "AUTH"
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -149,30 +149,30 @@ Feature: Application List Entries Print
         Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
         Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Date & Time            | <DisplayDate> <Time>                           |
-            | Duration               | -                                              |
-            | Location               | <Court>                                        |
-            | Applicant              | Mr Henry James Taylor {RANDOM}                 |
-            | Respondent             | Ms Emily Rose Clark {RANDOM}                   |
-            | Application Code       | CT99002                                        |
-            | Application Title      | Issue of liability order summons - council tax |
-            | Result                 | Authorised                                     |
-            | Notes                  | Case noted with ref {RANDOM}                   |
-            | Account Reference      | ACC-E1-{RANDOM}                                |
-            | Case Reference         | CASE-{RANDOM}                                  |
-            | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE           |
-            | Applicant              | Mrs Sarah Louise Johnson {RANDOM}              |
-            | Respondent             | Greenfield Consulting {RANDOM}                 |
-            | Application Code       | EF99001                                        |
-            | Application Title      | Collection Order - Financial Penalty Account   |
-            | Result                 | Authorised                                     |
-            | This matter was before | -                                              |
-            | Applicant              | Innovative Solutions Inc                       |
-            | Respondent             | Mr Owen Davies {RANDOM}                        |
-            | Application Code       | CT99002                                        |
-            | Application Title      | Issue of liability order summons - council tax |
-            | Result                 | Authorised                                     |
-            | This matter was before | -                                              |
+            | Date & Time            | <DisplayDate> <Time>                         |
+            | Duration               | -                                            |
+            | Location               | <Court>                                      |
+            | Applicant              | Mr Henry James Taylor {RANDOM}               |
+            | Respondent             | Ms Emily Rose Clark {RANDOM}                 |
+            | Application Code       | AP99001                                      |
+            | Application Title      | Appeal to Crown Court                        |
+            | Result                 | Authorised                                   |
+            | Notes                  | Case noted with ref {RANDOM}                 |
+            | Account Reference      | ACC-E1-{RANDOM}                              |
+            | Case Reference         | CASE-{RANDOM}                                |
+            | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE         |
+            | Applicant              | Mrs Sarah Louise Johnson {RANDOM}            |
+            | Respondent             | Greenfield Consulting {RANDOM}               |
+            | Application Code       | EF99001                                      |
+            | Application Title      | Collection Order - Financial Penalty Account |
+            | Result                 | Authorised                                   |
+            | This matter was before | -                                            |
+            | Applicant              | Innovative Solutions Inc                     |
+            | Respondent             | Mr Owen Davies {RANDOM}                      |
+            | Application Code       | AP99001                                      |
+            | Application Title      | Appeal to Crown Court                        |
+            | Result                 | Authorised                                   |
+            | This matter was before | -                                            |
         Then User Clears Downloaded PDFs
         # Print page
         When User Clicks "Actions" Then "Print page" From Caption Menu In Table "Entries"
@@ -182,24 +182,24 @@ Feature: Application List Entries Print
         Then User Verifies Latest Downloaded PDF Contains Text "<Court>"
         Then User Verifies Latest Downloaded PDF Contains Text "Authorised"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Application brought by | Mr Henry James Taylor {RANDOM}                 |
-            | Respondent             | Ms Emily Rose Clark {RANDOM}                   |
-            | Matter considered      | Issue of liability order summons - council tax |
-            | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE           |
-            | Dated                  | <DisplayDateLong>                              |
-            | Produced on            | <SearchDate>                                   |
-            | Application brought by | Mrs Sarah Louise Johnson {RANDOM}              |
-            | Respondent             | Greenfield Consulting {RANDOM}                 |
-            | Matter considered      | Collection Order - Financial Penalty Account   |
-            | This matter was before | -                                              |
-            | Dated                  | <DisplayDateLong>                              |
-            | Produced on            | <SearchDate>                                   |
-            | Application brought by | Innovative Solutions Inc                       |
-            | Respondent             | Mr Owen Davies {RANDOM}                        |
-            | Matter considered      | Issue of liability order summons - council tax |
-            | This matter was before | -                                              |
-            | Dated                  | <DisplayDateLong>                              |
-            | Produced on            | <SearchDate>                                   |
+            | Application brought by | Mr Henry James Taylor {RANDOM}               |
+            | Respondent             | Ms Emily Rose Clark {RANDOM}                 |
+            | Matter considered      | Appeal to Crown Court                        |
+            | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE         |
+            | Dated                  | <DisplayDateLong>                            |
+            | Produced on            | <SearchDate>                                 |
+            | Application brought by | Mrs Sarah Louise Johnson {RANDOM}            |
+            | Respondent             | Greenfield Consulting {RANDOM}               |
+            | Matter considered      | Collection Order - Financial Penalty Account |
+            | This matter was before | -                                            |
+            | Dated                  | <DisplayDateLong>                            |
+            | Produced on            | <SearchDate>                                 |
+            | Application brought by | Innovative Solutions Inc                     |
+            | Respondent             | Mr Owen Davies {RANDOM}                      |
+            | Matter considered      | Appeal to Crown Court                        |
+            | This matter was before | -                                            |
+            | Dated                  | <DisplayDateLong>                            |
+            | Produced on            | <SearchDate>                                 |
         Then User Clears Downloaded PDFs
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
