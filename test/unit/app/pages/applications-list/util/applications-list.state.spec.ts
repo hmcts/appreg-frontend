@@ -18,7 +18,6 @@ describe('applications-list.state', () => {
       },
       listCloseDone: false,
       pdfLoading: false,
-      undoDone: false,
     });
   });
 
@@ -33,7 +32,6 @@ describe('applications-list.state', () => {
         key: 'date',
       },
       listCloseDone: false,
-      undoDone: false,
     });
   });
 });

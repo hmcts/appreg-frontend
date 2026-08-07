@@ -40,7 +40,6 @@ import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu } from '@util/moj-button-menu';
 import { formatPersonName } from '@util/string-helpers';
-import { ApplicationListRow } from '@util/types/application-list/types';
 
 const flushSignalEffects = async (
   fixture?: ComponentFixture<ApplicationsListDetail>,
@@ -266,44 +265,6 @@ describe('ApplicationsListDetail', () => {
 
   it('creates', () => {
     expect(component).toBeTruthy();
-  });
-
-  describe('onUndoClick', () => {
-    it('does nothing when the list id or row is unavailable', async () => {
-      const router = TestBed.inject(Router);
-      const navigateSpy = jest
-        .spyOn(router, 'navigate')
-        .mockResolvedValue(true);
-
-      component.id = '';
-      component.listRow = undefined;
-      await component.onUndoClick();
-
-      expect(navigateSpy).not.toHaveBeenCalled();
-    });
-
-    it('navigates to delete with the selected row and undo-create state', async () => {
-      const router = TestBed.inject(Router);
-      const navigateSpy = jest
-        .spyOn(router, 'navigate')
-        .mockResolvedValue(true);
-      const row = {
-        id: 'list-1',
-        entriesCount: 0,
-      } as unknown as ApplicationListRow;
-      component.id = 'list-1';
-      component.listRow = row;
-
-      await component.onUndoClick();
-
-      expect(navigateSpy).toHaveBeenCalledWith(
-        ['delete'],
-        expect.objectContaining({
-          relativeTo: TestBed.inject(ActivatedRoute),
-          state: { listRow: row, undoCreate: true },
-        }),
-      );
-    });
   });
 
   it('renders tabs with correct selection', () => {

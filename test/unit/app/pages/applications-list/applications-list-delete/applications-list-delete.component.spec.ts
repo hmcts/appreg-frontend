@@ -46,7 +46,6 @@ describe('ApplicationsListDeleteComponent', () => {
   const setup = async (opts?: {
     platformId?: 'browser' | 'server';
     navStateRow?: ApplicationListRow | undefined;
-    undoCreate?: boolean;
     routeId?: string | null;
   }) => {
     const platformId = opts?.platformId ?? 'browser';
@@ -64,7 +63,6 @@ describe('ApplicationsListDeleteComponent', () => {
     location = {
       getState: jest.fn().mockReturnValue({
         listRow: navStateRow,
-        undoCreate: opts?.undoCreate,
       }),
     };
 
@@ -159,20 +157,6 @@ describe('ApplicationsListDeleteComponent', () => {
     });
   });
 
-  it('onDelete: undo create success -> navigates with undo=success', async () => {
-    await setup({ navStateRow: makeRow(), undoCreate: true });
-
-    (api.deleteApplicationList as jest.Mock).mockReturnValue(
-      of(new HttpResponse({ status: 204 })),
-    );
-
-    component.onDelete();
-
-    expect(router.navigate).toHaveBeenCalledWith(['/applications-list'], {
-      queryParams: { undo: 'success' },
-    });
-  });
-
   it('onDelete: HttpErrorResponse -> navigates with delete=error and code=status', async () => {
     await setup({ navStateRow: makeRow() });
 
@@ -210,30 +194,14 @@ describe('ApplicationsListDeleteComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/applications-list']);
   });
 
-  it('uses the default delete title and warning text', async () => {
+  it('goBack: when opened from list details, returns to the list detail page', async () => {
     await setup({ navStateRow: makeRow() });
-
-    expect(component.title).toBe(
-      'Are you sure you want to delete this application list?',
-    );
-    expect(component.warningBannerText).toBe(
-      'You are about to delete this Application List and all of the Application List Entries. This action cannot be undone.',
-    );
-  });
-
-  it('undo create: uses undo wording and returns to the list detail page', async () => {
-    await setup({ navStateRow: makeRow(), undoCreate: true });
+    component.isFromListDetails = true;
 
     (router.navigate as jest.Mock).mockClear();
     component.goBack();
 
-    expect(component.title).toBe(
-      'Are you sure you want to undo the creation of this application list?',
-    );
-    expect(component.warningBannerText).toBe(
-      'You are about to undo the creation of this Application List. This action cannot be undone.',
-    );
-    expect(router.navigate).toHaveBeenNthCalledWith(1, [
+    expect(router.navigate).toHaveBeenCalledWith([
       '/applications-list',
       'abc-123',
     ]);
