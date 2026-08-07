@@ -298,6 +298,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         void this.router.navigate([], {
           relativeTo: this.route,
           queryParams: { delete: null, code: null },
+          preserveFragment: true,
           replaceUrl: true,
         });
       }
