@@ -1,6 +1,6 @@
 Feature: Application List Bulk Upload
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500
+    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1506
     Scenario Outline: Application List - Bulk Upload Entries Via CSV File With Application Codes Fee Required = 'N'
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -46,7 +46,7 @@ Feature: Application List Bulk Upload
             | User  | APIDate  | Time           | Status | Description     | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkUp_{RANDOM} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1493
+    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1493 @ARCPOC-1506
     Scenario Outline: Application List - Bulk Upload Entries Via CSV File With Application Codes Fee Required = 'Y'
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -112,7 +112,7 @@ Feature: Application List Bulk Upload
             | User  | APIDate  | Time           | Status | Description     | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkUp_{RANDOM} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-632
+    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-1502
     Scenario Outline: Application List - Bulk Upload Fails With Invalid CSV Headers
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
