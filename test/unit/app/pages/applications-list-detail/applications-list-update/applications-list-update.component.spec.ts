@@ -1,11 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
+import { By } from '@angular/platform-browser';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApplicationsListUpdateComponent } from '@components/applications-list-detail/applications-list-update/applications-list-update.component';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import {
+  PageHeaderAction,
+  PageHeaderComponent,
+} from '@components/page-header/page-header.component';
 import { DETAIL_ERROR_ANCHORS } from '@constants/application-list-detail-update/error-hrefs';
 import {
   CLOSE_MESSAGES,
@@ -19,6 +24,7 @@ import {
 import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import * as buildPayload from '@util/build-payload';
 import { PlaceFieldsState } from '@util/place-fields.base';
+import { ApplicationListRow } from '@util/types/application-list/types';
 
 describe('ApplicationsListUpdateComponent', () => {
   let component: ApplicationsListUpdateComponent;
@@ -121,6 +127,7 @@ describe('ApplicationsListUpdateComponent', () => {
           useValue: { getApplicationCodeByCodeAndDate: jest.fn() },
         },
         { provide: Router, useValue: router },
+        { provide: ActivatedRoute, useValue: {} },
       ],
     }).compileComponents();
 
@@ -144,6 +151,28 @@ describe('ApplicationsListUpdateComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('provides a delete-list action with list-detail navigation state', () => {
+    const listRow = {
+      id: 'list-1',
+      entries: 0,
+    } as ApplicationListRow;
+    fixture.componentRef.setInput('listRow', listRow);
+    fixture.detectChanges();
+
+    const pageHeader = fixture.debugElement.query(
+      By.directive(PageHeaderComponent),
+    ).componentInstance as PageHeaderComponent;
+
+    expect(pageHeader.actions()).toEqual<PageHeaderAction[]>([
+      {
+        label: 'Delete list',
+        variant: 'warning',
+        routerLink: ['delete'],
+        state: { listRow, fromListDetails: true },
+      },
+    ]);
   });
 
   it('detects close errors', () => {

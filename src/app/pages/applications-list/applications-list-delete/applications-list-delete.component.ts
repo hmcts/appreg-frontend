@@ -59,6 +59,10 @@ export class ApplicationsListDeleteComponent implements OnInit {
     ? (this.location.getState() as AppListNavState).listRow
     : undefined;
 
+  isFromListDetails: boolean | undefined = isPlatformBrowser(this.platformId)
+    ? (this.location.getState() as AppListNavState).fromListDetails
+    : false;
+
   idFromUrl = this.route.snapshot.paramMap.get('id');
 
   columns = APPLICATIONS_LIST_COLUMNS;
@@ -74,6 +78,13 @@ export class ApplicationsListDeleteComponent implements OnInit {
   }
 
   goBack(): void {
+    if (this.isFromListDetails && this.idFromUrl) {
+      void this.router.navigate(['/applications-list', this.idFromUrl], {
+        fragment: 'list-details',
+      });
+      return;
+    }
+
     void this.router.navigate(['/applications-list']);
   }
 
@@ -93,16 +104,19 @@ export class ApplicationsListDeleteComponent implements OnInit {
       .subscribe({
         next: () => {
           void this.router.navigate(['/applications-list'], {
-            queryParams: {
-              delete: 'success',
-            },
+            queryParams: { delete: 'success' },
           });
         },
         error: (err: unknown) => {
           const code =
             err instanceof HttpErrorResponse ? err.status : undefined;
 
-          void this.router.navigate(['/applications-list'], {
+          let routerLinkNav = ['/applications-list'];
+          if (this.isFromListDetails && this.idFromUrl) {
+            routerLinkNav = ['/applications-list', this.idFromUrl];
+          }
+
+          void this.router.navigate(routerLinkNav, {
             queryParams: {
               delete: 'error',
               code: code ?? 500,

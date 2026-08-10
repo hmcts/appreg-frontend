@@ -1,4 +1,15 @@
-<h2 class="govuk-heading-l">List details</h2>
+<app-page-header
+  title="List details"
+  [actions]="[
+    {
+      label: 'Delete list',
+      variant: 'warning',
+      routerLink: ['delete'],
+      state: { listRow: listRow(), fromListDetails: true },
+    },
+  ]"
+  [size]="'l'"
+/>
 <app-help-details summary="Help with application list details">
   <p class="govuk-body">
     To close a list, change the status to Closed and save your changes.

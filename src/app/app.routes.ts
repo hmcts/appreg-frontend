@@ -113,7 +113,7 @@ export const routes: Routes = [
       {
         path: ':id/result-selected',
         loadComponent: () =>
-          import('@components/result-selected/result-selected.component').then(
+          import('@components/applications-list-detail/result-selected/result-selected.component').then(
             (m) => m.ResultSelected,
           ),
       },

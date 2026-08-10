@@ -106,13 +106,11 @@ describe('ApplicationsListDetail', () => {
     Pick<
       ApplicationListEntriesApi,
       | 'getApplicationListEntries'
-      | 'getApplicationListEntryIds'
       | 'getBulkResultApplicationListEntriesByJobId'
       | 'applicationListEntryBulkActionPreview'
     >
   > = {
     getApplicationListEntries: jest.fn(),
-    getApplicationListEntryIds: jest.fn(),
     getBulkResultApplicationListEntriesByJobId: jest.fn(),
     applicationListEntryBulkActionPreview: jest.fn(),
   };
@@ -236,11 +234,6 @@ describe('ApplicationsListDetail', () => {
           headers: new HttpHeaders(),
         }),
       ),
-    );
-    entriesApiStub.getApplicationListEntryIds.mockReturnValue(
-      of({
-        ids: ['abc'],
-      }),
     );
 
     await TestBed.configureTestingModule({
@@ -1258,6 +1251,10 @@ describe('ApplicationsListDetail', () => {
     expect(patchSpy).toHaveBeenCalledWith({
       updateDone: false,
       updateOfficialsDone: false,
+      createDone: false,
+      updateFeesDone: false,
+      moveDone: false,
+      bulkUploadDone: false,
     });
   });
 
@@ -1686,6 +1683,7 @@ describe('ApplicationsListDetail', () => {
     const routeSpy = jest
       .spyOn(route.snapshot.queryParamMap, 'get')
       .mockReturnValue('true');
+    historyStateSpy.mockReturnValue({ created: true });
 
     component.setSuccessBanner();
 
@@ -1802,7 +1800,6 @@ describe('ApplicationsListDetail', () => {
 
     component.onSelectAllMatchingClick();
 
-    expect(entriesApiStub.getApplicationListEntryIds).not.toHaveBeenCalled();
     expect(vm().selectedIds).toEqual(new Set(['abc']));
     expect(vm().selectedRows).toEqual([{ id: 'abc', title: 'Visible row' }]);
     expect(vm().allMatchingSelected).toBe(true);

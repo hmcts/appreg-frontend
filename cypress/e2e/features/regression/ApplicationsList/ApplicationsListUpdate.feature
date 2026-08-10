@@ -38,7 +38,7 @@ Feature: Applications List Update
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location   | Description          | Entries   | Status   |
             | <DisplayDate> | <Time> | <CJAValue> | <UpdatedDescription> | <Entries> | <Status> |
-        Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
@@ -86,7 +86,7 @@ Feature: Applications List Update
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location     | Description          | Entries   | Status   |
             | <DisplayDate> | <Time> | <OptionText> | <UpdatedDescription> | <Entries> | <Status> |
-        Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
