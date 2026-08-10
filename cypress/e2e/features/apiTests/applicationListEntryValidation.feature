@@ -58,10 +58,10 @@ Feature: API - Application List Entry Validation
       | respondent.person.name.lastName  | Optional{RANDOM} |
 
   @api @applicationListEntry @regression @ARCPOC-935
-  Scenario: Reject bulk respondent details when application code does not allow bulk respondents
+  Scenario: Create application list entry with bulk respondent details when application code allows bulk respondents
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                        | null                       |
-      | applicationCode                              | AP99001                    |
+      | applicationCode                              | CT99001                    |
       | applicant.person.name.title                  | Mr                         |
       | applicant.person.name.firstName              | John                       |
       | applicant.person.name.lastName               | Bulk{RANDOM}               |
@@ -75,7 +75,7 @@ Feature: API - Application List Entry Validation
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}              |
       | applicant.person.contactDetails.email        | bulk{RANDOM}@example.com   |
       | numberOfRespondents                          | 5                          |
-      | wordingFields.0.key                          | Date of Hearing            |
+      | wordingFields.0.key                          | Number                     |
       | wordingFields.0.value                        | 5                          |
       | hasOffsiteFee                                | false                      |
       | caseReference                                | CASE-{RANDOM}              |
@@ -85,16 +85,16 @@ Feature: API - Application List Entry Validation
       | officials.0.surname                          | Clerk{RANDOM}              |
       | officials.0.forename                         | John                       |
       | officials.0.type                             | MAGISTRATE                 |
-    Then User Verify Response Status Code Should Be "400"
+    Then User Verify Response Status Code Should Be "201"
     Then User Verify Response Body Should Have:
-      | type   | ALE-8 |
-      | status | 400   |
+      | applicationCode     | CT99001 |
+      | numberOfRespondents | 5       |
 
   @api @applicationListEntry @regression @ARCPOC-935
-  Scenario: Reject respondent details with respondent count when application code does not allow bulk respondents
+  Scenario: Reject bulk respondent payloads when both respondent details and respondent count are provided
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                         | null                           |
-      | applicationCode                               | AP99001                        |
+      | applicationCode                               | CT99001                        |
       | applicant.person.name.title                   | Mr                             |
       | applicant.person.name.firstName               | John                           |
       | applicant.person.name.lastName                | Both{RANDOM}                   |
@@ -119,7 +119,7 @@ Feature: API - Application List Entry Validation
       | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
       | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
       | numberOfRespondents                           | 10                             |
-      | wordingFields.0.key                           | Date of Hearing                |
+      | wordingFields.0.key                           | Number                         |
       | wordingFields.0.value                         | 5                              |
       | hasOffsiteFee                                 | false                          |
       | caseReference                                 | CASE-{RANDOM}                  |
@@ -131,8 +131,8 @@ Feature: API - Application List Entry Validation
       | officials.0.type                              | MAGISTRATE                     |
     Then User Verify Response Status Code Should Be "400"
     Then User Verify Response Body Should Have:
-      | type   | ALE-8 |
-      | status | 400   |
+      | type   | ALE-21 |
+      | status | 400    |
 
   @api @applicationListEntry @regression @ARCPOC-935 @ARCPOC-1562
   Scenario: Accept bulk respondent payloads when neither respondent details nor respondent count are provided

@@ -12,7 +12,7 @@ Feature: Applications List Create
     Then User Enters "<OtherLocation>" Into The "Other location description" Textbox
     Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
-    Then User Sees Success Banner "<SuccessMessage>"
+    Then User Sees Success Banner "Application list created" Containing "The application list has been successfully created."
     Then User Verify The Page URL Contains "#list-details"
     Then User Should See The Link "Create application"
     Then User Clicks On The Breadcrumb Link "Applications list"
@@ -25,11 +25,11 @@ Feature: Applications List Create
     Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
     When User Clicks On The "Yes - delete" Button
-    Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
+    Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
 
     Examples:
-      | User  | Date  | Time           | Description   | Status | OtherLocation           | SuccessMessage                                                                     | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
-      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Application list createdThe application list has been successfully created | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
+      | User  | Date  | Time           | Description   | Status | OtherLocation           | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
+      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
   Scenario Outline: Create applications list using Court Autocomplete
@@ -41,7 +41,7 @@ Feature: Applications List Create
     Then User Enters "<Description>" Into The "List description" Textbox
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
-    Then User Sees Success Banner "<SuccessMessage>"
+    Then User Sees Success Banner "Application list created" Containing "The application list has been successfully created."
     Then User Verify The Page URL Contains "#list-details"
     Then User Should See The Link "Create application"
     Then User Clicks On The Breadcrumb Link "Applications list"
@@ -54,10 +54,10 @@ Feature: Applications List Create
     Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
     When User Clicks On The "Yes - delete" Button
-    Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
+    Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
     Examples:
-      | User  | Date  | Time           | Description   | Status | SuccessMessage                                                                     | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
-      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Success Application list createdThe application list has been successfully created | royal      | Royal Courts of Justice Set 1 | Lists     | todaydisplay | 0       | Select           | Open       |
+      | User  | Date  | Time           | Description   | Status | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
+      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | royal      | Royal Courts of Justice Set 1 | Lists     | todaydisplay | 0       | Select           | Open       |
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792 @ARCPOC-1012
   Scenario Outline: Verify validation messages on creating applications list with No Input
@@ -97,7 +97,7 @@ Feature: Applications List Create
     Then User Clears The "Criminal justice area" Textbox
     Then User Selects "<CJA>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
-    Then User Sees Success Banner "<SuccessMessage>"
+    Then User Sees Success Banner "Application list created" Containing "The application list has been successfully created."
     Then User Verify The Page URL Contains "#list-details"
     Then User Should See The Link "Create application"
     Then User Clicks On The Breadcrumb Link "Applications list"
@@ -110,8 +110,8 @@ Feature: Applications List Create
     Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
     When User Clicks On The "Yes - delete" Button
-    Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
+    Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
 
     Examples:
-      | User  | InvalidDate | Date  | InvalidTime | Time  | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | CJA           | SearchText | SuccessMessage                                                                     | TableName | DisplayDate  | Entries | SelectButtonText |
-      | user1 | 32/13/2024  | today | 25:61       | 14:30 | Test_{RANDOM} | Open   | abc          | Other Location_{RANDOM} | abc        | Wolverhampton | B9         | Success Application list createdThe application list has been successfully created | Lists     | todaydisplay | 0       | Select           |
+      | User  | InvalidDate | Date  | InvalidTime | Time  | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | CJA           | SearchText | TableName | DisplayDate  | Entries | SelectButtonText |
+      | user1 | 32/13/2024  | today | 25:61       | 14:30 | Test_{RANDOM} | Open   | abc          | Other Location_{RANDOM} | abc        | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           |
