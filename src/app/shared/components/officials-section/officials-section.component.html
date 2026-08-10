@@ -4,11 +4,11 @@
     <h3 class="govuk-heading-s">Magistrate 1</h3>
 
     <div class="govuk-grid-row">
-      <app-select-input
+      <app-text-input
         formControlName="mags1Title"
-        label="Select magistrate’s title"
+        label="Magistrate’s title"
         idPrefix="officials-mags1-title"
-        [options]="titleOptions"
+        [error]="errorFor('officials-mags1-title')"
       />
     </div>
 
@@ -42,11 +42,11 @@
     <h3 class="govuk-heading-s">Magistrate 2</h3>
 
     <div class="govuk-grid-row">
-      <app-select-input
+      <app-text-input
         formControlName="mags2Title"
-        label="Select magistrate’s title"
+        label="Magistrate’s title"
         idPrefix="officials-mags2-title"
-        [options]="titleOptions"
+        [error]="errorFor('officials-mags2-title')"
       />
     </div>
 
@@ -80,11 +80,11 @@
     <h3 class="govuk-heading-s">Magistrate 3</h3>
 
     <div class="govuk-grid-row">
-      <app-select-input
+      <app-text-input
         formControlName="mags3Title"
-        label="Select magistrate’s title"
+        label="Magistrate’s title"
         idPrefix="officials-mags3-title"
-        [options]="titleOptions"
+        [error]="errorFor('officials-mags3-title')"
       />
     </div>
 
@@ -117,11 +117,11 @@
     <h2 class="govuk-heading-s">Court official</h2>
 
     <div class="govuk-grid-row">
-      <app-select-input
+      <app-text-input
         formControlName="officialTitle"
-        label="Select court official’s title"
+        label="Court official’s title"
         idPrefix="officials-official-title"
-        [options]="titleOptions"
+        [error]="errorFor('officials-official-title')"
       />
     </div>
 

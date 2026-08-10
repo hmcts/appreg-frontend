@@ -106,19 +106,19 @@ Feature: Application List Entries Bulk Update Officials
             | 1               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}  | Appeal to Crown Court                        |
             | 2               | Sarah Johnson {RANDOM} | Greenfield Consulting | Collection Order - Financial Penalty Account |
         # Magistrate 1
-        Then User Selects "Mr" From The "Select magistrate's title" Dropdown Within The "Magistrate 1" FieldSet
+        Then User Fills In The "Magistrate's title" Textbox With "HHJ" Within The "Magistrate 1" FieldSet
         Then User Fills In The "Magistrate's first name" Textbox With "John" Within The "Magistrate 1" FieldSet
         Then User Fills In The "Magistrate's surname" Textbox With "Smith_{RANDOM}" Within The "Magistrate 1" FieldSet
         # Magistrate 2
-        Then User Selects "Dr" From The "Select magistrate's title" Dropdown Within The "Magistrate 2" FieldSet
+        Then User Fills In The "Magistrate's title" Textbox With "DJ" Within The "Magistrate 2" FieldSet
         Then User Fills In The "Magistrate's first name" Textbox With "Emily" Within The "Magistrate 2" FieldSet
         Then User Fills In The "Magistrate's surname" Textbox With "Davis_{RANDOM}" Within The "Magistrate 2" FieldSet
         # Magistrate 3
-        Then User Selects "Miss" From The "Select magistrate's title" Dropdown Within The "Magistrate 3" FieldSet
+        Then User Fills In The "Magistrate's title" Textbox With "Miss" Within The "Magistrate 3" FieldSet
         Then User Fills In The "Magistrate's first name" Textbox With "Jane" Within The "Magistrate 3" FieldSet
         Then User Fills In The "Magistrate's surname" Textbox With "Hardy_{RANDOM}" Within The "Magistrate 3" FieldSet
         # Court Official
-        Then User Selects "Mrs" From The "Select court official's title" Dropdown Within The "Court official" FieldSet
+        Then User Fills In The "Court official's title" Textbox With "Mrs" Within The "Court official" FieldSet
         Then User Fills In The "Official's first name" Textbox With "Violette" Within The "Court official" FieldSet
         Then User Fills In The "Official's surname" Textbox With "Zanetti_{RANDOM}" Within The "Court official" FieldSet
         # Save Officials
@@ -139,19 +139,19 @@ Feature: Application List Entries Bulk Update Officials
         Then User Sees Page Heading "Applications list entry update"
         When User Clicks On The "Show all sections" Button
         # Magistrate 1
-        Then User Verifies The Dropdown "Select magistrate's title" Contains "Mr" Under FieldSet "Magistrate 1" In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's title" Contains "HHJ" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's first name" Contains "John" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's surname" Contains "Smith_{RANDOM}" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         # Magistrate 2
-        Then User Verifies The Dropdown "Select magistrate's title" Contains "Dr" Under FieldSet "Magistrate 2" In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's title" Contains "DJ" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's first name" Contains "Emily" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's surname" Contains "Davis_{RANDOM}" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         # Magistrate 3
-        Then User Verifies The Dropdown "Select magistrate's title" Contains "Miss" Under FieldSet "Magistrate 3" In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's title" Contains "Miss" Under "Magistrate 3" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's first name" Contains "Jane" Under "Magistrate 3" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's surname" Contains "Hardy_{RANDOM}" Under "Magistrate 3" FieldSet In The Accordion "Officials"
         # Court Official
-        Then User Verifies The Dropdown "Select court official's title" Contains "Mrs" Under FieldSet "Court official" In The Accordion "Officials"
+        Then User Verifies The Textbox "Court official's title" Contains "Mrs" Under "Court official" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Official's first name" Contains "Violette" Under "Court official" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Official's surname" Contains "Zanetti_{RANDOM}" Under "Court official" FieldSet In The Accordion "Officials"
         # Cancel from ALE Update Screen
@@ -163,19 +163,19 @@ Feature: Application List Entries Bulk Update Officials
         Then User Sees Page Heading "Applications list entry update"
         # When User Clicks On The "Show all sections" Button
         # Magistrate 1
-        Then User Verifies The Dropdown "Select magistrate's title" Contains "Mr" Under FieldSet "Magistrate 1" In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's title" Contains "HHJ" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's first name" Contains "John" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's surname" Contains "Smith_{RANDOM}" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         # Magistrate 2
-        Then User Verifies The Dropdown "Select magistrate's title" Contains "Dr" Under FieldSet "Magistrate 2" In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's title" Contains "DJ" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's first name" Contains "Emily" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's surname" Contains "Davis_{RANDOM}" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         # Magistrate 3
-        Then User Verifies The Dropdown "Select magistrate's title" Contains "Miss" Under FieldSet "Magistrate 3" In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's title" Contains "Miss" Under "Magistrate 3" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's first name" Contains "Jane" Under "Magistrate 3" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's surname" Contains "Hardy_{RANDOM}" Under "Magistrate 3" FieldSet In The Accordion "Officials"
         # Court Official
-        Then User Verifies The Dropdown "Select court official's title" Contains "Mrs" Under FieldSet "Court official" In The Accordion "Officials"
+        Then User Verifies The Textbox "Court official's title" Contains "Mrs" Under "Court official" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Official's first name" Contains "Violette" Under "Court official" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Official's surname" Contains "Zanetti_{RANDOM}" Under "Court official" FieldSet In The Accordion "Officials"
         # Application List Cleanup
@@ -183,4 +183,4 @@ Feature: Application List Entries Bulk Update Officials
         Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | APIDate  | Time  | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Court                     | Entries | Magistrate1Value1      | Magistrate2Value1       | Magistrate3Value1        | CourtOfficialValue1           |
-            | user1 | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todaydisplay | Bristol Crown Court Set 3 | 2       | Mr John Smith_{RANDOM} | Dr Emily Davis_{RANDOM} | Miss Jane Hardy_{RANDOM} | Mrs Violette Zanetti_{RANDOM} |
+            | user1 | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todaydisplay | Bristol Crown Court Set 3 | 2       | HHJ John Smith_{RANDOM} | DJ Emily Davis_{RANDOM} | Miss Jane Hardy_{RANDOM} | Mrs Violette Zanetti_{RANDOM} |

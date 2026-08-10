@@ -165,6 +165,17 @@ describe('applications-list entry form builders', () => {
       expect(form.controls.mags1FirstName.errors).toHaveProperty('pattern');
     });
 
+    it('official title fields default blank and enforce max length 15', () => {
+      const form = buildStandardApplicationForm(fb);
+
+      expect(form.controls.mags1Title.value).toBeNull();
+      expect(form.controls.officialTitle.value).toBeNull();
+
+      form.controls.mags1Title.setValue('A'.repeat(16));
+      form.controls.mags1Title.updateValueAndValidity();
+      expect(form.controls.mags1Title.errors).toHaveProperty('maxlength');
+    });
+
     it('requires surname when a magistrate or official first name is entered', () => {
       const form = buildStandardApplicationForm(fb);
 
@@ -221,6 +232,30 @@ describe('applications-list entry form builders', () => {
       form.controls.officialSurname.setValue('Brown');
       form.updateValueAndValidity();
       expect(form.controls.officialFirstName.errors).toHaveProperty('required');
+    });
+
+    it('does not require title when an official row has first name and surname', () => {
+      const form = buildStandardApplicationForm(fb);
+
+      form.controls.mags1FirstName.setValue('John');
+      form.controls.mags1Surname.setValue('Smith');
+      form.updateValueAndValidity();
+      expect(form.controls.mags1Title.errors).toBeNull();
+
+      form.controls.officialFirstName.setValue('Clara');
+      form.controls.officialSurname.setValue('Jones');
+      form.updateValueAndValidity();
+      expect(form.controls.officialTitle.errors).toBeNull();
+    });
+
+    it('requires first name and surname when an official row only has a title', () => {
+      const form = buildStandardApplicationForm(fb);
+
+      form.controls.mags1Title.setValue('DJ');
+      form.updateValueAndValidity();
+
+      expect(form.controls.mags1FirstName.errors).toHaveProperty('required');
+      expect(form.controls.mags1Surname.errors).toHaveProperty('required');
     });
   });
 
