@@ -875,7 +875,7 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().allMatchingSelected).toBe(true);
     });
 
-    it('keeps manually unselected ids as exclusions for a filter selection', () => {
+    it('keeps manually unselected ids as exclusions for a filter selection', async () => {
       appStateSignal(component).update((s) => ({
         ...s,
         rows: [
@@ -887,6 +887,7 @@ describe('ApplicationsComponent', () => {
         selectedIds: new Set(['entry-1', 'entry-2', 'entry-3']),
         isFilterSelection: true,
         allMatchingSelected: true,
+        getFilters: { applicantOrganisation: 'Org Ltd' },
       }));
 
       component.onSelectedIdsChange(new Set(['entry-1', 'entry-3']));
@@ -907,7 +908,7 @@ describe('ApplicationsComponent', () => {
         >,
       );
 
-      void (
+      await (
         component as unknown as {
           getBulkPreviewData: (action: BulkActionType) => Promise<unknown>;
         }
@@ -918,10 +919,71 @@ describe('ApplicationsComponent', () => {
           action: BulkActionType.RESULT_SELECTED,
           selection: expect.objectContaining({
             selectionType: 'FILTER',
+            filter: { applicantOrganisation: 'Org Ltd' },
+            sort: ['date,desc'],
             excludedEntryIds: ['entry-2'],
           }),
         }),
       });
+    });
+
+    it('sends an empty exclusions array for filter selections with no unticked rows', async () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        rows: [makeEntry({ id: 'entry-1' }), makeEntry({ id: 'entry-2' })],
+        selectedIds: new Set(['entry-1', 'entry-2']),
+        isFilterSelection: true,
+        allMatchingSelected: true,
+        excludedEntryIds: new Set<string>(),
+        getFilters: { applicantSurname: 'Smith' },
+        sortField: { key: 'title', direction: 'asc' },
+      }));
+
+      await (
+        component as unknown as {
+          getBulkPreviewData: (action: BulkActionType) => Promise<unknown>;
+        }
+      ).getBulkPreviewData(BulkActionType.RESULT_SELECTED);
+
+      expect(bulkActionPreviewMock).toHaveBeenCalledWith({
+        bulkActionPreviewRequestDto: expect.objectContaining({
+          action: BulkActionType.RESULT_SELECTED,
+          selection: expect.objectContaining({
+            selectionType: 'FILTER',
+            filter: { applicantSurname: 'Smith' },
+            sort: ['applicationTitle,asc'],
+            excludedEntryIds: [],
+          }),
+        }),
+      });
+    });
+
+    it('surfaces backend over-limit errors from the preview endpoint', async () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedIds: new Set(['entry-1']),
+      }));
+      bulkActionPreviewMock.mockReturnValueOnce(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 413,
+              statusText: 'Payload Too Large',
+            }),
+        ),
+      );
+
+      await (
+        component as unknown as {
+          getBulkPreviewData: (action: BulkActionType) => Promise<unknown>;
+        }
+      ).getBulkPreviewData(BulkActionType.RESULT_SELECTED);
+
+      expect(component.vm().errorSummary).toEqual([
+        {
+          text: 'Affected rows exceeds 2000. Please reduce the number of rows selected',
+        },
+      ]);
     });
 
     it('keeps selected rows from other pages and replaces only current-page selections', () => {
@@ -968,7 +1030,7 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('onUpdateNotesClick', () => {
-    it('keeps the update notes row action clickable for open rows so validation can be shown', () => {
+    it('keeps the update notes row action clickable for open rows so validation can be shown', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
@@ -982,6 +1044,25 @@ describe('ApplicationsComponent', () => {
           }),
         ],
       }));
+      bulkActionPreviewMock.mockReturnValueOnce(
+        of({
+          action: BulkActionType.UPDATE_NOTES,
+          limit: 100,
+          selectedCount: 1,
+          eligibleCount: 0,
+          ineligibleCount: 1,
+          entryIds: ['entry-1'],
+          entries: [
+            makeEntry({
+              id: 'entry-1',
+              listId: 'list-1',
+              status: ApplicationListStatus.OPEN,
+            }),
+          ],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['bulkActionPreview']
+        >,
+      );
       fixture.detectChanges();
 
       const updateNotesButton = Array.from(
@@ -996,41 +1077,86 @@ describe('ApplicationsComponent', () => {
       expect(updateNotesButton?.disabled).toBe(false);
 
       updateNotesButton?.click();
-      fixture.detectChanges();
+      await flushSignalEffects(fixture);
 
+      expect(bulkActionPreviewMock).toHaveBeenCalledWith({
+        bulkActionPreviewRequestDto: expect.objectContaining({
+          action: BulkActionType.UPDATE_NOTES,
+          selection: expect.objectContaining({
+            selectionType: 'IDS',
+            entryIds: ['entry-1'],
+          }),
+        }),
+      });
       expect(navSpy).not.toHaveBeenCalled();
       expect(fixture.nativeElement.textContent).toContain(
         'Application list entry cannot be updated in its current state. The parent application list is not closed.',
       );
     });
 
-    it('navigates to update-notes with the row application context', async () => {
+    it('calls preview and navigates to update-notes with the preview application context', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
       const row: ApplicationRow = {
         ...makeSelectedRow('entry-1', 'list-1'),
-        applicant: 'William Scott',
-        date: '23 Apr 2025',
+        applicant: 'Stale applicant',
+        date: '23 Apr 2024',
         fee: 'Yes',
-        respondent: 'Ryan Quinn',
+        respondent: 'Stale respondent',
         resulted: 'No',
-        title: 'Appeal by Case Stated (Civil)',
+        title: 'Stale title',
         status: ApplicationListStatus.CLOSED,
       };
+      const previewEntry = {
+        ...makeEntry({
+          id: 'entry-1',
+          listId: 'list-from-preview',
+          date: '2025-04-23',
+          applicationTitle: 'Appeal by Case Stated (Civil)',
+          isFeeRequired: false,
+          isResulted: true,
+          status: ApplicationListStatus.CLOSED,
+        }),
+        applicant: { organisation: { name: 'William Scott' } },
+        respondent: { organisation: { name: 'Ryan Quinn' } },
+      } as EntryGetSummaryDto;
+
+      bulkActionPreviewMock.mockReturnValueOnce(
+        of({
+          action: BulkActionType.UPDATE_NOTES,
+          limit: 100,
+          selectedCount: 1,
+          eligibleCount: 1,
+          ineligibleCount: 0,
+          entryIds: ['entry-1'],
+          entries: [previewEntry],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['bulkActionPreview']
+        >,
+      );
 
       await component.onUpdateNotesClick(row);
 
+      expect(bulkActionPreviewMock).toHaveBeenCalledWith({
+        bulkActionPreviewRequestDto: expect.objectContaining({
+          action: BulkActionType.UPDATE_NOTES,
+          selection: expect.objectContaining({
+            selectionType: 'IDS',
+            entryIds: ['entry-1'],
+          }),
+        }),
+      });
       expect(navSpy).toHaveBeenCalledWith(
-        ['/applications-list', 'list-1', 'update-notes', 'entry-1'],
+        ['/applications-list', 'list-from-preview', 'update-notes', 'entry-1'],
         {
           state: {
             updateNotesApplication: {
               id: 'entry-1',
               applicant: 'William Scott',
-              date: '23 Apr 2025',
-              fee: 'Yes',
+              date: '2025-04-23',
+              fee: 'No',
               respondent: 'Ryan Quinn',
-              resulted: 'No',
+              resulted: 'Yes',
               title: 'Appeal by Case Stated (Civil)',
             },
           },
@@ -1055,7 +1181,13 @@ describe('ApplicationsComponent', () => {
           eligibleCount: 1,
           ineligibleCount: 0,
           entryIds: ['entry-1'],
-          entries: [makeEntry({ id: 'entry-1', listId: 'list-1' })],
+          entries: [
+            makeEntry({
+              id: 'entry-1',
+              listId: 'list-1',
+              status: 'closed' as ApplicationListStatus,
+            }),
+          ],
         } as BulkActionPreviewResponseDto) as unknown as ReturnType<
           ApplicationListEntriesApi['bulkActionPreview']
         >,
@@ -1075,12 +1207,40 @@ describe('ApplicationsComponent', () => {
       const initialAttempt = component.submitAttempt();
       const row = {
         ...makeSelectedRow('entry-1', 'list-1'),
-        status: ApplicationListStatus.OPEN,
+        status: ApplicationListStatus.CLOSED,
       };
+      bulkActionPreviewMock.mockReturnValueOnce(
+        of({
+          action: BulkActionType.UPDATE_NOTES,
+          limit: 100,
+          selectedCount: 1,
+          eligibleCount: 0,
+          ineligibleCount: 1,
+          entryIds: ['entry-1'],
+          entries: [
+            makeEntry({
+              id: 'entry-1',
+              listId: 'list-1',
+              status: ApplicationListStatus.OPEN,
+            }),
+          ],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['bulkActionPreview']
+        >,
+      );
 
       await component.onUpdateNotesClick(row);
 
       expect(navSpy).not.toHaveBeenCalled();
+      expect(bulkActionPreviewMock).toHaveBeenCalledWith({
+        bulkActionPreviewRequestDto: expect.objectContaining({
+          action: BulkActionType.UPDATE_NOTES,
+          selection: expect.objectContaining({
+            selectionType: 'IDS',
+            entryIds: ['entry-1'],
+          }),
+        }),
+      });
       expect(component.vm().errorSummary).toEqual([
         {
           text: 'Application list entry cannot be updated in its current state. The parent application list is not closed.',
@@ -1101,6 +1261,7 @@ describe('ApplicationsComponent', () => {
       await component.onUpdateNotesClick(row);
 
       expect(navSpy).not.toHaveBeenCalled();
+      expect(bulkActionPreviewMock).not.toHaveBeenCalled();
       expect(component.vm().errorSummary).toEqual([
         { text: 'Unable to update notes for selected application' },
       ]);
@@ -1260,6 +1421,7 @@ describe('ApplicationsComponent', () => {
 
       appStateSignal(component).update((s) => ({
         ...s,
+        selectedIds: new Set(['entry-a1', 'entry-a2', 'entry-b1']),
         selectedRows: [
           makeSelectedRow('entry-a1', 'list-a'),
           makeSelectedRow('entry-a2', 'list-a'),
@@ -1454,6 +1616,7 @@ describe('ApplicationsComponent', () => {
 
       appStateSignal(component).update((s) => ({
         ...s,
+        selectedIds: new Set(['entry-a1', 'entry-a2', 'entry-b1']),
         selectedRows: [
           makeSelectedRow('entry-a1', 'list-a'),
           makeSelectedRow('entry-a2', 'list-a'),
@@ -1466,6 +1629,15 @@ describe('ApplicationsComponent', () => {
       await component.onPrintPageClick();
       await flushSignalEffects(fixture);
 
+      expect(bulkActionPreviewMock).toHaveBeenCalledWith({
+        bulkActionPreviewRequestDto: expect.objectContaining({
+          action: BulkActionType.PRINT_PAGE,
+          selection: expect.objectContaining({
+            selectionType: 'IDS',
+            entryIds: ['entry-a1', 'entry-a2', 'entry-b1'],
+          }),
+        }),
+      });
       expect(printApplicationListsMock).toHaveBeenCalledWith(
         {
           bulkGetApplicationListEntriesRequestDto: {
@@ -1608,6 +1780,11 @@ describe('ApplicationsComponent', () => {
         .spyOn((component as unknown as { router: Router }).router, 'navigate')
         .mockResolvedValue(true);
 
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedIds: new Set(rows.map((row) => row.id)),
+      }));
+
       bulkActionPreviewMock.mockReturnValueOnce(
         of({
           action: BulkActionType.RESULT_SELECTED,
@@ -1632,6 +1809,15 @@ describe('ApplicationsComponent', () => {
 
       await component.onResultSelectedClick();
 
+      expect(bulkActionPreviewMock).toHaveBeenCalledWith({
+        bulkActionPreviewRequestDto: expect.objectContaining({
+          action: BulkActionType.RESULT_SELECTED,
+          selection: expect.objectContaining({
+            selectionType: 'IDS',
+            entryIds: rows.map((row) => row.id),
+          }),
+        }),
+      });
       expect(navigateSpy).toHaveBeenCalledWith(
         ['result-selected'],
         expect.objectContaining({
