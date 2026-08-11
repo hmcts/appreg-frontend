@@ -404,14 +404,15 @@ Feature: Applications List Entry Create Regex Validations
     Then User Checks The Checkbox With Label "Select <StdAppCode>" In The Accordion "Applicant"
     Then User Should See The Text "Currently selected <StdAppCode> <StdAppName>" In The Accordion "Applicant"
     # Application Codes
-    Then User Enters "AP99004" Into The Textbox "Application code" In The Accordion "Application codes"
+    Then User Enters "<AppCodeLodgementDate>" Into The Date Field "Lodgement date" In The Accordion "Application codes"
+    Then User Enters "AP99003" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
     Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
     Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
       | Code    | Title              | Bulk | Fee required |
-      | AP99004 | <ApplicationTitle> | No   | Yes          |
+      | AP99003 | <ApplicationTitle> | No   | Yes          |
     Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
-    Then User Verifies The Date field "Lodgement date" Has Value "<SearchDate>"
+    Then User Verifies The Date field "Lodgement date" Has Value "<AppCodeLodgementDate>"
     # Wording Details
     Then User Verifies The "Wording" Accordion Has Value "<WordingText>"
     Then User Verifies The "Wording" Accordion Has textbox with placeholder "<placeholder>" and Enters "<WordingValue>"
@@ -443,5 +444,5 @@ Feature: Applications List Entry Create Regex Validations
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
 
     Examples:
-      | User  | TableName | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationTitle                                           | WordingText                                                                                                                     | placeholder  | WordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode                | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | StdAppCode | StdAppName  |
-      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | Request for Certificate of Refusal to State a Case (Civil) | Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on | Enter a Date | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | Off Site Fee Reference: CO1.1 | Off Site Fee Amount: £30.00 | Total Fee Amount: £135.00 | Fee Reference: CO3.1 | Amount: £105.00 | APP025     | Ava Johnson |
+      | User  | TableName | SearchDate | AppCodeLodgementDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationTitle                                           | WordingText                                                                                                                     | placeholder  | WordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode                | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | StdAppCode | StdAppName  |
+      | user1 | Lists     | today      | 01/01/2025           | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | Appeal by Case Stated (Civil) | Notice of appeal to the High Court by way of case stated in respect of case heard on | Enter a Date of Hearing | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | Off Site Fee Reference: CO1.1 | Off Site Fee Amount: £28.00 | Total Fee Amount: £179.00 | Fee Reference: CO2.1 | Amount: £151.00 | APP025     | Ava Johnson |

@@ -17,7 +17,7 @@ Feature: API - Application List Entry Validation
   Scenario: Create application list entry with optional respondent for a non-respondent application code
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                         | null                           |
-      | applicationCode                               | CT99001                        |
+      | applicationCode                               | AP99001                        |
       | applicant.person.name.title                   | Mr                             |
       | applicant.person.name.firstName               | John                           |
       | applicant.person.name.lastName                | Optional{RANDOM}               |
@@ -41,7 +41,7 @@ Feature: API - Application List Entry Validation
       | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
       | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
       | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
-      | wordingFields.0.key                           | Number                         |
+      | wordingFields.0.key                           | Date of Hearing                |
       | wordingFields.0.value                         | 5                              |
       | hasOffsiteFee                                 | false                          |
       | caseReference                                 | CASE-{RANDOM}                  |
@@ -53,7 +53,7 @@ Feature: API - Application List Entry Validation
       | officials.0.type                              | MAGISTRATE                     |
     Then User Verify Response Status Code Should Be "201"
     Then User Verify Response Body Should Have:
-      | applicationCode                  | CT99001          |
+      | applicationCode                  | AP99001          |
       | respondent.person.name.firstName | Rachel           |
       | respondent.person.name.lastName  | Optional{RANDOM} |
 
@@ -138,7 +138,7 @@ Feature: API - Application List Entry Validation
   Scenario: Accept bulk respondent payloads when neither respondent details nor respondent count are provided
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                        | null                          |
-      | applicationCode                              | CT99001                       |
+      | applicationCode                              | AP99001                       |
       | applicant.person.name.title                  | Mr                            |
       | applicant.person.name.firstName              | John                          |
       | applicant.person.name.lastName               | Missing{RANDOM}               |
@@ -151,7 +151,7 @@ Feature: API - Application List Entry Validation
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                  |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                 |
       | applicant.person.contactDetails.email        | missing{RANDOM}@example.com   |
-      | wordingFields.0.key                          | Number                        |
+      | wordingFields.0.key                          | Date of Hearing               |
       | wordingFields.0.value                        | 5                             |
       | hasOffsiteFee                                | false                         |
       | caseReference                                | CASE-{RANDOM}                 |
@@ -163,7 +163,7 @@ Feature: API - Application List Entry Validation
       | officials.0.type                             | MAGISTRATE                    |
     Then User Verify Response Status Code Should Be "201"
     Then User Verify Response Body Should Have:
-      | applicationCode     | CT99001 |
+      | applicationCode     | AP99001 |
       | respondent          | null    |
       | numberOfRespondents | null    |
 
@@ -217,7 +217,7 @@ Feature: API - Application List Entry Validation
   Scenario: Reject disallowed characters in applicant fields
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                              | null                          |
-      | applicationCode                                    | CT99001                       |
+      | applicationCode                                    | AP99001                       |
       | applicant.organisation.name                        | Applicant	Industries          |
       | applicant.organisation.contactDetails.addressLine1 | {RANDOM} High Street          |
       | applicant.organisation.contactDetails.addressLine2 | Westminster                   |
@@ -228,8 +228,7 @@ Feature: API - Application List Entry Validation
       | applicant.organisation.contactDetails.phone        | 0207{RANDOM}                  |
       | applicant.organisation.contactDetails.mobile       | 07123{RANDOM}                 |
       | applicant.organisation.contactDetails.email        | applicant{RANDOM}@example.com |
-      | numberOfRespondents                                | 5                             |
-      | wordingFields.0.key                                | Number                        |
+      | wordingFields.0.key                                | Date of Hearing               |
       | wordingFields.0.value                              | 5                             |
       | hasOffsiteFee                                      | false                         |
       | caseReference                                      | CASE-{RANDOM}                 |
@@ -249,7 +248,7 @@ Feature: API - Application List Entry Validation
   Scenario: Reject disallowed characters in respondent fields
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                               | null                           |
-      | applicationCode                                     | CT99001                        |
+      | applicationCode                                     | AP99001                        |
       | applicant.person.name.title                         | Mr                             |
       | applicant.person.name.firstName                     | John                           |
       | applicant.person.name.lastName                      | Respondent{RANDOM}             |
@@ -271,7 +270,7 @@ Feature: API - Application List Entry Validation
       | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                   |
       | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                  |
       | respondent.organisation.contactDetails.email        | respondent{RANDOM}@example.com |
-      | wordingFields.0.key                                 | Number                         |
+      | wordingFields.0.key                                 | Date of Hearing                |
       | wordingFields.0.value                               | 5                              |
       | hasOffsiteFee                                       | false                          |
       | caseReference                                       | CASE-{RANDOM}                  |
@@ -291,7 +290,7 @@ Feature: API - Application List Entry Validation
   Scenario: Reject organisation respondent payloads that include date of birth
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                               | null                               |
-      | applicationCode                                     | CT99001                            |
+      | applicationCode                                     | AP99001                            |
       | applicant.person.name.title                         | Mr                                 |
       | applicant.person.name.firstName                     | John                               |
       | applicant.person.name.lastName                      | Organisation{RANDOM}               |
@@ -325,7 +324,7 @@ Feature: API - Application List Entry Validation
       | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                       |
       | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                      |
       | respondent.organisation.contactDetails.email        | organisation{RANDOM}@example.com   |
-      | wordingFields.0.key                                 | Number                             |
+      | wordingFields.0.key                                 | Date of Hearing                    |
       | wordingFields.0.value                               | 5                                  |
       | hasOffsiteFee                                       | false                              |
       | caseReference                                       | CASE-{RANDOM}                      |

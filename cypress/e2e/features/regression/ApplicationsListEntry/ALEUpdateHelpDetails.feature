@@ -46,7 +46,15 @@ Feature: Applications list entry update help details
   Scenario: Expand and collapse update entry help details
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
-    Given User Navigates To The URL "/applications-list/:listId/update-entry/:entryId"
+    When User Searches Application List With:
+      | Date  | Time | Description                     | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+      | today |      | Entry update help list {RANDOM} | LCCC065     |       |        |                |     |           |
+    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+      | Date         | Time  | Location                          | Description                     | Entries | Status |
+      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Entry update help list {RANDOM} | 1       | OPEN   |
+    When User Clicks "Open" Button In Row Of Table "Entries" With:
+      | Sequence number | Account number | Applicant             | Respondent           | Postcode | Fee |
+      | 1               | ACC-{RANDOM}   | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Yes |
     Then User Sees Page Heading "Applications list entry update"
     When User Clicks On The "Show all sections" Button
     When User Toggles The Accordion "Help with applicant details"
