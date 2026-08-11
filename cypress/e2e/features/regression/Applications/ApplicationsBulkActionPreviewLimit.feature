@@ -26,36 +26,32 @@ Feature: Application List Entries Details Bulk Action Preview Limit Validation
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
         Then User Sees Success Banner "Success Bulk upload complete All records were uploaded successfully." Containing Link "Click here to update fee details on newly uploaded applications"
-        Then User See "Applications list" On The Page
-        Then User Clicks On The Breadcrumb Link "Applications list"
-        When User Searches Application List With:
-            | Date  | Time | Description                       | CourtSearch | Court | Status | Other location | CJA | CJASearch |
-            | today |      | Test Data List 1051 ALEs {RANDOM} |             |       | OPEN   |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-            | Date         | Time           | Location                          | Description                       | Status |
-            | todaydisplay | timenowhhmm-2h | Leeds Combined Court Centre Set 7 | Test Data List 1051 ALEs {RANDOM} | OPEN   |
-        Then User Should See The Table "Entries"
         # Action - Result Selected
         When User Checks The Select All Checkbox In Table "Entries"
         When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 1050. Please reduce the number of rows selected"
         # Action - Move Entries
+        When User Refreshes The Page
         When User Checks The Select All Checkbox In Table "Entries"
         When User Clicks "Actions" Then "Move entries" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 1050. Please reduce the number of rows selected"
         # Action - Update officials
+        When User Refreshes The Page
         When User Checks The Select All Checkbox In Table "Entries"
         When User Clicks "Actions" Then "Update officials" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 1050. Please reduce the number of rows selected"
         # Action - Update fee details
+        When User Refreshes The Page
         When User Checks The Select All Checkbox In Table "Entries"
         When User Clicks "Actions" Then "Update fee details" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 1050. Please reduce the number of rows selected"
         # Action - Print continuous
+        When User Refreshes The Page
         When User Checks The Select All Checkbox In Table "Entries"
         When User Clicks "Actions" Then "Print continuous" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 1050. Please reduce the number of rows selected"
         # Action - Print page
+        When User Refreshes The Page
         When User Checks The Select All Checkbox In Table "Entries"
         When User Clicks "Actions" Then "Print page" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 1050. Please reduce the number of rows selected"
