@@ -266,7 +266,19 @@ export class ApplicationCodeSearchComponent implements OnInit {
     }
 
     const errors = this.getValidationErrors();
-    return errors.find((error) => error.id === 'code')?.text ?? null;
+    const localError = errors.find((error) => error.id === 'code')?.text;
+    if (localError) {
+      return localError;
+    }
+
+    if (
+      this.parentSubmitted() &&
+      this.patchedFormData()?.controls.applicationCode.hasError('required')
+    ) {
+      return 'Enter an application code';
+    }
+
+    return null;
   }
 
   hasSearchFilter(): boolean {
