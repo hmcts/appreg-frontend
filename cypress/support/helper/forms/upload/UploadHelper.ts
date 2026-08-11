@@ -1,7 +1,9 @@
 import { UploadElement } from '../../../pageobjects/generic/upload/UploadElement';
 
 export class UploadHelper {
-  private static hasBulkUploadTerminalState($body: JQuery<HTMLElement>): boolean {
+  private static hasBulkUploadTerminalState(
+    $body: JQuery<HTMLElement>,
+  ): boolean {
     const pageText = $body.text();
 
     return (
@@ -57,8 +59,7 @@ export class UploadHelper {
     cy.get('body', { timeout: 15000 })
       .should(($body) => {
         const hasProgress = $body.find('.app-async-job-progress').length > 0;
-        const hasTerminalState =
-          UploadHelper.hasBulkUploadTerminalState($body);
+        const hasTerminalState = UploadHelper.hasBulkUploadTerminalState($body);
 
         if (!hasProgress && !hasTerminalState) {
           throw new Error('Bulk upload has not reached progress or completion');
