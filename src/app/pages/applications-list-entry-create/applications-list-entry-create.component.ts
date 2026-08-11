@@ -204,6 +204,14 @@ export class ApplicationsListEntryCreate implements OnInit {
   personForm = this.forms.personForm;
   organisationForm = this.forms.organisationForm;
 
+  // Accordion section shown/collapsed
+  openWording = signal(false);
+  openCivilFee = signal(false);
+  openRespondent = signal(false);
+  openApplicant = signal(true); // open by default
+  openApplicationCode = signal(true);
+  openNotes = signal(false);
+
   // Civil fee
   civilFeeColumns = CIVIL_FEE_COLUMNS;
   feeStatusOptions = FEE_STATUS_OPTIONS;
@@ -522,8 +530,16 @@ export class ApplicationsListEntryCreate implements OnInit {
               }
             }
 
+            const wordingSubstituteExists = appCodeDetail.wording[
+              'substitution-key-constraints'
+            ]
+              ? true
+              : undefined;
+            const isFeeRequired = appCodeDetail.isFeeDue;
+            const isRespondentRequired = appCodeDetail.requiresRespondent;
+
             this.appListEntryCreatePatch({
-              isFeeRequired: appCodeDetail.isFeeDue,
+              isFeeRequired,
             });
             this.feeMeta = {
               feeReference: appCodeDetail.feeReference ?? null,
@@ -540,6 +556,11 @@ export class ApplicationsListEntryCreate implements OnInit {
                 appCodeDetail.bulkRespondentAllowed ?? false,
               appCodeDetail,
             });
+
+            // Open/close accordion sections based on app code response
+            this.openWording.set(wordingSubstituteExists ?? false);
+            this.openCivilFee.set(isFeeRequired);
+            this.openRespondent.set(isRespondentRequired);
           },
           error: (err) => {
             this.form.patchValue({ applicationTitle: null });
