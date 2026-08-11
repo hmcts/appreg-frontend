@@ -152,16 +152,25 @@
   </ng-template>
 
   <app-accordion
-    [id]="'accordion-default'"
+    id="accordion-update"
+    [rememberExpanded]="false"
     [items]="[
-      { heading: 'Applicant', tpl: applicantTpl, expanded: true },
-      { heading: 'Application codes', tpl: codesTpl, expanded: false },
-      { heading: 'Wording', tpl: wordingTpl, expanded: false },
-      { heading: 'Respondent', tpl: respondentTpl, expanded: false },
-      { heading: 'Civil fee', tpl: civilFeeTpl, expanded: false },
-      { heading: 'Notes', tpl: notesTpl, expanded: false },
-      { heading: 'Result wording', tpl: resultWordingTpl, expanded: false },
-      { heading: 'Officials', tpl: officialsTpl, expanded: false },
+      { heading: 'Applicant', tpl: applicantTpl, expanded: openApplicant() },
+      {
+        heading: 'Application codes',
+        tpl: codesTpl,
+        expanded: openApplicationCode(),
+      },
+      { heading: 'Wording', tpl: wordingTpl, expanded: openWording() },
+      { heading: 'Respondent', tpl: respondentTpl, expanded: openRespondent() },
+      { heading: 'Civil fee', tpl: civilFeeTpl, expanded: openCivilFee() },
+      { heading: 'Notes', tpl: notesTpl, expanded: openNotes() },
+      {
+        heading: 'Result wording',
+        tpl: resultWordingTpl,
+        expanded: openResult(),
+      },
+      { heading: 'Officials', tpl: officialsTpl, expanded: openOfficial() },
     ]"
   />
 

@@ -290,6 +290,15 @@ export class ApplicationsListEntryDetail implements OnInit {
   civilFeeForm!: CivilFeeForm;
   private persistedHasOffsiteFee = false;
 
+  openWording = signal(false);
+  openCivilFee = signal(false);
+  openRespondent = signal(false);
+  openApplicant = signal(true);
+  openApplicationCode = signal(false);
+  openNotes = signal(false);
+  openResult = signal(false);
+  openOfficial = signal(false);
+
   ngOnInit(): void {
     const state = readNavState(this.location, this.platformId);
     this.navState = state;
@@ -550,13 +559,25 @@ export class ApplicationsListEntryDetail implements OnInit {
               this.entryDetail!.wording = undefined;
             }
 
+            const wordingSubstituteExists = appCodeDetail.wording[
+              'substitution-key-constraints'
+            ]
+              ? true
+              : undefined;
+            const isFeeRequired = appCodeDetail.isFeeDue;
+            const isRespondentRequired = appCodeDetail.requiresRespondent;
+
             this.handleResultWordingContext(this.navState);
 
             this.appListEntryDetailPatch({
-              isFeeRequired: appCodeDetail.isFeeDue,
+              isFeeRequired,
               bulkApplicationsAllowed: appCodeDetail.bulkRespondentAllowed,
               appCodeDetail,
             });
+
+            this.openWording.set(wordingSubstituteExists ?? false);
+            this.openCivilFee.set(isFeeRequired);
+            this.openRespondent.set(isRespondentRequired);
           },
           error: (err) => {
             this.form.patchValue({ applicationTitle: '' });
