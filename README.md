@@ -1,4 +1,4 @@
-# AppregFrontend
+# AppregFrontendtest
 
 This README contains a setup guide for setting up your dev environment (Copied from [Confluence](https://tools.hmcts.net/confluence/display/ARM/Frontend+development+setup+for+new+users)).
 
