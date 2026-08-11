@@ -32,6 +32,8 @@ export class AccordionComponent {
   items = input<AccordionItem[]>([]);
   /** Allow multiple sections open at the same time */
   allowMultiple = input<boolean>(true);
+  /** Remember expanded sections for the current browser session */
+  rememberExpanded = input<boolean>(true);
 
   /** Local state derived from input items so toggling doesn't mutate inputs. */
   displayItems = signal<AccordionItem[]>([]);
