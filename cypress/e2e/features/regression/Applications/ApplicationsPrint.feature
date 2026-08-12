@@ -1,6 +1,6 @@
 Feature: Applications Print
 
-    @regression @ARCPOC-214 @ARCPOC-1330 @ARCPOC-1329 @ARCPOC-1351
+    @regression @ARCPOC-214 @ARCPOC-1330 @ARCPOC-1329 @ARCPOC-1351 @ARCPOC-1512
     Scenario Outline: Print selected applications from Applications search page
         # Setup: Create Application List and Entry via API
         Given User Authenticates Via API As "<User>"
@@ -295,7 +295,12 @@ Feature: Applications Print
             | todaydisplay | Sarah Johnson {RANDOM}              | Finance Corp LTD {RANDOM}      | Application to remove an educational institution from the register | Yes | Yes      | OPEN   |
             | todaydisplay | ACME Industries LTD {RANDOM}        | Emma Williams {RANDOM}         | Condemnation of Unfit Food                                         | Yes | Yes      | OPEN   |
             | todaydisplay | Global Trade Solutions LTD {RANDOM} | Controlled Assets Ltd {RANDOM} | Application for a licence for a child to work abroad               | Yes | Yes      | OPEN   |
+        When User Starts Listening For Applications Bulk Action Preview
         When User Clicks "Actions" Then "Print continuous" From Caption Menu In Table "Application list entries"
+        Then User Verifies Applications Bulk Action Preview Request Has:
+            | action        | PRINT_CONTINUOUS                            |
+            | selectionType | IDS                                         |
+            | entryIds      | :entryId1, :entryId2, :entryId3, :entryId4 |
         Then User Verifies PDF "applications-todayiso-print-cont" Is Downloaded
         Then User Verifies Latest Downloaded PDF Is Not Empty
         Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
@@ -337,6 +342,10 @@ Feature: Applications Print
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
         Then User Clears Downloaded PDFs
         When User Clicks "Actions" Then "Print page" From Caption Menu In Table "Application list entries"
+        Then User Verifies Applications Bulk Action Preview Request Has:
+            | action        | PRINT_PAGE                                  |
+            | selectionType | IDS                                         |
+            | entryIds      | :entryId1, :entryId2, :entryId3, :entryId4 |
         Then User Verifies PDF "applications-todayiso-print-page" Is Downloaded
         Then User Verifies Latest Downloaded PDF Is Not Empty
         Then User Verifies Latest Downloaded PDF Contains Text "Leeds Combined Court Centre Set 7"

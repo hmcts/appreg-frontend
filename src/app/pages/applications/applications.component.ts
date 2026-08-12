@@ -15,8 +15,7 @@
  * - Runs print endpoint with entryIds + listIds
  *
  * onUpdateNotesClick():
- * - Runs bulk preview endpoint to get selected row details
- * - Navigates to ./update-notes/update-notes.component.ts with preview row context
+ * - Navigates to ./update-notes/update-notes.component.ts with row context
  *
  * onResultSelectedClick():
  * - Navigates to ./applications-result-selected/applications-result-selected.component.ts with row context
@@ -401,26 +400,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const preview = await this.getBulkPreviewData(
-      BulkActionType.UPDATE_NOTES,
-      new Set([row.id]),
-      true,
-    );
-
-    if (!preview) {
-      return;
-    }
-
-    const [previewRow] = (preview.entries ?? []).map(mapToRow);
-
-    if (!previewRow) {
-      this.showUpdateNotesError(
-        'Unable to update notes for selected application',
-      );
-      return;
-    }
-
-    if (!this.canUpdateNotes(previewRow)) {
+    if (!this.canUpdateNotes(row)) {
       this.showUpdateNotesError(
         'Application list entry cannot be updated in its current state. The parent application list is not closed.',
       );
@@ -428,22 +408,17 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     }
 
     await this.router.navigate(
-      [
-        '/applications-list',
-        previewRow.applicationListId,
-        'update-notes',
-        previewRow.id,
-      ],
+      ['/applications-list', row.applicationListId, 'update-notes', row.id],
       {
         state: {
           updateNotesApplication: {
-            id: previewRow.id,
-            applicant: previewRow.applicant,
-            date: previewRow.date,
-            fee: previewRow.fee,
-            respondent: previewRow.respondent,
-            resulted: previewRow.resulted,
-            title: previewRow.title,
+            id: row.id,
+            applicant: row.applicant,
+            date: row.date,
+            fee: row.fee,
+            respondent: row.respondent,
+            resulted: row.resulted,
+            title: row.title,
           },
         },
       },
@@ -548,10 +523,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    const apiSortKey =
+      APPLICATIONS_SORT_MAP[this.vm().sortField.key] ?? this.vm().sortField.key;
     const params: GetEntriesRequestParams = {
       pageNumber: this.vm().currentPage,
       pageSize: this.vm().pageSize,
-      sort: [this.currentApiSort()],
+      sort: [`${apiSortKey},${this.vm().sortField.direction}`],
       filter: filterOverride ?? this.loadQuery(),
     };
 
@@ -806,14 +783,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  private currentApiSort(): string {
-    const vm = this.vm();
-    const apiSortKey =
-      APPLICATIONS_SORT_MAP[vm.sortField.key] ?? vm.sortField.key;
-
-    return `${apiSortKey},${vm.sortField.direction}`;
-  }
-
   private async getBulkPreviewData(
     action: BulkActionType,
     entryIds?: Set<string>,
@@ -822,17 +791,21 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     const vm = this.vm();
     const isFilterSelection = vm.isFilterSelection && !forceIds;
 
-    const selectionParams: BulkActionSelectionDto = isFilterSelection
-      ? {
-          selectionType: BulkActionSelectionType.FILTER,
-          filter: vm.getFilters,
+    const selectionParams: BulkActionSelectionDto = {
+      selectionType: isFilterSelection
+        ? BulkActionSelectionType.FILTER
+        : BulkActionSelectionType.IDS,
+      ...(!isFilterSelection && {
+        entryIds: [...(entryIds ?? vm.selectedIds)],
+      }),
+      ...(isFilterSelection && {
+        filter: vm.getFilters,
+      }),
+      ...(isFilterSelection &&
+        vm.excludedEntryIds.size > 0 && {
           excludedEntryIds: [...vm.excludedEntryIds],
-          sort: [this.currentApiSort()],
-        }
-      : {
-          selectionType: BulkActionSelectionType.IDS,
-          entryIds: [...(entryIds ?? vm.selectedIds)],
-        };
+        }),
+    };
 
     const params: BulkActionPreviewRequestDto = {
       action,
