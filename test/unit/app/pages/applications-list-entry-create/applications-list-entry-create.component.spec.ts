@@ -105,6 +105,52 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     );
   });
 
+  it.each([
+    ['applicant', 'openApplicant'],
+    ['codes', 'openApplicationCode'],
+    ['wording', 'openWording'],
+    ['respondent', 'openRespondent'],
+    ['civilFee', 'openCivilFee'],
+    ['notes', 'openNotes'],
+  ] as const)(
+    'opens %s when it receives validation errors',
+    (source, section) => {
+      component[section].set(false);
+
+      component.onChildErrors(source, [{ id: 'field', text: 'Error' }]);
+
+      expect(component[section]()).toBe(true);
+    },
+  );
+
+  it('reopens Applicant after its manually collapsed state is reported', () => {
+    component.onAccordionExpandedChange({ index: 0, expanded: false });
+
+    component.onChildErrors('applicant', [
+      { id: 'firstName', text: 'Enter applicant first name' },
+    ]);
+
+    expect(component.openApplicant()).toBe(true);
+  });
+
+  it('closes sections that have no validation errors', () => {
+    component.openApplicant.set(true);
+    component.openApplicationCode.set(true);
+    component.openWording.set(true);
+    component.openRespondent.set(true);
+    component.openCivilFee.set(true);
+    component.openNotes.set(true);
+
+    component.onChildErrors('notes', [{ id: 'notes', text: 'Error' }]);
+
+    expect(component.openApplicant()).toBe(false);
+    expect(component.openApplicationCode()).toBe(false);
+    expect(component.openWording()).toBe(false);
+    expect(component.openRespondent()).toBe(false);
+    expect(component.openCivilFee()).toBe(false);
+    expect(component.openNotes()).toBe(true);
+  });
+
   it('onSubmit: allows a non-EF application code with no account reference', () => {
     component.form.patchValue({
       applicationCode: 'APP123',

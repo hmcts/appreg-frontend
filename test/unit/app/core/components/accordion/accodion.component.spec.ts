@@ -95,6 +95,18 @@ describe('AccordionComponent', () => {
     expect(secondPanel.hidden).toBe(true);
   });
 
+  it('emits the changed section state when a user toggles it', () => {
+    const expandedChange = jest.fn();
+    component.expandedChange.subscribe(expandedChange);
+    const secondButton = fixture.debugElement.queryAll(
+      By.css('.govuk-accordion__section-button'),
+    )[1].nativeElement as HTMLButtonElement;
+
+    secondButton.click();
+
+    expect(expandedChange).toHaveBeenCalledWith({ index: 1, expanded: true });
+  });
+
   it('uses the provided id as the root accordion id', () => {
     const root = fixture.debugElement.query(By.css('.govuk-accordion'));
     expect(root).toBeTruthy();
