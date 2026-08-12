@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   Injector,
@@ -47,6 +48,8 @@ export class AccordionComponent {
   displayItems = signal<AccordionItem[]>([]);
   private readonly root = viewChild<ElementRef<HTMLElement>>('root');
   private readonly injector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
+  private expansionObserver?: MutationObserver;
 
   constructor() {
     effect(() => {
@@ -112,9 +115,12 @@ export class AccordionComponent {
       return;
     }
 
+    this.observeGovUkExpansionState(root);
+
     const sections = root.querySelectorAll<HTMLElement>(
       '.govuk-accordion__section',
     );
+
     items.forEach((item, index) => {
       const section = sections[index];
       if (!section) {
@@ -139,6 +145,48 @@ export class AccordionComponent {
         .querySelector<HTMLElement>('.govuk-accordion__section-button')
         ?.setAttribute('aria-expanded', String(expanded));
     });
+  }
+
+  // Sync show/collapse all
+  private observeGovUkExpansionState(root: HTMLElement): void {
+    if (this.expansionObserver || typeof MutationObserver === 'undefined') {
+      return;
+    }
+
+    this.expansionObserver = new MutationObserver(() => {
+      const sections = root.querySelectorAll<HTMLElement>(
+        '.govuk-accordion__section',
+      );
+      const current = this.displayItems();
+      const changes = Array.from(sections).flatMap((section, index) => {
+        const item = current[index];
+        const expanded = section.classList.contains(
+          'govuk-accordion__section--expanded',
+        );
+
+        return item && item.expanded !== expanded ? [{ index, expanded }] : [];
+      });
+
+      if (!changes.length) {
+        return;
+      }
+
+      this.displayItems.update((items) =>
+        items.map((item, index) => {
+          const change = changes.find(
+            ({ index: changedIndex }) => changedIndex === index,
+          );
+          return change ? { ...item, expanded: change.expanded } : item;
+        }),
+      );
+      changes.forEach((change) => this.expandedChange.emit(change));
+    });
+    this.expansionObserver.observe(root, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    this.destroyRef.onDestroy(() => this.expansionObserver?.disconnect());
   }
 
   headingId(i: number): string {
