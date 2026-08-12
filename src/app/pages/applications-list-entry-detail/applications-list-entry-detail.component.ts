@@ -744,6 +744,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.openRespondentSection,
       this.openCivilFeeSection,
       this.openNotesSection,
+      this.openResultSection,
+      this.openOfficialSection,
     ] as const;
 
     sections[event.index]?.set(event.expanded);
