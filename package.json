@@ -152,7 +152,7 @@
     "ajv": "^8.17.1",
     "axe-core": "^4.10.3",
     "concurrently": "^10.0.4",
-    "cypress": "15.15.0",
+    "cypress": "15.20.1",
     "cypress-axe": "^1.7.0",
     "cypress-mochawesome-reporter": "^4.0.2",
     "cypress-multi-reporters": "^2.0.5",
