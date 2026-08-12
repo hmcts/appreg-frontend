@@ -125,6 +125,7 @@ import {
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { CodeRow } from '@util/application-code-helpers';
+import { getApplicationListEntryErrorSections } from '@util/application-list-entry-section-errors';
 import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
 import { collectChildSubmitErrors } from '@util/child-submit-validation';
 import {
@@ -749,40 +750,30 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private openSectionsWithErrors(): void {
-    const sectionsWithErrors = {
-      applicant: this.childErrors.applicant.length > 0,
-      applicationCode: this.childErrors.codes.length > 0,
-      wording: this.childErrors.wording.length > 0,
-      respondent: this.childErrors.respondent.length > 0,
-      civilFee:
-        this.childErrors.civilFee.length > 0 || this.childErrors.fee.length > 0,
-      notes: this.childErrors.notes.length > 0,
-    };
+    const sectionsWithErrors = getApplicationListEntryErrorSections(
+      this.childErrors,
+      this.parentErrors,
+    );
+    const sections = [
+      this.openApplicantSection,
+      this.openApplicationCodeSection,
+      this.openWordingSection,
+      this.openRespondentSection,
+      this.openCivilFeeSection,
+      this.openNotesSection,
+    ] as const;
+    const sectionNames = [
+      'applicant',
+      'applicationCode',
+      'wording',
+      'respondent',
+      'civilFee',
+      'notes',
+    ] as const;
 
-    for (const error of this.parentErrors) {
-      if (error.id === 'applicationCode' || error.id === 'lodgementDate') {
-        sectionsWithErrors.applicationCode = true;
-      } else if (error.id?.startsWith('applicationNotes.')) {
-        sectionsWithErrors.notes = true;
-      } else if (error.id === 'standardApplicantCode') {
-        sectionsWithErrors.applicant = true;
-      } else if (
-        error.id === 'feeStatus' ||
-        error.id === 'feeStatusDate' ||
-        error.id === 'paymentRef'
-      ) {
-        sectionsWithErrors.civilFee = true;
-      } else if (error.id === 'numberOfRespondents') {
-        sectionsWithErrors.respondent = true;
-      }
-    }
-
-    this.openApplicantSection.set(sectionsWithErrors.applicant);
-    this.openApplicationCodeSection.set(sectionsWithErrors.applicationCode);
-    this.openWordingSection.set(sectionsWithErrors.wording);
-    this.openRespondentSection.set(sectionsWithErrors.respondent);
-    this.openCivilFeeSection.set(sectionsWithErrors.civilFee);
-    this.openNotesSection.set(sectionsWithErrors.notes);
+    sections.forEach((section, index) =>
+      section.set(sectionsWithErrors[sectionNames[index]]),
+    );
   }
 
   private submitEntryUpdate(

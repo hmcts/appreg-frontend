@@ -108,6 +108,7 @@ import {
   AddFeeDetailsPayload,
   CivilFeeMeta,
 } from '@shared-types/civil-fee/civil-fee';
+import { getApplicationListEntryErrorSections } from '@util/application-list-entry-section-errors';
 import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
 import { collectChildSubmitErrors } from '@util/child-submit-validation';
 import {
@@ -491,40 +492,30 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private openSectionsWithErrors(): void {
-    const sectionsWithErrors = {
-      applicant: this.childErrors.applicant.length > 0,
-      applicationCode: this.childErrors.codes.length > 0,
-      wording: this.childErrors.wording.length > 0,
-      respondent: this.childErrors.respondent.length > 0,
-      civilFee:
-        this.childErrors.civilFee.length > 0 || this.childErrors.fee.length > 0,
-      notes: this.childErrors.notes.length > 0,
-    };
+    const sectionsWithErrors = getApplicationListEntryErrorSections(
+      this.childErrors,
+      this.parentErrors,
+    );
+    const sections = [
+      this.openApplicant,
+      this.openApplicationCode,
+      this.openWording,
+      this.openRespondent,
+      this.openCivilFee,
+      this.openNotes,
+    ] as const;
+    const sectionNames = [
+      'applicant',
+      'applicationCode',
+      'wording',
+      'respondent',
+      'civilFee',
+      'notes',
+    ] as const;
 
-    for (const error of this.parentErrors) {
-      if (error.id === 'applicationCode' || error.id === 'lodgementDate') {
-        sectionsWithErrors.applicationCode = true;
-      } else if (error.id?.startsWith('applicationNotes.')) {
-        sectionsWithErrors.notes = true;
-      } else if (error.id === 'standardApplicantCode') {
-        sectionsWithErrors.applicant = true;
-      } else if (
-        error.id === 'feeStatus' ||
-        error.id === 'feeStatusDate' ||
-        error.id === 'paymentRef'
-      ) {
-        sectionsWithErrors.civilFee = true;
-      } else if (error.id === 'numberOfRespondents') {
-        sectionsWithErrors.respondent = true;
-      }
-    }
-
-    this.openApplicant.set(sectionsWithErrors.applicant);
-    this.openApplicationCode.set(sectionsWithErrors.applicationCode);
-    this.openWording.set(sectionsWithErrors.wording);
-    this.openRespondent.set(sectionsWithErrors.respondent);
-    this.openCivilFee.set(sectionsWithErrors.civilFee);
-    this.openNotes.set(sectionsWithErrors.notes);
+    sections.forEach((section, index) =>
+      section.set(sectionsWithErrors[sectionNames[index]]),
+    );
   }
 
   private validateChildSectionsForSubmit(): void {
