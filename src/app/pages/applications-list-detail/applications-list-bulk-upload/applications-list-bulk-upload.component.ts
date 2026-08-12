@@ -108,7 +108,7 @@ const AffectedColumn: Record<string, string> = {
   email: 'Respondent email',
   phone: 'Respondent phone',
   mobile: 'Respondent mobile',
-  accountNumber: 'Account number',
+  ACCOUNT_NUMBER: 'Account number',
   APPLICATION_TEXT: 'Application text',
   'RESP_NAME_ORG/RESP_FORENAME1/RESP_SURNAME/RESP_FIRST_NAME/RESP_LAST_NAME':
     'Respondent names',
