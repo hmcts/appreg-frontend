@@ -290,14 +290,14 @@ export class ApplicationsListEntryDetail implements OnInit {
   civilFeeForm!: CivilFeeForm;
   private persistedHasOffsiteFee = false;
 
-  openWording = signal(false);
-  openCivilFee = signal(false);
-  openRespondent = signal(false);
-  openApplicant = signal(true);
-  openApplicationCode = signal(false);
-  openNotes = signal(false);
-  openResult = signal(false);
-  openOfficial = signal(false);
+  openWordingSection = signal(false);
+  openCivilFeeSection = signal(false);
+  openRespondentSection = signal(false);
+  openApplicantSection = signal(true);
+  openApplicationCodeSection = signal(false);
+  openNotesSection = signal(false);
+  openResultSection = signal(false);
+  openOfficialSection = signal(false);
 
   ngOnInit(): void {
     const state = readNavState(this.location, this.platformId);
@@ -575,9 +575,9 @@ export class ApplicationsListEntryDetail implements OnInit {
               appCodeDetail,
             });
 
-            this.openWording.set(wordingSubstituteExists ?? false);
-            this.openCivilFee.set(isFeeRequired);
-            this.openRespondent.set(isRespondentRequired);
+            this.openWordingSection.set(wordingSubstituteExists ?? false);
+            this.openCivilFeeSection.set(isFeeRequired);
+            this.openRespondentSection.set(isRespondentRequired);
           },
           error: (err) => {
             this.form.patchValue({ applicationTitle: '' });

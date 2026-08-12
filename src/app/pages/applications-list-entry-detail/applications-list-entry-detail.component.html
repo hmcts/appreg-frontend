@@ -155,22 +155,38 @@
     id="accordion-update"
     [rememberExpanded]="false"
     [items]="[
-      { heading: 'Applicant', tpl: applicantTpl, expanded: openApplicant() },
+      {
+        heading: 'Applicant',
+        tpl: applicantTpl,
+        expanded: openApplicantSection(),
+      },
       {
         heading: 'Application codes',
         tpl: codesTpl,
-        expanded: openApplicationCode(),
+        expanded: openApplicationCodeSection(),
       },
-      { heading: 'Wording', tpl: wordingTpl, expanded: openWording() },
-      { heading: 'Respondent', tpl: respondentTpl, expanded: openRespondent() },
-      { heading: 'Civil fee', tpl: civilFeeTpl, expanded: openCivilFee() },
-      { heading: 'Notes', tpl: notesTpl, expanded: openNotes() },
+      { heading: 'Wording', tpl: wordingTpl, expanded: openWordingSection() },
+      {
+        heading: 'Respondent',
+        tpl: respondentTpl,
+        expanded: openRespondentSection(),
+      },
+      {
+        heading: 'Civil fee',
+        tpl: civilFeeTpl,
+        expanded: openCivilFeeSection(),
+      },
+      { heading: 'Notes', tpl: notesTpl, expanded: openNotesSection() },
       {
         heading: 'Result wording',
         tpl: resultWordingTpl,
-        expanded: openResult(),
+        expanded: openResultSection(),
       },
-      { heading: 'Officials', tpl: officialsTpl, expanded: openOfficial() },
+      {
+        heading: 'Officials',
+        tpl: officialsTpl,
+        expanded: openOfficialSection(),
+      },
     ]"
   />
 
