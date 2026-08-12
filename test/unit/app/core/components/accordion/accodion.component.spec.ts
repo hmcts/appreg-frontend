@@ -107,6 +107,25 @@ describe('AccordionComponent', () => {
     expect(expandedChange).toHaveBeenCalledWith({ index: 1, expanded: true });
   });
 
+  it('syncs GOV.UK show-all state changes back to Angular', async () => {
+    const expandedChange = jest.fn();
+    component.expandedChange.subscribe(expandedChange);
+    const sections = fixture.debugElement.queryAll(
+      By.css('.govuk-accordion__section'),
+    );
+
+    sections.forEach((section) =>
+      (section.nativeElement as HTMLElement).classList.add(
+        'govuk-accordion__section--expanded',
+      ),
+    );
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(component.displayItems().every((item) => item.expanded)).toBe(true);
+    expect(expandedChange).toHaveBeenCalledWith({ index: 1, expanded: true });
+  });
+
   it('uses the provided id as the root accordion id', () => {
     const root = fixture.debugElement.query(By.css('.govuk-accordion'));
     expect(root).toBeTruthy();

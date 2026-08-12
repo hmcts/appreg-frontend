@@ -562,7 +562,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
             const wordingSubstituteExists = appCodeDetail.wording[
               'substitution-key-constraints'
-            ]
+            ]?.length
               ? true
               : undefined;
             const isFeeRequired = appCodeDetail.isFeeDue;
