@@ -12,6 +12,8 @@ import {
 } from '@components/applications-list-entry-create/util/helpers';
 import {
   ApplicationCodeGetDetailDto,
+  ApplicationCodeGetDetailDtoFeeAmountCurrencyEnum,
+  ApplicationCodeGetDetailDtoOffsiteFeeAmountCurrencyEnum,
   ApplicationCodesApi,
   ApplicationListEntriesApi,
   EntryCreateDto,
@@ -919,6 +921,22 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
 
   let resetSectionsSpy: jest.SpyInstance;
 
+  function applicationCodeDetail(
+    overrides: Partial<ApplicationCodeGetDetailDto> = {},
+  ): ApplicationCodeGetDetailDto {
+    return {
+      applicationCode: 'A001',
+      title: 'Application title',
+      wording: { template: '' },
+      isFeeDue: false,
+      requiresRespondent: false,
+      bulkRespondentAllowed: false,
+      startDate: '2026-01-01',
+      endDate: null,
+      ...overrides,
+    };
+  }
+
   beforeEach(async () => {
     createApplicationListEntryMock = jest.fn().mockReturnValue(of({}));
     getApplicationCodeByCodeAndDateMock = jest.fn();
@@ -971,7 +989,7 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
 
   it('onCodeSelected sets bulkApplicationsAllowed from API detail.bulkRespondentAllowed', () => {
     getApplicationCodeByCodeAndDateMock.mockReturnValue(
-      of({ bulkRespondentAllowed: true } as unknown),
+      of(applicationCodeDetail({ bulkRespondentAllowed: true })),
     );
 
     component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
@@ -983,7 +1001,9 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
   });
 
   it('onCodeSelected keeps bulkApplicationsAllowed false when API bulkRespondentAllowed is falsey', () => {
-    getApplicationCodeByCodeAndDateMock.mockReturnValue(of({} as unknown));
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(
+      of(applicationCodeDetail()),
+    );
 
     component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
 
@@ -997,7 +1017,9 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
       lodgementDate: '2026-01-01',
     });
 
-    getApplicationCodeByCodeAndDateMock.mockReturnValue(of({} as unknown));
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(
+      of(applicationCodeDetail()),
+    );
 
     component.onCodeSelected({ code: 'NEW', date: '2026-02-01' });
 
@@ -1017,7 +1039,9 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
       appCodeDetail: { applicationCode: 'SAME' },
     });
 
-    getApplicationCodeByCodeAndDateMock.mockReturnValue(of({} as unknown));
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(
+      of(applicationCodeDetail()),
+    );
 
     component.onCodeSelected({ code: 'SAME', date: '2026-02-02' });
 
@@ -1026,15 +1050,24 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
 
   it('onCodeSelected stores the expanded fee metadata from the API detail', () => {
     getApplicationCodeByCodeAndDateMock.mockReturnValue(
-      of({
-        feeReference: 'CO7.2',
-        feeDescription: 'Main fee description',
-        feeAmount: { value: 2500, currency: 'GBP' },
-        offsiteFeeReference: 'CO1.1',
-        offsiteFeeDescription: 'Offsite fee description',
-        offsiteFeeAmount: { value: 3000, currency: 'GBP' },
-        isFeeDue: true,
-      } as unknown),
+      of(
+        applicationCodeDetail({
+          feeReference: 'CO7.2',
+          feeDescription: 'Main fee description',
+          feeAmount: {
+            value: 2500,
+            currency: ApplicationCodeGetDetailDtoFeeAmountCurrencyEnum.GBP,
+          },
+          offsiteFeeReference: 'CO1.1',
+          offsiteFeeDescription: 'Offsite fee description',
+          offsiteFeeAmount: {
+            value: 3000,
+            currency:
+              ApplicationCodeGetDetailDtoOffsiteFeeAmountCurrencyEnum.GBP,
+          },
+          isFeeDue: true,
+        }),
+      ),
     );
 
     component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
@@ -1081,7 +1114,7 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     expect(component.vm().appCodeDetail).toBeNull();
     expect(component.vm().isFeeRequired).toBe(false);
     expect(component.feeMeta).toBeNull();
-    expect(component.form.controls.applicationTitle.value).toBeNull();
+    expect(component.form.controls.applicationTitle?.value).toBeNull();
   });
 
   it('onCodeSelected clears fee metadata and fee-required state when app code lookup fails', () => {
@@ -1116,7 +1149,7 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     expect(component.vm().appCodeDetail).toBeNull();
     expect(component.vm().isFeeRequired).toBe(false);
     expect(component.feeMeta).toBeNull();
-    expect(component.form.controls.applicationTitle.value).toBeNull();
+    expect(component.form.controls.applicationTitle?.value).toBeNull();
   });
 
   it("onSubmit: respondent validation path with bulk (respondentEntryType='bulk')", () => {
