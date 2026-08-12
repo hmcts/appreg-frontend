@@ -1,6 +1,6 @@
 Feature: Applications Bulk Result Selected
 
-    @regression @ARCPOC-214 @ARCPOC-1335 @ARCPOC-1495
+    @regression @ARCPOC-214 @ARCPOC-1335 @ARCPOC-1495 @ARCPOC-1512
     Scenario Outline: Bulk result selected applications from Applications search page
         # Setup: Create Application List and Entry via API
         Given User Authenticates Via API As "<User>"
@@ -177,7 +177,12 @@ Feature: Applications Bulk Result Selected
             | todaydisplay | Sarah Johnson {RANDOM}       | Finance Corp LTD {RANDOM} | Rights of Entry Warrant - Electricity Operator | Yes | No       | OPEN   |
             | todaydisplay | ACME Industries LTD {RANDOM} | Emma Williams {RANDOM}    | Condemnation of Unfit Food                     | Yes | No       | OPEN   |
         When User Checks The Select All Checkbox In Table "Application list entries"
+        When User Starts Listening For Applications Bulk Action Preview
         When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Application list entries"
+        Then User Verifies Applications Bulk Action Preview Request Has:
+            | action                  | RESULT_SELECTED |
+            | selectionType           | FILTER          |
+            | filter.accountReference | ACC-{RANDOM}    |
         Then User See "Result applications" On The Page
         # Verify all 3 selected rows appear on the result page
         Then User Should See Row In Table "Application(s) to result" With Values:
