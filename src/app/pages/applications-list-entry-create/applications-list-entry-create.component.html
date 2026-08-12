@@ -121,6 +121,7 @@
   <app-accordion
     id="accordion-create"
     [rememberExpanded]="false"
+    (expandedChange)="onAccordionExpandedChange($event)"
     [items]="[
       { heading: 'Applicant', tpl: applicantTpl, expanded: openApplicant() },
       {

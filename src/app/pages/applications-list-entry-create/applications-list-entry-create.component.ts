@@ -442,6 +442,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       summaryErrors,
       errorFound: summaryErrors.length > 0,
     });
+    this.openSectionsWithErrors();
 
     if (
       opts.validateOtherSections &&
@@ -474,6 +475,56 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.updateErrors({
       validateOtherSections: this.appListEntryCreateState().submitted,
     });
+  }
+
+  onAccordionExpandedChange(event: { index: number; expanded: boolean }): void {
+    const sections = [
+      this.openApplicant,
+      this.openApplicationCode,
+      this.openWording,
+      this.openRespondent,
+      this.openCivilFee,
+      this.openNotes,
+    ] as const;
+
+    sections[event.index]?.set(event.expanded);
+  }
+
+  private openSectionsWithErrors(): void {
+    const sectionsWithErrors = {
+      applicant: this.childErrors.applicant.length > 0,
+      applicationCode: this.childErrors.codes.length > 0,
+      wording: this.childErrors.wording.length > 0,
+      respondent: this.childErrors.respondent.length > 0,
+      civilFee:
+        this.childErrors.civilFee.length > 0 || this.childErrors.fee.length > 0,
+      notes: this.childErrors.notes.length > 0,
+    };
+
+    for (const error of this.parentErrors) {
+      if (error.id === 'applicationCode' || error.id === 'lodgementDate') {
+        sectionsWithErrors.applicationCode = true;
+      } else if (error.id?.startsWith('applicationNotes.')) {
+        sectionsWithErrors.notes = true;
+      } else if (error.id === 'standardApplicantCode') {
+        sectionsWithErrors.applicant = true;
+      } else if (
+        error.id === 'feeStatus' ||
+        error.id === 'feeStatusDate' ||
+        error.id === 'paymentRef'
+      ) {
+        sectionsWithErrors.civilFee = true;
+      } else if (error.id === 'numberOfRespondents') {
+        sectionsWithErrors.respondent = true;
+      }
+    }
+
+    this.openApplicant.set(sectionsWithErrors.applicant);
+    this.openApplicationCode.set(sectionsWithErrors.applicationCode);
+    this.openWording.set(sectionsWithErrors.wording);
+    this.openRespondent.set(sectionsWithErrors.respondent);
+    this.openCivilFee.set(sectionsWithErrors.civilFee);
+    this.openNotes.set(sectionsWithErrors.notes);
   }
 
   private validateChildSectionsForSubmit(): void {
