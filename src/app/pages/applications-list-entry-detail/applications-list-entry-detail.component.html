@@ -154,6 +154,7 @@
   <app-accordion
     id="accordion-update"
     [rememberExpanded]="false"
+    (expandedChange)="onAccordionExpandedChange($event)"
     [items]="[
       {
         heading: 'Applicant',

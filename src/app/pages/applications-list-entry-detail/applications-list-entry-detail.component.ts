@@ -690,6 +690,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       summaryErrors,
       errorFound,
     });
+    this.openSectionsWithErrors();
 
     if (errorFound && opts.focusSummary !== false) {
       this.submitAttempt.update((attempt) => attempt + 1);
@@ -732,6 +733,56 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (this.vm().formSubmitted) {
       this.updateAllErrors();
     }
+  }
+
+  onAccordionExpandedChange(event: { index: number; expanded: boolean }): void {
+    const sections = [
+      this.openApplicantSection,
+      this.openApplicationCodeSection,
+      this.openWordingSection,
+      this.openRespondentSection,
+      this.openCivilFeeSection,
+      this.openNotesSection,
+    ] as const;
+
+    sections[event.index]?.set(event.expanded);
+  }
+
+  private openSectionsWithErrors(): void {
+    const sectionsWithErrors = {
+      applicant: this.childErrors.applicant.length > 0,
+      applicationCode: this.childErrors.codes.length > 0,
+      wording: this.childErrors.wording.length > 0,
+      respondent: this.childErrors.respondent.length > 0,
+      civilFee:
+        this.childErrors.civilFee.length > 0 || this.childErrors.fee.length > 0,
+      notes: this.childErrors.notes.length > 0,
+    };
+
+    for (const error of this.parentErrors) {
+      if (error.id === 'applicationCode' || error.id === 'lodgementDate') {
+        sectionsWithErrors.applicationCode = true;
+      } else if (error.id?.startsWith('applicationNotes.')) {
+        sectionsWithErrors.notes = true;
+      } else if (error.id === 'standardApplicantCode') {
+        sectionsWithErrors.applicant = true;
+      } else if (
+        error.id === 'feeStatus' ||
+        error.id === 'feeStatusDate' ||
+        error.id === 'paymentRef'
+      ) {
+        sectionsWithErrors.civilFee = true;
+      } else if (error.id === 'numberOfRespondents') {
+        sectionsWithErrors.respondent = true;
+      }
+    }
+
+    this.openApplicantSection.set(sectionsWithErrors.applicant);
+    this.openApplicationCodeSection.set(sectionsWithErrors.applicationCode);
+    this.openWordingSection.set(sectionsWithErrors.wording);
+    this.openRespondentSection.set(sectionsWithErrors.respondent);
+    this.openCivilFeeSection.set(sectionsWithErrors.civilFee);
+    this.openNotesSection.set(sectionsWithErrors.notes);
   }
 
   private submitEntryUpdate(
