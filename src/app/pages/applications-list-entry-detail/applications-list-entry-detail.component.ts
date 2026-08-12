@@ -750,6 +750,12 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private openSectionsWithErrors(): void {
+    const submitted = this.vm().formSubmitted;
+
+    if (!submitted) {
+      return;
+    }
+
     const sectionsWithErrors = getApplicationListEntryErrorSections(
       this.childErrors,
       this.parentErrors,

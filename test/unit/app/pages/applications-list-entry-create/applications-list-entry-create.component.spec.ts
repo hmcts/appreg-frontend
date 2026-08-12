@@ -41,6 +41,14 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     );
   }
 
+  function markAsSubmitted(): void {
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({ submitted: true });
+  }
+
   beforeEach(async () => {
     createApplicationListEntryMock = jest.fn().mockReturnValue(of({}));
 
@@ -117,6 +125,17 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
   ] as const)(
     'opens %s when it receives validation errors',
     (source, section) => {
+      component.form.patchValue({ applicantType: 'standard' });
+      if (source === 'respondent') {
+        (
+          component as unknown as {
+            appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+          }
+        ).appListEntryCreatePatch({
+          appCodeDetail: { requiresRespondent: true },
+        });
+      }
+      markAsSubmitted();
       component[section].set(false);
 
       component.onChildErrors(source, [{ id: 'field', text: 'Error' }]);
@@ -126,6 +145,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
   );
 
   it('reopens Applicant after its manually collapsed state is reported', () => {
+    markAsSubmitted();
     component.onAccordionExpandedChange({ index: 0, expanded: false });
 
     component.onChildErrors('applicant', [
@@ -136,6 +156,13 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
   });
 
   it('closes sections that have no validation errors', () => {
+    component.form.patchValue({
+      applicantType: 'standard',
+      applicationCode: 'APP123',
+      lodgementDate: '2026-02-01',
+      standardApplicantCode: 'SA-1',
+    });
+    markAsSubmitted();
     component.openApplicant.set(true);
     component.openApplicationCode.set(true);
     component.openWording.set(true);
