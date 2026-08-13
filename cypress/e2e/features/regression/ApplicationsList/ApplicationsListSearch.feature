@@ -231,7 +231,7 @@ Feature: Applications List Search
     Then User Sees Validation Error Banner "<ValidationErrorMessage>"
     Examples:
       | User   | SearchText | ValidationErrorMessage                      | OptionText | ExpectedValue | Info             |
-      | admin1 | London     | There is a problem Court location not found |            | Kent          | No results found |
+      | admin1 | zzzzzzzz   | There is a problem Court location not found |            | Kent          | No results found |
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-417
   Scenario: Verify application list Open

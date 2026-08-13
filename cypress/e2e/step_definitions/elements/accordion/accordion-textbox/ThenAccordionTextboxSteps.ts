@@ -40,8 +40,9 @@ Then(
 Then(
   'User Verifies The {string} Accordion Has textbox with placeholder {string} and Enters {string}',
   (accordionTitle: string, placeholder: string, value: string) => {
+    const resolvedValue = TestDataGenerator.replaceRandomPlaceholders(value);
     AccordionHelper.within(accordionTitle, () =>
-      TextboxHelper.typeInTextboxByPlaceholder(placeholder, value),
+      TextboxHelper.typeInTextboxByPlaceholder(placeholder, resolvedValue),
     );
   },
 );
