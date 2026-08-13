@@ -330,7 +330,7 @@ Feature: Applications List Entry Create
     Then User Verifies Date Field "Lodgement date" Is Disabled In The Accordion "Application codes"
     # Verify Wording Details
     Then User Verifies The "Wording" Accordion Has Value "Notice of appeal in respect of a case heard on"
-    Then User Verifies Textbox With Placeholder "Enter a Date of Hearing" Contains "today" In The Accordion "Wording"
+    Then User Verifies Textbox With Placeholder "Enter a Date of Hearing" Contains "{RANDOM}" In The Accordion "Wording"
     # Verify Respondent Details
     When User Verifies In The Respondent Details
       | Select type       | Organisation                              |
@@ -357,7 +357,7 @@ Feature: Applications List Entry Create
     # Result Wording Details
     Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
       | Applicant                                   | Respondent                            | Application title                              |
-      | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | Issue of liability order summons - council tax |
+      | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | Appeal to Crown Court                          |
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details
     Then User Should See The Textbox "Magistrate's title" Under "Magistrate 1" FieldSet In The Accordion "Officials"
