@@ -376,8 +376,8 @@ Feature: Applications List Entry Create
     Then User Should See The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
 
-  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC3
-  Scenario: Create and Open an ALE where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
+  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1561 @SC3
+  Scenario: Create and Open an ALE where Applicant = Standard Applicant, Respondent = Bulk Application using an Application Code with Fee Required = Y and Respondent Required = N
     Given User Authenticates Via API As "user1"
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:
@@ -407,32 +407,35 @@ Feature: Applications List Entry Create
     Then User Checks The Checkbox With Label "Select APP025" In The Accordion "Applicant"
     Then User Should See The Text "Currently selected APP025 Ava Johnson" In The Accordion "Applicant"
     # Application Codes
-    Then User Enters "AP99003" Into The Textbox "Application code" In The Accordion "Application codes"
+    Then User Enters "MH99001" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
     Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
     Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
-      | Code    | Title                         | Bulk | Fee required |
-      | AP99003 | Appeal by Case Stated (Civil) | No   | Yes          |
-    Then User Verifies The "Application Title" Textbox Has Value "Appeal by Case Stated (Civil)"
+      | Code    | Title                                                                     | Bulk | Fee required |
+      | MH99001 | Issue of warrant of arrest in commitment proceedings - council tax (bulk) | Yes  | Yes          |
+    Then User Verifies The "Application Title" Textbox Has Value "Issue of warrant of arrest in commitment proceedings - council tax (bulk)"
     Then User Verifies The Date field "Lodgement date" Has Value "today"
     # Wording Details
-    Then User Verifies The "Wording" Accordion Has Value "Notice of appeal to the High Court by way of case stated in respect of case heard on"
-    Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Date of Hearing" and Enters "today"
+    Then User Verifies The "Wording" Accordion Has Value "Attends to swear a complaint for the issue of warrants of arrest for the debtors to answer an application for committal to prison (number of cases"
+    Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Number" and Enters "50"
     # (Bug raised ARCPOC-1230/ARCPOC-1205/ARCPOC-1253 for below statement)
     When User Clicks On The "Apply wording" Button In The Accordion "Wording"
     Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
-    # Respondent Details Not provided as Respondent Required = N for the Application Code
+    # Respondent Details provided (as Bulk Application) even though Respondent Required = N as it is optional provide Respondent Details
+    When User Fills In The Respondent Details
+      | Select type           | Bulk Application |
+      | Number of respondents | 10               |
     # Civil Fee Details
     When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
     Then User Should See The Text "Selecting this will apply the off site fee to the entry." In The Accordion "Civil fee"
-    Then User Should See The Text "Fee Reference: CO2.1" In The Accordion "Civil fee"
-    Then User Should See The Text "Amount: £156.00" In The Accordion "Civil fee"
+    Then User Should See The Text "Fee Reference: —" In The Accordion "Civil fee"
+    Then User Should See The Text "Amount: £0.00" In The Accordion "Civil fee"
     Then User Verifies The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee" Is Unchecked
     Then User Checks The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee"
     # Bug ARCPOC-1241 is raised
     Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
     Then User Should See The Text "Off Site Fee Amount: £29.00" In The Accordion "Civil fee"
-    Then User Should See The Text "Total Fee Amount: £185.00" In The Accordion "Civil fee"
+    Then User Should See The Text "Total Fee Amount: £29.00" In The Accordion "Civil fee"
     Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
     Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
     Then User Enters "PAY-{RANDOM}" Into The Textbox "Payment reference" In The Accordion "Civil fee"
@@ -447,8 +450,8 @@ Feature: Applications List Entry Create
     # ---------------OPEN APPLICATION LIST ENTRY-----------@ARCPOC-635 SC3
     Then User Clicks On The Breadcrumb Link "Applications list details"
     When User Clicks "Open" Button In Row Of Table "Entries" With:
-      | Sequence number | Account number  | Applicant   | Respondent | Postcode | Title                         | Fee | Resulted |
-      | 1               | account{RANDOM} | Ava Johnson |            |          | Appeal by Case Stated (Civil) | Yes |          |
+      | Sequence number | Account number  | Applicant   | Respondent | Postcode | Title                                                                     | Fee | Resulted |
+      | 1               | account{RANDOM} | Ava Johnson |            |          | Issue of warrant of arrest in commitment proceedings - council tax (bulk) | Yes |          |
     When User Clicks On The "Show all sections" Button
     Then User Should See The Button "Hide all sections"
     Then User Sees Page Heading "Applications list entry update"
@@ -461,22 +464,25 @@ Feature: Applications List Entry Create
       | Code   | Name        | Address        | Use from   | Use to |
       | APP025 | Ava Johnson | 258 Cedar Lane | 6 Nov 2025 | —      |
     # Verify Application Codes Details
-    Then User Verifies The Textbox "Application code" Contains "AP99003" In The Accordion "Application codes"
-    Then User Verifies The Textbox "Application title" Contains "Appeal by Case Stated (Civil)" In The Accordion "Application codes"
+    Then User Verifies The Textbox "Application code" Contains "MH99001" In The Accordion "Application codes"
+    Then User Verifies The Textbox "Application title" Contains "Issue of warrant of arrest in commitment proceedings - council tax (bulk)" In The Accordion "Application codes"
     Then User Verifies The Date field "Lodgement date" Has Value "today"
     Then User Verifies Date Field "Lodgement date" Is Disabled In The Accordion "Application codes"
     # Verify Wording Details
-    Then User Verifies The "Wording" Accordion Has Value "Notice of appeal to the High Court by way of case stated in respect of case heard on"
-    Then User Verifies Textbox With Placeholder "Enter a Date of Hearing" Contains "today" In The Accordion "Wording"
-    # Verify Respondent Details Not provided as Respondent Required = N for the Application Code
+    Then User Verifies The "Wording" Accordion Has Value "Attends to swear a complaint for the issue of warrants of arrest for the debtors to answer an application for committal to prison (number of cases"
+    Then User Verifies Textbox With Placeholder "Enter a Number" Contains "50" In The Accordion "Wording"
+    # Verify Respondent Details provided (as Bulk Application) even though Respondent Required = N as it is optional provide Respondent Details
+    When User Verifies In The Respondent Details
+      | Select type           | Bulk Application |
+      | Number of respondents | 10               |
     # Verify Civil Fee Details
     Then User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Checked
     Then User Should See The Text "Selecting this will automatically apply the off site fee to the entry. This change is saved immediately." In The Accordion "Civil fee"
-    Then User Should See The Text "Fee Reference: CO2.1" In The Accordion "Civil fee"
-    Then User Should See The Text "Amount: £156.00" In The Accordion "Civil fee"
+    Then User Should See The Text "Fee Reference: —" In The Accordion "Civil fee"
+    Then User Should See The Text "Amount: £0.00" In The Accordion "Civil fee"
     Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
     Then User Should See The Text "Off Site Fee Amount: £29.00" In The Accordion "Civil fee"
-    Then User Should See The Text "Total Fee Amount: £185.00" In The Accordion "Civil fee"
+    Then User Should See The Text "Total Fee Amount: £29.00" In The Accordion "Civil fee"
     Then User Verifies "Change" Link Is Visible In Row Of Table In The Accordion "Civil fee" With:
       | Fee Status | Status Date  | Payment Ref  |
       | PAID       | todaydisplay | PAY-{RANDOM} |
@@ -486,8 +492,8 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Application details" Contains "This is a test application with special requirements" In The Accordion "Notes"
     # Result Wording Details
     Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
-      | Applicant   | Respondent | Application title             |
-      | Ava Johnson |            | Appeal by Case Stated (Civil) |
+      | Applicant   | Respondent | Application title                                                         |
+      | Ava Johnson |            | Issue of warrant of arrest in commitment proceedings - council tax (bulk) |
     Then User Verifies The Textbox "Result code" In The Accordion "Result wording" Is Empty
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details

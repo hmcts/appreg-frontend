@@ -1,6 +1,6 @@
 Feature: Application List Entries Bulk Update Officials
 
-    @regression @applicationsListEntries @ARCPOC-222 @ARCPOC-631 @ARCPOC-1477
+    @regression @applicationsListEntries @ARCPOC-222 @ARCPOC-631 @ARCPOC-1477 @ARCPOC-1558
     Scenario Outline: Application List Entries - Update Officials
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -105,12 +105,13 @@ Feature: Application List Entries Bulk Update Officials
             | Sequence number | Applicant              | Respondent            | Application title                            |
             | 1               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}  | Appeal to Crown Court                        |
             | 2               | Sarah Johnson {RANDOM} | Greenfield Consulting | Collection Order - Financial Penalty Account |
-        # Magistrate 1
+        # Magistrate 1 @ARCPOC-1558
         Then User Fills In The "Magistrate's title" Textbox With "HHJ" Within The "Magistrate 1" FieldSet
+        When User Clicks On The "Save recording officials" Button
+        Then User Sees Validation Error Banner "There is a problem Magistrates 1 first name is required Magistrates 1 last name is required"
         Then User Fills In The "Magistrate's first name" Textbox With "John" Within The "Magistrate 1" FieldSet
         Then User Fills In The "Magistrate's surname" Textbox With "Smith_{RANDOM}" Within The "Magistrate 1" FieldSet
         # Magistrate 2
-        Then User Fills In The "Magistrate's title" Textbox With "DJ" Within The "Magistrate 2" FieldSet
         Then User Fills In The "Magistrate's first name" Textbox With "Emily" Within The "Magistrate 2" FieldSet
         Then User Fills In The "Magistrate's surname" Textbox With "Davis_{RANDOM}" Within The "Magistrate 2" FieldSet
         # Magistrate 3
@@ -143,7 +144,7 @@ Feature: Application List Entries Bulk Update Officials
         Then User Verifies The Textbox "Magistrate's first name" Contains "John" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's surname" Contains "Smith_{RANDOM}" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         # Magistrate 2
-        Then User Verifies The Textbox "Magistrate's title" Contains "DJ" Under "Magistrate 2" FieldSet In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's title" Contains "" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's first name" Contains "Emily" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's surname" Contains "Davis_{RANDOM}" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         # Magistrate 3
@@ -167,7 +168,7 @@ Feature: Application List Entries Bulk Update Officials
         Then User Verifies The Textbox "Magistrate's first name" Contains "John" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's surname" Contains "Smith_{RANDOM}" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         # Magistrate 2
-        Then User Verifies The Textbox "Magistrate's title" Contains "DJ" Under "Magistrate 2" FieldSet In The Accordion "Officials"
+        Then User Verifies The Textbox "Magistrate's title" Contains "" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's first name" Contains "Emily" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         Then User Verifies The Textbox "Magistrate's surname" Contains "Davis_{RANDOM}" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         # Magistrate 3
@@ -182,5 +183,5 @@ Feature: Application List Entries Bulk Update Officials
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | APIDate  | Time  | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Court                     | Entries | Magistrate1Value1      | Magistrate2Value1       | Magistrate3Value1        | CourtOfficialValue1           |
-            | user1 | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todaydisplay | Bristol Crown Court Set 3 | 2       | HHJ John Smith_{RANDOM} | DJ Emily Davis_{RANDOM} | Miss Jane Hardy_{RANDOM} | Mrs Violette Zanetti_{RANDOM} |
+            | User  | APIDate  | Time  | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Court                     | Entries | Magistrate1Value1       | Magistrate2Value1    | Magistrate3Value1        | CourtOfficialValue1           |
+            | user1 | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todaydisplay | Bristol Crown Court Set 3 | 2       | HHJ John Smith_{RANDOM} | Emily Davis_{RANDOM} | Miss Jane Hardy_{RANDOM} | Mrs Violette Zanetti_{RANDOM} |
