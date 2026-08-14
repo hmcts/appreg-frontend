@@ -1,6 +1,6 @@
 Feature: API - Application List
 
-  @api @applicationsList @regression @ARCPOC-214 @ARCPOC-772
+  @api @applicationsList @regression @ARCPOC-214 @ARCPOC-772 @ARCPOC-1688
   Scenario Outline: Create Application List using courtLocationCode via API
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -31,6 +31,8 @@ Feature: API - Application List
     Then User Verify Response Body Property "description" Should Be "Updated description"
     When User Makes DELETE API Request To "/application-lists/:listId"
     Then User Verify Response Status Code Should Be "204"
+    When User Makes GET API Request To "/application-lists/:listId"
+    Then User Verify Response Status Code Should Be "404"
     Examples:
       | User  | Date     | Time           | Status | Description                                                  | CourtLocationCode | DurationHours | DurationMinutes |
       | user1 | todayiso | timenowhhmm-2h | OPEN   | Applications to review at the Test Courthouse. Test_{RANDOM} | RCJ001            | 2             | 22              |

@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 export class ButtonElement {
   private static readonly buttonSelector =
-    'button, input[type="button"], input[type="submit"], [role="button"]';
+    'button, input[type="button"], input[type="submit"], [role="button"], a.govuk-button';
 
   static findButton(
     name: string,

@@ -1,6 +1,6 @@
 Feature: Applications List Entry Update
 
-    @applicationListEntry @regression @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444
+    @applicationListEntry @regression @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444 @ARCPOC-1558
     Scenario: Update an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "user1"
         # Create Application List
@@ -86,12 +86,13 @@ Feature: Applications List Entry Update
         When User Clicks On The "Apply result" Button
         Then User Sees Success Alert "Results applied to this entry. Save the entry to keep these changes."
         Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
-        # Officials
+        # Officials @ARCPOC-1558
         Then User Enters "HHJ" In The Textbox "Magistrate's title" Under "Magistrate 1" FieldSet In The Accordion "Officials"
+        When User Clicks On The "Save recording officials" Button
+        Then User Sees Validation Error Banner "There is a problem Magistrates 1 first name is required Magistrates 1 last name is required"
         Then User Enters "John" In The Textbox "Magistrate's first name" Under "Magistrate 1" FieldSet In The Accordion "Officials"
         Then User Enters "Smith{RANDOM}" In The Textbox "Magistrate's surname" Under "Magistrate 1" FieldSet In The Accordion "Officials"
 
-        Then User Enters "DJ" In The Textbox "Magistrate's title" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         Then User Enters "Emily" In The Textbox "Magistrate's first name" Under "Magistrate 2" FieldSet In The Accordion "Officials"
         Then User Enters "Davis{RANDOM}" In The Textbox "Magistrate's surname" Under "Magistrate 2" FieldSet In The Accordion "Officials"
 

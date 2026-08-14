@@ -364,8 +364,8 @@ Feature: Applications List Entry Create Regex Validations
       | User  | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationTitle                               | WordingText                                                                                                                                                        | placeholder       | TableName | CaseReference | AccountReference |
       | user1 | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | Lists     | case{RANDOM}  | account{RANDOM}  |
 
-  @regression @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319 @SC3
-  Scenario Outline: Create an ALE With Regex Validations where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
+  @regression @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319 @ARCPOC-1561 @SC3
+  Scenario Outline: Create an ALE With Regex Validations where Applicant = Standard Applicant, Respondent = Bulk Application using an Application Code with Fee Required = Y and Respondent Required = N
     Given User Authenticates Via API As "<User>"
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:
@@ -405,21 +405,38 @@ Feature: Applications List Entry Create Regex Validations
     Then User Should See The Text "Currently selected <StdAppCode> <StdAppName>" In The Accordion "Applicant"
     # Application Codes
     Then User Enters "<AppCodeLodgementDate>" Into The Date Field "Lodgement date" In The Accordion "Application codes"
-    Then User Enters "AP99003" Into The Textbox "Application code" In The Accordion "Application codes"
+    Then User Enters "MH99001" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
     Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
     Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
       | Code    | Title              | Bulk | Fee required |
-      | AP99003 | <ApplicationTitle> | No   | Yes          |
+      | MH99001 | <ApplicationTitle> | Yes  | Yes          |
     Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
     Then User Verifies The Date field "Lodgement date" Has Value "<AppCodeLodgementDate>"
     # Wording Details
     Then User Verifies The "Wording" Accordion Has Value "<WordingText>"
-    Then User Verifies The "Wording" Accordion Has textbox with placeholder "<placeholder>" and Enters "<WordingValue>"
+    Then User Verifies The "Wording" Accordion Has textbox with placeholder "<placeholder>" and Enters "<InvalidWordingValue>"
     # (Bug raised ARCPOC-1230/ARCPOC-1205/AARCPOC-1253 for below statement)
     When User Clicks On The "Apply wording" Button In The Accordion "Wording"
+    Then User Sees Validation Error Banner "There is a problem Number in the wording section must be 4 characters or fewer"
+    Then User Verifies The "Wording" Accordion Has textbox with placeholder "<placeholder>" and Enters "<ValidWordingValue>"
+    When User Clicks On The "Apply wording" Button In The Accordion "Wording"
     Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
-    # Respondent Details Not provided as Respondent Required = N for the Application Code
+    # Respondent Details provided (as Bulk Application) even though Respondent Required = N as it is optional provide Respondent Details
+    When User Fills In The Respondent Details
+      | Select type           | Bulk Application |
+      | Number of respondents | abc              |
+    When User Clicks On The "Create entry" Button
+    Then User Sees Validation Error Banner "There is a problem Number of respondents must be a positive whole number between 1 - 9999 Select a fee status Enter a valid status date"
+    When User Fills In The Respondent Details
+      | Select type           | Bulk Application |
+      | Number of respondents | 12345            |
+    When User Clicks On The "Create entry" Button
+    Then User Sees Validation Error Banner "There is a problem Number of respondents must be less than or equal to 4 characters Select a fee status Enter a valid status date"
+    When User Fills In The Respondent Details
+      | Select type           | Bulk Application |
+      | Number of respondents | 1234             |
+    When User Clicks On The "Create entry" Button
     # Civil Fee Details
     When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
     Then User Should See The Text "<OffsiteFeeString>" In The Accordion "Civil fee"
@@ -444,5 +461,5 @@ Feature: Applications List Entry Create Regex Validations
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
 
     Examples:
-      | User  | TableName | SearchDate | AppCodeLodgementDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationTitle                                           | WordingText                                                                                                                     | placeholder  | WordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode                | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | StdAppCode | StdAppName  |
-      | user1 | Lists     | today      | 01/01/2025           | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | Appeal by Case Stated (Civil) | Notice of appeal to the High Court by way of case stated in respect of case heard on | Enter a Date of Hearing | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | Off Site Fee Reference: CO1.1 | Off Site Fee Amount: £28.00 | Total Fee Amount: £179.00 | Fee Reference: CO2.1 | Amount: £151.00 | APP025     | Ava Johnson |
+      | User  | TableName | SearchDate | AppCodeLodgementDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationTitle                                                          | WordingText                                                                                                                                        | placeholder    | InvalidWordingValue | ValidWordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode                | OffsiteFeeValue             | TotalFeeAmount           | FeeReference     | FeeAmount     | StdAppCode | StdAppName  |
+      | user1 | Lists     | today      | 01/01/2025           | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | Issue of warrant of arrest in commitment proceedings - council tax (bulk) | Attends to swear a complaint for the issue of warrants of arrest for the debtors to answer an application for committal to prison (number of cases | Enter a Number | today               | test              | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | Off Site Fee Reference: CO1.1 | Off Site Fee Amount: £28.00 | Total Fee Amount: £28.00 | Fee Reference: — | Amount: £0.00 | APP025     | Ava Johnson |
