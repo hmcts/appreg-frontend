@@ -484,7 +484,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037 @ARCPOC-1688
     Scenario Outline: Verify application list is deleted successfully for applications list NO entries
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -497,21 +497,28 @@ Feature: Application List Row Actions
         When User Searches Application List With:
             | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
             | <SearchDate> |      | <Description>    |             |       |                    |                            |                       |           |
-        When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Open" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
+        Then User Clicks On The Link "List details"
+        Then User Verify The Page URL Contains "#list-details"
+        Then User See "List details" On The Page
+        Then User Should See The Button "Delete list"
+        When User Clicks On The "Delete list" Button
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         Then User Clicks On The Link "Cancel"
-        Then User Should See The Table "<TableName>"
-        When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
-            | Date          | Time   | Location | Description   | Entries | Status   |
-            | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
+        Then User Verify The Page URL Contains "#list-details"
+        Then User See "List details" On The Page
+        Then User Verifies The "List description" Textbox Has Value "<Description>"
+        Then User Should See The Button "Delete list"
+        When User Clicks On The "Delete list" Button
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
-        Then User Should See The Link "Create new list"
         Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Page Heading "Applications list"
+        Then User Should See The Link "Create new list"
         Then User Clears The "List description" Textbox
         When User Set Date Field "Date" To "<SearchDate>"
         When User Clicks On The "Search" Button

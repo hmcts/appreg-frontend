@@ -16,6 +16,11 @@ export class ApplicationListEntriesCombinedHelper {
       return;
     }
 
+    if (normalisedType.includes('bulk')) {
+      TextboxHelper.verifyTextboxIsVisible('Number of respondents');
+      return;
+    }
+
     if (normalisedType.includes('organisation')) {
       TextboxHelper.verifyTextboxIsVisible('Organisation name');
       return;
@@ -464,6 +469,7 @@ export class ApplicationListEntriesCombinedHelper {
     criteria: Record<string, string>;
   }): void {
     const accordionTitle = 'Respondent';
+    const processedCriteria = processDatatableRow(criteria);
 
     AccordionHelper.isAccordionVisible(accordionTitle);
     AccordionHelper.ensureAccordionExpanded(accordionTitle);
@@ -471,6 +477,17 @@ export class ApplicationListEntriesCombinedHelper {
     cy.log('Filling Respondent with criteria:', criteria);
 
     this.fillNameFields({ accordionTitle, criteria });
+
+    const numberOfRespondents = processedCriteria['Number of respondents'];
+    if (numberOfRespondents?.trim()) {
+      AccordionHelper.within(accordionTitle, () =>
+        TextboxHelper.typeInTextbox(
+          'Number of respondents',
+          numberOfRespondents,
+        ),
+      );
+    }
+
     this.fillAddressFields({ accordionTitle, criteria });
     this.fillContactDetails({ accordionTitle, criteria });
   }
