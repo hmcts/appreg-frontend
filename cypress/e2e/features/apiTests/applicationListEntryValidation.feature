@@ -61,7 +61,7 @@ Feature: API - Application List Entry Validation
   Scenario: Create application list entry with bulk respondent details when application code allows bulk respondents
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                        | null                       |
-      | applicationCode                              | CT99001                    |
+      | applicationCode                              | MH99001                    |
       | applicant.person.name.title                  | Mr                         |
       | applicant.person.name.firstName              | John                       |
       | applicant.person.name.lastName               | Bulk{RANDOM}               |
@@ -78,6 +78,9 @@ Feature: API - Application List Entry Validation
       | wordingFields.0.key                          | Number                     |
       | wordingFields.0.value                        | 5                          |
       | hasOffsiteFee                                | false                      |
+      | feeStatuses.0.paymentReference               | PAY-{RANDOM}               |
+      | feeStatuses.0.paymentStatus                  | PAID                       |
+      | feeStatuses.0.statusDate                     | todayiso                   |
       | caseReference                                | CASE-{RANDOM}              |
       | notes                                        | Bulk respondent validation |
       | lodgementDate                                | todayiso                   |
@@ -87,14 +90,14 @@ Feature: API - Application List Entry Validation
       | officials.0.type                             | MAGISTRATE                 |
     Then User Verify Response Status Code Should Be "201"
     Then User Verify Response Body Should Have:
-      | applicationCode     | CT99001 |
+      | applicationCode     | MH99001 |
       | numberOfRespondents | 5       |
 
   @api @applicationListEntry @regression @ARCPOC-935
   Scenario: Reject bulk respondent payloads when both respondent details and respondent count are provided
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                         | null                           |
-      | applicationCode                               | CT99001                        |
+      | applicationCode                               | MH99001                        |
       | applicant.person.name.title                   | Mr                             |
       | applicant.person.name.firstName               | John                           |
       | applicant.person.name.lastName                | Both{RANDOM}                   |
@@ -122,6 +125,9 @@ Feature: API - Application List Entry Validation
       | wordingFields.0.key                           | Number                         |
       | wordingFields.0.value                         | 5                              |
       | hasOffsiteFee                                 | false                          |
+      | feeStatuses.0.paymentReference                | PAY-{RANDOM}                   |
+      | feeStatuses.0.paymentStatus                   | PAID                           |
+      | feeStatuses.0.statusDate                      | todayiso                       |
       | caseReference                                 | CASE-{RANDOM}                  |
       | notes                                         | Mutually exclusive validation  |
       | lodgementDate                                 | todayiso                       |
