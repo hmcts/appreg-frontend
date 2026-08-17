@@ -1,1 +1,218 @@
-{}
+{
+  "cypress/e2e/features/apiTests/referenceData.feature": {
+    "time": 3795,
+    "weight": 0
+  },
+  "cypress/e2e/features/apiTests/applicationListEntryClosed.feature": {
+    "time": 1883,
+    "weight": 0
+  },
+  "cypress/e2e/features/apiTests/applicationListEntry.feature": {
+    "time": 14955,
+    "weight": 3
+  },
+  "cypress/e2e/features/regression/Reports/SearchWarrantsReport.feature": {
+    "time": 64967,
+    "weight": 13
+  },
+  "cypress/e2e/features/regression/Reports/ListMaintenanceReport.feature": {
+    "time": 73717,
+    "weight": 14
+  },
+  "cypress/e2e/features/regression/ApplicationsListEntry/ALECreateRegex.feature": {
+    "time": 53990,
+    "weight": 10
+  },
+  "cypress/e2e/features/regression/ApplicationsList/ApplicationsListUpdate.feature": {
+    "time": 135773,
+    "weight": 27
+  },
+  "cypress/e2e/features/regression/ApplicationListEntriesActions/ApplicationsListEntriesPrint.feature": {
+    "time": 19298,
+    "weight": 3
+  },
+  "cypress/e2e/features/regression/ApplicationListEntriesActions/ApplicationListEntriesBulkUpdateOfficials.feature": {
+    "time": 49902,
+    "weight": 10
+  },
+  "cypress/e2e/features/regression/ApplicationListEntriesActions/ApplicationListBulkUpload.feature": {
+    "time": 155424,
+    "weight": 31
+  },
+  "cypress/e2e/features/regression/Applications/ApplicationsPrint.feature": {
+    "time": 29888,
+    "weight": 6
+  },
+  "cypress/e2e/features/apiTests/applicationListEntryBulkOperations.feature": {
+    "time": 8390,
+    "weight": 1
+  },
+  "cypress/e2e/features/apiTests/applicationListEntryBulkImport.feature": {
+    "time": 4051,
+    "weight": 0
+  },
+  "cypress/e2e/features/regression/Reports/ReportsHelpDetails.feature": {
+    "time": 13481,
+    "weight": 2
+  },
+  "cypress/e2e/features/regression/Reports/PrivateProsecutorsIndex.feature": {
+    "time": 87457,
+    "weight": 17
+  },
+  "cypress/e2e/features/regression/ApplicationsListEntry/ALECreateHelpDetails.feature": {
+    "time": 24095,
+    "weight": 4
+  },
+  "cypress/e2e/features/regression/ApplicationsListEntry/ALECreate.feature": {
+    "time": 165480,
+    "weight": 33
+  },
+  "cypress/e2e/features/regression/ApplicationListEntriesActions/ApplicationListEntriesDetailsBulkActionPreviewLimit.feature": {
+    "time": 44946,
+    "weight": 9
+  },
+  "cypress/e2e/features/regression/ApplicationListEntriesActions/ApplicationListEntriesDetails.feature": {
+    "time": 66883,
+    "weight": 13
+  },
+  "cypress/e2e/features/regression/Applications/ApplicationsUpdateNotes.feature": {
+    "time": 33060,
+    "weight": 6
+  },
+  "cypress/e2e/features/regression/Applications/ApplicationsSearch.feature": {
+    "time": 79572,
+    "weight": 15
+  },
+  "cypress/e2e/features/apiTests/applicationListEntryLifecycle.feature": {
+    "time": 12609,
+    "weight": 2
+  },
+  "cypress/e2e/features/apiTests/applicationListEntryIds.feature": {
+    "time": 3647,
+    "weight": 0
+  },
+  "cypress/e2e/features/regression/authentication/authentication-and-authorisation.feature": {
+    "time": 80672,
+    "weight": 16
+  },
+  "cypress/e2e/features/regression/StandardApplicants/StandardApplicantsHelpDetails.feature": {
+    "time": 12486,
+    "weight": 2
+  },
+  "cypress/e2e/features/regression/Reports/ActivityAuditReport.feature": {
+    "time": 75296,
+    "weight": 15
+  },
+  "cypress/e2e/features/regression/ApplicationsListEntry/ALEUpdateNotes.feature": {
+    "time": 26033,
+    "weight": 5
+  },
+  "cypress/e2e/features/regression/ApplicationsList/ApplicationsListHelpDetails.feature": {
+    "time": 11775,
+    "weight": 2
+  },
+  "cypress/e2e/features/regression/ApplicationsList/ApplicationsListDetailHelpDetails.feature": {
+    "time": 19923,
+    "weight": 4
+  },
+  "cypress/e2e/features/regression/ApplicationListEntriesActions/ApplicationListEntriesBulkResultSelectedHelpDetails.feature": {
+    "time": 20745,
+    "weight": 4
+  },
+  "cypress/e2e/features/regression/ApplicationListEntriesActions/ApplicationListEntriesBulkResultSelected.feature": {
+    "time": 75290,
+    "weight": 15
+  },
+  "cypress/e2e/features/regression/Applications/ApplicationsBulkResultSelected.feature": {
+    "time": 74503,
+    "weight": 14
+  },
+  "cypress/e2e/features/regression/Applications/ApplicationsBulkActionPreviewLimit.feature": {
+    "time": 65372,
+    "weight": 13
+  },
+  "cypress/e2e/features/apiTests/applicationListEntryResults.feature": {
+    "time": 9078,
+    "weight": 1
+  },
+  "cypress/e2e/features/apiTests/applicationListEntryFees.feature": {
+    "time": 3840,
+    "weight": 0
+  },
+  "cypress/e2e/features/regression/StandardApplicants/StandardApplicants.feature": {
+    "time": 90579,
+    "weight": 18
+  },
+  "cypress/e2e/features/regression/Reports/DurationReport.feature": {
+    "time": 67309,
+    "weight": 13
+  },
+  "cypress/e2e/features/regression/ApplicationsListEntry/ALEUpdateHelpDetails.feature": {
+    "time": 52155,
+    "weight": 10
+  },
+  "cypress/e2e/features/regression/ApplicationsList/ApplicationsListRowActions.feature": {
+    "time": 136266,
+    "weight": 27
+  },
+  "cypress/e2e/features/regression/ApplicationsList/ApplicationsListCreate.feature": {
+    "time": 83329,
+    "weight": 16
+  },
+  "cypress/e2e/features/regression/ApplicationListEntriesActions/ApplicationListEntriesBulkUpdateFees.feature": {
+    "time": 74275,
+    "weight": 14
+  },
+  "cypress/e2e/features/regression/ApplicationListEntriesActions/ApplicationListBulkUploadHelpDetails.feature": {
+    "time": 13997,
+    "weight": 2
+  },
+  "cypress/e2e/features/regression/Applications/ApplicationsBulkResultSelectedHelpDetails.feature": {
+    "time": 14462,
+    "weight": 2
+  },
+  "cypress/e2e/features/apiTests/applicationListEntryValidation.feature": {
+    "time": 5989,
+    "weight": 1
+  },
+  "cypress/e2e/features/apiTests/applicationListEntryErrorResponses.feature": {
+    "time": 23618,
+    "weight": 4
+  },
+  "cypress/e2e/features/apiTests/applicationList.feature": {
+    "time": 2088,
+    "weight": 0
+  },
+  "cypress/e2e/features/regression/Reports/WorkloadReport.feature": {
+    "time": 76792,
+    "weight": 15
+  },
+  "cypress/e2e/features/regression/Reports/FeesReport.feature": {
+    "time": 62547,
+    "weight": 12
+  },
+  "cypress/e2e/features/regression/ApplicationsListEntry/ALEUpdate.feature": {
+    "time": 54662,
+    "weight": 10
+  },
+  "cypress/e2e/features/regression/ApplicationsList/ApplicationsListSearch.feature": {
+    "time": 201734,
+    "weight": 40
+  },
+  "cypress/e2e/features/regression/ApplicationListEntriesActions/ApplicationsListMoveEntries.feature": {
+    "time": 64204,
+    "weight": 12
+  },
+  "cypress/e2e/features/regression/ApplicationListEntriesActions/ApplicationListEntriesBulkUpdateFeesHelpDetails.feature": {
+    "time": 16854,
+    "weight": 3
+  },
+  "cypress/e2e/features/regression/ApplicationListEntriesActions/ApplicationListBulkUploadFailedExportError.feature": {
+    "time": 16805,
+    "weight": 3
+  },
+  "cypress/e2e/features/regression/Applications/ApplicationsHelpDetails.feature": {
+    "time": 7699,
+    "weight": 1
+  }
+}
