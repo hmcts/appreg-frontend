@@ -27,6 +27,11 @@ on:
         description: Jira issue URL
         required: true
         type: string
+      initiatorDisplayName:
+        description: Display name of the Jira user who initiated the automation
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -289,6 +294,7 @@ jobs:
       ISSUE_KEY: ${{ inputs.issueKey }}
       ISSUE_SUMMARY: ${{ inputs.summary }}
       ISSUE_URL: ${{ inputs.issueUrl }}
+      JIRA_INITIATOR_DISPLAY_NAME: ${{ inputs.initiatorDisplayName }}
 
     steps:
       - name: Checkout trusted collector
@@ -528,6 +534,7 @@ jobs:
       ISSUE_KEY: ${{ inputs.issueKey }}
       ISSUE_SUMMARY: ${{ inputs.summary }}
       ISSUE_URL: ${{ inputs.issueUrl }}
+      JIRA_INITIATOR_DISPLAY_NAME: ${{ inputs.initiatorDisplayName }}
       CODEX_INPUT_ARTIFACT: ${{ needs.verify-codex-output.outputs.output_artifact }}
       CODEX_OUTPUT_ARTIFACT: codex-jira-output-repair-1
 
@@ -773,6 +780,7 @@ jobs:
       ISSUE_KEY: ${{ inputs.issueKey }}
       ISSUE_SUMMARY: ${{ inputs.summary }}
       ISSUE_URL: ${{ inputs.issueUrl }}
+      JIRA_INITIATOR_DISPLAY_NAME: ${{ inputs.initiatorDisplayName }}
       CODEX_INPUT_ARTIFACT: ${{ needs.verify-codex-output-1.outputs.output_artifact }}
       CODEX_OUTPUT_ARTIFACT: codex-jira-output-repair-2
 
@@ -1018,6 +1026,7 @@ jobs:
       ISSUE_KEY: ${{ inputs.issueKey }}
       ISSUE_SUMMARY: ${{ inputs.summary }}
       ISSUE_URL: ${{ inputs.issueUrl }}
+      JIRA_INITIATOR_DISPLAY_NAME: ${{ inputs.initiatorDisplayName }}
       CODEX_INPUT_ARTIFACT: ${{ needs.verify-codex-output-2.outputs.output_artifact }}
       CODEX_OUTPUT_ARTIFACT: codex-jira-output-repair-3
 
@@ -1537,6 +1546,7 @@ jobs:
       ISSUE_KEY: ${{ inputs.issueKey }}
       ISSUE_SUMMARY: ${{ inputs.summary }}
       ISSUE_URL: ${{ inputs.issueUrl }}
+      JIRA_INITIATOR_DISPLAY_NAME: ${{ inputs.initiatorDisplayName }}
       CODEX_INPUT_ARTIFACT: ${{ needs.verify-published-pr.outputs.output_artifact }}
       CODEX_OUTPUT_ARTIFACT: codex-jira-output-pr-repair-1
 
