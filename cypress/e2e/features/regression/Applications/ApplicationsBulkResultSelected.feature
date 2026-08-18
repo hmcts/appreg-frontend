@@ -163,11 +163,18 @@ Feature: Applications Bulk Result Selected
             | officials.3.type                                   | CLERK                                         |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId3"
-        # UI: Search and Bulk Result Selected
+        # UI: Verify limit of 2000 rows for action Bulk Result Selected
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
+        When User Searches Applications With:
+            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
+            |      |             |       |                        |                   |                         |                    | OPEN                      |                      |           |                       |                            |                         |                   |
+        When User Checks The Select All Checkbox In Table "Application list entries"
+        When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Application list entries"
+        Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 2000. Please reduce the number of rows selected"
+        # UI: Search and Bulk Result Selected
         When User Searches Applications With:
             | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |

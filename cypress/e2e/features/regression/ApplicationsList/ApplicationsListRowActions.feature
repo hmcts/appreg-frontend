@@ -350,7 +350,7 @@ Feature: Application List Row Actions
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-1h | A8      | Derby      | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
 
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803 @ARCPOC-1717
     Scenario Outline: Verify PDF download for print continuous and print page with entries for Court and Status Closed
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -477,9 +477,9 @@ Feature: Application List Row Actions
             | Dated                  | <DisplayDateLong>                                                                                                                                          |
             | Produced on            | <SearchDate>                                                                                                                                               |
         Then User Clears Downloaded PDFs
-        # Application List Cleanup
+        # Application list cannot be deleted if it is CLOSED
         When User Makes DELETE API Request To "/application-lists/:listId"
-        Then User Verify Response Status Code Should Be "204"
+        Then User Verify Response Status Code Should Be "400"
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
@@ -517,10 +517,10 @@ Feature: Application List Row Actions
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
-        Then User Sees Page Heading "Applications list"
         Then User Should See The Link "Create new list"
         Then User Clears The "List description" Textbox
         When User Set Date Field "Date" To "<SearchDate>"
+        Then User Selects "Closed" In The "Select list status" Dropdown
         When User Clicks On The "Search" Button
         Then User Should See The Table "<TableName>"
         Then User Should Not See Row In Table "<TableName>" With Values:
