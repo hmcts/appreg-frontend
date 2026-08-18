@@ -170,7 +170,7 @@ Feature: Applications Bulk Result Selected
         Then User Verify The Page URL Contains "/applications"
         When User Searches Applications With:
             | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            |      |             |       |                        |                   |                         |                    | Open                      |                      |           |                       |                            |                         |                   |
+            |      |             |       |                        |                   |                         |                    | OPEN                      |                      |           |                       |                            |                         |                   |
         When User Checks The Select All Checkbox In Table "Application list entries"
         When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Application list entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 2000. Please reduce the number of rows selected"
