@@ -12,6 +12,8 @@ import {
 } from '@components/applications-list-entry-create/util/helpers';
 import {
   ApplicationCodeGetDetailDto,
+  ApplicationCodeGetDetailDtoFeeAmountCurrencyEnum,
+  ApplicationCodeGetDetailDtoOffsiteFeeAmountCurrencyEnum,
   ApplicationCodesApi,
   ApplicationListEntriesApi,
   EntryCreateDto,
@@ -37,6 +39,14 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
       component.forms.respondentPersonForm.getRawValue(),
       component.forms.respondentOrganisationForm.getRawValue(),
     );
+  }
+
+  function markAsSubmitted(): void {
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({ submitted: true });
   }
 
   beforeEach(async () => {
@@ -103,6 +113,71 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
         }),
       ]),
     );
+  });
+
+  it.each([
+    ['applicant', 'openApplicant'],
+    ['codes', 'openApplicationCode'],
+    ['wording', 'openWording'],
+    ['respondent', 'openRespondent'],
+    ['civilFee', 'openCivilFee'],
+    ['notes', 'openNotes'],
+  ] as const)(
+    'opens %s when it receives validation errors',
+    (source, section) => {
+      component.form.patchValue({ applicantType: 'standard' });
+      if (source === 'respondent') {
+        (
+          component as unknown as {
+            appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+          }
+        ).appListEntryCreatePatch({
+          appCodeDetail: { requiresRespondent: true },
+        });
+      }
+      markAsSubmitted();
+      component[section].set(false);
+
+      component.onChildErrors(source, [{ id: 'field', text: 'Error' }]);
+
+      expect(component[section]()).toBe(true);
+    },
+  );
+
+  it('reopens Applicant after its manually collapsed state is reported', () => {
+    markAsSubmitted();
+    component.onAccordionExpandedChange({ index: 0, expanded: false });
+
+    component.onChildErrors('applicant', [
+      { id: 'firstName', text: 'Enter applicant first name' },
+    ]);
+
+    expect(component.openApplicant()).toBe(true);
+  });
+
+  it('closes sections that have no validation errors', () => {
+    component.form.patchValue({
+      applicantType: 'standard',
+      applicationCode: 'APP123',
+      lodgementDate: '2026-02-01',
+      standardApplicantCode: 'SA-1',
+    });
+    markAsSubmitted();
+    component.openApplicant.set(true);
+    component.openApplicationCode.set(true);
+    component.openWording.set(true);
+    component.openRespondent.set(true);
+    component.openCivilFee.set(true);
+    component.openNotes.set(true);
+
+    component.onChildErrors('notes', [{ id: 'notes', text: 'Error' }]);
+
+    expect(component.openApplicant()).toBe(false);
+    expect(component.openApplicationCode()).toBe(false);
+    expect(component.openWording()).toBe(false);
+    expect(component.openRespondent()).toBe(false);
+    expect(component.openCivilFee()).toBe(false);
+    expect(component.openNotes()).toBe(true);
   });
 
   it('onSubmit: allows a non-EF application code with no account reference', () => {
@@ -873,6 +948,22 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
 
   let resetSectionsSpy: jest.SpyInstance;
 
+  function applicationCodeDetail(
+    overrides: Partial<ApplicationCodeGetDetailDto> = {},
+  ): ApplicationCodeGetDetailDto {
+    return {
+      applicationCode: 'A001',
+      title: 'Application title',
+      wording: { template: '' },
+      isFeeDue: false,
+      requiresRespondent: false,
+      bulkRespondentAllowed: false,
+      startDate: '2026-01-01',
+      endDate: null,
+      ...overrides,
+    };
+  }
+
   beforeEach(async () => {
     createApplicationListEntryMock = jest.fn().mockReturnValue(of({}));
     getApplicationCodeByCodeAndDateMock = jest.fn();
@@ -925,7 +1016,7 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
 
   it('onCodeSelected sets bulkApplicationsAllowed from API detail.bulkRespondentAllowed', () => {
     getApplicationCodeByCodeAndDateMock.mockReturnValue(
-      of({ bulkRespondentAllowed: true } as unknown),
+      of(applicationCodeDetail({ bulkRespondentAllowed: true })),
     );
 
     component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
@@ -937,7 +1028,9 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
   });
 
   it('onCodeSelected keeps bulkApplicationsAllowed false when API bulkRespondentAllowed is falsey', () => {
-    getApplicationCodeByCodeAndDateMock.mockReturnValue(of({} as unknown));
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(
+      of(applicationCodeDetail()),
+    );
 
     component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
 
@@ -951,7 +1044,9 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
       lodgementDate: '2026-01-01',
     });
 
-    getApplicationCodeByCodeAndDateMock.mockReturnValue(of({} as unknown));
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(
+      of(applicationCodeDetail()),
+    );
 
     component.onCodeSelected({ code: 'NEW', date: '2026-02-01' });
 
@@ -971,7 +1066,9 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
       appCodeDetail: { applicationCode: 'SAME' },
     });
 
-    getApplicationCodeByCodeAndDateMock.mockReturnValue(of({} as unknown));
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(
+      of(applicationCodeDetail()),
+    );
 
     component.onCodeSelected({ code: 'SAME', date: '2026-02-02' });
 
@@ -980,15 +1077,24 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
 
   it('onCodeSelected stores the expanded fee metadata from the API detail', () => {
     getApplicationCodeByCodeAndDateMock.mockReturnValue(
-      of({
-        feeReference: 'CO7.2',
-        feeDescription: 'Main fee description',
-        feeAmount: { value: 2500, currency: 'GBP' },
-        offsiteFeeReference: 'CO1.1',
-        offsiteFeeDescription: 'Offsite fee description',
-        offsiteFeeAmount: { value: 3000, currency: 'GBP' },
-        isFeeDue: true,
-      } as unknown),
+      of(
+        applicationCodeDetail({
+          feeReference: 'CO7.2',
+          feeDescription: 'Main fee description',
+          feeAmount: {
+            value: 2500,
+            currency: ApplicationCodeGetDetailDtoFeeAmountCurrencyEnum.GBP,
+          },
+          offsiteFeeReference: 'CO1.1',
+          offsiteFeeDescription: 'Offsite fee description',
+          offsiteFeeAmount: {
+            value: 3000,
+            currency:
+              ApplicationCodeGetDetailDtoOffsiteFeeAmountCurrencyEnum.GBP,
+          },
+          isFeeDue: true,
+        }),
+      ),
     );
 
     component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
@@ -1035,7 +1141,7 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     expect(component.vm().appCodeDetail).toBeNull();
     expect(component.vm().isFeeRequired).toBe(false);
     expect(component.feeMeta).toBeNull();
-    expect(component.form.controls.applicationTitle.value).toBeNull();
+    expect(component.form.controls.applicationTitle?.value).toBeNull();
   });
 
   it('onCodeSelected clears fee metadata and fee-required state when app code lookup fails', () => {
@@ -1070,7 +1176,7 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     expect(component.vm().appCodeDetail).toBeNull();
     expect(component.vm().isFeeRequired).toBe(false);
     expect(component.feeMeta).toBeNull();
-    expect(component.form.controls.applicationTitle.value).toBeNull();
+    expect(component.form.controls.applicationTitle?.value).toBeNull();
   });
 
   it("onSubmit: respondent validation path with bulk (respondentEntryType='bulk')", () => {

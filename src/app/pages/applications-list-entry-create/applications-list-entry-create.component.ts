@@ -108,6 +108,7 @@ import {
   AddFeeDetailsPayload,
   CivilFeeMeta,
 } from '@shared-types/civil-fee/civil-fee';
+import { getApplicationListEntryErrorSections } from '@util/application-list-entry-section-errors';
 import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
 import { collectChildSubmitErrors } from '@util/child-submit-validation';
 import {
@@ -203,6 +204,14 @@ export class ApplicationsListEntryCreate implements OnInit {
   form = this.forms.form;
   personForm = this.forms.personForm;
   organisationForm = this.forms.organisationForm;
+
+  // Accordion section shown/collapsed
+  openWording = signal(false);
+  openCivilFee = signal(false);
+  openRespondent = signal(false);
+  openApplicant = signal(true); // open by default
+  openApplicationCode = signal(true);
+  openNotes = signal(false);
 
   // Civil fee
   civilFeeColumns = CIVIL_FEE_COLUMNS;
@@ -434,6 +443,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       summaryErrors,
       errorFound: summaryErrors.length > 0,
     });
+    this.openSectionsWithErrors();
 
     if (
       opts.validateOtherSections &&
@@ -466,6 +476,52 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.updateErrors({
       validateOtherSections: this.appListEntryCreateState().submitted,
     });
+  }
+
+  onAccordionExpandedChange(event: { index: number; expanded: boolean }): void {
+    const sections = [
+      this.openApplicant,
+      this.openApplicationCode,
+      this.openWording,
+      this.openRespondent,
+      this.openCivilFee,
+      this.openNotes,
+    ] as const;
+
+    sections[event.index]?.set(event.expanded);
+  }
+
+  private openSectionsWithErrors(): void {
+    const submitted = this.vm().submitted;
+
+    if (!submitted) {
+      return;
+    }
+
+    const sectionsWithErrors = getApplicationListEntryErrorSections(
+      this.childErrors,
+      this.parentErrors,
+    );
+    const sections = [
+      this.openApplicant,
+      this.openApplicationCode,
+      this.openWording,
+      this.openRespondent,
+      this.openCivilFee,
+      this.openNotes,
+    ] as const;
+    const sectionNames = [
+      'applicant',
+      'applicationCode',
+      'wording',
+      'respondent',
+      'civilFee',
+      'notes',
+    ] as const;
+
+    sections.forEach((section, index) =>
+      section.set(sectionsWithErrors[sectionNames[index]]),
+    );
   }
 
   private validateChildSectionsForSubmit(): void {
@@ -522,8 +578,16 @@ export class ApplicationsListEntryCreate implements OnInit {
               }
             }
 
+            const wordingSubstituteExists = appCodeDetail.wording[
+              'substitution-key-constraints'
+            ]?.length
+              ? true
+              : undefined;
+            const isFeeRequired = appCodeDetail.isFeeDue;
+            const isRespondentRequired = appCodeDetail.requiresRespondent;
+
             this.appListEntryCreatePatch({
-              isFeeRequired: appCodeDetail.isFeeDue,
+              isFeeRequired,
             });
             this.feeMeta = {
               feeReference: appCodeDetail.feeReference ?? null,
@@ -540,6 +604,11 @@ export class ApplicationsListEntryCreate implements OnInit {
                 appCodeDetail.bulkRespondentAllowed ?? false,
               appCodeDetail,
             });
+
+            // Open/close accordion sections based on app code response
+            this.openWording.set(wordingSubstituteExists ?? false);
+            this.openCivilFee.set(isFeeRequired);
+            this.openRespondent.set(isRespondentRequired);
           },
           error: (err) => {
             this.form.patchValue({ applicationTitle: null });

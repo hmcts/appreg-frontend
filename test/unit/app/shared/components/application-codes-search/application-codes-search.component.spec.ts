@@ -4,6 +4,7 @@ import { Subject, of, throwError } from 'rxjs';
 
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import { ApplicationCodesApi } from '@openapi';
+import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import * as helpers from '@util/application-code-helpers';
 import { CodeRow, CodeRowsResult } from '@util/application-code-helpers';
 
@@ -233,6 +234,24 @@ describe('ApplicationCodeSearchComponent', () => {
 
     expect(component.codeError()).toBeNull();
     expect(errorsSpy).not.toHaveBeenCalled();
+  });
+
+  it('shows the parent required error when application code is missing on submit', () => {
+    const parentForm = TestBed.inject(
+      ApplicationListEntryFormService,
+    ).createForms().form;
+    parentForm.controls.applicationCode.updateValueAndValidity();
+    componentRef.setInput('patchedFormData', parentForm);
+    componentRef.setInput('parentSubmitted', true);
+    fixture.detectChanges();
+
+    expect(component.codeError()).toBe('Enter an application code');
+    expect(
+      fixture.nativeElement.querySelector('.govuk-input--error'),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Enter an application code',
+    );
   });
 
   it('treats lodgement date as a search filter for no-results display', () => {

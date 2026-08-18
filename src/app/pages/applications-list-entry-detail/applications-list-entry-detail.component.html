@@ -152,16 +152,42 @@
   </ng-template>
 
   <app-accordion
-    [id]="'accordion-default'"
+    id="accordion-update"
+    [rememberExpanded]="false"
+    (expandedChange)="onAccordionExpandedChange($event)"
     [items]="[
-      { heading: 'Applicant', tpl: applicantTpl, expanded: false },
-      { heading: 'Application codes', tpl: codesTpl, expanded: false },
-      { heading: 'Wording', tpl: wordingTpl, expanded: false },
-      { heading: 'Respondent', tpl: respondentTpl, expanded: false },
-      { heading: 'Civil fee', tpl: civilFeeTpl, expanded: false },
-      { heading: 'Notes', tpl: notesTpl, expanded: false },
-      { heading: 'Result wording', tpl: resultWordingTpl, expanded: false },
-      { heading: 'Officials', tpl: officialsTpl, expanded: false },
+      {
+        heading: 'Applicant',
+        tpl: applicantTpl,
+        expanded: openApplicantSection(),
+      },
+      {
+        heading: 'Application codes',
+        tpl: codesTpl,
+        expanded: openApplicationCodeSection(),
+      },
+      { heading: 'Wording', tpl: wordingTpl, expanded: openWordingSection() },
+      {
+        heading: 'Respondent',
+        tpl: respondentTpl,
+        expanded: openRespondentSection(),
+      },
+      {
+        heading: 'Civil fee',
+        tpl: civilFeeTpl,
+        expanded: openCivilFeeSection(),
+      },
+      { heading: 'Notes', tpl: notesTpl, expanded: openNotesSection() },
+      {
+        heading: 'Result wording',
+        tpl: resultWordingTpl,
+        expanded: openResultSection(),
+      },
+      {
+        heading: 'Officials',
+        tpl: officialsTpl,
+        expanded: openOfficialSection(),
+      },
     ]"
   />
 

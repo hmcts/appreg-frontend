@@ -119,14 +119,20 @@
 
   <!-- Accordion -->
   <app-accordion
-    [id]="'accordion-default'"
+    id="accordion-create"
+    [rememberExpanded]="false"
+    (expandedChange)="onAccordionExpandedChange($event)"
     [items]="[
-      { heading: 'Applicant', tpl: applicantTpl, expanded: true },
-      { heading: 'Application codes', tpl: codesTpl, expanded: false },
-      { heading: 'Wording', tpl: wordingTpl, expanded: false },
-      { heading: 'Respondent', tpl: respondentTpl, expanded: false },
-      { heading: 'Civil fee', tpl: civilFeeTpl, expanded: false },
-      { heading: 'Notes', tpl: notesTpl, expanded: false },
+      { heading: 'Applicant', tpl: applicantTpl, expanded: openApplicant() },
+      {
+        heading: 'Application codes',
+        tpl: codesTpl,
+        expanded: openApplicationCode(),
+      },
+      { heading: 'Wording', tpl: wordingTpl, expanded: openWording() },
+      { heading: 'Respondent', tpl: respondentTpl, expanded: openRespondent() },
+      { heading: 'Civil fee', tpl: civilFeeTpl, expanded: openCivilFee() },
+      { heading: 'Notes', tpl: notesTpl, expanded: openNotes() },
     ]"
   />
 

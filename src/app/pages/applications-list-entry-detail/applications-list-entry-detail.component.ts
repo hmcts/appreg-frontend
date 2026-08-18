@@ -125,6 +125,7 @@ import {
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { CodeRow } from '@util/application-code-helpers';
+import { getApplicationListEntryErrorSections } from '@util/application-list-entry-section-errors';
 import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
 import { collectChildSubmitErrors } from '@util/child-submit-validation';
 import {
@@ -289,6 +290,15 @@ export class ApplicationsListEntryDetail implements OnInit {
   feeMeta: CivilFeeMeta | null = null;
   civilFeeForm!: CivilFeeForm;
   private persistedHasOffsiteFee = false;
+
+  openWordingSection = signal(false);
+  openCivilFeeSection = signal(false);
+  openRespondentSection = signal(false);
+  openApplicantSection = signal(true);
+  openApplicationCodeSection = signal(false);
+  openNotesSection = signal(false);
+  openResultSection = signal(false);
+  openOfficialSection = signal(false);
 
   ngOnInit(): void {
     const state = readNavState(this.location, this.platformId);
@@ -550,13 +560,25 @@ export class ApplicationsListEntryDetail implements OnInit {
               this.entryDetail!.wording = undefined;
             }
 
+            const wordingSubstituteExists = appCodeDetail.wording[
+              'substitution-key-constraints'
+            ]?.length
+              ? true
+              : undefined;
+            const isFeeRequired = appCodeDetail.isFeeDue;
+            const isRespondentRequired = appCodeDetail.requiresRespondent;
+
             this.handleResultWordingContext(this.navState);
 
             this.appListEntryDetailPatch({
-              isFeeRequired: appCodeDetail.isFeeDue,
+              isFeeRequired,
               bulkApplicationsAllowed: appCodeDetail.bulkRespondentAllowed,
               appCodeDetail,
             });
+
+            this.openWordingSection.set(wordingSubstituteExists ?? false);
+            this.openCivilFeeSection.set(isFeeRequired);
+            this.openRespondentSection.set(isRespondentRequired);
           },
           error: (err) => {
             this.form.patchValue({ applicationTitle: '' });
@@ -669,6 +691,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       summaryErrors,
       errorFound,
     });
+    this.openSectionsWithErrors();
 
     if (errorFound && opts.focusSummary !== false) {
       this.submitAttempt.update((attempt) => attempt + 1);
@@ -711,6 +734,54 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (this.vm().formSubmitted) {
       this.updateAllErrors();
     }
+  }
+
+  onAccordionExpandedChange(event: { index: number; expanded: boolean }): void {
+    const sections = [
+      this.openApplicantSection,
+      this.openApplicationCodeSection,
+      this.openWordingSection,
+      this.openRespondentSection,
+      this.openCivilFeeSection,
+      this.openNotesSection,
+      this.openResultSection,
+      this.openOfficialSection,
+    ] as const;
+
+    sections[event.index]?.set(event.expanded);
+  }
+
+  private openSectionsWithErrors(): void {
+    const submitted = this.vm().formSubmitted;
+
+    if (!submitted) {
+      return;
+    }
+
+    const sectionsWithErrors = getApplicationListEntryErrorSections(
+      this.childErrors,
+      this.parentErrors,
+    );
+    const sections = [
+      this.openApplicantSection,
+      this.openApplicationCodeSection,
+      this.openWordingSection,
+      this.openRespondentSection,
+      this.openCivilFeeSection,
+      this.openNotesSection,
+    ] as const;
+    const sectionNames = [
+      'applicant',
+      'applicationCode',
+      'wording',
+      'respondent',
+      'civilFee',
+      'notes',
+    ] as const;
+
+    sections.forEach((section, index) =>
+      section.set(sectionsWithErrors[sectionNames[index]]),
+    );
   }
 
   private submitEntryUpdate(
