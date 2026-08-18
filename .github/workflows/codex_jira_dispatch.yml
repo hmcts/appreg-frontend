@@ -72,6 +72,7 @@ jobs:
         id: codex-action
         uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1
         with:
+          allow-bot-users: hmcts-pr-publisher[bot]
           openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
           responses-api-endpoint: https://eu.api.openai.com/v1/responses
           codex-version: '0.146.0'
@@ -261,6 +262,7 @@ jobs:
         id: codex-action
         uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1
         with:
+          allow-bot-users: hmcts-pr-publisher[bot]
           openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
           responses-api-endpoint: https://eu.api.openai.com/v1/responses
           codex-version: '0.146.0'
@@ -494,6 +496,7 @@ jobs:
         id: codex-action
         uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1
         with:
+          allow-bot-users: hmcts-pr-publisher[bot]
           openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
           responses-api-endpoint: https://eu.api.openai.com/v1/responses
           codex-version: '0.146.0'
@@ -739,6 +742,7 @@ jobs:
         id: codex-action
         uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1
         with:
+          allow-bot-users: hmcts-pr-publisher[bot]
           openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
           responses-api-endpoint: https://eu.api.openai.com/v1/responses
           codex-version: '0.146.0'
@@ -984,6 +988,7 @@ jobs:
         id: codex-action
         uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1
         with:
+          allow-bot-users: hmcts-pr-publisher[bot]
           openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
           responses-api-endpoint: https://eu.api.openai.com/v1/responses
           codex-version: '0.146.0'
@@ -1483,6 +1488,7 @@ jobs:
         id: codex-action
         uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1
         with:
+          allow-bot-users: hmcts-pr-publisher[bot]
           openai-api-key: ${{ secrets.CODEX_OPENAI_API_KEY }}
           responses-api-endpoint: https://eu.api.openai.com/v1/responses
           codex-version: '0.146.0'
