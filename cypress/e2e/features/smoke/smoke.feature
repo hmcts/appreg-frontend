@@ -19,5 +19,5 @@ Feature: Applications Register Portal Access
     Then User Verify The Page URL Contains "/login"
     Examples:
       | role   |
-      | user1  |
-      | admin1 |
+      | user2  |
+      | admin2 |
