@@ -2,9 +2,11 @@
  * GET ALL request for CJA and Court locations used in place-fields.base.ts
  */
 
+import { isPlatformBrowser } from '@angular/common';
 import {
   EnvironmentInjector,
   Injectable,
+  PLATFORM_ID,
   computed,
   inject,
   signal,
@@ -67,7 +69,13 @@ export class ReferenceDataFacade {
   private readonly loadCjaRequest = signal<boolean | null>(true);
   private readonly loadCourtsRequest = signal<boolean | null>(true);
 
+  private readonly platformId = inject(PLATFORM_ID);
+
   constructor() {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.setupEffects();
 
     // Trigger initial loads
