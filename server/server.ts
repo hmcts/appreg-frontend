@@ -180,6 +180,11 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
       `[proxy] acquireApiToken: missing ${
         !account ? 'account' : !cache ? 'cache' : 'scopes'
       }`,
+      {
+        requestMethod: req.method,
+        accountPresent: Boolean(account),
+        tokenCachePresent: Boolean(cache),
+      },
     );
     return null;
   }
@@ -197,14 +202,30 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
       if (sess) {
         sess.tokenCache = getCca().getTokenCache().serialize();
       }
-      logger.info(
-        `[proxy] acquired token exp=${result.expiresOn?.toISOString?.() ?? 'n/a'}`,
-      );
+      logger.info('[proxy] acquired API access token', {
+        requestMethod: req.method,
+        ...(result.expiresOn
+          ? {
+              minutesToExpiry: Math.round(
+                (result.expiresOn.getTime() - Date.now()) / 60_000,
+              ),
+            }
+          : {}),
+      });
       return result.accessToken;
     }
-    logger.warn('[proxy] acquireTokenSilent returned no accessToken');
+    logger.warn('[proxy] acquireTokenSilent returned no accessToken', {
+      requestMethod: req.method,
+      accountPresent: true,
+      tokenCachePresent: true,
+    });
   } catch (e) {
-    logger.warn('[proxy] acquireTokenSilent failed', e);
+    logger.warn('[proxy] acquireTokenSilent failed', {
+      requestMethod: req.method,
+      accountPresent: true,
+      tokenCachePresent: true,
+      caughtErr: e,
+    });
   }
   return null;
 }
@@ -228,6 +249,18 @@ const proxyOptions: ProxyOptions = {
         proxyReq.setHeader('authorization', `Bearer ${token}`);
       }
     },
+    proxyRes: (
+      proxyRes,
+      req: IncomingMessage & { apiAccessToken?: string | null },
+    ) => {
+      if (proxyRes.statusCode === 401) {
+        logger.warn('[1724] API respond 401', {
+          requestMethod: req.method,
+          tokenPresent: Boolean(req.apiAccessToken),
+          wwwAuthenticatePresent: Boolean(proxyRes.headers['www-authenticate']),
+        });
+      }
+    },
   },
 };
 
@@ -235,6 +268,10 @@ const apiProxy: RequestHandler = createProxyMiddleware(proxyOptions);
 const authenticatedApiProxy = createAuthenticatedApiProxyHandler(
   (req) => acquireApiToken(req as ReqWithSession),
   apiProxy,
+  (req) =>
+    logger.warn('[1724] 401: token not found', {
+      requestMethod: req.method,
+    }),
 );
 
 app.use((req: Request, res: Response, next: NextFunction) => {
