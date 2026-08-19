@@ -47,6 +47,8 @@ cypress/screenshots/
 cypress/videos/
 cypress/downloads/
 cypress/fixtures/bulk-upload-entries.csv
+cypress/parallel-weights-regression-runtime.json
+cypress/parallel-weights-smoke.json
 functional-output/
 runner-results/
 
