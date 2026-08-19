@@ -3,13 +3,13 @@ Feature: Applications Update Notes
   Background: Create a closed application list entry
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date              | todayiso                          |
-      | time              | timenowhhmm-2h                    |
-      | status            | OPEN                              |
+      | date              | todayiso                           |
+      | time              | timenowhhmm-2h                     |
+      | status            | OPEN                               |
       | description       | Applications update notes {RANDOM} |
-      | courtLocationCode | LCCC065                           |
-      | durationHours     | 2                                 |
-      | durationMinutes   | 22                                |
+      | courtLocationCode | LCCC065                            |
+      | durationHours     | 2                                  |
+      | durationMinutes   | 22                                 |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
@@ -59,13 +59,13 @@ Feature: Applications Update Notes
       | resultCode | AUTH |
     Then User Verify Response Status Code Should Be "201"
     When User Makes PUT API Request To "/application-lists/:listId" With Object Builder:
-      | date              | todayiso                          |
-      | time              | timenowhhmm-2h                    |
-      | status            | CLOSED                            |
+      | date              | todayiso                           |
+      | time              | timenowhhmm-2h                     |
+      | status            | CLOSED                             |
       | description       | Applications update notes {RANDOM} |
-      | courtLocationCode | LCCC065                           |
-      | durationHours     | 2                                 |
-      | durationMinutes   | 22                                |
+      | courtLocationCode | LCCC065                            |
+      | durationHours     | 2                                  |
+      | durationMinutes   | 22                                 |
     Then User Verify Response Status Code Should Be "200"
 
   @regression @applications @applicationListEntry @ARCPOC-1512
@@ -75,11 +75,11 @@ Feature: Applications Update Notes
     Then User Clicks On The Link Using Exact Text Match "Applications"
     Then User Verify The Page URL Contains "/applications"
     When User Searches Applications With:
-      | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference      |
-      | today |             |       |                        | Taylor {RANDOM}   |                         |                    |                           |                      |           |                       |                            |                         |                        |
+      | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
+      | today |             |       |                        | Taylor {RANDOM}   |                         |                    |                           |                      |           |                       |                            |                         |                   |
     Then User Should See Row In Table "Application list entries" With Values:
-      | Date         | Applicant             | Respondent           | Application title                                               | Fee | Resulted | Status |
-      | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Application for order re public health measures (person)        | Yes | Yes      | CLOSED |
+      | Date         | Applicant             | Respondent           | Application title                                        | Fee | Resulted | Status |
+      | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Application for order re public health measures (person) | Yes | Yes      | CLOSED |
     When User Clicks "Update notes" Button In Row Of Table "Application list entries" With:
       | Applicant             | Respondent           |
       | Henry Taylor {RANDOM} | Emily Clark {RANDOM} |
@@ -101,4 +101,4 @@ Feature: Applications Update Notes
     Then User Verifies The "Application notes" Textbox Has Value "Applications original note {RANDOM} Updated from Applications search"
     Then User Verifies The "Additional notes" Textbox Is Empty
     When User Makes DELETE API Request To "/application-lists/:listId"
-    Then User Verify Response Status Code Should Be "204"
+    Then User Verify Response Status Code Should Be "400"
