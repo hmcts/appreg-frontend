@@ -202,11 +202,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   }
 
   ariaInvalidAfterSubmit(name: DateField): 'true' | null {
-    return this.isInteractedInvalid(name) ||
-      this.missing(name) ||
-      this.hasExternalError(true)
-      ? 'true'
-      : null;
+    return this.fieldError(name, true) ? 'true' : null;
   }
 
   writeValue(value: string | null): void {

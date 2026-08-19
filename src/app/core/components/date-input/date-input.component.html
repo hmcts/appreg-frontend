@@ -72,6 +72,7 @@
               maxlength="2"
               autocomplete="off"
               spellcheck="false"
+              (blur)="onBlur()"
               [attr.aria-invalid]="
                 submitted()
                   ? ariaInvalidAfterSubmit('day')
@@ -101,10 +102,11 @@
               maxlength="2"
               autocomplete="off"
               spellcheck="false"
+              (blur)="onBlur()"
               [attr.aria-invalid]="
                 submitted()
-                  ? ariaInvalidAfterSubmit('day')
-                  : ariaInvalidLive('day')
+                  ? ariaInvalidAfterSubmit('month')
+                  : ariaInvalidLive('month')
               "
               formControlName="month"
             />
@@ -130,10 +132,11 @@
               maxlength="4"
               autocomplete="off"
               spellcheck="false"
+              (blur)="onBlur()"
               [attr.aria-invalid]="
                 submitted()
-                  ? ariaInvalidAfterSubmit('day')
-                  : ariaInvalidLive('day')
+                  ? ariaInvalidAfterSubmit('year')
+                  : ariaInvalidLive('year')
               "
               formControlName="year"
             />
