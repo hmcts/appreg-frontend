@@ -15,6 +15,7 @@ import {
   createProxyMiddleware,
 } from 'http-proxy-middleware';
 
+import { createAuthenticatedApiProxyHandler } from './middleware/authenticated-api-proxy';
 import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
 import { HmctsLoggerBridge } from './modules/logger';
@@ -29,6 +30,7 @@ import {
   resolveSecureCookiesSetting,
   setupSession,
 } from './session';
+import { isUiRootPath } from './utils/is-ui-root-path';
 
 type LoggerLike = {
   info: (message: string, ...meta: unknown[]) => void;
@@ -43,7 +45,6 @@ type SessionShape = {
 };
 
 type ReqWithSession = Request & { session?: SessionShape };
-type ReqWithToken = Request & { apiAccessToken?: string | null };
 
 type Cookies = Record<string, string | undefined>;
 
@@ -100,9 +101,14 @@ function isLoggerLike(x: unknown): x is LoggerLike {
  *  - Vite/Angular internal paths => UI
  *  - Static extensions => UI
  *  - Otherwise => API (e.g. XHR/fetch to /application-lists)
+ *  - Root paths
  */
 function shouldGoToUi(req: Request): boolean {
   const path = req.path;
+
+  if (isUiRootPath(path)) {
+    return true;
+  }
 
   // Any navigations / assets / scripts / styles should go to UI
   const dest = String(req.headers['sec-fetch-dest'] ?? '');
@@ -328,9 +334,16 @@ async function bootstrap(): Promise<void> {
   };
 
   const apiProxy: RequestHandler = createProxyMiddleware(apiProxyOptions);
+  const authenticatedApiProxy = createAuthenticatedApiProxyHandler(
+    (req) =>
+      bypassSso
+        ? Promise.resolve(bypassBearerToken)
+        : acquireApiToken(req as ReqWithSession),
+    apiProxy,
+  );
 
   // Route split: UI-like requests -> next() -> UI proxy. Everything else -> API proxy.
-  app.use(async (req: Request, res: Response, next: NextFunction) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     const path = req.path;
 
     // Keep your node routes local (don’t send them to API or UI)
@@ -355,10 +368,7 @@ async function bootstrap(): Promise<void> {
       }
     }
 
-    (req as ReqWithToken).apiAccessToken = await acquireApiToken(
-      req as ReqWithSession,
-    );
-    return apiProxy(req, res, next);
+    return authenticatedApiProxy(req, res, next);
   });
 
   // UI proxy (catch-all) -> Angular dev server

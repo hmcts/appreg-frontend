@@ -23,6 +23,7 @@ import {
   createProxyMiddleware,
 } from 'http-proxy-middleware';
 
+import { createAuthenticatedApiProxyHandler } from './middleware/authenticated-api-proxy';
 import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
 import { HmctsLoggerBridge } from './modules/logger';
@@ -37,6 +38,7 @@ import {
   resolveSecureCookiesSetting,
   setupSession,
 } from './session';
+import { isUiRootPath } from './utils/is-ui-root-path';
 import { sanitizeSsrUrl } from './utils/sanitize-ssr-url';
 
 // ----- Paths (ESM-safe)
@@ -166,10 +168,6 @@ interface SessionShape {
 }
 
 type ReqWithSession = Request & { session?: SessionShape };
-type ReqWithToken = Request & {
-  apiAccessToken?: string | null;
-  session?: SessionShape;
-};
 
 // Acquire an API access token from the session-backed MSAL cache
 async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
@@ -234,8 +232,12 @@ const proxyOptions: ProxyOptions = {
 };
 
 const apiProxy: RequestHandler = createProxyMiddleware(proxyOptions);
+const authenticatedApiProxy = createAuthenticatedApiProxyHandler(
+  (req) => acquireApiToken(req as ReqWithSession),
+  apiProxy,
+);
 
-app.use(async (req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   const accept = String(req.headers['accept'] ?? '');
   const path = req.path;
 
@@ -249,7 +251,7 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
       ));
   const isNodeRoute = /^\/(health|info|sso|login|logout)(\/|$)/.test(path);
 
-  if (isHtmlNav || isStatic || isNodeRoute) {
+  if (isUiRootPath(path) || isHtmlNav || isStatic || isNodeRoute) {
     return next();
   }
 
@@ -261,12 +263,7 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
     }
   }
 
-  // Stash a Bearer token (if available) for the proxy to inject
-  (req as ReqWithToken).apiAccessToken = await acquireApiToken(
-    req as ReqWithSession,
-  );
-
-  return apiProxy(req, res, next);
+  return authenticatedApiProxy(req, res, next);
 });
 
 // ----- SSR handler
