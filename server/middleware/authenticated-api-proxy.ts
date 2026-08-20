@@ -5,10 +5,12 @@ type RequestWithApiAccessToken = Request & {
 };
 
 export type ApiTokenAcquirer = (req: Request) => Promise<string | null>;
+export type UnauthenticatedResponseLogger = (req: Request) => void;
 
 export function createAuthenticatedApiProxyHandler(
   acquireToken: ApiTokenAcquirer,
   apiProxy: RequestHandler,
+  logUnauthenticatedResponse?: UnauthenticatedResponseLogger,
 ): RequestHandler {
   return async (
     req: Request,
@@ -18,6 +20,7 @@ export function createAuthenticatedApiProxyHandler(
     const token = await acquireToken(req);
 
     if (!token) {
+      logUnauthenticatedResponse?.(req);
       res.sendStatus(401);
       return;
     }

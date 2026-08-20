@@ -30,6 +30,26 @@ export interface SetupSessionArgs {
 
 type RedisSessionClient = RedisClientType | RedisClusterType;
 
+function addRedisSessionDiagnostics(store: Store, logger: HmctsLogger): Store {
+  const get = store.get?.bind(store);
+
+  if (!get) {
+    return store;
+  }
+
+  store.get = (sessionId, callback) => {
+    get(sessionId, (error, sessionData) => {
+      if (!error && !sessionData) {
+        logger.info('[session] Redis session lookup missed');
+      }
+
+      callback(error, sessionData);
+    });
+  };
+
+  return store;
+}
+
 // 'strict' breaks SSO
 export const COOKIE_SAME_SITE = 'lax' as const;
 
@@ -157,7 +177,10 @@ export async function setupSession({
     client.on('error', (err) => logger.error('[redis] client error', err));
     await client.connect();
 
-    store = new RedisStore({ client, prefix });
+    store = addRedisSessionDiagnostics(
+      new RedisStore({ client, prefix }),
+      logger,
+    );
     logger.info(
       useClusterClient
         ? 'Using RedisStore with Redis cluster client'

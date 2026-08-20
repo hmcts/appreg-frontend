@@ -143,6 +143,19 @@ function cookiesOf(req: Request): Cookies {
   return c && typeof c === 'object' && !Array.isArray(c) ? (c as Cookies) : {};
 }
 
+function countCookies(req: Request, name: string): number {
+  const header = req.headers.cookie;
+
+  if (!header) {
+    return 0;
+  }
+
+  return header.split(';').filter((cookie) => {
+    const separator = cookie.indexOf('=');
+    return separator >= 0 && cookie.slice(0, separator).trim() === name;
+  }).length;
+}
+
 app.use((req: Request, res: Response, next: NextFunction) => {
   if (
     req.method === 'GET' ||
@@ -175,11 +188,25 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
   const account = sess?.account;
   const cache = sess?.tokenCache;
 
+  // TODO: remove logging after resolving issue @jason-j-nghiem
+  const sessionCookie = cookiesOf(req)[cookieName];
+  const missingTokenInputs = [
+    !account ? 'account' : null,
+    !cache ? 'cache' : null,
+    apiScopes.length === 0 ? 'scopes' : null,
+  ].filter((input): input is string => input !== null);
+
   if (!account || !cache || apiScopes.length === 0) {
     logger.info(
-      `[proxy] acquireApiToken: missing ${
-        !account ? 'account' : !cache ? 'cache' : 'scopes'
-      }`,
+      `[proxy] acquireApiToken: missing ${missingTokenInputs.join(' ')}`,
+      // TODO: remove logging after resolving issue @jason-j-nghiem
+      {
+        requestMethod: req.method,
+        accountPresent: Boolean(account),
+        tokenCachePresent: Boolean(cache),
+        sessionCookiePresent: Boolean(sessionCookie),
+        sessionCookieCount: countCookies(req, cookieName),
+      },
     );
     return null;
   }
@@ -197,14 +224,33 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
       if (sess) {
         sess.tokenCache = getCca().getTokenCache().serialize();
       }
-      logger.info(
-        `[proxy] acquired token exp=${result.expiresOn?.toISOString?.() ?? 'n/a'}`,
-      );
+      logger.info('[proxy] acquired API access token', {
+        requestMethod: req.method,
+        ...(result.expiresOn
+          ? {
+              // TODO: remove logging after resolving issue @jason-j-nghiem
+              minutesToExpiry: Math.round(
+                (result.expiresOn.getTime() - Date.now()) / 60_000,
+              ),
+            }
+          : {}),
+      });
       return result.accessToken;
     }
-    logger.warn('[proxy] acquireTokenSilent returned no accessToken');
+    // TODO: remove logging after resolving issue @jason-j-nghiem
+    logger.warn('[proxy] acquireTokenSilent returned no accessToken', {
+      requestMethod: req.method,
+      accountPresent: true,
+      tokenCachePresent: true,
+    });
   } catch (e) {
-    logger.warn('[proxy] acquireTokenSilent failed', e);
+    // TODO: remove logging after resolving issue @jason-j-nghiem
+    logger.warn('[proxy] acquireTokenSilent failed', {
+      requestMethod: req.method,
+      accountPresent: true,
+      tokenCachePresent: true,
+      caughtErr: e,
+    });
   }
   return null;
 }
@@ -228,6 +274,19 @@ const proxyOptions: ProxyOptions = {
         proxyReq.setHeader('authorization', `Bearer ${token}`);
       }
     },
+    proxyRes: (
+      proxyRes,
+      req: IncomingMessage & { apiAccessToken?: string | null },
+    ) => {
+      if (proxyRes.statusCode === 401) {
+        // TODO: remove logging after resolving issue @jason-j-nghiem
+        logger.warn('[1724] API respond 401', {
+          requestMethod: req.method,
+          tokenPresent: Boolean(req.apiAccessToken),
+          wwwAuthenticatePresent: Boolean(proxyRes.headers['www-authenticate']),
+        });
+      }
+    },
   },
 };
 
@@ -235,6 +294,11 @@ const apiProxy: RequestHandler = createProxyMiddleware(proxyOptions);
 const authenticatedApiProxy = createAuthenticatedApiProxyHandler(
   (req) => acquireApiToken(req as ReqWithSession),
   apiProxy,
+  (req) =>
+    // TODO: remove logging after resolving issue @jason-j-nghiem
+    logger.warn('[1724] 401: token not found', {
+      requestMethod: req.method,
+    }),
 );
 
 app.use((req: Request, res: Response, next: NextFunction) => {
