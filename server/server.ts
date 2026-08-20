@@ -143,6 +143,19 @@ function cookiesOf(req: Request): Cookies {
   return c && typeof c === 'object' && !Array.isArray(c) ? (c as Cookies) : {};
 }
 
+function countCookies(req: Request, name: string): number {
+  const header = req.headers.cookie;
+
+  if (!header) {
+    return 0;
+  }
+
+  return header.split(';').filter((cookie) => {
+    const separator = cookie.indexOf('=');
+    return separator >= 0 && cookie.slice(0, separator).trim() === name;
+  }).length;
+}
+
 app.use((req: Request, res: Response, next: NextFunction) => {
   if (
     req.method === 'GET' ||
@@ -177,18 +190,22 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
 
   // TODO: remove logging after resolving issue @jason-j-nghiem
   const sessionCookie = cookiesOf(req)[cookieName];
+  const missingTokenInputs = [
+    !account ? 'account' : null,
+    !cache ? 'cache' : null,
+    apiScopes.length === 0 ? 'scopes' : null,
+  ].filter((input): input is string => input !== null);
 
   if (!account || !cache || apiScopes.length === 0) {
     logger.info(
-      `[proxy] acquireApiToken: missing ${
-        !account ? 'account' : !cache ? 'cache' : 'scopes'
-      }`,
+      `[proxy] acquireApiToken: missing ${missingTokenInputs.join(' ')}`,
       // TODO: remove logging after resolving issue @jason-j-nghiem
       {
         requestMethod: req.method,
         accountPresent: Boolean(account),
         tokenCachePresent: Boolean(cache),
         sessionCookiePresent: Boolean(sessionCookie),
+        sessionCookieCount: countCookies(req, cookieName),
       },
     );
     return null;
