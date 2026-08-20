@@ -111,7 +111,7 @@ Feature: Standard Applicants
         And User Should See Summary List Row With Key "Address line 1" And Value "123 High Street"
         And User Should See Summary List Row With Key "Use from" And Value "6 Nov 2025"
 
-    @regression @standardApplicants @ARCPOC-243
+    @regression @standardApplicants @ARCPOC-243 @ARCPOC-1613
     Scenario: Export Standard Applicants as a CSV
         Given User Is On The Portal Page
         And User Has No Downloaded CSVs
@@ -119,12 +119,20 @@ Feature: Standard Applicants
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
         Then User Verify The Page URL Contains "/standard-applicants"
         Then User Sees Page Heading "Standard applicants"
+        # Search and export CSV without providing code or name filters
+        When User Clicks On The "Search" Button
+        Then User Should See The Table "Standard applicants"
+        Then User Should See Table "Standard applicants" Has Rows
+        When User Clicks "Actions" Then "Export CSV" From Caption Menu In Table "Standard applicants"
+        Then User Sees Validation Error Banner "There is a problem Either code or name must be provided, but not both. Please perform a search with either code or name"
+        # Search and export CSV with invalid code filter
         Then User Enters "1234567890" Into The "Code" Textbox
         When User Clicks On The "Search" Button
         Then User See "No results found." On The Page
         And User Sees Notification Banner "Important No standard applicants found Try different filters"
         And User Should Not See The Button "Actions"
         When User Clicks On The "Clear search" Button
+        # Search and export CSV with valid code filter
         Then User Enters "APP001" Into The "Code" Textbox
         When User Clicks On The "Search" Button
         Then User Should See The Table "Standard applicants"
