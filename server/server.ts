@@ -175,15 +175,20 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
   const account = sess?.account;
   const cache = sess?.tokenCache;
 
+  // TODO: remove logging after resolving issue @jason-j-nghiem
+  const sessionCookie = cookiesOf(req)[cookieName];
+
   if (!account || !cache || apiScopes.length === 0) {
     logger.info(
       `[proxy] acquireApiToken: missing ${
         !account ? 'account' : !cache ? 'cache' : 'scopes'
       }`,
+      // TODO: remove logging after resolving issue @jason-j-nghiem
       {
         requestMethod: req.method,
         accountPresent: Boolean(account),
         tokenCachePresent: Boolean(cache),
+        sessionCookiePresent: Boolean(sessionCookie),
       },
     );
     return null;
@@ -206,6 +211,7 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
         requestMethod: req.method,
         ...(result.expiresOn
           ? {
+              // TODO: remove logging after resolving issue @jason-j-nghiem
               minutesToExpiry: Math.round(
                 (result.expiresOn.getTime() - Date.now()) / 60_000,
               ),
@@ -214,12 +220,14 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
       });
       return result.accessToken;
     }
+    // TODO: remove logging after resolving issue @jason-j-nghiem
     logger.warn('[proxy] acquireTokenSilent returned no accessToken', {
       requestMethod: req.method,
       accountPresent: true,
       tokenCachePresent: true,
     });
   } catch (e) {
+    // TODO: remove logging after resolving issue @jason-j-nghiem
     logger.warn('[proxy] acquireTokenSilent failed', {
       requestMethod: req.method,
       accountPresent: true,
@@ -254,6 +262,7 @@ const proxyOptions: ProxyOptions = {
       req: IncomingMessage & { apiAccessToken?: string | null },
     ) => {
       if (proxyRes.statusCode === 401) {
+        // TODO: remove logging after resolving issue @jason-j-nghiem
         logger.warn('[1724] API respond 401', {
           requestMethod: req.method,
           tokenPresent: Boolean(req.apiAccessToken),
@@ -269,6 +278,7 @@ const authenticatedApiProxy = createAuthenticatedApiProxyHandler(
   (req) => acquireApiToken(req as ReqWithSession),
   apiProxy,
   (req) =>
+    // TODO: remove logging after resolving issue @jason-j-nghiem
     logger.warn('[1724] 401: token not found', {
       requestMethod: req.method,
     }),
