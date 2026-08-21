@@ -85,7 +85,9 @@
 
     <div class="govuk-form-group remove-bot-margin govuk-width-container">
       <form (ngSubmit)="onSubmit()">
-        <label class="govuk-label" for="file-upload-1"> Upload a file </label>
+        <label id="file-upload-1-label" class="govuk-label" for="file-upload-1">
+          Upload a file
+        </label>
         <div data-module="govuk-file-upload">
           <input
             accept=".csv,text/csv"
@@ -94,6 +96,7 @@
             id="file-upload-1"
             name="fileUpload1"
             type="file"
+            aria-labelledby="file-upload-1-label"
           />
         </div>
         <button
