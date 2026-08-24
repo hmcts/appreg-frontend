@@ -10,8 +10,8 @@ export const APPLICATIONS_LIST_COLUMNS: TableColumn[] = [
   {
     header: 'Description',
     field: 'description',
-    minWidth: '18rem',
-    maxWidth: '28rem',
+    minWidth: '5rem',
+    maxWidth: '20rem',
     wrap: true,
   },
   { header: 'Entries', field: 'entries', numeric: true },
