@@ -62,7 +62,7 @@ export const NOTES_ERROR_MESSAGES: NotesErrorMap = {
     maxlength: 'Case reference must be 15 characters or fewer',
   },
   notes: {
-    maxlength: 'Notes must be 4000 characters or fewer',
+    maxlength: 'Notes must be 3000 characters or fewer',
   },
 } as const;
 

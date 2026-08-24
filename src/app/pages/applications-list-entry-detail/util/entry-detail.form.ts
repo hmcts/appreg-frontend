@@ -182,7 +182,7 @@ export function buildStandardApplicationForm(
       }),
       applicationNotes: fb.group({
         notes: fb.control<string | null>(null, {
-          validators: [Validators.maxLength(4000)],
+          validators: [Validators.maxLength(3000)],
         }),
         caseReference: fb.control<string | null>(null, {
           validators: [Validators.maxLength(15)],
