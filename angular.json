@@ -74,6 +74,7 @@
             "ssr": {
               "entry": "server/server.ts"
             },
+            "externalDependencies": ["applicationinsights"],
             "allowedCommonJsDependencies": [
               "jspdf",
               "@babel/runtime",
