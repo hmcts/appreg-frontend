@@ -183,6 +183,38 @@ describe('TelemetryService', () => {
     );
   });
 
+  it('sanitizes dependency telemetry URLs before they are emitted', () => {
+    service.initialize();
+
+    const initializer = addTelemetryInitializer.mock.calls[0][0] as (item: {
+      tags?: Record<string, string>;
+      baseType?: string;
+      baseData?: {
+        name?: string;
+        target?: string;
+        data?: string;
+      };
+    }) => void;
+    const telemetryItem = {
+      tags: {} as Record<string, string>,
+      baseType: 'RemoteDependencyData',
+      baseData: {
+        name: 'GET /application-list-entries?applicantSurname=SyntheticApplicant&pageNumber=0',
+        target:
+          'https://appreg.example.test/application-list-entries?applicantSurname=SyntheticApplicant&pageNumber=0',
+        data: '/application-list-entries?applicantSurname=SyntheticApplicant&pageNumber=0',
+      },
+    };
+
+    initializer(telemetryItem);
+
+    expect(telemetryItem.baseData).toEqual({
+      name: 'GET /application-list-entries',
+      target: '/application-list-entries',
+      data: '/application-list-entries',
+    });
+  });
+
   it('does nothing when App Insights is disabled', () => {
     appConfigService.isAppInsightsEnabled.mockReturnValue(false);
 

@@ -10,6 +10,7 @@ import { filter } from 'rxjs';
 
 import { AppConfigService } from '@services/app-config.service';
 import { toSanitizedPath } from '@util/sanitized-path';
+import { toPathnameOnlyUrl } from '@util/to-pathname-only-url';
 
 export type TelemetryProperties = Record<
   string,
@@ -58,6 +59,8 @@ export class TelemetryService {
     });
 
     this.appInsights.addTelemetryInitializer((item: ITelemetryItem) => {
+      sanitizeDependencyTelemetry(item);
+
       item.tags = item.tags ?? {};
       item.tags['ai.cloud.role'] = this.cloudRoleName;
 
@@ -178,6 +181,41 @@ function toCustomProperties(
     },
     {},
   );
+}
+
+function sanitizeDependencyTelemetry(item: ITelemetryItem): void {
+  const dependencyData = item.baseData as
+    | {
+        name?: string;
+        target?: string;
+        data?: string;
+      }
+    | undefined;
+
+  if (!dependencyData) {
+    return;
+  }
+
+  dependencyData.name = sanitizeDependencyName(dependencyData.name);
+  dependencyData.target = toPathnameOnlyUrl(dependencyData.target);
+  dependencyData.data = toPathnameOnlyUrl(dependencyData.data);
+}
+
+function sanitizeDependencyName(name: string | undefined): string {
+  if (!name) {
+    return '';
+  }
+
+  const separatorIndex = name.indexOf(' ');
+  if (separatorIndex === -1) {
+    return toPathnameOnlyUrl(name);
+  }
+
+  const method = name.slice(0, separatorIndex);
+  const url = name.slice(separatorIndex + 1);
+  const sanitizedUrl = toPathnameOnlyUrl(url);
+
+  return sanitizedUrl ? `${method} ${sanitizedUrl}` : method;
 }
 
 function updateTraceContext(

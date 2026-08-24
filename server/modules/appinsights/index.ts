@@ -1,11 +1,6 @@
-import { createRequire } from 'node:module';
-
+import * as applicationinsights from 'applicationinsights';
 import type { TelemetryClient } from 'applicationinsights';
 import config from 'config';
-
-const require = createRequire(import.meta.url);
-const applicationinsights =
-  require('applicationinsights') as typeof import('applicationinsights');
 
 /**
  * AppInsights — singleton-style initializer + accessors.
@@ -25,6 +20,7 @@ export class AppInsights {
 
     applicationinsights
       .setup(connectionString)
+      .setAutoCollectRequests(false)
       .setAutoCollectConsole(true, true)
       .setAutoCollectDependencies(true)
       .setAutoCollectExceptions(true)

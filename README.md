@@ -224,9 +224,13 @@ Implementation notes:
 
 - Browser exceptions are sent through the Angular `ErrorHandler` override.
 - Failed Angular `HttpClient` requests are logged from the error interceptor.
+- Automatic browser dependency telemetry is sanitized to pathname-only values
+  before emission.
 - Route changes are logged as page views.
-- Telemetry payloads only include route and request paths, status data, and
-  correlation IDs when present. Query strings and response bodies are excluded.
+- Node Application Insights automatic incoming-request collection is disabled.
+- Server proxy logs and telemetry payloads only include route and request
+  paths, status data, and correlation IDs when present. Query strings and
+  response bodies are excluded.
 
 ### Troubleshooting (Windows)
 
