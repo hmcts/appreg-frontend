@@ -1,0 +1,20 @@
+@media (max-width: 100em) {
+  :host {
+    display: contents;
+  }
+
+  .govuk-grid-row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  :host ::ng-deep .govuk-grid-column-one-quarter {
+    width: 50%;
+  }
+}
+
+@media (max-width: 40em) {
+  :host ::ng-deep .govuk-grid-column-one-quarter {
+    width: 100%;
+  }
+}

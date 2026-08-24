@@ -143,8 +143,6 @@ describe('NotificationBannerComponent (external template)', () => {
   });
 
   it('autoFocus focuses the banner element after view init and adds tabindex="-1"', () => {
-    fixture.componentRef.setInput('autoFocus', true);
-
     jest.useFakeTimers();
     fixture.detectChanges(); // triggers ngAfterViewInit
 
@@ -163,11 +161,17 @@ describe('NotificationBannerComponent (external template)', () => {
     expect(focusSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('does not set tabindex when autoFocus is false', () => {
+  it('does not set tabindex or focus when autoFocus is false', () => {
     fixture.componentRef.setInput('autoFocus', false);
+    jest.useFakeTimers();
     fixture.detectChanges();
+
     const banner = bannerEl();
+    const focusSpy = jest.spyOn(banner, 'focus');
+
     expect(banner.hasAttribute('tabindex')).toBe(false);
+    jest.runAllTimers();
+    expect(focusSpy).not.toHaveBeenCalled();
   });
 
   it('generates a stable, unique titleId per instance (counter resets in tests)', () => {

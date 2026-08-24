@@ -3,6 +3,7 @@
   [class.govuk-notification-banner--success]="variant() === 'success'"
   [attr.role]="role"
   [attr.aria-labelledby]="titleId"
+  [attr.aria-describedby]="'govuk-notification-banner-content'"
   [attr.tabindex]="autoFocus() ? -1 : null"
   data-module="govuk-notification-banner"
   #bannerEl
@@ -13,7 +14,10 @@
     </h2>
   </div>
 
-  <div class="govuk-notification-banner__content">
+  <div
+    class="govuk-notification-banner__content"
+    [id]="'govuk-notification-banner-content'"
+  >
     @if (heading()) {
       <h3 class="govuk-notification-banner__heading">{{ heading() }}</h3>
     }

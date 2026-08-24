@@ -25,7 +25,7 @@ export class NotificationBannerComponent implements AfterViewInit {
   linkText = input<string | undefined>();
   linkHref = input<string | undefined>();
   linkCommands = input<string[] | undefined>();
-  autoFocus = input(false);
+  autoFocus = input(true);
 
   @ViewChild('bannerEl') private readonly bannerEl?: ElementRef<HTMLDivElement>;
 

@@ -65,6 +65,7 @@ export type CivilFeeForm = FormGroup<{
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './civil-fee-section.component.html',
+  styleUrl: './civil-fee-section.component.scss',
 })
 export class CivilFeeSectionComponent implements OnInit {
   router = inject(Router);

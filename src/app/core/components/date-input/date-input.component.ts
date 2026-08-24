@@ -33,6 +33,7 @@ type DateField = 'day' | 'month' | 'year';
 @Component({
   selector: 'app-date-input',
   templateUrl: './date-input.component.html',
+  styleUrl: './date-input.component.scss',
   standalone: true,
   providers: [
     {
