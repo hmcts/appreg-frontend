@@ -71,7 +71,7 @@ type ApplicationContextTableRow = {
   format?: 'date';
 };
 
-const MAX_APPLICATION_NOTES_LENGTH = 4000;
+const MAX_APPLICATION_NOTES_LENGTH = 3000;
 
 @Component({
   selector: 'app-update-notes',
