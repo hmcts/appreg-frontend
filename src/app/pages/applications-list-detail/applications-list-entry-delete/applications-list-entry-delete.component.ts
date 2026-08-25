@@ -61,7 +61,9 @@ export class ApplicationsListEntryDeleteComponent implements OnInit {
         void this.router.navigate(['/applications-list', this.listId], {
           queryParams: {
             deleteSuccess: false,
-            errMsg:
+          },
+          state: {
+            deleteError:
               getProblemText(err) ??
               'Could not delete the selected application',
           },

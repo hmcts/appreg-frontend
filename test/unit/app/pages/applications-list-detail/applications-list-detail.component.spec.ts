@@ -288,6 +288,19 @@ describe('ApplicationsListDetail', () => {
     ).toBeTruthy();
   });
 
+  it('shows the application deleted banner when deleteDone is true', async () => {
+    patchDetailState({ deleteDone: true });
+    await flushSignalEffects(fixture);
+
+    const banner = fixture.debugElement.query(By.css('app-success-banner'));
+
+    expect(banner).toBeTruthy();
+    expect(banner.componentInstance.heading()).toBe('Application deleted');
+    expect(banner.componentInstance.linkText()).toBe(
+      'Application has been successfully deleted',
+    );
+  });
+
   it('shows error summary when errorSummary has items', async () => {
     patchDetailState({
       errorSummary: [{ href: '#x', text: 'Error' }],
@@ -1101,6 +1114,16 @@ describe('ApplicationsListDetail', () => {
   });
 
   it('maps application entry delete errors from navigation query params onto the detail page', async () => {
+    historyStateSpy.mockReturnValue({
+      row: {
+        id: 'id-1',
+        location: 'LOC1',
+        description: '',
+        status: 'OPEN',
+      },
+      deleteError: 'Could not delete the selected application',
+    });
+
     const route = TestBed.inject(ActivatedRoute);
     jest
       .spyOn(route.snapshot.queryParamMap, 'get')
@@ -1133,6 +1156,17 @@ describe('ApplicationsListDetail', () => {
     ]);
     expect(vm().preserveErrorSummaryOnLoad).toBe(true);
     expect(vm().deleteDone).toBe(false);
+
+    const errorSummary = fixture.debugElement.query(
+      By.css('app-error-summary'),
+    );
+    expect(errorSummary.componentInstance.items()).toEqual([
+      {
+        id: '',
+        href: '',
+        text: 'Could not delete the selected application',
+      },
+    ]);
   });
 
   it('sets moveDone when moveEntriesSuccessful query param is true', () => {
@@ -1165,6 +1199,34 @@ describe('ApplicationsListDetail', () => {
     component.setSuccessBanner();
 
     expect(vm().updateFeesDone).toBe(true);
+  });
+
+  it('setSuccessBanner: sets deleteDone and clears deleteSuccess query param', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    const router = TestBed.inject(Router);
+
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => (key === 'deleteSuccess' ? 'true' : null));
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.setSuccessBanner();
+
+    expect(vm().deleteDone).toBe(true);
+    expect(navigateSpy).toHaveBeenCalledWith([], {
+      relativeTo: route,
+      queryParams: {
+        listCreated: null,
+        moveEntriesSuccessful: null,
+        updateOfficialsSuccessful: null,
+        bulkFeeUpdateSuccessful: null,
+        bulkUploadSuccess: null,
+        deleteSuccess: null,
+      },
+      queryParamsHandling: 'merge',
+      preserveFragment: true,
+      replaceUrl: true,
+    });
   });
 
   it('sets bulk upload success banner text and job id from navigation state', () => {

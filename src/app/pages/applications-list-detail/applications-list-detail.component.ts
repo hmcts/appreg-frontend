@@ -157,6 +157,7 @@ type ApplicationsListDetailHistoryState = {
   };
   moveError?: string;
   updateFeeError?: string;
+  deleteError?: string;
 };
 
 const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
@@ -494,7 +495,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     const isDeleteError =
       this.route.snapshot.queryParamMap.get('deleteSuccess') === 'false';
-    const deleteError = this.route.snapshot.queryParamMap.get('errMsg');
+    const deleteState = history.state as ApplicationsListDetailHistoryState;
+    const deleteError = deleteState.deleteError;
 
     if (!isDeleteError || !deleteError) {
       return;
