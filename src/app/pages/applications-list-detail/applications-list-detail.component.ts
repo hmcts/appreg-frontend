@@ -39,6 +39,9 @@
  *
  * onUndoClick():
  * - Navigates to undo application list creation page
+ *
+ * onDeleteButtonClick()
+ * - Navigates to delete an application list entry
  */
 
 import { isPlatformBrowser } from '@angular/common';
@@ -1188,6 +1191,22 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             respondent: row.respondent,
             title: row.title,
           },
+        },
+      },
+    );
+  }
+
+  async onDeleteButtonClick(row: Partial<selectedRow>): Promise<void> {
+    if (!this.id || !row?.id) {
+      return;
+    }
+
+    await this.router.navigate(
+      ['/applications-list', this.id, row.id, 'delete'],
+      {
+        state: {
+          listId: this.id,
+          row,
         },
       },
     );

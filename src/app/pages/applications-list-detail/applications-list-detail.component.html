@@ -284,13 +284,13 @@
             </button>
 
             <!-- Delete button -->
-            <!-- TODO: implement thjs in ARCPOC-1281: https://tools.hmcts.net/jira/browse/ARCPOC-1281 -->
-            <!-- <button
+            <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onDeleteButtonClick(row)"
             >
               Delete
-            </button> -->
+            </button>
           </div>
         </ng-template>
       </app-sortable-table>
