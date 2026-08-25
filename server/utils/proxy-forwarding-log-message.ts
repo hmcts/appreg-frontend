@@ -1,4 +1,4 @@
-import { toPathnameOnlyUrl } from '../../src/app/shared/util/to-pathname-only-url';
+import { toPathnameOnlyUrl } from '../../src/app/core/util/to-pathname-only-url';
 
 export function toProxyForwardingLogMessage(
   url: string | null | undefined,

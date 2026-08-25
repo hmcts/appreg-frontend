@@ -2,7 +2,7 @@ import * as applicationinsights from 'applicationinsights';
 import type { TelemetryClient } from 'applicationinsights';
 import config from 'config';
 
-import { toPathnameOnlyUrl } from '../../../src/app/shared/util/to-pathname-only-url';
+import { toPathnameOnlyUrl } from '../../../src/app/core/util/to-pathname-only-url';
 
 /**
  * AppInsights — singleton-style initializer + accessors.
