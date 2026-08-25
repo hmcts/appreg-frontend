@@ -39,6 +39,7 @@ import {
   setupSession,
 } from './session';
 import { isUiRootPath } from './utils/is-ui-root-path';
+import { toProxyForwardingLogMessage } from './utils/proxy-forwarding-log-message';
 import { sanitizeSsrUrl } from './utils/sanitize-ssr-url';
 
 // ----- Paths (ESM-safe)
@@ -266,10 +267,7 @@ const proxyOptions: ProxyOptions = {
       req: IncomingMessage & { apiAccessToken?: string | null },
     ) => {
       const token = req.apiAccessToken ?? null;
-      const urlShown = req.url ?? '';
-      logger.info(
-        `[proxy] forwarding ${urlShown} tokenPresent=${Boolean(token)}`,
-      );
+      logger.info(toProxyForwardingLogMessage(req.url, Boolean(token)));
       if (token) {
         proxyReq.setHeader('authorization', `Bearer ${token}`);
       }

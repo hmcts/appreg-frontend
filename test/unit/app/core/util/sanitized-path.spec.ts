@@ -19,6 +19,14 @@ describe('toSanitizedPath', () => {
     );
   });
 
+  it('strips sensitive search query parameters from application list entry URLs', () => {
+    expect(
+      toSanitizedPath(
+        '/application-list-entries?applicantSurname=SyntheticApplicant&respondentSurname=SyntheticRespondent&respondentPostcode=AB1%202CD&accountReference=SYNTHETIC-ACC-1&pageNumber=0&pageSize=10',
+      ),
+    ).toBe('/application-list-entries');
+  });
+
   it('normalises a relative URL without a leading slash to a pathname', () => {
     expect(toSanitizedPath('applications-list?sort=desc')).toBe(
       '/applications-list',
