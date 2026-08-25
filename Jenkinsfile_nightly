@@ -3,6 +3,7 @@
 properties([
   pipelineTriggers([cron('H 07 * * 1-5')]),
   copyArtifactPermission('*'),
+  buildDiscarder(logRotator(numToKeepStr: '7', artifactNumToKeepStr: '7')),
   parameters([
     booleanParam(name: 'Smoke', defaultValue: true, description: 'Run smoke tests'),
     booleanParam(name: 'Regression', defaultValue: true, description: 'Run regression tests'),
