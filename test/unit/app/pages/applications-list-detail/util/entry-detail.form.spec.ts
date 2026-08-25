@@ -153,6 +153,17 @@ describe('applications-list entry form builders', () => {
       expect(form.controls.lodgementDate.errors).toHaveProperty('required');
     });
 
+    it('accepts notes up to 3000 characters and rejects longer notes', () => {
+      const form = buildStandardApplicationForm(fb);
+      const notes = form.controls.applicationNotes.controls.notes;
+
+      notes.setValue('A'.repeat(3000));
+      expect(notes.errors).toBeNull();
+
+      notes.setValue('A'.repeat(3001));
+      expect(notes.errors).toHaveProperty('maxlength');
+    });
+
     it('official/mags names have maxlength and pattern', () => {
       const form = buildStandardApplicationForm(fb);
 

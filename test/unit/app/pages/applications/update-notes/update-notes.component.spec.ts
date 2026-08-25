@@ -116,7 +116,7 @@ describe('UpdateNotesComponent', () => {
       additionalNotes: '',
     });
     expect(component.form.controls.applicationNotes.disabled).toBe(true);
-    expect(component.additionalNotesCharacterLimit()).toBe(3973);
+    expect(component.additionalNotesCharacterLimit()).toBe(2973);
   });
 
   it('shows the selected application context in a table', () => {
@@ -178,10 +178,10 @@ describe('UpdateNotesComponent', () => {
         .querySelector('#application-notes')
         ?.getAttribute('aria-describedby'),
     ).toBeNull();
-    expect(additionalNotes?.maxLength).toBe(3973);
+    expect(additionalNotes?.maxLength).toBe(2973);
     expect(
       element.querySelector('#additional-notes-hint')?.textContent,
-    ).toContain('You have 3973 characters remaining');
+    ).toContain('You have 2973 characters remaining');
   });
 
   it('links breadcrumbs and cancel action back to Applications', () => {
@@ -282,7 +282,7 @@ describe('UpdateNotesComponent', () => {
       applicationNotes: 'Updated notes returned by API',
       additionalNotes: '',
     });
-    expect(component.additionalNotesCharacterLimit()).toBe(3970);
+    expect(component.additionalNotesCharacterLimit()).toBe(2970);
     expect(component.form.controls.additionalNotes.pristine).toBe(true);
     expect(component.form.controls.additionalNotes.touched).toBe(false);
   });
@@ -301,7 +301,7 @@ describe('UpdateNotesComponent', () => {
       {
         id: 'additional-notes',
         href: '#additional-notes',
-        text: 'Additional notes must be 3973 characters or fewer',
+        text: 'Additional notes must be 2973 characters or fewer',
       },
     ]);
     expect(component.isAdditionalNotesInvalid()).toBe(true);
