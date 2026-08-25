@@ -101,12 +101,6 @@ const subscribedEndpoints: EndpointRule[] = [
     ),
     responses: [0, 400, 403, 404, 406, 409, 413, 500, 504],
   },
-  {
-    endpoint: new RegExp(
-      `^/application-lists/${regexIdPlaceholder}/${regexIdPlaceholder}/delete`,
-    ),
-    responses: [400, 401, 403, 404, 409, 500, 504],
-  },
 ];
 
 // Contains endpoints where errors will be ignored
