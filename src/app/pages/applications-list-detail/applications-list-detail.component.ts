@@ -1205,7 +1205,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       ['/applications-list', this.id, row.id, 'delete'],
       {
         state: {
-          listId: this.id,
           row,
         },
       },

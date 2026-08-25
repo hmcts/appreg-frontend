@@ -1,1 +1,13 @@
-<p>applications-list-entry-delete works!</p>
+<app-alert
+  alertType="warning"
+  message="You are about to delete this application. This action cannot be undone."
+/>
+
+<app-review-confirm
+  (confirm)="onDelete()"
+  (cancelled)="goBack()"
+  confirmButtonTxt="Yes - delete"
+  title="Are you sure you want to delete this application?"
+>
+  <app-table [rows]="[entryRow]" [columns]="columns" />
+</app-review-confirm>
