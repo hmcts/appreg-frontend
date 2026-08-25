@@ -71,4 +71,35 @@ describe('GovukTextareaComponent', () => {
 
     expect(result).toEqual(200);
   });
+
+  it.each([
+    {
+      value: 'abc',
+      maxCharacterLimit: 5,
+      expected: 'You have 2 characters remaining',
+    },
+    {
+      value: 'abcd',
+      maxCharacterLimit: 5,
+      expected: 'You have 1 character remaining',
+    },
+    {
+      value: 'abcdef',
+      maxCharacterLimit: 5,
+      expected:
+        'You have 0 characters remaining. Please remove 1 characters before submitting.',
+    },
+  ])(
+    'returns the correct character-limit text',
+    ({ value, maxCharacterLimit, expected }) => {
+      fixture.componentRef.setInput(
+        'control',
+        new FormControl<string | null>(value),
+      );
+      fixture.componentRef.setInput('maxCharacterLimit', maxCharacterLimit);
+      fixture.detectChanges();
+
+      expect(component.charLimitText).toBe(expected);
+    },
+  );
 });
