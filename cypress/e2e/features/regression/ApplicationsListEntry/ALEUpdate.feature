@@ -55,7 +55,7 @@ Feature: Applications List Entry Update
             | Date         | Time  | Location                          | Description                             | Entries | Status |
             | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 1       | OPEN   |
         # Search and Open Created Application List Entry
-        When User Clicks "Open" Button In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number | Applicant             | Respondent           | Postcode | Title                      | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
         When User Clicks On The "Show all sections" Button

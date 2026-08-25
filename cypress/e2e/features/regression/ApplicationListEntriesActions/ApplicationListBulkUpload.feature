@@ -97,7 +97,7 @@ Feature: Application List Bulk Upload
         Then User See "Are you sure you want to add these fees to the following applications?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Fees updated" Containing "Fees have been successfully updated"
-        When User Clicks "Open" Button In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number | Applicant      | Respondent                      | Postcode | Fee |
             | 1               | AC-{RANDOM}-1  | Benjamin Young | Globex Corporation {RANDOM} Ltd | WS1 1SY  | Yes |
         Then User Sees Page Heading "Applications list entry update"

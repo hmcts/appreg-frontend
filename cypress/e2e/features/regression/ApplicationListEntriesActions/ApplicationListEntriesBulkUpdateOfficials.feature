@@ -134,7 +134,7 @@ Feature: Application List Entries Bulk Update Officials
         When User Clicks On The "Confirm and update officials" Button
         Then User Sees Success Banner "Officials updated" Containing "The officials have been successfully updated"
         # Verfiy Updated Officials for ALE 1
-        When User Clicks "Open" Button In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant             | Respondent           | Postcode | Title                 | Fee | Resulted |
             | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Appeal to Crown Court | No  |          |
         Then User Sees Page Heading "Applications list entry update"
@@ -158,7 +158,7 @@ Feature: Application List Entries Bulk Update Officials
         # Cancel from ALE Update Screen
         Then User Clicks On The Link "Cancel"
         # Verfiy Updated Officials for ALE 2
-        When User Clicks "Open" Button In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
             | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
         Then User Sees Page Heading "Applications list entry update"
