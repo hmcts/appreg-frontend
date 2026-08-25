@@ -61,7 +61,7 @@ const subscribedEndpoints: EndpointRule[] = [
     endpoint: new RegExp(
       `^/application-lists/${regexIdPlaceholder}/entries/results$`,
     ),
-    responses: [400, 401, 403, 404, 409, 500, 504],
+    responses: [400, 403, 404, 409, 500, 504],
   },
   {
     endpoint: new RegExp(
@@ -100,6 +100,12 @@ const subscribedEndpoints: EndpointRule[] = [
       `^/application-lists/${regexIdPlaceholder}/entries/bulk-action-preview$`,
     ),
     responses: [0, 400, 403, 404, 406, 409, 413, 500, 504],
+  },
+  {
+    endpoint: new RegExp(
+      `^/application-lists/${regexIdPlaceholder}/${regexIdPlaceholder}/delete`,
+    ),
+    responses: [400, 401, 403, 404, 409, 500, 504],
   },
 ];
 
