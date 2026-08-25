@@ -1,5 +1,4 @@
 import { Location, isPlatformBrowser } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -59,12 +58,9 @@ export class ApplicationsListEntryDeleteComponent implements OnInit {
         });
       },
       error: (err) => {
-        const code = err instanceof HttpErrorResponse ? err.status : undefined;
-
         void this.router.navigate(['/applications-list', this.listId], {
           queryParams: {
             deleteSuccess: false,
-            code: code ?? 500,
             errMsg:
               getProblemText(err) ??
               'Could not delete the selected application',

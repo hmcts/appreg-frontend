@@ -679,6 +679,7 @@ describe('ApplicationsListDetail', () => {
         moveDone: false,
         updateOfficialsDone: false,
         updateFeesDone: false,
+        deleteDone: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
         body: {
@@ -737,6 +738,7 @@ describe('ApplicationsListDetail', () => {
         moveDone: false,
         updateOfficialsDone: false,
         updateFeesDone: false,
+        deleteDone: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
         body: {
@@ -1096,6 +1098,41 @@ describe('ApplicationsListDetail', () => {
       },
     ]);
     expect(vm().preserveErrorSummaryOnLoad).toBe(true);
+  });
+
+  it('maps application entry delete errors from navigation query params onto the detail page', async () => {
+    const route = TestBed.inject(ActivatedRoute);
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => {
+        if (key === 'deleteSuccess') {
+          return 'false';
+        }
+        if (key === 'errMsg') {
+          return 'Could not delete the selected application';
+        }
+        return null;
+      });
+
+    (
+      component as unknown as {
+        setDeleteErrorFromNavigation(): void;
+      }
+    ).setDeleteErrorFromNavigation();
+
+    await flushSignalEffects(fixture);
+
+    expect(vm().updateInvalid).toBe(true);
+    expect(vm().errorHint).toBe('There is a problem');
+    expect(vm().errorSummary).toEqual([
+      {
+        id: '',
+        href: '',
+        text: 'Could not delete the selected application',
+      },
+    ]);
+    expect(vm().preserveErrorSummaryOnLoad).toBe(true);
+    expect(vm().deleteDone).toBe(false);
   });
 
   it('sets moveDone when moveEntriesSuccessful query param is true', () => {
