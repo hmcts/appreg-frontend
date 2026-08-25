@@ -215,6 +215,32 @@ describe('TelemetryService', () => {
     });
   });
 
+  it('does not alter non-dependency telemetry', () => {
+    service.initialize();
+
+    const initializer = addTelemetryInitializer.mock.calls[0][0] as (item: {
+      tags?: Record<string, string>;
+      baseType?: string;
+      baseData?: Record<string, unknown>;
+    }) => void;
+    const baseData = {
+      name: 'Search completed',
+      properties: { resultCount: 10 },
+    };
+    const telemetryItem = {
+      tags: {} as Record<string, string>,
+      baseType: 'EventData',
+      baseData,
+    };
+
+    initializer(telemetryItem);
+
+    expect(telemetryItem.baseData).toEqual({
+      name: 'Search completed',
+      properties: { resultCount: 10 },
+    });
+  });
+
   it('does nothing when App Insights is disabled', () => {
     appConfigService.isAppInsightsEnabled.mockReturnValue(false);
 

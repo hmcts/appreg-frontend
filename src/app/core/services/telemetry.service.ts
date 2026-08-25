@@ -184,6 +184,11 @@ function toCustomProperties(
 }
 
 function sanitizeDependencyTelemetry(item: ITelemetryItem): void {
+  // Only dependency telemetry has URL fields to sanitize.
+  if (item.baseType !== 'RemoteDependencyData') {
+    return;
+  }
+
   const dependencyData = item.baseData as
     | {
         name?: string;
