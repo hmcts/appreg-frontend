@@ -23,6 +23,7 @@ import {
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import { focusSuccessBanner } from '@components/applications-list-entry-detail/util/banners.util';
 import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { mapHttpErrorToSummary } from '@components/applications-list-entry-detail/util/errors.util';
@@ -53,6 +54,7 @@ import { ResultSelectedTableBase } from '@util/result-selected-table.base';
     ResultWordingSectionComponent,
     SuccessBannerComponent,
     ErrorSummaryComponent,
+    AlertComponent,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './result-selected.component.html',
@@ -76,6 +78,8 @@ export class ResultSelected
   errorHint: string | null = 'There is a problem';
   errorFound = computed(() => this.errorSummaryItems().length > 0);
   errorSummaryItems = signal<ErrorItem[]>([]);
+
+  showRemovedApplicationsAlert = signal(false);
 
   readonly createdEntryResults = computed(() => {
     const createdResults = this.resultsFacade.newlyCreatedEntryResults() ?? [];
@@ -106,6 +110,14 @@ export class ResultSelected
           resultingApplications?: ApplicationEntriesResultContext[];
         }
       )?.resultingApplications ?? [];
+
+    this.showRemovedApplicationsAlert.set(
+      (
+        history.state as {
+          removedApplicationsWarning: boolean | undefined;
+        }
+      )?.removedApplicationsWarning ?? false,
+    );
   }
 
   onPendingChange(rows: PendingResultRow[]): void {

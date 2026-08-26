@@ -931,22 +931,51 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const rows = mapEntrySummaryRows(preview.entries);
-
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
 
-    const resultingApplications = rows.map((r) => ({
-      id: r.id,
-      sequenceNumber: r.sequenceNumber,
-      applicant: r.applicant,
-      respondent: r.respondent,
-      title: r.title,
-    }));
+    if (!preview.entries.length) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          {
+            text: 'No rows have been selected. If you believe this is in error, contact support',
+          },
+        ],
+      });
+      return;
+    }
+
+    const eligibleCount = preview.eligibleCount;
+    const entriesToResult = preview.entries.filter(
+      (entry) => !entry.isResulted,
+    );
+
+    if (eligibleCount === 0 || !entriesToResult.length) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          {
+            text: 'Cannot result application(s) that have already been resulted',
+          },
+        ],
+      });
+      return;
+    }
+
+    const resultingApplications = mapEntrySummaryRows(entriesToResult).map(
+      (r) => ({
+        id: r.id,
+        sequenceNumber: r.sequenceNumber,
+        applicant: r.applicant,
+        respondent: r.respondent,
+        title: r.title,
+      }),
+    );
 
     await this.router.navigate(['result-selected'], {
       relativeTo: this.route,
       state: {
+        removedApplicationsWarning:
+          entriesToResult.length !== preview.entries.length,
         resultingApplications,
       },
     });
