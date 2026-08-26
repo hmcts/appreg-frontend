@@ -128,7 +128,7 @@ Feature: Applications List Entry Create
     # ---------------OPEN APPLICATION LIST ENTRY---------------@ARCPOC-635 SC1
 
     Then User Clicks On The Breadcrumb Link "Applications list details"
-    When User Clicks "Open" Button In Row Of Table "Entries" With:
+    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
       | Sequence number | Account number  | Applicant           | Respondent        | Postcode | Title                      | Fee | Resulted |
       | 1               | account{RANDOM} | John Smith {RANDOM} | Jane Doe {RANDOM} | LS10 1PJ | Condemnation of Unfit Food | Yes |          |
     When User Clicks On The "Show all sections" Button
@@ -303,7 +303,7 @@ Feature: Applications List Entry Create
     # ---------------OPEN APPLICATION LIST ENTRY---------------@ARCPOC-635 SC2
 
     Then User Clicks On The Breadcrumb Link "Applications list details"
-    When User Clicks "Open" Button In Row Of Table "Entries" With:
+    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
       | Sequence number | Account number  | Applicant                                   | Respondent                            | Postcode | Title                 | Fee | Resulted |
       | 1               | account{RANDOM} | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | LS10 1PJ | Appeal to Crown Court | No  |          |
     When User Clicks On The "Show all sections" Button
@@ -449,7 +449,7 @@ Feature: Applications List Entry Create
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
     # ---------------OPEN APPLICATION LIST ENTRY-----------@ARCPOC-635 SC3
     Then User Clicks On The Breadcrumb Link "Applications list details"
-    When User Clicks "Open" Button In Row Of Table "Entries" With:
+    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
       | Sequence number | Account number  | Applicant   | Respondent | Postcode | Title                                                                     | Fee | Resulted |
       | 1               | account{RANDOM} | Ava Johnson |            |          | Issue of warrant of arrest in commitment proceedings - council tax (bulk) | Yes |          |
     When User Clicks On The "Show all sections" Button

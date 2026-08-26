@@ -198,7 +198,7 @@ Feature: Application List Entries Bulk Update Fees
         Then User See "Are you sure you want to add these fees to the following applications?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Fees updated" Containing "Fees have been successfully updated"
-        When User Clicks "Open" Button In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant             | Respondent           | Postcode | Title                      | Fee | Resulted |
             | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
         Then User Sees Page Heading "Applications list entry update"

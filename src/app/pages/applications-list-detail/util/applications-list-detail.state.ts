@@ -29,6 +29,7 @@ export interface ApplicationsListDetailState {
   moveDone: boolean;
   updateFeesDone: boolean;
   bulkUploadDone: boolean;
+  deleteDone: boolean;
 
   bulkUploadBannerText: string;
 
@@ -71,6 +72,7 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   moveDone: false,
   updateFeesDone: false,
   bulkUploadDone: false,
+  deleteDone: false,
 
   bulkUploadBannerText: '',
 
@@ -101,6 +103,7 @@ export const clearUpdateNotificationsPatch = (): Pick<
   | 'moveDone'
   | 'updateFeesDone'
   | 'bulkUploadDone'
+  | 'deleteDone'
 > => ({
   updateDone: false,
   updateOfficialsDone: false,
@@ -112,4 +115,5 @@ export const clearUpdateNotificationsPatch = (): Pick<
   moveDone: false,
   updateFeesDone: false,
   bulkUploadDone: false,
+  deleteDone: false,
 });
