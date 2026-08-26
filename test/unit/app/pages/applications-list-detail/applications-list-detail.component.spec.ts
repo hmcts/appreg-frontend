@@ -2067,6 +2067,8 @@ describe('ApplicationsListDetail', () => {
           'getBulkPreview',
         )
         .mockResolvedValue({
+          eligibleCount: 2,
+          ineligibleCount: 0,
           entries: [
             { id: 'entry-1', sequenceNumber: 1, applicationTitle: 'T1' },
             { id: 'entry-2', sequenceNumber: 2, applicationTitle: 'T2' },
@@ -2081,6 +2083,7 @@ describe('ApplicationsListDetail', () => {
         ['result-selected'],
         expect.objectContaining({
           state: {
+            removedApplicationsWarning: false,
             resultingApplications: [
               {
                 id: 'entry-1',
@@ -2095,6 +2098,56 @@ describe('ApplicationsListDetail', () => {
                 applicant: null,
                 respondent: null,
                 title: 'T2',
+              },
+            ],
+          },
+        }),
+      );
+    });
+
+    it('warns when already-resulted applications are removed from the selection', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      jest
+        .spyOn(
+          component as unknown as { getBulkPreview: jest.Mock },
+          'getBulkPreview',
+        )
+        .mockResolvedValue({
+          eligibleCount: 1,
+          ineligibleCount: 1,
+          entries: [
+            {
+              id: 'entry-1',
+              sequenceNumber: 1,
+              applicationTitle: 'Eligible application',
+              isFeeRequired: true,
+            },
+            {
+              id: 'entry-2',
+              sequenceNumber: 2,
+              applicationTitle: 'Already resulted application',
+              isFeeRequired: true,
+              resulted: [{ resultCode: 'ADJ' }],
+            },
+          ],
+        });
+
+      await component.onResultButtonClick();
+
+      expect(navSpy).toHaveBeenCalledWith(
+        ['result-selected'],
+        expect.objectContaining({
+          state: {
+            removedApplicationsWarning: true,
+            resultingApplications: [
+              {
+                id: 'entry-1',
+                sequenceNumber: 1,
+                applicant: null,
+                respondent: null,
+                title: 'Eligible application',
               },
             ],
           },
@@ -2170,6 +2223,7 @@ describe('ApplicationsListDetail', () => {
         ['result-selected'],
         expect.objectContaining({
           state: {
+            removedApplicationsWarning: true,
             resultingApplications: expect.arrayContaining([
               expect.objectContaining({ id: 'entry-1', sequenceNumber: 1 }),
               expect.objectContaining({ id: 'entry-2', sequenceNumber: 2 }),
