@@ -1,6 +1,6 @@
 Feature: Application List Entries - Move
 
-    @regression @applicationsList @ARCPOC-446
+    @regression @applicationsList @ARCPOC-446 @ARCPOC-1741
     Scenario Outline: Application List - Move Selected Entries to Another Existing List
         Given User Authenticates Via API As "<User>"
         # ── Source list ─────────────────────────────────────────────────────────
@@ -9,6 +9,7 @@ Feature: Application List Entries - Move
             | <APIDate> | <Time> | <Status> | <SourceDescription> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "sourceListId"
+        Then User Stores Response Body Property "time" As "sourceListTime"
         # Entry 1 - Person applicant + Person respondent (CT99002)
         When User Makes POST API Request To "/application-lists/:sourceListId/entries" With Object Builder:
             | standardApplicantCode                         | null                           |
@@ -152,6 +153,19 @@ Feature: Application List Entries - Move
             | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
             | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Appeal to Crown Court                        | No  |          |
             | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
+        # ── Notes Updated After Move ────────────────────────────────────────────
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+            | Sequence number | Account number  | Applicant             | Respondent           | Postcode | Title                 | Fee | Resulted |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Appeal to Crown Court | No  |          |
+        When User Clicks On The "Show all sections" Button
+        Then User Verifies The Textbox "Application details" Contains "Case noted with ref {RANDOM} <APIDate> : List details amended from <APIDate> :sourceListTime:00 <Court> " In The Accordion "Notes"
+        Then User Clicks On The Breadcrumb Link "Applications list details"
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
+            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
+        When User Clicks On The "Show all sections" Button
+        Then User Verifies The Textbox "Application details" Contains "Case noted with ref {RANDOM} <APIDate> : List details amended from <APIDate> :sourceListTime:00 <Court> " In The Accordion "Notes"
+        Then User Clicks On The Breadcrumb Link "Applications list details"
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:sourceListId"
         Then User Verify Response Status Code Should Be "204"
@@ -161,7 +175,7 @@ Feature: Application List Entries - Move
             | User  | APIDate  | Time           | TargetTime     | Status | SourceDescription                    | TargetDescription                     | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     |
             | user2 | todayiso | timenowhhmm-3h | timenowhhmm-4h | OPEN   | Source list to move at Test_{RANDOM} | Target list for move at Test_{RANDOM} | BCC026            | today      | todayDisplay | 3       | Bristol Crown Court Set 3 |
 
-    @regression @applicationsList @ARCPOC-446
+    @regression @applicationsList @ARCPOC-446 @ARCPOC-1741 @tp
     Scenario Outline: Application List - Move Selected Entries to a New List with Validation
         Given User Authenticates Via API As "<User>"
         # ── API setup: source list + entries ────────────────────────────────────
@@ -170,6 +184,7 @@ Feature: Application List Entries - Move
             | <APIDate> | <SourceTime> | <Status> | <SourceDescription> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "sourceListId"
+        Then User Stores Response Body Property "time" As "sourceListTime"
         # Entry 1 - Person applicant + Person respondent (CT99002)
         When User Makes POST API Request To "/application-lists/:sourceListId/entries" With Object Builder:
             | standardApplicantCode                         | null                           |
@@ -330,6 +345,19 @@ Feature: Application List Entries - Move
             | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
             | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Appeal to Crown Court                        | No  |          |
             | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+            | Sequence number | Account number  | Applicant             | Respondent           | Postcode | Title                 | Fee | Resulted |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Appeal to Crown Court | No  |          |
+        When User Clicks On The "Show all sections" Button
+        Then User Verifies The Textbox "Application details" Contains "Case noted with ref {RANDOM} <APIDate> : List details amended from <APIDate> :sourceListTime:00 <Court> " In The Accordion "Notes"
+        Then User Clicks On The Breadcrumb Link "Applications list details"
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
+            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
+        When User Clicks On The "Show all sections" Button
+        Then User Verifies The Textbox "Application details" Contains "Case noted with ref {RANDOM} <APIDate> : List details amended from <APIDate> :sourceListTime:00 <Court> " In The Accordion "Notes"
+        Then User Clicks On The Breadcrumb Link "Applications list details"
+
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:sourceListId"
         Then User Verify Response Status Code Should Be "204"
