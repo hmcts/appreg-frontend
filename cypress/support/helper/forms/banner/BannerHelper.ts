@@ -72,14 +72,14 @@ export class BannerHelper {
     options: BannerVerificationOptions = {},
   ): void {
     // Previous assertion:
-    // BannerElement.getErrorAlert()
+    // BannerElement.getErrorSummary()
     //   .should('be.visible')
     //   .invoke('text')
     //   .then((actualText) => {
     //     const normalizedActual = StringUtils.normalizeText(actualText);
     //     expect(normalizedActual).to.include(unexpectedText);
     //   });
-    BannerElement.getErrorAlert()
+    BannerElement.getErrorSummary()
       .should('be.visible')
       .then(($banner) => {
         const actualText = $banner.text();
@@ -90,7 +90,7 @@ export class BannerHelper {
   }
 
   static verifyErrorBannerNotPresent(unexpectedText: string): void {
-    BannerElement.findErrorAlertByText(unexpectedText).should('not.exist');
+    BannerElement.findErrorSummaryByText(unexpectedText).should('not.exist');
   }
 
   static verifyWarningBanner(
@@ -134,10 +134,10 @@ export class BannerHelper {
     options: BannerVerificationOptions = {},
   ): void {
     // Previous assertion:
-    // BannerElement.findErrorAlertWithBody(heading, bodyText).should(
+    // BannerElement.findErrorSummaryWithBody(heading, bodyText).should(
     //   'be.visible',
     // );
-    BannerElement.findErrorAlertWithBody(heading, bodyText)
+    BannerElement.findErrorSummaryWithBody(heading, bodyText)
       .should('be.visible')
       .then(($banner) => this.verifyBannerAbovePageHeader($banner, options));
   }
