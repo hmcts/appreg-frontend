@@ -4,6 +4,43 @@ import { AccordionHelper } from '../../../../../support/helper/forms/accordion/a
 import { TextboxHelper } from '../../../../../support/helper/forms/textbox/TextboxHelper';
 import { TestDataGenerator } from '../../../../../support/utils/TestDataGenerator';
 
+const resolveExpectedValue = (
+  expectedValue: string,
+): Cypress.Chainable<string> => {
+  const resolvedValue = TestDataGenerator.parseValue(expectedValue);
+  const trailingWhitespace = expectedValue.match(/\s+$/)?.[0] ?? '';
+
+  const aliases = [...resolvedValue.matchAll(/:([A-Za-z][A-Za-z0-9_-]*)\b/g)];
+
+  return aliases
+    .reduce(
+      (chain, [placeholder, aliasName]) =>
+        chain.then((value) =>
+          cy
+            .get(`@${aliasName}`)
+            .then((aliasValue) =>
+              value.replace(placeholder, String(aliasValue)),
+            ),
+        ),
+      cy.wrap(resolvedValue),
+    )
+    .then((value) =>
+      trailingWhitespace && !value.endsWith(trailingWhitespace)
+        ? `${value}${trailingWhitespace}`
+        : value,
+    );
+};
+
+const normaliseLineEndings = (value: string): string =>
+  value.replace(/\r\n/g, '\n');
+
+const normaliseText = (value: string): string =>
+  normaliseLineEndings(value)
+    .replace(/\u00a0/g, ' ')
+    .replace(/[\u200b-\u200d\ufeff]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
 Then(
   'User Enters {string} Into The Textbox {string} In The Accordion {string}',
   (text: string, textboxLabel: string, accordionTitle: string) => {
@@ -17,14 +54,15 @@ Then(
 Then(
   'User Verifies The Textbox {string} Contains {string} In The Accordion {string}',
   (textboxLabel: string, expectedValue: string, accordionTitle: string) => {
-    const resolvedExpected =
-      TestDataGenerator.replaceRandomPlaceholders(expectedValue);
-    AccordionHelper.within(accordionTitle, () => {
-      TextboxHelper.getValueInTextbox(textboxLabel).should(
-        'eq',
-        resolvedExpected,
-      );
-    });
+    resolveExpectedValue(expectedValue).then((resolvedExpected) =>
+      AccordionHelper.within(accordionTitle, () => {
+        TextboxHelper.getValueInTextbox(textboxLabel).should((actualValue) => {
+          expect(normaliseText(String(actualValue))).to.contain(
+            normaliseText(resolvedExpected),
+          );
+        });
+      }),
+    );
   },
 );
 
@@ -80,15 +118,19 @@ Then(
 Then(
   'User Verifies Textbox With Placeholder {string} Contains {string} In The Accordion {string}',
   (placeholder: string, expectedValue: string, accordionTitle: string) => {
-    const resolvedExpected =
-      TestDataGenerator.replaceRandomPlaceholders(expectedValue);
-    AccordionHelper.within(accordionTitle, () => {
-      cy.get(
-        `input[placeholder="${placeholder}"], textarea[placeholder="${placeholder}"]`,
-      )
-        .invoke('val')
-        .should('eq', resolvedExpected);
-    });
+    resolveExpectedValue(expectedValue).then((resolvedExpected) =>
+      AccordionHelper.within(accordionTitle, () => {
+        cy.get(
+          `input[placeholder="${placeholder}"], textarea[placeholder="${placeholder}"]`,
+        )
+          .invoke('val')
+          .should((actualValue) => {
+            expect(normaliseText(String(actualValue))).to.contain(
+              normaliseText(resolvedExpected),
+            );
+          });
+      }),
+    );
   },
 );
 
@@ -119,13 +161,17 @@ Then(
     fieldsetLabel: string,
     accordionTitle: string,
   ) => {
-    const resolvedExpected =
-      TestDataGenerator.replaceRandomPlaceholders(expectedValue);
-    AccordionHelper.within(accordionTitle, () => {
-      TextboxHelper.getValueInTextboxUnderFieldset(
-        textboxLabel,
-        fieldsetLabel,
-      ).should('eq', resolvedExpected);
-    });
+    resolveExpectedValue(expectedValue).then((resolvedExpected) =>
+      AccordionHelper.within(accordionTitle, () => {
+        TextboxHelper.getValueInTextboxUnderFieldset(
+          textboxLabel,
+          fieldsetLabel,
+        ).should((actualValue) => {
+          expect(normaliseText(String(actualValue))).to.contain(
+            normaliseText(resolvedExpected),
+          );
+        });
+      }),
+    );
   },
 );
