@@ -2038,6 +2038,90 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('onResultButtonClick', () => {
+    it('shows an error and does not navigate when the preview has no rows', async () => {
+      const navSpy = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      jest
+        .spyOn(
+          component as unknown as { getBulkPreview: jest.Mock },
+          'getBulkPreview',
+        )
+        .mockResolvedValue({ entries: [] });
+
+      await component.onResultButtonClick();
+
+      expect(vm().errorSummary).toEqual([
+        {
+          text: 'No rows have been selected. If you believe this is in error, contact support',
+        },
+      ]);
+      expect(navSpy).not.toHaveBeenCalled();
+    });
+
+    it('shows an error and does not navigate when no selected applications are eligible to result', async () => {
+      const navSpy = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      jest
+        .spyOn(
+          component as unknown as { getBulkPreview: jest.Mock },
+          'getBulkPreview',
+        )
+        .mockResolvedValue({
+          eligibleCount: 0,
+          entries: [
+            {
+              id: 'entry-1',
+              sequenceNumber: 1,
+              applicationTitle: 'Application',
+              isFeeRequired: true,
+            },
+          ],
+        });
+
+      await component.onResultButtonClick();
+
+      expect(vm().errorSummary).toEqual([
+        {
+          text: 'Cannot result application(s) that have already been resulted',
+        },
+      ]);
+      expect(navSpy).not.toHaveBeenCalled();
+    });
+
+    it('shows an error and does not navigate when every selected application has already been resulted', async () => {
+      const navSpy = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      jest
+        .spyOn(
+          component as unknown as { getBulkPreview: jest.Mock },
+          'getBulkPreview',
+        )
+        .mockResolvedValue({
+          eligibleCount: 1,
+          entries: [
+            {
+              id: 'entry-1',
+              sequenceNumber: 1,
+              applicationTitle: 'Resulted application',
+              isFeeRequired: true,
+              resulted: [{ resultCode: 'ADJ' }],
+            },
+          ],
+        });
+
+      await component.onResultButtonClick();
+
+      expect(vm().errorSummary).toEqual([
+        {
+          text: 'Cannot result application(s) that have already been resulted',
+        },
+      ]);
+      expect(navSpy).not.toHaveBeenCalled();
+    });
+
     it('navigates to result-selected with selected  applications', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
