@@ -936,7 +936,35 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
 
-    const resultingApplications = rows.map((r) => ({
+    if (!rows.length) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          {
+            text: 'No rows have been selected. If you believe this is in error, contact support',
+          },
+        ],
+      });
+      return;
+    }
+
+    const eligibleCount = preview?.eligibleCount;
+    const ineligibleCount = preview?.ineligibleCount;
+    const rowsToResult: selectedRow[] = rows.filter(
+      (row) => !trimToUndefined(row.resulted),
+    );
+
+    if (eligibleCount === 0 || !rowsToResult.length) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          {
+            text: 'Cannot result application(s) that have already been resulted',
+          },
+        ],
+      });
+      return;
+    }
+
+    const resultingApplications = rowsToResult.map((r) => ({
       id: r.id,
       sequenceNumber: r.sequenceNumber,
       applicant: r.applicant,
@@ -947,6 +975,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     await this.router.navigate(['result-selected'], {
       relativeTo: this.route,
       state: {
+        removedApplicationsWarning: ineligibleCount !== 0,
         resultingApplications,
       },
     });
