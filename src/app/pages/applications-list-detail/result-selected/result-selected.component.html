@@ -24,12 +24,14 @@
   />
 }
 
-<app-alert
-  [alertType]="'warning'"
-  [message]="'Application(s) which have already been resulted have been removed'"
-/>
-
 <h1 class="govuk-heading-xl">Result applications</h1>
+
+@if (showRemovedApplicationsAlert()) {
+  <app-alert
+    [alertType]="'warning'"
+    [message]="'Application(s) which have already been resulted have been removed'"
+  />
+}
 
 <app-result-wording-section
   [resultApplicantContext]="paginatedRows()"

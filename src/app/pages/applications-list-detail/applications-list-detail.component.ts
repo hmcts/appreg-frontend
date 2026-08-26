@@ -931,12 +931,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const rows = mapEntrySummaryRows(preview.entries);
-
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
 
-    if (!rows.length) {
+    if (!preview.entries.length) {
       this.detailSignalState.patch({
         errorSummary: [
           {
@@ -947,13 +945,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const eligibleCount = preview?.eligibleCount;
-    const ineligibleCount = preview?.ineligibleCount;
-    const rowsToResult: selectedRow[] = rows.filter(
-      (row) => !trimToUndefined(row.resulted),
+    const eligibleCount = preview.eligibleCount;
+    const entriesToResult = preview.entries.filter(
+      (entry) => !entry.isResulted,
     );
 
-    if (eligibleCount === 0 || !rowsToResult.length) {
+    if (eligibleCount === 0 || !entriesToResult.length) {
       this.detailSignalState.patch({
         errorSummary: [
           {
@@ -964,18 +961,21 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const resultingApplications = rowsToResult.map((r) => ({
-      id: r.id,
-      sequenceNumber: r.sequenceNumber,
-      applicant: r.applicant,
-      respondent: r.respondent,
-      title: r.title,
-    }));
+    const resultingApplications = mapEntrySummaryRows(entriesToResult).map(
+      (r) => ({
+        id: r.id,
+        sequenceNumber: r.sequenceNumber,
+        applicant: r.applicant,
+        respondent: r.respondent,
+        title: r.title,
+      }),
+    );
 
     await this.router.navigate(['result-selected'], {
       relativeTo: this.route,
       state: {
-        removedApplicationsWarning: ineligibleCount !== 0,
+        removedApplicationsWarning:
+          entriesToResult.length !== preview.entries.length,
         resultingApplications,
       },
     });

@@ -2107,7 +2107,8 @@ describe('ApplicationsListDetail', () => {
               sequenceNumber: 1,
               applicationTitle: 'Resulted application',
               isFeeRequired: true,
-              resulted: [{ resultCode: 'ADJ' }],
+              isResulted: true,
+              resulted: [],
             },
           ],
         });
@@ -2213,7 +2214,8 @@ describe('ApplicationsListDetail', () => {
               sequenceNumber: 2,
               applicationTitle: 'Already resulted application',
               isFeeRequired: true,
-              resulted: [{ resultCode: 'ADJ' }],
+              isResulted: true,
+              resulted: [],
             },
           ],
         });
@@ -2307,7 +2309,7 @@ describe('ApplicationsListDetail', () => {
         ['result-selected'],
         expect.objectContaining({
           state: {
-            removedApplicationsWarning: true,
+            removedApplicationsWarning: false,
             resultingApplications: expect.arrayContaining([
               expect.objectContaining({ id: 'entry-1', sequenceNumber: 1 }),
               expect.objectContaining({ id: 'entry-2', sequenceNumber: 2 }),

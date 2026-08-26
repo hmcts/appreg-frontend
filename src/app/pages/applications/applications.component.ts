@@ -451,7 +451,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
     const rows = (preview?.entries ?? []).map(mapToRow);
     const eligibleCount = preview?.eligibleCount;
-    const ineligibleRowsFound = preview?.ineligibleCount > 0;
 
     // Only result status = 'open' applications
     if (eligibleCount <= 0) {
@@ -490,7 +489,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       relativeTo: this.route,
       state: {
         entriesToResult,
-        ignoredSelected: ineligibleRowsFound,
+        ignoredSelected: rowsToResult.length !== rows.length,
       },
     });
   }
