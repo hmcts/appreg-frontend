@@ -104,7 +104,7 @@ import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { isAllMatchingSelected } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
-import { trimStringToLowerCase } from '@util/string-helpers';
+import { trimStringToLowerCase, trimToUndefined } from '@util/string-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { atLeastOneRequiredValidator } from '@validators/at-least-one-value.validator';
 
@@ -462,8 +462,19 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     }
 
     const rowsToResult = rows.filter(
-      (row) => trimStringToLowerCase(row.status) !== 'closed',
+      (row) =>
+        trimStringToLowerCase(row.status) !== 'closed' &&
+        trimToUndefined(row.resulted)?.toLowerCase() !== 'yes',
     );
+
+    if (!rowsToResult.length) {
+      this.patchApp({
+        errorSummary: [
+          { text: 'You can only result open and unresulted application(s)' },
+        ],
+      });
+      return;
+    }
 
     // Exclude status as we can only result open applications
     const entriesToResult = rowsToResult.map((row) => ({
