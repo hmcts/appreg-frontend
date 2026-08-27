@@ -167,14 +167,31 @@ export class SuggestionsComponent implements ControlValueAccessor {
     if (event.key === 'ArrowDown' || event.key === 'Enter') {
       this.allValuesVisible = this.showAllValues();
     }
+
+    if (event.key === 'Escape') {
+      this.closePopup();
+    }
   }
 
-  onBlur(): void {
+  onBlur(event?: FocusEvent): void {
     setTimeout(() => {
-      this.focused = false;
-      this.allValuesVisible = false;
+      const nextFocusedElement = event?.relatedTarget as Node | null;
+      const autocomplete = (event?.target as HTMLElement | null)?.parentElement;
+
+      if (!nextFocusedElement || !autocomplete?.contains(nextFocusedElement)) {
+        this.closePopup();
+      }
       this.onTouched();
     }, 0);
+  }
+
+  onFocusOut(event: FocusEvent): void {
+    const nextFocusedElement = event.relatedTarget as Node | null;
+    const autocomplete = event.currentTarget as HTMLElement;
+
+    if (!nextFocusedElement || !autocomplete.contains(nextFocusedElement)) {
+      this.closePopup();
+    }
   }
 
   labelFor(item: SuggestionsItem): string {
@@ -185,7 +202,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
     return item.value;
   }
 
-  choose(item: SuggestionsItem, e: MouseEvent): void {
+  choose(item: SuggestionsItem, e: Event): void {
     e.preventDefault();
 
     // still emit the object if parent wants it
@@ -217,6 +234,11 @@ export class SuggestionsComponent implements ControlValueAccessor {
   private setValueInternal(v: string): void {
     this.controlValue.set(v);
     this.onChange(v);
+  }
+
+  private closePopup(): void {
+    this.focused = false;
+    this.allValuesVisible = false;
   }
 
   get statusId(): string {
