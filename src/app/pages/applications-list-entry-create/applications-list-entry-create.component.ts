@@ -222,6 +222,8 @@ export class ApplicationsListEntryCreate implements OnInit {
   private readonly wordingSection?: WordingSectionComponent;
   @ViewChild('civilFeeSection')
   private readonly civilFeeSection?: CivilFeeSectionComponent;
+  @ViewChild('entryAccordion')
+  private readonly entryAccordion?: AccordionComponent;
 
   ngOnInit(): void {
     this.appListEntryCreateState().id = this.route.snapshot.paramMap.get('id')!;
@@ -609,6 +611,7 @@ export class ApplicationsListEntryCreate implements OnInit {
             this.openWording.set(wordingSubstituteExists ?? false);
             this.openCivilFee.set(isFeeRequired);
             this.openRespondent.set(isRespondentRequired);
+            this.entryAccordion?.scrollToFirstExpandedSection([2, 3, 4]);
           },
           error: (err) => {
             this.form.patchValue({ applicationTitle: null });
