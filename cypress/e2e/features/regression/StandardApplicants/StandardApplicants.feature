@@ -2,7 +2,6 @@ Feature: Standard Applicants
 
     @regression @standardApplicants @ARCPOC-1189 @ARCPOC-762
     Scenario Outline: Verify Standard Applicant sorting behaviour
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
         Then User Verify The Page URL Contains "/standard-applicants"
@@ -61,7 +60,6 @@ Feature: Standard Applicants
 
     @regression @standardApplicants @ARCPOC-762
     Scenario Outline: Verify Standard Applicant Search functionality
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
         Then User Verify The Page URL Contains "/standard-applicants"
@@ -89,7 +87,6 @@ Feature: Standard Applicants
 
     @regression @standardApplicants @ARCPOC-766
     Scenario: View a Standard Applicant in read-only mode
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
         Then User Verify The Page URL Contains "/standard-applicants"
@@ -113,7 +110,6 @@ Feature: Standard Applicants
 
     @regression @standardApplicants @ARCPOC-243 @ARCPOC-1613
     Scenario: Export Standard Applicants as a CSV
-        Given User Is On The Portal Page
         And User Has No Downloaded CSVs
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
@@ -152,7 +148,6 @@ Feature: Standard Applicants
     @regression @standardApplicants @ARCPOC-242
     Scenario: Print Standard Applicants as a PDF
         Given User Has No Downloaded PDFs
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
         Then User Verify The Page URL Contains "/standard-applicants"

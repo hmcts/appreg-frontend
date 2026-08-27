@@ -128,7 +128,6 @@ Feature: Application List Entries Print
             """
         Then User Verify Response Status Code Should Be "201"
         Given User Has No Downloaded PDFs
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |

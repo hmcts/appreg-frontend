@@ -45,7 +45,6 @@ Feature: Applications List Entry Update
             | lodgementDate                                 | todayiso                       |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId1"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         # Search and Open Created Application List
         When User Searches Application List With:

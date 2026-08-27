@@ -2,7 +2,6 @@ Feature: Applications Search
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1086
     Scenario: Verify components on applications list entry (ALE) search page
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
@@ -26,7 +25,6 @@ Feature: Applications Search
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052
     Scenario Outline: Verify applications list entry table shows empty state with no results
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
@@ -93,7 +91,6 @@ Feature: Applications Search
             | officials.3.forename                                | Anita                          |
             | officials.3.type                                    | MAGISTRATE                     |
         Then User Verify Response Status Code Should Be "201"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         And User Verify The Page URL Contains "/applications"
@@ -114,7 +111,7 @@ Feature: Applications Search
         Then User Clicks On The Breadcrumb Link "Applications"
         Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         Examples:
-            | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                  | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                     | Respondent                     | ApplicationTitle                               | Fee | Resulted | Status |
+            | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                  | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                     | Respondent                     | ApplicationTitle      | Fee | Resulted | Status |
             | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {RANDOM} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {RANDOM} | Respondent Industries {RANDOM} | Appeal to Crown Court | No  | No       | OPEN   |
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1343 @ARCPOC-1437 @ARCPOC-1445
@@ -178,7 +175,6 @@ Feature: Applications Search
             | officials.3.forename                          | Anita                          |
             | officials.3.type                              | MAGISTRATE                     |
         Then User Verify Response Status Code Should Be "201"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         And User Verify The Page URL Contains "/applications"
@@ -198,12 +194,11 @@ Feature: Applications Search
         Then User Clicks On The Breadcrumb Link "Applications"
         Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         Examples:
-            | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant             | Respondent           | ApplicationTitle                               | Fee | Resulted | Status |
+            | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant             | Respondent           | ApplicationTitle      | Fee | Resulted | Status |
             | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              | Taylor {RANDOM}  |               |                   | Open         | BS15               | 01        | London |               |               |                  | Application list entries | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Appeal to Crown Court | No  | No       | OPEN   |
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083 @ARCPOC-1343
     Scenario Outline: Verify Validation Error Messages on Application list entry Search Page
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
@@ -243,7 +238,6 @@ Feature: Applications Search
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1368
     Scenario: Verify Applications List Entry table sorting functionality
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"

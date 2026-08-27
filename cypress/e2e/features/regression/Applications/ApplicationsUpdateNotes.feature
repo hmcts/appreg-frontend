@@ -70,7 +70,6 @@ Feature: Applications Update Notes
 
   @regression @applications @applicationListEntry @ARCPOC-1512
   Scenario: Update notes from the Applications search page
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Applications"
     Then User Verify The Page URL Contains "/applications"

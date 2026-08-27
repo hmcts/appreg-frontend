@@ -2,7 +2,6 @@ Feature: Workload Report
 
   @regression @reports @ARCPOC-248
   Scenario: Workload Report - Render filters and preserve shared dates
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -24,7 +23,6 @@ Feature: Workload Report
 
   @regression @reports @ARCPOC-248
   Scenario: Workload Report - Validate required dates and location exclusivity
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -52,7 +50,6 @@ Feature: Workload Report
   @regression @reports @ARCPOC-248 @SC2
   Scenario: Workload Report - Download completed CSV
     Given User Has No Downloaded CSVs
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -90,7 +87,6 @@ Feature: Workload Report
 
   @regression @reports @ARCPOC-248
   Scenario: Workload Report - Accessibility
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -100,7 +96,6 @@ Feature: Workload Report
 
   @regression @reports @ARCPOC-1401
   Scenario: Workload Report - verify "Clear search" button functionality
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -117,7 +112,6 @@ Feature: Workload Report
 
   @regression @reports @ARCPOC-1401
   Scenario: Workload Report - verify "Clear search" button functionality (CJA + Other location)
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"

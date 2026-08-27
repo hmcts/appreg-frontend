@@ -3,14 +3,13 @@ Feature: Applications list entry create help details
   Background: Create applications list
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Body:
-      | date     | time  | status | description                         | courtLocationCode |
-      | todayiso | 10:20 | OPEN   | Entry create help list {RANDOM}     | LCCC065           |
+      | date     | time  | status | description                     | courtLocationCode |
+      | todayiso | 10:20 | OPEN   | Entry create help list {RANDOM} | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
 
   @regression @applicationListEntry @helpDetails @ARCPOC-377
   Scenario: Expand and collapse create entry help details
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Given User Navigates To The URL "/applications-list/:listId/create-entry"
     Then User Sees Page Heading "Create new entry"

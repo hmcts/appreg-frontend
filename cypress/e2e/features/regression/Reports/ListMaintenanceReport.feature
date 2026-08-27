@@ -2,7 +2,6 @@ Feature: List Maintenance Report
 
   @regression @reports @ARCPOC-381 @ARCPOC-246
   Scenario: List Maintenance Report - Render report filters
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -21,7 +20,6 @@ Feature: List Maintenance Report
   @regression @reports @ARCPOC-381 @ARCPOC-246
   Scenario: List Maintenance Report - Validate date fields
     Given User Has No Downloaded CSVs
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -46,7 +44,6 @@ Feature: List Maintenance Report
 
   @regression @reports @ARCPOC-381 @ARCPOC-246
   Scenario: List Maintenance Report - Preserve dates and enforce location exclusivity
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -64,7 +61,6 @@ Feature: List Maintenance Report
   @regression @reports @ARCPOC-381 @ARCPOC-246 @SC2
   Scenario: List Maintenance Report - Download completed CSV
     Given User Has No Downloaded CSVs
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -96,7 +92,6 @@ Feature: List Maintenance Report
 
   @regression @reports @ARCPOC-1401
   Scenario: List maintenance Report - verify "Clear search" button functionality
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -116,7 +111,6 @@ Feature: List Maintenance Report
 
   @regression @reports @ARCPOC-1401
   Scenario: List maintenance Report - verify "Clear search" button functionality (CJA + Other location)
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"

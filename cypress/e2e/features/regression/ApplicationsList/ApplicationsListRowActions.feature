@@ -9,7 +9,6 @@ Feature: Application List Row Actions
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         Given User Has No Downloaded PDFs
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
@@ -182,7 +181,6 @@ Feature: Application List Row Actions
             """
         Then User Verify Response Status Code Should Be "201"
         Given User Has No Downloaded PDFs
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
@@ -303,7 +301,6 @@ Feature: Application List Row Actions
             """
         Then User Verify Response Status Code Should Be "201"
         Given User Has No Downloaded PDFs
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
@@ -433,7 +430,6 @@ Feature: Application List Row Actions
             | date      | time   | status   | description   | durationHours   | durationMinutes   | courtLocationCode   |
             | <APIDate> | <Time> | <Status> | <Description> | <durationHours> | <durationMinutes> | <courtLocationCode> |
         Given User Has No Downloaded PDFs
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | List description | CourtSearch         | Court   | Select list status | Other location description | Criminal justice area | CJASearch |
@@ -492,7 +488,6 @@ Feature: Application List Row Actions
             | <APIDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
@@ -591,7 +586,6 @@ Feature: Application List Row Actions
             | officials.3.forename                          | Anita                          |
             | officials.3.type                              | MAGISTRATE                     |
         Then User Verify Response Status Code Should Be "201"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | List description | CourtSearch         | Court   | Select list status | Other location description | Criminal justice area | CJASearch |

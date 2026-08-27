@@ -10,7 +10,6 @@ Feature: Applications list detail help details
 
   @regression @applicationsList @helpDetails @ARCPOC-377
   Scenario: Expand and collapse applications tab help details
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | Time | List description           | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |

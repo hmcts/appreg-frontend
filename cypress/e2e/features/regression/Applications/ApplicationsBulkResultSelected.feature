@@ -164,7 +164,6 @@ Feature: Applications Bulk Result Selected
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId3"
         # UI: Verify limit of 2000 rows for action Bulk Result Selected
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
@@ -274,7 +273,6 @@ Feature: Applications Bulk Result Selected
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-1335
     Scenario Outline: Verify Validation Error Message For Closed Applications Bulk Result Selected
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"

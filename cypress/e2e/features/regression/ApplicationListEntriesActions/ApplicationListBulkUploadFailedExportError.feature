@@ -10,7 +10,6 @@ Feature: Application List - Export Failed Bulk Upload With Original Data And Val
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         # Navigate To Bulk Upload
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         Then User Clears Downloaded CSVs
         When User Searches Application List With:

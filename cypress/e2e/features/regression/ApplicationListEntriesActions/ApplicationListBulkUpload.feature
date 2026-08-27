@@ -8,7 +8,6 @@ Feature: Application List Bulk Upload
             | <APIDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
@@ -54,7 +53,6 @@ Feature: Application List Bulk Upload
             | <APIDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
@@ -120,7 +118,6 @@ Feature: Application List Bulk Upload
             | <APIDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
@@ -163,7 +160,6 @@ Feature: Application List Bulk Upload
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         # Navigate To Bulk Upload
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
@@ -208,7 +204,6 @@ Feature: Application List Bulk Upload
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         # Navigate To Bulk Upload
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         When User Searches Application List With:
             | Date  | Time | Description                   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
@@ -301,7 +296,6 @@ Feature: Application List Bulk Upload
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         # Navigate To Bulk Upload
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         When User Searches Application List With:
             | Date  | Time | Description                   | CourtSearch | Court | Status | Other location | CJA | CJASearch |

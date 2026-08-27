@@ -1,20 +1,28 @@
 import { When } from '@badeball/cypress-cucumber-preprocessor';
 
+import { APP_URLS } from '../../../support/constants/ProjectConstants';
 import { AuthErrorScenarios } from '../../../support/helper/auth/AuthErrorScenarios';
 import { AuthHelper } from '../../../support/helper/auth/AuthHelper';
+import { NavigationHelper } from '../../../support/helper/navigation/NavigationHelper';
 
 When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
-  cy.task<Record<string, { email: string; password: string }>>(
-    'getEnv',
-    'SSO_USERS',
-  ).then((ssoUsers) => {
-    const user = ssoUsers[userType] || ssoUsers['default'];
-    if (!user) {
-      throw new Error(`SSO user type "${userType}" not found in configuration`);
-    }
-    AuthHelper.signInWithMicrosoftSSO(user.email, user.password);
-    cy.screenshot(`SSOLogin-${userType}`);
+  cy.session(userType, () => {
+    cy.task<Record<string, { email: string; password: string }>>(
+      'getEnv',
+      'SSO_USERS',
+    ).then((ssoUsers) => {
+      const user = ssoUsers[userType] || ssoUsers['default'];
+      if (!user) {
+        throw new Error(
+          `SSO user type "${userType}" not found in configuration`,
+        );
+      }
+      NavigationHelper.navigateToPortalPage();
+      AuthHelper.signInWithMicrosoftSSO(user.email, user.password);
+      cy.screenshot(`SSOLogin-${userType}`);
+    });
   });
+  cy.visit(APP_URLS.HOME);
 });
 
 When(

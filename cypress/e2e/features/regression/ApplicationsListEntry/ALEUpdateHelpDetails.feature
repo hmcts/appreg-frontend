@@ -16,8 +16,8 @@ Feature: Applications list entry update help details
       | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
       | applicant.person.contactDetails.addressLine2  | Westminster                    |
       | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
-      | applicant.person.contactDetails.phone         |                    01632960001 |
-      | applicant.person.contactDetails.mobile        |                    07700900001 |
+      | applicant.person.contactDetails.phone         | 01632960001                    |
+      | applicant.person.contactDetails.mobile        | 07700900001                    |
       | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
       | respondent.person.name.title                  | Ms                             |
       | respondent.person.name.lastName               | Clark {RANDOM}                 |
@@ -25,8 +25,8 @@ Feature: Applications list entry update help details
       | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
       | respondent.person.contactDetails.addressLine2 | Bristol                        |
       | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-      | respondent.person.contactDetails.phone        |                    01632960001 |
-      | respondent.person.contactDetails.mobile       |                    07700900001 |
+      | respondent.person.contactDetails.phone        | 01632960001                    |
+      | respondent.person.contactDetails.mobile       | 07700900001                    |
       | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
       | respondent.person.dateOfBirth                 | todayiso-25y                   |
       | wordingFields.0.key                           | Describe Seized Food           |
@@ -44,7 +44,6 @@ Feature: Applications list entry update help details
 
   @regression @applicationListEntry @helpDetails @ARCPOC-377
   Scenario: Expand and collapse update entry help details
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | Time | Description                     | CourtSearch | Court | Status | Other location | CJA | CJASearch |

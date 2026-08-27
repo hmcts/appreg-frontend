@@ -2,7 +2,6 @@ Feature: Activity Audit Report
 
   @regression @reports @ARCPOC-383
   Scenario: Activity Audit Report - Render report filters
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -17,7 +16,6 @@ Feature: Activity Audit Report
 
   @regression @reports @ARCPOC-383
   Scenario: Activity Audit Report - Download report Fails With Invalid From and To Headers
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -30,7 +28,6 @@ Feature: Activity Audit Report
 
   @regression @reports @ARCPOC-383
   Scenario: Activity Audit Report - Download report Fails With To date Before From Date
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -44,7 +41,6 @@ Feature: Activity Audit Report
 
   @regression @reports @ARCPOC-383
   Scenario: Activity Audit Report - Download report Fails No Activity
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -58,7 +54,6 @@ Feature: Activity Audit Report
 
   @regression @reports @ARCPOC-383
   Scenario: Activity Audit Report - Valid date fields
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clears Downloaded CSVs
     Then User Clicks On The Link Using Exact Text Match "Reports"
@@ -90,7 +85,6 @@ Feature: Activity Audit Report
 
   @regression @reports @ARCPOC-1401
   Scenario: Activity Audit Report - verify "Clear search" button functionality
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"

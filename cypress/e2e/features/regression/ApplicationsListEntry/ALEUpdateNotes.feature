@@ -57,7 +57,6 @@ Feature: Applications List Entry Notes Update
 
     @regression @applicationListEntry @ARCPOC-1333 @ARCPOC-1567
     Scenario: Validate Update Notes Screen and process
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         When User Searches Application List With:
             | Date  | Time  | List description            | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |

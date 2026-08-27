@@ -9,7 +9,6 @@ Feature: Applications List Entry Create
       | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     # Search Created Application List
     When User Searches Application List With:
@@ -232,7 +231,6 @@ Feature: Applications List Entry Create
       | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     # Search Created Application List
     When User Searches Application List With:
@@ -356,8 +354,8 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Application details" Contains "This is a test application with special requirements" In The Accordion "Notes"
     # Result Wording Details
     Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
-      | Applicant                                   | Respondent                            | Application title                              |
-      | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | Appeal to Crown Court                          |
+      | Applicant                                   | Respondent                            | Application title     |
+      | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | Appeal to Crown Court |
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details
     Then User Should See The Textbox "Magistrate's title" Under "Magistrate 1" FieldSet In The Accordion "Officials"
@@ -385,7 +383,6 @@ Feature: Applications List Entry Create
       | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     # Search Created Application List
     When User Searches Application List With:
@@ -522,7 +519,6 @@ Feature: Applications List Entry Create
       | <APIDate> | <Time> | <Status> | <Description> |               |                 | <CourtCode>       |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     When User Searches Application List With:
       | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |

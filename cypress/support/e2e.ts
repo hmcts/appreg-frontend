@@ -31,18 +31,19 @@ if (isApiSpec) {
 }
 
 beforeEach(() => {
-  configureSpecDownloadsFolder().then(() => {
-    cy.request({
-      url: '/sso/logout',
-      failOnStatusCode: false,
-      followRedirect: false,
-    }).then(() => {
-      Cypress.session.clearAllSavedSessions().catch(() => {});
-      cy.clearCookies();
-      cy.clearLocalStorage();
-      cy.clearAllSessionStorage();
-    });
-  });
+  configureSpecDownloadsFolder();
+  //.then(() => {
+  //   cy.request({
+  //     url: '/sso/logout',
+  //     failOnStatusCode: false,
+  //     followRedirect: false,
+  //   }).then(() => {
+  //     Cypress.session.clearAllSavedSessions().catch(() => {});
+  //     cy.clearCookies();
+  //     cy.clearLocalStorage();
+  //     cy.clearAllSessionStorage();
+  //   });
+  // });
 
   TestDataGenerator.resetScenario();
   cy.viewport(1280, 720); // Set a default viewport size
