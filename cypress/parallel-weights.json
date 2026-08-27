@@ -214,5 +214,9 @@
   "cypress/e2e/features/regression/Applications/ApplicationsHelpDetails.feature": {
     "time": 7699,
     "weight": 1
+  },
+  "cypress/e2e/features/regression/ApplicationsListEntry/ALEDelete.feature": {
+    "time": 20000,
+    "weight": 4
   }
 }
