@@ -131,4 +131,26 @@ describe('AccordionComponent', () => {
     expect(root).toBeTruthy();
     expect((root.nativeElement as HTMLElement).id).toBe('my-accordion');
   });
+
+  it('scrolls to the first requested section that is expanded', async () => {
+    const buttons = fixture.debugElement.queryAll(
+      By.css('.govuk-accordion__section-button'),
+    );
+    const firstScrollIntoView = jest.fn();
+    const secondScrollIntoView = jest.fn();
+    (buttons[0].nativeElement as HTMLElement).scrollIntoView =
+      firstScrollIntoView;
+    (buttons[1].nativeElement as HTMLElement).scrollIntoView =
+      secondScrollIntoView;
+
+    component.scrollToFirstExpandedSection([1, 0]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(firstScrollIntoView).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'start',
+    });
+    expect(secondScrollIntoView).not.toHaveBeenCalled();
+  });
 });
