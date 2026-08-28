@@ -113,6 +113,7 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list.component.html',
+  styleUrl: './applications-list.component.scss',
 })
 export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   // APIs

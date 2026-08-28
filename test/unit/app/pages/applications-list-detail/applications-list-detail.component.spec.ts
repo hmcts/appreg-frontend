@@ -288,6 +288,19 @@ describe('ApplicationsListDetail', () => {
     ).toBeTruthy();
   });
 
+  it('shows the application deleted banner when deleteDone is true', async () => {
+    patchDetailState({ deleteDone: true });
+    await flushSignalEffects(fixture);
+
+    const banner = fixture.debugElement.query(By.css('app-success-banner'));
+
+    expect(banner).toBeTruthy();
+    expect(banner.componentInstance.heading()).toBe('Application deleted');
+    expect(banner.componentInstance.linkText()).toBe(
+      'Application has been successfully deleted',
+    );
+  });
+
   it('shows error summary when errorSummary has items', async () => {
     patchDetailState({
       errorSummary: [{ href: '#x', text: 'Error' }],
@@ -679,6 +692,7 @@ describe('ApplicationsListDetail', () => {
         moveDone: false,
         updateOfficialsDone: false,
         updateFeesDone: false,
+        deleteDone: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
         body: {
@@ -737,6 +751,7 @@ describe('ApplicationsListDetail', () => {
         moveDone: false,
         updateOfficialsDone: false,
         updateFeesDone: false,
+        deleteDone: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
         body: {
@@ -1098,6 +1113,62 @@ describe('ApplicationsListDetail', () => {
     expect(vm().preserveErrorSummaryOnLoad).toBe(true);
   });
 
+  it('maps application entry delete errors from navigation query params onto the detail page', async () => {
+    historyStateSpy.mockReturnValue({
+      row: {
+        id: 'id-1',
+        location: 'LOC1',
+        description: '',
+        status: 'OPEN',
+      },
+      deleteError: 'Could not delete the selected application',
+    });
+
+    const route = TestBed.inject(ActivatedRoute);
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => {
+        if (key === 'deleteSuccess') {
+          return 'false';
+        }
+        if (key === 'errMsg') {
+          return 'Could not delete the selected application';
+        }
+        return null;
+      });
+
+    (
+      component as unknown as {
+        setDeleteErrorFromNavigation(): void;
+      }
+    ).setDeleteErrorFromNavigation();
+
+    await flushSignalEffects(fixture);
+
+    expect(vm().updateInvalid).toBe(true);
+    expect(vm().errorHint).toBe('There is a problem');
+    expect(vm().errorSummary).toEqual([
+      {
+        id: '',
+        href: '',
+        text: 'Could not delete the selected application',
+      },
+    ]);
+    expect(vm().preserveErrorSummaryOnLoad).toBe(true);
+    expect(vm().deleteDone).toBe(false);
+
+    const errorSummary = fixture.debugElement.query(
+      By.css('app-error-summary'),
+    );
+    expect(errorSummary.componentInstance.items()).toEqual([
+      {
+        id: '',
+        href: '',
+        text: 'Could not delete the selected application',
+      },
+    ]);
+  });
+
   it('sets moveDone when moveEntriesSuccessful query param is true', () => {
     const route = TestBed.inject(ActivatedRoute);
     jest
@@ -1128,6 +1199,34 @@ describe('ApplicationsListDetail', () => {
     component.setSuccessBanner();
 
     expect(vm().updateFeesDone).toBe(true);
+  });
+
+  it('setSuccessBanner: sets deleteDone and clears deleteSuccess query param', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    const router = TestBed.inject(Router);
+
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => (key === 'deleteSuccess' ? 'true' : null));
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.setSuccessBanner();
+
+    expect(vm().deleteDone).toBe(true);
+    expect(navigateSpy).toHaveBeenCalledWith([], {
+      relativeTo: route,
+      queryParams: {
+        listCreated: null,
+        moveEntriesSuccessful: null,
+        updateOfficialsSuccessful: null,
+        bulkFeeUpdateSuccessful: null,
+        bulkUploadSuccess: null,
+        deleteSuccess: null,
+      },
+      queryParamsHandling: 'merge',
+      preserveFragment: true,
+      replaceUrl: true,
+    });
   });
 
   it('sets bulk upload success banner text and job id from navigation state', () => {
@@ -1939,6 +2038,91 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('onResultButtonClick', () => {
+    it('shows an error and does not navigate when the preview has no rows', async () => {
+      const navSpy = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      jest
+        .spyOn(
+          component as unknown as { getBulkPreview: jest.Mock },
+          'getBulkPreview',
+        )
+        .mockResolvedValue({ entries: [] });
+
+      await component.onResultButtonClick();
+
+      expect(vm().errorSummary).toEqual([
+        {
+          text: 'No rows have been selected. If you believe this is in error, contact support',
+        },
+      ]);
+      expect(navSpy).not.toHaveBeenCalled();
+    });
+
+    it('shows an error and does not navigate when no selected applications are eligible to result', async () => {
+      const navSpy = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      jest
+        .spyOn(
+          component as unknown as { getBulkPreview: jest.Mock },
+          'getBulkPreview',
+        )
+        .mockResolvedValue({
+          eligibleCount: 0,
+          entries: [
+            {
+              id: 'entry-1',
+              sequenceNumber: 1,
+              applicationTitle: 'Application',
+              isFeeRequired: true,
+            },
+          ],
+        });
+
+      await component.onResultButtonClick();
+
+      expect(vm().errorSummary).toEqual([
+        {
+          text: 'Cannot result application(s) that have already been resulted',
+        },
+      ]);
+      expect(navSpy).not.toHaveBeenCalled();
+    });
+
+    it('shows an error and does not navigate when every selected application has already been resulted', async () => {
+      const navSpy = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      jest
+        .spyOn(
+          component as unknown as { getBulkPreview: jest.Mock },
+          'getBulkPreview',
+        )
+        .mockResolvedValue({
+          eligibleCount: 1,
+          entries: [
+            {
+              id: 'entry-1',
+              sequenceNumber: 1,
+              applicationTitle: 'Resulted application',
+              isFeeRequired: true,
+              isResulted: true,
+              resulted: [],
+            },
+          ],
+        });
+
+      await component.onResultButtonClick();
+
+      expect(vm().errorSummary).toEqual([
+        {
+          text: 'Cannot result application(s) that have already been resulted',
+        },
+      ]);
+      expect(navSpy).not.toHaveBeenCalled();
+    });
+
     it('navigates to result-selected with selected  applications', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
@@ -1968,6 +2152,8 @@ describe('ApplicationsListDetail', () => {
           'getBulkPreview',
         )
         .mockResolvedValue({
+          eligibleCount: 2,
+          ineligibleCount: 0,
           entries: [
             { id: 'entry-1', sequenceNumber: 1, applicationTitle: 'T1' },
             { id: 'entry-2', sequenceNumber: 2, applicationTitle: 'T2' },
@@ -1982,6 +2168,7 @@ describe('ApplicationsListDetail', () => {
         ['result-selected'],
         expect.objectContaining({
           state: {
+            removedApplicationsWarning: false,
             resultingApplications: [
               {
                 id: 'entry-1',
@@ -1996,6 +2183,57 @@ describe('ApplicationsListDetail', () => {
                 applicant: null,
                 respondent: null,
                 title: 'T2',
+              },
+            ],
+          },
+        }),
+      );
+    });
+
+    it('warns when already-resulted applications are removed from the selection', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      jest
+        .spyOn(
+          component as unknown as { getBulkPreview: jest.Mock },
+          'getBulkPreview',
+        )
+        .mockResolvedValue({
+          eligibleCount: 1,
+          ineligibleCount: 1,
+          entries: [
+            {
+              id: 'entry-1',
+              sequenceNumber: 1,
+              applicationTitle: 'Eligible application',
+              isFeeRequired: true,
+            },
+            {
+              id: 'entry-2',
+              sequenceNumber: 2,
+              applicationTitle: 'Already resulted application',
+              isFeeRequired: true,
+              isResulted: true,
+              resulted: [],
+            },
+          ],
+        });
+
+      await component.onResultButtonClick();
+
+      expect(navSpy).toHaveBeenCalledWith(
+        ['result-selected'],
+        expect.objectContaining({
+          state: {
+            removedApplicationsWarning: true,
+            resultingApplications: [
+              {
+                id: 'entry-1',
+                sequenceNumber: 1,
+                applicant: null,
+                respondent: null,
+                title: 'Eligible application',
               },
             ],
           },
@@ -2071,6 +2309,7 @@ describe('ApplicationsListDetail', () => {
         ['result-selected'],
         expect.objectContaining({
           state: {
+            removedApplicationsWarning: false,
             resultingApplications: expect.arrayContaining([
               expect.objectContaining({ id: 'entry-1', sequenceNumber: 1 }),
               expect.objectContaining({ id: 'entry-2', sequenceNumber: 2 }),

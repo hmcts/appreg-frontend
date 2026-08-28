@@ -15,8 +15,6 @@
     class="govuk-hint"
     [class.govuk-error-text]="isInvalid()"
   >
-    You have
-    {{ remainingCharacterCount }}
-    character{{ remainingCharacterCount === 1 ? '' : 's' }} remaining
+    {{ charLimitText }}
   </div>
 }

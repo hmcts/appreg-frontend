@@ -33,6 +33,7 @@ type DateField = 'day' | 'month' | 'year';
 @Component({
   selector: 'app-date-input',
   templateUrl: './date-input.component.html',
+  styleUrl: './date-input.component.scss',
   standalone: true,
   providers: [
     {
@@ -202,8 +203,12 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   }
 
   ariaInvalidAfterSubmit(name: DateField): 'true' | null {
+    const missingFieldIsInvalid = this.isSearch()
+      ? this.hasAny() && this.missing(name)
+      : this.missing(name);
+
     return this.isInteractedInvalid(name) ||
-      this.missing(name) ||
+      missingFieldIsInvalid ||
       this.hasExternalError(true)
       ? 'true'
       : null;

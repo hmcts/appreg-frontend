@@ -196,6 +196,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly civilFeeSection?: CivilFeeSectionComponent;
   @ViewChild(ResultWordingSectionComponent)
   private readonly resultWordingSection?: ResultWordingSectionComponent;
+  @ViewChild('entryAccordion')
+  private readonly entryAccordion?: AccordionComponent;
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly resolveWordingObjectValues =
@@ -579,6 +581,7 @@ export class ApplicationsListEntryDetail implements OnInit {
             this.openWordingSection.set(wordingSubstituteExists ?? false);
             this.openCivilFeeSection.set(isFeeRequired);
             this.openRespondentSection.set(isRespondentRequired);
+            this.entryAccordion?.scrollToFirstExpandedSection([2, 3, 4]);
           },
           error: (err) => {
             this.form.patchValue({ applicationTitle: '' });

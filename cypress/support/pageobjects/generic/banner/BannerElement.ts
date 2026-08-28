@@ -7,8 +7,8 @@ export class BannerElement {
     'app-notification-banner [role="alert"]';
   private static readonly successAlertSelector =
     'app-success-banner [role="alert"]';
-  private static readonly errorAlertSelector =
-    'app-error-summary [role="alert"]';
+  private static readonly errorSummarySelector =
+    'app-error-summary [data-component="error-summary"]';
   private static readonly warningRegionSelector =
     'app-warning-banner [role="region"]';
   private static readonly pageHeaderSelector =
@@ -47,14 +47,14 @@ export class BannerElement {
       .contains(linkText);
   }
 
-  static getErrorAlert(): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.get(this.errorAlertSelector);
+  static getErrorSummary(): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.get(this.errorSummarySelector);
   }
 
-  static findErrorAlertByText(
+  static findErrorSummaryByText(
     text: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.contains(this.errorAlertSelector, text);
+    return cy.contains(this.errorSummarySelector, text);
   }
 
   static findWarningRegionByText(
@@ -76,12 +76,12 @@ export class BannerElement {
       .should('contain.text', bodyText);
   }
 
-  static findErrorAlertWithBody(
+  static findErrorSummaryWithBody(
     heading: string,
     bodyText: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
-      .contains(this.errorAlertSelector, heading, { timeout: 10000 })
+      .contains(this.errorSummarySelector, heading, { timeout: 10000 })
       .should('contain.text', bodyText);
   }
 }

@@ -90,6 +90,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: ':id/:entryId/delete',
+        loadComponent: () =>
+          import('@components/applications-list-detail/applications-list-entry-delete/applications-list-entry-delete.component').then(
+            (m) => m.ApplicationsListEntryDeleteComponent,
+          ),
+      },
+      {
         path: ':id/create-entry/change-payment-reference',
         loadComponent: () =>
           import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(

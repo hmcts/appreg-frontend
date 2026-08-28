@@ -39,6 +39,9 @@
  *
  * onUndoClick():
  * - Navigates to undo application list creation page
+ *
+ * onDeleteButtonClick()
+ * - Navigates to delete an application list entry
  */
 
 import { isPlatformBrowser } from '@angular/common';
@@ -154,6 +157,7 @@ type ApplicationsListDetailHistoryState = {
   };
   moveError?: string;
   updateFeeError?: string;
+  deleteError?: string;
 };
 
 const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
@@ -262,6 +266,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.setCloseErrorFromNavigation();
     this.setMoveErrorFromNavigation();
     this.setUpdateFeeErrorFromNavigation();
+    this.setDeleteErrorFromNavigation();
 
     //Attach validators
     addLocationValidatorsToForm(this.form, () => this.state());
@@ -363,6 +368,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       this.vm().updateFeesDone = true;
     }
 
+    if (this.route.snapshot.queryParamMap.get('deleteSuccess') === 'true') {
+      this.vm().deleteDone = true;
+    }
+
     if (this.route.snapshot.queryParamMap.get('bulkUploadSuccess') === 'true') {
       if (!isPlatformBrowser(this.platformId)) {
         return;
@@ -390,6 +399,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         updateOfficialsSuccessful: null,
         bulkFeeUpdateSuccessful: null,
         bulkUploadSuccess: null,
+        deleteSuccess: null,
       },
       queryParamsHandling: 'merge',
       preserveFragment: true,
@@ -475,6 +485,29 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       errorSummary: [{ id: '', href: '', text: feeError }],
       preserveErrorSummaryOnLoad: true,
       updateFeesDone: false,
+    });
+  }
+
+  private setDeleteErrorFromNavigation(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const isDeleteError =
+      this.route.snapshot.queryParamMap.get('deleteSuccess') === 'false';
+    const deleteState = history.state as ApplicationsListDetailHistoryState;
+    const deleteError = deleteState.deleteError;
+
+    if (!isDeleteError || !deleteError) {
+      return;
+    }
+
+    this.detailSignalState.patch({
+      updateInvalid: true,
+      errorHint: 'There is a problem',
+      errorSummary: [{ id: '', href: '', text: deleteError }],
+      preserveErrorSummaryOnLoad: true,
+      deleteDone: false,
     });
   }
 
@@ -898,22 +931,51 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const rows = mapEntrySummaryRows(preview.entries);
-
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
 
-    const resultingApplications = rows.map((r) => ({
-      id: r.id,
-      sequenceNumber: r.sequenceNumber,
-      applicant: r.applicant,
-      respondent: r.respondent,
-      title: r.title,
-    }));
+    if (!preview.entries.length) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          {
+            text: 'No rows have been selected. If you believe this is in error, contact support',
+          },
+        ],
+      });
+      return;
+    }
+
+    const eligibleCount = preview.eligibleCount;
+    const entriesToResult = preview.entries.filter(
+      (entry) => !entry.isResulted,
+    );
+
+    if (eligibleCount === 0 || !entriesToResult.length) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          {
+            text: 'Cannot result application(s) that have already been resulted',
+          },
+        ],
+      });
+      return;
+    }
+
+    const resultingApplications = mapEntrySummaryRows(entriesToResult).map(
+      (r) => ({
+        id: r.id,
+        sequenceNumber: r.sequenceNumber,
+        applicant: r.applicant,
+        respondent: r.respondent,
+        title: r.title,
+      }),
+    );
 
     await this.router.navigate(['result-selected'], {
       relativeTo: this.route,
       state: {
+        removedApplicationsWarning:
+          entriesToResult.length !== preview.entries.length,
         resultingApplications,
       },
     });
@@ -1188,6 +1250,21 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             respondent: row.respondent,
             title: row.title,
           },
+        },
+      },
+    );
+  }
+
+  async onDeleteButtonClick(row: Partial<selectedRow>): Promise<void> {
+    if (!this.id || !row?.id) {
+      return;
+    }
+
+    await this.router.navigate(
+      ['/applications-list', this.id, row.id, 'delete'],
+      {
+        state: {
+          row,
         },
       },
     );

@@ -112,6 +112,14 @@ export class DateTimeUtil {
       return substituted;
     }
 
+    // Resolve arithmetic tokens before simple inline keywords. This supports
+    // values embedded in descriptive text, e.g. "todayiso at timenow-3h".
+    const inlineArithmeticReplacement =
+      this.replaceInlineArithmeticKeywords(trimmed);
+    if (inlineArithmeticReplacement !== trimmed) {
+      return this.replaceInlineKeywords(inlineArithmeticReplacement);
+    }
+
     // Parse arithmetic expressions
     const arithmeticPattern =
       /(today|todayiso|timenow|timenowhhmm|timestamp|numerictimestamp)([+-])(\d+)([dwmyhs])/i;
@@ -263,6 +271,23 @@ export class DateTimeUtil {
     }
 
     return replaced ? result : value;
+  }
+
+  private static replaceInlineArithmeticKeywords(value: string): string {
+    const arithmeticPattern =
+      /\b(today|todayiso|timenow|timenowhhmm|timestamp|numerictimestamp)([+-])(\d+)([dwmyhs])\b/gi;
+
+    return value.replace(
+      arithmeticPattern,
+      (_match, baseKeyword, operator, amount, unit) =>
+        this.calculateArithmetic(
+          baseKeyword,
+          operator === '+'
+            ? Number.parseInt(amount, 10)
+            : -Number.parseInt(amount, 10),
+          unit.toLowerCase(),
+        ),
+    );
   }
 
   /**

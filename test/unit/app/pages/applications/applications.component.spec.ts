@@ -1652,6 +1652,109 @@ describe('ApplicationsComponent', () => {
         }),
       );
     });
+
+    it('excludes closed and already-resulted applications before navigating to result-selected', async () => {
+      const navigateSpy = jest
+        .spyOn((component as unknown as { router: Router }).router, 'navigate')
+        .mockResolvedValue(true);
+
+      bulkActionPreviewMock.mockReturnValueOnce(
+        of({
+          action: BulkActionType.RESULT_SELECTED,
+          limit: 100,
+          selectedCount: 3,
+          eligibleCount: 3,
+          ineligibleCount: 2,
+          entryIds: ['open-entry', 'closed-entry', 'resulted-entry'],
+          entries: [
+            makeEntry({
+              id: 'open-entry',
+              listId: 'open-list',
+              date: '2026-06-12',
+              applicationTitle: 'Open application',
+              status: ApplicationListStatus.OPEN,
+            }),
+            makeEntry({
+              id: 'closed-entry',
+              listId: 'closed-list',
+              date: '2026-06-12',
+              applicationTitle: 'Closed application',
+              status: ' CLOSED ' as ApplicationListStatus,
+            }),
+            makeEntry({
+              id: 'resulted-entry',
+              listId: 'resulted-list',
+              date: '2026-06-12',
+              applicationTitle: 'Resulted application',
+              isResulted: true,
+              status: ApplicationListStatus.OPEN,
+            }),
+          ],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['bulkActionPreview']
+        >,
+      );
+
+      await component.onResultSelectedClick();
+
+      expect(navigateSpy).toHaveBeenCalledWith(
+        ['result-selected'],
+        expect.objectContaining({
+          state: {
+            entriesToResult: [
+              {
+                id: 'open-entry',
+                listId: 'open-list',
+                date: '2026-06-12',
+                applicant: '',
+                respondent: '',
+                title: 'Open application',
+              },
+            ],
+            ignoredSelected: true,
+          },
+        }),
+      );
+    });
+
+    it('shows an error and does not navigate when every selected application is closed or resulted', async () => {
+      const navigateSpy = jest
+        .spyOn((component as unknown as { router: Router }).router, 'navigate')
+        .mockResolvedValue(true);
+
+      bulkActionPreviewMock.mockReturnValueOnce(
+        of({
+          action: BulkActionType.RESULT_SELECTED,
+          limit: 100,
+          selectedCount: 2,
+          eligibleCount: 2,
+          ineligibleCount: 0,
+          entryIds: ['closed-entry', 'resulted-entry'],
+          entries: [
+            makeEntry({
+              id: 'closed-entry',
+              status: ApplicationListStatus.CLOSED,
+            }),
+            makeEntry({
+              id: 'resulted-entry',
+              isResulted: true,
+              status: ApplicationListStatus.OPEN,
+            }),
+          ],
+        } as BulkActionPreviewResponseDto) as unknown as ReturnType<
+          ApplicationListEntriesApi['bulkActionPreview']
+        >,
+      );
+
+      await component.onResultSelectedClick();
+
+      expect(component.vm().errorSummary).toEqual([
+        {
+          text: 'You can only result open and unresulted application(s)',
+        },
+      ]);
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('date rendering', () => {

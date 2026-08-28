@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,6 +6,7 @@ import {
   ElementRef,
   HostListener,
   Injector,
+  PLATFORM_ID,
   TemplateRef,
   afterNextRender,
   effect,
@@ -49,6 +50,7 @@ export class AccordionComponent {
   private readonly root = viewChild<ElementRef<HTMLElement>>('root');
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly platformId = inject(PLATFORM_ID);
   private expansionObserver?: MutationObserver;
 
   constructor() {
@@ -107,6 +109,35 @@ export class AccordionComponent {
         ),
       });
     }
+  }
+
+  // Used in app list entry create/details for app code selection
+  // scrolls to the first expanded section.
+  // Indexes are the accordion sections to focus on
+  // in the order of items passed into this component.
+  scrollToFirstExpandedSection(indexes: number[]): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    afterNextRender(
+      () => {
+        const sections =
+          this.root()?.nativeElement.querySelectorAll<HTMLElement>(
+            '.govuk-accordion__section',
+          );
+        const section = indexes
+          .map((index) => sections?.[index])
+          .find((candidate) =>
+            candidate?.classList.contains('govuk-accordion__section--expanded'),
+          );
+
+        section
+          ?.querySelector<HTMLElement>('.govuk-accordion__section-button')
+          ?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+      },
+      { injector: this.injector },
+    );
   }
 
   private syncExpandedState(items: AccordionItem[]): void {

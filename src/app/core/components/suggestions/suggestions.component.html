@@ -4,7 +4,9 @@
     [ngClass]="{ 'govuk-form-group--error': showError() }"
   >
     <div class="govuk-label-wrapper">
-      <label class="govuk-label" [for]="id()">{{ label() }}</label>
+      <label class="govuk-label" [id]="id() + '-label'" [for]="id()">{{
+        label()
+      }}</label>
     </div>
 
     @if (hint()) {
@@ -34,6 +36,7 @@
         [attr.aria-describedby]="
           (hint() ? id() + '-hint ' : '') + (showError() ? id() + '-error' : '')
         "
+        [attr.aria-labelledby]="id() + '-label'"
         autocomplete="off"
       />
 

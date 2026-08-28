@@ -1,0 +1,26 @@
+@media (max-width: 100em) {
+  :host ::ng-deep .applications-list__results-table .app-sortable-table__frame {
+    overflow: visible;
+  }
+
+  :host ::ng-deep .applications-list__results-table .govuk-table {
+    table-layout: auto;
+  }
+
+  :host
+    ::ng-deep
+    .applications-list__results-table
+    :is(.govuk-table__header, .govuk-table__cell) {
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  :host
+    ::ng-deep
+    .applications-list__results-table
+    .govuk-table__body
+    td:last-child {
+    width: 1%;
+    white-space: nowrap;
+  }
+}

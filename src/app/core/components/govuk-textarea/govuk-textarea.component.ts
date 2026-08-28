@@ -22,4 +22,11 @@ export class GovukTextareaComponent {
     const value = ctrl?.value ?? '';
     return this.maxCharacterLimit() - value.length;
   }
+
+  get charLimitText(): string {
+    if (this.remainingCharacterCount < 0) {
+      return `You have 0 characters remaining. Please remove ${Math.abs(this.remainingCharacterCount)} characters before submitting.`;
+    }
+    return `You have ${this.remainingCharacterCount} character${this.remainingCharacterCount === 1 ? '' : 's'} remaining`;
+  }
 }
