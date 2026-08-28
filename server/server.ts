@@ -32,7 +32,7 @@ import { getRedisUrl } from './redis-config';
 import { setupAppConfigRoute } from './routes/app-config';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
-import { getCca, setupSsoRoutes } from './routes/sso';
+import { acquireApiTokenFromSession, setupSsoRoutes } from './routes/sso';
 import {
   buildXsrfCookieOptions,
   resolveSecureCookiesSetting,
@@ -213,18 +213,8 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
   }
 
   try {
-    // Hydrate cache for this request
-    getCca().getTokenCache().deserialize(cache);
-    const result = await getCca().acquireTokenSilent({
-      account,
-      scopes: apiScopes,
-      // forceRefresh: true, // optionally enable if you suspect cache staleness
-    });
+    const result = await acquireApiTokenFromSession(sess, apiScopes);
     if (result?.accessToken) {
-      // Persist any cache updates (refresh tokens, expiry, etc.)
-      if (sess) {
-        sess.tokenCache = getCca().getTokenCache().serialize();
-      }
       logger.info('[proxy] acquired API access token', {
         requestMethod: req.method,
         ...(result.expiresOn
