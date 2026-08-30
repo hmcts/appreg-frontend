@@ -73,14 +73,18 @@ export class ApiPostHelper {
       return;
     }
 
-    cy.readFile(`cypress/fixtures/${fileName}`, 'utf8').then((fileContents) => {
-      ApiPostHelper.postMultipartFileContents(
-        endpoint,
-        fileName,
-        fileContents,
-        contentType,
-      );
-    });
+    // Reading a .json fixture as UTF-8 makes Cypress parse it into an object.
+    // Read raw bytes so the multipart body always contains the original file text.
+    cy.readFile<Cypress.Buffer>(`cypress/fixtures/${fileName}`, null).then(
+      (fileContents) => {
+        ApiPostHelper.postMultipartFileContents(
+          endpoint,
+          fileName,
+          fileContents.toString('utf8'),
+          contentType,
+        );
+      },
+    );
   }
 
   static postRaw(
