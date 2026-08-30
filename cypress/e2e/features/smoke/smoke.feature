@@ -21,3 +21,22 @@ Feature: Applications Register Portal Access
       | role   |
       | user2  |
       | admin2 |
+
+  @smoke @IngestStandardApplicants @ARCPOC-1537
+  Scenario Outline: Ingestion Test Standard Applicants
+    Given User Authenticates Via API As "user1"
+    When User Makes Multipart POST API Request To "/admin/csds/standard_applicants/ingest" With Fixture File "<FileName>" And Content Type "application/json"
+    Then User Verify Response Status Code Should Be "403"
+    Then User Verify Response Body Should Have:
+      | title  | Forbidden     |
+      | status | 403           |
+      | detail | Access denied |
+    Given User Authenticates Via API As "admin1"
+    When User Makes Multipart POST API Request To "/admin/csds/standard_applicants/ingest" With Fixture File "<FileName>" And Content Type "application/json"
+    Then User Verify Response Status Code Should Be "200"
+    Then User Verify Response Body Should Have:
+      | inserted | <Inserted> |
+      | updated  | <Updated>  |
+    Examples:
+      | FileName                        | Inserted | Updated |
+      | standard_applicants_merged.json | 0        | 361     |
