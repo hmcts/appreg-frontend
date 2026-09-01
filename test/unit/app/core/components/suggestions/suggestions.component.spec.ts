@@ -98,6 +98,41 @@ describe('SuggestionsComponent', () => {
     expect(component.open).toBe(false);
   });
 
+  it.each(['Enter', ' ', 'Spacebar'])(
+    'selects the focused menu item when %s is pressed',
+    (key) => {
+      const alpha = suggestion('A1', 'Alpha');
+      setInput('suggestions', [alpha]);
+      const emit = jest.spyOn(component.selectItem, 'emit');
+      const event = new KeyboardEvent('keydown', { key });
+      const preventDefault = jest.spyOn(event, 'preventDefault');
+
+      component.onItemKeydown(alpha, event);
+
+      expect(preventDefault).toHaveBeenCalledTimes(1);
+      expect(emit).toHaveBeenCalledWith(alpha);
+      expect(component.searchState()).toBe('Alpha');
+    },
+  );
+
+  it('wires menu-item keydown events to keyboard selection', () => {
+    setInput('id', 'court');
+    const alpha = suggestion('A1', 'Alpha');
+    setInput('suggestions', [alpha]);
+    component.onFocus();
+    component.onInput('alp');
+    fixture.detectChanges();
+
+    const option = fixture.nativeElement.querySelector(
+      '.app-autocomplete__link',
+    ) as HTMLButtonElement;
+    option.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    fixture.detectChanges();
+
+    expect(component.searchState()).toBe('Alpha');
+    expect(component.open).toBe(false);
+  });
+
   it('choose clears search text when showAllValues is enabled', () => {
     setInput('showAllValues', true);
     setInput('suggestions', [suggestion('A1', 'Alpha')]);
