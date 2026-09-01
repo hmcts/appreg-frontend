@@ -57,16 +57,13 @@ export class TestDataGenerator {
         : (name: string) => Cypress.env(name);
     const runId = this.sanitiseIdentifier(
       cypressEnv?.('TEST_RUN_ID') ?? 'local',
-    ).slice(-1);
+    ).slice(-4);
     const workerId = this.sanitiseIdentifier(
       cypressEnv?.('CYPRESS_THREAD') ?? 'local',
     ).slice(-1);
     const entropy = this.getSecureRandomValue();
 
-    // Seven characters keeps references with an existing prefix within the
-    // API's 15-character limit (for example, CASE-E5-<identifier>) while
-    // retaining over 60 million possible values per run and worker.
-    return `${runId}${workerId}${entropy.slice(-5)}`;
+    return `${runId}${workerId}${entropy}`;
   }
 
   private static sanitiseIdentifier(value: unknown): string {

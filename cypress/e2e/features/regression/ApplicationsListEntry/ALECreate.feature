@@ -5,7 +5,7 @@ Feature: Applications List Entry Create
     Given User Authenticates Via API As "user1"
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:
-      | date     | time  | status | description                             | durationHours | durationMinutes | courtLocationCode |
+      | date     | time  | status | description                                  | durationHours | durationMinutes | courtLocationCode |
       | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
@@ -13,10 +13,10 @@ Feature: Applications List Entry Create
     When User Signs In With Microsoft SSO As "user1"
     # Search Created Application List
     When User Searches Application List With:
-      | Date  | Time | List description                        | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | Date  | Time | List description                             | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-      | Date         | Time  | Location                          | Description                             | Entries | Status |
+      | Date         | Time  | Location                          | Description                                  | Entries | Status |
       | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   |
     ## Create Application under Application List
     Then User Clicks On The Link "Create application"
@@ -24,19 +24,19 @@ Feature: Applications List Entry Create
     Then User Should See The Button "Hide all sections"
     # Applicant Details
     When User Fills In The Applicant Details
-      | Select applicant type | Person                        |
-      | Select title          | Dr                            |
-      | First name            | John                          |
-      | Middle name(s)        | Michael                       |
+      | Select applicant type | Person                             |
+      | Select title          | Dr                                 |
+      | First name            | John                               |
+      | Middle name(s)        | Michael                            |
       | Surname               | Smith {SCENARIO_ID}                |
       | Address line 1        | {SCENARIO_ID} High Street          |
-      | Address line 2        | Apartment 4B                  |
-      | Town or city          | Leeds                         |
-      | County or region      | West Yorkshire                |
-      | Post town             | Leeds                         |
-      | Postcode              | LS10 1PJ                      |
-      | Phone number          | 01632960001                   |
-      | Mobile number         | 07700900001                   |
+      | Address line 2        | Apartment 4B                       |
+      | Town or city          | Leeds                              |
+      | County or region      | West Yorkshire                     |
+      | Post town             | Leeds                              |
+      | Postcode              | LS10 1PJ                           |
+      | Phone number          | 01632960001                        |
+      | Mobile number         | 07700900001                        |
       | Email address         | applicant{SCENARIO_ID}@example.com |
     # Application Codes
     Then User Enters "MX99006" Into The Textbox "Application code" In The Accordion "Application codes"
@@ -55,20 +55,20 @@ Feature: Applications List Entry Create
     Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
     # Respondent Details
     When User Fills In The Respondent Details
-      | Select type      | Person                         |
-      | Select title     | Mrs                            |
-      | First name       | Jane                           |
-      | Middle name(s)   | Elizabeth                      |
+      | Select type      | Person                              |
+      | Select title     | Mrs                                 |
+      | First name       | Jane                                |
+      | Middle name(s)   | Elizabeth                           |
       | Surname          | Doe {SCENARIO_ID}                   |
-      | Date of birth    | today-30y                      |
+      | Date of birth    | today-30y                           |
       | Address line 1   | {SCENARIO_ID} Park Road             |
-      | Address line 2   | Building C                     |
-      | Town or city     | Leeds                          |
-      | County or region | West Yorkshire                 |
-      | Post town        | Leeds                          |
-      | Postcode         | LS10 1PJ                       |
-      | Phone number     | 01632960002                    |
-      | Mobile number    | 07700900002                    |
+      | Address line 2   | Building C                          |
+      | Town or city     | Leeds                               |
+      | County or region | West Yorkshire                      |
+      | Post town        | Leeds                               |
+      | Postcode         | LS10 1PJ                            |
+      | Phone number     | 01632960002                         |
+      | Mobile number    | 07700900002                         |
       | Email address    | respondent{SCENARIO_ID}@example.com |
     # Civil Fee Details
     When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
@@ -129,7 +129,7 @@ Feature: Applications List Entry Create
 
     Then User Clicks On The Breadcrumb Link "Applications list details"
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
-      | Sequence number | Account number  | Applicant           | Respondent        | Postcode | Title                      | Fee | Resulted |
+      | Sequence number | Account number  | Applicant                | Respondent             | Postcode | Title                      | Fee | Resulted |
       | 1               | account{RANDOM} | John Smith {SCENARIO_ID} | Jane Doe {SCENARIO_ID} | LS10 1PJ | Condemnation of Unfit Food | Yes |          |
     When User Clicks On The "Show all sections" Button
     Then User Should See The Button "Hide all sections"
@@ -137,19 +137,19 @@ Feature: Applications List Entry Create
     Then User See "Summary of application list entry" On The Page
     # Verify Applicant Details
     When User Verifies In The Applicant Details
-      | Select type      | Person                        |
-      | Select title     | Dr                            |
-      | First name       | John                          |
-      | Middle name(s)   | Michael                       |
+      | Select type      | Person                             |
+      | Select title     | Dr                                 |
+      | First name       | John                               |
+      | Middle name(s)   | Michael                            |
       | Surname          | Smith {SCENARIO_ID}                |
       | Address line 1   | {SCENARIO_ID} High Street          |
-      | Address line 2   | Apartment 4B                  |
-      | Town or city     | Leeds                         |
-      | County or region | West Yorkshire                |
-      | Post town        | Leeds                         |
-      | Postcode         | LS10 1PJ                      |
-      | Phone number     | 01632960001                   |
-      | Mobile number    | 07700900001                   |
+      | Address line 2   | Apartment 4B                       |
+      | Town or city     | Leeds                              |
+      | County or region | West Yorkshire                     |
+      | Post town        | Leeds                              |
+      | Postcode         | LS10 1PJ                           |
+      | Phone number     | 01632960001                        |
+      | Mobile number    | 07700900001                        |
       | Email address    | applicant{SCENARIO_ID}@example.com |
 
     # Verify Application Codes Details
@@ -162,20 +162,20 @@ Feature: Applications List Entry Create
     Then User Verifies Textbox With Placeholder "Enter a Describe Seized Food" Contains "Test Sample Wording" In The Accordion "Wording"
     # Verify Respondent Details
     When User Verifies In The Respondent Details
-      | Select type      | Person                         |
-      | Select title     | Mrs                            |
-      | First name       | Jane                           |
-      | Middle name(s)   | Elizabeth                      |
+      | Select type      | Person                              |
+      | Select title     | Mrs                                 |
+      | First name       | Jane                                |
+      | Middle name(s)   | Elizabeth                           |
       | Surname          | Doe {SCENARIO_ID}                   |
-      | Date of birth    | today-30y                      |
+      | Date of birth    | today-30y                           |
       | Address line 1   | {SCENARIO_ID} Park Road             |
-      | Address line 2   | Building C                     |
-      | Town or city     | Leeds                          |
-      | County or region | West Yorkshire                 |
-      | Post town        | Leeds                          |
-      | Postcode         | LS10 1PJ                       |
-      | Phone number     | 01632960002                    |
-      | Mobile number    | 07700900002                    |
+      | Address line 2   | Building C                          |
+      | Town or city     | Leeds                               |
+      | County or region | West Yorkshire                      |
+      | Post town        | Leeds                               |
+      | Postcode         | LS10 1PJ                            |
+      | Phone number     | 01632960002                         |
+      | Mobile number    | 07700900002                         |
       | Email address    | respondent{SCENARIO_ID}@example.com |
     # Verify Civil Fee Details
     Then User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Checked
@@ -202,7 +202,7 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Application details" Contains "This is a test application with special requirements" In The Accordion "Notes"
     # Result Wording Details
     Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
-      | Applicant           | Respondent        | Application title          |
+      | Applicant                | Respondent             | Application title          |
       | John Smith {SCENARIO_ID} | Jane Doe {SCENARIO_ID} | Condemnation of Unfit Food |
     Then User Verifies The Textbox "Result code" In The Accordion "Result wording" Is Empty
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
@@ -228,7 +228,7 @@ Feature: Applications List Entry Create
     Given User Authenticates Via API As "user1"
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:
-      | date     | time  | status | description                             | durationHours | durationMinutes | courtLocationCode |
+      | date     | time  | status | description                                  | durationHours | durationMinutes | courtLocationCode |
       | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
@@ -239,7 +239,7 @@ Feature: Applications List Entry Create
       | Date  | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | today |      |                  |             |       | OPEN               |                            |                       |           |
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-      | Date         | Time  | Location                          | Description                             | Entries | Status |
+      | Date         | Time  | Location                          | Description                                  | Entries | Status |
       | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   |
     ## Create Application under Application List
     Then User Clicks On The Link "Create application"
@@ -247,16 +247,16 @@ Feature: Applications List Entry Create
     Then User Should See The Button "Hide all sections"
     # Applicant Details
     When User Fills In The Applicant Details
-      | Select applicant type | Organisation                                |
+      | Select applicant type | Organisation                                     |
       | Organisation name     | Test Sample Applicant Organisation {SCENARIO_ID} |
       | Address line 1        | {SCENARIO_ID} High Street                        |
       | Address line 2        | Apartment {SCENARIO_ID}                          |
-      | Town or city          | Leeds                                       |
-      | County or region      | West Yorkshire                              |
-      | Post town             | Leeds                                       |
-      | Postcode              | LS10 1PJ                                    |
-      | Phone number          | 020 7946 0000                               |
-      | Mobile number         | 07123 456789                                |
+      | Town or city          | Leeds                                            |
+      | County or region      | West Yorkshire                                   |
+      | Post town             | Leeds                                            |
+      | Postcode              | LS10 1PJ                                         |
+      | Phone number          | 020 7946 0000                                    |
+      | Mobile number         | 07123 456789                                     |
       | Email address         | john.smith_{SCENARIO_ID}test@example.com         |
     # Application Codes
     Then User Enters "AP99001" Into The Textbox "Application code" In The Accordion "Application codes"
@@ -275,16 +275,16 @@ Feature: Applications List Entry Create
     # Then User Should See The Link "Dismiss"
     # Respondent Details
     When User Fills In The Respondent Details
-      | Select type       | Organisation                              |
+      | Select type       | Organisation                                   |
       | Organisation name | Test Sample Res Organisation {SCENARIO_ID}     |
       | Address line 1    | {SCENARIO_ID} Low Street                       |
       | Address line 2    | Apartment {SCENARIO_ID}                        |
-      | Town or city      | Leeds                                     |
-      | County or region  | East Yorkshire                            |
-      | Post town         | Leeds                                     |
-      | Postcode          | LS10 1PJ                                  |
-      | Phone number      | 020 7946 0000                             |
-      | Mobile number     | 07123 456789                              |
+      | Town or city      | Leeds                                          |
+      | County or region  | East Yorkshire                                 |
+      | Post town         | Leeds                                          |
+      | Postcode          | LS10 1PJ                                       |
+      | Phone number      | 020 7946 0000                                  |
+      | Mobile number     | 07123 456789                                   |
       | Email address     | Respondent.smith_{SCENARIO_ID}test@example.com |
     # Civil Fee Details
     Then User Should See The Text "No fee required" In The Accordion "Civil fee"
@@ -304,7 +304,7 @@ Feature: Applications List Entry Create
 
     Then User Clicks On The Breadcrumb Link "Applications list details"
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
-      | Sequence number | Account number  | Applicant                                   | Respondent                            | Postcode | Title                 | Fee | Resulted |
+      | Sequence number | Account number  | Applicant                                        | Respondent                                 | Postcode | Title                 | Fee | Resulted |
       | 1               | account{RANDOM} | Test Sample Applicant Organisation {SCENARIO_ID} | Test Sample Res Organisation {SCENARIO_ID} | LS10 1PJ | Appeal to Crown Court | No  |          |
     When User Clicks On The "Show all sections" Button
     Then User Should See The Button "Hide all sections"
@@ -312,16 +312,16 @@ Feature: Applications List Entry Create
     Then User See "Summary of application list entry" On The Page
     # Verify Applicant Details
     When User Verifies In The Applicant Details
-      | Select applicant type | Organisation                                |
+      | Select applicant type | Organisation                                     |
       | Organisation name     | Test Sample Applicant Organisation {SCENARIO_ID} |
       | Address line 1        | {SCENARIO_ID} High Street                        |
       | Address line 2        | Apartment {SCENARIO_ID}                          |
-      | Town or city          | Leeds                                       |
-      | County or region      | West Yorkshire                              |
-      | Post town             | Leeds                                       |
-      | Postcode              | LS10 1PJ                                    |
-      | Phone number          | 020 7946 0000                               |
-      | Mobile number         | 07123 456789                                |
+      | Town or city          | Leeds                                            |
+      | County or region      | West Yorkshire                                   |
+      | Post town             | Leeds                                            |
+      | Postcode              | LS10 1PJ                                         |
+      | Phone number          | 020 7946 0000                                    |
+      | Mobile number         | 07123 456789                                     |
       | Email address         | john.smith_{SCENARIO_ID}test@example.com         |
     # Verify Application Codes Details
     Then User Verifies The Textbox "Application code" Contains "AP99001" In The Accordion "Application codes"
@@ -333,16 +333,16 @@ Feature: Applications List Entry Create
     Then User Verifies Textbox With Placeholder "Enter a Date of Hearing" Contains "{SCENARIO_ID}" In The Accordion "Wording"
     # Verify Respondent Details
     When User Verifies In The Respondent Details
-      | Select type       | Organisation                              |
+      | Select type       | Organisation                                   |
       | Organisation name | Test Sample Res Organisation {SCENARIO_ID}     |
       | Address line 1    | {SCENARIO_ID} Low Street                       |
       | Address line 2    | Apartment {SCENARIO_ID}                        |
-      | Town or city      | Leeds                                     |
-      | County or region  | East Yorkshire                            |
-      | Post town         | Leeds                                     |
-      | Postcode          | LS10 1PJ                                  |
-      | Phone number      | 020 7946 0000                             |
-      | Mobile number     | 07123 456789                              |
+      | Town or city      | Leeds                                          |
+      | County or region  | East Yorkshire                                 |
+      | Post town         | Leeds                                          |
+      | Postcode          | LS10 1PJ                                       |
+      | Phone number      | 020 7946 0000                                  |
+      | Mobile number     | 07123 456789                                   |
       | Email address     | Respondent.smith_{SCENARIO_ID}test@example.com |
     # Verify Civil Fee Details
     Then User Should See The Text "No fee required" In The Accordion "Civil fee"
@@ -356,7 +356,7 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Application details" Contains "This is a test application with special requirements" In The Accordion "Notes"
     # Result Wording Details
     Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
-      | Applicant                                   | Respondent                            | Application title     |
+      | Applicant                                        | Respondent                                 | Application title     |
       | Test Sample Applicant Organisation {SCENARIO_ID} | Test Sample Res Organisation {SCENARIO_ID} | Appeal to Crown Court |
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details
@@ -381,7 +381,7 @@ Feature: Applications List Entry Create
     Given User Authenticates Via API As "user1"
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:
-      | date     | time  | status | description                             | durationHours | durationMinutes | courtLocationCode |
+      | date     | time  | status | description                                  | durationHours | durationMinutes | courtLocationCode |
       | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
@@ -389,10 +389,10 @@ Feature: Applications List Entry Create
     When User Signs In With Microsoft SSO As "user1"
     # Search Created Application List
     When User Searches Application List With:
-      | Date  | Time | List description                        | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | Date  | Time | List description                             | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-      | Date         | Time  | Location                          | Description                             | Entries | Status |
+      | Date         | Time  | Location                          | Description                                  | Entries | Status |
       | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   |
     ## Create Application under Application List
     Then User Clicks On The Link "Create application"
