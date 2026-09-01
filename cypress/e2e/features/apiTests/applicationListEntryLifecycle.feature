@@ -411,9 +411,9 @@ Feature: API - Application List Entry Lifecycle
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId"
     When User Makes POST API Request To "/application-lists/:sourceListId/entries/:entryId/results" With Object Builder:
-      | resultCode            | APPC                |
-      | wordingFields.0.key   | Name of Crown Court |
-      | wordingFields.0.value | Leeds Crown Court   |
+      | resultCode            | GRSW        |
+      | wordingFields.0.key   | Time issued |
+      | wordingFields.0.value | 10:00       |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "resultId"
     When User Makes POST API Request To "/application-lists/:sourceListId/entries/move" With Object Builder:
@@ -426,7 +426,7 @@ Feature: API - Application List Entry Lifecycle
       | totalElements         | 1         |
       | content[0].id         | :resultId |
       | content[0].entryId    | :entryId  |
-      | content[0].resultCode | APPC      |
+      | content[0].resultCode | GRSW      |
 
     Examples:
       | User  |

@@ -5,16 +5,20 @@ import { DateTimeUtil } from './DateTimeUtil';
  */
 export class TestDataGenerator {
   private static scenarioRandom: string | null = null;
+  private static scenarioId: string | null = null;
 
   /**
-   * Initializes a new random value for the current scenario
-   * Uses timestamp + random to ensure uniqueness across scenarios
-   * Generates 6-digit number: 4 from timestamp + 2 from random
+   * Initializes values for the current scenario.
+   *
+   * `{RANDOM}` remains a six-digit numeric value in phone number fields.
+   * `{SCENARIO_ID}` is for persisted text identifiers and is unique across
+   * Cypress workers and CI runs.
    */
   static initializeScenario(): void {
     const random = Math.floor(Math.random() * 100); // 0-99
     const timestamp = Date.now().toString().slice(-4); // Last 4 digits of timestamp
     this.scenarioRandom = `${timestamp}${random.toString().padStart(2, '0')}`;
+    this.scenarioId = this.createScenarioId();
   }
 
   /**
@@ -22,20 +26,64 @@ export class TestDataGenerator {
    */
   static resetScenario(): void {
     this.scenarioRandom = null;
+    this.scenarioId = null;
   }
 
   /**
-   * Replaces {RANDOM} placeholders with the same random number for the entire scenario
-   * @param text The text containing {RANDOM} placeholders
-   * @returns Text with {RANDOM} replaced by scenario-consistent random number
+   * Replaces scenario-scoped placeholders.
+   *
+   * Use `{SCENARIO_ID}` for new names, email addresses, descriptions and
+   * other persisted text values. `{RANDOM}` always remains a six-digit numeric
+   * value so existing constrained values such as case and payment references
+   * remain within their API length limits.
+   *
+   * @param text The text containing scenario placeholders
+   * @returns Text with placeholders replaced by scenario-consistent values
    */
   static replaceRandomPlaceholders(text: string): string {
-    // Initialize scenario random value if not already set
-    if (!this.scenarioRandom) {
+    if (!this.scenarioRandom || !this.scenarioId) {
       this.initializeScenario();
     }
 
-    return text.replace(/{RANDOM}/g, this.scenarioRandom!);
+    return text
+      .replace(/{SCENARIO_ID}/g, this.scenarioId!)
+      .replace(/{RANDOM}/g, this.scenarioRandom!);
+  }
+
+  private static createScenarioId(): string {
+    const cypressEnv =
+      typeof Cypress === 'undefined'
+        ? undefined
+        : (name: string) => Cypress.env(name);
+    const runId = this.sanitiseIdentifier(
+      cypressEnv?.('TEST_RUN_ID') ?? 'local',
+    ).slice(-4);
+    const workerId = this.sanitiseIdentifier(
+      cypressEnv?.('CYPRESS_THREAD') ?? 'local',
+    ).slice(-1);
+    const entropy = this.getSecureRandomValue();
+
+    return `${runId}${workerId}${entropy}`;
+  }
+
+  private static sanitiseIdentifier(value: unknown): string {
+    const identifier = String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+    return identifier.slice(-16) || 'local';
+  }
+
+  private static getSecureRandomValue(): string {
+    const values = new Uint32Array(1);
+
+    if (globalThis.crypto?.getRandomValues) {
+      globalThis.crypto.getRandomValues(values);
+      return values[0].toString(36).padStart(7, '0');
+    }
+
+    return Math.floor(Math.random() * 2 ** 32)
+      .toString(36)
+      .padStart(7, '0');
   }
 
   /**

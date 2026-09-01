@@ -405,9 +405,9 @@ Feature: API - Application List Entry
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId1"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId1/results" With Object Builder:
-      | resultCode            | APPC                |
-      | wordingFields.0.key   | Name of Crown Court |
-      | wordingFields.0.value | Leeds Crown Court   |
+      | resultCode            | GRSW        |
+      | wordingFields.0.key   | Time issued |
+      | wordingFields.0.value | 10:00       |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                        | null                        |
@@ -439,9 +439,9 @@ Feature: API - Application List Entry
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId2"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId2/results" With Object Builder:
-      | resultCode            | APPC                |
-      | wordingFields.0.key   | Name of Crown Court |
-      | wordingFields.0.value | Leeds Crown Court   |
+      | resultCode            | GRSW        |
+      | wordingFields.0.key   | Time issued |
+      | wordingFields.0.value | 10:00       |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId2/results" With Object Builder:
       | resultCode    | CASE            |
@@ -477,16 +477,16 @@ Feature: API - Application List Entry
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId3"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId3/results" With Object Builder:
-      | resultCode            | APPC                |
-      | wordingFields.0.key   | Name of Crown Court |
-      | wordingFields.0.value | Leeds Crown Court   |
+      | resultCode            | GRSW        |
+      | wordingFields.0.key   | Time issued |
+      | wordingFields.0.value | 10:00       |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId3/results" With Object Builder:
       | resultCode            | FRO                   |
       | wordingFields.0.key   | Reason text           |
       | wordingFields.0.value | Caseworker discretion |
     Then User Verify Response Status Code Should Be "201"
-    When User Makes GET API Request To "/application-lists/:listId/entries?pageNumber=0&pageSize=10&sort=sequenceNumber,asc&resulted=APPC"
+    When User Makes GET API Request To "/application-lists/:listId/entries?pageNumber=0&pageSize=10&sort=sequenceNumber,asc&resulted=GRSW"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
       | totalElements  | 3         |
@@ -608,17 +608,15 @@ Feature: API - Application List Entry
     When User Makes GET API Request To "/application-lists/:listId/entries?pageNumber=0&pageSize=10&sort=applicantName,asc"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
-      | totalElements                              | 3             |
-      | elementsOnPage                             | 3             |
-      | content[0].id                              | :entryId1     |
-      | content[0].applicant.person.name.title     | Ms            |
-      | content[0].applicant.person.name.firstName | Amelia        |
-      | content[0].applicant.person.name.lastName  | Hall          |
-      | content[1].id                              | :entryId2     |
-      | content[1].applicant.organisation.name     | Beta Org      |
-      | content[2].id                              | :entryId3     |
-      | sort.orders[0].property                    | applicantName |
-      | sort.orders[0].direction                   | asc           |
+      | totalElements                              | 3              |
+      | elementsOnPage                             | 3              |
+      | content[0].id                              | :entryId2      |
+      | content[0].applicant.organisation.name     | Beta Org       |
+      | content[1].id                              | :entryId3      |
+      | content[1].applicant.person.name.lastName  | Turner{RANDOM} |
+      | content[2].id                              | :entryId1      |
+      | content[2].respondent.person.name.lastName | Abbott{RANDOM} |
+
     When User Makes GET API Request To "/application-codes/AP99001?date=todayiso"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
