@@ -1,4 +1,9 @@
-import { AccountInfo, ConfidentialClientApplication } from '@azure/msal-node';
+import {
+  type AccountInfo,
+  type AuthenticationResult,
+  ConfidentialClientApplication,
+  type Configuration,
+} from '@azure/msal-node';
 import * as nodejsLogging from '@hmcts/nodejs-logging';
 import { HmctsLogger } from '@hmcts/nodejs-logging';
 import config from 'config';
@@ -39,14 +44,43 @@ export type SsoConfigOverrides = Partial<{
   postLogoutRedirectUri: string;
 }>;
 
-let ccaInstance: ConfidentialClientApplication | null = null;
+let ccaConfig: Configuration | null = null;
 
-/** Optional accessor if other modules need the MSAL instance */
-export function getCca(): ConfidentialClientApplication {
-  if (!ccaInstance) {
+/** Create an isolated MSAL client for one authentication operation. */
+export function createCca(): ConfidentialClientApplication {
+  if (!ccaConfig) {
     throw new Error('SSO not initialised yet: call setupSsoRoutes(app) first.');
   }
-  return ccaInstance;
+  return new ConfidentialClientApplication(ccaConfig);
+}
+
+export type SessionTokenCache = {
+  account?: AccountInfo;
+  tokenCache?: string;
+};
+
+export async function acquireApiTokenFromSession(
+  session: SessionTokenCache | undefined,
+  scopes: string[],
+): Promise<AuthenticationResult | null> {
+  if (!session?.account || !session.tokenCache || scopes.length === 0) {
+    return null;
+  }
+
+  const cca = createCca();
+  const tokenCache = cca.getTokenCache();
+  tokenCache.deserialize(session.tokenCache);
+
+  const result = await cca.acquireTokenSilent({
+    account: session.account,
+    scopes,
+  });
+
+  if (result?.accessToken) {
+    session.tokenCache = tokenCache.serialize();
+  }
+
+  return result;
 }
 
 /** Build redirect URI based on current request */
@@ -132,14 +166,14 @@ export function setupSsoRoutes(
     overrides?.clientSecret ??
     config.get<string>('secrets.appreg.azure-client-secret-fe');
 
-  // Build MSAL with the real tenant/credentials
-  ccaInstance = new ConfidentialClientApplication({
+  // Store the real tenant/credentials for request-isolated MSAL clients.
+  ccaConfig = {
     auth: {
       clientId,
       authority: `https://login.microsoftonline.com/${tenantId}`,
       clientSecret,
     },
-  });
+  };
 
   // Scoped router that carries session/cookie middleware only for SSO endpoints
   const router = express.Router();
@@ -155,7 +189,7 @@ export function setupSsoRoutes(
       req.session.nonce = nonce;
 
       const redirectUri = `${publicBase(req)}/sso/login-callback`;
-      const authUrl = await getCca().getAuthCodeUrl(
+      const authUrl = await createCca().getAuthCodeUrl(
         buildAuthCodeUrlRequest(state, nonce, redirectUri),
       );
       res.redirect(authUrl);
@@ -195,7 +229,8 @@ export function setupSsoRoutes(
       });
 
       const redirectUri = `${publicBase(req)}/sso/login-callback`;
-      const tokenResponse = await getCca().acquireTokenByCode(
+      const cca = createCca();
+      const tokenResponse = await cca.acquireTokenByCode(
         buildAuthCodeRequest(code, redirectUri),
       );
 
@@ -205,7 +240,7 @@ export function setupSsoRoutes(
       }
 
       req.session.account = tokenResponse.account;
-      req.session.tokenCache = getCca().getTokenCache().serialize();
+      req.session.tokenCache = cca.getTokenCache().serialize();
 
       // Save session
       await new Promise<void>((resolve, reject) => {

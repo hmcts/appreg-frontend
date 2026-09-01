@@ -19,7 +19,7 @@
       </p>
     }
 
-    <div class="app-autocomplete">
+    <div class="app-autocomplete" (focusout)="onFocusOut($event)">
       <input
         class="govuk-input"
         [ngClass]="[widthClass(), showError() ? 'govuk-input--error' : '']"
@@ -31,7 +31,7 @@
         (focus)="onFocus()"
         (click)="onClick()"
         (keydown)="onKeydown($event)"
-        (blur)="onBlur()"
+        (blur)="onBlur($event)"
         (input)="onNativeInput($event)"
         [attr.aria-describedby]="
           (hint() ? id() + '-hint ' : '') + (showError() ? id() + '-error' : '')

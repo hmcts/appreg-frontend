@@ -197,7 +197,7 @@ describe('SuggestionsComponent', () => {
     expect(component.open).toBe(true);
   });
 
-  it('renders suggestions as a plain popup list when suggestions are visible', () => {
+  it('renders suggestions as native button actions in a popup list', () => {
     setInput('id', 'court');
     setInput('showAllValues', true);
     setInput('suggestions', [suggestion('A1', 'Alpha')]);
@@ -217,11 +217,32 @@ describe('SuggestionsComponent', () => {
 
     expect(input.hasAttribute('role')).toBe(false);
     expect(input.hasAttribute('aria-autocomplete')).toBe(false);
+    expect(input.hasAttribute('aria-haspopup')).toBe(false);
     expect(input.hasAttribute('aria-expanded')).toBe(false);
     expect(input.hasAttribute('aria-controls')).toBe(false);
     expect(listbox).toBeTruthy();
     expect(listbox.hasAttribute('role')).toBe(false);
-    expect(option.hasAttribute('role')).toBe(false);
+    expect(option.tagName).toBe('BUTTON');
+  });
+
+  it('closes the popup when focus moves to another page control without selecting', () => {
+    setInput('id', 'activity');
+    setInput('showAllValues', true);
+    setInput('suggestions', [suggestion('A1', 'Alpha')]);
+    component.onFocus();
+    fixture.detectChanges();
+
+    const autocomplete = fixture.nativeElement.querySelector(
+      '.app-autocomplete',
+    ) as HTMLElement;
+    const nextControl = document.createElement('button');
+
+    component.onFocusOut({
+      currentTarget: autocomplete,
+      relatedTarget: nextControl,
+    } as unknown as FocusEvent);
+
+    expect(component.popupVisible).toBe(false);
   });
 
   it('renders no results as a polite live region', () => {
@@ -249,6 +270,18 @@ describe('SuggestionsComponent', () => {
 
     component.onKeydown(new KeyboardEvent('keydown', { key: 'Enter' }));
     expect(component.open).toBe(true);
+  });
+
+  it('closes an open popup when Escape is pressed', () => {
+    setInput('showAllValues', true);
+    setInput('suggestions', [suggestion('A1', 'Alpha')]);
+    component.onFocus();
+
+    expect(component.popupVisible).toBe(true);
+
+    component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+    expect(component.popupVisible).toBe(false);
   });
 
   it('noResultsVisible is true when focused + hasQuery + suggestions empty + not committed + not justSelected + not disabled', () => {

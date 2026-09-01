@@ -24,7 +24,7 @@ import { getRedisUrl } from './redis-config';
 import { setupAppConfigRoute } from './routes/app-config';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
-import { getCca, setupSsoRoutes } from './routes/sso';
+import { acquireApiTokenFromSession, setupSsoRoutes } from './routes/sso';
 import {
   buildXsrfCookieOptions,
   resolveSecureCookiesSetting,
@@ -284,16 +284,9 @@ async function bootstrap(): Promise<void> {
     }
 
     try {
-      getCca().getTokenCache().deserialize(cache);
-      const result = await getCca().acquireTokenSilent({
-        account,
-        scopes: apiScopes,
-      });
+      const result = await acquireApiTokenFromSession(sess, apiScopes);
 
       if (result?.accessToken) {
-        if (sess) {
-          sess.tokenCache = getCca().getTokenCache().serialize();
-        }
         return result.accessToken;
       }
     } catch (e: unknown) {
