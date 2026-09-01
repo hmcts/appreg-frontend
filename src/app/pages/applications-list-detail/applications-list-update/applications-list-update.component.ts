@@ -336,11 +336,4 @@ export class ApplicationsListUpdateComponent {
     const n = Number(s);
     return Number.isFinite(n) ? n : undefined;
   }
-
-  // private normaliseDurationPayload(hours?: number, mins?: number): number {
-  //   const updateHours = !hours ? 0 : hours;
-  //   const updateMins = !mins ? 0 : mins;
-
-  //   return
-  // }
 }
