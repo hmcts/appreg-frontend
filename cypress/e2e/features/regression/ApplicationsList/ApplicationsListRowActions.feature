@@ -257,7 +257,7 @@ Feature: Application List Row Actions
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
             """
             {
-                "standardApplicantCode": "APP032",
+                "standardApplicantCode": "BGAS",
                 "applicationCode": "AD99004",
                 "numberOfRespondents": null,
                 "wordingFields": [],
@@ -320,7 +320,7 @@ Feature: Application List Row Actions
             | Date & Time            | <DisplayDate> <Time>                                                                                                                      |
             | Duration               | -                                                                                                                                         |
             | Location               | <otherLocationDescription> A8 - Derby                                                                                                     |
-            | Applicant              | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD Email: info@example.com                                                            |
+            | Applicant              | British Gas Trading Limited Millstream, Maidenhead Road, Windsor, SL4 5GD                                                                 |
             | Respondent             | -                                                                                                                                         |
             | Case Reference         | CASE-{RANDOM}                                                                                                                             |
             | Application Code       | AD99004                                                                                                                                   |
@@ -339,7 +339,7 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains Text "<otherLocationDescription>"
         Then User Verifies Latest Downloaded PDF Contains Text "<cjaCode> - <OptionText>"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Application brought by | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD Email: info@example.com Phone: 01234567891                                         |
+            | Application brought by | British Gas Trading Limited Maidenhead Road, Windsor, SL4 5GD                                                                             |
             | Respondent             | -                                                                                                                                         |
             | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
             | Dated                  | <DisplayDateLong>                                                                                                                         |

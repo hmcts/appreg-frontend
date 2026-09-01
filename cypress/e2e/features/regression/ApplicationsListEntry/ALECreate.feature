@@ -356,8 +356,8 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Application details" Contains "This is a test application with special requirements" In The Accordion "Notes"
     # Result Wording Details
     Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
-      | Applicant                                   | Respondent                            | Application title                              |
-      | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | Appeal to Crown Court                          |
+      | Applicant                                   | Respondent                            | Application title     |
+      | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | Appeal to Crown Court |
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details
     Then User Should See The Textbox "Magistrate's title" Under "Magistrate 1" FieldSet In The Accordion "Officials"
@@ -400,12 +400,12 @@ Feature: Applications List Entry Create
     Then User Should See The Button "Hide all sections"
     # Applicant Details - Standard Applicant Bug-ARCPOC-1342
     Then User Selects "Standard Applicant" In The "Select applicant type" Dropdown
-    Then User Enters "APP025" Into The Textbox "Code" In The Accordion "Applicant"
+    Then User Enters "BGAS" Into The Textbox "Code" In The Accordion "Applicant"
     When User Clicks On The "Search" Button
-    Then User Should See The Text "Ava Johnson" In The Accordion "Applicant"
-    Then User Should See The Text "258 Cedar Lane" In The Accordion "Applicant"
-    Then User Checks The Checkbox With Label "Select APP025" In The Accordion "Applicant"
-    Then User Should See The Text "Currently selected APP025 Ava Johnson" In The Accordion "Applicant"
+    Then User Should See The Text "British Gas Trading Limited" In The Accordion "Applicant"
+    Then User Should See The Text "Millstream" In The Accordion "Applicant"
+    Then User Checks The Checkbox With Label "Select BGAS" In The Accordion "Applicant"
+    Then User Should See The Text "Currently selected BGAS British Gas Trading Limited" In The Accordion "Applicant"
     # Application Codes
     Then User Enters "MH99001" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
@@ -450,8 +450,8 @@ Feature: Applications List Entry Create
     # ---------------OPEN APPLICATION LIST ENTRY-----------@ARCPOC-635 SC3
     Then User Clicks On The Breadcrumb Link "Applications list details"
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
-      | Sequence number | Account number  | Applicant   | Respondent | Postcode | Title                                                                     | Fee | Resulted |
-      | 1               | account{RANDOM} | Ava Johnson |            |          | Issue of warrant of arrest in commitment proceedings - council tax (bulk) | Yes |          |
+      | Sequence number | Account number  | Applicant                   | Respondent | Postcode | Title                                                                     | Fee | Resulted |
+      | 1               | account{RANDOM} | British Gas Trading Limited |            |          | Issue of warrant of arrest in commitment proceedings - council tax (bulk) | Yes |          |
     When User Clicks On The "Show all sections" Button
     Then User Should See The Button "Hide all sections"
     Then User Sees Page Heading "Applications list entry update"
@@ -459,10 +459,10 @@ Feature: Applications List Entry Create
     # Verify Applicant Details
     When User Verifies In The Applicant Details
       | Select applicant type | Standard Applicant |
-    Then User Should See The Text "Saved APP025 Ava Johnson" In The Accordion "Applicant"
+    Then User Should See The Text "Saved BGAS British Gas Trading Limited" In The Accordion "Applicant"
     Then User Verifies The Checkbox is Checked In Row Of Table "Standard applicants" In The Accordion "Applicant" With:
-      | Code   | Name        | Address        | Use from   | Use to |
-      | APP025 | Ava Johnson | 258 Cedar Lane | 6 Nov 2025 | —      |
+      | Code | Name                        | Address    | Use from   | Use to |
+      | BGAS | British Gas Trading Limited | Millstream | 1 Jun 2016 | —      |
     # Verify Application Codes Details
     Then User Verifies The Textbox "Application code" Contains "MH99001" In The Accordion "Application codes"
     Then User Verifies The Textbox "Application title" Contains "Issue of warrant of arrest in commitment proceedings - council tax (bulk)" In The Accordion "Application codes"
@@ -492,8 +492,8 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Application details" Contains "This is a test application with special requirements" In The Accordion "Notes"
     # Result Wording Details
     Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
-      | Applicant   | Respondent | Application title                                                         |
-      | Ava Johnson |            | Issue of warrant of arrest in commitment proceedings - council tax (bulk) |
+      | Applicant                   | Respondent | Application title                                                         |
+      | British Gas Trading Limited |            | Issue of warrant of arrest in commitment proceedings - council tax (bulk) |
     Then User Verifies The Textbox "Result code" In The Accordion "Result wording" Is Empty
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details

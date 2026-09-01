@@ -43,28 +43,28 @@ Feature: API - Application List Entry Results
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
-      | resultCode            | APPC                |
-      | wordingFields.0.key   | Name of Crown Court |
-      | wordingFields.0.value | Leeds Crown Court   |
+      | resultCode            | GRSW        |
+      | wordingFields.0.key   | Time issued |
+      | wordingFields.0.value | 10:00       |
     Then User Verify Response Status Code Should Be "201"
     Then User Verify Response Body Should Have:
-      | entryId                                       | :entryId                                     |
-      | resultCode                                    | APPC                                         |
-      | wording.template                              | Appeal forwarded to {{Name of Crown Court}}. |
-      | wording.substitution-key-constraints[0].key   | Name of Crown Court                          |
-      | wording.substitution-key-constraints[0].value | Leeds Crown Court                            |
+      | entryId                                       | :entryId                                          |
+      | resultCode                                    | GRSW                                              |
+      | wording.template                              | Granted. Search warrant issued at {{Time issued}} |
+      | wording.substitution-key-constraints[0].key   | Time issued                                       |
+      | wording.substitution-key-constraints[0].value | 10:00                                             |
     Then User Stores Response Body Property "id" As "resultId"
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId/results?pageNumber=0&pageSize=10"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
-      | totalElements                                            | 1                                            |
-      | elementsOnPage                                           | 1                                            |
-      | content[0].id                                            | :resultId                                    |
-      | content[0].entryId                                       | :entryId                                     |
-      | content[0].resultCode                                    | APPC                                         |
-      | content[0].wording.template                              | Appeal forwarded to {{Name of Crown Court}}. |
-      | content[0].wording.substitution-key-constraints[0].key   | Name of Crown Court                          |
-      | content[0].wording.substitution-key-constraints[0].value | Leeds Crown Court                            |
+      | totalElements                                            | 1                                                 |
+      | elementsOnPage                                           | 1                                                 |
+      | content[0].id                                            | :resultId                                         |
+      | content[0].entryId                                       | :entryId                                          |
+      | content[0].resultCode                                    | GRSW                                              |
+      | content[0].wording.template                              | Granted. Search warrant issued at {{Time issued}} |
+      | content[0].wording.substitution-key-constraints[0].key   | Time issued                                       |
+      | content[0].wording.substitution-key-constraints[0].value | 10:00                                             |
 
     Examples:
       | User  |
@@ -113,9 +113,9 @@ Feature: API - Application List Entry Results
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
-      | resultCode            | APPC                   |
-      | wordingFields.0.key   | Name of Crown Court    |
-      | wordingFields.0.value | Central Criminal Court |
+      | resultCode            | GRSW        |
+      | wordingFields.0.key   | Time issued |
+      | wordingFields.0.value | 10:00       |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "resultId"
     When User Makes PUT API Request To "/application-lists/:listId/entries/:entryId/results/:resultId" With Object Builder:
@@ -255,9 +255,9 @@ Feature: API - Application List Entry Results
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
-      | resultCode            | APPC                |
-      | wordingFields.0.key   | Name of Crown Court |
-      | wordingFields.0.value | Leeds Crown Court   |
+      | resultCode            | GRSW        |
+      | wordingFields.0.key   | Time issued |
+      | wordingFields.0.value | 10:00       |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "resultId1"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
@@ -266,9 +266,9 @@ Feature: API - Application List Entry Results
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "resultId2"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
-      | resultCode            | APPC                   |
-      | wordingFields.0.key   | Name of Crown Court    |
-      | wordingFields.0.value | Manchester Crown Court |
+      | resultCode            | GRSW        |
+      | wordingFields.0.key   | Time issued |
+      | wordingFields.0.value | 10:00       |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "resultId3"
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId/results?pageNumber=0&pageSize=2"
