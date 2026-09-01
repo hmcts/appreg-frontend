@@ -49,6 +49,7 @@
                   type="button"
                   class="app-autocomplete__link"
                   (mousedown)="choose(item, $event)"
+                  (keydown)="onItemKeydown(item, $event)"
                 >
                   {{ labelFor(item) }}
                 </button>
