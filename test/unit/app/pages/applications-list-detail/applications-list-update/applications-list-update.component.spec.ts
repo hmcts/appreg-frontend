@@ -328,6 +328,21 @@ describe('ApplicationsListUpdateComponent', () => {
     );
   });
 
+  it('onUpdate: resets an omitted duration to zero in the update request', () => {
+    setValidUpdateFormValues();
+
+    component.onUpdate();
+
+    expect(setUpdateRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          durationHours: 0,
+          durationMinutes: 0,
+        }),
+      }),
+    );
+  });
+
   it('coerces numeric duration strings and ignores blank or invalid strings', () => {
     const toNum = (
       component as unknown as {

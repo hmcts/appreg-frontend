@@ -119,15 +119,18 @@ export class ApplicationsListUpdateComponent {
 
     // build payload
     const dur = this.form().controls.duration.value;
-    const durationHours = this.toNum(dur?.hours);
-    const durationMinutes = this.toNum(dur?.minutes);
+
+    // BE ignore updates to null/undefined, so if the user intentionally
+    // clears the duration values then set as 0
+    const durationHours = this.toNum(dur?.hours) ?? 0;
+    const durationMinutes = this.toNum(dur?.minutes) ?? 0;
 
     try {
       const normalized = buildNormalizedPayload(raw);
       const payload: ApplicationListUpdateDto = {
+        durationHours,
+        durationMinutes,
         ...normalized,
-        ...(Number.isInteger(durationHours) ? { durationHours } : {}),
-        ...(Number.isInteger(durationMinutes) ? { durationMinutes } : {}),
       } as ApplicationListUpdateDto;
 
       // Nav to close list page
@@ -333,4 +336,11 @@ export class ApplicationsListUpdateComponent {
     const n = Number(s);
     return Number.isFinite(n) ? n : undefined;
   }
+
+  // private normaliseDurationPayload(hours?: number, mins?: number): number {
+  //   const updateHours = !hours ? 0 : hours;
+  //   const updateMins = !mins ? 0 : mins;
+
+  //   return
+  // }
 }
