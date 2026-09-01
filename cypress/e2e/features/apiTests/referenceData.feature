@@ -9,7 +9,6 @@ Feature: API -Reference Data
             | pageNumber              | 0                                     |
             | pageSize                | 10                                    |
             | totalPages              | 39                                    |
-            | totalElements           | 384                                   |
             | first                   | true                                  |
             | last                    | false                                 |
             | elementsOnPage          | 10                                    |
@@ -88,7 +87,6 @@ Feature: API -Reference Data
             | pageNumber     | 0     |
             | pageSize       | 10    |
             | totalPages     | 22    |
-            | totalElements  | 211   |
             | first          | true  |
             | last           | false |
             | elementsOnPage | 10    |

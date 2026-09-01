@@ -85,7 +85,7 @@ Feature: Standard Applicants
 
         Examples:
             | ExceedingLengthCode | ExceedingLengthName                                                                                             | InvalidCode | Code | TableName           |
-            | 12345678901         | A very long name that exceeds the maximum length of 100 characters for a standard applicant name in the system. | 1234567890  | app  | Standard applicants |
+            | 12345678901         | A very long name that exceeds the maximum length of 100 characters for a standard applicant name in the system. | 1234567890  | ad   | Standard applicants |
 
     @regression @standardApplicants @ARCPOC-766
     Scenario: View a Standard Applicant in read-only mode
