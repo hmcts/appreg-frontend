@@ -108,8 +108,14 @@ function mergeCucumberJsonFiles(jsonFiles) {
       const content = fs.readFileSync(file, 'utf8');
       const data = JSON.parse(content);
 
-      // Handle both array and single feature
+      // Handle both array and single feature. A report must contain an
+      // object (or an array of objects); accepting any other JSON value can
+      // silently produce an incomplete HTML report.
       const features = Array.isArray(data) ? data : [data];
+
+      if (features.some((feature) => !feature || typeof feature !== 'object')) {
+        throw new Error('report content is not a Cucumber feature object');
+      }
 
       logger.info(`  Features in file: ${features.length}`);
       features.forEach((feature) => {
@@ -123,6 +129,7 @@ function mergeCucumberJsonFiles(jsonFiles) {
       mergedFeatures.push(...features);
     } catch (error) {
       logger.error(`  Error reading/parsing ${file}:`, error.message);
+      throw new Error(`Cannot merge incomplete Cucumber report: ${file}`);
     }
   });
 

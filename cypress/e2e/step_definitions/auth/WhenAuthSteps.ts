@@ -2,18 +2,22 @@ import { When } from '@badeball/cypress-cucumber-preprocessor';
 
 import { AuthErrorScenarios } from '../../../support/helper/auth/AuthErrorScenarios';
 import { AuthHelper } from '../../../support/helper/auth/AuthHelper';
+import { resolveParallelUserKey } from '../../../support/utils/ParallelUserResolver';
 
 When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
   cy.task<Record<string, { email: string; password: string }>>(
     'getEnv',
     'SSO_USERS',
   ).then((ssoUsers) => {
-    const user = ssoUsers[userType] || ssoUsers['default'];
+    const resolvedUserKey = resolveParallelUserKey(userType, ssoUsers);
+    const user = ssoUsers[resolvedUserKey] || ssoUsers['default'];
     if (!user) {
-      throw new Error(`SSO user type "${userType}" not found in configuration`);
+      throw new Error(
+        `SSO user type "${resolvedUserKey}" not found in configuration`,
+      );
     }
     AuthHelper.signInWithMicrosoftSSO(user.email, user.password);
-    cy.screenshot(`SSOLogin-${userType}`);
+    cy.screenshot(`SSOLogin-${resolvedUserKey}`);
   });
 });
 

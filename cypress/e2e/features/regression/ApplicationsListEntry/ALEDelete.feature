@@ -13,10 +13,10 @@ Feature: Application List Entry Delete
             | standardApplicantCode                         | null                           |
             | applicationCode                               | AP99001                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
             | applicant.person.name.firstName               | Henry                          |
             | applicant.person.name.middleName              | James                          |
-            | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
+            | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
             | applicant.person.contactDetails.addressLine4  | Greater London                 |
@@ -24,29 +24,29 @@ Feature: Application List Entry Delete
             | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
             | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
             | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
-            | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
+            | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
             | respondent.person.name.firstName              | Emily                          |
             | respondent.person.name.middleName             | Rose                           |
-            | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
+            | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
             | respondent.person.contactDetails.postcode     | BS15 5AA                       |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
-            | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+            | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | wordingFields.0.key                           | Date of Hearing                |
-            | wordingFields.0.value                         | "{RANDOM}"                     |
+            | wordingFields.0.value                         | "{SCENARIO_ID}"                     |
             | hasOffsiteFee                                 | true                           |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-E1-{RANDOM}                |
-            | notes                                         | Case noted with ref {RANDOM}   |
+            | notes                                         | Case noted with ref {SCENARIO_ID}   |
             | lodgementDate                                 | todayiso                       |
             | officials.0.title                             | Mr                             |
-            | officials.0.surname                           | Turner {RANDOM}                |
+            | officials.0.surname                           | Turner {SCENARIO_ID}                |
             | officials.0.forename                          | Graham                         |
             | officials.0.type                              | MAGISTRATE                     |
         Then User Verify Response Status Code Should Be "201"
@@ -62,23 +62,23 @@ Feature: Application List Entry Delete
         Then User See "Applications" On The Page
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number  | Applicant             | Respondent           | Postcode | Title                 | Fee | Resulted |
-            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Appeal to Crown Court | No  |          |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Appeal to Crown Court | No  |          |
         When User Clicks "Select" Then "Delete" From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant             | Respondent           | Postcode | Title                 | Fee | Resulted |
-            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Appeal to Crown Court | No  |          |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Appeal to Crown Court | No  |          |
         Then User Sees Warning Alert "You are about to delete this application. This action cannot be undone."
         Then User See "Are you sure you want to delete this application?" On The Page
         Then User Should See Row In Table With Values:
             | Sequence number | Account number  | Applicant             | Respondent           | Postcode | Title                 | Fee | Resulted |
-            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Appeal to Crown Court | No  |          |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Appeal to Crown Court | No  |          |
         Then User Clicks On The Link "Cancel"
         Then User See "Applications" On The Page
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number  | Applicant             | Respondent           | Postcode | Title                 | Fee | Resulted |
-            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Appeal to Crown Court | No  |          |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Appeal to Crown Court | No  |          |
         When User Clicks "Select" Then "Delete" From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant             | Respondent           | Postcode | Title                 | Fee | Resulted |
-            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Appeal to Crown Court | No  |          |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Appeal to Crown Court | No  |          |
         When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Application deleted" Containing "Application has been successfully deleted"
         Then User See "Applications" On The Page

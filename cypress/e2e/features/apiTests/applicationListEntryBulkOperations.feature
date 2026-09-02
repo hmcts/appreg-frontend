@@ -7,7 +7,7 @@ Feature: API - Application List Entry Bulk Operations
       | date              | todayiso                                 |
       | time              | timenowhhmm-2h                           |
       | status            | OPEN                                     |
-      | description       | Bulk officials replacement list {RANDOM} |
+      | description       | Bulk officials replacement list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                   |
       | durationHours     | 2                                        |
       | durationMinutes   | 22                                       |
@@ -18,8 +18,8 @@ Feature: API - Application List Entry Bulk Operations
       | applicationCode                              | AD99002                    |
       | applicant.person.name.title                  | Mr                         |
       | applicant.person.name.firstName              | First                      |
-      | applicant.person.name.lastName               | BulkOfficial{RANDOM}A      |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street       |
+      | applicant.person.name.lastName               | BulkOfficial{SCENARIO_ID}A      |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street       |
       | applicant.person.contactDetails.addressLine2 | Westminster                |
       | applicant.person.contactDetails.addressLine3 | London                     |
       | applicant.person.contactDetails.addressLine4 | Greater London             |
@@ -27,7 +27,7 @@ Feature: API - Application List Entry Bulk Operations
       | applicant.person.contactDetails.postcode     | SW1A 1AA                   |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}               |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}              |
-      | applicant.person.contactDetails.email        | bulk-a{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | bulk-a{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAY-A-{RANDOM}             |
       | feeStatuses.0.paymentStatus                  | PAID                       |
       | feeStatuses.0.statusDate                     | todayiso                   |
@@ -37,7 +37,7 @@ Feature: API - Application List Entry Bulk Operations
       | notes                                        | Bulk official entry A      |
       | lodgementDate                                | todayiso                   |
       | officials.0.title                            | Mr                         |
-      | officials.0.surname                          | OriginalA{RANDOM}          |
+      | officials.0.surname                          | OriginalA{SCENARIO_ID}          |
       | officials.0.forename                         | Clerk                      |
       | officials.0.type                             | CLERK                      |
     Then User Verify Response Status Code Should Be "201"
@@ -47,8 +47,8 @@ Feature: API - Application List Entry Bulk Operations
       | applicationCode                              | AD99002                    |
       | applicant.person.name.title                  | Ms                         |
       | applicant.person.name.firstName              | Second                     |
-      | applicant.person.name.lastName               | BulkOfficial{RANDOM}B      |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street     |
+      | applicant.person.name.lastName               | BulkOfficial{SCENARIO_ID}B      |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street     |
       | applicant.person.contactDetails.addressLine2 | Westminster                |
       | applicant.person.contactDetails.addressLine3 | London                     |
       | applicant.person.contactDetails.addressLine4 | Greater London             |
@@ -56,7 +56,7 @@ Feature: API - Application List Entry Bulk Operations
       | applicant.person.contactDetails.postcode     | BS1 5AA                    |
       | applicant.person.contactDetails.phone        | 0117{RANDOM}               |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}              |
-      | applicant.person.contactDetails.email        | bulk-b{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | bulk-b{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAY-B-{RANDOM}             |
       | feeStatuses.0.paymentStatus                  | PAID                       |
       | feeStatuses.0.statusDate                     | todayiso                   |
@@ -66,7 +66,7 @@ Feature: API - Application List Entry Bulk Operations
       | notes                                        | Bulk official entry B      |
       | lodgementDate                                | todayiso                   |
       | officials.0.title                            | Mrs                        |
-      | officials.0.surname                          | OriginalB{RANDOM}          |
+      | officials.0.surname                          | OriginalB{SCENARIO_ID}          |
       | officials.0.forename                         | Bench                      |
       | officials.0.type                             | MAGISTRATE                 |
     Then User Verify Response Status Code Should Be "201"
@@ -75,11 +75,11 @@ Feature: API - Application List Entry Bulk Operations
       | entryIds.0           | :entryId1     |
       | entryIds.1           | :entryId2     |
       | officials.0.title    | Ms            |
-      | officials.0.surname  | Bench{RANDOM} |
+      | officials.0.surname  | Bench{SCENARIO_ID} |
       | officials.0.forename | Ada           |
       | officials.0.type     | MAGISTRATE    |
       | officials.1.title    | Mr            |
-      | officials.1.surname  | Clerk{RANDOM} |
+      | officials.1.surname  | Clerk{SCENARIO_ID} |
       | officials.1.forename | Clive         |
       | officials.1.type     | CLERK         |
     Then User Verify Response Status Code Should Be "204"
@@ -89,11 +89,11 @@ Feature: API - Application List Entry Bulk Operations
       | officials.length      | 2             |
       | officials[0].title    | Ms            |
       | officials[0].forename | Ada           |
-      | officials[0].surname  | Bench{RANDOM} |
+      | officials[0].surname  | Bench{SCENARIO_ID} |
       | officials[0].type     | MAGISTRATE    |
       | officials[1].title    | Mr            |
       | officials[1].forename | Clive         |
-      | officials[1].surname  | Clerk{RANDOM} |
+      | officials[1].surname  | Clerk{SCENARIO_ID} |
       | officials[1].type     | CLERK         |
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId2"
     Then User Verify Response Status Code Should Be "200"
@@ -101,11 +101,11 @@ Feature: API - Application List Entry Bulk Operations
       | officials.length      | 2             |
       | officials[0].title    | Ms            |
       | officials[0].forename | Ada           |
-      | officials[0].surname  | Bench{RANDOM} |
+      | officials[0].surname  | Bench{SCENARIO_ID} |
       | officials[0].type     | MAGISTRATE    |
       | officials[1].title    | Mr            |
       | officials[1].forename | Clive         |
-      | officials[1].surname  | Clerk{RANDOM} |
+      | officials[1].surname  | Clerk{SCENARIO_ID} |
       | officials[1].type     | CLERK         |
 
     Examples:
@@ -119,7 +119,7 @@ Feature: API - Application List Entry Bulk Operations
       | date              | todayiso                          |
       | time              | timenowhhmm-2h                    |
       | status            | OPEN                              |
-      | description       | Duplicate officials list {RANDOM} |
+      | description       | Duplicate officials list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                            |
       | durationHours     | 2                                 |
       | durationMinutes   | 22                                |
@@ -130,8 +130,8 @@ Feature: API - Application List Entry Bulk Operations
       | applicationCode                              | AD99002                       |
       | applicant.person.name.title                  | Mr                            |
       | applicant.person.name.firstName              | Duplicate                     |
-      | applicant.person.name.lastName               | Officials{RANDOM}             |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street          |
+      | applicant.person.name.lastName               | Officials{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street          |
       | applicant.person.contactDetails.addressLine2 | Westminster                   |
       | applicant.person.contactDetails.addressLine3 | London                        |
       | applicant.person.contactDetails.addressLine4 | Greater London                |
@@ -139,7 +139,7 @@ Feature: API - Application List Entry Bulk Operations
       | applicant.person.contactDetails.postcode     | SW1A 1AA                      |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                  |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                 |
-      | applicant.person.contactDetails.email        | duplicate{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | duplicate{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAY-{RANDOM}                  |
       | feeStatuses.0.paymentStatus                  | PAID                          |
       | feeStatuses.0.statusDate                     | todayiso                      |
@@ -149,7 +149,7 @@ Feature: API - Application List Entry Bulk Operations
       | notes                                        | Duplicate officials setup     |
       | lodgementDate                                | todayiso                      |
       | officials.0.title                            | Mr                            |
-      | officials.0.surname                          | Original{RANDOM}              |
+      | officials.0.surname                          | Original{SCENARIO_ID}              |
       | officials.0.forename                         | Keeper                        |
       | officials.0.type                             | CLERK                         |
     Then User Verify Response Status Code Should Be "201"
@@ -171,7 +171,7 @@ Feature: API - Application List Entry Bulk Operations
       | officials.length      | 1                |
       | officials[0].title    | Mr               |
       | officials[0].forename | Keeper           |
-      | officials[0].surname  | Original{RANDOM} |
+      | officials[0].surname  | Original{SCENARIO_ID} |
       | officials[0].type     | CLERK            |
 
     Examples:
@@ -185,7 +185,7 @@ Feature: API - Application List Entry Bulk Operations
       | date              | todayiso                        |
       | time              | timenowhhmm-2h                  |
       | status            | OPEN                            |
-      | description       | Invalid officials list {RANDOM} |
+      | description       | Invalid officials list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                          |
       | durationHours     | 2                               |
       | durationMinutes   | 22                              |
@@ -196,8 +196,8 @@ Feature: API - Application List Entry Bulk Operations
       | applicationCode                              | AD99002                               |
       | applicant.person.name.title                  | Mr                                    |
       | applicant.person.name.firstName              | Missing                               |
-      | applicant.person.name.lastName               | Officials{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street                  |
+      | applicant.person.name.lastName               | Officials{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street                  |
       | applicant.person.contactDetails.addressLine2 | Westminster                           |
       | applicant.person.contactDetails.addressLine3 | London                                |
       | applicant.person.contactDetails.addressLine4 | Greater London                        |
@@ -205,7 +205,7 @@ Feature: API - Application List Entry Bulk Operations
       | applicant.person.contactDetails.postcode     | SW1A 1AA                              |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                          |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                         |
-      | applicant.person.contactDetails.email        | missing-officials{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | missing-officials{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | OFFMISS-{RANDOM}                      |
       | feeStatuses.0.paymentStatus                  | PAID                                  |
       | feeStatuses.0.statusDate                     | todayiso                              |
@@ -215,7 +215,7 @@ Feature: API - Application List Entry Bulk Operations
       | notes                                        | Bulk officials unchanged              |
       | lodgementDate                                | todayiso                              |
       | officials.0.title                            | Mr                                    |
-      | officials.0.surname                          | Original{RANDOM}                      |
+      | officials.0.surname                          | Original{SCENARIO_ID}                      |
       | officials.0.forename                         | Clerk                                 |
       | officials.0.type                             | CLERK                                 |
     Then User Verify Response Status Code Should Be "201"
@@ -257,7 +257,7 @@ Feature: API - Application List Entry Bulk Operations
       | date              | todayiso                       |
       | time              | timenowhhmm-2h                 |
       | status            | OPEN                           |
-      | description       | Bulk composition list {RANDOM} |
+      | description       | Bulk composition list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                         |
       | durationHours     | 2                              |
       | durationMinutes   | 22                             |
@@ -268,8 +268,8 @@ Feature: API - Application List Entry Bulk Operations
       | applicationCode                              | AD99002                      |
       | applicant.person.name.title                  | Mr                           |
       | applicant.person.name.firstName              | Bulk                         |
-      | applicant.person.name.lastName               | ComposeOne{RANDOM}           |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street         |
+      | applicant.person.name.lastName               | ComposeOne{SCENARIO_ID}           |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street         |
       | applicant.person.contactDetails.addressLine2 | Westminster                  |
       | applicant.person.contactDetails.addressLine3 | London                       |
       | applicant.person.contactDetails.addressLine4 | Greater London               |
@@ -277,7 +277,7 @@ Feature: API - Application List Entry Bulk Operations
       | applicant.person.contactDetails.postcode     | SW1A 1AA                     |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                 |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                |
-      | applicant.person.contactDetails.email        | compose1{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | compose1{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | COMPOSE1-{RANDOM}            |
       | feeStatuses.0.paymentStatus                  | PAID                         |
       | feeStatuses.0.statusDate                     | todayiso                     |
@@ -287,7 +287,7 @@ Feature: API - Application List Entry Bulk Operations
       | notes                                        | Compose bulk entry one       |
       | lodgementDate                                | todayiso                     |
       | officials.0.title                            | Mr                           |
-      | officials.0.surname                          | OriginalOne{RANDOM}          |
+      | officials.0.surname                          | OriginalOne{SCENARIO_ID}          |
       | officials.0.forename                         | Clerk                        |
       | officials.0.type                             | CLERK                        |
     Then User Verify Response Status Code Should Be "201"
@@ -297,8 +297,8 @@ Feature: API - Application List Entry Bulk Operations
       | applicationCode                              | AD99002                      |
       | applicant.person.name.title                  | Ms                           |
       | applicant.person.name.firstName              | Bulk                         |
-      | applicant.person.name.lastName               | ComposeTwo{RANDOM}           |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Crown Street        |
+      | applicant.person.name.lastName               | ComposeTwo{SCENARIO_ID}           |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street        |
       | applicant.person.contactDetails.addressLine2 | Westminster                  |
       | applicant.person.contactDetails.addressLine3 | London                       |
       | applicant.person.contactDetails.addressLine4 | Greater London               |
@@ -306,7 +306,7 @@ Feature: API - Application List Entry Bulk Operations
       | applicant.person.contactDetails.postcode     | SW1A 2AA                     |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                 |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}                |
-      | applicant.person.contactDetails.email        | compose2{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | compose2{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | COMPOSE2-{RANDOM}            |
       | feeStatuses.0.paymentStatus                  | PAID                         |
       | feeStatuses.0.statusDate                     | todayiso                     |
@@ -316,7 +316,7 @@ Feature: API - Application List Entry Bulk Operations
       | notes                                        | Compose bulk entry two       |
       | lodgementDate                                | todayiso                     |
       | officials.0.title                            | Ms                           |
-      | officials.0.surname                          | OriginalTwo{RANDOM}          |
+      | officials.0.surname                          | OriginalTwo{SCENARIO_ID}          |
       | officials.0.forename                         | Bench                        |
       | officials.0.type                             | MAGISTRATE                   |
     Then User Verify Response Status Code Should Be "201"
@@ -370,7 +370,7 @@ Feature: API - Application List Entry Bulk Operations
       | date              | todayiso                         |
       | time              | timenowhhmm-2h                   |
       | status            | OPEN                             |
-      | description       | Bulk result single list {RANDOM} |
+      | description       | Bulk result single list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                           |
       | durationHours     | 2                                |
       | durationMinutes   | 22                               |
@@ -381,8 +381,8 @@ Feature: API - Application List Entry Bulk Operations
       | applicationCode                              | AD99002                     |
       | applicant.person.name.title                  | Mr                          |
       | applicant.person.name.firstName              | Result                      |
-      | applicant.person.name.lastName               | BulkOne{RANDOM}             |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street        |
+      | applicant.person.name.lastName               | BulkOne{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street        |
       | applicant.person.contactDetails.addressLine2 | Westminster                 |
       | applicant.person.contactDetails.addressLine3 | London                      |
       | applicant.person.contactDetails.addressLine4 | Greater London              |
@@ -390,7 +390,7 @@ Feature: API - Application List Entry Bulk Operations
       | applicant.person.contactDetails.postcode     | SW1A 1AA                    |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}               |
-      | applicant.person.contactDetails.email        | result1{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | result1{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAY-1-{RANDOM}              |
       | feeStatuses.0.paymentStatus                  | PAID                        |
       | feeStatuses.0.statusDate                     | todayiso                    |
@@ -400,7 +400,7 @@ Feature: API - Application List Entry Bulk Operations
       | notes                                        | Bulk result entry one       |
       | lodgementDate                                | todayiso                    |
       | officials.0.title                            | Mr                          |
-      | officials.0.surname                          | Official1{RANDOM}           |
+      | officials.0.surname                          | Official1{SCENARIO_ID}           |
       | officials.0.forename                         | John                        |
       | officials.0.type                             | MAGISTRATE                  |
     Then User Verify Response Status Code Should Be "201"
@@ -410,8 +410,8 @@ Feature: API - Application List Entry Bulk Operations
       | applicationCode                              | AD99002                     |
       | applicant.person.name.title                  | Ms                          |
       | applicant.person.name.firstName              | Result                      |
-      | applicant.person.name.lastName               | BulkTwo{RANDOM}             |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Crown Street       |
+      | applicant.person.name.lastName               | BulkTwo{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street       |
       | applicant.person.contactDetails.addressLine2 | Westminster                 |
       | applicant.person.contactDetails.addressLine3 | London                      |
       | applicant.person.contactDetails.addressLine4 | Greater London              |
@@ -419,7 +419,7 @@ Feature: API - Application List Entry Bulk Operations
       | applicant.person.contactDetails.postcode     | SW1A 2AA                    |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}               |
-      | applicant.person.contactDetails.email        | result2{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | result2{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAY-2-{RANDOM}              |
       | feeStatuses.0.paymentStatus                  | PAID                        |
       | feeStatuses.0.statusDate                     | todayiso                    |
@@ -429,7 +429,7 @@ Feature: API - Application List Entry Bulk Operations
       | notes                                        | Bulk result entry two       |
       | lodgementDate                                | todayiso                    |
       | officials.0.title                            | Ms                          |
-      | officials.0.surname                          | Official2{RANDOM}           |
+      | officials.0.surname                          | Official2{SCENARIO_ID}           |
       | officials.0.forename                         | Jane                        |
       | officials.0.type                             | MAGISTRATE                  |
     Then User Verify Response Status Code Should Be "201"
@@ -476,7 +476,7 @@ Feature: API - Application List Entry Bulk Operations
       | date              | todayiso                           |
       | time              | timenowhhmm-2h                     |
       | status            | OPEN                               |
-      | description       | Bulk result rollback list {RANDOM} |
+      | description       | Bulk result rollback list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                             |
       | durationHours     | 2                                  |
       | durationMinutes   | 22                                 |
@@ -487,8 +487,8 @@ Feature: API - Application List Entry Bulk Operations
       | applicationCode                              | AD99002                      |
       | applicant.person.name.title                  | Mr                           |
       | applicant.person.name.firstName              | Rollback                     |
-      | applicant.person.name.lastName               | Candidate{RANDOM}            |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street         |
+      | applicant.person.name.lastName               | Candidate{SCENARIO_ID}            |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street         |
       | applicant.person.contactDetails.addressLine2 | Westminster                  |
       | applicant.person.contactDetails.addressLine3 | London                       |
       | applicant.person.contactDetails.addressLine4 | Greater London               |
@@ -496,7 +496,7 @@ Feature: API - Application List Entry Bulk Operations
       | applicant.person.contactDetails.postcode     | SW1A 1AA                     |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                 |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                |
-      | applicant.person.contactDetails.email        | rollback{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | rollback{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAY-{RANDOM}                 |
       | feeStatuses.0.paymentStatus                  | PAID                         |
       | feeStatuses.0.statusDate                     | todayiso                     |
@@ -506,7 +506,7 @@ Feature: API - Application List Entry Bulk Operations
       | notes                                        | Bulk result rollback         |
       | lodgementDate                                | todayiso                     |
       | officials.0.title                            | Mr                           |
-      | officials.0.surname                          | Rollback{RANDOM}             |
+      | officials.0.surname                          | Rollback{SCENARIO_ID}             |
       | officials.0.forename                         | John                         |
       | officials.0.type                             | MAGISTRATE                   |
     Then User Verify Response Status Code Should Be "201"
@@ -540,7 +540,7 @@ Feature: API - Application List Entry Bulk Operations
       | date              | todayiso                        |
       | time              | timenowhhmm-2h                  |
       | status            | OPEN                            |
-      | description       | Bulk cross-list source {RANDOM} |
+      | description       | Bulk cross-list source {SCENARIO_ID} |
       | courtLocationCode | RCJ001                          |
       | durationHours     | 2                               |
       | durationMinutes   | 22                              |
@@ -550,7 +550,7 @@ Feature: API - Application List Entry Bulk Operations
       | date              | todayiso                        |
       | time              | timenowhhmm-1h                  |
       | status            | OPEN                            |
-      | description       | Bulk cross-list target {RANDOM} |
+      | description       | Bulk cross-list target {SCENARIO_ID} |
       | courtLocationCode | RCJ001                          |
       | durationHours     | 2                               |
       | durationMinutes   | 22                              |
@@ -561,8 +561,8 @@ Feature: API - Application List Entry Bulk Operations
       | applicationCode                              | AD99002                    |
       | applicant.person.name.title                  | Mr                         |
       | applicant.person.name.firstName              | Cross                      |
-      | applicant.person.name.lastName               | ListOne{RANDOM}            |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street       |
+      | applicant.person.name.lastName               | ListOne{SCENARIO_ID}            |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street       |
       | applicant.person.contactDetails.addressLine2 | Westminster                |
       | applicant.person.contactDetails.addressLine3 | London                     |
       | applicant.person.contactDetails.addressLine4 | Greater London             |
@@ -570,7 +570,7 @@ Feature: API - Application List Entry Bulk Operations
       | applicant.person.contactDetails.postcode     | SW1A 1AA                   |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}               |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}              |
-      | applicant.person.contactDetails.email        | cross1{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | cross1{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAY-CL1-{RANDOM}           |
       | feeStatuses.0.paymentStatus                  | PAID                       |
       | feeStatuses.0.statusDate                     | todayiso                   |
@@ -580,7 +580,7 @@ Feature: API - Application List Entry Bulk Operations
       | notes                                        | Cross-list entry one       |
       | lodgementDate                                | todayiso                   |
       | officials.0.title                            | Mr                         |
-      | officials.0.surname                          | CrossOne{RANDOM}           |
+      | officials.0.surname                          | CrossOne{SCENARIO_ID}           |
       | officials.0.forename                         | John                       |
       | officials.0.type                             | MAGISTRATE                 |
     Then User Verify Response Status Code Should Be "201"
@@ -590,8 +590,8 @@ Feature: API - Application List Entry Bulk Operations
       | applicationCode                              | AD99002                    |
       | applicant.person.name.title                  | Ms                         |
       | applicant.person.name.firstName              | Cross                      |
-      | applicant.person.name.lastName               | ListTwo{RANDOM}            |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Crown Street      |
+      | applicant.person.name.lastName               | ListTwo{SCENARIO_ID}            |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street      |
       | applicant.person.contactDetails.addressLine2 | Westminster                |
       | applicant.person.contactDetails.addressLine3 | London                     |
       | applicant.person.contactDetails.addressLine4 | Greater London             |
@@ -599,7 +599,7 @@ Feature: API - Application List Entry Bulk Operations
       | applicant.person.contactDetails.postcode     | SW1A 2AA                   |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}               |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}              |
-      | applicant.person.contactDetails.email        | cross2{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | cross2{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAY-CL2-{RANDOM}           |
       | feeStatuses.0.paymentStatus                  | PAID                       |
       | feeStatuses.0.statusDate                     | todayiso                   |
@@ -609,7 +609,7 @@ Feature: API - Application List Entry Bulk Operations
       | notes                                        | Cross-list entry two       |
       | lodgementDate                                | todayiso                   |
       | officials.0.title                            | Ms                         |
-      | officials.0.surname                          | CrossTwo{RANDOM}           |
+      | officials.0.surname                          | CrossTwo{SCENARIO_ID}           |
       | officials.0.forename                         | Jane                       |
       | officials.0.type                             | MAGISTRATE                 |
     Then User Verify Response Status Code Should Be "201"

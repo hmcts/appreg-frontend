@@ -6,7 +6,7 @@ Feature: API - Application List Entry Validation
       | date              | todayiso                          |
       | time              | timenowhhmm-2h                    |
       | status            | OPEN                              |
-      | description       | ALE validation test list {RANDOM} |
+      | description       | ALE validation test list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                            |
       | durationHours     | 2                                 |
       | durationMinutes   | 22                                |
@@ -20,8 +20,8 @@ Feature: API - Application List Entry Validation
       | applicationCode                               | AP99001                        |
       | applicant.person.name.title                   | Mr                             |
       | applicant.person.name.firstName               | John                           |
-      | applicant.person.name.lastName                | Optional{RANDOM}               |
-      | applicant.person.contactDetails.addressLine1  | {RANDOM} High Street           |
+      | applicant.person.name.lastName                | Optional{SCENARIO_ID}               |
+      | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} High Street           |
       | applicant.person.contactDetails.addressLine2  | Westminster                    |
       | applicant.person.contactDetails.addressLine3  | London                         |
       | applicant.person.contactDetails.addressLine4  | Greater London                 |
@@ -29,18 +29,18 @@ Feature: API - Application List Entry Validation
       | applicant.person.contactDetails.postcode      | SW1A 2AA                       |
       | applicant.person.contactDetails.phone         | 0207{RANDOM}                   |
       | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
-      | applicant.person.contactDetails.email         | optional{RANDOM}@example.com   |
+      | applicant.person.contactDetails.email         | optional{SCENARIO_ID}@example.com   |
       | respondent.person.name.title                  | Ms                             |
       | respondent.person.name.firstName              | Rachel                         |
-      | respondent.person.name.lastName               | Optional{RANDOM}               |
-      | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Street         |
+      | respondent.person.name.lastName               | Optional{SCENARIO_ID}               |
+      | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street         |
       | respondent.person.contactDetails.addressLine2 | Bristol                        |
       | respondent.person.contactDetails.addressLine3 | Avon                           |
       | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
       | respondent.person.contactDetails.postcode     | BS15 5AA                       |
       | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
       | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
-      | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+      | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
       | wordingFields.0.key                           | Date of Hearing                |
       | wordingFields.0.value                         | 5                              |
       | hasOffsiteFee                                 | false                          |
@@ -48,14 +48,14 @@ Feature: API - Application List Entry Validation
       | notes                                         | Optional respondent validation |
       | lodgementDate                                 | todayiso                       |
       | officials.0.title                             | Mr                             |
-      | officials.0.surname                           | Clerk{RANDOM}                  |
+      | officials.0.surname                           | Clerk{SCENARIO_ID}                  |
       | officials.0.forename                          | John                           |
       | officials.0.type                              | MAGISTRATE                     |
     Then User Verify Response Status Code Should Be "201"
     Then User Verify Response Body Should Have:
       | applicationCode                  | AP99001          |
       | respondent.person.name.firstName | Rachel           |
-      | respondent.person.name.lastName  | Optional{RANDOM} |
+      | respondent.person.name.lastName  | Optional{SCENARIO_ID} |
 
   @api @applicationListEntry @regression @ARCPOC-935
   Scenario: Create application list entry with bulk respondent details when application code allows bulk respondents
@@ -64,8 +64,8 @@ Feature: API - Application List Entry Validation
       | applicationCode                              | MH99001                    |
       | applicant.person.name.title                  | Mr                         |
       | applicant.person.name.firstName              | John                       |
-      | applicant.person.name.lastName               | Bulk{RANDOM}               |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street       |
+      | applicant.person.name.lastName               | Bulk{SCENARIO_ID}               |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street       |
       | applicant.person.contactDetails.addressLine2 | Westminster                |
       | applicant.person.contactDetails.addressLine3 | London                     |
       | applicant.person.contactDetails.addressLine4 | Greater London             |
@@ -73,7 +73,7 @@ Feature: API - Application List Entry Validation
       | applicant.person.contactDetails.postcode     | SW1A 2AA                   |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}               |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}              |
-      | applicant.person.contactDetails.email        | bulk{RANDOM}@example.com   |
+      | applicant.person.contactDetails.email        | bulk{SCENARIO_ID}@example.com   |
       | numberOfRespondents                          | 5                          |
       | wordingFields.0.key                          | Number                     |
       | wordingFields.0.value                        | 5                          |
@@ -85,7 +85,7 @@ Feature: API - Application List Entry Validation
       | notes                                        | Bulk respondent validation |
       | lodgementDate                                | todayiso                   |
       | officials.0.title                            | Mr                         |
-      | officials.0.surname                          | Clerk{RANDOM}              |
+      | officials.0.surname                          | Clerk{SCENARIO_ID}              |
       | officials.0.forename                         | John                       |
       | officials.0.type                             | MAGISTRATE                 |
     Then User Verify Response Status Code Should Be "201"
@@ -100,8 +100,8 @@ Feature: API - Application List Entry Validation
       | applicationCode                               | MH99001                        |
       | applicant.person.name.title                   | Mr                             |
       | applicant.person.name.firstName               | John                           |
-      | applicant.person.name.lastName                | Both{RANDOM}                   |
-      | applicant.person.contactDetails.addressLine1  | {RANDOM} High Street           |
+      | applicant.person.name.lastName                | Both{SCENARIO_ID}                   |
+      | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} High Street           |
       | applicant.person.contactDetails.addressLine2  | Westminster                    |
       | applicant.person.contactDetails.addressLine3  | London                         |
       | applicant.person.contactDetails.addressLine4  | Greater London                 |
@@ -109,18 +109,18 @@ Feature: API - Application List Entry Validation
       | applicant.person.contactDetails.postcode      | SW1A 2AA                       |
       | applicant.person.contactDetails.phone         | 0207{RANDOM}                   |
       | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
-      | applicant.person.contactDetails.email         | both{RANDOM}@example.com       |
+      | applicant.person.contactDetails.email         | both{SCENARIO_ID}@example.com       |
       | respondent.person.name.title                  | Ms                             |
       | respondent.person.name.firstName              | Rachel                         |
-      | respondent.person.name.lastName               | Both{RANDOM}                   |
-      | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Street         |
+      | respondent.person.name.lastName               | Both{SCENARIO_ID}                   |
+      | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street         |
       | respondent.person.contactDetails.addressLine2 | Bristol                        |
       | respondent.person.contactDetails.addressLine3 | Avon                           |
       | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
       | respondent.person.contactDetails.postcode     | BS15 5AA                       |
       | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
       | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
-      | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+      | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
       | numberOfRespondents                           | 10                             |
       | wordingFields.0.key                           | Number                         |
       | wordingFields.0.value                         | 5                              |
@@ -132,7 +132,7 @@ Feature: API - Application List Entry Validation
       | notes                                         | Mutually exclusive validation  |
       | lodgementDate                                 | todayiso                       |
       | officials.0.title                             | Mr                             |
-      | officials.0.surname                           | Clerk{RANDOM}                  |
+      | officials.0.surname                           | Clerk{SCENARIO_ID}                  |
       | officials.0.forename                          | John                           |
       | officials.0.type                              | MAGISTRATE                     |
     Then User Verify Response Status Code Should Be "400"
@@ -147,8 +147,8 @@ Feature: API - Application List Entry Validation
       | applicationCode                              | AP99001                       |
       | applicant.person.name.title                  | Mr                            |
       | applicant.person.name.firstName              | John                          |
-      | applicant.person.name.lastName               | Missing{RANDOM}               |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street          |
+      | applicant.person.name.lastName               | Missing{SCENARIO_ID}               |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street          |
       | applicant.person.contactDetails.addressLine2 | Westminster                   |
       | applicant.person.contactDetails.addressLine3 | London                        |
       | applicant.person.contactDetails.addressLine4 | Greater London                |
@@ -156,7 +156,7 @@ Feature: API - Application List Entry Validation
       | applicant.person.contactDetails.postcode     | SW1A 2AA                      |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                  |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                 |
-      | applicant.person.contactDetails.email        | missing{RANDOM}@example.com   |
+      | applicant.person.contactDetails.email        | missing{SCENARIO_ID}@example.com   |
       | wordingFields.0.key                          | Date of Hearing               |
       | wordingFields.0.value                        | 5                             |
       | hasOffsiteFee                                | false                         |
@@ -164,7 +164,7 @@ Feature: API - Application List Entry Validation
       | notes                                        | Missing respondent validation |
       | lodgementDate                                | todayiso                      |
       | officials.0.title                            | Mr                            |
-      | officials.0.surname                          | Clerk{RANDOM}                 |
+      | officials.0.surname                          | Clerk{SCENARIO_ID}                 |
       | officials.0.forename                         | John                          |
       | officials.0.type                             | MAGISTRATE                    |
     Then User Verify Response Status Code Should Be "201"
@@ -181,8 +181,8 @@ Feature: API - Application List Entry Validation
       | applicationCode                               | EF1213                         |
       | applicant.person.name.title                   | Mr                             |
       | applicant.person.name.firstName               | John                           |
-      | applicant.person.name.lastName                | Fine{RANDOM}                   |
-      | applicant.person.contactDetails.addressLine1  | {RANDOM} High Street           |
+      | applicant.person.name.lastName                | Fine{SCENARIO_ID}                   |
+      | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} High Street           |
       | applicant.person.contactDetails.addressLine2  | Westminster                    |
       | applicant.person.contactDetails.addressLine3  | London                         |
       | applicant.person.contactDetails.addressLine4  | Greater London                 |
@@ -190,18 +190,18 @@ Feature: API - Application List Entry Validation
       | applicant.person.contactDetails.postcode      | SW1A 2AA                       |
       | applicant.person.contactDetails.phone         | 0207{RANDOM}                   |
       | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
-      | applicant.person.contactDetails.email         | fine{RANDOM}@example.com       |
+      | applicant.person.contactDetails.email         | fine{SCENARIO_ID}@example.com       |
       | respondent.person.name.title                  | Ms                             |
       | respondent.person.name.firstName              | Rachel                         |
-      | respondent.person.name.lastName               | Fine{RANDOM}                   |
-      | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Street         |
+      | respondent.person.name.lastName               | Fine{SCENARIO_ID}                   |
+      | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street         |
       | respondent.person.contactDetails.addressLine2 | Bristol                        |
       | respondent.person.contactDetails.addressLine3 | Avon                           |
       | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
       | respondent.person.contactDetails.postcode     | BS15 5AA                       |
       | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
       | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
-      | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+      | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
       | wordingFields                                 | __empty_array__                |
       | feeStatuses.0.paymentReference                | PAY-{RANDOM}                   |
       | feeStatuses.0.paymentStatus                   | PAID                           |
@@ -211,7 +211,7 @@ Feature: API - Application List Entry Validation
       | notes                                         | EF account number validation   |
       | lodgementDate                                 | todayiso                       |
       | officials.0.title                             | Mr                             |
-      | officials.0.surname                           | Clerk{RANDOM}                  |
+      | officials.0.surname                           | Clerk{SCENARIO_ID}                  |
       | officials.0.forename                          | John                           |
       | officials.0.type                              | MAGISTRATE                     |
     Then User Verify Response Status Code Should Be "400"
@@ -225,7 +225,7 @@ Feature: API - Application List Entry Validation
       | standardApplicantCode                              | null                          |
       | applicationCode                                    | AP99001                       |
       | applicant.organisation.name                        | Applicant	Industries          |
-      | applicant.organisation.contactDetails.addressLine1 | {RANDOM} High Street          |
+      | applicant.organisation.contactDetails.addressLine1 | {SCENARIO_ID} High Street          |
       | applicant.organisation.contactDetails.addressLine2 | Westminster                   |
       | applicant.organisation.contactDetails.addressLine3 | London                        |
       | applicant.organisation.contactDetails.addressLine4 | Greater London                |
@@ -233,7 +233,7 @@ Feature: API - Application List Entry Validation
       | applicant.organisation.contactDetails.postcode     | SW1A 2AA                      |
       | applicant.organisation.contactDetails.phone        | 0207{RANDOM}                  |
       | applicant.organisation.contactDetails.mobile       | 07123{RANDOM}                 |
-      | applicant.organisation.contactDetails.email        | applicant{RANDOM}@example.com |
+      | applicant.organisation.contactDetails.email        | applicant{SCENARIO_ID}@example.com |
       | wordingFields.0.key                                | Date of Hearing               |
       | wordingFields.0.value                              | 5                             |
       | hasOffsiteFee                                      | false                         |
@@ -241,7 +241,7 @@ Feature: API - Application List Entry Validation
       | notes                                              | Applicant validation          |
       | lodgementDate                                      | todayiso                      |
       | officials.0.title                                  | Mr                            |
-      | officials.0.surname                                | Clerk{RANDOM}                 |
+      | officials.0.surname                                | Clerk{SCENARIO_ID}                 |
       | officials.0.forename                               | John                          |
       | officials.0.type                                   | MAGISTRATE                    |
     Then User Verify Response Status Code Should Be "400"
@@ -257,8 +257,8 @@ Feature: API - Application List Entry Validation
       | applicationCode                                     | AP99001                        |
       | applicant.person.name.title                         | Mr                             |
       | applicant.person.name.firstName                     | John                           |
-      | applicant.person.name.lastName                      | Respondent{RANDOM}             |
-      | applicant.person.contactDetails.addressLine1        | {RANDOM} High Street           |
+      | applicant.person.name.lastName                      | Respondent{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1        | {SCENARIO_ID} High Street           |
       | applicant.person.contactDetails.addressLine2        | Westminster                    |
       | applicant.person.contactDetails.addressLine3        | London                         |
       | applicant.person.contactDetails.addressLine4        | Greater London                 |
@@ -266,16 +266,16 @@ Feature: API - Application List Entry Validation
       | applicant.person.contactDetails.postcode            | SW1A 2AA                       |
       | applicant.person.contactDetails.phone               | 0207{RANDOM}                   |
       | applicant.person.contactDetails.mobile              | 07123{RANDOM}                  |
-      | applicant.person.contactDetails.email               | applicant{RANDOM}@example.com  |
+      | applicant.person.contactDetails.email               | applicant{SCENARIO_ID}@example.com  |
       | respondent.organisation.name                        | Respondent	Industries          |
-      | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Market Street         |
+      | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Market Street         |
       | respondent.organisation.contactDetails.addressLine2 | Bristol                        |
       | respondent.organisation.contactDetails.addressLine3 | Avon                           |
       | respondent.organisation.contactDetails.addressLine4 | United Kingdom                 |
       | respondent.organisation.contactDetails.postcode     | BS15 5AA                       |
       | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                   |
       | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                  |
-      | respondent.organisation.contactDetails.email        | respondent{RANDOM}@example.com |
+      | respondent.organisation.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
       | wordingFields.0.key                                 | Date of Hearing                |
       | wordingFields.0.value                               | 5                              |
       | hasOffsiteFee                                       | false                          |
@@ -283,7 +283,7 @@ Feature: API - Application List Entry Validation
       | notes                                               | Respondent validation          |
       | lodgementDate                                       | todayiso                       |
       | officials.0.title                                   | Mr                             |
-      | officials.0.surname                                 | Clerk{RANDOM}                  |
+      | officials.0.surname                                 | Clerk{SCENARIO_ID}                  |
       | officials.0.forename                                | John                           |
       | officials.0.type                                    | MAGISTRATE                     |
     Then User Verify Response Status Code Should Be "400"
@@ -299,8 +299,8 @@ Feature: API - Application List Entry Validation
       | applicationCode                                     | AP99001                            |
       | applicant.person.name.title                         | Mr                                 |
       | applicant.person.name.firstName                     | John                               |
-      | applicant.person.name.lastName                      | Organisation{RANDOM}               |
-      | applicant.person.contactDetails.addressLine1        | {RANDOM} High Street               |
+      | applicant.person.name.lastName                      | Organisation{SCENARIO_ID}               |
+      | applicant.person.contactDetails.addressLine1        | {SCENARIO_ID} High Street               |
       | applicant.person.contactDetails.addressLine2        | Westminster                        |
       | applicant.person.contactDetails.addressLine3        | London                             |
       | applicant.person.contactDetails.addressLine4        | Greater London                     |
@@ -308,28 +308,28 @@ Feature: API - Application List Entry Validation
       | applicant.person.contactDetails.postcode            | SW1A 2AA                           |
       | applicant.person.contactDetails.phone               | 0207{RANDOM}                       |
       | applicant.person.contactDetails.mobile              | 07123{RANDOM}                      |
-      | applicant.person.contactDetails.email               | applicant{RANDOM}@example.com      |
+      | applicant.person.contactDetails.email               | applicant{SCENARIO_ID}@example.com      |
       | respondent.person.name.title                        | Ms                                 |
       | respondent.person.name.firstName                    | Rachel                             |
-      | respondent.person.name.lastName                     | Person{RANDOM}                     |
-      | respondent.person.contactDetails.addressLine1       | {RANDOM} Market Street             |
+      | respondent.person.name.lastName                     | Person{SCENARIO_ID}                     |
+      | respondent.person.contactDetails.addressLine1       | {SCENARIO_ID} Market Street             |
       | respondent.person.contactDetails.addressLine2       | Bristol                            |
       | respondent.person.contactDetails.addressLine3       | Avon                               |
       | respondent.person.contactDetails.addressLine4       | United Kingdom                     |
       | respondent.person.contactDetails.postcode           | BS15 5AA                           |
       | respondent.person.contactDetails.phone              | 0117{RANDOM}                       |
       | respondent.person.contactDetails.mobile             | 07984{RANDOM}                      |
-      | respondent.person.contactDetails.email              | person{RANDOM}@example.com         |
+      | respondent.person.contactDetails.email              | person{SCENARIO_ID}@example.com         |
       | respondent.person.dateOfBirth                       | todayiso-25y                       |
-      | respondent.organisation.name                        | Organisation {RANDOM}              |
-      | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Market Road               |
+      | respondent.organisation.name                        | Organisation {SCENARIO_ID}              |
+      | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Market Road               |
       | respondent.organisation.contactDetails.addressLine2 | Bristol                            |
       | respondent.organisation.contactDetails.addressLine3 | Avon                               |
       | respondent.organisation.contactDetails.addressLine4 | United Kingdom                     |
       | respondent.organisation.contactDetails.postcode     | BS15 5AA                           |
       | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                       |
       | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                      |
-      | respondent.organisation.contactDetails.email        | organisation{RANDOM}@example.com   |
+      | respondent.organisation.contactDetails.email        | organisation{SCENARIO_ID}@example.com   |
       | wordingFields.0.key                                 | Date of Hearing                    |
       | wordingFields.0.value                               | 5                                  |
       | hasOffsiteFee                                       | false                              |
@@ -337,7 +337,7 @@ Feature: API - Application List Entry Validation
       | notes                                               | Organisation respondent validation |
       | lodgementDate                                       | todayiso                           |
       | officials.0.title                                   | Mr                                 |
-      | officials.0.surname                                 | Clerk{RANDOM}                      |
+      | officials.0.surname                                 | Clerk{SCENARIO_ID}                      |
       | officials.0.forename                                | John                               |
       | officials.0.type                                    | MAGISTRATE                         |
     Then User Verify Response Status Code Should Be "400"
@@ -352,11 +352,11 @@ Feature: API - Application List Entry Validation
       | applicationCode                              | AD99001                     |
       | applicant.person.name.title                  | Mr                          |
       | applicant.person.name.firstName              | John                        |
-      | applicant.person.name.lastName               | Offsite{RANDOM}             |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street        |
+      | applicant.person.name.lastName               | Offsite{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street        |
       | applicant.person.contactDetails.postcode     | AA1 1AA                     |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                |
-      | applicant.person.contactDetails.email        | offsite{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | offsite{SCENARIO_ID}@example.com |
       | wordingFields                                | __empty_array__             |
       | feeStatuses.0.paymentReference               | PAY-{RANDOM}                |
       | feeStatuses.0.paymentStatus                  | PAID                        |
@@ -366,7 +366,7 @@ Feature: API - Application List Entry Validation
       | notes                                        | Offsite fee validation      |
       | lodgementDate                                | todayiso                    |
       | officials.0.title                            | Mr                          |
-      | officials.0.surname                          | Clerk{RANDOM}               |
+      | officials.0.surname                          | Clerk{SCENARIO_ID}               |
       | officials.0.forename                         | John                        |
       | officials.0.type                             | MAGISTRATE                  |
     Then User Verify Response Status Code Should Be "201"

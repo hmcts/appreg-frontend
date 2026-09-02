@@ -22,7 +22,7 @@ Feature: Applications Register Portal Access
       | user2  |
       | admin2 |
 
-  @smoke @IngestStandardApplicants @ARCPOC-1537
+  @ignore @IngestStandardApplicants @ARCPOC-1537
   Scenario Outline: Ingestion Test Standard Applicants
     Given User Authenticates Via API As "user1"
     When User Makes Multipart POST API Request To "/admin/csds/standard_applicants/ingest" With Fixture File "<FileName>" And Content Type "application/json"

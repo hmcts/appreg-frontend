@@ -7,7 +7,7 @@ Feature: API - Application List Entry IDs
       | date              | todayiso                |
       | time              | timenowhhmm-2h          |
       | status            | OPEN                    |
-      | description       | Entry ids list {RANDOM} |
+      | description       | Entry ids list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                  |
       | durationHours     | 2                       |
       | durationMinutes   | 22                      |
@@ -18,8 +18,8 @@ Feature: API - Application List Entry IDs
       | applicationCode                              | AD99002                   |
       | applicant.person.name.title                  | Mr                        |
       | applicant.person.name.firstName              | Ids                       |
-      | applicant.person.name.lastName               | Alpha{RANDOM}             |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street      |
+      | applicant.person.name.lastName               | Alpha{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street      |
       | applicant.person.contactDetails.addressLine2 | Westminster               |
       | applicant.person.contactDetails.addressLine3 | London                    |
       | applicant.person.contactDetails.addressLine4 | Greater London            |
@@ -27,7 +27,7 @@ Feature: API - Application List Entry IDs
       | applicant.person.contactDetails.postcode     | SW1A 1AA                  |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}              |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}             |
-      | applicant.person.contactDetails.email        | ids-a{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | ids-a{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | IDS-A-{RANDOM}            |
       | feeStatuses.0.paymentStatus                  | PAID                      |
       | feeStatuses.0.statusDate                     | todayiso                  |
@@ -37,7 +37,7 @@ Feature: API - Application List Entry IDs
       | notes                                        | Entry ids alpha           |
       | lodgementDate                                | todayiso                  |
       | officials.0.title                            | Mr                        |
-      | officials.0.surname                          | OfficialA{RANDOM}         |
+      | officials.0.surname                          | OfficialA{SCENARIO_ID}         |
       | officials.0.forename                         | Clerk                     |
       | officials.0.type                             | CLERK                     |
     Then User Verify Response Status Code Should Be "201"
@@ -47,8 +47,8 @@ Feature: API - Application List Entry IDs
       | applicationCode                              | AD99002                   |
       | applicant.person.name.title                  | Ms                        |
       | applicant.person.name.firstName              | Ids                       |
-      | applicant.person.name.lastName               | Beta{RANDOM}              |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street    |
+      | applicant.person.name.lastName               | Beta{SCENARIO_ID}              |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street    |
       | applicant.person.contactDetails.addressLine2 | Westminster               |
       | applicant.person.contactDetails.addressLine3 | London                    |
       | applicant.person.contactDetails.addressLine4 | Greater London            |
@@ -56,7 +56,7 @@ Feature: API - Application List Entry IDs
       | applicant.person.contactDetails.postcode     | BS1 5AA                   |
       | applicant.person.contactDetails.phone        | 0117{RANDOM}              |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}             |
-      | applicant.person.contactDetails.email        | ids-b{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | ids-b{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | IDS-B-{RANDOM}            |
       | feeStatuses.0.paymentStatus                  | PAID                      |
       | feeStatuses.0.statusDate                     | todayiso                  |
@@ -66,7 +66,7 @@ Feature: API - Application List Entry IDs
       | notes                                        | Entry ids beta            |
       | lodgementDate                                | todayiso                  |
       | officials.0.title                            | Ms                        |
-      | officials.0.surname                          | OfficialB{RANDOM}         |
+      | officials.0.surname                          | OfficialB{SCENARIO_ID}         |
       | officials.0.forename                         | Bench                     |
       | officials.0.type                             | MAGISTRATE                |
     Then User Verify Response Status Code Should Be "201"
@@ -95,7 +95,7 @@ Feature: API - Application List Entry IDs
       | date              | todayiso                         |
       | time              | timenowhhmm-2h                   |
       | status            | OPEN                             |
-      | description       | Filtered entry ids list {RANDOM} |
+      | description       | Filtered entry ids list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                           |
       | durationHours     | 2                                |
       | durationMinutes   | 22                               |
@@ -106,8 +106,8 @@ Feature: API - Application List Entry IDs
       | applicationCode                              | AD99002                         |
       | applicant.person.name.title                  | Mr                              |
       | applicant.person.name.firstName              | Match                           |
-      | applicant.person.name.lastName               | CandidateA{RANDOM}              |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street            |
+      | applicant.person.name.lastName               | CandidateA{SCENARIO_ID}              |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street            |
       | applicant.person.contactDetails.addressLine2 | Westminster                     |
       | applicant.person.contactDetails.addressLine3 | London                          |
       | applicant.person.contactDetails.addressLine4 | Greater London                  |
@@ -115,7 +115,7 @@ Feature: API - Application List Entry IDs
       | applicant.person.contactDetails.postcode     | SW1A 1AA                        |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                    |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                   |
-      | applicant.person.contactDetails.email        | ids-match-a{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | ids-match-a{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | IDS-MA-{RANDOM}                 |
       | feeStatuses.0.paymentStatus                  | PAID                            |
       | feeStatuses.0.statusDate                     | todayiso                        |
@@ -125,7 +125,7 @@ Feature: API - Application List Entry IDs
       | notes                                        | Entry ids match alpha           |
       | lodgementDate                                | todayiso                        |
       | officials.0.title                            | Mr                              |
-      | officials.0.surname                          | MatchOfficialA{RANDOM}          |
+      | officials.0.surname                          | MatchOfficialA{SCENARIO_ID}          |
       | officials.0.forename                         | Clerk                           |
       | officials.0.type                             | CLERK                           |
     Then User Verify Response Status Code Should Be "201"
@@ -135,8 +135,8 @@ Feature: API - Application List Entry IDs
       | applicationCode                              | AD99002                         |
       | applicant.person.name.title                  | Ms                              |
       | applicant.person.name.firstName              | Match                           |
-      | applicant.person.name.lastName               | CandidateB{RANDOM}              |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street          |
+      | applicant.person.name.lastName               | CandidateB{SCENARIO_ID}              |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street          |
       | applicant.person.contactDetails.addressLine2 | Westminster                     |
       | applicant.person.contactDetails.addressLine3 | London                          |
       | applicant.person.contactDetails.addressLine4 | Greater London                  |
@@ -144,7 +144,7 @@ Feature: API - Application List Entry IDs
       | applicant.person.contactDetails.postcode     | BS1 5AA                         |
       | applicant.person.contactDetails.phone        | 0117{RANDOM}                    |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}                   |
-      | applicant.person.contactDetails.email        | ids-match-b{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | ids-match-b{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | IDS-MB-{RANDOM}                 |
       | feeStatuses.0.paymentStatus                  | PAID                            |
       | feeStatuses.0.statusDate                     | todayiso                        |
@@ -154,7 +154,7 @@ Feature: API - Application List Entry IDs
       | notes                                        | Entry ids match beta            |
       | lodgementDate                                | todayiso                        |
       | officials.0.title                            | Ms                              |
-      | officials.0.surname                          | MatchOfficialB{RANDOM}          |
+      | officials.0.surname                          | MatchOfficialB{SCENARIO_ID}          |
       | officials.0.forename                         | Bench                           |
       | officials.0.type                             | MAGISTRATE                      |
     Then User Verify Response Status Code Should Be "201"
@@ -164,8 +164,8 @@ Feature: API - Application List Entry IDs
       | applicationCode                              | AD99002                       |
       | applicant.person.name.title                  | Mr                            |
       | applicant.person.name.firstName              | Other                         |
-      | applicant.person.name.lastName               | Candidate{RANDOM}             |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Other Street         |
+      | applicant.person.name.lastName               | Candidate{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Other Street         |
       | applicant.person.contactDetails.addressLine2 | Westminster                   |
       | applicant.person.contactDetails.addressLine3 | London                        |
       | applicant.person.contactDetails.addressLine4 | Greater London                |
@@ -173,7 +173,7 @@ Feature: API - Application List Entry IDs
       | applicant.person.contactDetails.postcode     | SW1A 2AA                      |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                  |
       | applicant.person.contactDetails.mobile       | 07125{RANDOM}                 |
-      | applicant.person.contactDetails.email        | ids-other{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | ids-other{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | IDS-OT-{RANDOM}               |
       | feeStatuses.0.paymentStatus                  | PAID                          |
       | feeStatuses.0.statusDate                     | todayiso                      |
@@ -183,7 +183,7 @@ Feature: API - Application List Entry IDs
       | notes                                        | Entry ids other               |
       | lodgementDate                                | todayiso                      |
       | officials.0.title                            | Mr                            |
-      | officials.0.surname                          | OtherOfficial{RANDOM}         |
+      | officials.0.surname                          | OtherOfficial{SCENARIO_ID}         |
       | officials.0.forename                         | Keeper                        |
       | officials.0.type                             | CLERK                         |
     Then User Verify Response Status Code Should Be "201"
@@ -209,7 +209,7 @@ Feature: API - Application List Entry IDs
       | date              | todayiso                        |
       | time              | timenowhhmm-2h                  |
       | status            | OPEN                            |
-      | description       | Matched entry ids list {RANDOM} |
+      | description       | Matched entry ids list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                          |
       | durationHours     | 2                               |
       | durationMinutes   | 22                              |
@@ -220,8 +220,8 @@ Feature: API - Application List Entry IDs
       | applicationCode                              | AD99002                           |
       | applicant.person.name.title                  | Mr                                |
       | applicant.person.name.firstName              | Compare                           |
-      | applicant.person.name.lastName               | MatchA{RANDOM}                    |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street              |
+      | applicant.person.name.lastName               | MatchA{SCENARIO_ID}                    |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street              |
       | applicant.person.contactDetails.addressLine2 | Westminster                       |
       | applicant.person.contactDetails.addressLine3 | London                            |
       | applicant.person.contactDetails.addressLine4 | Greater London                    |
@@ -229,7 +229,7 @@ Feature: API - Application List Entry IDs
       | applicant.person.contactDetails.postcode     | SW1A 1AA                          |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                      |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                     |
-      | applicant.person.contactDetails.email        | ids-compare-a{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | ids-compare-a{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | IDS-CA-{RANDOM}                   |
       | feeStatuses.0.paymentStatus                  | PAID                              |
       | feeStatuses.0.statusDate                     | todayiso                          |
@@ -239,7 +239,7 @@ Feature: API - Application List Entry IDs
       | notes                                        | Entry ids compare alpha           |
       | lodgementDate                                | todayiso                          |
       | officials.0.title                            | Mr                                |
-      | officials.0.surname                          | CompareOfficialA{RANDOM}          |
+      | officials.0.surname                          | CompareOfficialA{SCENARIO_ID}          |
       | officials.0.forename                         | Clerk                             |
       | officials.0.type                             | CLERK                             |
     Then User Verify Response Status Code Should Be "201"
@@ -249,8 +249,8 @@ Feature: API - Application List Entry IDs
       | applicationCode                              | AD99002                           |
       | applicant.person.name.title                  | Ms                                |
       | applicant.person.name.firstName              | Compare                           |
-      | applicant.person.name.lastName               | MatchB{RANDOM}                    |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street            |
+      | applicant.person.name.lastName               | MatchB{SCENARIO_ID}                    |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street            |
       | applicant.person.contactDetails.addressLine2 | Westminster                       |
       | applicant.person.contactDetails.addressLine3 | London                            |
       | applicant.person.contactDetails.addressLine4 | Greater London                    |
@@ -258,7 +258,7 @@ Feature: API - Application List Entry IDs
       | applicant.person.contactDetails.postcode     | BS1 5AA                           |
       | applicant.person.contactDetails.phone        | 0117{RANDOM}                      |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}                     |
-      | applicant.person.contactDetails.email        | ids-compare-b{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | ids-compare-b{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | IDS-CB-{RANDOM}                   |
       | feeStatuses.0.paymentStatus                  | PAID                              |
       | feeStatuses.0.statusDate                     | todayiso                          |
@@ -268,7 +268,7 @@ Feature: API - Application List Entry IDs
       | notes                                        | Entry ids compare beta            |
       | lodgementDate                                | todayiso                          |
       | officials.0.title                            | Ms                                |
-      | officials.0.surname                          | CompareOfficialB{RANDOM}          |
+      | officials.0.surname                          | CompareOfficialB{SCENARIO_ID}          |
       | officials.0.forename                         | Bench                             |
       | officials.0.type                             | MAGISTRATE                        |
     Then User Verify Response Status Code Should Be "201"
@@ -278,8 +278,8 @@ Feature: API - Application List Entry IDs
       | applicationCode                              | AD99002                               |
       | applicant.person.name.title                  | Mr                                    |
       | applicant.person.name.firstName              | Different                             |
-      | applicant.person.name.lastName               | Candidate{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Other Street                 |
+      | applicant.person.name.lastName               | Candidate{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Other Street                 |
       | applicant.person.contactDetails.addressLine2 | Westminster                           |
       | applicant.person.contactDetails.addressLine3 | London                                |
       | applicant.person.contactDetails.addressLine4 | Greater London                        |
@@ -287,7 +287,7 @@ Feature: API - Application List Entry IDs
       | applicant.person.contactDetails.postcode     | SW1A 2AA                              |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                          |
       | applicant.person.contactDetails.mobile       | 07125{RANDOM}                         |
-      | applicant.person.contactDetails.email        | ids-compare-other{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | ids-compare-other{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | IDS-CO-{RANDOM}                       |
       | feeStatuses.0.paymentStatus                  | PAID                                  |
       | feeStatuses.0.statusDate                     | todayiso                              |
@@ -297,7 +297,7 @@ Feature: API - Application List Entry IDs
       | notes                                        | Entry ids compare other               |
       | lodgementDate                                | todayiso                              |
       | officials.0.title                            | Mr                                    |
-      | officials.0.surname                          | CompareOfficialOther{RANDOM}          |
+      | officials.0.surname                          | CompareOfficialOther{SCENARIO_ID}          |
       | officials.0.forename                         | Keeper                                |
       | officials.0.type                             | CLERK                                 |
     Then User Verify Response Status Code Should Be "201"
