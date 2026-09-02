@@ -59,12 +59,13 @@ Feature: API - Application List Entry Results
     Then User Verify Response Body Should Have:
       | totalElements                                            | 1                                                 |
       | elementsOnPage                                           | 1                                                 |
-      | content[0].id                                            | :resultId                                         |
       | content[0].entryId                                       | :entryId                                          |
       | content[0].resultCode                                    | GRSW                                              |
       | content[0].wording.template                              | Granted. Search warrant issued at {{Time issued}} |
       | content[0].wording.substitution-key-constraints[0].key   | Time issued                                       |
       | content[0].wording.substitution-key-constraints[0].value | 10:00                                             |
+    Then User Verify Response Body Array Property "content" At Field "id" Should Contain Values:
+      | :resultId |
 
     Examples:
       | User  |

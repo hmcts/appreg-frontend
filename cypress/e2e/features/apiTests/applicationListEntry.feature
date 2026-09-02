@@ -611,14 +611,15 @@ Feature: API - Application List Entry
     When User Makes GET API Request To "/application-lists/:listId/entries?pageNumber=0&pageSize=10&sort=applicantName,asc"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
-      | totalElements                              | 3              |
-      | elementsOnPage                             | 3              |
-      | content[0].id                              | :entryId2      |
-      | content[0].applicant.organisation.name     | Beta Org       |
-      | content[1].id                              | :entryId3      |
-      | content[1].applicant.person.name.lastName  | Turner{RANDOM} |
-      | content[2].id                              | :entryId1      |
-      | content[2].respondent.person.name.lastName | Abbott{RANDOM} |
+      | totalElements                              | 3                   |
+      | elementsOnPage                             | 3                   |
+      | content[0].applicant.organisation.name     | Beta Org            |
+      | content[1].applicant.person.name.lastName  | Turner{SCENARIO_ID} |
+      | content[2].respondent.person.name.lastName | Abbott{SCENARIO_ID} |
+    Then User Verify Response Body Array Property "content" At Field "id" Should Contain Values:
+      | :entryId1 |
+      | :entryId2 |
+      | :entryId3 |
 
     When User Makes GET API Request To "/application-codes/AP99001?date=todayiso"
     Then User Verify Response Status Code Should Be "200"
