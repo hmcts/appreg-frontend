@@ -6,7 +6,7 @@ Feature: Applications Update Notes
       | date              | todayiso                           |
       | time              | timenowhhmm-2h                     |
       | status            | OPEN                               |
-      | description       | Applications update notes {RANDOM} |
+      | description       | Applications update notes {SCENARIO_ID} |
       | courtLocationCode | LCCC065                            |
       | durationHours     | 2                                  |
       | durationMinutes   | 22                                 |
@@ -16,10 +16,10 @@ Feature: Applications Update Notes
       | standardApplicantCode                         | null                                |
       | applicationCode                               | MX99009                             |
       | applicant.person.name.title                   | Mr                                  |
-      | applicant.person.name.lastName                | Taylor {RANDOM}                     |
+      | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                     |
       | applicant.person.name.firstName               | Henry                               |
       | applicant.person.name.middleName              | James                               |
-      | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street                |
+      | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street                |
       | applicant.person.contactDetails.addressLine2  | Westminster                         |
       | applicant.person.contactDetails.addressLine3  | London                              |
       | applicant.person.contactDetails.addressLine4  | Greater London                      |
@@ -27,19 +27,19 @@ Feature: Applications Update Notes
       | applicant.person.contactDetails.postcode      | SW1A 1AA                            |
       | applicant.person.contactDetails.phone         | 0203{RANDOM}                        |
       | applicant.person.contactDetails.mobile        | 07123{RANDOM}                       |
-      | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com       |
+      | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com       |
       | respondent.person.name.title                  | Ms                                  |
-      | respondent.person.name.lastName               | Clark {RANDOM}                      |
+      | respondent.person.name.lastName               | Clark {SCENARIO_ID}                      |
       | respondent.person.name.firstName              | Emily                               |
       | respondent.person.name.middleName             | Rose                                |
-      | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road                |
+      | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road                |
       | respondent.person.contactDetails.addressLine2 | Bristol                             |
       | respondent.person.contactDetails.addressLine3 | Avon                                |
       | respondent.person.contactDetails.addressLine4 | United Kingdom                      |
       | respondent.person.contactDetails.postcode     | BS15 5AA                            |
       | respondent.person.contactDetails.phone        | 0117{RANDOM}                        |
       | respondent.person.contactDetails.mobile       | 07984{RANDOM}                       |
-      | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com      |
+      | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com      |
       | respondent.person.dateOfBirth                 | todayiso-25y                        |
       | feeStatuses.0.paymentReference                | REF-{RANDOM}                        |
       | feeStatuses.0.paymentStatus                   | PAID                                |
@@ -47,10 +47,10 @@ Feature: Applications Update Notes
       | hasOffsiteFee                                 | false                               |
       | caseReference                                 | CASE-{RANDOM}                       |
       | accountNumber                                 | APP-NOTES-{RANDOM}                  |
-      | notes                                         | Applications original note {RANDOM} |
+      | notes                                         | Applications original note {SCENARIO_ID} |
       | lodgementDate                                 | todayiso                            |
       | officials.0.title                             | Mr                                  |
-      | officials.0.surname                           | Turner {RANDOM}                     |
+      | officials.0.surname                           | Turner {SCENARIO_ID}                     |
       | officials.0.forename                          | Graham                              |
       | officials.0.type                              | MAGISTRATE                          |
     Then User Verify Response Status Code Should Be "201"
@@ -62,7 +62,7 @@ Feature: Applications Update Notes
       | date              | todayiso                           |
       | time              | timenowhhmm-2h                     |
       | status            | CLOSED                             |
-      | description       | Applications update notes {RANDOM} |
+      | description       | Applications update notes {SCENARIO_ID} |
       | courtLocationCode | LCCC065                            |
       | durationHours     | 2                                  |
       | durationMinutes   | 22                                 |
@@ -76,20 +76,20 @@ Feature: Applications Update Notes
     Then User Verify The Page URL Contains "/applications"
     When User Searches Applications With:
       | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-      | today |             |       |                        | Taylor {RANDOM}   |                         |                    |                           |                      |           |                       |                            |                         |                   |
+      | today |             |       |                        | Taylor {SCENARIO_ID}   |                         |                    |                           |                      |           |                       |                            |                         |                   |
     Then User Should See Row In Table "Application list entries" With Values:
       | Date         | Applicant             | Respondent           | Application title                                        | Fee | Resulted | Status |
-      | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Application for order re public health measures (person) | Yes | Yes      | CLOSED |
+      | todaydisplay | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | Application for order re public health measures (person) | Yes | Yes      | CLOSED |
     When User Clicks "Update notes" Button In Row Of Table "Application list entries" With:
       | Applicant             | Respondent           |
-      | Henry Taylor {RANDOM} | Emily Clark {RANDOM} |
-    Then User Verifies The "Application notes" Textbox Has Value "Applications original note {RANDOM}"
+      | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} |
+    Then User Verifies The "Application notes" Textbox Has Value "Applications original note {SCENARIO_ID}"
     Then User Verifies The "Additional notes" Textbox Is Empty
     Then User Should See The Textbox "Additional notes" Is Enabled
     Then User Should See The Textbox "Application notes" Is Disabled
     Then User Verifies The Summary Table "Selected application" Contains:
-      | Applicant         | Henry Taylor {RANDOM}                                    |
-      | Respondent        | Emily Clark {RANDOM}                                     |
+      | Applicant         | Henry Taylor {SCENARIO_ID}                                    |
+      | Respondent        | Emily Clark {SCENARIO_ID}                                     |
       | Application code  | MX99009                                                  |
       | Application title | Application for order re public health measures (person) |
       | Date              | todaydisplay                                             |
@@ -98,7 +98,7 @@ Feature: Applications Update Notes
     Then User Enters "Updated from Applications search" Into The "Additional notes" Textbox
     When User Clicks On The "Save additional notes" Button
     Then User Sees Success Banner "Success" Containing "Application entry updated successfully"
-    Then User Verifies The "Application notes" Textbox Has Value "Applications original note {RANDOM} Updated from Applications search"
+    Then User Verifies The "Application notes" Textbox Has Value "Applications original note {SCENARIO_ID} Updated from Applications search"
     Then User Verifies The "Additional notes" Textbox Is Empty
     When User Makes DELETE API Request To "/application-lists/:listId"
     Then User Verify Response Status Code Should Be "400"

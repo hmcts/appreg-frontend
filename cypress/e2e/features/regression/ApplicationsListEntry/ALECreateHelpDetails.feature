@@ -4,7 +4,7 @@ Feature: Applications list entry create help details
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Body:
       | date     | time  | status | description                         | courtLocationCode |
-      | todayiso | 10:20 | OPEN   | Entry create help list {RANDOM}     | LCCC065           |
+      | todayiso | 10:20 | OPEN   | Entry create help list {SCENARIO_ID}     | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
 

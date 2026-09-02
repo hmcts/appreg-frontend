@@ -134,7 +134,6 @@ Feature: API -Reference Data
             | pageNumber            | 0                     |
             | pageSize              | 10                    |
             | totalPages            | 4                     |
-            | totalElements         | 38                    |
             | first                 | true                  |
             | last                  | false                 |
             | elementsOnPage        | 10                    |

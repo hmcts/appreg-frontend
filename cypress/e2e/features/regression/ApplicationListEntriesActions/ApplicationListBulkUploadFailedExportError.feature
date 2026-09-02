@@ -59,4 +59,4 @@ Feature: Application List - Export Failed Bulk Upload With Original Data And Val
 
         Examples:
             | User  | APIDate  | Time           | Status | Description         | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
-            | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkExport_{RANDOM} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
+            | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkExport_{SCENARIO_ID} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |

@@ -7,7 +7,7 @@ Feature: API - Application List Entry Closed Updates
       | date              | todayiso                              |
       | time              | timenowhhmm-2h                        |
       | status            | OPEN                                  |
-      | description       | Closed entry update list {RANDOM}     |
+      | description       | Closed entry update list {SCENARIO_ID}     |
       | courtLocationCode | RCJ001                                |
       | durationHours     | 2                                     |
       | durationMinutes   | 22                                    |
@@ -18,8 +18,8 @@ Feature: API - Application List Entry Closed Updates
       | applicationCode                              | AD99002                         |
       | applicant.person.name.title                  | Mr                              |
       | applicant.person.name.firstName              | Closed                          |
-      | applicant.person.name.lastName               | Updatable{RANDOM}               |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street            |
+      | applicant.person.name.lastName               | Updatable{SCENARIO_ID}               |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street            |
       | applicant.person.contactDetails.addressLine2 | Westminster                     |
       | applicant.person.contactDetails.addressLine3 | London                          |
       | applicant.person.contactDetails.addressLine4 | Greater London                  |
@@ -27,7 +27,7 @@ Feature: API - Application List Entry Closed Updates
       | applicant.person.contactDetails.postcode     | SW1A 1AA                        |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                    |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                   |
-      | applicant.person.contactDetails.email        | closed{RANDOM}@example.com      |
+      | applicant.person.contactDetails.email        | closed{SCENARIO_ID}@example.com      |
       | feeStatuses.0.paymentReference               | CLO{RANDOM}                    |
       | feeStatuses.0.paymentStatus                  | PAID                            |
       | feeStatuses.0.statusDate                     | todayiso                        |
@@ -37,7 +37,7 @@ Feature: API - Application List Entry Closed Updates
       | notes                                        | Existing closed note            |
       | lodgementDate                                | todayiso                        |
       | officials.0.title                            | Mr                              |
-      | officials.0.surname                          | ClosedOfficial{RANDOM}          |
+      | officials.0.surname                          | ClosedOfficial{SCENARIO_ID}          |
       | officials.0.forename                         | Clerk                           |
       | officials.0.type                             | CLERK                           |
     Then User Verify Response Status Code Should Be "201"
@@ -51,7 +51,7 @@ Feature: API - Application List Entry Closed Updates
       | date              | todayiso                          |
       | time              | timenowhhmm-2h                    |
       | status            | CLOSED                            |
-      | description       | Closed entry update list {RANDOM} |
+      | description       | Closed entry update list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                            |
       | durationHours     | 2                                 |
       | durationMinutes   | 22                                |
@@ -74,7 +74,7 @@ Feature: API - Application List Entry Closed Updates
       | date              | todayiso                               |
       | time              | timenowhhmm-2h                         |
       | status            | OPEN                                   |
-      | description       | Closed entry invalid state list {RANDOM} |
+      | description       | Closed entry invalid state list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                 |
       | durationHours     | 2                                      |
       | durationMinutes   | 22                                     |
@@ -85,8 +85,8 @@ Feature: API - Application List Entry Closed Updates
       | applicationCode                              | AD99002                               |
       | applicant.person.name.title                  | Mr                                    |
       | applicant.person.name.firstName              | Closed                                |
-      | applicant.person.name.lastName               | InvalidState{RANDOM}                  |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street                  |
+      | applicant.person.name.lastName               | InvalidState{SCENARIO_ID}                  |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street                  |
       | applicant.person.contactDetails.addressLine2 | Westminster                           |
       | applicant.person.contactDetails.addressLine3 | London                                |
       | applicant.person.contactDetails.addressLine4 | Greater London                        |
@@ -94,7 +94,7 @@ Feature: API - Application List Entry Closed Updates
       | applicant.person.contactDetails.postcode     | SW1A 1AA                              |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                          |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                         |
-      | applicant.person.contactDetails.email        | closed-invalid{RANDOM}@example.com    |
+      | applicant.person.contactDetails.email        | closed-invalid{SCENARIO_ID}@example.com    |
       | feeStatuses.0.paymentReference               | CLI{RANDOM}                          |
       | feeStatuses.0.paymentStatus                  | PAID                                  |
       | feeStatuses.0.statusDate                     | todayiso                              |
@@ -104,7 +104,7 @@ Feature: API - Application List Entry Closed Updates
       | notes                                        | Open list note                        |
       | lodgementDate                                | todayiso                              |
       | officials.0.title                            | Mr                                    |
-      | officials.0.surname                          | ClosedInvalidOfficial{RANDOM}         |
+      | officials.0.surname                          | ClosedInvalidOfficial{SCENARIO_ID}         |
       | officials.0.forename                         | Clerk                                 |
       | officials.0.type                             | CLERK                                 |
     Then User Verify Response Status Code Should Be "201"
