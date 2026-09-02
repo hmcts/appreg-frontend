@@ -7,7 +7,7 @@ Feature: API - Application List Entry Results
       | date              | todayiso                            |
       | time              | timenowhhmm-2h                      |
       | status            | OPEN                                |
-      | description       | Result lifecycle test list {RANDOM} |
+      | description       | Result lifecycle test list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                              |
       | durationHours     | 2                                   |
       | durationMinutes   | 22                                  |
@@ -18,8 +18,8 @@ Feature: API - Application List Entry Results
       | applicationCode                              | AD99002                    |
       | applicant.person.name.title                  | Mr                         |
       | applicant.person.name.firstName              | John                       |
-      | applicant.person.name.lastName               | ResultTester{RANDOM}       |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street       |
+      | applicant.person.name.lastName               | ResultTester{SCENARIO_ID}       |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street       |
       | applicant.person.contactDetails.addressLine2 | Westminster                |
       | applicant.person.contactDetails.addressLine3 | London                     |
       | applicant.person.contactDetails.addressLine4 | Greater London             |
@@ -27,17 +27,17 @@ Feature: API - Application List Entry Results
       | applicant.person.contactDetails.postcode     | SW1A 2AA                   |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}               |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}              |
-      | applicant.person.contactDetails.email        | result{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | result{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAY-{RANDOM}               |
       | feeStatuses.0.paymentStatus                  | PAID                       |
       | feeStatuses.0.statusDate                     | todayiso                   |
       | hasOffsiteFee                                | false                      |
       | caseReference                                | CASE-{RANDOM}              |
       | accountNumber                                | APP-{RANDOM}               |
-      | notes                                        | Result API setup {RANDOM}  |
+      | notes                                        | Result API setup {SCENARIO_ID}  |
       | lodgementDate                                | todayiso                   |
       | officials.0.title                            | Mr                         |
-      | officials.0.surname                          | Smith{RANDOM}              |
+      | officials.0.surname                          | Smith{SCENARIO_ID}              |
       | officials.0.forename                         | John                       |
       | officials.0.type                             | MAGISTRATE                 |
     Then User Verify Response Status Code Should Be "201"
@@ -59,12 +59,13 @@ Feature: API - Application List Entry Results
     Then User Verify Response Body Should Have:
       | totalElements                                            | 1                                                 |
       | elementsOnPage                                           | 1                                                 |
-      | content[0].id                                            | :resultId                                         |
       | content[0].entryId                                       | :entryId                                          |
       | content[0].resultCode                                    | GRSW                                              |
       | content[0].wording.template                              | Granted. Search warrant issued at {{Time issued}} |
       | content[0].wording.substitution-key-constraints[0].key   | Time issued                                       |
       | content[0].wording.substitution-key-constraints[0].value | 10:00                                             |
+    Then User Verify Response Body Array Property "content" At Field "id" Should Contain Values:
+      | :resultId |
 
     Examples:
       | User  |
@@ -77,7 +78,7 @@ Feature: API - Application List Entry Results
       | date              | todayiso                         |
       | time              | timenowhhmm-2h                   |
       | status            | OPEN                             |
-      | description       | Result update test list {RANDOM} |
+      | description       | Result update test list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                           |
       | durationHours     | 2                                |
       | durationMinutes   | 22                               |
@@ -88,8 +89,8 @@ Feature: API - Application List Entry Results
       | applicationCode                              | AD99002                      |
       | applicant.person.name.title                  | Ms                           |
       | applicant.person.name.firstName              | Jane                         |
-      | applicant.person.name.lastName               | Updater{RANDOM}              |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Crown Street        |
+      | applicant.person.name.lastName               | Updater{SCENARIO_ID}              |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street        |
       | applicant.person.contactDetails.addressLine2 | Westminster                  |
       | applicant.person.contactDetails.addressLine3 | London                       |
       | applicant.person.contactDetails.addressLine4 | Greater London               |
@@ -97,17 +98,17 @@ Feature: API - Application List Entry Results
       | applicant.person.contactDetails.postcode     | SW1A 1AA                     |
       | applicant.person.contactDetails.phone        | 0203{RANDOM}                 |
       | applicant.person.contactDetails.mobile       | 07111{RANDOM}                |
-      | applicant.person.contactDetails.email        | update{RANDOM}@example.com   |
+      | applicant.person.contactDetails.email        | update{SCENARIO_ID}@example.com   |
       | feeStatuses.0.paymentReference               | PAY-{RANDOM}                 |
       | feeStatuses.0.paymentStatus                  | PAID                         |
       | feeStatuses.0.statusDate                     | todayiso                     |
       | hasOffsiteFee                                | false                        |
       | caseReference                                | CASE-{RANDOM}                |
       | accountNumber                                | APP-{RANDOM}                 |
-      | notes                                        | Result update setup {RANDOM} |
+      | notes                                        | Result update setup {SCENARIO_ID} |
       | lodgementDate                                | todayiso                     |
       | officials.0.title                            | Ms                           |
-      | officials.0.surname                          | Clerk{RANDOM}                |
+      | officials.0.surname                          | Clerk{SCENARIO_ID}                |
       | officials.0.forename                         | Jane                         |
       | officials.0.type                             | MAGISTRATE                   |
     Then User Verify Response Status Code Should Be "201"
@@ -134,12 +135,13 @@ Feature: API - Application List Entry Results
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
       | totalElements                                            | 1                                      |
-      | content[0].id                                            | :resultId                              |
       | content[0].entryId                                       | :entryId                               |
       | content[0].resultCode                                    | FRO                                    |
       | content[0].wording.template                              | Fee remitted. Reason: {{Reason text}}. |
       | content[0].wording.substitution-key-constraints[0].key   | Reason text                            |
       | content[0].wording.substitution-key-constraints[0].value | Caseworker discretion                  |
+    Then User Verify Response Body Array Property "content" At Field "id" Should Contain Values:
+      | :resultId |
 
     Examples:
       | User  |
@@ -152,7 +154,7 @@ Feature: API - Application List Entry Results
       | date              | todayiso                         |
       | time              | timenowhhmm-2h                   |
       | status            | OPEN                             |
-      | description       | Result delete test list {RANDOM} |
+      | description       | Result delete test list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                           |
       | durationHours     | 2                                |
       | durationMinutes   | 22                               |
@@ -163,8 +165,8 @@ Feature: API - Application List Entry Results
       | applicationCode                              | AD99002                      |
       | applicant.person.name.title                  | Mr                           |
       | applicant.person.name.firstName              | Alex                         |
-      | applicant.person.name.lastName               | Deleter{RANDOM}              |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Court Street        |
+      | applicant.person.name.lastName               | Deleter{SCENARIO_ID}              |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Court Street        |
       | applicant.person.contactDetails.addressLine2 | Westminster                  |
       | applicant.person.contactDetails.addressLine3 | London                       |
       | applicant.person.contactDetails.addressLine4 | Greater London               |
@@ -172,17 +174,17 @@ Feature: API - Application List Entry Results
       | applicant.person.contactDetails.postcode     | SW1A 0AA                     |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                 |
       | applicant.person.contactDetails.mobile       | 07122{RANDOM}                |
-      | applicant.person.contactDetails.email        | delete{RANDOM}@example.com   |
+      | applicant.person.contactDetails.email        | delete{SCENARIO_ID}@example.com   |
       | feeStatuses.0.paymentReference               | PAY-{RANDOM}                 |
       | feeStatuses.0.paymentStatus                  | PAID                         |
       | feeStatuses.0.statusDate                     | todayiso                     |
       | hasOffsiteFee                                | false                        |
       | caseReference                                | CASE-{RANDOM}                |
       | accountNumber                                | APP-{RANDOM}                 |
-      | notes                                        | Result delete setup {RANDOM} |
+      | notes                                        | Result delete setup {SCENARIO_ID} |
       | lodgementDate                                | todayiso                     |
       | officials.0.title                            | Mr                           |
-      | officials.0.surname                          | Judge{RANDOM}                |
+      | officials.0.surname                          | Judge{SCENARIO_ID}                |
       | officials.0.forename                         | Alex                         |
       | officials.0.type                             | MAGISTRATE                   |
     Then User Verify Response Status Code Should Be "201"
@@ -219,7 +221,7 @@ Feature: API - Application List Entry Results
       | date              | todayiso                             |
       | time              | timenowhhmm-2h                       |
       | status            | OPEN                                 |
-      | description       | Result pagination test list {RANDOM} |
+      | description       | Result pagination test list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                               |
       | durationHours     | 2                                    |
       | durationMinutes   | 22                                   |
@@ -230,8 +232,8 @@ Feature: API - Application List Entry Results
       | applicationCode                              | AD99002                          |
       | applicant.person.name.title                  | Mr                               |
       | applicant.person.name.firstName              | Pat                              |
-      | applicant.person.name.lastName               | Pager{RANDOM}                    |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Justice Street          |
+      | applicant.person.name.lastName               | Pager{SCENARIO_ID}                    |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Justice Street          |
       | applicant.person.contactDetails.addressLine2 | Westminster                      |
       | applicant.person.contactDetails.addressLine3 | London                           |
       | applicant.person.contactDetails.addressLine4 | Greater London                   |
@@ -239,17 +241,17 @@ Feature: API - Application List Entry Results
       | applicant.person.contactDetails.postcode     | SW1A 3AA                         |
       | applicant.person.contactDetails.phone        | 0209{RANDOM}                     |
       | applicant.person.contactDetails.mobile       | 07133{RANDOM}                    |
-      | applicant.person.contactDetails.email        | page{RANDOM}@example.com         |
+      | applicant.person.contactDetails.email        | page{SCENARIO_ID}@example.com         |
       | feeStatuses.0.paymentReference               | PAY-{RANDOM}                     |
       | feeStatuses.0.paymentStatus                  | PAID                             |
       | feeStatuses.0.statusDate                     | todayiso                         |
       | hasOffsiteFee                                | false                            |
       | caseReference                                | CASE-{RANDOM}                    |
       | accountNumber                                | APP-{RANDOM}                     |
-      | notes                                        | Result pagination setup {RANDOM} |
+      | notes                                        | Result pagination setup {SCENARIO_ID} |
       | lodgementDate                                | todayiso                         |
       | officials.0.title                            | Mr                               |
-      | officials.0.surname                          | Bench{RANDOM}                    |
+      | officials.0.surname                          | Bench{SCENARIO_ID}                    |
       | officials.0.forename                         | Pat                              |
       | officials.0.type                             | MAGISTRATE                       |
     Then User Verify Response Status Code Should Be "201"
@@ -303,7 +305,7 @@ Feature: API - Application List Entry Results
       | date              | todayiso                             |
       | time              | timenowhhmm-2h                       |
       | status            | OPEN                                 |
-      | description       | Bulk duplicate results list {RANDOM} |
+      | description       | Bulk duplicate results list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                               |
       | durationHours     | 2                                    |
       | durationMinutes   | 22                                   |
@@ -314,8 +316,8 @@ Feature: API - Application List Entry Results
       | applicationCode                              | AD99002                        |
       | applicant.person.name.title                  | Mr                             |
       | applicant.person.name.firstName              | Duplicate                      |
-      | applicant.person.name.lastName               | Results{RANDOM}                |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street           |
+      | applicant.person.name.lastName               | Results{SCENARIO_ID}                |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street           |
       | applicant.person.contactDetails.addressLine2 | Westminster                    |
       | applicant.person.contactDetails.addressLine3 | London                         |
       | applicant.person.contactDetails.addressLine4 | Greater London                 |
@@ -323,7 +325,7 @@ Feature: API - Application List Entry Results
       | applicant.person.contactDetails.postcode     | SW1A 1AA                       |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                   |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                  |
-      | applicant.person.contactDetails.email        | dup-result{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | dup-result{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | DUPRES-{RANDOM}                |
       | feeStatuses.0.paymentStatus                  | PAID                           |
       | feeStatuses.0.statusDate                     | todayiso                       |
@@ -333,7 +335,7 @@ Feature: API - Application List Entry Results
       | notes                                        | Duplicate bulk results         |
       | lodgementDate                                | todayiso                       |
       | officials.0.title                            | Mr                             |
-      | officials.0.surname                          | Duplicate{RANDOM}              |
+      | officials.0.surname                          | Duplicate{SCENARIO_ID}              |
       | officials.0.forename                         | Clerk                          |
       | officials.0.type                             | CLERK                          |
     Then User Verify Response Status Code Should Be "201"

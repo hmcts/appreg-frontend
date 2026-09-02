@@ -7,7 +7,7 @@ Feature: API - Application List Entry Lifecycle
       | date              | todayiso                  |
       | time              | timenowhhmm-3h            |
       | status            | OPEN                      |
-      | description       | Move source list {RANDOM} |
+      | description       | Move source list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                    |
       | durationHours     | 2                         |
       | durationMinutes   | 22                        |
@@ -17,7 +17,7 @@ Feature: API - Application List Entry Lifecycle
       | date              | todayiso                  |
       | time              | timenowhhmm-2h            |
       | status            | OPEN                      |
-      | description       | Move target list {RANDOM} |
+      | description       | Move target list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                    |
       | durationHours     | 2                         |
       | durationMinutes   | 22                        |
@@ -28,8 +28,8 @@ Feature: API - Application List Entry Lifecycle
       | applicationCode                              | AD99002                     |
       | applicant.person.name.title                  | Mr                          |
       | applicant.person.name.firstName              | Move                        |
-      | applicant.person.name.lastName               | SourceOne{RANDOM}           |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street        |
+      | applicant.person.name.lastName               | SourceOne{SCENARIO_ID}           |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street        |
       | applicant.person.contactDetails.addressLine2 | Westminster                 |
       | applicant.person.contactDetails.addressLine3 | London                      |
       | applicant.person.contactDetails.addressLine4 | Greater London              |
@@ -37,7 +37,7 @@ Feature: API - Application List Entry Lifecycle
       | applicant.person.contactDetails.postcode     | SW1A 1AA                    |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}               |
-      | applicant.person.contactDetails.email        | source1{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | source1{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | MOVE-S1-{RANDOM}            |
       | feeStatuses.0.paymentStatus                  | PAID                        |
       | feeStatuses.0.statusDate                     | todayiso                    |
@@ -47,7 +47,7 @@ Feature: API - Application List Entry Lifecycle
       | notes                                        | Move source one             |
       | lodgementDate                                | todayiso                    |
       | officials.0.title                            | Mr                          |
-      | officials.0.surname                          | SourceOne{RANDOM}           |
+      | officials.0.surname                          | SourceOne{SCENARIO_ID}           |
       | officials.0.forename                         | Clerk                       |
       | officials.0.type                             | CLERK                       |
     Then User Verify Response Status Code Should Be "201"
@@ -57,8 +57,8 @@ Feature: API - Application List Entry Lifecycle
       | applicationCode                              | AD99002                     |
       | applicant.person.name.title                  | Ms                          |
       | applicant.person.name.firstName              | Move                        |
-      | applicant.person.name.lastName               | SourceTwo{RANDOM}           |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street      |
+      | applicant.person.name.lastName               | SourceTwo{SCENARIO_ID}           |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street      |
       | applicant.person.contactDetails.addressLine2 | Westminster                 |
       | applicant.person.contactDetails.addressLine3 | London                      |
       | applicant.person.contactDetails.addressLine4 | Greater London              |
@@ -66,7 +66,7 @@ Feature: API - Application List Entry Lifecycle
       | applicant.person.contactDetails.postcode     | BS1 5AA                     |
       | applicant.person.contactDetails.phone        | 0117{RANDOM}                |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}               |
-      | applicant.person.contactDetails.email        | source2{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | source2{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | MOVE-S2-{RANDOM}            |
       | feeStatuses.0.paymentStatus                  | PAID                        |
       | feeStatuses.0.statusDate                     | todayiso                    |
@@ -76,7 +76,7 @@ Feature: API - Application List Entry Lifecycle
       | notes                                        | Move source two             |
       | lodgementDate                                | todayiso                    |
       | officials.0.title                            | Ms                          |
-      | officials.0.surname                          | SourceTwo{RANDOM}           |
+      | officials.0.surname                          | SourceTwo{SCENARIO_ID}           |
       | officials.0.forename                         | Bench                       |
       | officials.0.type                             | MAGISTRATE                  |
     Then User Verify Response Status Code Should Be "201"
@@ -86,8 +86,8 @@ Feature: API - Application List Entry Lifecycle
       | applicationCode                              | AD99002                    |
       | applicant.person.name.title                  | Mr                         |
       | applicant.person.name.firstName              | Stay                       |
-      | applicant.person.name.lastName               | TargetExisting{RANDOM}     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Existing Street   |
+      | applicant.person.name.lastName               | TargetExisting{SCENARIO_ID}     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Existing Street   |
       | applicant.person.contactDetails.addressLine2 | Westminster                |
       | applicant.person.contactDetails.addressLine3 | London                     |
       | applicant.person.contactDetails.addressLine4 | Greater London             |
@@ -95,7 +95,7 @@ Feature: API - Application List Entry Lifecycle
       | applicant.person.contactDetails.postcode     | SW1A 3AA                   |
       | applicant.person.contactDetails.phone        | 0209{RANDOM}               |
       | applicant.person.contactDetails.mobile       | 07125{RANDOM}              |
-      | applicant.person.contactDetails.email        | target{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | target{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | MOVE-T-{RANDOM}            |
       | feeStatuses.0.paymentStatus                  | PAID                       |
       | feeStatuses.0.statusDate                     | todayiso                   |
@@ -105,7 +105,7 @@ Feature: API - Application List Entry Lifecycle
       | notes                                        | Target existing entry      |
       | lodgementDate                                | todayiso                   |
       | officials.0.title                            | Mr                         |
-      | officials.0.surname                          | Target{RANDOM}             |
+      | officials.0.surname                          | Target{SCENARIO_ID}             |
       | officials.0.forename                         | Keeper                     |
       | officials.0.type                             | CLERK                      |
     Then User Verify Response Status Code Should Be "201"
@@ -145,7 +145,7 @@ Feature: API - Application List Entry Lifecycle
       | date              | todayiso                            |
       | time              | timenowhhmm-3h                      |
       | status            | OPEN                                |
-      | description       | Move duplicate source list {RANDOM} |
+      | description       | Move duplicate source list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                              |
       | durationHours     | 2                                   |
       | durationMinutes   | 22                                  |
@@ -155,7 +155,7 @@ Feature: API - Application List Entry Lifecycle
       | date              | todayiso                            |
       | time              | timenowhhmm-2h                      |
       | status            | OPEN                                |
-      | description       | Move duplicate target list {RANDOM} |
+      | description       | Move duplicate target list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                              |
       | durationHours     | 2                                   |
       | durationMinutes   | 22                                  |
@@ -166,8 +166,8 @@ Feature: API - Application List Entry Lifecycle
       | applicationCode                              | AD99002                      |
       | applicant.person.name.title                  | Mr                           |
       | applicant.person.name.firstName              | Move                         |
-      | applicant.person.name.lastName               | Duplicate{RANDOM}            |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street         |
+      | applicant.person.name.lastName               | Duplicate{SCENARIO_ID}            |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street         |
       | applicant.person.contactDetails.addressLine2 | Westminster                  |
       | applicant.person.contactDetails.addressLine3 | London                       |
       | applicant.person.contactDetails.addressLine4 | Greater London               |
@@ -175,7 +175,7 @@ Feature: API - Application List Entry Lifecycle
       | applicant.person.contactDetails.postcode     | SW1A 1AA                     |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                 |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                |
-      | applicant.person.contactDetails.email        | move-dup{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | move-dup{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | MOVEDUP-{RANDOM}             |
       | feeStatuses.0.paymentStatus                  | PAID                         |
       | feeStatuses.0.statusDate                     | todayiso                     |
@@ -185,7 +185,7 @@ Feature: API - Application List Entry Lifecycle
       | notes                                        | Move duplicate setup         |
       | lodgementDate                                | todayiso                     |
       | officials.0.title                            | Mr                           |
-      | officials.0.surname                          | Duplicate{RANDOM}            |
+      | officials.0.surname                          | Duplicate{SCENARIO_ID}            |
       | officials.0.forename                         | Clerk                        |
       | officials.0.type                             | CLERK                        |
     Then User Verify Response Status Code Should Be "201"
@@ -205,9 +205,10 @@ Feature: API - Application List Entry Lifecycle
     Then User Verify Response Body Should Have:
       | totalElements             | 1             |
       | elementsOnPage            | 1             |
-      | content[0].id             | :entryId      |
       | content[0].listId         | :targetListId |
       | content[0].sequenceNumber | 1             |
+    Then User Verify Response Body Array Property "content" At Field "id" Should Contain Values:
+      | :entryId |
 
     Examples:
       | User  |
@@ -220,7 +221,7 @@ Feature: API - Application List Entry Lifecycle
       | date              | todayiso                     |
       | time              | timenowhhmm-3h               |
       | status            | OPEN                         |
-      | description       | Move invalid source {RANDOM} |
+      | description       | Move invalid source {SCENARIO_ID} |
       | courtLocationCode | RCJ001                       |
       | durationHours     | 2                            |
       | durationMinutes   | 22                           |
@@ -230,7 +231,7 @@ Feature: API - Application List Entry Lifecycle
       | date              | todayiso                     |
       | time              | timenowhhmm-2h               |
       | status            | OPEN                         |
-      | description       | Move invalid target {RANDOM} |
+      | description       | Move invalid target {SCENARIO_ID} |
       | courtLocationCode | RCJ001                       |
       | durationHours     | 2                            |
       | durationMinutes   | 22                           |
@@ -240,7 +241,7 @@ Feature: API - Application List Entry Lifecycle
       | date              | todayiso                      |
       | time              | timenowhhmm-1h                |
       | status            | OPEN                          |
-      | description       | Move invalid foreign {RANDOM} |
+      | description       | Move invalid foreign {SCENARIO_ID} |
       | courtLocationCode | RCJ001                        |
       | durationHours     | 2                             |
       | durationMinutes   | 22                            |
@@ -251,8 +252,8 @@ Feature: API - Application List Entry Lifecycle
       | applicationCode                              | AD99002                      |
       | applicant.person.name.title                  | Mr                           |
       | applicant.person.name.firstName              | Source                       |
-      | applicant.person.name.lastName               | Valid{RANDOM}                |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street         |
+      | applicant.person.name.lastName               | Valid{SCENARIO_ID}                |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street         |
       | applicant.person.contactDetails.addressLine2 | Westminster                  |
       | applicant.person.contactDetails.addressLine3 | London                       |
       | applicant.person.contactDetails.addressLine4 | Greater London               |
@@ -260,7 +261,7 @@ Feature: API - Application List Entry Lifecycle
       | applicant.person.contactDetails.postcode     | SW1A 1AA                     |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                 |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                |
-      | applicant.person.contactDetails.email        | move-src{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | move-src{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | MOVESRC-{RANDOM}             |
       | feeStatuses.0.paymentStatus                  | PAID                         |
       | feeStatuses.0.statusDate                     | todayiso                     |
@@ -270,7 +271,7 @@ Feature: API - Application List Entry Lifecycle
       | notes                                        | Move invalid source entry    |
       | lodgementDate                                | todayiso                     |
       | officials.0.title                            | Mr                           |
-      | officials.0.surname                          | Source{RANDOM}               |
+      | officials.0.surname                          | Source{SCENARIO_ID}               |
       | officials.0.forename                         | Clerk                        |
       | officials.0.type                             | CLERK                        |
     Then User Verify Response Status Code Should Be "201"
@@ -280,8 +281,8 @@ Feature: API - Application List Entry Lifecycle
       | applicationCode                              | AD99002                         |
       | applicant.person.name.title                  | Ms                              |
       | applicant.person.name.firstName              | Target                          |
-      | applicant.person.name.lastName               | Existing{RANDOM}                |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Bridge Street          |
+      | applicant.person.name.lastName               | Existing{SCENARIO_ID}                |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Bridge Street          |
       | applicant.person.contactDetails.addressLine2 | Westminster                     |
       | applicant.person.contactDetails.addressLine3 | London                          |
       | applicant.person.contactDetails.addressLine4 | Greater London                  |
@@ -289,7 +290,7 @@ Feature: API - Application List Entry Lifecycle
       | applicant.person.contactDetails.postcode     | SW1A 2AA                        |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                    |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}                   |
-      | applicant.person.contactDetails.email        | move-target{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | move-target{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | MOVETGT-{RANDOM}                |
       | feeStatuses.0.paymentStatus                  | PAID                            |
       | feeStatuses.0.statusDate                     | todayiso                        |
@@ -299,7 +300,7 @@ Feature: API - Application List Entry Lifecycle
       | notes                                        | Move invalid target entry       |
       | lodgementDate                                | todayiso                        |
       | officials.0.title                            | Ms                              |
-      | officials.0.surname                          | Target{RANDOM}                  |
+      | officials.0.surname                          | Target{SCENARIO_ID}                  |
       | officials.0.forename                         | Bench                           |
       | officials.0.type                             | MAGISTRATE                      |
     Then User Verify Response Status Code Should Be "201"
@@ -309,8 +310,8 @@ Feature: API - Application List Entry Lifecycle
       | applicationCode                              | AD99002                        |
       | applicant.person.name.title                  | Mr                             |
       | applicant.person.name.firstName              | Other                          |
-      | applicant.person.name.lastName               | Foreign{RANDOM}                |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street         |
+      | applicant.person.name.lastName               | Foreign{SCENARIO_ID}                |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street         |
       | applicant.person.contactDetails.addressLine2 | Westminster                    |
       | applicant.person.contactDetails.addressLine3 | London                         |
       | applicant.person.contactDetails.addressLine4 | Greater London                 |
@@ -318,7 +319,7 @@ Feature: API - Application List Entry Lifecycle
       | applicant.person.contactDetails.postcode     | SW1A 3AA                       |
       | applicant.person.contactDetails.phone        | 0209{RANDOM}                   |
       | applicant.person.contactDetails.mobile       | 07125{RANDOM}                  |
-      | applicant.person.contactDetails.email        | move-other{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | move-other{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | MOVEOTH-{RANDOM}               |
       | feeStatuses.0.paymentStatus                  | PAID                           |
       | feeStatuses.0.statusDate                     | todayiso                       |
@@ -328,7 +329,7 @@ Feature: API - Application List Entry Lifecycle
       | notes                                        | Move invalid foreign entry     |
       | lodgementDate                                | todayiso                       |
       | officials.0.title                            | Mr                             |
-      | officials.0.surname                          | Foreign{RANDOM}                |
+      | officials.0.surname                          | Foreign{SCENARIO_ID}                |
       | officials.0.forename                         | Clerk                          |
       | officials.0.type                             | CLERK                          |
     Then User Verify Response Status Code Should Be "201"
@@ -365,7 +366,7 @@ Feature: API - Application List Entry Lifecycle
       | date              | todayiso                    |
       | time              | timenowhhmm-3h              |
       | status            | OPEN                        |
-      | description       | Move result source {RANDOM} |
+      | description       | Move result source {SCENARIO_ID} |
       | courtLocationCode | RCJ001                      |
       | durationHours     | 2                           |
       | durationMinutes   | 22                          |
@@ -375,7 +376,7 @@ Feature: API - Application List Entry Lifecycle
       | date              | todayiso                    |
       | time              | timenowhhmm-2h              |
       | status            | OPEN                        |
-      | description       | Move result target {RANDOM} |
+      | description       | Move result target {SCENARIO_ID} |
       | courtLocationCode | RCJ001                      |
       | durationHours     | 2                           |
       | durationMinutes   | 22                          |
@@ -386,8 +387,8 @@ Feature: API - Application List Entry Lifecycle
       | applicationCode                              | AD99002                         |
       | applicant.person.name.title                  | Mr                              |
       | applicant.person.name.firstName              | Result                          |
-      | applicant.person.name.lastName               | Continuity{RANDOM}              |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street            |
+      | applicant.person.name.lastName               | Continuity{SCENARIO_ID}              |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street            |
       | applicant.person.contactDetails.addressLine2 | Westminster                     |
       | applicant.person.contactDetails.addressLine3 | London                          |
       | applicant.person.contactDetails.addressLine4 | Greater London                  |
@@ -395,7 +396,7 @@ Feature: API - Application List Entry Lifecycle
       | applicant.person.contactDetails.postcode     | SW1A 1AA                        |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                    |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                   |
-      | applicant.person.contactDetails.email        | move-result{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | move-result{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | MOVERSLT-{RANDOM}               |
       | feeStatuses.0.paymentStatus                  | PAID                            |
       | feeStatuses.0.statusDate                     | todayiso                        |
@@ -405,7 +406,7 @@ Feature: API - Application List Entry Lifecycle
       | notes                                        | Move result continuity          |
       | lodgementDate                                | todayiso                        |
       | officials.0.title                            | Mr                              |
-      | officials.0.surname                          | Continuity{RANDOM}              |
+      | officials.0.surname                          | Continuity{SCENARIO_ID}              |
       | officials.0.forename                         | Clerk                           |
       | officials.0.type                             | CLERK                           |
     Then User Verify Response Status Code Should Be "201"
@@ -424,9 +425,10 @@ Feature: API - Application List Entry Lifecycle
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
       | totalElements         | 1         |
-      | content[0].id         | :resultId |
       | content[0].entryId    | :entryId  |
       | content[0].resultCode | GRSW      |
+    Then User Verify Response Body Array Property "content" At Field "id" Should Contain Values:
+      | :resultId |
 
     Examples:
       | User  |
@@ -439,7 +441,7 @@ Feature: API - Application List Entry Lifecycle
       | date              | todayiso                  |
       | time              | timenowhhmm-2h            |
       | status            | OPEN                      |
-      | description       | Soft delete list {RANDOM} |
+      | description       | Soft delete list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                    |
       | durationHours     | 2                         |
       | durationMinutes   | 22                        |
@@ -450,8 +452,8 @@ Feature: API - Application List Entry Lifecycle
       | applicationCode                              | AD99002                    |
       | applicant.person.name.title                  | Mr                         |
       | applicant.person.name.firstName              | Soft                       |
-      | applicant.person.name.lastName               | Delete{RANDOM}             |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street       |
+      | applicant.person.name.lastName               | Delete{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street       |
       | applicant.person.contactDetails.addressLine2 | Westminster                |
       | applicant.person.contactDetails.addressLine3 | London                     |
       | applicant.person.contactDetails.addressLine4 | Greater London             |
@@ -459,7 +461,7 @@ Feature: API - Application List Entry Lifecycle
       | applicant.person.contactDetails.postcode     | SW1A 1AA                   |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}               |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}              |
-      | applicant.person.contactDetails.email        | delete{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | delete{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAY-{RANDOM}               |
       | feeStatuses.0.paymentStatus                  | PAID                       |
       | feeStatuses.0.statusDate                     | todayiso                   |
@@ -469,7 +471,7 @@ Feature: API - Application List Entry Lifecycle
       | notes                                        | Soft delete setup          |
       | lodgementDate                                | todayiso                   |
       | officials.0.title                            | Mr                         |
-      | officials.0.surname                          | Delete{RANDOM}             |
+      | officials.0.surname                          | Delete{SCENARIO_ID}             |
       | officials.0.forename                         | Clerk                      |
       | officials.0.type                             | CLERK                      |
     Then User Verify Response Status Code Should Be "201"
@@ -497,7 +499,7 @@ Feature: API - Application List Entry Lifecycle
       | date              | todayiso                          |
       | time              | timenowhhmm-2h                    |
       | status            | OPEN                              |
-      | description       | Offsite persistence list {RANDOM} |
+      | description       | Offsite persistence list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                            |
       | durationHours     | 2                                 |
       | durationMinutes   | 22                                |
@@ -508,11 +510,11 @@ Feature: API - Application List Entry Lifecycle
       | applicationCode                              | AD99001                     |
       | applicant.person.name.title                  | Mr                          |
       | applicant.person.name.firstName              | Offsite                     |
-      | applicant.person.name.lastName               | Persist{RANDOM}             |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street        |
+      | applicant.person.name.lastName               | Persist{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street        |
       | applicant.person.contactDetails.postcode     | AA1 1AA                     |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                |
-      | applicant.person.contactDetails.email        | offsite{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | offsite{SCENARIO_ID}@example.com |
       | wordingFields                                | __empty_array__             |
       | feeStatuses.0.paymentReference               | PAY-{RANDOM}                |
       | feeStatuses.0.paymentStatus                  | PAID                        |
@@ -522,7 +524,7 @@ Feature: API - Application List Entry Lifecycle
       | notes                                        | Offsite persistence         |
       | lodgementDate                                | todayiso                    |
       | officials.0.title                            | Mr                          |
-      | officials.0.surname                          | Clerk{RANDOM}               |
+      | officials.0.surname                          | Clerk{SCENARIO_ID}               |
       | officials.0.forename                         | John                        |
       | officials.0.type                             | MAGISTRATE                  |
     Then User Verify Response Status Code Should Be "201"

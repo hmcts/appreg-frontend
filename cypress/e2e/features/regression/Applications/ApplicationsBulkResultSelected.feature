@@ -6,7 +6,7 @@ Feature: Applications Bulk Result Selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                             | durationHours | durationMinutes | courtLocationCode |
-            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{RANDOM} | 2             | 22              | LCCC065           |
+            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | LCCC065           |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         # Entry 1 - Standard applicant + Person respondent
@@ -14,7 +14,7 @@ Feature: Applications Bulk Result Selected
             | standardApplicantCode                         | APP036                                    |
             | applicationCode                               | AD99001                                   |
             | respondent.person.name.title                  | Mr                                        |
-            | respondent.person.name.lastName               | Smith {RANDOM}                            |
+            | respondent.person.name.lastName               | Smith {SCENARIO_ID}                            |
             | respondent.person.name.firstName              | John                                      |
             | respondent.person.name.middleName             | Edward                                    |
             | respondent.person.contactDetails.addressLine1 | 10 Downing Street                         |
@@ -58,7 +58,7 @@ Feature: Applications Bulk Result Selected
             | standardApplicantCode                               | null                                          |
             | applicationCode                                     | RE99002                                       |
             | applicant.person.name.title                         | Mrs                                           |
-            | applicant.person.name.lastName                      | Johnson {RANDOM}                              |
+            | applicant.person.name.lastName                      | Johnson {SCENARIO_ID}                              |
             | applicant.person.name.firstName                     | Sarah                                         |
             | applicant.person.name.middleName                    | Louise                                        |
             | applicant.person.contactDetails.addressLine1        | 20 High Street                                |
@@ -70,7 +70,7 @@ Feature: Applications Bulk Result Selected
             | applicant.person.contactDetails.phone               | 0161 123456                                   |
             | applicant.person.contactDetails.mobile              | 07987654321                                   |
             | applicant.person.contactDetails.email               | sarah.johnson@example.com                     |
-            | respondent.organisation.name                        | Finance Corp LTD {RANDOM}                     |
+            | respondent.organisation.name                        | Finance Corp LTD {SCENARIO_ID}                     |
             | respondent.organisation.contactDetails.addressLine1 | 30 Park Lane                                  |
             | respondent.organisation.contactDetails.addressLine2 | Birmingham                                    |
             | respondent.organisation.contactDetails.addressLine3 | West Midlands                                 |
@@ -111,7 +111,7 @@ Feature: Applications Bulk Result Selected
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                              | null                                          |
             | applicationCode                                    | MX99006                                       |
-            | applicant.organisation.name                        | ACME Industries LTD {RANDOM}                  |
+            | applicant.organisation.name                        | ACME Industries LTD {SCENARIO_ID}                  |
             | applicant.organisation.contactDetails.addressLine1 | 40 Industrial Estate                          |
             | applicant.organisation.contactDetails.addressLine2 | Leeds                                         |
             | applicant.organisation.contactDetails.addressLine3 | West Yorkshire                                |
@@ -122,7 +122,7 @@ Feature: Applications Bulk Result Selected
             | applicant.organisation.contactDetails.mobile       | 07700123456                                   |
             | applicant.organisation.contactDetails.email        | info@acme.com                                 |
             | respondent.person.name.title                       | Ms                                            |
-            | respondent.person.name.lastName                    | Williams {RANDOM}                             |
+            | respondent.person.name.lastName                    | Williams {SCENARIO_ID}                             |
             | respondent.person.name.firstName                   | Emma                                          |
             | respondent.person.name.middleName                  | Jane                                          |
             | respondent.person.contactDetails.addressLine1      | 50 Oak Avenue                                 |
@@ -180,9 +180,9 @@ Feature: Applications Bulk Result Selected
             | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |
         Then User Should See Row In Table "Application list entries" With Values:
             | Date         | Applicant                    | Respondent                | Application title                              | Fee | Resulted | Status |
-            | todaydisplay | Innovative Solutions Inc     | John Smith {RANDOM}       | Copy documents                                 | Yes | No       | OPEN   |
-            | todaydisplay | Sarah Johnson {RANDOM}       | Finance Corp LTD {RANDOM} | Rights of Entry Warrant - Electricity Operator | Yes | No       | OPEN   |
-            | todaydisplay | ACME Industries LTD {RANDOM} | Emma Williams {RANDOM}    | Condemnation of Unfit Food                     | Yes | No       | OPEN   |
+            | todaydisplay | Innovative Solutions Inc     | John Smith {SCENARIO_ID}       | Copy documents                                 | Yes | No       | OPEN   |
+            | todaydisplay | Sarah Johnson {SCENARIO_ID}       | Finance Corp LTD {SCENARIO_ID} | Rights of Entry Warrant - Electricity Operator | Yes | No       | OPEN   |
+            | todaydisplay | ACME Industries LTD {SCENARIO_ID} | Emma Williams {SCENARIO_ID}    | Condemnation of Unfit Food                     | Yes | No       | OPEN   |
         When User Checks The Select All Checkbox In Table "Application list entries"
         When User Starts Listening For Applications Bulk Action Preview
         When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Application list entries"
@@ -194,9 +194,9 @@ Feature: Applications Bulk Result Selected
         # Verify all 3 selected rows appear on the result page
         Then User Should See Row In Table "Application(s) to result" With Values:
             | Date         | Applicant                    | Respondent                | Application title                              |
-            | todaydisplay | Innovative Solutions Inc     | John Smith {RANDOM}       | Copy documents                                 |
-            | todaydisplay | Sarah Johnson {RANDOM}       | Finance Corp LTD {RANDOM} | Rights of Entry Warrant - Electricity Operator |
-            | todaydisplay | ACME Industries LTD {RANDOM} | Emma Williams {RANDOM}    | Condemnation of Unfit Food                     |
+            | todaydisplay | Innovative Solutions Inc     | John Smith {SCENARIO_ID}       | Copy documents                                 |
+            | todaydisplay | Sarah Johnson {SCENARIO_ID}       | Finance Corp LTD {SCENARIO_ID} | Rights of Entry Warrant - Electricity Operator |
+            | todaydisplay | ACME Industries LTD {SCENARIO_ID} | Emma Williams {SCENARIO_ID}    | Condemnation of Unfit Food                     |
         Then User Should See The Button "Save changes" Is Disabled
         Then User Selects " " From The Textbox "Result code" Autocomplete By Typing "abc"
         Then User Verifies "No results found" Is Visible Under The "Result code" Textbox
@@ -237,12 +237,12 @@ Feature: Applications Bulk Result Selected
         Then User Clicks On The Breadcrumb Link "Applications"
         Then User Should See Row In Table "Application list entries" With Values:
             | Date         | Applicant                    | Respondent                | Application title                              | Fee | Resulted | Status |
-            | todaydisplay | Innovative Solutions Inc     | John Smith {RANDOM}       | Copy documents                                 | Yes | Yes      | OPEN   |
-            | todaydisplay | Sarah Johnson {RANDOM}       | Finance Corp LTD {RANDOM} | Rights of Entry Warrant - Electricity Operator | Yes | Yes      | OPEN   |
-            | todaydisplay | ACME Industries LTD {RANDOM} | Emma Williams {RANDOM}    | Condemnation of Unfit Food                     | Yes | Yes      | OPEN   |
+            | todaydisplay | Innovative Solutions Inc     | John Smith {SCENARIO_ID}       | Copy documents                                 | Yes | Yes      | OPEN   |
+            | todaydisplay | Sarah Johnson {SCENARIO_ID}       | Finance Corp LTD {SCENARIO_ID} | Rights of Entry Warrant - Electricity Operator | Yes | Yes      | OPEN   |
+            | todaydisplay | ACME Industries LTD {SCENARIO_ID} | Emma Williams {SCENARIO_ID}    | Condemnation of Unfit Food                     | Yes | Yes      | OPEN   |
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Application list entries" With:
             | Applicant                | Respondent          |
-            | Innovative Solutions Inc | John Smith {RANDOM} |
+            | Innovative Solutions Inc | John Smith {SCENARIO_ID} |
         Then User Sees Page Heading "Applications list entry update"
         Then User Should See Tag "Existing" In Summary Card "RTC - Refer to Court"
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
@@ -250,7 +250,7 @@ Feature: Applications Bulk Result Selected
         Then User Clicks On The Breadcrumb Link "Applications"
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Application list entries" With:
             | Applicant              | Respondent                |
-            | Sarah Johnson {RANDOM} | Finance Corp LTD {RANDOM} |
+            | Sarah Johnson {SCENARIO_ID} | Finance Corp LTD {SCENARIO_ID} |
         Then User Sees Page Heading "Applications list entry update"
         Then User Should See Tag "Existing" In Summary Card "RTC - Refer to Court"
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
@@ -258,7 +258,7 @@ Feature: Applications Bulk Result Selected
         Then User Clicks On The Breadcrumb Link "Applications"
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Application list entries" With:
             | Applicant                    | Respondent             |
-            | ACME Industries LTD {RANDOM} | Emma Williams {RANDOM} |
+            | ACME Industries LTD {SCENARIO_ID} | Emma Williams {SCENARIO_ID} |
         Then User Sees Page Heading "Applications list entry update"
         Then User Should See Tag "Existing" In Summary Card "RTC - Refer to Court"
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
