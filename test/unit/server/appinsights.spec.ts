@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 const setup = jest.fn();
 const setAzureMonitorOptions = jest.fn();
 const setAutoCollectRequests = jest.fn();
@@ -50,6 +52,16 @@ describe('AppInsights', () => {
     jest.clearAllMocks();
     getConfig.mockReturnValue('InstrumentationKey=abc123');
     (AppInsights as unknown as { started: boolean }).started = false;
+  });
+
+  it('registers the OpenTelemetry ESM loader before starting the production server', () => {
+    const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
+      scripts: Record<string, string>;
+    };
+
+    expect(packageJson.scripts['start']).toBe(
+      'node --import @azure/monitor-opentelemetry/loader dist/appreg-frontend/server/server.mjs',
+    );
   });
 
   it('enables automatic request collection while keeping the existing telemetry features', () => {

@@ -6830,6 +6830,7 @@ __metadata:
     "@angular/router": "npm:^22.1.0"
     "@angular/ssr": "npm:^22.1.3"
     "@apidevtools/json-schema-ref-parser": "npm:^15.1.2"
+    "@azure/monitor-opentelemetry": "npm:^1.18.1"
     "@azure/msal-node": "npm:^3.8.4"
     "@badeball/cypress-cucumber-preprocessor": "npm:^24.0.0"
     "@bahmutov/cypress-esbuild-preprocessor": "npm:^2.2.5"
