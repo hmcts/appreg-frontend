@@ -5,93 +5,119 @@
 
   <div class="moj-page-header-actions__actions">
     <div class="moj-button-group moj-button-group--inline">
-      @for (a of actions(); track a.id ?? a.label) {
-        @if (a.routerLink) {
-          <a
-            class="govuk-button"
-            [class.govuk-button--start]="a.startIcon"
-            [class.govuk-button--secondary]="isSecondary(a)"
-            [class.govuk-button--warning]="isWarning(a)"
-            [routerLink]="a.routerLink"
-            [queryParams]="a.queryParams"
-            [state]="a.state"
-            [attr.id]="a.id ?? null"
-            [attr.aria-disabled]="a.disabled ? 'true' : null"
-            [class.govuk-button--disabled]="a.disabled || null"
-            (click)="a.disabled ? $event.preventDefault() : null"
-          >
-            <span>{{ a.label }}</span>
-            <span class="govuk-visually-hidden"> (internal link)</span>
-            @if (a.startIcon) {
-              <svg
-                class="govuk-button__start-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="17.5"
-                height="19"
-                viewBox="0 0 33 40"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
-              </svg>
-            }
-          </a>
-        } @else if (a.href) {
-          <a
-            class="govuk-button"
-            [class.govuk-button--start]="a.startIcon"
-            [class.govuk-button--secondary]="isSecondary(a)"
-            [class.govuk-button--warning]="isWarning(a)"
-            [href]="a.href"
-            [attr.id]="a.id ?? null"
-            [attr.aria-disabled]="a.disabled ? 'true' : null"
-            [class.govuk-button--disabled]="a.disabled || null"
-            (click)="a.disabled ? $event.preventDefault() : null"
-          >
-            <span>{{ a.label }}</span>
-            <span class="govuk-visually-hidden"> (external link)</span>
-            @if (a.startIcon) {
-              <svg
-                class="govuk-button__start-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="17.5"
-                height="19"
-                viewBox="0 0 33 40"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
-              </svg>
-            }
-          </a>
-        } @else {
-          <button
-            type="button"
-            class="govuk-button"
-            [class.govuk-button--start]="a.startIcon"
-            [class.govuk-button--secondary]="isSecondary(a)"
-            [class.govuk-button--warning]="isWarning(a)"
-            [attr.id]="a.id ?? null"
-            [disabled]="a.disabled || null"
-            (click)="a.onClick?.($event)"
-          >
-            {{ a.label }}
-            @if (a.startIcon) {
-              <svg
-                class="govuk-button__start-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="17.5"
-                height="19"
-                viewBox="0 0 33 40"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
-              </svg>
-            }
-          </button>
+      @if (actions().length <= 1) {
+        @for (a of actions(); track a.id ?? a.label) {
+          <ng-container
+            [ngTemplateOutlet]="actionTemplate"
+            [ngTemplateOutletContext]="{ $implicit: a, inMenu: false }"
+          />
         }
+      } @else {
+        <div
+          class="moj-button-menu"
+          data-module="moj-button-menu"
+          data-button-text="Actions"
+          data-button-classes="govuk-button"
+        >
+          @for (a of actions(); track a.id ?? a.label) {
+            <ng-container
+              [ngTemplateOutlet]="actionTemplate"
+              [ngTemplateOutletContext]="{ $implicit: a, inMenu: true }"
+            />
+          }
+        </div>
       }
     </div>
   </div>
 </div>
+
+<ng-template #actionTemplate let-a let-inMenu="inMenu">
+  @if (a.routerLink) {
+    <a
+      class="govuk-button"
+      [class.moj-button-menu__item]="inMenu"
+      [class.govuk-button--start]="a.startIcon && !inMenu"
+      [class.govuk-button--secondary]="isSecondary(a)"
+      [class.govuk-button--warning]="isWarning(a)"
+      [routerLink]="a.routerLink"
+      [queryParams]="a.queryParams"
+      [state]="a.state"
+      [attr.id]="a.id ?? null"
+      [attr.aria-disabled]="a.disabled ? 'true' : null"
+      [class.govuk-button--disabled]="a.disabled || null"
+      (click)="a.disabled ? $event.preventDefault() : null"
+    >
+      <span>{{ a.label }}</span>
+      <span class="govuk-visually-hidden"> (internal link)</span>
+      @if (a.startIcon && !inMenu) {
+        <svg
+          class="govuk-button__start-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="17.5"
+          height="19"
+          viewBox="0 0 33 40"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
+        </svg>
+      }
+    </a>
+  } @else if (a.href) {
+    <a
+      class="govuk-button"
+      [class.moj-button-menu__item]="inMenu"
+      [class.govuk-button--start]="a.startIcon && !inMenu"
+      [class.govuk-button--secondary]="isSecondary(a)"
+      [class.govuk-button--warning]="isWarning(a)"
+      [href]="a.href"
+      [attr.id]="a.id ?? null"
+      [attr.aria-disabled]="a.disabled ? 'true' : null"
+      [class.govuk-button--disabled]="a.disabled || null"
+      (click)="a.disabled ? $event.preventDefault() : null"
+    >
+      <span>{{ a.label }}</span>
+      <span class="govuk-visually-hidden"> (external link)</span>
+      @if (a.startIcon && !inMenu) {
+        <svg
+          class="govuk-button__start-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="17.5"
+          height="19"
+          viewBox="0 0 33 40"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
+        </svg>
+      }
+    </a>
+  } @else {
+    <button
+      type="button"
+      class="govuk-button"
+      [class.moj-button-menu__item]="inMenu"
+      [class.govuk-button--start]="a.startIcon && !inMenu"
+      [class.govuk-button--secondary]="isSecondary(a)"
+      [class.govuk-button--warning]="isWarning(a)"
+      [attr.id]="a.id ?? null"
+      [disabled]="a.disabled || null"
+      (click)="a.onClick?.($event)"
+    >
+      {{ a.label }}
+      @if (a.startIcon && !inMenu) {
+        <svg
+          class="govuk-button__start-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="17.5"
+          height="19"
+          viewBox="0 0 33 40"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
+        </svg>
+      }
+    </button>
+  }
+</ng-template>

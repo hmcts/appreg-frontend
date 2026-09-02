@@ -107,6 +107,36 @@ describe('PageHeaderComponent', () => {
     expect(btn?.getAttribute('type')).toBe('button');
   });
 
+  it('renders menu actions in a MOJ button menu', () => {
+    fixture.componentRef.setInput('title', 'T');
+    fixture.componentRef.setInput('actions', [
+      {
+        id: 'delete-list',
+        label: 'Delete list',
+        routerLink: ['delete'],
+        variant: 'warning',
+        disabled: true,
+      },
+      { id: 'help', label: 'Help', href: '/help', variant: 'secondary' },
+      { id: 'placeholder', label: 'Placeholder', onClick: () => void 0 },
+    ]);
+    fixture.detectChanges();
+
+    const menu = q<HTMLElement>(fixture, '[data-module="moj-button-menu"]');
+    const items = qa<HTMLElement>(fixture, '.moj-button-menu__item');
+
+    expect(menu).not.toBeNull();
+    expect(items).toHaveLength(3);
+    expect(items[0].textContent?.trim()).toContain('Delete list');
+    expect(items[0].classList.contains('govuk-button--warning')).toBe(true);
+    expect(items[0].getAttribute('aria-disabled')).toBe('true');
+    expect(items[1].tagName).toBe('A');
+    expect(items[1].classList.contains('govuk-button--secondary')).toBe(true);
+    expect(items[1].textContent?.trim()).toContain('Help (external link)');
+    expect(items[2].tagName).toBe('BUTTON');
+    expect(items[2].textContent?.trim()).toBe('Placeholder');
+  });
+
   it('renders start icon when startIcon=true', () => {
     const actions: ReadonlyArray<ActionLike> = [
       { id: 'with-icon', label: 'Start now', startIcon: true, href: '/start' },
