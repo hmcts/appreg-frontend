@@ -4,7 +4,7 @@ Feature: Applications list detail help details
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Body:
       | date     | time  | status | description                | courtLocationCode |
-      | todayiso | 10:20 | OPEN   | Help details list {RANDOM} | LCCC065           |
+      | todayiso | 10:20 | OPEN   | Help details list {SCENARIO_ID} | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
 
@@ -13,10 +13,10 @@ Feature: Applications list detail help details
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | Time | List description           | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      | today |      | Help details list {RANDOM} |             |       | OPEN               |                            |                       |           |
+      | today |      | Help details list {SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
       | Date         | Time  | Location                          | Description                | Entries | Status |
-      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Help details list {RANDOM} | 0       | OPEN   |
+      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Help details list {SCENARIO_ID} | 0       | OPEN   |
     Then User Sees Page Heading "Applications list"
     Then User Should See The Accordion "Help with applications"
     When User Toggles The Accordion "Help with applications"

@@ -4,6 +4,7 @@ import { APP_URLS } from '../../../support/constants/ProjectConstants';
 import { AuthErrorScenarios } from '../../../support/helper/auth/AuthErrorScenarios';
 import { AuthHelper } from '../../../support/helper/auth/AuthHelper';
 import { NavigationHelper } from '../../../support/helper/navigation/NavigationHelper';
+import { resolveParallelUserKey } from '../../../support/utils/ParallelUserResolver';
 
 When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
   cy.session(userType, () => {
@@ -11,18 +12,19 @@ When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
       'getEnv',
       'SSO_USERS',
     ).then((ssoUsers) => {
-      const user = ssoUsers[userType] || ssoUsers['default'];
+      const resolvedUserKey = resolveParallelUserKey(userType, ssoUsers);
+      const user = ssoUsers[resolvedUserKey] || ssoUsers['default'];
       if (!user) {
         throw new Error(
-          `SSO user type "${userType}" not found in configuration`,
+          `SSO user type "${resolvedUserKey}" not found in configuration`,
         );
       }
       NavigationHelper.navigateToPortalPage();
       AuthHelper.signInWithMicrosoftSSO(user.email, user.password);
-      cy.screenshot(`SSOLogin-${userType}`);
+      cy.screenshot(`SSOLogin-${resolvedUserKey}`);
     });
+    cy.visit(APP_URLS.HOME);
   });
-  cy.visit(APP_URLS.HOME);
 });
 
 When(

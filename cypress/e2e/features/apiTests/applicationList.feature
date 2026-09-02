@@ -20,7 +20,8 @@ Feature: API - Application List
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
       | content[0].description | <Description> |
-      | content[0].id          | :listId       |
+    Then User Verify Response Body Array Property "content" At Field "id" Should Contain Values:
+      | :listId |
     When User Makes PUT API Request To "/application-lists/:listId" With Object Builder:
       | date              | <Date>              |
       | time              | <Time>              |
@@ -35,7 +36,7 @@ Feature: API - Application List
     Then User Verify Response Status Code Should Be "404"
     Examples:
       | User  | Date     | Time           | Status | Description                                                  | CourtLocationCode | DurationHours | DurationMinutes |
-      | user1 | todayiso | timenowhhmm-2h | OPEN   | Applications to review at the Test Courthouse. Test_{RANDOM} | RCJ001            | 2             | 22              |
+      | user1 | todayiso | timenowhhmm-2h | OPEN   | Applications to review at the Test Courthouse. Test_{SCENARIO_ID} | RCJ001            | 2             | 22              |
 
   @api @applicationsList @regression @ARCPOC-214 @ARCPOC-772
   Scenario Outline: Create Application List using otherLocationDescription and cjaCode via API
@@ -58,4 +59,4 @@ Feature: API - Application List
     Then User Verify Response Status Code Should Be "204"
     Examples:
       | User  | Date     | Time           | Status | Description                             | DurationHours | DurationMinutes | OtherLocationDescription         | CjaCode |
-      | user1 | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{RANDOM} | 2             | 22              | Temporary Courtroom at Town Hall | 01      |
+      | user1 | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | Temporary Courtroom at Town Hall | 01      |

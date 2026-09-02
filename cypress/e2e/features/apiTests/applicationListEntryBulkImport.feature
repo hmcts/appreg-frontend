@@ -7,7 +7,7 @@ Feature: API - Application List Entry Bulk Import
       | date              | todayiso                  |
       | time              | timenowhhmm-2h            |
       | status            | OPEN                      |
-      | description       | Bulk import list {RANDOM} |
+      | description       | Bulk import list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                    |
       | durationHours     | 2                         |
       | durationMinutes   | 22                        |
@@ -32,7 +32,7 @@ Feature: API - Application List Entry Bulk Import
       | date              | todayiso                           |
       | time              | timenowhhmm-2h                     |
       | status            | OPEN                               |
-      | description       | Bulk import invalid media {RANDOM} |
+      | description       | Bulk import invalid media {SCENARIO_ID} |
       | courtLocationCode | RCJ001                             |
       | durationHours     | 2                                  |
       | durationMinutes   | 22                                 |
@@ -52,7 +52,7 @@ Feature: API - Application List Entry Bulk Import
       | date              | todayiso                               |
       | time              | timenowhhmm-2h                         |
       | status            | OPEN                                   |
-      | description       | Bulk import unsupported media {RANDOM} |
+      | description       | Bulk import unsupported media {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                 |
       | durationHours     | 2                                      |
       | durationMinutes   | 22                                     |
@@ -73,7 +73,7 @@ Feature: API - Application List Entry Bulk Import
       | date              | todayiso                           |
       | time              | timenowhhmm-2h                     |
       | status            | OPEN                               |
-      | description       | Bulk import wrong headers {RANDOM} |
+      | description       | Bulk import wrong headers {SCENARIO_ID} |
       | courtLocationCode | RCJ001                             |
       | durationHours     | 2                                  |
       | durationMinutes   | 22                                 |

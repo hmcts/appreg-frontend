@@ -42,14 +42,14 @@ Feature: Applications Search
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                             | durationHours | durationMinutes | courtLocationCode |
-            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{RANDOM} | 2             | 22              | LCCC065           |
+            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | LCCC065           |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                               | null                           |
             | applicationCode                                     | AP99001                        |
-            | applicant.organisation.name                         | Applicant Industries {RANDOM}  |
-            | applicant.organisation.contactDetails.addressLine1  | {RANDOM} King Street           |
+            | applicant.organisation.name                         | Applicant Industries {SCENARIO_ID}  |
+            | applicant.organisation.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
             | applicant.organisation.contactDetails.addressLine2  | Westminster                    |
             | applicant.organisation.contactDetails.addressLine3  | London                         |
             | applicant.organisation.contactDetails.addressLine4  | Greater London                 |
@@ -57,37 +57,37 @@ Feature: Applications Search
             | applicant.organisation.contactDetails.postcode      | SW1A 1AA                       |
             | applicant.organisation.contactDetails.phone         | 0203{RANDOM}                   |
             | applicant.organisation.contactDetails.mobile        | 07123{RANDOM}                  |
-            | applicant.organisation.contactDetails.email         | applicant{RANDOM}@example.com  |
-            | respondent.organisation.name                        | Respondent Industries {RANDOM} |
-            | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Market Road           |
+            | applicant.organisation.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
+            | respondent.organisation.name                        | Respondent Industries {SCENARIO_ID} |
+            | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
             | respondent.organisation.contactDetails.addressLine2 | Bristol                        |
             | respondent.organisation.contactDetails.addressLine3 | Avon                           |
             | respondent.organisation.contactDetails.addressLine4 | United Kingdom                 |
             | respondent.organisation.contactDetails.postcode     | BS15 5AA                       |
             | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                  |
-            | respondent.organisation.contactDetails.email        | respondent{RANDOM}@example.com |
+            | respondent.organisation.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
             | wordingFields.0.key                                 | Date of Hearing                |
-            | wordingFields.0.value                               | {RANDOM}                       |
+            | wordingFields.0.value                               | {SCENARIO_ID}                       |
             | hasOffsiteFee                                       | false                          |
             | caseReference                                       | CASE-{RANDOM}                  |
             | accountNumber                                       | ACC-{RANDOM}                   |
-            | notes                                               | Case noted with ref {RANDOM}   |
+            | notes                                               | Case noted with ref {SCENARIO_ID}   |
             | lodgementDate                                       | todayiso                       |
             | officials.0.title                                   | Mr                             |
-            | officials.0.surname                                 | Turner {RANDOM}                |
+            | officials.0.surname                                 | Turner {SCENARIO_ID}                |
             | officials.0.forename                                | Graham                         |
             | officials.0.type                                    | MAGISTRATE                     |
             | officials.1.title                                   | Ms                             |
-            | officials.1.surname                                 | Hayes {RANDOM}                 |
+            | officials.1.surname                                 | Hayes {SCENARIO_ID}                 |
             | officials.1.forename                                | Laura                          |
             | officials.1.type                                    | MAGISTRATE                     |
             | officials.2.title                                   | Mr                             |
-            | officials.2.surname                                 | Miller {RANDOM}                |
+            | officials.2.surname                                 | Miller {SCENARIO_ID}                |
             | officials.2.forename                                | Peter                          |
             | officials.2.type                                    | CLERK                          |
             | officials.3.title                                   | Ms                             |
-            | officials.3.surname                                 | Patel {RANDOM}                 |
+            | officials.3.surname                                 | Patel {SCENARIO_ID}                 |
             | officials.3.forename                                | Anita                          |
             | officials.3.type                                    | MAGISTRATE                     |
         Then User Verify Response Status Code Should Be "201"
@@ -111,8 +111,8 @@ Feature: Applications Search
         Then User Clicks On The Breadcrumb Link "Applications"
         Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         Examples:
-            | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                  | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                     | Respondent                     | ApplicationTitle      | Fee | Resulted | Status |
-            | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {RANDOM} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {RANDOM} | Respondent Industries {RANDOM} | Appeal to Crown Court | No  | No       | OPEN   |
+            | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                  | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                     | Respondent                     | ApplicationTitle                               | Fee | Resulted | Status |
+            | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {SCENARIO_ID} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {SCENARIO_ID} | Respondent Industries {SCENARIO_ID} | Appeal to Crown Court | No  | No       | OPEN   |
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1343 @ARCPOC-1437 @ARCPOC-1445
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Other Location and CJA, Applicant Person and Respondent Person
@@ -126,10 +126,10 @@ Feature: Applications Search
             | standardApplicantCode                         | null                           |
             | applicationCode                               | AP99001                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
             | applicant.person.name.firstName               | Henry                          |
             | applicant.person.name.middleName              | James                          |
-            | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
+            | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
             | applicant.person.contactDetails.addressLine4  | Greater London                 |
@@ -137,41 +137,41 @@ Feature: Applications Search
             | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
             | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
             | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
-            | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
+            | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
             | respondent.person.name.firstName              | Emily                          |
             | respondent.person.name.middleName             | Rose                           |
-            | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
+            | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
             | respondent.person.contactDetails.postcode     | BS15 5AA                       |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
-            | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+            | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | wordingFields.0.key                           | Date of Hearing                |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.value                         | {SCENARIO_ID}                       |
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-{RANDOM}                   |
-            | notes                                         | Case noted with ref {RANDOM}   |
+            | notes                                         | Case noted with ref {SCENARIO_ID}   |
             | lodgementDate                                 | todayiso                       |
             | officials.0.title                             | Mr                             |
-            | officials.0.surname                           | Turner {RANDOM}                |
+            | officials.0.surname                           | Turner {SCENARIO_ID}                |
             | officials.0.forename                          | Graham                         |
             | officials.0.type                              | MAGISTRATE                     |
             | officials.1.title                             | Ms                             |
-            | officials.1.surname                           | Hayes {RANDOM}                 |
+            | officials.1.surname                           | Hayes {SCENARIO_ID}                 |
             | officials.1.forename                          | Laura                          |
             | officials.1.type                              | MAGISTRATE                     |
             | officials.2.title                             | Mr                             |
-            | officials.2.surname                           | Miller {RANDOM}                |
+            | officials.2.surname                           | Miller {SCENARIO_ID}                |
             | officials.2.forename                          | Peter                          |
             | officials.2.type                              | CLERK                          |
             | officials.3.title                             | Ms                             |
-            | officials.3.surname                           | Patel {RANDOM}                 |
+            | officials.3.surname                           | Patel {SCENARIO_ID}                 |
             | officials.3.forename                          | Anita                          |
             | officials.3.type                              | MAGISTRATE                     |
         Then User Verify Response Status Code Should Be "201"
@@ -194,8 +194,8 @@ Feature: Applications Search
         Then User Clicks On The Breadcrumb Link "Applications"
         Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         Examples:
-            | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant             | Respondent           | ApplicationTitle      | Fee | Resulted | Status |
-            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              | Taylor {RANDOM}  |               |                   | Open         | BS15               | 01        | London |               |               |                  | Application list entries | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Appeal to Crown Court | No  | No       | OPEN   |
+            | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant             | Respondent           | ApplicationTitle                               | Fee | Resulted | Status |
+            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{SCENARIO_ID} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              | Taylor {SCENARIO_ID}  |               |                   | Open         | BS15               | 01        | London |               |               |                  | Application list entries | todaydisplay | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | Appeal to Crown Court | No  | No       | OPEN   |
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083 @ARCPOC-1343
     Scenario Outline: Verify Validation Error Messages on Application list entry Search Page

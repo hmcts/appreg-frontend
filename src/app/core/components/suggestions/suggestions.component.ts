@@ -150,6 +150,16 @@ export class SuggestionsComponent implements ControlValueAccessor {
     this.onInput((event.target as HTMLInputElement).value ?? '');
   }
 
+  onItemKeydown(item: SuggestionsItem, event: KeyboardEvent): void {
+    if (
+      event.key === 'Enter' ||
+      event.key === ' ' || // spacebar
+      event.key === 'Spacebar'
+    ) {
+      this.choose(item, event);
+    }
+  }
+
   onFocus(): void {
     this.focused = true;
     this.allValuesVisible = this.showAllValues();

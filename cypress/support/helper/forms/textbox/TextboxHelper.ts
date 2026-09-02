@@ -177,7 +177,15 @@ export class TextboxHelper {
       .should('be.enabled')
       .should('have.attr', 'placeholder', placeholder)
       .scrollIntoView()
-      .clear()
+      .clear();
+
+    // Clearing a field can cause Angular validation to re-render the input.
+    // Re-query it before typing so Cypress does not act on a detached element.
+    TextboxElement.findByPlaceholder(placeholder)
+      .should('be.visible')
+      .should('be.enabled')
+      .should('have.attr', 'placeholder', placeholder)
+      .scrollIntoView()
       .type(value, { force: true });
   }
 

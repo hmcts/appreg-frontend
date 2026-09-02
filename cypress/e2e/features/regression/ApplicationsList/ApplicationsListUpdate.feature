@@ -43,7 +43,7 @@ Feature: Applications List Update
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description   | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription    | UpdatedOtherLocation   | SuccessBanner                                                                      |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{RANDOM} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{RANDOM} | Updated Location_21442 | Success Application list updatedThe application list has been successfully updated |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{SCENARIO_ID} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{SCENARIO_ID} | Updated Location_21442 | Success Application list updatedThe application list has been successfully updated |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
     Scenario Outline: Update applications list Successfully with Court selected
@@ -90,7 +90,7 @@ Feature: Applications List Update
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
             | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description   | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessBanner                                                                      |
-            | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{RANDOM} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        | Success Application list updatedThe application list has been successfully updated |
+            | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{SCENARIO_ID} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        | Success Application list updatedThe application list has been successfully updated |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-852
     Scenario Outline: Update applications list Successfully with field validations
@@ -163,7 +163,7 @@ Feature: Applications List Update
         Then User Sees Success Banner "<SuccessMessage>"
         Examples:
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description          | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                    | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation      | InvalidCJAValue | InvalidCourtValue | SuccessMessage                                                                     |
-            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {RANDOM} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {RANDOM} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {RANDOM} | InvalidCJA      | InvalidCourt      | Success Application list updatedThe application list has been successfully updated |
+            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {SCENARIO_ID} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {SCENARIO_ID} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {SCENARIO_ID} | InvalidCJA      | InvalidCourt      | Success Application list updatedThe application list has been successfully updated |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191
     Scenario Outline: Close application list with NO ALE
@@ -202,7 +202,7 @@ Feature: Applications List Update
         Then User Sees Success Banner "Success Application list closed successfully If you believe this was in error, please contact support."
         Examples:
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes |
-            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               |
+            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {SCENARIO_ID} | CLOSED | OPEN               | 3             | 3               |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567
     Scenario Outline: Close application list with One ALE
@@ -216,10 +216,10 @@ Feature: Applications List Update
             | standardApplicantCode                         | null                           |
             | applicationCode                               | MX99009                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
             | applicant.person.name.firstName               | Henry                          |
             | applicant.person.name.middleName              | James                          |
-            | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
+            | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
             | applicant.person.contactDetails.addressLine4  | Greater London                 |
@@ -227,19 +227,19 @@ Feature: Applications List Update
             | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
             | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
             | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
-            | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
+            | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
             | respondent.person.name.firstName              | Emily                          |
             | respondent.person.name.middleName             | Rose                           |
-            | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
+            | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
             | respondent.person.contactDetails.postcode     | BS15 5AA                       |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
-            | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+            | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | feeStatuses.0.paymentReference                |                                |
             | feeStatuses.0.paymentStatus                   | <feeStatusDue>                 |
@@ -247,7 +247,7 @@ Feature: Applications List Update
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-{RANDOM}                   |
-            | notes                                         | Case noted with ref {RANDOM}   |
+            | notes                                         | Case noted with ref {SCENARIO_ID}   |
             | lodgementDate                                 | todayiso                       |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
@@ -305,10 +305,10 @@ Feature: Applications List Update
             | standardApplicantCode                         | null                           |
             | applicationCode                               | MX99009                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
             | applicant.person.name.firstName               | Henry                          |
             | applicant.person.name.middleName              | James                          |
-            | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
+            | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
             | applicant.person.contactDetails.addressLine4  | Greater London                 |
@@ -316,19 +316,19 @@ Feature: Applications List Update
             | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
             | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
             | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
-            | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
+            | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
             | respondent.person.name.firstName              | Emily                          |
             | respondent.person.name.middleName             | Rose                           |
-            | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
+            | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
             | respondent.person.contactDetails.postcode     | BS15 5AA                       |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
-            | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+            | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | feeStatuses.0.paymentReference                |                                |
             | feeStatuses.0.paymentStatus                   | <feeStatusDue>                 |
@@ -336,9 +336,9 @@ Feature: Applications List Update
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-{RANDOM}                   |
-            | notes                                         | Case noted with ref {RANDOM}   |
+            | notes                                         | Case noted with ref {SCENARIO_ID}   |
             | officials.0.title                             | Mr                             |
-            | officials.0.surname                           | Turner {RANDOM}                |
+            | officials.0.surname                           | Turner {SCENARIO_ID}                |
             | officials.0.forename                          | Graham                         |
             | officials.0.type                              | MAGISTRATE                     |
         Then User Verify Response Status Code Should Be "200"
@@ -356,10 +356,10 @@ Feature: Applications List Update
             | standardApplicantCode                         | null                           |
             | applicationCode                               | MX99009                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
             | applicant.person.name.firstName               | Henry                          |
             | applicant.person.name.middleName              | James                          |
-            | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
+            | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
             | applicant.person.contactDetails.addressLine4  | Greater London                 |
@@ -367,19 +367,19 @@ Feature: Applications List Update
             | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
             | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
             | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
-            | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
+            | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
             | respondent.person.name.firstName              | Emily                          |
             | respondent.person.name.middleName             | Rose                           |
-            | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
+            | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
             | respondent.person.contactDetails.postcode     | BS15 5AA                       |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
-            | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+            | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | feeStatuses.0.paymentReference                | <feeStatusPaidReference>       |
             | feeStatuses.0.paymentStatus                   | <feeStatusPaid>                |
@@ -387,9 +387,9 @@ Feature: Applications List Update
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-{RANDOM}                   |
-            | notes                                         | Case noted with ref {RANDOM}   |
+            | notes                                         | Case noted with ref {SCENARIO_ID}   |
             | officials.0.title                             | Mr                             |
-            | officials.0.surname                           | Turner {RANDOM}                |
+            | officials.0.surname                           | Turner {SCENARIO_ID}                |
             | officials.0.forename                          | Graham                         |
             | officials.0.type                              | MAGISTRATE                     |
         Then User Verify Response Status Code Should Be "200"
@@ -411,8 +411,8 @@ Feature: Applications List Update
         Then User Should See Table "Application list entries" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         Then User Verify "Open" Button Is Not Present In Row Of Table "Application list entries" With:
             | Date          | Applicant             | Respondent           | Application title                                        | Fee | Resulted | Status |
-            | <DisplayDate> | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Application for order re public health measures (person) | Yes | Yes      | CLOSED |
+            | <DisplayDate> | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | Application for order re public health measures (person) | Yes | Yes      | CLOSED |
 
         Examples:
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes | feeStatusPaidReference | feeStatusDue | feeStatusDate | feeStatusPaid |
-            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               | REF-{RANDOM}           | DUE          | todayiso      | PAID          |
+            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {SCENARIO_ID} | CLOSED | OPEN               | 3             | 3               | REF-{RANDOM}           | DUE          | todayiso      | PAID          |

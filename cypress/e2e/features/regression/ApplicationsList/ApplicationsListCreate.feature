@@ -28,7 +28,7 @@ Feature: Applications List Create
 
     Examples:
       | User  | Date  | Time           | Description   | Status | OtherLocation           | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
-      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
+      | user1 | today | timenowhhmm-2h | Test_{SCENARIO_ID} | Open   | Other Location_{SCENARIO_ID} | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
   Scenario Outline: Create applications list using Court Autocomplete
@@ -55,7 +55,7 @@ Feature: Applications List Create
     Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
     Examples:
       | User  | Date  | Time           | Description   | Status | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
-      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | royal      | Royal Courts of Justice Set 1 | Lists     | todaydisplay | 0       | Select           | Open       |
+      | user1 | today | timenowhhmm-2h | Test_{SCENARIO_ID} | Open   | royal      | Royal Courts of Justice Set 1 | Lists     | todaydisplay | 0       | Select           | Open       |
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792 @ARCPOC-1012
   Scenario Outline: Verify validation messages on creating applications list with No Input
@@ -111,4 +111,4 @@ Feature: Applications List Create
 
     Examples:
       | User  | InvalidDate | Date  | InvalidTime | Time  | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | CJA           | SearchText | TableName | DisplayDate  | Entries | SelectButtonText |
-      | user1 | 32/13/2024  | today | 25:61       | 14:30 | Test_{RANDOM} | Open   | abc          | Other Location_{RANDOM} | abc        | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           |
+      | user1 | 32/13/2024  | today | 25:61       | 14:30 | Test_{SCENARIO_ID} | Open   | abc          | Other Location_{SCENARIO_ID} | abc        | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           |

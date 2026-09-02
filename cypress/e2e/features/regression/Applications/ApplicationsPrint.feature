@@ -6,7 +6,7 @@ Feature: Applications Print
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                             | durationHours | durationMinutes | courtLocationCode |
-            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{RANDOM} | 2             | 22              | LCCC065           |
+            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | LCCC065           |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         # Entry 1 - Standard applicant + Person respondent
@@ -14,7 +14,7 @@ Feature: Applications Print
             | standardApplicantCode                         | APP036                                    |
             | applicationCode                               | AP99003                                   |
             | respondent.person.name.title                  | Mr                                        |
-            | respondent.person.name.lastName               | Smith {RANDOM}                            |
+            | respondent.person.name.lastName               | Smith {SCENARIO_ID}                            |
             | respondent.person.name.firstName              | John                                      |
             | respondent.person.name.middleName             | Edward                                    |
             | respondent.person.contactDetails.addressLine1 | 10 Downing Street                         |
@@ -60,7 +60,7 @@ Feature: Applications Print
             | standardApplicantCode                               | null                                          |
             | applicationCode                                     | MX99011                                       |
             | applicant.person.name.title                         | Mrs                                           |
-            | applicant.person.name.lastName                      | Johnson {RANDOM}                              |
+            | applicant.person.name.lastName                      | Johnson {SCENARIO_ID}                              |
             | applicant.person.name.firstName                     | Sarah                                         |
             | applicant.person.name.middleName                    | Louise                                        |
             | applicant.person.contactDetails.addressLine1        | 20 High Street                                |
@@ -72,7 +72,7 @@ Feature: Applications Print
             | applicant.person.contactDetails.phone               | 0161 123456                                   |
             | applicant.person.contactDetails.mobile              | 07987654321                                   |
             | applicant.person.contactDetails.email               | sarah.johnson@example.com                     |
-            | respondent.organisation.name                        | Finance Corp LTD {RANDOM}                     |
+            | respondent.organisation.name                        | Finance Corp LTD {SCENARIO_ID}                     |
             | respondent.organisation.contactDetails.addressLine1 | 30 Park Lane                                  |
             | respondent.organisation.contactDetails.addressLine2 | Birmingham                                    |
             | respondent.organisation.contactDetails.addressLine3 | West Midlands                                 |
@@ -113,7 +113,7 @@ Feature: Applications Print
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                              | null                                          |
             | applicationCode                                    | MX99006                                       |
-            | applicant.organisation.name                        | ACME Industries LTD {RANDOM}                  |
+            | applicant.organisation.name                        | ACME Industries LTD {SCENARIO_ID}                  |
             | applicant.organisation.contactDetails.addressLine1 | 40 Industrial Estate                          |
             | applicant.organisation.contactDetails.addressLine2 | Leeds                                         |
             | applicant.organisation.contactDetails.addressLine3 | West Yorkshire                                |
@@ -124,7 +124,7 @@ Feature: Applications Print
             | applicant.organisation.contactDetails.mobile       | 07700123456                                   |
             | applicant.organisation.contactDetails.email        | info@acme.com                                 |
             | respondent.person.name.title                       | Ms                                            |
-            | respondent.person.name.lastName                    | Williams {RANDOM}                             |
+            | respondent.person.name.lastName                    | Williams {SCENARIO_ID}                             |
             | respondent.person.name.firstName                   | Emma                                          |
             | respondent.person.name.middleName                  | Jane                                          |
             | respondent.person.contactDetails.addressLine1      | 50 Oak Avenue                                 |
@@ -168,13 +168,13 @@ Feature: Applications Print
         # Entry 4 - Organisation applicant + Organisation respondent (CJA list)
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                             | durationHours | durationMinutes | otherLocationDescription         | cjaCode |
-            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{RANDOM} | 2             | 22              | Temporary Courtroom at Town Hall | 01      |
+            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | Temporary Courtroom at Town Hall | 01      |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId2"
         When User Makes POST API Request To "/application-lists/:listId2/entries" With Object Builder:
             | standardApplicantCode                               | null                                                |
             | applicationCode                                     | MX99007                                             |
-            | applicant.organisation.name                         | Global Trade Solutions LTD {RANDOM}                 |
+            | applicant.organisation.name                         | Global Trade Solutions LTD {SCENARIO_ID}                 |
             | applicant.organisation.contactDetails.addressLine1  | 100 Business Park                                   |
             | applicant.organisation.contactDetails.addressLine2  | Canary Wharf                                        |
             | applicant.organisation.contactDetails.addressLine3  | London                                              |
@@ -184,7 +184,7 @@ Feature: Applications Print
             | applicant.organisation.contactDetails.phone         | 020 7946 0100                                       |
             | applicant.organisation.contactDetails.mobile        | 07700900100                                         |
             | applicant.organisation.contactDetails.email         | info@globaltradeuk.com                              |
-            | respondent.organisation.name                        | Controlled Assets Ltd {RANDOM}                      |
+            | respondent.organisation.name                        | Controlled Assets Ltd {SCENARIO_ID}                      |
             | respondent.organisation.contactDetails.addressLine1 | 200 Commerce Street                                 |
             | respondent.organisation.contactDetails.addressLine2 | Sheffield                                           |
             | respondent.organisation.contactDetails.addressLine3 | South Yorkshire                                     |
@@ -293,16 +293,16 @@ Feature: Applications Print
             | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |
         Then User Should See Row In Table "Application list entries" With Values:
             | Date         | Applicant                           | Respondent                     | Application title                                                   | Fee | Resulted | Status |
-            | todaydisplay | Innovative Solutions Inc            | John Smith {RANDOM}            | Appeal by Case Stated (Civil)                                       | Yes | Yes      | OPEN   |
-            | todaydisplay | Sarah Johnson {RANDOM}              | Finance Corp LTD {RANDOM}      | Application to remove an educational institution from the registert | Yes | Yes      | OPEN   |
-            | todaydisplay | ACME Industries LTD {RANDOM}        | Emma Williams {RANDOM}         | Condemnation of Unfit Food                                          | Yes | Yes      | OPEN   |
-            | todaydisplay | Global Trade Solutions LTD {RANDOM} | Controlled Assets Ltd {RANDOM} | Application for a licence for a child to work abroad                | Yes | Yes      | OPEN   |
+            | todaydisplay | Innovative Solutions Inc            | John Smith {SCENARIO_ID}            | Appeal by Case Stated (Civil)                                       | Yes | Yes      | OPEN   |
+            | todaydisplay | Sarah Johnson {SCENARIO_ID}              | Finance Corp LTD {SCENARIO_ID}      | Application to remove an educational institution from the registert | Yes | Yes      | OPEN   |
+            | todaydisplay | ACME Industries LTD {SCENARIO_ID}        | Emma Williams {SCENARIO_ID}         | Condemnation of Unfit Food                                          | Yes | Yes      | OPEN   |
+            | todaydisplay | Global Trade Solutions LTD {SCENARIO_ID} | Controlled Assets Ltd {SCENARIO_ID} | Application for a licence for a child to work abroad                | Yes | Yes      | OPEN   |
         When User Checks The Checkbox In Row Of Table "Application list entries" With:
             | Date         | Applicant                           | Respondent                     | Application title                                                  | Fee | Resulted | Status |
-            | todaydisplay | Innovative Solutions Inc            | John Smith {RANDOM}            | Appeal by Case Stated (Civil)                                      | Yes | Yes      | OPEN   |
-            | todaydisplay | Sarah Johnson {RANDOM}              | Finance Corp LTD {RANDOM}      | Application to remove an educational institution from the register | Yes | Yes      | OPEN   |
-            | todaydisplay | ACME Industries LTD {RANDOM}        | Emma Williams {RANDOM}         | Condemnation of Unfit Food                                         | Yes | Yes      | OPEN   |
-            | todaydisplay | Global Trade Solutions LTD {RANDOM} | Controlled Assets Ltd {RANDOM} | Application for a licence for a child to work abroad               | Yes | Yes      | OPEN   |
+            | todaydisplay | Innovative Solutions Inc            | John Smith {SCENARIO_ID}            | Appeal by Case Stated (Civil)                                      | Yes | Yes      | OPEN   |
+            | todaydisplay | Sarah Johnson {SCENARIO_ID}              | Finance Corp LTD {SCENARIO_ID}      | Application to remove an educational institution from the register | Yes | Yes      | OPEN   |
+            | todaydisplay | ACME Industries LTD {SCENARIO_ID}        | Emma Williams {SCENARIO_ID}         | Condemnation of Unfit Food                                         | Yes | Yes      | OPEN   |
+            | todaydisplay | Global Trade Solutions LTD {SCENARIO_ID} | Controlled Assets Ltd {SCENARIO_ID} | Application for a licence for a child to work abroad               | Yes | Yes      | OPEN   |
         When User Starts Listening For Applications Bulk Action Preview
         When User Clicks "Actions" Then "Print continuous" From Caption Menu In Table "Application list entries"
         Then User Verifies Applications Bulk Action Preview Request Has:
@@ -315,23 +315,23 @@ Feature: Applications Print
         Then User Verifies Latest Downloaded PDF Contains 4 "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
             | Applicant              | Innovative Solutions Inc                                                                            |
-            | Respondent             | Mr John Edward Smith {RANDOM}                                                                       |
+            | Respondent             | Mr John Edward Smith {SCENARIO_ID}                                                                       |
             | Case Reference         | CASE-001                                                                                            |
             | Application Code       | AP99003                                                                                             |
             | Account Reference      | ACC-{RANDOM}                                                                                        |
             | Application Title      | Appeal by Case Stated (Civil)                                                                       |
             | Notes                  | Standard applicant with person respondent                                                           |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
-            | Applicant              | Mrs Sarah Louise Johnson {RANDOM}                                                                   |
-            | Respondent             | Finance Corp LTD {RANDOM}                                                                           |
+            | Applicant              | Mrs Sarah Louise Johnson {SCENARIO_ID}                                                                   |
+            | Respondent             | Finance Corp LTD {SCENARIO_ID}                                                                           |
             | Case Reference         | CASE-002                                                                                            |
             | Application Code       | MX99011                                                                                             |
             | Account Reference      | ACC-{RANDOM}                                                                                        |
             | Application Title      | Application to remove an educational institution from the register                                  |
             | Notes                  | Person applicant with organisation respondent                                                       |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
-            | Applicant              | ACME Industries LTD {RANDOM}                                                                        |
-            | Respondent             | Ms Emma Jane Williams {RANDOM}                                                                      |
+            | Applicant              | ACME Industries LTD {SCENARIO_ID}                                                                        |
+            | Respondent             | Ms Emma Jane Williams {SCENARIO_ID}                                                                      |
             | Case Reference         | CASE-003                                                                                            |
             | Application Code       | MX99006                                                                                             |
             | Account Reference      | ACC-{RANDOM}                                                                                        |
@@ -339,8 +339,8 @@ Feature: Applications Print
             | Result                 | Reasons: Applications rejected due to insufficient documentation and missing required signatures.   |
             | Notes                  | Organisation applicant with person respondent                                                       |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
-            | Applicant              | Global Trade Solutions LTD {RANDOM}                                                                 |
-            | Respondent             | Controlled Assets Ltd {RANDOM}                                                                      |
+            | Applicant              | Global Trade Solutions LTD {SCENARIO_ID}                                                                 |
+            | Respondent             | Controlled Assets Ltd {SCENARIO_ID}                                                                      |
             | Case Reference         | CASE-004                                                                                            |
             | Application Code       | MX99007                                                                                             |
             | Account Reference      | ACC-{RANDOM}                                                                                        |
@@ -359,25 +359,25 @@ Feature: Applications Print
         Then User Verifies Latest Downloaded PDF Contains Text "Leeds Combined Court Centre Set 7"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
             | Application brought by | Innovative Solutions Inc                                                                            |
-            | Respondent             | Mr John Edward Smith {RANDOM}                                                                       |
+            | Respondent             | Mr John Edward Smith {SCENARIO_ID}                                                                       |
             | Matter considered      | Application for a licence for a child to work abroad                                                |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |
             | Produced on            | todaydisplaylong                                                                                    |
-            | Application brought by | Mrs Sarah Louise Johnson {RANDOM}                                                                   |
-            | Respondent             | Finance Corp LTD {RANDOM}                                                                           |
+            | Application brought by | Mrs Sarah Louise Johnson {SCENARIO_ID}                                                                   |
+            | Respondent             | Finance Corp LTD {SCENARIO_ID}                                                                           |
             | Matter considered      | Condemnation of Unfit Food                                                                          |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |
             | Produced on            | todaydisplaylong                                                                                    |
-            | Application brought by | ACME Industries LTD {RANDOM}                                                                        |
-            | Respondent             | Ms Emma Jane Williams {RANDOM}                                                                      |
+            | Application brought by | ACME Industries LTD {SCENARIO_ID}                                                                        |
+            | Respondent             | Ms Emma Jane Williams {SCENARIO_ID}                                                                      |
             | Matter considered      | Appeal by Case Stated (Civil)                                                                       |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |
             | Produced on            | todaydisplaylong                                                                                    |
-            | Application brought by | Global Trade Solutions LTD {RANDOM}                                                                 |
-            | Respondent             | Controlled Assets Ltd {RANDOM}                                                                      |
+            | Application brought by | Global Trade Solutions LTD {SCENARIO_ID}                                                                 |
+            | Respondent             | Controlled Assets Ltd {SCENARIO_ID}                                                                      |
             | Matter considered      | Application to remove an educational institution from the register                                  |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |

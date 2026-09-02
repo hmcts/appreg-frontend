@@ -4,33 +4,33 @@ Feature: Applications list entry update help details
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Body:
       | date     | time  | status | description                     | courtLocationCode |
-      | todayiso | 10:20 | OPEN   | Entry update help list {RANDOM} | LCCC065           |
+      | todayiso | 10:20 | OPEN   | Entry update help list {SCENARIO_ID} | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                         | null                           |
       | applicationCode                               | MX99006                        |
       | applicant.person.name.title                   | Mr                             |
-      | applicant.person.name.lastName                | Taylor {RANDOM}                |
+      | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
       | applicant.person.name.firstName               | Henry                          |
-      | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
+      | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
       | applicant.person.contactDetails.addressLine2  | Westminster                    |
       | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
-      | applicant.person.contactDetails.phone         | 01632960001                    |
-      | applicant.person.contactDetails.mobile        | 07700900001                    |
-      | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
+      | applicant.person.contactDetails.phone         |                    01632960001 |
+      | applicant.person.contactDetails.mobile        |                    07700900001 |
+      | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
       | respondent.person.name.title                  | Ms                             |
-      | respondent.person.name.lastName               | Clark {RANDOM}                 |
+      | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
       | respondent.person.name.firstName              | Emily                          |
-      | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
+      | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
       | respondent.person.contactDetails.addressLine2 | Bristol                        |
       | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-      | respondent.person.contactDetails.phone        | 01632960001                    |
-      | respondent.person.contactDetails.mobile       | 07700900001                    |
-      | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+      | respondent.person.contactDetails.phone        |                    01632960001 |
+      | respondent.person.contactDetails.mobile       |                    07700900001 |
+      | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
       | respondent.person.dateOfBirth                 | todayiso-25y                   |
       | wordingFields.0.key                           | Describe Seized Food           |
-      | wordingFields.0.value                         | Help wording {RANDOM}          |
+      | wordingFields.0.value                         | Help wording {SCENARIO_ID}          |
       | feeStatuses.0.paymentReference                | PAY-{RANDOM}                   |
       | feeStatuses.0.paymentStatus                   | PAID                           |
       | feeStatuses.0.statusDate                      | todayiso                       |
@@ -47,13 +47,13 @@ Feature: Applications list entry update help details
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | Time | Description                     | CourtSearch | Court | Status | Other location | CJA | CJASearch |
-      | today |      | Entry update help list {RANDOM} | LCCC065     |       |        |                |     |           |
+      | today |      | Entry update help list {SCENARIO_ID} | LCCC065     |       |        |                |     |           |
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
       | Date         | Time  | Location                          | Description                     | Entries | Status |
-      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Entry update help list {RANDOM} | 1       | OPEN   |
+      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Entry update help list {SCENARIO_ID} | 1       | OPEN   |
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
       | Sequence number | Account number | Applicant             | Respondent           | Postcode | Fee |
-      | 1               | ACC-{RANDOM}   | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Yes |
+      | 1               | ACC-{RANDOM}   | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Yes |
     Then User Sees Page Heading "Applications list entry update"
     When User Clicks On The "Show all sections" Button
     When User Toggles The Accordion "Help with applicant details"

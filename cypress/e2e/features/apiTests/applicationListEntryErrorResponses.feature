@@ -9,7 +9,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                          |
       | time              | timenowhhmm-2h                    |
       | status            | OPEN                              |
-      | description       | ARCPOC-1461 create state {RANDOM} |
+      | description       | ARCPOC-1461 create state {SCENARIO_ID} |
       | courtLocationCode | RCJ001                            |
       | durationHours     | 2                                 |
       | durationMinutes   | 22                                |
@@ -20,8 +20,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                          |
       | applicant.person.name.title                  | Mr                               |
       | applicant.person.name.firstName              | Closed                           |
-      | applicant.person.name.lastName               | CreateState{RANDOM}              |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street             |
+      | applicant.person.name.lastName               | CreateState{SCENARIO_ID}              |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street             |
       | applicant.person.contactDetails.addressLine2 | Westminster                      |
       | applicant.person.contactDetails.addressLine3 | London                           |
       | applicant.person.contactDetails.addressLine4 | Greater London                   |
@@ -29,7 +29,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 1AA                         |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                     |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                    |
-      | applicant.person.contactDetails.email        | create-state{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | create-state{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | CRESTATE-{RANDOM}                |
       | feeStatuses.0.paymentStatus                  | PAID                             |
       | feeStatuses.0.statusDate                     | todayiso                         |
@@ -39,7 +39,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Entry used to close list         |
       | lodgementDate                                | todayiso                         |
       | officials.0.title                            | Mr                               |
-      | officials.0.surname                          | CreateState{RANDOM}              |
+      | officials.0.surname                          | CreateState{SCENARIO_ID}              |
       | officials.0.forename                         | Clerk                            |
       | officials.0.type                             | CLERK                            |
     Then User Verify Response Status Code Should Be "201"
@@ -52,7 +52,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                          |
       | time              | timenowhhmm-2h                    |
       | status            | CLOSED                            |
-      | description       | ARCPOC-1461 create state {RANDOM} |
+      | description       | ARCPOC-1461 create state {SCENARIO_ID} |
       | courtLocationCode | RCJ001                            |
       | durationHours     | 2                                 |
       | durationMinutes   | 22                                |
@@ -62,8 +62,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                          |
       | applicant.person.name.title                  | Mr                               |
       | applicant.person.name.firstName              | Missing                          |
-      | applicant.person.name.lastName               | List{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street             |
+      | applicant.person.name.lastName               | List{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street             |
       | applicant.person.contactDetails.addressLine2 | Westminster                      |
       | applicant.person.contactDetails.addressLine3 | London                           |
       | applicant.person.contactDetails.addressLine4 | Greater London                   |
@@ -71,7 +71,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 1AA                         |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                     |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                    |
-      | applicant.person.contactDetails.email        | missing-list{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | missing-list{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | MISSLIST-{RANDOM}                |
       | feeStatuses.0.paymentStatus                  | PAID                             |
       | feeStatuses.0.statusDate                     | todayiso                         |
@@ -81,7 +81,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Missing list create              |
       | lodgementDate                                | todayiso                         |
       | officials.0.title                            | Mr                               |
-      | officials.0.surname                          | MissingList{RANDOM}              |
+      | officials.0.surname                          | MissingList{SCENARIO_ID}              |
       | officials.0.forename                         | Clerk                            |
       | officials.0.type                             | CLERK                            |
     Then User Verify Response Status Code Should Be "404"
@@ -90,8 +90,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                             |
       | applicant.person.name.title                  | Ms                                  |
       | applicant.person.name.firstName              | Closed                              |
-      | applicant.person.name.lastName               | Rejected{RANDOM}                    |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Crown Street               |
+      | applicant.person.name.lastName               | Rejected{SCENARIO_ID}                    |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street               |
       | applicant.person.contactDetails.addressLine2 | Westminster                         |
       | applicant.person.contactDetails.addressLine3 | London                              |
       | applicant.person.contactDetails.addressLine4 | Greater London                      |
@@ -99,7 +99,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 2AA                            |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                        |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}                       |
-      | applicant.person.contactDetails.email        | closed-rejected{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | closed-rejected{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | CLOSED-{RANDOM}                     |
       | feeStatuses.0.paymentStatus                  | PAID                                |
       | feeStatuses.0.statusDate                     | todayiso                            |
@@ -109,7 +109,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Closed list create attempt          |
       | lodgementDate                                | todayiso                            |
       | officials.0.title                            | Ms                                  |
-      | officials.0.surname                          | ClosedReject{RANDOM}                |
+      | officials.0.surname                          | ClosedReject{SCENARIO_ID}                |
       | officials.0.forename                         | Bench                               |
       | officials.0.type                             | MAGISTRATE                          |
     Then User Verify Response Status Code Should Be "409"
@@ -120,7 +120,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                          |
       | time              | timenowhhmm-3h                    |
       | status            | OPEN                              |
-      | description       | ARCPOC-1461 get update A {RANDOM} |
+      | description       | ARCPOC-1461 get update A {SCENARIO_ID} |
       | courtLocationCode | RCJ001                            |
       | durationHours     | 2                                 |
       | durationMinutes   | 22                                |
@@ -130,7 +130,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                          |
       | time              | timenowhhmm-2h                    |
       | status            | OPEN                              |
-      | description       | ARCPOC-1461 get update B {RANDOM} |
+      | description       | ARCPOC-1461 get update B {SCENARIO_ID} |
       | courtLocationCode | RCJ001                            |
       | durationHours     | 2                                 |
       | durationMinutes   | 22                                |
@@ -140,7 +140,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                               |
       | time              | timenowhhmm-1h                         |
       | status            | OPEN                                   |
-      | description       | ARCPOC-1461 get update closed {RANDOM} |
+      | description       | ARCPOC-1461 get update closed {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                 |
       | durationHours     | 2                                      |
       | durationMinutes   | 22                                     |
@@ -151,8 +151,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                           |
       | applicant.person.name.title                  | Mr                                |
       | applicant.person.name.firstName              | Primary                           |
-      | applicant.person.name.lastName               | Entry{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street              |
+      | applicant.person.name.lastName               | Entry{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street              |
       | applicant.person.contactDetails.addressLine2 | Westminster                       |
       | applicant.person.contactDetails.addressLine3 | London                            |
       | applicant.person.contactDetails.addressLine4 | Greater London                    |
@@ -160,7 +160,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 1AA                          |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                      |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                     |
-      | applicant.person.contactDetails.email        | primary-entry{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | primary-entry{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PRIMARY-{RANDOM}                  |
       | feeStatuses.0.paymentStatus                  | PAID                              |
       | feeStatuses.0.statusDate                     | todayiso                          |
@@ -170,7 +170,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Primary entry                     |
       | lodgementDate                                | todayiso                          |
       | officials.0.title                            | Mr                                |
-      | officials.0.surname                          | Primary{RANDOM}                   |
+      | officials.0.surname                          | Primary{SCENARIO_ID}                   |
       | officials.0.forename                         | Clerk                             |
       | officials.0.type                             | CLERK                             |
     Then User Verify Response Status Code Should Be "201"
@@ -180,8 +180,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                           |
       | applicant.person.name.title                  | Ms                                |
       | applicant.person.name.firstName              | Foreign                           |
-      | applicant.person.name.lastName               | Entry{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street            |
+      | applicant.person.name.lastName               | Entry{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street            |
       | applicant.person.contactDetails.addressLine2 | Westminster                       |
       | applicant.person.contactDetails.addressLine3 | London                            |
       | applicant.person.contactDetails.addressLine4 | Greater London                    |
@@ -189,7 +189,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 2AA                          |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                      |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}                     |
-      | applicant.person.contactDetails.email        | foreign-entry{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | foreign-entry{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | FOREIGN-{RANDOM}                  |
       | feeStatuses.0.paymentStatus                  | PAID                              |
       | feeStatuses.0.statusDate                     | todayiso                          |
@@ -199,7 +199,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Foreign entry                     |
       | lodgementDate                                | todayiso                          |
       | officials.0.title                            | Ms                                |
-      | officials.0.surname                          | Foreign{RANDOM}                   |
+      | officials.0.surname                          | Foreign{SCENARIO_ID}                   |
       | officials.0.forename                         | Bench                             |
       | officials.0.type                             | MAGISTRATE                        |
     Then User Verify Response Status Code Should Be "201"
@@ -209,8 +209,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                          |
       | applicant.person.name.title                  | Mr                               |
       | applicant.person.name.firstName              | Closed                           |
-      | applicant.person.name.lastName               | Entry{RANDOM}                    |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Crown Street            |
+      | applicant.person.name.lastName               | Entry{SCENARIO_ID}                    |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street            |
       | applicant.person.contactDetails.addressLine2 | Westminster                      |
       | applicant.person.contactDetails.addressLine3 | London                           |
       | applicant.person.contactDetails.addressLine4 | Greater London                   |
@@ -218,7 +218,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 3AA                         |
       | applicant.person.contactDetails.phone        | 0209{RANDOM}                     |
       | applicant.person.contactDetails.mobile       | 07125{RANDOM}                    |
-      | applicant.person.contactDetails.email        | closed-entry{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | closed-entry{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | CLENT-{RANDOM}                   |
       | feeStatuses.0.paymentStatus                  | PAID                             |
       | feeStatuses.0.statusDate                     | todayiso                         |
@@ -228,7 +228,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Closed entry                     |
       | lodgementDate                                | todayiso                         |
       | officials.0.title                            | Mr                               |
-      | officials.0.surname                          | Closed{RANDOM}                   |
+      | officials.0.surname                          | Closed{SCENARIO_ID}                   |
       | officials.0.forename                         | Clerk                            |
       | officials.0.type                             | CLERK                            |
     Then User Verify Response Status Code Should Be "201"
@@ -241,7 +241,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                               |
       | time              | timenowhhmm-1h                         |
       | status            | CLOSED                                 |
-      | description       | ARCPOC-1461 get update closed {RANDOM} |
+      | description       | ARCPOC-1461 get update closed {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                 |
       | durationHours     | 2                                      |
       | durationMinutes   | 22                                     |
@@ -259,8 +259,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                                 |
       | applicant.person.name.title                  | Mr                                      |
       | applicant.person.name.firstName              | Updated                                 |
-      | applicant.person.name.lastName               | MissingList{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street                    |
+      | applicant.person.name.lastName               | MissingList{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street                    |
       | applicant.person.contactDetails.addressLine2 | Westminster                             |
       | applicant.person.contactDetails.addressLine3 | London                                  |
       | applicant.person.contactDetails.addressLine4 | Greater London                          |
@@ -268,7 +268,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 1AA                                |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                            |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                           |
-      | applicant.person.contactDetails.email        | update-missing-list{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | update-missing-list{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | UPDATEA-{RANDOM}                        |
       | feeStatuses.0.paymentStatus                  | PAID                                    |
       | feeStatuses.0.statusDate                     | todayiso                                |
@@ -277,7 +277,7 @@ Feature: API - Application List Entry Error Responses
       | accountNumber                                | UPDATEA-{RANDOM}                        |
       | notes                                        | Update missing list                     |
       | officials.0.title                            | Mr                                      |
-      | officials.0.surname                          | UpdateA{RANDOM}                         |
+      | officials.0.surname                          | UpdateA{SCENARIO_ID}                         |
       | officials.0.forename                         | Clerk                                   |
       | officials.0.type                             | CLERK                                   |
     Then User Verify Response Status Code Should Be "404"
@@ -286,8 +286,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                                  |
       | applicant.person.name.title                  | Ms                                       |
       | applicant.person.name.firstName              | Updated                                  |
-      | applicant.person.name.lastName               | MissingEntry{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street                   |
+      | applicant.person.name.lastName               | MissingEntry{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street                   |
       | applicant.person.contactDetails.addressLine2 | Westminster                              |
       | applicant.person.contactDetails.addressLine3 | London                                   |
       | applicant.person.contactDetails.addressLine4 | Greater London                           |
@@ -295,7 +295,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 2AA                                 |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                             |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}                            |
-      | applicant.person.contactDetails.email        | update-missing-entry{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | update-missing-entry{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | UPDATEB-{RANDOM}                         |
       | feeStatuses.0.paymentStatus                  | PAID                                     |
       | feeStatuses.0.statusDate                     | todayiso                                 |
@@ -304,7 +304,7 @@ Feature: API - Application List Entry Error Responses
       | accountNumber                                | UPDATEB-{RANDOM}                         |
       | notes                                        | Update missing entry                     |
       | officials.0.title                            | Ms                                       |
-      | officials.0.surname                          | UpdateB{RANDOM}                          |
+      | officials.0.surname                          | UpdateB{SCENARIO_ID}                          |
       | officials.0.forename                         | Bench                                    |
       | officials.0.type                             | MAGISTRATE                               |
     Then User Verify Response Status Code Should Be "404"
@@ -313,8 +313,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                                 |
       | applicant.person.name.title                  | Ms                                      |
       | applicant.person.name.firstName              | Updated                                 |
-      | applicant.person.name.lastName               | WrongParent{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Crown Street                   |
+      | applicant.person.name.lastName               | WrongParent{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street                   |
       | applicant.person.contactDetails.addressLine2 | Westminster                             |
       | applicant.person.contactDetails.addressLine3 | London                                  |
       | applicant.person.contactDetails.addressLine4 | Greater London                          |
@@ -322,7 +322,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 3AA                                |
       | applicant.person.contactDetails.phone        | 0209{RANDOM}                            |
       | applicant.person.contactDetails.mobile       | 07125{RANDOM}                           |
-      | applicant.person.contactDetails.email        | update-wrong-parent{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | update-wrong-parent{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | UPDATEC-{RANDOM}                        |
       | feeStatuses.0.paymentStatus                  | PAID                                    |
       | feeStatuses.0.statusDate                     | todayiso                                |
@@ -331,7 +331,7 @@ Feature: API - Application List Entry Error Responses
       | accountNumber                                | UPDATEC-{RANDOM}                        |
       | notes                                        | Update wrong parent                     |
       | officials.0.title                            | Ms                                      |
-      | officials.0.surname                          | UpdateC{RANDOM}                         |
+      | officials.0.surname                          | UpdateC{SCENARIO_ID}                         |
       | officials.0.forename                         | Bench                                   |
       | officials.0.type                             | MAGISTRATE                              |
     Then User Verify Response Status Code Should Be "409"
@@ -340,8 +340,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                           |
       | applicant.person.name.title                  | Mr                                |
       | applicant.person.name.firstName              | Closed                            |
-      | applicant.person.name.lastName               | WrongState{RANDOM}                |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Crown Street             |
+      | applicant.person.name.lastName               | WrongState{SCENARIO_ID}                |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street             |
       | applicant.person.contactDetails.addressLine2 | Westminster                       |
       | applicant.person.contactDetails.addressLine3 | London                            |
       | applicant.person.contactDetails.addressLine4 | Greater London                    |
@@ -349,7 +349,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 3AA                          |
       | applicant.person.contactDetails.phone        | 0209{RANDOM}                      |
       | applicant.person.contactDetails.mobile       | 07125{RANDOM}                     |
-      | applicant.person.contactDetails.email        | update-closed{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | update-closed{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | UPDATED-{RANDOM}                  |
       | feeStatuses.0.paymentStatus                  | PAID                              |
       | feeStatuses.0.statusDate                     | todayiso                          |
@@ -358,7 +358,7 @@ Feature: API - Application List Entry Error Responses
       | accountNumber                                | UPDATED-{RANDOM}                  |
       | notes                                        | Update closed list                |
       | officials.0.title                            | Mr                                |
-      | officials.0.surname                          | UpdateClosed{RANDOM}              |
+      | officials.0.surname                          | UpdateClosed{SCENARIO_ID}              |
       | officials.0.forename                         | Clerk                             |
       | officials.0.type                             | CLERK                             |
     Then User Verify Response Status Code Should Be "409"
@@ -369,7 +369,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                      |
       | time              | timenowhhmm-2h                |
       | status            | OPEN                          |
-      | description       | ARCPOC-1461 delete A {RANDOM} |
+      | description       | ARCPOC-1461 delete A {SCENARIO_ID} |
       | courtLocationCode | RCJ001                        |
       | durationHours     | 2                             |
       | durationMinutes   | 22                            |
@@ -379,7 +379,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                      |
       | time              | timenowhhmm-1h                |
       | status            | OPEN                          |
-      | description       | ARCPOC-1461 delete B {RANDOM} |
+      | description       | ARCPOC-1461 delete B {SCENARIO_ID} |
       | courtLocationCode | RCJ001                        |
       | durationHours     | 2                             |
       | durationMinutes   | 22                            |
@@ -390,8 +390,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                           |
       | applicant.person.name.title                  | Mr                                |
       | applicant.person.name.firstName              | Delete                            |
-      | applicant.person.name.lastName               | Source{RANDOM}                    |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street              |
+      | applicant.person.name.lastName               | Source{SCENARIO_ID}                    |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street              |
       | applicant.person.contactDetails.addressLine2 | Westminster                       |
       | applicant.person.contactDetails.addressLine3 | London                            |
       | applicant.person.contactDetails.addressLine4 | Greater London                    |
@@ -399,7 +399,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 1AA                          |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                      |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                     |
-      | applicant.person.contactDetails.email        | delete-source{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | delete-source{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | DELSRC-{RANDOM}                   |
       | feeStatuses.0.paymentStatus                  | PAID                              |
       | feeStatuses.0.statusDate                     | todayiso                          |
@@ -409,7 +409,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Delete source                     |
       | lodgementDate                                | todayiso                          |
       | officials.0.title                            | Mr                                |
-      | officials.0.surname                          | DeleteSource{RANDOM}              |
+      | officials.0.surname                          | DeleteSource{SCENARIO_ID}              |
       | officials.0.forename                         | Clerk                             |
       | officials.0.type                             | CLERK                             |
     Then User Verify Response Status Code Should Be "201"
@@ -419,8 +419,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                          |
       | applicant.person.name.title                  | Ms                               |
       | applicant.person.name.firstName              | Delete                           |
-      | applicant.person.name.lastName               | Other{RANDOM}                    |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street           |
+      | applicant.person.name.lastName               | Other{SCENARIO_ID}                    |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street           |
       | applicant.person.contactDetails.addressLine2 | Westminster                      |
       | applicant.person.contactDetails.addressLine3 | London                           |
       | applicant.person.contactDetails.addressLine4 | Greater London                   |
@@ -428,7 +428,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 2AA                         |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                     |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}                    |
-      | applicant.person.contactDetails.email        | delete-other{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | delete-other{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | DELOTH-{RANDOM}                  |
       | feeStatuses.0.paymentStatus                  | PAID                             |
       | feeStatuses.0.statusDate                     | todayiso                         |
@@ -438,7 +438,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Delete other                     |
       | lodgementDate                                | todayiso                         |
       | officials.0.title                            | Ms                               |
-      | officials.0.surname                          | DeleteOther{RANDOM}              |
+      | officials.0.surname                          | DeleteOther{SCENARIO_ID}              |
       | officials.0.forename                         | Bench                            |
       | officials.0.type                             | MAGISTRATE                       |
     Then User Verify Response Status Code Should Be "201"
@@ -462,7 +462,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                            |
       | time              | timenowhhmm-2h                      |
       | status            | OPEN                                |
-      | description       | ARCPOC-1461 closed entry A {RANDOM} |
+      | description       | ARCPOC-1461 closed entry A {SCENARIO_ID} |
       | courtLocationCode | RCJ001                              |
       | durationHours     | 2                                   |
       | durationMinutes   | 22                                  |
@@ -472,7 +472,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                            |
       | time              | timenowhhmm-1h                      |
       | status            | OPEN                                |
-      | description       | ARCPOC-1461 closed entry B {RANDOM} |
+      | description       | ARCPOC-1461 closed entry B {SCENARIO_ID} |
       | courtLocationCode | RCJ001                              |
       | durationHours     | 2                                   |
       | durationMinutes   | 22                                  |
@@ -482,7 +482,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                            |
       | time              | timenowhhmm                         |
       | status            | OPEN                                |
-      | description       | ARCPOC-1461 closed entry C {RANDOM} |
+      | description       | ARCPOC-1461 closed entry C {SCENARIO_ID} |
       | courtLocationCode | RCJ001                              |
       | durationHours     | 2                                   |
       | durationMinutes   | 22                                  |
@@ -493,8 +493,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                         |
       | applicant.person.name.title                  | Mr                              |
       | applicant.person.name.firstName              | Open                            |
-      | applicant.person.name.lastName               | ClosedUpdate{RANDOM}            |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street            |
+      | applicant.person.name.lastName               | ClosedUpdate{SCENARIO_ID}            |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street            |
       | applicant.person.contactDetails.addressLine2 | Westminster                     |
       | applicant.person.contactDetails.addressLine3 | London                          |
       | applicant.person.contactDetails.addressLine4 | Greater London                  |
@@ -502,7 +502,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 1AA                        |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                    |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                   |
-      | applicant.person.contactDetails.email        | closed-open{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | closed-open{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | COPEN-{RANDOM}                  |
       | feeStatuses.0.paymentStatus                  | PAID                            |
       | feeStatuses.0.statusDate                     | todayiso                        |
@@ -512,7 +512,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Open list note                  |
       | lodgementDate                                | todayiso                        |
       | officials.0.title                            | Mr                              |
-      | officials.0.surname                          | Open{RANDOM}                    |
+      | officials.0.surname                          | Open{SCENARIO_ID}                    |
       | officials.0.forename                         | Clerk                           |
       | officials.0.type                             | CLERK                           |
     Then User Verify Response Status Code Should Be "201"
@@ -522,8 +522,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                          |
       | applicant.person.name.title                  | Ms                               |
       | applicant.person.name.firstName              | Closed                           |
-      | applicant.person.name.lastName               | Valid{RANDOM}                    |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Crown Street            |
+      | applicant.person.name.lastName               | Valid{SCENARIO_ID}                    |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street            |
       | applicant.person.contactDetails.addressLine2 | Westminster                      |
       | applicant.person.contactDetails.addressLine3 | London                           |
       | applicant.person.contactDetails.addressLine4 | Greater London                   |
@@ -531,7 +531,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 2AA                         |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                     |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}                    |
-      | applicant.person.contactDetails.email        | closed-valid{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | closed-valid{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | CVAL-{RANDOM}                    |
       | feeStatuses.0.paymentStatus                  | PAID                             |
       | feeStatuses.0.statusDate                     | todayiso                         |
@@ -541,7 +541,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Closed list note                 |
       | lodgementDate                                | todayiso                         |
       | officials.0.title                            | Ms                               |
-      | officials.0.surname                          | ClosedValid{RANDOM}              |
+      | officials.0.surname                          | ClosedValid{SCENARIO_ID}              |
       | officials.0.forename                         | Bench                            |
       | officials.0.type                             | MAGISTRATE                       |
     Then User Verify Response Status Code Should Be "201"
@@ -554,7 +554,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                            |
       | time              | timenowhhmm-1h                      |
       | status            | CLOSED                              |
-      | description       | ARCPOC-1461 closed entry B {RANDOM} |
+      | description       | ARCPOC-1461 closed entry B {SCENARIO_ID} |
       | courtLocationCode | RCJ001                              |
       | durationHours     | 2                                   |
       | durationMinutes   | 22                                  |
@@ -564,8 +564,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                            |
       | applicant.person.name.title                  | Mr                                 |
       | applicant.person.name.firstName              | Foreign                            |
-      | applicant.person.name.lastName               | Closed{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street             |
+      | applicant.person.name.lastName               | Closed{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street             |
       | applicant.person.contactDetails.addressLine2 | Westminster                        |
       | applicant.person.contactDetails.addressLine3 | London                             |
       | applicant.person.contactDetails.addressLine4 | Greater London                     |
@@ -573,7 +573,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 3AA                           |
       | applicant.person.contactDetails.phone        | 0209{RANDOM}                       |
       | applicant.person.contactDetails.mobile       | 07125{RANDOM}                      |
-      | applicant.person.contactDetails.email        | closed-foreign{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | closed-foreign{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | CFOR-{RANDOM}                      |
       | feeStatuses.0.paymentStatus                  | PAID                               |
       | feeStatuses.0.statusDate                     | todayiso                           |
@@ -583,7 +583,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Foreign closed entry               |
       | lodgementDate                                | todayiso                           |
       | officials.0.title                            | Mr                                 |
-      | officials.0.surname                          | ClosedForeign{RANDOM}              |
+      | officials.0.surname                          | ClosedForeign{SCENARIO_ID}              |
       | officials.0.forename                         | Clerk                              |
       | officials.0.type                             | CLERK                              |
     Then User Verify Response Status Code Should Be "201"
@@ -607,7 +607,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                         |
       | time              | timenowhhmm-2h                   |
       | status            | OPEN                             |
-      | description       | ARCPOC-1461 officials A {RANDOM} |
+      | description       | ARCPOC-1461 officials A {SCENARIO_ID} |
       | courtLocationCode | RCJ001                           |
       | durationHours     | 2                                |
       | durationMinutes   | 22                               |
@@ -617,7 +617,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                         |
       | time              | timenowhhmm-1h                   |
       | status            | OPEN                             |
-      | description       | ARCPOC-1461 officials B {RANDOM} |
+      | description       | ARCPOC-1461 officials B {SCENARIO_ID} |
       | courtLocationCode | RCJ001                           |
       | durationHours     | 2                                |
       | durationMinutes   | 22                               |
@@ -627,7 +627,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                         |
       | time              | timenowhhmm                      |
       | status            | OPEN                             |
-      | description       | ARCPOC-1461 officials C {RANDOM} |
+      | description       | ARCPOC-1461 officials C {SCENARIO_ID} |
       | courtLocationCode | RCJ001                           |
       | durationHours     | 2                                |
       | durationMinutes   | 22                               |
@@ -638,8 +638,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                               |
       | applicant.person.name.title                  | Mr                                    |
       | applicant.person.name.firstName              | Primary                               |
-      | applicant.person.name.lastName               | Officials{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street                  |
+      | applicant.person.name.lastName               | Officials{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street                  |
       | applicant.person.contactDetails.addressLine2 | Westminster                           |
       | applicant.person.contactDetails.addressLine3 | London                                |
       | applicant.person.contactDetails.addressLine4 | Greater London                        |
@@ -647,7 +647,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 1AA                              |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                          |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                         |
-      | applicant.person.contactDetails.email        | officials-primary{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | officials-primary{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | OFFA-{RANDOM}                         |
       | feeStatuses.0.paymentStatus                  | PAID                                  |
       | feeStatuses.0.statusDate                     | todayiso                              |
@@ -657,7 +657,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Officials primary                     |
       | lodgementDate                                | todayiso                              |
       | officials.0.title                            | Mr                                    |
-      | officials.0.surname                          | Original{RANDOM}                      |
+      | officials.0.surname                          | Original{SCENARIO_ID}                      |
       | officials.0.forename                         | Clerk                                 |
       | officials.0.type                             | CLERK                                 |
     Then User Verify Response Status Code Should Be "201"
@@ -667,8 +667,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                               |
       | applicant.person.name.title                  | Ms                                    |
       | applicant.person.name.firstName              | Foreign                               |
-      | applicant.person.name.lastName               | Officials{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street                |
+      | applicant.person.name.lastName               | Officials{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street                |
       | applicant.person.contactDetails.addressLine2 | Westminster                           |
       | applicant.person.contactDetails.addressLine3 | London                                |
       | applicant.person.contactDetails.addressLine4 | Greater London                        |
@@ -676,7 +676,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 2AA                              |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                          |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}                         |
-      | applicant.person.contactDetails.email        | officials-foreign{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | officials-foreign{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | OFFB-{RANDOM}                         |
       | feeStatuses.0.paymentStatus                  | PAID                                  |
       | feeStatuses.0.statusDate                     | todayiso                              |
@@ -686,7 +686,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Officials foreign                     |
       | lodgementDate                                | todayiso                              |
       | officials.0.title                            | Ms                                    |
-      | officials.0.surname                          | Foreign{RANDOM}                       |
+      | officials.0.surname                          | Foreign{SCENARIO_ID}                       |
       | officials.0.forename                         | Bench                                 |
       | officials.0.type                             | MAGISTRATE                            |
     Then User Verify Response Status Code Should Be "201"
@@ -696,8 +696,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                              |
       | applicant.person.name.title                  | Mr                                   |
       | applicant.person.name.firstName              | Closed                               |
-      | applicant.person.name.lastName               | Officials{RANDOM}                    |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Crown Street                |
+      | applicant.person.name.lastName               | Officials{SCENARIO_ID}                    |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street                |
       | applicant.person.contactDetails.addressLine2 | Westminster                          |
       | applicant.person.contactDetails.addressLine3 | London                               |
       | applicant.person.contactDetails.addressLine4 | Greater London                       |
@@ -705,7 +705,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 3AA                             |
       | applicant.person.contactDetails.phone        | 0209{RANDOM}                         |
       | applicant.person.contactDetails.mobile       | 07125{RANDOM}                        |
-      | applicant.person.contactDetails.email        | officials-closed{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | officials-closed{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | OFFC-{RANDOM}                        |
       | feeStatuses.0.paymentStatus                  | PAID                                 |
       | feeStatuses.0.statusDate                     | todayiso                             |
@@ -715,7 +715,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Officials closed                     |
       | lodgementDate                                | todayiso                             |
       | officials.0.title                            | Mr                                   |
-      | officials.0.surname                          | Closed{RANDOM}                       |
+      | officials.0.surname                          | Closed{SCENARIO_ID}                       |
       | officials.0.forename                         | Clerk                                |
       | officials.0.type                             | CLERK                                |
     Then User Verify Response Status Code Should Be "201"
@@ -728,7 +728,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                         |
       | time              | timenowhhmm                      |
       | status            | CLOSED                           |
-      | description       | ARCPOC-1461 officials C {RANDOM} |
+      | description       | ARCPOC-1461 officials C {SCENARIO_ID} |
       | courtLocationCode | RCJ001                           |
       | durationHours     | 2                                |
       | durationMinutes   | 22                               |
@@ -768,7 +768,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                              |
       | time              | timenowhhmm-2h                        |
       | status            | OPEN                                  |
-      | description       | ARCPOC-1461 results create A {RANDOM} |
+      | description       | ARCPOC-1461 results create A {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                |
       | durationHours     | 2                                     |
       | durationMinutes   | 22                                    |
@@ -778,7 +778,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                              |
       | time              | timenowhhmm-1h                        |
       | status            | OPEN                                  |
-      | description       | ARCPOC-1461 results create B {RANDOM} |
+      | description       | ARCPOC-1461 results create B {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                |
       | durationHours     | 2                                     |
       | durationMinutes   | 22                                    |
@@ -788,7 +788,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                              |
       | time              | timenowhhmm                           |
       | status            | OPEN                                  |
-      | description       | ARCPOC-1461 results create C {RANDOM} |
+      | description       | ARCPOC-1461 results create C {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                |
       | durationHours     | 2                                     |
       | durationMinutes   | 22                                    |
@@ -799,8 +799,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                          |
       | applicant.person.name.title                  | Mr                               |
       | applicant.person.name.firstName              | Open                             |
-      | applicant.person.name.lastName               | Result{RANDOM}                   |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street             |
+      | applicant.person.name.lastName               | Result{SCENARIO_ID}                   |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street             |
       | applicant.person.contactDetails.addressLine2 | Westminster                      |
       | applicant.person.contactDetails.addressLine3 | London                           |
       | applicant.person.contactDetails.addressLine4 | Greater London                   |
@@ -808,7 +808,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 1AA                         |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                     |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                    |
-      | applicant.person.contactDetails.email        | results-open{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | results-open{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | RESOPEN-{RANDOM}                 |
       | feeStatuses.0.paymentStatus                  | PAID                             |
       | feeStatuses.0.statusDate                     | todayiso                         |
@@ -818,7 +818,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Results open entry               |
       | lodgementDate                                | todayiso                         |
       | officials.0.title                            | Mr                               |
-      | officials.0.surname                          | ResultsOpen{RANDOM}              |
+      | officials.0.surname                          | ResultsOpen{SCENARIO_ID}              |
       | officials.0.forename                         | Clerk                            |
       | officials.0.type                             | CLERK                            |
     Then User Verify Response Status Code Should Be "201"
@@ -828,8 +828,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                             |
       | applicant.person.name.title                  | Ms                                  |
       | applicant.person.name.firstName              | Foreign                             |
-      | applicant.person.name.lastName               | Result{RANDOM}                      |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street              |
+      | applicant.person.name.lastName               | Result{SCENARIO_ID}                      |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street              |
       | applicant.person.contactDetails.addressLine2 | Westminster                         |
       | applicant.person.contactDetails.addressLine3 | London                              |
       | applicant.person.contactDetails.addressLine4 | Greater London                      |
@@ -837,7 +837,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 2AA                            |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                        |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}                       |
-      | applicant.person.contactDetails.email        | results-foreign{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | results-foreign{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | RFOR-{RANDOM}                       |
       | feeStatuses.0.paymentStatus                  | PAID                                |
       | feeStatuses.0.statusDate                     | todayiso                            |
@@ -847,7 +847,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Results foreign entry               |
       | lodgementDate                                | todayiso                            |
       | officials.0.title                            | Ms                                  |
-      | officials.0.surname                          | ResultsForeign{RANDOM}              |
+      | officials.0.surname                          | ResultsForeign{SCENARIO_ID}              |
       | officials.0.forename                         | Bench                               |
       | officials.0.type                             | MAGISTRATE                          |
     Then User Verify Response Status Code Should Be "201"
@@ -857,8 +857,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                            |
       | applicant.person.name.title                  | Mr                                 |
       | applicant.person.name.firstName              | Closed                             |
-      | applicant.person.name.lastName               | Result{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Crown Street              |
+      | applicant.person.name.lastName               | Result{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street              |
       | applicant.person.contactDetails.addressLine2 | Westminster                        |
       | applicant.person.contactDetails.addressLine3 | London                             |
       | applicant.person.contactDetails.addressLine4 | Greater London                     |
@@ -866,7 +866,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 3AA                           |
       | applicant.person.contactDetails.phone        | 0209{RANDOM}                       |
       | applicant.person.contactDetails.mobile       | 07125{RANDOM}                      |
-      | applicant.person.contactDetails.email        | results-closed{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | results-closed{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | RCLO-{RANDOM}                      |
       | feeStatuses.0.paymentStatus                  | PAID                               |
       | feeStatuses.0.statusDate                     | todayiso                           |
@@ -876,7 +876,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Results closed entry               |
       | lodgementDate                                | todayiso                           |
       | officials.0.title                            | Mr                                 |
-      | officials.0.surname                          | ResultsClosed{RANDOM}              |
+      | officials.0.surname                          | ResultsClosed{SCENARIO_ID}              |
       | officials.0.forename                         | Clerk                              |
       | officials.0.type                             | CLERK                              |
     Then User Verify Response Status Code Should Be "201"
@@ -890,7 +890,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                              |
       | time              | timenowhhmm                           |
       | status            | CLOSED                                |
-      | description       | ARCPOC-1461 results create C {RANDOM} |
+      | description       | ARCPOC-1461 results create C {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                |
       | durationHours     | 2                                     |
       | durationMinutes   | 22                                    |
@@ -926,7 +926,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                              |
       | time              | timenowhhmm-2h                        |
       | status            | OPEN                                  |
-      | description       | ARCPOC-1461 results update A {RANDOM} |
+      | description       | ARCPOC-1461 results update A {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                |
       | durationHours     | 2                                     |
       | durationMinutes   | 22                                    |
@@ -937,8 +937,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                            |
       | applicant.person.name.title                  | Mr                                 |
       | applicant.person.name.firstName              | Update                             |
-      | applicant.person.name.lastName               | Result{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street               |
+      | applicant.person.name.lastName               | Result{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street               |
       | applicant.person.contactDetails.addressLine2 | Westminster                        |
       | applicant.person.contactDetails.addressLine3 | London                             |
       | applicant.person.contactDetails.addressLine4 | Greater London                     |
@@ -946,7 +946,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 1AA                           |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                       |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                      |
-      | applicant.person.contactDetails.email        | results-update{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | results-update{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | RUPD-{RANDOM}                      |
       | feeStatuses.0.paymentStatus                  | PAID                               |
       | feeStatuses.0.statusDate                     | todayiso                           |
@@ -956,7 +956,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Results update entry               |
       | lodgementDate                                | todayiso                           |
       | officials.0.title                            | Mr                                 |
-      | officials.0.surname                          | ResultsUpdate{RANDOM}              |
+      | officials.0.surname                          | ResultsUpdate{SCENARIO_ID}              |
       | officials.0.forename                         | Clerk                              |
       | officials.0.type                             | CLERK                              |
     Then User Verify Response Status Code Should Be "201"
@@ -966,8 +966,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                             |
       | applicant.person.name.title                  | Ms                                  |
       | applicant.person.name.firstName              | Sibling                             |
-      | applicant.person.name.lastName               | Result{RANDOM}                      |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street              |
+      | applicant.person.name.lastName               | Result{SCENARIO_ID}                      |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street              |
       | applicant.person.contactDetails.addressLine2 | Westminster                         |
       | applicant.person.contactDetails.addressLine3 | London                              |
       | applicant.person.contactDetails.addressLine4 | Greater London                      |
@@ -975,7 +975,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 2AA                            |
       | applicant.person.contactDetails.phone        | 0208{RANDOM}                        |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}                       |
-      | applicant.person.contactDetails.email        | results-sibling{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | results-sibling{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | RESSIB-{RANDOM}                     |
       | feeStatuses.0.paymentStatus                  | PAID                                |
       | feeStatuses.0.statusDate                     | todayiso                            |
@@ -985,7 +985,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Results sibling entry               |
       | lodgementDate                                | todayiso                            |
       | officials.0.title                            | Ms                                  |
-      | officials.0.surname                          | ResultsSibling{RANDOM}              |
+      | officials.0.surname                          | ResultsSibling{SCENARIO_ID}              |
       | officials.0.forename                         | Bench                               |
       | officials.0.type                             | MAGISTRATE                          |
     Then User Verify Response Status Code Should Be "201"
@@ -999,7 +999,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                              |
       | time              | timenowhhmm-1h                        |
       | status            | OPEN                                  |
-      | description       | ARCPOC-1461 results update B {RANDOM} |
+      | description       | ARCPOC-1461 results update B {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                |
       | durationHours     | 2                                     |
       | durationMinutes   | 22                                    |
@@ -1010,8 +1010,8 @@ Feature: API - Application List Entry Error Responses
       | applicationCode                              | AD99002                                   |
       | applicant.person.name.title                  | Mr                                        |
       | applicant.person.name.firstName              | Closed                                    |
-      | applicant.person.name.lastName               | Result{RANDOM}                            |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Crown Street                     |
+      | applicant.person.name.lastName               | Result{SCENARIO_ID}                            |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street                     |
       | applicant.person.contactDetails.addressLine2 | Westminster                               |
       | applicant.person.contactDetails.addressLine3 | London                                    |
       | applicant.person.contactDetails.addressLine4 | Greater London                            |
@@ -1019,7 +1019,7 @@ Feature: API - Application List Entry Error Responses
       | applicant.person.contactDetails.postcode     | SW1A 3AA                                  |
       | applicant.person.contactDetails.phone        | 0209{RANDOM}                              |
       | applicant.person.contactDetails.mobile       | 07125{RANDOM}                             |
-      | applicant.person.contactDetails.email        | results-closed-update{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | results-closed-update{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | RCLUP-{RANDOM}                            |
       | feeStatuses.0.paymentStatus                  | PAID                                      |
       | feeStatuses.0.statusDate                     | todayiso                                  |
@@ -1029,7 +1029,7 @@ Feature: API - Application List Entry Error Responses
       | notes                                        | Results closed update entry               |
       | lodgementDate                                | todayiso                                  |
       | officials.0.title                            | Mr                                        |
-      | officials.0.surname                          | ResultsClosedUpdate{RANDOM}               |
+      | officials.0.surname                          | ResultsClosedUpdate{SCENARIO_ID}               |
       | officials.0.forename                         | Clerk                                     |
       | officials.0.type                             | CLERK                                     |
     Then User Verify Response Status Code Should Be "201"
@@ -1043,7 +1043,7 @@ Feature: API - Application List Entry Error Responses
       | date              | todayiso                              |
       | time              | timenowhhmm-1h                        |
       | status            | CLOSED                                |
-      | description       | ARCPOC-1461 results update B {RANDOM} |
+      | description       | ARCPOC-1461 results update B {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                |
       | durationHours     | 2                                     |
       | durationMinutes   | 22                                    |

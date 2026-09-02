@@ -91,22 +91,22 @@ Feature: Standard Applicants
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
         Then User Verify The Page URL Contains "/standard-applicants"
         Then User Sees Page Heading "Standard applicants"
-        Then User Enters "app" Into The "Code" Textbox
+        Then User Enters "BGAS" Into The "Code" Textbox
         When User Clicks On The "Search" Button
         Then User Should See The Table "Standard applicants"
         Then User Should See Table "Standard applicants" Has Rows
         And User Should See Row In Table "Standard applicants" With Values:
-            | Code   | Name       | Address         | Use from   |
-            | APP001 | John Smith | 123 High Street | 6 Nov 2025 |
+            | Code | Name                        | Address    | Use from   |
+            | BGAS | British Gas Trading Limited | Millstream | 1 Jun 2016 |
         When User Clicks "View" Button In Row Of Table "Standard applicants" With:
-            | Code   | Name       | Address         | Use from   |
-            | APP001 | John Smith | 123 High Street | 6 Nov 2025 |
-        Then User Verify The Page URL Contains "/standard-applicants/APP001"
+            | Code | Name                        | Address    | Use from   |
+            | BGAS | British Gas Trading Limited | Millstream | 1 Jun 2016 |
+        Then User Verify The Page URL Contains "/standard-applicants/BGAS"
         And User Sees Page Heading "Standard applicant details"
-        And User Should See Summary List Row With Key "Code" And Value "APP001"
-        And User Should See Summary List Row With Key "Standard applicant name" And Value "John Smith"
-        And User Should See Summary List Row With Key "Address line 1" And Value "123 High Street"
-        And User Should See Summary List Row With Key "Use from" And Value "6 Nov 2025"
+        And User Should See Summary List Row With Key "Code" And Value "BGAS"
+        And User Should See Summary List Row With Key "Standard applicant name" And Value "British Gas Trading Limited"
+        And User Should See Summary List Row With Key "Address line 1" And Value "Millstream"
+        And User Should See Summary List Row With Key "Use from" And Value "1 Jun 2016"
 
     @regression @standardApplicants @ARCPOC-243 @ARCPOC-1613
     Scenario: Export Standard Applicants as a CSV
@@ -129,13 +129,13 @@ Feature: Standard Applicants
         And User Should Not See The Button "Actions"
         When User Clicks On The "Clear search" Button
         # Search and export CSV with valid code filter
-        Then User Enters "APP001" Into The "Code" Textbox
+        Then User Enters "BGAS" Into The "Code" Textbox
         When User Clicks On The "Search" Button
         Then User Should See The Table "Standard applicants"
         Then User Should See Table "Standard applicants" Header "Code" Has Sort Order "ascending"
         And User Should See Row In Table "Standard applicants" With Values:
-            | Code   | Name       | Address         | Use from   |
-            | APP001 | John Smith | 123 High Street | 6 Nov 2025 |
+            | Code | Name                        | Address    | Use from   |
+            | BGAS | British Gas Trading Limited | Millstream | 1 Jun 2016 |
         When User Clicks "Actions" Then "Export CSV" From Caption Menu In Table "Standard applicants"
         Then User Verifies CSV ".csv" Is Downloaded
         And User Verifies The Downloaded CSV Has Headers In Row 1:
@@ -143,7 +143,7 @@ Feature: Standard Applicants
             | Name           |
             | Use From       |
             | Use To         |
-        And User Verifies Latest Downloaded CSV Contains Text "APP001"
+        And User Verifies Latest Downloaded CSV Contains Text "BGAS"
 
     @regression @standardApplicants @ARCPOC-242
     Scenario: Print Standard Applicants as a PDF
@@ -152,38 +152,38 @@ Feature: Standard Applicants
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
         Then User Verify The Page URL Contains "/standard-applicants"
         Then User Sees Page Heading "Standard applicants"
-        Then User Enters "APP001" Into The "Code" Textbox
+        Then User Enters "BGAS" Into The "Code" Textbox
         When User Clicks On The "Search" Button
         Then User Should See The Table "Standard applicants"
         Then User Should See Table "Standard applicants" Header "Code" Has Sort Order "ascending"
         And User Should See Row In Table "Standard applicants" With Values:
-            | Code   | Name       | Address         | Use from   |
-            | APP001 | John Smith | 123 High Street | 6 Nov 2025 |
+            | Code | Name                        | Address    | Use from   |
+            | BGAS | British Gas Trading Limited | Millstream | 1 Jun 2016 |
         When User Clicks "Actions" Then "Print PDF" From Caption Menu In Table "Standard applicants"
         Then User Sees Success Banner "Success Successfully printed PDF Standard applicant PDF has been successfully printed"
         Then User Verifies PDF ".pdf" Is Downloaded
         And User Verifies Latest Downloaded PDF Is Not Empty
         And User Verifies Latest Downloaded PDF Contains Text "Standard applicants report"
-        And User Verifies Latest Downloaded PDF Contains Text "Code: APP001"
+        And User Verifies Latest Downloaded PDF Contains Text "Code: BGAS"
         And User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Code             | APP001                 |
-            | Name             | —                      |
-            | Title            | Mr                     |
-            | Forename 1       | John                   |
-            | Forename 2       | —                      |
-            | Forename 3       | —                      |
-            | Surname          | Smith                  |
-            | Address line 1   | 123 High Street        |
-            | Address line 2   | —                      |
-            | Address line 3   | —                      |
-            | Address line 4   | Townsville             |
-            | Address line 5   | —                      |
-            | Postcode         | TS1 1AB                |
-            | Email address    | john.smith@example.com |
-            | Telephone number | 01234567890            |
-            | Mobile number    | 07123456789            |
-            | Use from         | 6 Nov 2025             |
-            | Use to           | —                      |
+            | Code             | BGAS                        |
+            | Name             | British Gas Trading Limited |
+            | Title            | -                           |
+            | Forename 1       | -                           |
+            | Forename 2       | —                           |
+            | Forename 3       | —                           |
+            | Surname          | -                           |
+            | Address line 1   | Millstream                  |
+            | Address line 2   | Maidenhead Road             |
+            | Address line 3   | Windsor                     |
+            | Address line 4   | Berkshire                   |
+            | Address line 5   | —                           |
+            | Postcode         | SL4 5GD                     |
+            | Email address    | -                           |
+            | Telephone number | -                           |
+            | Mobile number    | -                           |
+            | Use from         | 1 Jun 2016                  |
+            | Use to           | —                           |
         And User Verifies Latest Downloaded PDF Does Not Contain The Following Values:
-            | id      |
-            | version |
+            | ApplicantID |
+            | version     |

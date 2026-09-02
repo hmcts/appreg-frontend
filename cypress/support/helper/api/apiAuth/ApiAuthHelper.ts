@@ -1,4 +1,6 @@
 /// <reference types="cypress" />
+import { resolveParallelUserKey } from '../../../utils/ParallelUserResolver';
+
 export class ApiAuthHelper {
   static authenticateUser(userKey: string): Cypress.Chainable<void> {
     let ssoUsers: Record<string, { email: string; password: string }>;
@@ -14,6 +16,7 @@ export class ApiAuthHelper {
       )
       .then((users: Record<string, { email: string; password: string }>) => {
         ssoUsers = users;
+        userKey = resolveParallelUserKey(userKey, ssoUsers);
         return cy.task<string>('getEnv', 'TENANT_ID');
       })
       .then((tenant: string) => {

@@ -436,8 +436,8 @@ export class DateTimeUtil {
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear().toString();
-    const shortMonth = date.toLocaleDateString('en', { month: 'short' });
-    const longMonth = date.toLocaleDateString('en', { month: 'long' });
+    const shortMonth = date.toLocaleDateString('en-GB', { month: 'short' });
+    const longMonth = date.toLocaleDateString('en-GB', { month: 'long' });
     const replacements: Record<string, string> = {
       YYYY: year,
       YY: year.slice(-2),

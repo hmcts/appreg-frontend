@@ -25,7 +25,7 @@ export class AppInsights {
       .setAzureMonitorOptions({
         spanProcessors: [queryStringSanitizingSpanProcessor],
       })
-      .setAutoCollectRequests(false)
+      .setAutoCollectRequests(true)
       .setAutoCollectConsole(true, true)
       .setAutoCollectDependencies(true)
       .setAutoCollectExceptions(true)
@@ -51,7 +51,8 @@ type TelemetrySpan = {
   kind?: number;
 };
 
-// OpenTelemetry uses 2 for outgoing client calls.
+// OpenTelemetry uses 1 for incoming server calls and 2 for outgoing client calls.
+const SERVER_SPAN_KIND = 1;
 const CLIENT_SPAN_KIND = 2;
 
 const queryStringSanitizingSpanProcessor = {
@@ -64,7 +65,7 @@ const queryStringSanitizingSpanProcessor = {
 };
 
 function sanitizeHttpTelemetrySpan(span: TelemetrySpan): void {
-  if (span.kind !== CLIENT_SPAN_KIND) {
+  if (span.kind !== SERVER_SPAN_KIND && span.kind !== CLIENT_SPAN_KIND) {
     return;
   }
 

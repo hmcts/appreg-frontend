@@ -6,7 +6,7 @@ Feature: Applications List Entry Update
         # Create Application List
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time  | status | description                             | courtLocationCode |
-            | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} | LCCC065           |
+            | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} | LCCC065           |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         # Create Application List Entry - Person applicant + Person respondent, Application Code with Fee Required = Y and Respondent Required = Y
@@ -14,27 +14,27 @@ Feature: Applications List Entry Update
             | standardApplicantCode                         | null                           |
             | applicationCode                               | MX99006                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
             | applicant.person.name.firstName               | Henry                          |
-            | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
+            | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
             | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
             | applicant.person.contactDetails.phone         | 01632960001                    |
             | applicant.person.contactDetails.mobile        | 07700900001                    |
-            | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
+            | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
             | respondent.person.name.firstName              | Emily                          |
-            | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
+            | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.postcode     | BS15 5AA                       |
             | respondent.person.contactDetails.phone        | 01632960001                    |
             | respondent.person.contactDetails.mobile       | 07700900001                    |
-            | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+            | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | wordingFields.0.key                           | Describe Seized Food           |
-            | wordingFields.0.value                         | {RANDOM}                       |
+            | wordingFields.0.value                         | {SCENARIO_ID}                       |
             | feeStatuses.0.paymentReference                | PAY-E5-{RANDOM}                |
             | feeStatuses.0.paymentStatus                   | PAID                           |
             | feeStatuses.0.statusDate                      | todayiso                       |
@@ -49,14 +49,14 @@ Feature: Applications List Entry Update
         # Search and Open Created Application List
         When User Searches Application List With:
             | Date  | Time | List description                        | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-            | today |      | Applications to review at Test_{RANDOM} |             |       | OPEN               |                            |                       |           |
+            | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
             | Date         | Time  | Location                          | Description                             | Entries | Status |
-            | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 1       | OPEN   |
+            | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   |
         # Search and Open Created Application List Entry
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number | Applicant             | Respondent           | Postcode | Title                      | Fee | Resulted |
-            | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
+            | 1               | ACCSE1{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
         When User Clicks On The "Show all sections" Button
         Then User Should See The Button "Hide all sections"
         Then User Sees Page Heading "Applications list entry update"
@@ -90,18 +90,18 @@ Feature: Applications List Entry Update
         When User Clicks On The "Save recording officials" Button
         Then User Sees Validation Error Banner "There is a problem Magistrates 1 first name is required Magistrates 1 last name is required"
         Then User Enters "John" In The Textbox "Magistrate's first name" Under "Magistrate 1" FieldSet In The Accordion "Officials"
-        Then User Enters "Smith{RANDOM}" In The Textbox "Magistrate's surname" Under "Magistrate 1" FieldSet In The Accordion "Officials"
+        Then User Enters "Smith{SCENARIO_ID}" In The Textbox "Magistrate's surname" Under "Magistrate 1" FieldSet In The Accordion "Officials"
 
         Then User Enters "Emily" In The Textbox "Magistrate's first name" Under "Magistrate 2" FieldSet In The Accordion "Officials"
-        Then User Enters "Davis{RANDOM}" In The Textbox "Magistrate's surname" Under "Magistrate 2" FieldSet In The Accordion "Officials"
+        Then User Enters "Davis{SCENARIO_ID}" In The Textbox "Magistrate's surname" Under "Magistrate 2" FieldSet In The Accordion "Officials"
 
         Then User Enters "Miss" In The Textbox "Magistrate's title" Under "Magistrate 3" FieldSet In The Accordion "Officials"
         Then User Enters "Jane" In The Textbox "Magistrate's first name" Under "Magistrate 3" FieldSet In The Accordion "Officials"
-        Then User Enters "Hardy{RANDOM}" In The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
+        Then User Enters "Hardy{SCENARIO_ID}" In The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
 
         Then User Enters "Mrs" In The Textbox "Court official's title" Under "Court official" FieldSet In The Accordion "Officials"
         Then User Enters "Violette" In The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
-        Then User Enters "Zanetti{RANDOM}" In The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
+        Then User Enters "Zanetti{SCENARIO_ID}" In The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
         When User Clicks On The "Save recording officials" Button
         Then User Sees Success Banner "Success Officials updated Officials have been updated for this application list entry."
         When User Clicks On The "Save complete application" Button
