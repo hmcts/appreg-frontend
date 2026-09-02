@@ -219,7 +219,9 @@
     "@hono/node-server": "^2.0.0",
     "body-parser": "^2.3.0",
     "@opentelemetry/propagator-jaeger": "^2.9.0",
-    "shell-quote": "^1.9.0"
+    "shell-quote": "^1.9.0",
+    "browserslist": "^4.28.7",
+    "postcss-selector-parser": "^7.1.5"
   },
   "packageManager": "yarn@4.10.3"
 }
