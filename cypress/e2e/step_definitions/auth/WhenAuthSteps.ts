@@ -54,6 +54,7 @@ When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
     },
   );
   cy.visit(APP_URLS.HOME);
+  cy.wait(250); // Wait for the page to load completely
 });
 
 When(
