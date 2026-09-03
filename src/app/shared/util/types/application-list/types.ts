@@ -18,10 +18,10 @@ export type ApplicationListRow = Omit<
 } & UiExtras;
 
 export type NormalizedPayload<S> = {
-  date: unknown;
+  date: string;
   time: string;
   description: string;
-  status: S | string;
+  status: S;
 } & (
   | { courtLocationCode: string }
   | { otherLocationDescription: string; cjaCode: string }

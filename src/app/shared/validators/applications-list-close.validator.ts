@@ -57,20 +57,12 @@ export function closePermitted(
     ) as AbstractControl<unknown> | null;
     const durationValue = durationCtrl?.value;
 
-    const durationProvided = hasAnyDuration(durationValue);
-    const durationNonPositive = isNonPositiveDuration(durationValue);
-
-    if (!durationProvided) {
-      noClose.push(CLOSE_MESSAGES.durationMissing);
+    const durationError = closeDurationError(durationValue);
+    if (durationError) {
+      noClose.push(durationError);
       setControlError(ctrl, durationName, 'closeDurationMissing', true, {
         errorTextKey: 'durationErrorText',
-        errorText: CLOSE_MESSAGES.durationMissing,
-      });
-    } else if (durationNonPositive) {
-      noClose.push(CLOSE_MESSAGES.durationNonPositive);
-      setControlError(ctrl, durationName, 'closeDurationMissing', true, {
-        errorTextKey: 'durationErrorText',
-        errorText: CLOSE_MESSAGES.durationNonPositive,
+        errorText: durationError,
       });
     } else {
       setControlError(ctrl, durationName, 'closeDurationMissing', false, {
@@ -85,6 +77,16 @@ export function closePermitted(
 
     return noClose.length ? { closeNotPermitted: { noClose } } : null;
   };
+}
+
+export function closeDurationError(duration: unknown): string | null {
+  if (!hasAnyDuration(duration)) {
+    return CLOSE_MESSAGES.durationMissing;
+  }
+
+  return isNonPositiveDuration(duration)
+    ? CLOSE_MESSAGES.durationNonPositive
+    : null;
 }
 
 const isNonPositiveDuration = (v: unknown): boolean => {

@@ -15,7 +15,6 @@ import {
   Component,
   inject,
   input,
-  signal,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -24,6 +23,7 @@ import {
   ApplicationsListDetailState,
   DetailForm,
   DetailFormGroupErrors,
+  DetailFormValue,
   UpdateReq,
   clearUpdateNotificationsPatch,
 } from '../util';
@@ -42,8 +42,10 @@ import { ApplicationListUpdateDto } from '@openapi';
 import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { buildFormErrorSummary } from '@util/error-summary';
+import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsState } from '@util/place-fields.base';
 import { ApplicationListRow } from '@util/types/application-list/types';
+import { closeDurationError } from '@validators/applications-list-close.validator';
 
 @Component({
   selector: 'app-applications-list-update',
@@ -54,6 +56,7 @@ import { ApplicationListRow } from '@util/types/application-list/types';
     ApplicationsListFormComponent,
     HelpDetailsComponent,
     PageHeaderComponent,
+    MojButtonMenuDirective,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-update.component.html',
@@ -61,8 +64,6 @@ import { ApplicationListRow } from '@util/types/application-list/types';
 })
 export class ApplicationsListUpdateComponent {
   private readonly router = inject(Router);
-
-  private readonly closeAttempted = signal(false);
 
   readonly form = input.required<DetailForm>();
 
@@ -86,6 +87,8 @@ export class ApplicationsListUpdateComponent {
 
   readonly errorMap = DETAIL_FIELD_MESSAGES;
 
+  readonly originalListDetails = input<Readonly<DetailFormValue> | null>(null);
+
   private readonly hrefs = {
     date: `#${DETAIL_ERROR_ANCHORS.date}`,
     time: `#${DETAIL_ERROR_ANCHORS.time}`,
@@ -101,9 +104,8 @@ export class ApplicationsListUpdateComponent {
     this.form().markAllAsTouched();
     this.form().updateValueAndValidity({ emitEvent: false });
 
-    const isClosing =
-      this.form().getRawValue().status?.toLowerCase() === 'closed';
-    this.closeAttempted.set(isClosing);
+    // const isClosing =
+    //   this.form().getRawValue().status?.toLowerCase() === 'closed';
 
     const raw = this.form().getRawValue();
 
@@ -131,23 +133,23 @@ export class ApplicationsListUpdateComponent {
         durationHours,
         durationMinutes,
         ...normalized,
-      } as ApplicationListUpdateDto;
+      };
 
       // Nav to close list page
-      if (isClosing) {
-        const state: AppListNavState = {
-          listRow: this.listRow(),
-          closeRequest: {
-            id: this.id(),
-            payload,
-            etag: this.etag(),
-          },
-        };
-        void this.router.navigate(['/applications-list', this.id(), 'close'], {
-          state,
-        });
-        return;
-      }
+      // if (isClosing) {
+      //   const state: AppListNavState = {
+      //     listRow: this.listRow(),
+      //     closeRequest: {
+      //       id: this.id(),
+      //       payload,
+      //       etag: this.etag(),
+      //     },
+      //   };
+      //   void this.router.navigate(['/applications-list', this.id(), 'close'], {
+      //     state,
+      //   });
+      //   return;
+      // }
 
       this.setUpdateRequest()({
         id: this.id(),
@@ -161,6 +163,58 @@ export class ApplicationsListUpdateComponent {
         errorHint: msg,
       });
     }
+  }
+
+  onCloseListClick(): void {
+    const originalListDetails = this.originalListDetails();
+    if (!originalListDetails) {
+      return;
+    }
+
+    const durationError = closeDurationError(originalListDetails.duration);
+    if (durationError) {
+      // Set errors in form and then build banners
+      const form = this.form();
+      form.controls.duration.setErrors({
+        ...form.controls.duration.errors,
+        closeDurationMissing: true,
+        durationErrorText: durationError,
+      });
+      form.setErrors({
+        ...form.errors,
+        closeNotPermitted: { noClose: [durationError] },
+      });
+      this.patchState()({
+        updateInvalid: true,
+        errorHint: 'There is a problem',
+        errorSummary: [
+          {
+            id: DETAIL_ERROR_ANCHORS.duration_hours,
+            href: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
+            text: durationError,
+          },
+        ],
+      });
+      return;
+    }
+
+    // The user may have changed the list details but not have saved so we
+    // want to ensure that unsaved changes are not apart of the update payload.
+    // We cannot rely on form values here
+    const payload: ApplicationListUpdateDto =
+      buildNormalizedPayload(originalListDetails);
+
+    const state: AppListNavState = {
+      listRow: this.listRow(),
+      closeRequest: {
+        id: this.id(),
+        payload,
+        etag: this.etag(),
+      },
+    };
+    void this.router.navigate(['/applications-list', this.id(), 'close'], {
+      state,
+    });
   }
 
   // Error hightlighting/summary for closing a list

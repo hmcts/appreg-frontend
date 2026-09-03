@@ -1,18 +1,30 @@
-<app-page-header
-  title="List details"
-  [actions]="[
-    {
-      label: 'Delete list',
-      variant: 'warning',
-      routerLink: ['delete'],
-      state: { listRow: listRow(), fromListDetails: true },
-    },
-  ]"
-  [size]="'l'"
-/>
+<div appMojButtonMenu>
+  <app-page-header
+    title="List details"
+    [actions]="[
+      {
+        label: 'Delete list',
+        variant: 'warning',
+        routerLink: ['delete'],
+        state: { listRow: listRow(), fromListDetails: true },
+      },
+      {
+        label: 'Close list',
+        variant: 'secondary',
+        onClick: () => onCloseListClick(),
+      },
+    ]"
+    [size]="'l'"
+  />
+</div>
 <app-help-details summary="Help with application list details">
   <p class="govuk-body">
-    To close a list, change the status to Closed and save your changes.
+    To delete a list click on the button menu labeled "Actions" and click
+    "Delete list"
+  </p>
+  <p class="govuk-body">
+    To close a list, click on the button menu labeled "Actions" and click "Close
+    list".
   </p>
 
   <p class="govuk-body">A list can only be closed when:</p>
@@ -26,6 +38,11 @@
     </li>
     <li>the list duration has been completed</li>
   </ul>
+
+  <p class="govuk-body">
+    Close a list to keep it for reference; delete a list to permanently remove
+    it and its contents.
+  </p>
 </app-help-details>
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
@@ -44,6 +61,7 @@
     [updateInvalid]="vm().updateInvalid"
     [hasDurationCloseError]="hasDurationCloseError()"
     [durationCloseErrorText]="durationCloseErrorText()"
+    [showStatusField]="false"
   />
 
   <div class="govuk-button-group">
