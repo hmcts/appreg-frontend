@@ -179,10 +179,14 @@ export class ApplicationsListUpdateComponent {
       return;
     }
 
-    // The user may have changed the list details but not have saved so we
-    // want to ensure that unsaved changes are not apart of the update payload.
-    // We cannot rely on form values here
+    // The form may contain unsaved changes so we cannot rely on those values
+    // to run a close PUT request.
+    const durationHours = this.toNum(originalListDetails.duration?.hours) ?? 0;
+    const durationMinutes =
+      this.toNum(originalListDetails.duration?.minutes) ?? 0;
     const payload: ApplicationListUpdateDto = {
+      durationHours,
+      durationMinutes,
       ...buildNormalizedPayload(originalListDetails),
       status: ApplicationListStatus.CLOSED,
     };
