@@ -30,4 +30,16 @@ describe('DateTimePipe', () => {
     expect(pipe.transform('2025-01-09', 'longDate')).toBe('9 January 2025');
     expect(pipe.transform('2025-11-24', 'longDate')).toBe('24 November 2025');
   });
+
+  it('formats an ISO timestamp using mediumDateTime', () => {
+    expect(pipe.transform('2026-08-28T10:15:30Z', 'mediumDateTime')).toBe(
+      '28 Aug 2026 at 11:15',
+    );
+  });
+
+  it('formats an ISO timestamp in GMT outside British Summer Time', () => {
+    expect(pipe.transform('2026-01-28T10:15:30Z', 'mediumDateTime')).toBe(
+      '28 Jan 2026 at 10:15',
+    );
+  });
 });
