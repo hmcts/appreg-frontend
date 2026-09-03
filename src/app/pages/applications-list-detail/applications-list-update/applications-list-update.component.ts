@@ -38,7 +38,7 @@ import {
   CLOSE_MESSAGES,
   DETAIL_FIELD_MESSAGES,
 } from '@constants/application-list-detail-update/error-messages';
-import { ApplicationListUpdateDto } from '@openapi';
+import { ApplicationListStatus, ApplicationListUpdateDto } from '@openapi';
 import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { buildFormErrorSummary } from '@util/error-summary';
@@ -182,8 +182,10 @@ export class ApplicationsListUpdateComponent {
     // The user may have changed the list details but not have saved so we
     // want to ensure that unsaved changes are not apart of the update payload.
     // We cannot rely on form values here
-    const payload: ApplicationListUpdateDto =
-      buildNormalizedPayload(originalListDetails);
+    const payload: ApplicationListUpdateDto = {
+      ...buildNormalizedPayload(originalListDetails),
+      status: ApplicationListStatus.CLOSED,
+    };
 
     const state: AppListNavState = {
       listRow: this.listRow(),

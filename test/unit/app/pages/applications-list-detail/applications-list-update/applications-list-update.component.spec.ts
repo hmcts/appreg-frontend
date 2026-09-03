@@ -227,7 +227,7 @@ describe('ApplicationsListUpdateComponent', () => {
     expect(component.durationCloseErrorText()).toBe('Duration required');
   });
 
-  it('onCloseListClick uses the original list detail for the close payload', () => {
+  it('onCloseListClick uses saved list details and sets the close payload status to CLOSED', () => {
     fixture.componentRef.setInput('originalListDetails', {
       date: '2026-02-10',
       time: { hours: 10, minutes: 30 },
@@ -250,7 +250,10 @@ describe('ApplicationsListUpdateComponent', () => {
       {
         state: expect.objectContaining({
           closeRequest: expect.objectContaining({
-            payload: expect.objectContaining({ description: 'original list' }),
+            payload: expect.objectContaining({
+              description: 'original list',
+              status: ApplicationListStatus.CLOSED,
+            }),
           }),
         }),
       },
