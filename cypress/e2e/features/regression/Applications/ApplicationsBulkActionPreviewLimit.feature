@@ -7,7 +7,7 @@ Feature: Application List Entries Details Bulk Action Preview Limit Validation
             | date              | todayiso                          |
             | time              | timenowhhmm-2h                    |
             | status            | OPEN                              |
-            | description       | Test Data List 1051 ALEs {RANDOM} |
+            | description       | Test Data List 1051 ALEs {SCENARIO_ID} |
             | courtLocationCode | LCCC065                           |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
@@ -15,10 +15,10 @@ Feature: Application List Entries Details Bulk Action Preview Limit Validation
         When User Signs In With Microsoft SSO As "user1"
         When User Searches Application List With:
             | Date  | Time | Description                       | CourtSearch | Court | Status | Other location | CJA | CJASearch |
-            | today |      | Test Data List 1051 ALEs {RANDOM} |             |       | OPEN   |                |     |           |
+            | today |      | Test Data List 1051 ALEs {SCENARIO_ID} |             |       | OPEN   |                |     |           |
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
             | Date         | Time           | Location                          | Description                       | Entries | Status |
-            | todaydisplay | timenowhhmm-2h | Leeds Combined Court Centre Set 7 | Test Data List 1051 ALEs {RANDOM} | 0       | OPEN   |
+            | todaydisplay | timenowhhmm-2h | Leeds Combined Court Centre Set 7 | Test Data List 1051 ALEs {SCENARIO_ID} | 0       | OPEN   |
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page
@@ -30,10 +30,10 @@ Feature: Application List Entries Details Bulk Action Preview Limit Validation
         Then User Clicks On The Breadcrumb Link "Applications list"
         When User Searches Application List With:
             | Date  | Time | Description                       | CourtSearch | Court | Status | Other location | CJA | CJASearch |
-            | today |      | Test Data List 1051 ALEs {RANDOM} |             |       | OPEN   |                |     |           |
+            | today |      | Test Data List 1051 ALEs {SCENARIO_ID} |             |       | OPEN   |                |     |           |
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
             | Date         | Time           | Location                          | Description                       | Status |
-            | todaydisplay | timenowhhmm-2h | Leeds Combined Court Centre Set 7 | Test Data List 1051 ALEs {RANDOM} | OPEN   |
+            | todaydisplay | timenowhhmm-2h | Leeds Combined Court Centre Set 7 | Test Data List 1051 ALEs {SCENARIO_ID} | OPEN   |
         Then User Should See The Table "Entries"
         # Action - Result Selected
         When User Checks The Select All Checkbox In Table "Entries"

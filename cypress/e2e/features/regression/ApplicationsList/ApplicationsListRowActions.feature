@@ -28,8 +28,8 @@ Feature: Application List Row Actions
         Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                              | Entries | Status | SelectButtonText | ButtonName       |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1     | Test_{RANDOM} for Applications to review | 0       | OPEN   | Select           | Print continuous |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Test_{RANDOM} for Leeds applications     | 0       | OPEN   | Select           | Print page       |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1     | Test_{SCENARIO_ID} for Applications to review | 0       | OPEN   | Select           | Print continuous |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Test_{SCENARIO_ID} for Leeds applications     | 0       | OPEN   | Select           | Print page       |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803 @ARCPOC-1371
     Scenario Outline: Verify PDF download for print continuous and print page with entries for Court
@@ -50,10 +50,10 @@ Feature: Application List Row Actions
                             "title": "Mr",
                             "firstName": "Henry",
                             "middleName": "James",
-                            "lastName": "Taylor {RANDOM}"
+                            "lastName": "Taylor {SCENARIO_ID}"
                         },
                         "contactDetails": {
-                            "addressLine1": "{RANDOM} King Street",
+                            "addressLine1": "{SCENARIO_ID} King Street",
                             "addressLine2": "Westminster",
                             "addressLine3": "London",
                             "addressLine4": "Greater London",
@@ -61,7 +61,7 @@ Feature: Application List Row Actions
                             "postcode": "SW1A 1AA",
                             "phone": "0203{RANDOM}",
                             "mobile": "07123{RANDOM}",
-                            "email": "applicant{RANDOM}@example.com"
+                            "email": "applicant{SCENARIO_ID}@example.com"
                         }
                     },
                     "organisation": null
@@ -72,10 +72,10 @@ Feature: Application List Row Actions
                             "title": "Ms",
                             "firstName": "Emily",
                             "middleName": "Rose",
-                            "lastName": "Clark {RANDOM}"
+                            "lastName": "Clark {SCENARIO_ID}"
                         },
                         "contactDetails": {
-                            "addressLine1": "{RANDOM} Market Road",
+                            "addressLine1": "{SCENARIO_ID} Market Road",
                             "addressLine2": "Bristol",
                             "addressLine3": "Avon",
                             "addressLine4": "United Kingdom",
@@ -83,7 +83,7 @@ Feature: Application List Row Actions
                             "postcode": "BS15 5AA",
                             "phone": "0117{RANDOM}",
                             "mobile": "07984{RANDOM}",
-                            "email": "respondent{RANDOM}@example.com"
+                            "email": "respondent{SCENARIO_ID}@example.com"
                         },
                         "dateOfBirth": "todayiso-25y"
                     },
@@ -93,37 +93,37 @@ Feature: Application List Row Actions
                 "wordingFields": [
                     {
                         "key": "Date of Hearing",
-                        "value": "{RANDOM}"
+                        "value": "{SCENARIO_ID}"
                     }
                 ],
                 "feeStatuses": [],
                 "hasOffsiteFee": true,
                 "caseReference": "CASE-{RANDOM}",
                 "accountNumber": "ACC-{RANDOM}",
-                "notes": "Case noted with ref {RANDOM}",
+                "notes": "Case noted with ref {SCENARIO_ID}",
                 "lodgementDate": "todayiso",
                 "officials": [
                     {
                         "title": "Mr",
-                        "surname": "Turner {RANDOM}",
+                        "surname": "Turner {SCENARIO_ID}",
                         "forename": "Graham",
                         "type": "MAGISTRATE"
                     },
                     {
                         "title": "Ms",
-                        "surname": "Hayes {RANDOM}",
+                        "surname": "Hayes {SCENARIO_ID}",
                         "forename": "Laura",
                         "type": "MAGISTRATE"
                     },
                     {
                         "title": "Mr",
-                        "surname": "Miller {RANDOM}",
+                        "surname": "Miller {SCENARIO_ID}",
                         "forename": "Peter",
                         "type": "CLERK"
                     },
                     {
                         "title": "Ms",
-                        "surname": "Patel {RANDOM}",
+                        "surname": "Patel {SCENARIO_ID}",
                         "forename": "Anita",
                         "type": "MAGISTRATE"
                     }
@@ -142,10 +142,10 @@ Feature: Application List Row Actions
                             "title": "Mr",
                             "firstName": "John",
                             "middleName": "A B",
-                            "lastName": "Smith {RANDOM}"
+                            "lastName": "Smith {SCENARIO_ID}"
                         },
                         "contactDetails": {
-                            "addressLine1": "{RANDOM} High Street",
+                            "addressLine1": "{SCENARIO_ID} High Street",
                             "addressLine2": "Westminster",
                             "addressLine3": "London",
                             "addressLine4": "Greater London",
@@ -153,7 +153,7 @@ Feature: Application List Row Actions
                             "postcode": "SW1A 2AA",
                             "phone": "0207{RANDOM}",
                             "mobile": "07123{RANDOM}",
-                            "email": "john.smith{RANDOM}@example.com"
+                            "email": "john.smith{SCENARIO_ID}@example.com"
                         }
                     }
                 },
@@ -168,12 +168,12 @@ Feature: Application List Row Actions
                 "hasOffsiteFee": false,
                 "caseReference": "CASE-{RANDOM}",
                 "accountNumber": "ACC-{RANDOM}",
-                "notes": "Application discussion ref {RANDOM}",
+                "notes": "Application discussion ref {SCENARIO_ID}",
                 "lodgementDate": "todayiso",
                 "officials": [
                     {
                         "title": "Mr",
-                        "surname": "Smith {RANDOM}",
+                        "surname": "Smith {SCENARIO_ID}",
                         "forename": "John",
                         "type": "MAGISTRATE"
                     }
@@ -200,24 +200,24 @@ Feature: Application List Row Actions
             | Date & Time            | <DisplayDate> <Time>                                                                                                                      |
             | Duration               | <durationHours> Hours <durationMinutes> Minutes                                                                                           |
             | Location               | <Court>                                                                                                                                   |
-            | Applicant              | Mr Henry James Taylor {RANDOM}                                                                                                            |
-            | Respondent             | Ms Emily Rose Clark {RANDOM}                                                                                                              |
+            | Applicant              | Mr Henry James Taylor {SCENARIO_ID}                                                                                                            |
+            | Respondent             | Ms Emily Rose Clark {SCENARIO_ID}                                                                                                              |
             | Case Reference         | CASE-{RANDOM}                                                                                                                             |
             | Application Code       | AP99001                                                                                                                                   |
             | Account Reference      | ACC-{RANDOM}                                                                                                                              |
             | Application Title      | Appeal to Crown Court                                                                                                                     |
             | Result                 | -                                                                                                                                         |
-            | Notes                  | Case noted with ref {RANDOM}                                                                                                              |
-            | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
-            | Applicant              | Mr John A B Smith {RANDOM}                                                                                                                |
+            | Notes                  | Case noted with ref {SCENARIO_ID}                                                                                                              |
+            | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
+            | Applicant              | Mr John A B Smith {SCENARIO_ID}                                                                                                                |
             | Respondent             | -                                                                                                                                         |
             | Case Reference         | CASE-{RANDOM}                                                                                                                             |
             | Application Code       | AD99002                                                                                                                                   |
             | Account Reference      | ACC-{RANDOM}                                                                                                                              |
             | Application Title      | Copy documents (electronic)                                                                                                               |
             | Result                 | -                                                                                                                                         |
-            | Notes                  | Application discussion ref {RANDOM}                                                                                                       |
-            | This matter was before | Mr Smith {RANDOM} John MAGISTRATE                                                                                                         |
+            | Notes                  | Application discussion ref {SCENARIO_ID}                                                                                                       |
+            | This matter was before | Mr Smith {SCENARIO_ID} John MAGISTRATE                                                                                                         |
         Then User Clears Downloaded PDFs
         When User Clicks "<SelectButtonText>" Then "Print page" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
@@ -228,23 +228,23 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Has <Pages> Pages
         Then User Verifies Latest Downloaded PDF Contains Text "<Court>"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Application brought by | Mr Henry James Taylor {RANDOM}                                                                                                            |
-            | Respondent             | Ms Emily Rose Clark {RANDOM}                                                                                                              |
+            | Application brought by | Mr Henry James Taylor {SCENARIO_ID}                                                                                                            |
+            | Respondent             | Ms Emily Rose Clark {SCENARIO_ID}                                                                                                              |
             | Matter considered      | Appeal to Crown Court                                                                                                                     |
-            | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
+            | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
             | Dated                  | <DisplayDateLong>                                                                                                                         |
             | Produced on            | <SearchDate>                                                                                                                              |
-            | Application brought by | Mr John A B Smith {RANDOM}                                                                                                                |
+            | Application brought by | Mr John A B Smith {SCENARIO_ID}                                                                                                                |
             | Respondent             | -                                                                                                                                         |
             | Matter considered      | Copy documents (electronic)                                                                                                               |
             | AD99002                | Request for copy documents on computer disc or in electronic form                                                                         |
-            | This matter was before | Mr Smith {RANDOM} John MAGISTRATE                                                                                                         |
+            | This matter was before | Mr Smith {SCENARIO_ID} John MAGISTRATE                                                                                                         |
             | Dated                  | <DisplayDateLong>                                                                                                                         |
             | Produced on            | <SearchDate>                                                                                                                              |
         Then User Clears Downloaded PDFs
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
-            | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 2     |
+            | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 2     |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449
     Scenario Outline: Verify PDF download for print page with entries for CJA
@@ -257,7 +257,7 @@ Feature: Application List Row Actions
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
             """
             {
-                "standardApplicantCode": "APP032",
+                "standardApplicantCode": "BGAS",
                 "applicationCode": "AD99004",
                 "numberOfRespondents": null,
                 "wordingFields": [],
@@ -271,30 +271,30 @@ Feature: Application List Row Actions
                 "hasOffsiteFee": false,
                 "caseReference": "CASE-{RANDOM}",
                 "accountNumber": "ACC-{RANDOM}",
-                "notes": "Case noted with ref {RANDOM}",
+                "notes": "Case noted with ref {SCENARIO_ID}",
                 "lodgementDate": "todayiso",
                 "officials": [
                     {
                         "title": "Mr",
-                        "surname": "Turner {RANDOM}",
+                        "surname": "Turner {SCENARIO_ID}",
                         "forename": "Graham",
                         "type": "MAGISTRATE"
                     },
                     {
                         "title": "Ms",
-                        "surname": "Hayes {RANDOM}",
+                        "surname": "Hayes {SCENARIO_ID}",
                         "forename": "Laura",
                         "type": "MAGISTRATE"
                     },
                     {
                         "title": "Mr",
-                        "surname": "Miller {RANDOM}",
+                        "surname": "Miller {SCENARIO_ID}",
                         "forename": "Peter",
                         "type": "CLERK"
                     },
                     {
                         "title": "Ms",
-                        "surname": "Patel {RANDOM}",
+                        "surname": "Patel {SCENARIO_ID}",
                         "forename": "Anita",
                         "type": "MAGISTRATE"
                     }
@@ -320,14 +320,14 @@ Feature: Application List Row Actions
             | Date & Time            | <DisplayDate> <Time>                                                                                                                      |
             | Duration               | -                                                                                                                                         |
             | Location               | <otherLocationDescription> A8 - Derby                                                                                                     |
-            | Applicant              | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD Email: info@example.com                                                            |
+            | Applicant              | British Gas Trading Limited Millstream, Maidenhead Road, Windsor, SL4 5GD                                                                 |
             | Respondent             | -                                                                                                                                         |
             | Case Reference         | CASE-{RANDOM}                                                                                                                             |
             | Application Code       | AD99004                                                                                                                                   |
             | Account Reference      | ACC-{RANDOM}                                                                                                                              |
             | Result                 | -                                                                                                                                         |
-            | Notes                  | Case noted with ref {RANDOM}                                                                                                              |
-            | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
+            | Notes                  | Case noted with ref {SCENARIO_ID}                                                                                                              |
+            | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
         Then User Clears Downloaded PDFs
         When User Clicks "<SelectButtonText>" Then "Print page" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location     | Description   | Entries   | Status   |
@@ -339,15 +339,15 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains Text "<otherLocationDescription>"
         Then User Verifies Latest Downloaded PDF Contains Text "<cjaCode> - <OptionText>"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Application brought by | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD Email: info@example.com Phone: 01234567891                                         |
+            | Application brought by | British Gas Trading Limited Maidenhead Road, Windsor, SL4 5GD                                                                             |
             | Respondent             | -                                                                                                                                         |
-            | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
+            | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
             | Dated                  | <DisplayDateLong>                                                                                                                         |
             | Produced on            | <SearchDate>                                                                                                                              |
         Then User Clears Downloaded PDFs
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | cjaCode | OptionText | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous         | PDFNamePage               | Pages |
-            | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-1h | A8      | Derby      | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
+            | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-1h | A8      | Derby      | This is a location description {SCENARIO_ID} | ENFORCEMENT LIST-{SCENARIO_ID} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
 
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803 @ARCPOC-1717
@@ -368,7 +368,7 @@ Feature: Application List Row Actions
                     "organisation": {
                         "name": "ACME Industries LTD",
                         "contactDetails": {
-                            "addressLine1": "{RANDOM} Downing Street",
+                            "addressLine1": "{SCENARIO_ID} Downing Street",
                             "addressLine2": "Westminster",
                             "addressLine3": "London",
                             "addressLine4": "Greater London",
@@ -385,7 +385,7 @@ Feature: Application List Row Actions
                     "organisation": {
                         "name": "Beta Solutions Inc",
                         "contactDetails": {
-                            "addressLine1": "{RANDOM} Fleet Street",
+                            "addressLine1": "{SCENARIO_ID} Fleet Street",
                             "addressLine2": "London",
                             "addressLine3": null,
                             "addressLine4": null,
@@ -401,19 +401,19 @@ Feature: Application List Row Actions
                 "wordingFields": [
                     {
                         "key": "Describe Seized Food",
-                        "value": "{RANDOM}"
+                        "value": "{SCENARIO_ID}"
                     }
                 ],
                 "feeStatuses": [],
                 "hasOffsiteFee": true,
                 "caseReference": "CASE-{RANDOM}",
                 "accountNumber": "ACC-{RANDOM}",
-                "notes": "Case noted with ref {RANDOM}",
+                "notes": "Case noted with ref {SCENARIO_ID}",
                 "lodgementDate": "todayiso",
                 "officials": [
                     {
                         "title": "Ms",
-                        "surname": "Patel {RANDOM}",
+                        "surname": "Patel {SCENARIO_ID}",
                         "forename": "Anita",
                         "type": "MAGISTRATE"
                     }
@@ -451,15 +451,15 @@ Feature: Application List Row Actions
             | Date & Time            | <DisplayDate> <Time>                                              |
             | Duration               | <durationMinutes> Minutes                                         |
             | Location               | <Court>                                                           |
-            | Applicant              | ACME Industries LTD {RANDOM} Downing Street, Westminster, London, |
-            | Respondent             | Beta Solutions Inc {RANDOM} Fleet Street, London, EC4Y 1AA        |
+            | Applicant              | ACME Industries LTD {SCENARIO_ID} Downing Street, Westminster, London, |
+            | Respondent             | Beta Solutions Inc {SCENARIO_ID} Fleet Street, London, EC4Y 1AA        |
             | Case Reference         | CASE-{RANDOM}                                                     |
             | Application Code       | MS99006                                                           |
             | Account Reference      | ACC-{RANDOM}                                                      |
             | Application Title      | Condemnation of Unfit Food                                        |
             | Result                 | Authorised                                                        |
-            | Notes                  | Case noted with ref {RANDOM}                                      |
-            | This matter was before | Ms Patel {RANDOM} Anita MAGISTRATE                                |
+            | Notes                  | Case noted with ref {SCENARIO_ID}                                      |
+            | This matter was before | Ms Patel {SCENARIO_ID} Anita MAGISTRATE                                |
         Then User Clears Downloaded PDFs
         When User Clicks "<SelectButtonText>" Then "Print page" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
@@ -473,7 +473,7 @@ Feature: Application List Row Actions
             | Application brought by | ACME Industries LTD {RANDOM} Downing Street, Westminster, London, SW1A 2AA Email: john-test@gmail.com Phone: 01225 123456 Mobile: 07123456789 ACC-{RANDOM} |
             | Respondent             | Beta Solutions Inc {RANDOM} Fleet Street, London, EC4Y 1AA Email: betasolutions@gmail.com Phone: 01132 654321 Mobile: 07987654321                          |
             | Matter considered      | Condemnation of Unfit Food                                                                                                                                 |
-            | This matter was before | Ms Patel {RANDOM} Anita MAGISTRATE                                                                                                                         |
+            | This matter was before | Ms Patel {SCENARIO_ID} Anita MAGISTRATE                                                                                                                         |
             | Dated                  | <DisplayDateLong>                                                                                                                                          |
             | Produced on            | <SearchDate>                                                                                                                                               |
         Then User Clears Downloaded PDFs
@@ -482,7 +482,7 @@ Feature: Application List Row Actions
         Then User Verify Response Status Code Should Be "400"
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
-            | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
+            | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037 @ARCPOC-1688
     Scenario Outline: Verify application list is deleted successfully for applications list NO entries
@@ -528,7 +528,7 @@ Feature: Application List Row Actions
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                             | Status | SelectButtonText |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | OPEN   | Select           |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | OPEN   | Select           |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
     Scenario Outline: Verify application list is deleted successfully for applications list 1 entry
@@ -542,10 +542,10 @@ Feature: Application List Row Actions
             | standardApplicantCode                         | null                           |
             | applicationCode                               | AP99001                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
             | applicant.person.name.firstName               | Henry                          |
             | applicant.person.name.middleName              | James                          |
-            | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
+            | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
             | applicant.person.contactDetails.addressLine4  | Greater London                 |
@@ -553,41 +553,41 @@ Feature: Application List Row Actions
             | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
             | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
             | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
-            | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
+            | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
             | respondent.person.name.firstName              | Emily                          |
             | respondent.person.name.middleName             | Rose                           |
-            | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
+            | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
             | respondent.person.contactDetails.postcode     | BS15 5AA                       |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
-            | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+            | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
             | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | wordingFields.0.key                           | Date of Hearing                |
-            | wordingFields.0.value                         | "{RANDOM}"                     |
+            | wordingFields.0.value                         | "{SCENARIO_ID}"                     |
             | hasOffsiteFee                                 | true                           |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-{RANDOM}                   |
-            | notes                                         | Case noted with ref {RANDOM}   |
+            | notes                                         | Case noted with ref {SCENARIO_ID}   |
             | lodgementDate                                 | todayiso                       |
             | officials.0.title                             | Mr                             |
-            | officials.0.surname                           | Turner {RANDOM}                |
+            | officials.0.surname                           | Turner {SCENARIO_ID}                |
             | officials.0.forename                          | Graham                         |
             | officials.0.type                              | MAGISTRATE                     |
             | officials.1.title                             | Ms                             |
-            | officials.1.surname                           | Hayes {RANDOM}                 |
+            | officials.1.surname                           | Hayes {SCENARIO_ID}                 |
             | officials.1.forename                          | Laura                          |
             | officials.1.type                              | MAGISTRATE                     |
             | officials.2.title                             | Mr                             |
-            | officials.2.surname                           | Miller {RANDOM}                |
+            | officials.2.surname                           | Miller {SCENARIO_ID}                |
             | officials.2.forename                          | Peter                          |
             | officials.2.type                              | CLERK                          |
             | officials.3.title                             | Ms                             |
-            | officials.3.surname                           | Patel {RANDOM}                 |
+            | officials.3.surname                           | Patel {SCENARIO_ID}                 |
             | officials.3.forename                          | Anita                          |
             | officials.3.type                              | MAGISTRATE                     |
         Then User Verify Response Status Code Should Be "201"
@@ -614,4 +614,4 @@ Feature: Application List Row Actions
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                             | Entries | Status | SelectButtonText |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 1       | OPEN   | Select           |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   | Select           |

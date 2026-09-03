@@ -338,6 +338,15 @@ module.exports = defineConfig({
         API_BASE_URL: apiBaseUrl,
         SESSION_COOKIE_NAME: appConfigGet(appConfig, 'session.cookieName'),
         DEV_BYPASS_SSO: process.env.DEV_BYPASS_SSO === 'true',
+        // cypress-parallel supplies CYPRESS_THREAD to each worker process.
+        // These values are non-sensitive and used solely to create isolated
+        // scenario test data in the browser context.
+        CYPRESS_THREAD: process.env.CYPRESS_THREAD || 'local',
+        TEST_RUN_ID:
+          process.env.BUILD_TAG ||
+          process.env.BUILD_ID ||
+          process.env.GITHUB_RUN_ID ||
+          Date.now().toString(36),
         ...(tags ? { TAGS: tags } : {}),
       };
 

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 const setup = jest.fn();
 const setAzureMonitorOptions = jest.fn();
 const setAutoCollectRequests = jest.fn();
@@ -52,7 +54,17 @@ describe('AppInsights', () => {
     (AppInsights as unknown as { started: boolean }).started = false;
   });
 
-  it('disables automatic request collection while keeping the existing telemetry features', () => {
+  it('registers the OpenTelemetry ESM loader before starting the production server', () => {
+    const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
+      scripts: Record<string, string>;
+    };
+
+    expect(packageJson.scripts['start']).toBe(
+      'node --import @azure/monitor-opentelemetry/loader dist/appreg-frontend/server/server.mjs',
+    );
+  });
+
+  it('enables automatic request collection while keeping the existing telemetry features', () => {
     AppInsights.enable();
 
     expect(getConfig).toHaveBeenCalledWith(
@@ -60,7 +72,7 @@ describe('AppInsights', () => {
     );
     expect(setup).toHaveBeenCalledWith('InstrumentationKey=abc123');
     expect(setAzureMonitorOptions).toHaveBeenCalledTimes(1);
-    expect(setAutoCollectRequests).toHaveBeenCalledWith(false);
+    expect(setAutoCollectRequests).toHaveBeenCalledWith(true);
     expect(setAutoCollectConsole).toHaveBeenCalledWith(true, true);
     expect(setAutoCollectDependencies).toHaveBeenCalledWith(true);
     expect(setAutoCollectExceptions).toHaveBeenCalledWith(true);
@@ -110,7 +122,7 @@ describe('AppInsights', () => {
     expect(JSON.stringify(attributes)).not.toContain('SYNTHETIC-ACC-1');
   });
 
-  it('sanitizes relative dependency URLs and ignores spans without attributes', async () => {
+  it('sanitizes relative incoming and dependency URLs and ignores spans without attributes', async () => {
     AppInsights.enable();
 
     const spanProcessor = setAzureMonitorOptions.mock.calls[0][0]
@@ -146,7 +158,8 @@ describe('AppInsights', () => {
       'url.full': '/standard-applicants',
     });
     expect(incomingAttributes).toEqual({
-      'http.url': '/sso/login-callback?code=SyntheticCode',
+      'http.url': '/sso/login-callback',
+      'url.full': '/sso/login-callback',
     });
     await expect(spanProcessor.forceFlush()).resolves.toBeUndefined();
     await expect(spanProcessor.shutdown()).resolves.toBeUndefined();

@@ -7,7 +7,7 @@ Feature: API - Application List Entry Fees
       | date              | todayiso                |
       | time              | timenowhhmm-2h          |
       | status            | OPEN                    |
-      | description       | Bulk fees list {RANDOM} |
+      | description       | Bulk fees list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                  |
       | durationHours     | 2                       |
       | durationMinutes   | 22                      |
@@ -18,8 +18,8 @@ Feature: API - Application List Entry Fees
       | applicationCode                              | AD99002                   |
       | applicant.person.name.title                  | Mr                        |
       | applicant.person.name.firstName              | Fee                       |
-      | applicant.person.name.lastName               | Alpha{RANDOM}             |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street      |
+      | applicant.person.name.lastName               | Alpha{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street      |
       | applicant.person.contactDetails.addressLine2 | Westminster               |
       | applicant.person.contactDetails.addressLine3 | London                    |
       | applicant.person.contactDetails.addressLine4 | Greater London            |
@@ -27,7 +27,7 @@ Feature: API - Application List Entry Fees
       | applicant.person.contactDetails.postcode     | SW1A 1AA                  |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}              |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}             |
-      | applicant.person.contactDetails.email        | fee-a{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | fee-a{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAYA{RANDOM}              |
       | feeStatuses.0.paymentStatus                  | PAID                      |
       | feeStatuses.0.statusDate                     | 2025-01-10                |
@@ -37,7 +37,7 @@ Feature: API - Application List Entry Fees
       | notes                                        | Bulk fees entry alpha     |
       | lodgementDate                                | todayiso                  |
       | officials.0.title                            | Mr                        |
-      | officials.0.surname                          | FeeOfficialA{RANDOM}      |
+      | officials.0.surname                          | FeeOfficialA{SCENARIO_ID}      |
       | officials.0.forename                         | Clerk                     |
       | officials.0.type                             | CLERK                     |
     Then User Verify Response Status Code Should Be "201"
@@ -47,8 +47,8 @@ Feature: API - Application List Entry Fees
       | applicationCode                              | AD99002                   |
       | applicant.person.name.title                  | Ms                        |
       | applicant.person.name.firstName              | Fee                       |
-      | applicant.person.name.lastName               | Beta{RANDOM}              |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} Market Street    |
+      | applicant.person.name.lastName               | Beta{SCENARIO_ID}              |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street    |
       | applicant.person.contactDetails.addressLine2 | Westminster               |
       | applicant.person.contactDetails.addressLine3 | London                    |
       | applicant.person.contactDetails.addressLine4 | Greater London            |
@@ -56,7 +56,7 @@ Feature: API - Application List Entry Fees
       | applicant.person.contactDetails.postcode     | BS1 5AA                   |
       | applicant.person.contactDetails.phone        | 0117{RANDOM}              |
       | applicant.person.contactDetails.mobile       | 07124{RANDOM}             |
-      | applicant.person.contactDetails.email        | fee-b{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | fee-b{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentStatus                  | DUE                       |
       | feeStatuses.0.statusDate                     | 2025-01-10                |
       | hasOffsiteFee                                | false                     |
@@ -65,7 +65,7 @@ Feature: API - Application List Entry Fees
       | notes                                        | Bulk fees entry beta      |
       | lodgementDate                                | todayiso                  |
       | officials.0.title                            | Ms                        |
-      | officials.0.surname                          | FeeOfficialB{RANDOM}      |
+      | officials.0.surname                          | FeeOfficialB{SCENARIO_ID}      |
       | officials.0.forename                         | Bench                     |
       | officials.0.type                             | MAGISTRATE                |
     Then User Verify Response Status Code Should Be "201"
@@ -113,7 +113,7 @@ Feature: API - Application List Entry Fees
       | date              | todayiso                               |
       | time              | timenowhhmm-2h                         |
       | status            | OPEN                                   |
-      | description       | Bulk fees invalid target list {RANDOM} |
+      | description       | Bulk fees invalid target list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                 |
       | durationHours     | 2                                      |
       | durationMinutes   | 22                                     |
@@ -124,8 +124,8 @@ Feature: API - Application List Entry Fees
       | applicationCode                              | AD99002                         |
       | applicant.person.name.title                  | Mr                              |
       | applicant.person.name.firstName              | Fee                             |
-      | applicant.person.name.lastName               | InvalidTarget{RANDOM}           |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street            |
+      | applicant.person.name.lastName               | InvalidTarget{SCENARIO_ID}           |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street            |
       | applicant.person.contactDetails.addressLine2 | Westminster                     |
       | applicant.person.contactDetails.addressLine3 | London                          |
       | applicant.person.contactDetails.addressLine4 | Greater London                  |
@@ -133,7 +133,7 @@ Feature: API - Application List Entry Fees
       | applicant.person.contactDetails.postcode     | SW1A 1AA                        |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                    |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                   |
-      | applicant.person.contactDetails.email        | fee-invalid{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | fee-invalid{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAYI{RANDOM}                    |
       | feeStatuses.0.paymentStatus                  | PAID                            |
       | feeStatuses.0.statusDate                     | 2025-01-10                      |
@@ -143,7 +143,7 @@ Feature: API - Application List Entry Fees
       | notes                                        | Bulk fees invalid target        |
       | lodgementDate                                | todayiso                        |
       | officials.0.title                            | Mr                              |
-      | officials.0.surname                          | FeeOfficialInvalid{RANDOM}      |
+      | officials.0.surname                          | FeeOfficialInvalid{SCENARIO_ID}      |
       | officials.0.forename                         | Clerk                           |
       | officials.0.type                             | CLERK                           |
     Then User Verify Response Status Code Should Be "201"
@@ -176,7 +176,7 @@ Feature: API - Application List Entry Fees
       | date              | todayiso                              |
       | time              | timenowhhmm-2h                        |
       | status            | OPEN                                  |
-      | description       | Bulk fees duplicate ids list {RANDOM} |
+      | description       | Bulk fees duplicate ids list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                                |
       | durationHours     | 2                                     |
       | durationMinutes   | 22                                    |
@@ -187,8 +187,8 @@ Feature: API - Application List Entry Fees
       | applicationCode                              | AD99002                           |
       | applicant.person.name.title                  | Mr                                |
       | applicant.person.name.firstName              | Fee                               |
-      | applicant.person.name.lastName               | Duplicate{RANDOM}                 |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street              |
+      | applicant.person.name.lastName               | Duplicate{SCENARIO_ID}                 |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street              |
       | applicant.person.contactDetails.addressLine2 | Westminster                       |
       | applicant.person.contactDetails.addressLine3 | London                            |
       | applicant.person.contactDetails.addressLine4 | Greater London                    |
@@ -196,7 +196,7 @@ Feature: API - Application List Entry Fees
       | applicant.person.contactDetails.postcode     | SW1A 1AA                          |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                      |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                     |
-      | applicant.person.contactDetails.email        | fee-duplicate{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | fee-duplicate{SCENARIO_ID}@example.com |
       | feeStatuses.0.paymentReference               | PAYD{RANDOM}                      |
       | feeStatuses.0.paymentStatus                  | PAID                              |
       | feeStatuses.0.statusDate                     | 2025-01-10                        |
@@ -206,7 +206,7 @@ Feature: API - Application List Entry Fees
       | notes                                        | Bulk fees duplicate ids           |
       | lodgementDate                                | todayiso                          |
       | officials.0.title                            | Mr                                |
-      | officials.0.surname                          | FeeOfficialDuplicate{RANDOM}      |
+      | officials.0.surname                          | FeeOfficialDuplicate{SCENARIO_ID}      |
       | officials.0.forename                         | Clerk                             |
       | officials.0.type                             | CLERK                             |
     Then User Verify Response Status Code Should Be "201"
@@ -244,7 +244,7 @@ Feature: API - Application List Entry Fees
       | date              | todayiso                         |
       | time              | timenowhhmm-2h                   |
       | status            | OPEN                             |
-      | description       | Bulk fee composite list {RANDOM} |
+      | description       | Bulk fee composite list {SCENARIO_ID} |
       | courtLocationCode | RCJ001                           |
       | durationHours     | 2                                |
       | durationMinutes   | 22                               |
@@ -255,8 +255,8 @@ Feature: API - Application List Entry Fees
       | applicationCode                              | AD99001                               |
       | applicant.person.name.title                  | Mr                                    |
       | applicant.person.name.firstName              | Offsite                               |
-      | applicant.person.name.lastName               | Composite{RANDOM}                     |
-      | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street                  |
+      | applicant.person.name.lastName               | Composite{SCENARIO_ID}                     |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street                  |
       | applicant.person.contactDetails.addressLine2 | Westminster                           |
       | applicant.person.contactDetails.addressLine3 | London                                |
       | applicant.person.contactDetails.addressLine4 | Greater London                        |
@@ -264,7 +264,7 @@ Feature: API - Application List Entry Fees
       | applicant.person.contactDetails.postcode     | SW1A 1AA                              |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                          |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                         |
-      | applicant.person.contactDetails.email        | offsite-composite{RANDOM}@example.com |
+      | applicant.person.contactDetails.email        | offsite-composite{SCENARIO_ID}@example.com |
       | wordingFields                                | __empty_array__                       |
       | feeStatuses.0.paymentReference               | Pay-{RANDOM}                          |
       | feeStatuses.0.paymentStatus                  | PAID                                  |
@@ -274,7 +274,7 @@ Feature: API - Application List Entry Fees
       | notes                                        | Offsite bulk fee composite            |
       | lodgementDate                                | todayiso                              |
       | officials.0.title                            | Mr                                    |
-      | officials.0.surname                          | Composite{RANDOM}                     |
+      | officials.0.surname                          | Composite{SCENARIO_ID}                     |
       | officials.0.forename                         | Clerk                                 |
       | officials.0.type                             | CLERK                                 |
     Then User Verify Response Status Code Should Be "201"
@@ -297,7 +297,7 @@ Feature: API - Application List Entry Fees
       | feeStatuses.length | 2    |
     Then User Verify Response Body Array Property "feeStatuses" Should Contain Objects:
       | paymentReference | paymentStatus | statusDate |
-      | Pay-{RANDOM}     | PAID          | todayiso   |
+      | Pay-{RANDOM}          | PAID          | todayiso   |
       | OFFSITE-UPDATED  | REMITTED      | 2025-10-07 |
 
     Examples:

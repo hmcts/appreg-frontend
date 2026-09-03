@@ -6,7 +6,7 @@ Feature: Applications List Entry Create
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:
       | date     | time  | status | description                             | durationHours | durationMinutes | courtLocationCode |
-      | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} |               |                 | LCCC065           |
+      | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     Given User Is On The Portal Page
@@ -14,10 +14,10 @@ Feature: Applications List Entry Create
     # Search Created Application List
     When User Searches Application List With:
       | Date  | Time | List description                        | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      | today |      | Applications to review at Test_{RANDOM} |             |       | OPEN               |                            |                       |           |
+      | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
       | Date         | Time  | Location                          | Description                             | Entries | Status |
-      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   |
+      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   |
     ## Create Application under Application List
     Then User Clicks On The Link "Create application"
     When User Clicks On The "Show all sections" Button
@@ -28,8 +28,8 @@ Feature: Applications List Entry Create
       | Select title          | Dr                            |
       | First name            | John                          |
       | Middle name(s)        | Michael                       |
-      | Surname               | Smith {RANDOM}                |
-      | Address line 1        | {RANDOM} High Street          |
+      | Surname               | Smith {SCENARIO_ID}                |
+      | Address line 1        | {SCENARIO_ID} High Street          |
       | Address line 2        | Apartment 4B                  |
       | Town or city          | Leeds                         |
       | County or region      | West Yorkshire                |
@@ -37,7 +37,7 @@ Feature: Applications List Entry Create
       | Postcode              | LS10 1PJ                      |
       | Phone number          | 01632960001                   |
       | Mobile number         | 07700900001                   |
-      | Email address         | applicant{RANDOM}@example.com |
+      | Email address         | applicant{SCENARIO_ID}@example.com |
     # Application Codes
     Then User Enters "MX99006" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
@@ -59,9 +59,9 @@ Feature: Applications List Entry Create
       | Select title     | Mrs                            |
       | First name       | Jane                           |
       | Middle name(s)   | Elizabeth                      |
-      | Surname          | Doe {RANDOM}                   |
+      | Surname          | Doe {SCENARIO_ID}                   |
       | Date of birth    | today-30y                      |
-      | Address line 1   | {RANDOM} Park Road             |
+      | Address line 1   | {SCENARIO_ID} Park Road             |
       | Address line 2   | Building C                     |
       | Town or city     | Leeds                          |
       | County or region | West Yorkshire                 |
@@ -69,7 +69,7 @@ Feature: Applications List Entry Create
       | Postcode         | LS10 1PJ                       |
       | Phone number     | 01632960002                    |
       | Mobile number    | 07700900002                    |
-      | Email address    | respondent{RANDOM}@example.com |
+      | Email address    | respondent{SCENARIO_ID}@example.com |
     # Civil Fee Details
     When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
     Then User Should See The Text "Selecting this will apply the off site fee to the entry." In The Accordion "Civil fee"
@@ -130,7 +130,7 @@ Feature: Applications List Entry Create
     Then User Clicks On The Breadcrumb Link "Applications list details"
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
       | Sequence number | Account number  | Applicant           | Respondent        | Postcode | Title                      | Fee | Resulted |
-      | 1               | account{RANDOM} | John Smith {RANDOM} | Jane Doe {RANDOM} | LS10 1PJ | Condemnation of Unfit Food | Yes |          |
+      | 1               | account{RANDOM} | John Smith {SCENARIO_ID} | Jane Doe {SCENARIO_ID} | LS10 1PJ | Condemnation of Unfit Food | Yes |          |
     When User Clicks On The "Show all sections" Button
     Then User Should See The Button "Hide all sections"
     Then User Sees Page Heading "Applications list entry update"
@@ -141,8 +141,8 @@ Feature: Applications List Entry Create
       | Select title     | Dr                            |
       | First name       | John                          |
       | Middle name(s)   | Michael                       |
-      | Surname          | Smith {RANDOM}                |
-      | Address line 1   | {RANDOM} High Street          |
+      | Surname          | Smith {SCENARIO_ID}                |
+      | Address line 1   | {SCENARIO_ID} High Street          |
       | Address line 2   | Apartment 4B                  |
       | Town or city     | Leeds                         |
       | County or region | West Yorkshire                |
@@ -150,7 +150,7 @@ Feature: Applications List Entry Create
       | Postcode         | LS10 1PJ                      |
       | Phone number     | 01632960001                   |
       | Mobile number    | 07700900001                   |
-      | Email address    | applicant{RANDOM}@example.com |
+      | Email address    | applicant{SCENARIO_ID}@example.com |
 
     # Verify Application Codes Details
     Then User Verifies The Textbox "Application code" Contains "MX99006" In The Accordion "Application codes"
@@ -166,9 +166,9 @@ Feature: Applications List Entry Create
       | Select title     | Mrs                            |
       | First name       | Jane                           |
       | Middle name(s)   | Elizabeth                      |
-      | Surname          | Doe {RANDOM}                   |
+      | Surname          | Doe {SCENARIO_ID}                   |
       | Date of birth    | today-30y                      |
-      | Address line 1   | {RANDOM} Park Road             |
+      | Address line 1   | {SCENARIO_ID} Park Road             |
       | Address line 2   | Building C                     |
       | Town or city     | Leeds                          |
       | County or region | West Yorkshire                 |
@@ -176,7 +176,7 @@ Feature: Applications List Entry Create
       | Postcode         | LS10 1PJ                       |
       | Phone number     | 01632960002                    |
       | Mobile number    | 07700900002                    |
-      | Email address    | respondent{RANDOM}@example.com |
+      | Email address    | respondent{SCENARIO_ID}@example.com |
     # Verify Civil Fee Details
     Then User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Checked
     Then User Should See The Text "Selecting this will automatically apply the off site fee to the entry. This change is saved immediately." In The Accordion "Civil fee"
@@ -203,7 +203,7 @@ Feature: Applications List Entry Create
     # Result Wording Details
     Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
       | Applicant           | Respondent        | Application title          |
-      | John Smith {RANDOM} | Jane Doe {RANDOM} | Condemnation of Unfit Food |
+      | John Smith {SCENARIO_ID} | Jane Doe {SCENARIO_ID} | Condemnation of Unfit Food |
     Then User Verifies The Textbox "Result code" In The Accordion "Result wording" Is Empty
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details
@@ -229,7 +229,7 @@ Feature: Applications List Entry Create
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:
       | date     | time  | status | description                             | durationHours | durationMinutes | courtLocationCode |
-      | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} |               |                 | LCCC065           |
+      | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     Given User Is On The Portal Page
@@ -240,7 +240,7 @@ Feature: Applications List Entry Create
       | today |      |                  |             |       | OPEN               |                            |                       |           |
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
       | Date         | Time  | Location                          | Description                             | Entries | Status |
-      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   |
+      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   |
     ## Create Application under Application List
     Then User Clicks On The Link "Create application"
     When User Clicks On The "Show all sections" Button
@@ -248,16 +248,16 @@ Feature: Applications List Entry Create
     # Applicant Details
     When User Fills In The Applicant Details
       | Select applicant type | Organisation                                |
-      | Organisation name     | Test Sample Applicant Organisation {RANDOM} |
-      | Address line 1        | {RANDOM} High Street                        |
-      | Address line 2        | Apartment {RANDOM}                          |
+      | Organisation name     | Test Sample Applicant Organisation {SCENARIO_ID} |
+      | Address line 1        | {SCENARIO_ID} High Street                        |
+      | Address line 2        | Apartment {SCENARIO_ID}                          |
       | Town or city          | Leeds                                       |
       | County or region      | West Yorkshire                              |
       | Post town             | Leeds                                       |
       | Postcode              | LS10 1PJ                                    |
       | Phone number          | 020 7946 0000                               |
       | Mobile number         | 07123 456789                                |
-      | Email address         | john.smith_{RANDOM}test@example.com         |
+      | Email address         | john.smith_{SCENARIO_ID}test@example.com         |
     # Application Codes
     Then User Enters "AP99001" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
@@ -268,7 +268,7 @@ Feature: Applications List Entry Create
     Then User Verifies The "Application Title" Textbox Has Value "Appeal to Crown Court"
     # Wording Details
     Then User Verifies The "Wording" Accordion Has Value "Notice of appeal in respect of a case heard on"
-    Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Date of Hearing" and Enters "{RANDOM}"
+    Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Date of Hearing" and Enters "{SCENARIO_ID}"
     # (Bug raised ARCPOC-1230/ARCPOC-1205/AARCPOC-1253 for below statement)
     When User Clicks On The "Apply wording" Button In The Accordion "Wording"
     Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
@@ -276,16 +276,16 @@ Feature: Applications List Entry Create
     # Respondent Details
     When User Fills In The Respondent Details
       | Select type       | Organisation                              |
-      | Organisation name | Test Sample Res Organisation {RANDOM}     |
-      | Address line 1    | {RANDOM} Low Street                       |
-      | Address line 2    | Apartment {RANDOM}                        |
+      | Organisation name | Test Sample Res Organisation {SCENARIO_ID}     |
+      | Address line 1    | {SCENARIO_ID} Low Street                       |
+      | Address line 2    | Apartment {SCENARIO_ID}                        |
       | Town or city      | Leeds                                     |
       | County or region  | East Yorkshire                            |
       | Post town         | Leeds                                     |
       | Postcode          | LS10 1PJ                                  |
       | Phone number      | 020 7946 0000                             |
       | Mobile number     | 07123 456789                              |
-      | Email address     | Respondent.smith_{RANDOM}test@example.com |
+      | Email address     | Respondent.smith_{SCENARIO_ID}test@example.com |
     # Civil Fee Details
     Then User Should See The Text "No fee required" In The Accordion "Civil fee"
     Then User Verifies Dropdown "Fee status" Is Disabled In The Accordion "Civil fee"
@@ -305,7 +305,7 @@ Feature: Applications List Entry Create
     Then User Clicks On The Breadcrumb Link "Applications list details"
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
       | Sequence number | Account number  | Applicant                                   | Respondent                            | Postcode | Title                 | Fee | Resulted |
-      | 1               | account{RANDOM} | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | LS10 1PJ | Appeal to Crown Court | No  |          |
+      | 1               | account{RANDOM} | Test Sample Applicant Organisation {SCENARIO_ID} | Test Sample Res Organisation {SCENARIO_ID} | LS10 1PJ | Appeal to Crown Court | No  |          |
     When User Clicks On The "Show all sections" Button
     Then User Should See The Button "Hide all sections"
     Then User Sees Page Heading "Applications list entry update"
@@ -313,16 +313,16 @@ Feature: Applications List Entry Create
     # Verify Applicant Details
     When User Verifies In The Applicant Details
       | Select applicant type | Organisation                                |
-      | Organisation name     | Test Sample Applicant Organisation {RANDOM} |
-      | Address line 1        | {RANDOM} High Street                        |
-      | Address line 2        | Apartment {RANDOM}                          |
+      | Organisation name     | Test Sample Applicant Organisation {SCENARIO_ID} |
+      | Address line 1        | {SCENARIO_ID} High Street                        |
+      | Address line 2        | Apartment {SCENARIO_ID}                          |
       | Town or city          | Leeds                                       |
       | County or region      | West Yorkshire                              |
       | Post town             | Leeds                                       |
       | Postcode              | LS10 1PJ                                    |
       | Phone number          | 020 7946 0000                               |
       | Mobile number         | 07123 456789                                |
-      | Email address         | john.smith_{RANDOM}test@example.com         |
+      | Email address         | john.smith_{SCENARIO_ID}test@example.com         |
     # Verify Application Codes Details
     Then User Verifies The Textbox "Application code" Contains "AP99001" In The Accordion "Application codes"
     Then User Verifies The Textbox "Application title" Contains "Appeal to Crown Court" In The Accordion "Application codes"
@@ -330,20 +330,20 @@ Feature: Applications List Entry Create
     Then User Verifies Date Field "Lodgement date" Is Disabled In The Accordion "Application codes"
     # Verify Wording Details
     Then User Verifies The "Wording" Accordion Has Value "Notice of appeal in respect of a case heard on"
-    Then User Verifies Textbox With Placeholder "Enter a Date of Hearing" Contains "{RANDOM}" In The Accordion "Wording"
+    Then User Verifies Textbox With Placeholder "Enter a Date of Hearing" Contains "{SCENARIO_ID}" In The Accordion "Wording"
     # Verify Respondent Details
     When User Verifies In The Respondent Details
       | Select type       | Organisation                              |
-      | Organisation name | Test Sample Res Organisation {RANDOM}     |
-      | Address line 1    | {RANDOM} Low Street                       |
-      | Address line 2    | Apartment {RANDOM}                        |
+      | Organisation name | Test Sample Res Organisation {SCENARIO_ID}     |
+      | Address line 1    | {SCENARIO_ID} Low Street                       |
+      | Address line 2    | Apartment {SCENARIO_ID}                        |
       | Town or city      | Leeds                                     |
       | County or region  | East Yorkshire                            |
       | Post town         | Leeds                                     |
       | Postcode          | LS10 1PJ                                  |
       | Phone number      | 020 7946 0000                             |
       | Mobile number     | 07123 456789                              |
-      | Email address     | Respondent.smith_{RANDOM}test@example.com |
+      | Email address     | Respondent.smith_{SCENARIO_ID}test@example.com |
     # Verify Civil Fee Details
     Then User Should See The Text "No fee required" In The Accordion "Civil fee"
     Then User Verifies Dropdown "Fee status" Is Disabled In The Accordion "Civil fee"
@@ -356,8 +356,8 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Application details" Contains "This is a test application with special requirements" In The Accordion "Notes"
     # Result Wording Details
     Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
-      | Applicant                                   | Respondent                            | Application title                              |
-      | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | Appeal to Crown Court                          |
+      | Applicant                                   | Respondent                            | Application title     |
+      | Test Sample Applicant Organisation {SCENARIO_ID} | Test Sample Res Organisation {SCENARIO_ID} | Appeal to Crown Court |
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details
     Then User Should See The Textbox "Magistrate's title" Under "Magistrate 1" FieldSet In The Accordion "Officials"
@@ -382,7 +382,7 @@ Feature: Applications List Entry Create
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:
       | date     | time  | status | description                             | durationHours | durationMinutes | courtLocationCode |
-      | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} |               |                 | LCCC065           |
+      | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     Given User Is On The Portal Page
@@ -390,22 +390,22 @@ Feature: Applications List Entry Create
     # Search Created Application List
     When User Searches Application List With:
       | Date  | Time | List description                        | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      | today |      | Applications to review at Test_{RANDOM} |             |       | OPEN               |                            |                       |           |
+      | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
       | Date         | Time  | Location                          | Description                             | Entries | Status |
-      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   |
+      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   |
     ## Create Application under Application List
     Then User Clicks On The Link "Create application"
     When User Clicks On The "Show all sections" Button
     Then User Should See The Button "Hide all sections"
     # Applicant Details - Standard Applicant Bug-ARCPOC-1342
     Then User Selects "Standard Applicant" In The "Select applicant type" Dropdown
-    Then User Enters "APP025" Into The Textbox "Code" In The Accordion "Applicant"
+    Then User Enters "BGAS" Into The Textbox "Code" In The Accordion "Applicant"
     When User Clicks On The "Search" Button
-    Then User Should See The Text "Ava Johnson" In The Accordion "Applicant"
-    Then User Should See The Text "258 Cedar Lane" In The Accordion "Applicant"
-    Then User Checks The Checkbox With Label "Select APP025" In The Accordion "Applicant"
-    Then User Should See The Text "Currently selected APP025 Ava Johnson" In The Accordion "Applicant"
+    Then User Should See The Text "British Gas Trading Limited" In The Accordion "Applicant"
+    Then User Should See The Text "Millstream" In The Accordion "Applicant"
+    Then User Checks The Checkbox With Label "Select BGAS" In The Accordion "Applicant"
+    Then User Should See The Text "Currently selected BGAS British Gas Trading Limited" In The Accordion "Applicant"
     # Application Codes
     Then User Enters "MH99001" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
@@ -450,8 +450,8 @@ Feature: Applications List Entry Create
     # ---------------OPEN APPLICATION LIST ENTRY-----------@ARCPOC-635 SC3
     Then User Clicks On The Breadcrumb Link "Applications list details"
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
-      | Sequence number | Account number  | Applicant   | Respondent | Postcode | Title                                                                     | Fee | Resulted |
-      | 1               | account{RANDOM} | Ava Johnson |            |          | Issue of warrant of arrest in commitment proceedings - council tax (bulk) | Yes |          |
+      | Sequence number | Account number  | Applicant                   | Respondent | Postcode | Title                                                                     | Fee | Resulted |
+      | 1               | account{RANDOM} | British Gas Trading Limited |            |          | Issue of warrant of arrest in commitment proceedings - council tax (bulk) | Yes |          |
     When User Clicks On The "Show all sections" Button
     Then User Should See The Button "Hide all sections"
     Then User Sees Page Heading "Applications list entry update"
@@ -459,10 +459,10 @@ Feature: Applications List Entry Create
     # Verify Applicant Details
     When User Verifies In The Applicant Details
       | Select applicant type | Standard Applicant |
-    Then User Should See The Text "Saved APP025 Ava Johnson" In The Accordion "Applicant"
+    Then User Should See The Text "Saved BGAS British Gas Trading Limited" In The Accordion "Applicant"
     Then User Verifies The Checkbox is Checked In Row Of Table "Standard applicants" In The Accordion "Applicant" With:
-      | Code   | Name        | Address        | Use from   | Use to |
-      | APP025 | Ava Johnson | 258 Cedar Lane | 6 Nov 2025 | —      |
+      | Code | Name                        | Address    | Use from   | Use to |
+      | BGAS | British Gas Trading Limited | Millstream | 1 Jun 2016 | —      |
     # Verify Application Codes Details
     Then User Verifies The Textbox "Application code" Contains "MH99001" In The Accordion "Application codes"
     Then User Verifies The Textbox "Application title" Contains "Issue of warrant of arrest in commitment proceedings - council tax (bulk)" In The Accordion "Application codes"
@@ -492,8 +492,8 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Application details" Contains "This is a test application with special requirements" In The Accordion "Notes"
     # Result Wording Details
     Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
-      | Applicant   | Respondent | Application title                                                         |
-      | Ava Johnson |            | Issue of warrant of arrest in commitment proceedings - council tax (bulk) |
+      | Applicant                   | Respondent | Application title                                                         |
+      | British Gas Trading Limited |            | Issue of warrant of arrest in commitment proceedings - council tax (bulk) |
     Then User Verifies The Textbox "Result code" In The Accordion "Result wording" Is Empty
     Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
     # Officials Details
