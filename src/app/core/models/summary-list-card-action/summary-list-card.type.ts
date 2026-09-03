@@ -8,5 +8,6 @@ export type SummaryListCardAction = {
   title: string;
   status?: 'pending' | 'existing';
   showValue?: boolean;
+  footer?: string;
   content: SummaryListCardActionContent[];
 };

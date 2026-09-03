@@ -5,6 +5,7 @@ export type ExistingResultRow = {
   id: string; // real resultId
   resultCode: string;
   display: string; // "CODE - Title"
+  updatedDateTime?: string;
   wordingFields: TemplateSubstitution[];
   wording: string; // derived display
 };

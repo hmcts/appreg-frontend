@@ -13,6 +13,7 @@ import {
   Component,
   computed,
   effect,
+  inject,
   input,
   output,
   signal,
@@ -73,6 +74,8 @@ import { ResultRow, toExistingRows } from '@util/result-code-helpers';
   ],
 })
 export class ResultWordingSectionComponent {
+  private readonly dateTimePipe = inject(DateTimePipe);
+
   resultApplicantContext = input<
     ApplicantContext[] | ApplicationEntriesResultContext[]
   >([]);
@@ -217,6 +220,10 @@ export class ResultWordingSectionComponent {
         title: row.display,
         status: row.kind === 'pending' ? 'pending' : 'existing',
         showValue: !shouldRenderParser,
+        footer:
+          row.kind === 'existing'
+            ? this.updatedDateTimeFooter(row.updatedDateTime)
+            : undefined,
         content: [
           {
             key: 'Wording',
@@ -475,6 +482,15 @@ export class ResultWordingSectionComponent {
       .toLowerCase()
       .replaceAll(/[^a-z0-9]+/g, ' ')
       .trim();
+  }
+
+  private updatedDateTimeFooter(value: string | undefined): string | undefined {
+    const formattedDateTime = this.dateTimePipe.transform(
+      value,
+      'mediumDateTime',
+    );
+
+    return formattedDateTime ? `Updated on ${formattedDateTime}` : undefined;
   }
 
   private normCode(code: string): string {

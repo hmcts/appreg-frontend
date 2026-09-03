@@ -61,6 +61,32 @@ describe('ResultWordingSectionComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('shows the latest update date and time on existing result cards', () => {
+    fixture.componentRef.setInput('existingResults', [
+      makeExistingResult({
+        id: 'E1',
+        resultCode: 'RC1',
+        updatedDateTime: '2026-08-28T10:15:30Z',
+      }),
+    ]);
+    fixture.detectChanges();
+
+    expect(component.existingResultSummaryLists()[0].footer).toBe(
+      'Updated on 28 Aug 2026 at 11:15',
+    );
+    expect(fixture.nativeElement.textContent).toContain(
+      'Updated on 28 Aug 2026 at 11:15',
+    );
+  });
+
+  it('does not show an update date and time on pending result cards', () => {
+    component.selectResultCode(codes[0]);
+    fixture.detectChanges();
+
+    expect(component.existingResultSummaryLists()[0].footer).toBeUndefined();
+    expect(fixture.nativeElement.textContent).not.toContain('Updated on');
+  });
+
   it('filteredResultCodes returns [] when search is empty', () => {
     component.resultCodeSearch = '';
     expect(component.filteredResultCodes).toEqual([]);
