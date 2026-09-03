@@ -104,9 +104,6 @@ export class ApplicationsListUpdateComponent {
     this.form().markAllAsTouched();
     this.form().updateValueAndValidity({ emitEvent: false });
 
-    // const isClosing =
-    //   this.form().getRawValue().status?.toLowerCase() === 'closed';
-
     const raw = this.form().getRawValue();
 
     const errors = this.buildUpdateErrorSummary();
@@ -134,22 +131,6 @@ export class ApplicationsListUpdateComponent {
         durationMinutes,
         ...normalized,
       };
-
-      // Nav to close list page
-      // if (isClosing) {
-      //   const state: AppListNavState = {
-      //     listRow: this.listRow(),
-      //     closeRequest: {
-      //       id: this.id(),
-      //       payload,
-      //       etag: this.etag(),
-      //     },
-      //   };
-      //   void this.router.navigate(['/applications-list', this.id(), 'close'], {
-      //     state,
-      //   });
-      //   return;
-      // }
 
       this.setUpdateRequest()({
         id: this.id(),
