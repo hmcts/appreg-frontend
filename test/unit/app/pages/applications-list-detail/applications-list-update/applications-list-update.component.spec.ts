@@ -21,7 +21,6 @@ import {
   ApplicationListEntriesApi,
   ApplicationListStatus,
 } from '@openapi';
-import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import * as buildPayload from '@util/build-payload';
 import { PlaceFieldsState } from '@util/place-fields.base';
 import { ApplicationListRow } from '@util/types/application-list/types';
@@ -59,14 +58,23 @@ describe('ApplicationsListUpdateComponent', () => {
     isLoading: false,
     isSelectingAll: false,
     updateDone: false,
+    updateOfficialsDone: false,
     updateInvalid: false,
+    moveDone: false,
+    updateFeesDone: false,
+    bulkUploadDone: false,
+    deleteDone: false,
+    bulkUploadBannerText: '',
     errorHint: '',
     errorSummary: [],
     preserveErrorSummaryOnLoad: false,
     hasPrefilledFromApi: false,
     createDone: false,
-    moveDone: false,
     getFilters: {},
+    pdfLoading: false,
+    previewRows: null,
+    isFilterSelection: false,
+    excludedEntryIds: new Set<string>(),
   });
 
   const mkPlaceState = (): PlaceFieldsState => ({
@@ -172,6 +180,11 @@ describe('ApplicationsListUpdateComponent', () => {
         routerLink: ['delete'],
         state: { listRow, fromListDetails: true },
       },
+      {
+        label: 'Close list',
+        variant: 'secondary',
+        onClick: expect.any(Function),
+      },
     ]);
   });
 
@@ -214,6 +227,83 @@ describe('ApplicationsListUpdateComponent', () => {
     expect(component.durationCloseErrorText()).toBe('Duration required');
   });
 
+  it('onCloseListClick uses the original list detail for the close payload', () => {
+    fixture.componentRef.setInput('originalListDetails', {
+      date: '2026-02-10',
+      time: { hours: 10, minutes: 30 },
+      description: 'original list',
+      status: ApplicationListStatus.OPEN,
+      court: 'ABC',
+      location: '',
+      cja: '',
+      duration: { hours: 1, minutes: 0 },
+    });
+    component.form().patchValue({
+      description: 'edited list',
+      duration: { hours: 0, minutes: 0 },
+    });
+
+    component.onCloseListClick();
+
+    expect(router.navigate).toHaveBeenCalledWith(
+      ['/applications-list', 'list-1', 'close'],
+      {
+        state: expect.objectContaining({
+          closeRequest: expect.objectContaining({
+            payload: expect.objectContaining({ description: 'original list' }),
+          }),
+        }),
+      },
+    );
+  });
+
+  it('onCloseListClick does not navigate before the original list detail loads', () => {
+    component.onCloseListClick();
+
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('onCloseListClick does not navigate when duration is 00:00', () => {
+    fixture.componentRef.setInput('originalListDetails', {
+      date: '2026-02-10',
+      time: { hours: 10, minutes: 30 },
+      description: 'original list',
+      status: ApplicationListStatus.OPEN,
+      court: 'ABC',
+      location: '',
+      cja: '',
+      duration: { hours: 0, minutes: 0 },
+    });
+    component.form().patchValue({
+      status: ApplicationListStatus.OPEN,
+      duration: { hours: 1, minutes: 0 },
+    });
+
+    component.onCloseListClick();
+
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(component.form().errors).toEqual({
+      closeNotPermitted: {
+        noClose: [CLOSE_MESSAGES.durationNonPositive],
+      },
+    });
+    expect(component.form().controls.duration.errors).toEqual({
+      closeDurationMissing: true,
+      durationErrorText: CLOSE_MESSAGES.durationNonPositive,
+    });
+    expect(lastPatch()).toEqual({
+      updateInvalid: true,
+      errorHint: 'There is a problem',
+      errorSummary: [
+        {
+          id: DETAIL_ERROR_ANCHORS.duration_hours,
+          href: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
+          text: CLOSE_MESSAGES.durationNonPositive,
+        },
+      ],
+    });
+  });
+
   it('returns empty duration error text when non-string', () => {
     component.form().get('duration')?.setErrors({
       durationErrorText: true,
@@ -230,28 +320,6 @@ describe('ApplicationsListUpdateComponent', () => {
     expect(incrementSubmitAttempt).toHaveBeenCalledTimes(1);
     expect(setUpdateRequest).toHaveBeenCalledTimes(1);
     expect(router.navigate).not.toHaveBeenCalled();
-  });
-
-  it('onUpdate: when closing, navigates to close confirmation with state and does not submit immediately', () => {
-    setValidUpdateFormValues();
-    component.form().controls.status.setValue(ApplicationListStatus.CLOSED);
-
-    component.onUpdate();
-
-    expect(incrementSubmitAttempt).toHaveBeenCalledTimes(1);
-    expect(setUpdateRequest).not.toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledTimes(1);
-
-    const [commands, extras] = (router.navigate as jest.Mock).mock.calls[0] as [
-      string[],
-      { state?: AppListNavState },
-    ];
-    expect(commands).toEqual(['/applications-list', 'list-1', 'close']);
-    expect(extras.state?.closeRequest?.id).toBe('list-1');
-    expect(extras.state?.closeRequest?.etag).toBeNull();
-    expect(extras.state?.closeRequest?.payload.status).toBe(
-      ApplicationListStatus.CLOSED,
-    );
   });
 
   it('onUpdate: patches invalid state and error summary when validation errors exist', () => {

@@ -12,6 +12,7 @@ import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
+import { ApplicationsListUpdateComponent } from '@components/applications-list-detail/applications-list-update/applications-list-update.component';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
 import {
   getResultCodes,
@@ -265,6 +266,16 @@ describe('ApplicationsListDetail', () => {
 
   it('creates', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('passes the original list detail to the update component', () => {
+    const updateComponent = fixture.debugElement.query(
+      By.directive(ApplicationsListUpdateComponent),
+    ).componentInstance as ApplicationsListUpdateComponent;
+
+    expect(updateComponent.originalListDetails()).toBe(
+      component.originalListDetail,
+    );
   });
 
   it('renders tabs with correct selection', () => {
@@ -2021,6 +2032,8 @@ describe('ApplicationsListDetail', () => {
     } as unknown as ApplicationListGetDetailDto;
 
     component['prefillFromApi'](dto);
+    dto.description = 'Changed source value';
+    component.form.patchValue({ description: 'Changed form value' });
 
     expect(component.listRow).toEqual({
       id: 'list-123',
@@ -2035,6 +2048,16 @@ describe('ApplicationsListDetail', () => {
       rowVersion: '7',
     });
     expect(component.entryCount).toBe(4);
+    expect(component.originalListDetail).toEqual({
+      date: '2026-03-01',
+      time: { hours: 9, minutes: 30 },
+      description: 'Morning list',
+      status: 'open',
+      court: '',
+      location: '',
+      cja: '',
+      duration: { hours: null, minutes: null },
+    });
   });
 
   describe('onResultButtonClick', () => {
