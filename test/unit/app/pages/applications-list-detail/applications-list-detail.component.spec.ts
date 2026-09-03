@@ -12,6 +12,7 @@ import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
+import { ApplicationsListUpdateComponent } from '@components/applications-list-detail/applications-list-update/applications-list-update.component';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
 import {
   getResultCodes,
@@ -267,6 +268,16 @@ describe('ApplicationsListDetail', () => {
     expect(component).toBeTruthy();
   });
 
+  it('passes the original list detail to the update component', () => {
+    const updateComponent = fixture.debugElement.query(
+      By.directive(ApplicationsListUpdateComponent),
+    ).componentInstance as ApplicationsListUpdateComponent;
+
+    expect(updateComponent.originalListDetails()).toBe(
+      component.originalListDetail,
+    );
+  });
+
   it('renders tabs with correct selection', () => {
     const appsTab = fixture.debugElement.query(By.css('#tab_applications'));
     const detailsTab = fixture.debugElement.query(By.css('#tab_list-details'));
@@ -286,6 +297,39 @@ describe('ApplicationsListDetail', () => {
     expect(
       fixture.debugElement.query(By.css('app-success-banner')),
     ).toBeTruthy();
+  });
+
+  it('syncs original list details from form values after a successful update without a response body', async () => {
+    component.form.patchValue({
+      description: 'Updated list description',
+      duration: { hours: 2, minutes: 30 },
+    });
+    apiStub.updateApplicationList.mockReturnValueOnce(
+      of(
+        new HttpResponse<ApplicationListGetDetailDto>({
+          status: 204,
+          headers: new HttpHeaders({ ETag: '"etag-v2"' }),
+        }),
+      ),
+    );
+
+    component['updateRequest'].set({
+      id: 'id-1',
+      payload: {
+        date: '2026-03-01',
+        time: '09:30',
+        description: 'Updated list description',
+        status: ApplicationListStatus.OPEN,
+      },
+      etag: '"etag-v1"',
+    });
+    await flushSignalEffects(fixture);
+
+    expect(component.originalListDetail).toEqual(component.form.getRawValue());
+    expect(component.originalListDetail).toMatchObject({
+      description: 'Updated list description',
+      duration: { hours: 2, minutes: 30 },
+    });
   });
 
   it('shows the application deleted banner when deleteDone is true', async () => {
@@ -2021,6 +2065,8 @@ describe('ApplicationsListDetail', () => {
     } as unknown as ApplicationListGetDetailDto;
 
     component['prefillFromApi'](dto);
+    dto.description = 'Changed source value';
+    component.form.patchValue({ description: 'Changed form value' });
 
     expect(component.listRow).toEqual({
       id: 'list-123',
@@ -2035,6 +2081,16 @@ describe('ApplicationsListDetail', () => {
       rowVersion: '7',
     });
     expect(component.entryCount).toBe(4);
+    expect(component.originalListDetail).toEqual({
+      date: '2026-03-01',
+      time: { hours: 9, minutes: 30 },
+      description: 'Morning list',
+      status: 'open',
+      court: '',
+      location: '',
+      cja: '',
+      duration: { hours: null, minutes: null },
+    });
   });
 
   describe('onResultButtonClick', () => {

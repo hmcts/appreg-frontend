@@ -198,7 +198,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
   }
 
   private buildPayload(raw: CreateFormRaw): ApplicationListCreateDto {
-    return buildNormalizedPayload(raw) as ApplicationListCreateDto;
+    return buildNormalizedPayload(raw);
   }
 
   onSubmit(event: SubmitEvent): void {

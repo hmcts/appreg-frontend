@@ -7,11 +7,12 @@ import { has } from './has';
 import { requireTime } from './time-helpers';
 import type { NormalizedPayload } from './types/application-list/types';
 
+import { DetailFormValue } from '@components/applications-list-detail/util';
 import { FormRaw } from '@core-types/forms/forms.types';
 import type { ApplicationListStatus } from '@openapi';
 
 export function buildNormalizedPayload(
-  raw: FormRaw<ApplicationListStatus>,
+  raw: FormRaw<ApplicationListStatus> | DetailFormValue,
 ): NormalizedPayload<ApplicationListStatus> {
   const useCourt = has(raw.court);
 

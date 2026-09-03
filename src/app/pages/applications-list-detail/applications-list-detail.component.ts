@@ -69,6 +69,7 @@ import { statusSummary } from '../applications-list/util/delete-status';
 import { ApplicationsListUpdateComponent } from './applications-list-update/applications-list-update.component';
 import {
   ApplicationsListDetailState,
+  DetailFormValue,
   UpdateReq,
   clearUpdateNotificationsPatch,
   initialApplicationsListDetailState,
@@ -208,6 +209,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   id!: string;
   listRow: ApplicationListRow | undefined = undefined;
+  originalListDetail: Readonly<DetailFormValue> | null = null;
   etag: string | null = null;
   entryCount: number = 0;
 
@@ -690,6 +692,14 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             errorSummary: [],
           });
           this.updateRequest.set(null);
+
+          const newDetails = res.body;
+
+          if (newDetails) {
+            this.prefillFromApi(newDetails);
+          } else {
+            this.syncFormAndOriginalListDetail();
+          }
         },
         onError: (err: unknown) => {
           const httpErr = err instanceof HttpErrorResponse ? err : undefined;
@@ -1414,25 +1424,31 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {
+    const duration =
+      dto.durationHours !== null || dto.durationMinutes !== null
+        ? {
+            hours: dto.durationHours ?? null,
+            minutes: dto.durationMinutes ?? null,
+          }
+        : null;
+
+    const listDetails: DetailFormValue = {
+      date: dto.date ?? null,
+      time: parseTimeToDuration(dto.time),
+      description: dto.description ?? '',
+      status: dto.status?.toLowerCase() ?? null,
+      court: dto.courtCode ?? '',
+      location: dto.courtCode ? '' : (dto.otherLocationDescription ?? ''),
+      cja: dto.courtCode ? '' : (dto.cjaCode ?? ''),
+      duration,
+    };
+
     this.listRow ??= toRow(dto);
     this.listRow.etag = this.etag; // This isn't stored in the DTO
 
     this.entryCount = dto.entriesCount ?? this.entryCount;
 
-    this.form.patchValue({
-      date: dto.date ?? null,
-      time: parseTimeToDuration(dto.time),
-      description: dto.description ?? '',
-      status: dto.status?.toLowerCase() ?? null,
-      duration:
-        dto.durationHours !== null || dto.durationMinutes !== null
-          ? // Duration is returned differently to time sadly so we have to assign like this
-            {
-              hours: dto.durationHours ?? null,
-              minutes: dto.durationMinutes ?? null,
-            }
-          : null,
-    });
+    this.syncFormAndOriginalListDetail(listDetails);
 
     if (dto.courtCode) {
       this.selectCourthouse(
@@ -1449,10 +1465,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           description: '',
         });
       this.selectCja(area);
-
-      this.form.patchValue({
-        location: dto.otherLocationDescription,
-      });
     }
+  }
+
+  private syncFormAndOriginalListDetail(
+    listDetails: DetailFormValue = this.form.getRawValue(),
+  ): void {
+    this.form.patchValue(listDetails);
+    this.originalListDetail = this.form.getRawValue();
   }
 }
