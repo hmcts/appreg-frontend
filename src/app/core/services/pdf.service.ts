@@ -171,14 +171,11 @@ export class PdfService {
       doc.text('Produced on', layout.margin, baseY);
 
       const today = new Date();
-      const todayDMY =
-        `${String(today.getDate()).padStart(2, '0')}/` +
-        `${String(today.getMonth() + 1).padStart(2, '0')}/` +
-        `${today.getFullYear()}`;
+      const date = this.safeFormatDate(today, 'mediumDate') as string;
 
       doc.setFont(PDF_FONT.family, PDF_FONT.normal);
       doc.setFontSize(layout.valueFontSize);
-      doc.text(todayDMY, rightX, baseY);
+      doc.text(date, rightX, baseY);
     };
 
     const ensureSpace = (needed: number, data: PdfList): void => {
