@@ -4,6 +4,8 @@ Feature: Authentication and Authorisation
 
   @regression @authentication @ARCPOC-294 @ARCPOC-426
   Scenario: Successful Login and Invalid or expired token
+    Given User Is On The Portal Page
+    When User Refreshes The Page
     Then User Verify The Page URL Contains "/login"
     When User Signs In With Microsoft SSO As "user1"
     Then User Verify The Page URL Contains "/applications-list"
@@ -21,6 +23,7 @@ Feature: Authentication and Authorisation
 
   @regression @authentication @ARCPOC-294 @ARCPOC-426
   Scenario: Sign out
+    Given User Is On The Portal Page
     Then User Verify The Page URL Contains "/login"
     When User Signs In With Microsoft SSO As "user1"
     Then User Verify The Page URL Contains "/applications-list"
