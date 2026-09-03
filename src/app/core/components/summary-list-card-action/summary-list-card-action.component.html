@@ -61,6 +61,13 @@
               </dl>
             </div>
           }
+          @if (list.footer) {
+            <div class="govuk-summary-card__content">
+              <p class="govuk-body-s govuk-!-margin-bottom-0">
+                {{ list.footer }}
+              </p>
+            </div>
+          }
         </div>
       }
     </div>

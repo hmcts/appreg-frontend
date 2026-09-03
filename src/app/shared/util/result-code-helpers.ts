@@ -86,6 +86,7 @@ export function toExistingRows(
       id: r.id,
       resultCode: r.resultCode,
       display: formatResultCodeLabel(r.resultCode, codes),
+      updatedDateTime: r.updatedDateTime,
       wordingFields: resolvedFields,
       wording: wordingFromFields(resolvedFields),
     };
