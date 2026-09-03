@@ -693,13 +693,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           });
           this.updateRequest.set(null);
 
-          const newDetails = res.body ?? undefined;
+          const newDetails = res.body;
 
-          if (!newDetails) {
-            return;
+          if (newDetails) {
+            this.prefillFromApi(newDetails);
+          } else {
+            this.syncFormAndOriginalListDetail();
           }
-
-          this.prefillFromApi(newDetails);
         },
         onError: (err: unknown) => {
           const httpErr = err instanceof HttpErrorResponse ? err : undefined;
@@ -1432,8 +1432,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           }
         : null;
 
-    // Used in closing a list
-    this.originalListDetail = {
+    const listDetails: DetailFormValue = {
       date: dto.date ?? null,
       time: parseTimeToDuration(dto.time),
       description: dto.description ?? '',
@@ -1449,7 +1448,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     this.entryCount = dto.entriesCount ?? this.entryCount;
 
-    this.form.patchValue(this.originalListDetail);
+    this.syncFormAndOriginalListDetail(listDetails);
 
     if (dto.courtCode) {
       this.selectCourthouse(
@@ -1467,5 +1466,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         });
       this.selectCja(area);
     }
+  }
+
+  private syncFormAndOriginalListDetail(
+    listDetails: DetailFormValue = this.form.getRawValue(),
+  ): void {
+    this.form.patchValue(listDetails);
+    this.originalListDetail = this.form.getRawValue();
   }
 }

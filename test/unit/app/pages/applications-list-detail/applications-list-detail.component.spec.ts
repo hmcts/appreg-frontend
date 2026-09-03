@@ -299,6 +299,39 @@ describe('ApplicationsListDetail', () => {
     ).toBeTruthy();
   });
 
+  it('syncs original list details from form values after a successful update without a response body', async () => {
+    component.form.patchValue({
+      description: 'Updated list description',
+      duration: { hours: 2, minutes: 30 },
+    });
+    apiStub.updateApplicationList.mockReturnValueOnce(
+      of(
+        new HttpResponse<ApplicationListGetDetailDto>({
+          status: 204,
+          headers: new HttpHeaders({ ETag: '"etag-v2"' }),
+        }),
+      ),
+    );
+
+    component['updateRequest'].set({
+      id: 'id-1',
+      payload: {
+        date: '2026-03-01',
+        time: '09:30',
+        description: 'Updated list description',
+        status: ApplicationListStatus.OPEN,
+      },
+      etag: '"etag-v1"',
+    });
+    await flushSignalEffects(fixture);
+
+    expect(component.originalListDetail).toEqual(component.form.getRawValue());
+    expect(component.originalListDetail).toMatchObject({
+      description: 'Updated list description',
+      duration: { hours: 2, minutes: 30 },
+    });
+  });
+
   it('shows the application deleted banner when deleteDone is true', async () => {
     patchDetailState({ deleteDone: true });
     await flushSignalEffects(fixture);
