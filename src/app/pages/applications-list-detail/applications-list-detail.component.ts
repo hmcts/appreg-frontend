@@ -691,7 +691,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             errorHint: '',
             errorSummary: [],
           });
-          this.updateRequest.set(null); //+++++++++++++++++++++++
+          this.updateRequest.set(null);
 
           const newDetails = res.body ?? undefined;
 
