@@ -67,6 +67,17 @@ describe('SummaryListCardActionComponent', () => {
       expect(host.textContent).toContain('Remove');
     });
 
+    it('renders an optional footer', () => {
+      fixture.componentRef.setInput('summaryLists', [
+        makeSummaryList({ footer: 'Updated on 28 Aug 2026 at 10:15' }),
+      ]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain(
+        'Updated on 28 Aug 2026 at 10:15',
+      );
+    });
+
     it('applies compact class by default', () => {
       const container = fixture.nativeElement.querySelector(
         '.summary-card-action',

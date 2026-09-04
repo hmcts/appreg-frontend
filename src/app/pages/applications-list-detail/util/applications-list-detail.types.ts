@@ -19,6 +19,8 @@ export type DetailForm = FormGroup<{
   duration: FormControl<Duration | null>;
 }>;
 
+export type DetailFormValue = ReturnType<DetailForm['getRawValue']>;
+
 export type Handoff = {
   id: string;
   date: string | null;

@@ -8,6 +8,7 @@
       "id": "a1111111-2222-3333-4444-555555555555",
       "entryId": "5ebf20ff-72aa-4b96-be8b-572101fe2b1c",
       "resultCode": "ADJ",
+      "updatedDateTime": "2026-08-28T10:15:30Z",
       "wording": {
         "template": "Result 'ADJ' applied on \\{\\{ Date \\}\\} at \\{\\{ Location \\}\\}.",
         "substitution-key-constraints": [
@@ -20,6 +21,7 @@
       "id": "b2222222-3333-4444-5555-666666666666",
       "entryId": "5ebf20ff-72aa-4b96-be8b-572101fe2b1c",
       "resultCode": "HRD",
+      "updatedDateTime": "2026-08-28T11:20:45Z",
       "wording": {
         "template": "Result 'HRD' applied.",
         "substitution-key-constraints": []
