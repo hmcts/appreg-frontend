@@ -4,42 +4,42 @@ Feature: API - Application List Entry Results
   Scenario Outline: Create and retrieve an application list entry result
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date              | todayiso                            |
-      | time              | timenowhhmm-2h                      |
-      | status            | OPEN                                |
+      | date              | todayiso                                 |
+      | time              | timenowhhmm-2h                           |
+      | status            | OPEN                                     |
       | description       | Result lifecycle test list {SCENARIO_ID} |
-      | courtLocationCode | RCJ001                              |
-      | durationHours     | 2                                   |
-      | durationMinutes   | 22                                  |
+      | courtLocationCode | RCJ001                                   |
+      | durationHours     | 2                                        |
+      | durationMinutes   | 22                                       |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                        | null                       |
-      | applicationCode                              | AD99002                    |
-      | applicant.person.name.title                  | Mr                         |
-      | applicant.person.name.firstName              | John                       |
+      | standardApplicantCode                        | null                            |
+      | applicationCode                              | AD99002                         |
+      | applicant.person.name.title                  | Mr                              |
+      | applicant.person.name.firstName              | John                            |
       | applicant.person.name.lastName               | ResultTester{SCENARIO_ID}       |
       | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street       |
-      | applicant.person.contactDetails.addressLine2 | Westminster                |
-      | applicant.person.contactDetails.addressLine3 | London                     |
-      | applicant.person.contactDetails.addressLine4 | Greater London             |
-      | applicant.person.contactDetails.addressLine5 | United Kingdom             |
-      | applicant.person.contactDetails.postcode     | SW1A 2AA                   |
-      | applicant.person.contactDetails.phone        | 0207{RANDOM}               |
-      | applicant.person.contactDetails.mobile       | 07123{RANDOM}              |
+      | applicant.person.contactDetails.addressLine2 | Westminster                     |
+      | applicant.person.contactDetails.addressLine3 | London                          |
+      | applicant.person.contactDetails.addressLine4 | Greater London                  |
+      | applicant.person.contactDetails.addressLine5 | United Kingdom                  |
+      | applicant.person.contactDetails.postcode     | SW1A 2AA                        |
+      | applicant.person.contactDetails.phone        | 0207{RANDOM}                    |
+      | applicant.person.contactDetails.mobile       | 07123{RANDOM}                   |
       | applicant.person.contactDetails.email        | result{SCENARIO_ID}@example.com |
-      | feeStatuses.0.paymentReference               | PAY-{RANDOM}               |
-      | feeStatuses.0.paymentStatus                  | PAID                       |
-      | feeStatuses.0.statusDate                     | todayiso                   |
-      | hasOffsiteFee                                | false                      |
-      | caseReference                                | CASE-{RANDOM}              |
-      | accountNumber                                | APP-{RANDOM}               |
+      | feeStatuses.0.paymentReference               | PAY-{RANDOM}                    |
+      | feeStatuses.0.paymentStatus                  | PAID                            |
+      | feeStatuses.0.statusDate                     | todayiso                        |
+      | hasOffsiteFee                                | false                           |
+      | caseReference                                | CASE-{RANDOM}                   |
+      | accountNumber                                | APP-{RANDOM}                    |
       | notes                                        | Result API setup {SCENARIO_ID}  |
-      | lodgementDate                                | todayiso                   |
-      | officials.0.title                            | Mr                         |
+      | lodgementDate                                | todayiso                        |
+      | officials.0.title                            | Mr                              |
       | officials.0.surname                          | Smith{SCENARIO_ID}              |
-      | officials.0.forename                         | John                       |
-      | officials.0.type                             | MAGISTRATE                 |
+      | officials.0.forename                         | John                            |
+      | officials.0.type                             | MAGISTRATE                      |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
@@ -75,42 +75,42 @@ Feature: API - Application List Entry Results
   Scenario Outline: Update an application list entry result and retrieve updated details
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date              | todayiso                         |
-      | time              | timenowhhmm-2h                   |
-      | status            | OPEN                             |
+      | date              | todayiso                              |
+      | time              | timenowhhmm-2h                        |
+      | status            | OPEN                                  |
       | description       | Result update test list {SCENARIO_ID} |
-      | courtLocationCode | RCJ001                           |
-      | durationHours     | 2                                |
-      | durationMinutes   | 22                               |
+      | courtLocationCode | RCJ001                                |
+      | durationHours     | 2                                     |
+      | durationMinutes   | 22                                    |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                        | null                         |
-      | applicationCode                              | AD99002                      |
-      | applicant.person.name.title                  | Ms                           |
-      | applicant.person.name.firstName              | Jane                         |
+      | standardApplicantCode                        | null                              |
+      | applicationCode                              | AD99002                           |
+      | applicant.person.name.title                  | Ms                                |
+      | applicant.person.name.firstName              | Jane                              |
       | applicant.person.name.lastName               | Updater{SCENARIO_ID}              |
       | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Crown Street        |
-      | applicant.person.contactDetails.addressLine2 | Westminster                  |
-      | applicant.person.contactDetails.addressLine3 | London                       |
-      | applicant.person.contactDetails.addressLine4 | Greater London               |
-      | applicant.person.contactDetails.addressLine5 | United Kingdom               |
-      | applicant.person.contactDetails.postcode     | SW1A 1AA                     |
-      | applicant.person.contactDetails.phone        | 0203{RANDOM}                 |
-      | applicant.person.contactDetails.mobile       | 07111{RANDOM}                |
+      | applicant.person.contactDetails.addressLine2 | Westminster                       |
+      | applicant.person.contactDetails.addressLine3 | London                            |
+      | applicant.person.contactDetails.addressLine4 | Greater London                    |
+      | applicant.person.contactDetails.addressLine5 | United Kingdom                    |
+      | applicant.person.contactDetails.postcode     | SW1A 1AA                          |
+      | applicant.person.contactDetails.phone        | 0203{RANDOM}                      |
+      | applicant.person.contactDetails.mobile       | 07111{RANDOM}                     |
       | applicant.person.contactDetails.email        | update{SCENARIO_ID}@example.com   |
-      | feeStatuses.0.paymentReference               | PAY-{RANDOM}                 |
-      | feeStatuses.0.paymentStatus                  | PAID                         |
-      | feeStatuses.0.statusDate                     | todayiso                     |
-      | hasOffsiteFee                                | false                        |
-      | caseReference                                | CASE-{RANDOM}                |
-      | accountNumber                                | APP-{RANDOM}                 |
+      | feeStatuses.0.paymentReference               | PAY-{RANDOM}                      |
+      | feeStatuses.0.paymentStatus                  | PAID                              |
+      | feeStatuses.0.statusDate                     | todayiso                          |
+      | hasOffsiteFee                                | false                             |
+      | caseReference                                | CASE-{RANDOM}                     |
+      | accountNumber                                | APP-{RANDOM}                      |
       | notes                                        | Result update setup {SCENARIO_ID} |
-      | lodgementDate                                | todayiso                     |
-      | officials.0.title                            | Ms                           |
+      | lodgementDate                                | todayiso                          |
+      | officials.0.title                            | Ms                                |
       | officials.0.surname                          | Clerk{SCENARIO_ID}                |
-      | officials.0.forename                         | Jane                         |
-      | officials.0.type                             | MAGISTRATE                   |
+      | officials.0.forename                         | Jane                              |
+      | officials.0.type                             | MAGISTRATE                        |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
@@ -151,42 +151,42 @@ Feature: API - Application List Entry Results
   Scenario Outline: Delete an application list entry result
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date              | todayiso                         |
-      | time              | timenowhhmm-2h                   |
-      | status            | OPEN                             |
+      | date              | todayiso                              |
+      | time              | timenowhhmm-2h                        |
+      | status            | OPEN                                  |
       | description       | Result delete test list {SCENARIO_ID} |
-      | courtLocationCode | RCJ001                           |
-      | durationHours     | 2                                |
-      | durationMinutes   | 22                               |
+      | courtLocationCode | RCJ001                                |
+      | durationHours     | 2                                     |
+      | durationMinutes   | 22                                    |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                        | null                         |
-      | applicationCode                              | AD99002                      |
-      | applicant.person.name.title                  | Mr                           |
-      | applicant.person.name.firstName              | Alex                         |
+      | standardApplicantCode                        | null                              |
+      | applicationCode                              | AD99002                           |
+      | applicant.person.name.title                  | Mr                                |
+      | applicant.person.name.firstName              | Alex                              |
       | applicant.person.name.lastName               | Deleter{SCENARIO_ID}              |
       | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Court Street        |
-      | applicant.person.contactDetails.addressLine2 | Westminster                  |
-      | applicant.person.contactDetails.addressLine3 | London                       |
-      | applicant.person.contactDetails.addressLine4 | Greater London               |
-      | applicant.person.contactDetails.addressLine5 | United Kingdom               |
-      | applicant.person.contactDetails.postcode     | SW1A 0AA                     |
-      | applicant.person.contactDetails.phone        | 0208{RANDOM}                 |
-      | applicant.person.contactDetails.mobile       | 07122{RANDOM}                |
+      | applicant.person.contactDetails.addressLine2 | Westminster                       |
+      | applicant.person.contactDetails.addressLine3 | London                            |
+      | applicant.person.contactDetails.addressLine4 | Greater London                    |
+      | applicant.person.contactDetails.addressLine5 | United Kingdom                    |
+      | applicant.person.contactDetails.postcode     | SW1A 0AA                          |
+      | applicant.person.contactDetails.phone        | 0208{RANDOM}                      |
+      | applicant.person.contactDetails.mobile       | 07122{RANDOM}                     |
       | applicant.person.contactDetails.email        | delete{SCENARIO_ID}@example.com   |
-      | feeStatuses.0.paymentReference               | PAY-{RANDOM}                 |
-      | feeStatuses.0.paymentStatus                  | PAID                         |
-      | feeStatuses.0.statusDate                     | todayiso                     |
-      | hasOffsiteFee                                | false                        |
-      | caseReference                                | CASE-{RANDOM}                |
-      | accountNumber                                | APP-{RANDOM}                 |
+      | feeStatuses.0.paymentReference               | PAY-{RANDOM}                      |
+      | feeStatuses.0.paymentStatus                  | PAID                              |
+      | feeStatuses.0.statusDate                     | todayiso                          |
+      | hasOffsiteFee                                | false                             |
+      | caseReference                                | CASE-{RANDOM}                     |
+      | accountNumber                                | APP-{RANDOM}                      |
       | notes                                        | Result delete setup {SCENARIO_ID} |
-      | lodgementDate                                | todayiso                     |
-      | officials.0.title                            | Mr                           |
+      | lodgementDate                                | todayiso                          |
+      | officials.0.title                            | Mr                                |
       | officials.0.surname                          | Judge{SCENARIO_ID}                |
-      | officials.0.forename                         | Alex                         |
-      | officials.0.type                             | MAGISTRATE                   |
+      | officials.0.forename                         | Alex                              |
+      | officials.0.type                             | MAGISTRATE                        |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
@@ -218,42 +218,42 @@ Feature: API - Application List Entry Results
   Scenario Outline: Retrieve paginated application list entry results
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date              | todayiso                             |
-      | time              | timenowhhmm-2h                       |
-      | status            | OPEN                                 |
+      | date              | todayiso                                  |
+      | time              | timenowhhmm-2h                            |
+      | status            | OPEN                                      |
       | description       | Result pagination test list {SCENARIO_ID} |
-      | courtLocationCode | RCJ001                               |
-      | durationHours     | 2                                    |
-      | durationMinutes   | 22                                   |
+      | courtLocationCode | RCJ001                                    |
+      | durationHours     | 2                                         |
+      | durationMinutes   | 22                                        |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                        | null                             |
-      | applicationCode                              | AD99002                          |
-      | applicant.person.name.title                  | Mr                               |
-      | applicant.person.name.firstName              | Pat                              |
+      | standardApplicantCode                        | null                                  |
+      | applicationCode                              | AD99002                               |
+      | applicant.person.name.title                  | Mr                                    |
+      | applicant.person.name.firstName              | Pat                                   |
       | applicant.person.name.lastName               | Pager{SCENARIO_ID}                    |
       | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} Justice Street          |
-      | applicant.person.contactDetails.addressLine2 | Westminster                      |
-      | applicant.person.contactDetails.addressLine3 | London                           |
-      | applicant.person.contactDetails.addressLine4 | Greater London                   |
-      | applicant.person.contactDetails.addressLine5 | United Kingdom                   |
-      | applicant.person.contactDetails.postcode     | SW1A 3AA                         |
-      | applicant.person.contactDetails.phone        | 0209{RANDOM}                     |
-      | applicant.person.contactDetails.mobile       | 07133{RANDOM}                    |
+      | applicant.person.contactDetails.addressLine2 | Westminster                           |
+      | applicant.person.contactDetails.addressLine3 | London                                |
+      | applicant.person.contactDetails.addressLine4 | Greater London                        |
+      | applicant.person.contactDetails.addressLine5 | United Kingdom                        |
+      | applicant.person.contactDetails.postcode     | SW1A 3AA                              |
+      | applicant.person.contactDetails.phone        | 0209{RANDOM}                          |
+      | applicant.person.contactDetails.mobile       | 07133{RANDOM}                         |
       | applicant.person.contactDetails.email        | page{SCENARIO_ID}@example.com         |
-      | feeStatuses.0.paymentReference               | PAY-{RANDOM}                     |
-      | feeStatuses.0.paymentStatus                  | PAID                             |
-      | feeStatuses.0.statusDate                     | todayiso                         |
-      | hasOffsiteFee                                | false                            |
-      | caseReference                                | CASE-{RANDOM}                    |
-      | accountNumber                                | APP-{RANDOM}                     |
+      | feeStatuses.0.paymentReference               | PAY-{RANDOM}                          |
+      | feeStatuses.0.paymentStatus                  | PAID                                  |
+      | feeStatuses.0.statusDate                     | todayiso                              |
+      | hasOffsiteFee                                | false                                 |
+      | caseReference                                | CASE-{RANDOM}                         |
+      | accountNumber                                | APP-{RANDOM}                          |
       | notes                                        | Result pagination setup {SCENARIO_ID} |
-      | lodgementDate                                | todayiso                         |
-      | officials.0.title                            | Mr                               |
+      | lodgementDate                                | todayiso                              |
+      | officials.0.title                            | Mr                                    |
       | officials.0.surname                          | Bench{SCENARIO_ID}                    |
-      | officials.0.forename                         | Pat                              |
-      | officials.0.type                             | MAGISTRATE                       |
+      | officials.0.forename                         | Pat                                   |
+      | officials.0.type                             | MAGISTRATE                            |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId"
     When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
@@ -302,42 +302,42 @@ Feature: API - Application List Entry Results
   Scenario Outline: Reject bulk result creation with duplicate target entry ids
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date              | todayiso                             |
-      | time              | timenowhhmm-2h                       |
-      | status            | OPEN                                 |
+      | date              | todayiso                                  |
+      | time              | timenowhhmm-2h                            |
+      | status            | OPEN                                      |
       | description       | Bulk duplicate results list {SCENARIO_ID} |
-      | courtLocationCode | RCJ001                               |
-      | durationHours     | 2                                    |
-      | durationMinutes   | 22                                   |
+      | courtLocationCode | RCJ001                                    |
+      | durationHours     | 2                                         |
+      | durationMinutes   | 22                                        |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                        | null                           |
-      | applicationCode                              | AD99002                        |
-      | applicant.person.name.title                  | Mr                             |
-      | applicant.person.name.firstName              | Duplicate                      |
+      | standardApplicantCode                        | null                                |
+      | applicationCode                              | AD99002                             |
+      | applicant.person.name.title                  | Mr                                  |
+      | applicant.person.name.firstName              | Duplicate                           |
       | applicant.person.name.lastName               | Results{SCENARIO_ID}                |
       | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street           |
-      | applicant.person.contactDetails.addressLine2 | Westminster                    |
-      | applicant.person.contactDetails.addressLine3 | London                         |
-      | applicant.person.contactDetails.addressLine4 | Greater London                 |
-      | applicant.person.contactDetails.addressLine5 | United Kingdom                 |
-      | applicant.person.contactDetails.postcode     | SW1A 1AA                       |
-      | applicant.person.contactDetails.phone        | 0207{RANDOM}                   |
-      | applicant.person.contactDetails.mobile       | 07123{RANDOM}                  |
+      | applicant.person.contactDetails.addressLine2 | Westminster                         |
+      | applicant.person.contactDetails.addressLine3 | London                              |
+      | applicant.person.contactDetails.addressLine4 | Greater London                      |
+      | applicant.person.contactDetails.addressLine5 | United Kingdom                      |
+      | applicant.person.contactDetails.postcode     | SW1A 1AA                            |
+      | applicant.person.contactDetails.phone        | 0207{RANDOM}                        |
+      | applicant.person.contactDetails.mobile       | 07123{RANDOM}                       |
       | applicant.person.contactDetails.email        | dup-result{SCENARIO_ID}@example.com |
-      | feeStatuses.0.paymentReference               | DUPRES-{RANDOM}                |
-      | feeStatuses.0.paymentStatus                  | PAID                           |
-      | feeStatuses.0.statusDate                     | todayiso                       |
-      | hasOffsiteFee                                | false                          |
-      | caseReference                                | DUPRES-{RANDOM}                |
-      | accountNumber                                | DUPRES-{RANDOM}                |
-      | notes                                        | Duplicate bulk results         |
-      | lodgementDate                                | todayiso                       |
-      | officials.0.title                            | Mr                             |
+      | feeStatuses.0.paymentReference               | DUPRES-{RANDOM}                     |
+      | feeStatuses.0.paymentStatus                  | PAID                                |
+      | feeStatuses.0.statusDate                     | todayiso                            |
+      | hasOffsiteFee                                | false                               |
+      | caseReference                                | DUPRES-{RANDOM}                     |
+      | accountNumber                                | DUPRES-{RANDOM}                     |
+      | notes                                        | Duplicate bulk results              |
+      | lodgementDate                                | todayiso                            |
+      | officials.0.title                            | Mr                                  |
       | officials.0.surname                          | Duplicate{SCENARIO_ID}              |
-      | officials.0.forename                         | Clerk                          |
-      | officials.0.type                             | CLERK                          |
+      | officials.0.forename                         | Clerk                               |
+      | officials.0.type                             | CLERK                               |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId"
     When User Makes POST API Request To "/application-lists/:listId/entries/results" With Object Builder:

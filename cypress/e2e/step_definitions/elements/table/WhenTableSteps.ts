@@ -2,6 +2,8 @@ import { When } from '@badeball/cypress-cucumber-preprocessor';
 
 import { TableInteraction } from '../../../../support/helper/table/TableInteraction';
 
+let entriesSortRequestNumber = 0;
+
 /**
  * Table Interaction Steps (Sorting & Row Actions)
  * Handles clicking table headers for sorting and row menu actions
@@ -13,7 +15,20 @@ import { TableInteraction } from '../../../../support/helper/table/TableInteract
 When(
   'User Clicks On Table Header {string} In Table {string}',
   (headerText: string, tableCaption: string) => {
-    TableInteraction.clickTableHeader(tableCaption, headerText);
+    // The Entries table uses server-side sorting.  Its header state changes
+    // immediately, while the rows are updated only after the API response.
+    // Wait for that response so the following assertion reads refreshed rows.
+    if (tableCaption === 'Entries') {
+      const alias = `entries-sort-${++entriesSortRequestNumber}`;
+      cy.intercept('GET', '**/application-lists/*/entries*').as(alias);
+
+      TableInteraction.clickTableHeader(tableCaption, headerText);
+
+      cy.wait(`@${alias}`).its('response.statusCode').should('eq', 200);
+    } else {
+      TableInteraction.clickTableHeader(tableCaption, headerText);
+    }
+
     cy.screenshot(`clicked-header-${headerText}`);
   },
 );

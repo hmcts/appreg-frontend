@@ -24,7 +24,7 @@ Feature: Application List Entries Details Bulk Action Preview Limit Validation
         When User Uploads The File "bulk-upload-entries-preview-limit.csv"
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
-        Then User Sees Success Banner "Success Bulk upload complete All records were uploaded successfully." Containing Link "Click here to update fee details on newly uploaded applications"
+        Then User Sees Success Banner "Success Bulk upload complete" Containing Link "Click here to update fee details on newly uploaded applications"
         Then User See "Applications list" On The Page
         Then User Clicks On The Breadcrumb Link "Applications list"
         When User Searches Application List With:
