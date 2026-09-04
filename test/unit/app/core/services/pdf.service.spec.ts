@@ -875,7 +875,7 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
 
       expect(drawTwoColRow).toHaveBeenCalledWith(
         'Date & Time\nDuration',
-        expect.stringContaining('09:30\n45m'),
+        expect.stringContaining('09:30\n45 Minutes'),
         'Location',
         'Bath Magistrates Court',
         18,

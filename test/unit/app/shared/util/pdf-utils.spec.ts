@@ -1,7 +1,9 @@
 import { ApplicationListGetPrintDto } from '@openapi';
 import { ApplicationListPdfGenerator } from '@shared-types/pdf/pdf.types';
 import {
+  extractDuration,
   filterEntriesToPrint,
+  formatDurationPart,
   handlePrintContinuous,
   handlePrintPage,
 } from '@util/pdf-utils';
@@ -16,6 +18,31 @@ const makeDto = (entries: unknown[]): ApplicationListGetPrintDto =>
 const makePdf = (): jest.Mocked<ApplicationListPdfGenerator> => ({
   generatePagedApplicationListPdf: jest.fn(),
   generateContinuousApplicationListsPdf: jest.fn(),
+});
+
+describe('extractDuration', () => {
+  it('strips zero minutes when the duration has non-zero hours', () => {
+    expect(extractDuration({ duration: '2h 0m' })).toBe('2 Hours');
+  });
+
+  it('uses singular units and separates non-zero hours and minutes with a comma', () => {
+    expect(extractDuration({ duration: '1h 1m' })).toBe('1 Hour, 1 Minute');
+  });
+
+  it('uses plural units for non-zero hours and minutes', () => {
+    expect(extractDuration({ duration: '2h 30m' })).toBe('2 Hours, 30 Minutes');
+  });
+});
+
+describe('formatDurationPart', () => {
+  it.each([
+    [1, 'Hour', '1 Hour'],
+    [2, 'Hour', '2 Hours'],
+    [1, 'Minute', '1 Minute'],
+    [30, 'Minute', '30 Minutes'],
+  ])('formats %i %s correctly', (value, unit, expected) => {
+    expect(formatDurationPart(value, unit as 'Hour' | 'Minute')).toBe(expected);
+  });
 });
 
 describe('filterEntriesToPrint', () => {
