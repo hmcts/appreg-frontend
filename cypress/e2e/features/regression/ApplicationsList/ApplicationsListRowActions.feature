@@ -198,7 +198,7 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
             | Date & Time            | <DisplayDate> <Time>                                                                                                                      |
-            | Duration               | <durationHours> Hours <durationMinutes> Minutes                                                                                           |
+            | Duration               | <durationHours> Hours, <durationMinutes> Minutes                                                                                          |
             | Location               | <Court>                                                                                                                                   |
             | Applicant              | Mr Henry James Taylor {SCENARIO_ID}                                                                                                            |
             | Respondent             | Ms Emily Rose Clark {SCENARIO_ID}                                                                                                              |
@@ -233,14 +233,14 @@ Feature: Application List Row Actions
             | Matter considered      | Appeal to Crown Court                                                                                                                     |
             | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
             | Dated                  | <DisplayDateLong>                                                                                                                         |
-            | Produced on            | <SearchDate>                                                                                                                              |
+            | Produced on            | <DisplayDate>                                                                                                                             |
             | Application brought by | Mr John A B Smith {SCENARIO_ID}                                                                                                                |
             | Respondent             | -                                                                                                                                         |
             | Matter considered      | Copy documents (electronic)                                                                                                               |
             | AD99002                | Request for copy documents on computer disc or in electronic form                                                                         |
             | This matter was before | Mr Smith {SCENARIO_ID} John MAGISTRATE                                                                                                         |
             | Dated                  | <DisplayDateLong>                                                                                                                         |
-            | Produced on            | <SearchDate>                                                                                                                              |
+            | Produced on            | <DisplayDate>                                                                                                                             |
         Then User Clears Downloaded PDFs
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
@@ -343,7 +343,7 @@ Feature: Application List Row Actions
             | Respondent             | -                                                                                                                                         |
             | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
             | Dated                  | <DisplayDateLong>                                                                                                                         |
-            | Produced on            | <SearchDate>                                                                                                                              |
+            | Produced on            | <DisplayDate>                                                                                                                             |
         Then User Clears Downloaded PDFs
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | cjaCode | OptionText | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous         | PDFNamePage               | Pages |
@@ -470,12 +470,12 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Has <Pages> Pages
         Then User Verifies Latest Downloaded PDF Contains Text "<Court>"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Application brought by | ACME Industries LTD {RANDOM} Downing Street, Westminster, London, SW1A 2AA Email: john-test@gmail.com Phone: 01225 123456 Mobile: 07123456789 ACC-{RANDOM} |
-            | Respondent             | Beta Solutions Inc {RANDOM} Fleet Street, London, EC4Y 1AA Email: betasolutions@gmail.com Phone: 01132 654321 Mobile: 07987654321                          |
+            | Application brought by | ACME Industries LTD {SCENARIO_ID} Downing Street, Westminster, London, SW1A 2AA Email: john-test@gmail.com Phone: 01225 123456 Mobile: 07123456789 ACC-{RANDOM} |
+            | Respondent             | Beta Solutions Inc {SCENARIO_ID} Fleet Street, London, EC4Y 1AA Email: betasolutions@gmail.com Phone: 01132 654321 Mobile: 07987654321                          |
             | Matter considered      | Condemnation of Unfit Food                                                                                                                                 |
             | This matter was before | Ms Patel {SCENARIO_ID} Anita MAGISTRATE                                                                                                                         |
             | Dated                  | <DisplayDateLong>                                                                                                                                          |
-            | Produced on            | <SearchDate>                                                                                                                                               |
+            | Produced on            | <DisplayDate>                                                                                                                                              |
         Then User Clears Downloaded PDFs
         # Application list cannot be deleted if it is CLOSED
         When User Makes DELETE API Request To "/application-lists/:listId"
@@ -503,6 +503,8 @@ Feature: Application List Row Actions
         Then User Clicks On The Link "List details"
         Then User Verify The Page URL Contains "#list-details"
         Then User See "List details" On The Page
+        Then User Should See The Button "Actions"
+        When User Clicks On The "Actions" Button
         Then User Should See The Button "Delete list"
         When User Clicks On The "Delete list" Button
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
@@ -511,6 +513,8 @@ Feature: Application List Row Actions
         Then User Verify The Page URL Contains "#list-details"
         Then User See "List details" On The Page
         Then User Verifies The "List description" Textbox Has Value "<Description>"
+        Then User Should See The Button "Actions"
+        When User Clicks On The "Actions" Button
         Then User Should See The Button "Delete list"
         When User Clicks On The "Delete list" Button
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
