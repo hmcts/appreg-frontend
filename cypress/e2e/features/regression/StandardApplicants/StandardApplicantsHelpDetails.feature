@@ -2,7 +2,6 @@ Feature: Standard applicants help details
 
   @regression @standardApplicants @helpDetails @ARCPOC-377
   Scenario: Expand and collapse standard applicants help details
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Given User Navigates To The URL "/standard-applicants"
     Then User Sees Page Heading "Standard applicants"

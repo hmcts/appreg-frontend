@@ -244,7 +244,7 @@ describe('PdfService.generateApplicationListPdf', () => {
 
     // Footer label and date (DD/MM/YYYY)
     expect(textCallsContain('Produced on')).toBe(true);
-    expect(anyTextCallMatches(/\b\d{2}\/\d{2}\/\d{4}\b/)).toBe(true);
+    expect(anyTextCallMatches(/^\d{1,2}\s+[A-Za-z]+\s+\d{4}$/)).toBe(true);
   });
 
   it('prints the application code row only when code is non-empty', async () => {
@@ -875,7 +875,7 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
 
       expect(drawTwoColRow).toHaveBeenCalledWith(
         'Date & Time\nDuration',
-        expect.stringContaining('09:30\n45m'),
+        expect.stringContaining('09:30\n45 Minutes'),
         'Location',
         'Bath Magistrates Court',
         18,

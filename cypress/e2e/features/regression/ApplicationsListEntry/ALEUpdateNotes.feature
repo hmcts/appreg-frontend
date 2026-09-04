@@ -57,7 +57,6 @@ Feature: Applications List Entry Notes Update
 
     @regression @applicationListEntry @ARCPOC-1333 @ARCPOC-1567
     Scenario: Validate Update Notes Screen and process
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         When User Searches Application List With:
             | Date  | Time  | List description            | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
@@ -71,11 +70,7 @@ Feature: Applications List Entry Notes Update
         Then User Clicks On The Link "List details"
         Then User Verify The Page URL Contains "#list-details"
         Then User Verifies The "List description" Textbox Has Value "Entry update Notes {SCENARIO_ID}"
-        Then User Verifies "Open" Is Selected In The "Select list status" Dropdown
-        Then User Selects "Closed" In The "Select list status" Dropdown
-        Then User Verifies "Closed" Is Selected In The "Select list status" Dropdown
-        Then User Should See The Button "Update" Is Enabled
-        When User Clicks On The "Update" Button
+        When User Clicks "Actions" Then "Close list" From The Page Header Menu
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button

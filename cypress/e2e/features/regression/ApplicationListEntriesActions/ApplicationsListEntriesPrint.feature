@@ -128,7 +128,6 @@ Feature: Application List Entries Print
             """
         Then User Verify Response Status Code Should Be "201"
         Given User Has No Downloaded PDFs
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
@@ -187,19 +186,19 @@ Feature: Application List Entries Print
             | Matter considered      | Appeal to Crown Court                        |
             | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE    |
             | Dated                  | <DisplayDateLong>                            |
-            | Produced on            | <SearchDate>                                 |
+            | Produced on            | <DisplayDate>                                |
             | Application brought by | Mrs Sarah Louise Johnson {SCENARIO_ID}       |
             | Respondent             | Greenfield Consulting {SCENARIO_ID}          |
             | Matter considered      | Collection Order - Financial Penalty Account |
             | This matter was before | -                                            |
             | Dated                  | <DisplayDateLong>                            |
-            | Produced on            | <SearchDate>                                 |
+            | Produced on            | <DisplayDate>                                |
             | Application brought by | British Gas Trading Limited                  |
             | Respondent             | Mr Owen Davies {SCENARIO_ID}                 |
             | Matter considered      | Appeal to Crown Court                        |
             | This matter was before | -                                            |
             | Dated                  | <DisplayDateLong>                            |
-            | Produced on            | <SearchDate>                                 |
+            | Produced on            | <DisplayDate>                                |
         Then User Clears Downloaded PDFs
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"

@@ -10,7 +10,6 @@ Feature: Application list bulk upload help details
 
   @regression @applicationsListEntries @helpDetails @ARCPOC-377
   Scenario: Expand and collapse bulk upload help details
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | Time | Description                    | CourtSearch | Court | Status | Other location | CJA | CJASearch |

@@ -82,7 +82,6 @@ Feature: Application List Entries Bulk Update Officials
             | lodgementDate                                       | todayiso                       |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId2"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |

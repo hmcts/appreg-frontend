@@ -53,7 +53,6 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452
   Scenario: Verify components on applications list search page
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Sees Page Heading "Applications list"
     Then User Should See The Date Field "Date"
@@ -72,7 +71,6 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452
   Scenario: Verify mutual exclusivity of Court and CJA fields
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     When User Toggles The Accordion "Advanced search"
     # Verify Court field disables Other location and CJA when typing
@@ -92,7 +90,6 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Verify applications list search validation
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     # Verify validation when clicking Search without entering any data
     When User Clicks On The "Search" Button
@@ -112,7 +109,6 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-977
   Scenario: Verify applications list table is displayed with search results and values retained
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | List description | CourtSearch | Court                             | Select list status | Other location description | Criminal justice area | CJASearch |
@@ -135,7 +131,6 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-759
   Scenario Outline: Filter and verify applications list with multiple filters
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     # Test Description and status filter
     When User Toggles The Accordion "Advanced search"
@@ -165,7 +160,6 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-660
   Scenario Outline: Verify CJA field validation with valid input
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     When User Toggles The Accordion "Advanced search"
     Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
@@ -180,7 +174,6 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-660
   Scenario Outline: Verify CJA field validation with invalid input
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     When User Toggles The Accordion "Advanced search"
     Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
@@ -194,7 +187,6 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Verify applications list table shows empty state with no results
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     When User Searches Application List With:
       | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
@@ -210,7 +202,6 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-691
   Scenario Outline: Verify Court field validation with valid input
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
@@ -223,7 +214,6 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-691
   Scenario Outline: Verify Court field validation with invalid input
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Verifies "<Info>" Is Visible Under The "Court" Textbox
@@ -235,7 +225,6 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-417
   Scenario: Verify application list Open
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
@@ -249,7 +238,6 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-417
   Scenario: Verify application list row menu options for OPEN list
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
@@ -271,7 +259,6 @@ Feature: Applications List Search
       | todayiso | timenowhhmm-3h | CLOSED | <Description> | <CourtCode>       | 2             | 22              |
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Property "status" Should Be "CLOSED"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
@@ -396,7 +383,6 @@ Feature: Applications List Search
       | otherLocationDescription | Sorting London Venue 11 {SCENARIO_ID} |
       | cjaCode                  | 01                               |
     Then User Verify Response Status Code Should Be "201"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     # Search to get table with multiple pages
     When User Searches Application List With:

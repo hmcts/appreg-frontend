@@ -10,7 +10,6 @@ Feature: Applications List Entry Create Regex Validations
       | todayiso | <Time> | <Status> | <Description> | 2             | 22              | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     # Search Created Application List
     When User Searches Application List With:
@@ -237,7 +236,6 @@ Feature: Applications List Entry Create Regex Validations
       | todayiso | <Time> | <Status> | <Description> |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     # Search Created Application List
     When User Searches Application List With:
@@ -373,7 +371,6 @@ Feature: Applications List Entry Create Regex Validations
       | todayiso | <Time> | <Status> | <Description> |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     # Search Created Application List
     When User Searches Application List With:
