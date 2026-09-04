@@ -27,6 +27,11 @@ Feature: API - Application List Entry
       | applicant.person.name.title                  | Mr                                       |
       | applicant.person.name.firstName              | John                                     |
       | applicant.person.name.middleName             | A B                                      |
+      | standardApplicantCode                        | null                                     |
+      | applicationCode                              | AD99002                                  |
+      | applicant.person.name.title                  | Mr                                       |
+      | applicant.person.name.firstName              | John                                     |
+      | applicant.person.name.middleName             | A B                                      |
       | applicant.person.name.lastName               | Smith{SCENARIO_ID}                       |
       | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street                |
       | applicant.person.contactDetails.addressLine2 | Westminster                              |
@@ -549,8 +554,12 @@ Feature: API - Application List Entry
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "standardEntryId"
     When User Makes GET API Request To "/application-lists/:listId/entries?pageNumber=0&pageSize=10&sort=sequenceNumber,asc&applicantName=British%20Gas%20Trading%20Limited"
+    When User Makes GET API Request To "/application-lists/:listId/entries?pageNumber=0&pageSize=10&sort=sequenceNumber,asc&applicantName=British%20Gas%20Trading%20Limited"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
+      | totalElements                          | 1                           |
+      | elementsOnPage                         | 1                           |
+      | content[0].applicant.organisation.name | British Gas Trading Limited |
       | totalElements                          | 1                           |
       | elementsOnPage                         | 1                           |
       | content[0].applicant.organisation.name | British Gas Trading Limited |
