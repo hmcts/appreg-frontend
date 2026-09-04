@@ -10,35 +10,35 @@ Feature: Application List Entries Search
         Then User Stores Response Body Property "id" As "listId"
         # Entry 1 - Person applicant + Person respondent, no fee, resulted
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                         | null                           |
-            | applicationCode                               | AP99001                        |
-            | applicant.person.name.title                   | Mr                             |
+            | standardApplicantCode                         | null                                |
+            | applicationCode                               | AP99001                             |
+            | applicant.person.name.title                   | Mr                                  |
             | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
-            | applicant.person.name.firstName               | Henry                          |
+            | applicant.person.name.firstName               | Henry                               |
             | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
-            | applicant.person.contactDetails.addressLine2  | Westminster                    |
-            | applicant.person.contactDetails.addressLine3  | London                         |
-            | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
-            | applicant.person.contactDetails.phone         | 01632960001                    |
-            | applicant.person.contactDetails.mobile        | 07700900001                    |
+            | applicant.person.contactDetails.addressLine2  | Westminster                         |
+            | applicant.person.contactDetails.addressLine3  | London                              |
+            | applicant.person.contactDetails.postcode      | SW1A 1AA                            |
+            | applicant.person.contactDetails.phone         | 01632960001                         |
+            | applicant.person.contactDetails.mobile        | 07700900001                         |
             | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
-            | respondent.person.name.title                  | Ms                             |
+            | respondent.person.name.title                  | Ms                                  |
             | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
-            | respondent.person.name.firstName              | Emily                          |
+            | respondent.person.name.firstName              | Emily                               |
             | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
-            | respondent.person.contactDetails.addressLine2 | Bristol                        |
-            | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-            | respondent.person.contactDetails.phone        | 01632960001                    |
-            | respondent.person.contactDetails.mobile       | 07700900001                    |
+            | respondent.person.contactDetails.addressLine2 | Bristol                             |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                            |
+            | respondent.person.contactDetails.phone        | 01632960001                         |
+            | respondent.person.contactDetails.mobile       | 07700900001                         |
             | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | wordingFields.0.key                           | Date of Hearing                |
+            | respondent.person.dateOfBirth                 | todayiso-25y                        |
+            | wordingFields.0.key                           | Date of Hearing                     |
             | wordingFields.0.value                         | "{SCENARIO_ID}"                     |
-            | hasOffsiteFee                                 | false                          |
-            | caseReference                                 | CASEE1{RANDOM}                 |
-            | accountNumber                                 | ACCSE1{RANDOM}                 |
-            | notes                                         | Entry search person person     |
-            | lodgementDate                                 | todayiso                       |
+            | hasOffsiteFee                                 | false                               |
+            | caseReference                                 | CASEE1{RANDOM}                      |
+            | accountNumber                                 | ACCSE1{RANDOM}                      |
+            | notes                                         | Entry search person person          |
+            | lodgementDate                                 | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId1"
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId1/results" With Json Body
@@ -50,114 +50,114 @@ Feature: Application List Entries Search
         Then User Verify Response Status Code Should Be "201"
         # Entry 2 - Organisation applicant + Organisation respondent, no fee
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                               | null                           |
-            | applicationCode                                     | EF99001                        |
+            | standardApplicantCode                               | null                                |
+            | applicationCode                                     | EF99001                             |
             | applicant.organisation.name                         | Finance Authority {SCENARIO_ID}     |
             | applicant.organisation.contactDetails.addressLine1  | {SCENARIO_ID} Ledger Street         |
-            | applicant.organisation.contactDetails.addressLine2  | Manchester                     |
-            | applicant.organisation.contactDetails.postcode      | M1 1AA                         |
-            | applicant.organisation.contactDetails.phone         | 01632960001                    |
-            | applicant.organisation.contactDetails.mobile        | 07700900001                    |
+            | applicant.organisation.contactDetails.addressLine2  | Manchester                          |
+            | applicant.organisation.contactDetails.postcode      | M1 1AA                              |
+            | applicant.organisation.contactDetails.phone         | 01632960001                         |
+            | applicant.organisation.contactDetails.mobile        | 07700900001                         |
             | applicant.organisation.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
             | respondent.organisation.name                        | Payment Services Ltd {SCENARIO_ID}  |
             | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Park Lane             |
-            | respondent.organisation.contactDetails.addressLine2 | Birmingham                     |
-            | respondent.organisation.contactDetails.postcode     | B1 1AA                         |
-            | respondent.organisation.contactDetails.phone        | 01632960001                    |
-            | respondent.organisation.contactDetails.mobile       | 07700900001                    |
+            | respondent.organisation.contactDetails.addressLine2 | Birmingham                          |
+            | respondent.organisation.contactDetails.postcode     | B1 1AA                              |
+            | respondent.organisation.contactDetails.phone        | 01632960001                         |
+            | respondent.organisation.contactDetails.mobile       | 07700900001                         |
             | respondent.organisation.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | wordingFields.0.key                                 | account balance                |
+            | wordingFields.0.key                                 | account balance                     |
             | wordingFields.0.value                               | {SCENARIO_ID}                       |
-            | hasOffsiteFee                                       | false                          |
-            | caseReference                                       | CASEE2{RANDOM}                 |
-            | accountNumber                                       | ACCSE2{RANDOM}                 |
-            | notes                                               | Entry search organisation org  |
-            | lodgementDate                                       | todayiso                       |
+            | hasOffsiteFee                                       | false                               |
+            | caseReference                                       | CASEE2{RANDOM}                      |
+            | accountNumber                                       | ACCSE2{RANDOM}                      |
+            | notes                                               | Entry search organisation org       |
+            | lodgementDate                                       | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         # Entry 3 - Standard applicant + Person respondent, no fee
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                         | APP036                         |
-            | applicationCode                               | AP99001                        |
-            | respondent.person.name.title                  | Mr                             |
+            | standardApplicantCode                         | BGAS                                |
+            | applicationCode                               | AP99001                             |
+            | respondent.person.name.title                  | Mr                                  |
             | respondent.person.name.lastName               | Davies {SCENARIO_ID}                |
-            | respondent.person.name.firstName              | Owen                           |
+            | respondent.person.name.firstName              | Owen                                |
             | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Castle Road           |
-            | respondent.person.contactDetails.addressLine2 | Leeds                          |
-            | respondent.person.contactDetails.postcode     | LS1 1AA                        |
-            | respondent.person.contactDetails.phone        | 01632960001                    |
-            | respondent.person.contactDetails.mobile       | 07700900001                    |
+            | respondent.person.contactDetails.addressLine2 | Leeds                               |
+            | respondent.person.contactDetails.postcode     | LS1 1AA                             |
+            | respondent.person.contactDetails.phone        | 01632960001                         |
+            | respondent.person.contactDetails.mobile       | 07700900001                         |
             | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                 | todayiso-35y                   |
-            | wordingFields.0.key                           | Date of Hearing                |
+            | respondent.person.dateOfBirth                 | todayiso-35y                        |
+            | wordingFields.0.key                           | Date of Hearing                     |
             | wordingFields.0.value                         | "{SCENARIO_ID}"                     |
-            | hasOffsiteFee                                 | false                          |
-            | caseReference                                 | CASEE3{RANDOM}                 |
-            | accountNumber                                 | ACCSE3{RANDOM}                 |
-            | notes                                         | Entry search standard person   |
-            | lodgementDate                                 | todayiso                       |
+            | hasOffsiteFee                                 | false                               |
+            | caseReference                                 | CASEE3{RANDOM}                      |
+            | accountNumber                                 | ACCSE3{RANDOM}                      |
+            | notes                                         | Entry search standard person        |
+            | lodgementDate                                 | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         # Entry 4 - Person applicant + Organisation respondent, fee required
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                               | null                           |
-            | applicationCode                                     | MX99006                        |
-            | applicant.person.name.title                         | Mrs                            |
+            | standardApplicantCode                               | null                                |
+            | applicationCode                                     | MX99006                             |
+            | applicant.person.name.title                         | Mrs                                 |
             | applicant.person.name.lastName                      | Morgan {SCENARIO_ID}                |
-            | applicant.person.name.firstName                     | Fiona                          |
+            | applicant.person.name.firstName                     | Fiona                               |
             | applicant.person.contactDetails.addressLine1        | {SCENARIO_ID} West Street           |
-            | applicant.person.contactDetails.addressLine2        | Leicester                      |
-            | applicant.person.contactDetails.postcode            | LE1 1AA                        |
-            | applicant.person.contactDetails.phone               | 01632960001                    |
-            | applicant.person.contactDetails.mobile              | 07700900001                    |
+            | applicant.person.contactDetails.addressLine2        | Leicester                           |
+            | applicant.person.contactDetails.postcode            | LE1 1AA                             |
+            | applicant.person.contactDetails.phone               | 01632960001                         |
+            | applicant.person.contactDetails.mobile              | 07700900001                         |
             | applicant.person.contactDetails.email               | applicant{SCENARIO_ID}@example.com  |
             | respondent.organisation.name                        | Civic Respondent Ltd {SCENARIO_ID}  |
             | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Victoria Road         |
-            | respondent.organisation.contactDetails.addressLine2 | Cardiff                        |
-            | respondent.organisation.contactDetails.postcode     | CF1 1AA                        |
-            | respondent.organisation.contactDetails.phone        | 01632960001                    |
-            | respondent.organisation.contactDetails.mobile       | 07700900001                    |
+            | respondent.organisation.contactDetails.addressLine2 | Cardiff                             |
+            | respondent.organisation.contactDetails.postcode     | CF1 1AA                             |
+            | respondent.organisation.contactDetails.phone        | 01632960001                         |
+            | respondent.organisation.contactDetails.mobile       | 07700900001                         |
             | respondent.organisation.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | wordingFields.0.key                                 | Describe Seized Food           |
+            | wordingFields.0.key                                 | Describe Seized Food                |
             | wordingFields.0.value                               | Search sample goods {SCENARIO_ID}   |
-            | feeStatuses.0.paymentReference                      |                                |
-            | feeStatuses.0.paymentStatus                         | DUE                            |
-            | feeStatuses.0.statusDate                            | todayiso                       |
-            | hasOffsiteFee                                       | false                          |
-            | caseReference                                       | CASEE4{RANDOM}                 |
-            | accountNumber                                       | ACCSE4{RANDOM}                 |
-            | notes                                               | Entry search person org fee    |
-            | lodgementDate                                       | todayiso                       |
+            | feeStatuses.0.paymentReference                      |                                     |
+            | feeStatuses.0.paymentStatus                         | DUE                                 |
+            | feeStatuses.0.statusDate                            | todayiso                            |
+            | hasOffsiteFee                                       | false                               |
+            | caseReference                                       | CASEE4{RANDOM}                      |
+            | accountNumber                                       | ACCSE4{RANDOM}                      |
+            | notes                                               | Entry search person org fee         |
+            | lodgementDate                                       | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         # Entry 5 - Organisation applicant + Person respondent, fee required, resulted
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                              | null                           |
-            | applicationCode                                    | MX99006                        |
+            | standardApplicantCode                              | null                                |
+            | applicationCode                                    | MX99006                             |
             | applicant.organisation.name                        | Registry Services {SCENARIO_ID}     |
             | applicant.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Industrial Park       |
-            | applicant.organisation.contactDetails.addressLine2 | Newcastle                      |
-            | applicant.organisation.contactDetails.postcode     | NE1 1AA                        |
-            | applicant.organisation.contactDetails.phone        | 01632960001                    |
-            | applicant.organisation.contactDetails.mobile       | 07700900001                    |
+            | applicant.organisation.contactDetails.addressLine2 | Newcastle                           |
+            | applicant.organisation.contactDetails.postcode     | NE1 1AA                             |
+            | applicant.organisation.contactDetails.phone        | 01632960001                         |
+            | applicant.organisation.contactDetails.mobile       | 07700900001                         |
             | applicant.organisation.contactDetails.email        | applicant{SCENARIO_ID}@example.com  |
-            | respondent.person.name.title                       | Mr                             |
+            | respondent.person.name.title                       | Mr                                  |
             | respondent.person.name.lastName                    | Wilson {SCENARIO_ID}                |
-            | respondent.person.name.firstName                   | Liam                           |
+            | respondent.person.name.firstName                   | Liam                                |
             | respondent.person.contactDetails.addressLine1      | {SCENARIO_ID} Quayside              |
-            | respondent.person.contactDetails.addressLine2      | Newcastle                      |
-            | respondent.person.contactDetails.postcode          | NE1 2AA                        |
-            | respondent.person.contactDetails.phone             | 01632960001                    |
-            | respondent.person.contactDetails.mobile            | 07700900001                    |
+            | respondent.person.contactDetails.addressLine2      | Newcastle                           |
+            | respondent.person.contactDetails.postcode          | NE1 2AA                             |
+            | respondent.person.contactDetails.phone             | 01632960001                         |
+            | respondent.person.contactDetails.mobile            | 07700900001                         |
             | respondent.person.contactDetails.email             | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                      | todayiso-44y                   |
-            | wordingFields.0.key                                | Describe Seized Food           |
+            | respondent.person.dateOfBirth                      | todayiso-44y                        |
+            | wordingFields.0.key                                | Describe Seized Food                |
             | wordingFields.0.value                              | Search sample items {SCENARIO_ID}   |
-            | feeStatuses.0.paymentReference                     | PAY-E5-{RANDOM}                |
-            | feeStatuses.0.paymentStatus                        | PAID                           |
-            | feeStatuses.0.statusDate                           | todayiso                       |
-            | hasOffsiteFee                                      | false                          |
-            | caseReference                                      | CASEE5{RANDOM}                 |
-            | accountNumber                                      | ACCSE5{RANDOM}                 |
-            | notes                                              | Entry search org person fee    |
-            | lodgementDate                                      | todayiso                       |
+            | feeStatuses.0.paymentReference                     | PAY-E5-{RANDOM}                     |
+            | feeStatuses.0.paymentStatus                        | PAID                                |
+            | feeStatuses.0.statusDate                           | todayiso                            |
+            | hasOffsiteFee                                      | false                               |
+            | caseReference                                      | CASEE5{RANDOM}                      |
+            | accountNumber                                      | ACCSE5{RANDOM}                      |
+            | notes                                              | Entry search org person fee         |
+            | lodgementDate                                      | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId5"
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId5/results" With Json Body
@@ -178,10 +178,10 @@ Feature: Application List Entries Search
         Then User See "Applications" On The Page
         Then User Should See Table "Entries" Has Sortable Headers "Sequence number, Account number, Applicant, Respondent, Postcode, Title, Fee, Resulted"
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number | Applicant                  | Respondent                    | Postcode | Title                                        | Fee | Resulted |
+            | Sequence number | Account number | Applicant                       | Respondent                         | Postcode | Title                                        | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {SCENARIO_ID}      | Emily Clark {SCENARIO_ID}          | BS15 5AA | Appeal for Crown Court                       | No  | AUTH     |
             | 2               | ACCSE2{RANDOM} | Finance Authority {SCENARIO_ID} | Payment Services Ltd {SCENARIO_ID} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
-            | 3               | ACCSE3{RANDOM} | Innovative Solutions Inc   | Owen Davies {SCENARIO_ID}          | LS1 1AA  | Appeal for Crown Court                       | No  |          |
+            | 3               | ACCSE3{RANDOM} | Innovative Solutions Inc        | Owen Davies {SCENARIO_ID}          | LS1 1AA  | Appeal for Crown Court                       | No  |          |
             | 4               | ACCSE4{RANDOM} | Fiona Morgan {SCENARIO_ID}      | Civic Respondent Ltd {SCENARIO_ID} | CF1 1AA  | Condemnation of Unfit Food                   | Yes |          |
             | 5               | ACCSE5{RANDOM} | Registry Services {SCENARIO_ID} | Liam Wilson {SCENARIO_ID}          | NE1 2AA  | Condemnation of Unfit Food                   | Yes | AUTH     |
         # Search by applicant across person, organisation and standard applicant entries
@@ -189,40 +189,40 @@ Feature: Application List Entries Search
             | Applicant | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
             | Taylor    |            |                     |                 |                |                   |     |          |
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number | Applicant             | Respondent           | Postcode | Title                  | Fee | Resulted |
+            | Sequence number | Account number | Applicant                  | Respondent                | Postcode | Title                  | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Appeal for Crown Court | No  | AUTH     |
         # Search by respondent across organisation and person respondents
         When User Searches Application List Entries With:
             | Applicant | Respondent       | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
             |           | Civic Respondent |                     |                 |                |                   |     |          |
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number | Applicant             | Respondent                    | Postcode | Title                      | Fee | Resulted |
+            | Sequence number | Account number | Applicant                  | Respondent                         | Postcode | Title                      | Fee | Resulted |
             | 4               | ACCSE4{RANDOM} | Fiona Morgan {SCENARIO_ID} | Civic Respondent Ltd {SCENARIO_ID} | CF1 1AA  | Condemnation of Unfit Food | Yes |          |
         # Search by respondent postcode
         When User Searches Application List Entries With:
             | Applicant | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
             |           |            | NE1                 |                 |                |                   |     |          |
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number | Applicant                  | Respondent           | Postcode | Title                      | Fee | Resulted |
+            | Sequence number | Account number | Applicant                       | Respondent                | Postcode | Title                      | Fee | Resulted |
             | 5               | ACCSE5{RANDOM} | Registry Services {SCENARIO_ID} | Liam Wilson {SCENARIO_ID} | NE1 2AA  | Condemnation of Unfit Food | Yes | AUTH     |
         # Search fee and resulted filters
         When User Searches Application List Entries With:
             | Applicant | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
             |           |            |                     |                 |                | Condemnation      | Yes |          |
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number | Applicant                  | Respondent                    | Postcode | Title                      | Fee | Resulted |
+            | Sequence number | Account number | Applicant                       | Respondent                         | Postcode | Title                      | Fee | Resulted |
             | 4               | ACCSE4{RANDOM} | Fiona Morgan {SCENARIO_ID}      | Civic Respondent Ltd {SCENARIO_ID} | CF1 1AA  | Condemnation of Unfit Food | Yes |          |
             | 5               | ACCSE5{RANDOM} | Registry Services {SCENARIO_ID} | Liam Wilson {SCENARIO_ID}          | NE1 2AA  | Condemnation of Unfit Food | Yes | AUTH     |
         When User Searches Application List Entries With:
             | Applicant | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
             |           |            |                     |                 |                |                   |     | AUTH     |
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number | Applicant                  | Respondent           | Postcode | Title                      | Fee | Resulted |
+            | Sequence number | Account number | Applicant                       | Respondent                | Postcode | Title                      | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {SCENARIO_ID}      | Emily Clark {SCENARIO_ID} | BS15 5AA | Appeal for Crown Court     | No  | AUTH     |
             | 5               | ACCSE5{RANDOM} | Registry Services {SCENARIO_ID} | Liam Wilson {SCENARIO_ID} | NE1 2AA  | Condemnation of Unfit Food | Yes | AUTH     |
         # Search with no matching entries
         When User Searches Application List Entries With:
-            | Applicant           | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
+            | Applicant                | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
             | Nonexistent{SCENARIO_ID} |            |                     |                 |                |                   |     |          |
         Then User Sees Inline Notification Banner "Important No lists entries found Try again, or create a new list entry"
         When User Clicks On The "Clear search" Button
@@ -295,5 +295,5 @@ Feature: Application List Entries Search
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | APIDate  | Time           | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     |
+            | User  | APIDate  | Time           | Status | Description                                  | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     |
             | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{SCENARIO_ID} | BCC026            | today      | todayDisplay | 5       | Bristol Crown Court Set 3 |

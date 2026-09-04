@@ -1,6 +1,6 @@
 Feature: Applications List Update
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759
     Scenario Outline: Update applications list Successfully with Other location and CJA selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -19,7 +19,6 @@ Feature: Applications List Update
         Then User Verify The Page URL Contains "#list-details"
         Then User Verifies The Time field "Time" Has Value "<Time>"
         Then User Verifies The "List description" Textbox Has Value "<Description>"
-        Then User Verifies "<Status>" Is Selected In The "Select list status" Dropdown
         Then User Verifies The "Court" Textbox Has Selected Value "<CourtValue>"
         Then User Verifies The "Other location description" Textbox Has Value "<OtherLocation>"
         Then User Verifies The "Criminal justice area" Textbox Has Value "<cjaCode> - <CJAValue>"
@@ -43,10 +42,10 @@ Feature: Applications List Update
         When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description   | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription    | UpdatedOtherLocation   | SuccessBanner                                                                      |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description        | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription         | UpdatedOtherLocation   | SuccessBanner                                                                      |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{SCENARIO_ID} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{SCENARIO_ID} | Updated Location_21442 | Success Application list updatedThe application list has been successfully updated |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759
     Scenario Outline: Update applications list Successfully with Court selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -67,7 +66,6 @@ Feature: Applications List Update
         Then User Verifies The Date field "Date" Has Value "<SearchDate>"
         Then User Verifies The Time field "Time" Has Value "<Time>"
         Then User Verifies The "List description" Textbox Has Value "<Description>"
-        Then User Verifies "<Status>" Is Selected In The "Select list status" Dropdown
         Then User Verifies The "Court" Textbox Has Selected Value "<Court> - <CourtLocation>"
         Then User Verifies The "Other location description" Textbox Has Value "<OtherLocation>"
         Then User Verifies The "Criminal justice area" Textbox Has Value "<CJAValue>"
@@ -91,10 +89,10 @@ Feature: Applications List Update
         When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
-            | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description   | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessBanner                                                                      |
+            | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description        | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessBanner                                                                      |
             | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{SCENARIO_ID} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        | Success Application list updatedThe application list has been successfully updated |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-852
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-852 @ARCPOC-1759
     Scenario Outline: Update applications list Successfully with field validations
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -114,7 +112,6 @@ Feature: Applications List Update
         Then User Verifies The Date field "Date" Has Value "<SearchDate>"
         Then User Verifies The Time field "Time" Has Value "<Time>"
         Then User Verifies The "List description" Textbox Has Value "<Description>"
-        Then User Verifies "<Status>" Is Selected In The " Select list status " Dropdown
         Then User Verifies The "Court" Textbox Has Selected Value "<Court> - <courtLocation>"
         Then User Verifies The "Other location description" Textbox Has Value "<OtherLocation>"
         Then User Verifies The "Criminal justice area" Textbox Has Value "<CJAValue>"
@@ -122,30 +119,26 @@ Feature: Applications List Update
         When User Clears The Date Field "Date"
         When User Clears The Time Field "Time"
         Then User Clears The "List description" Textbox
-        Then User Selects "<InvalidStatus>" In The "Select list status" Dropdown
         Then User Clears The "Court" Textbox
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error Banner "There is a problem Enter day, month and year Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter day, month and year Enter valid hours and minutes Enter a description Enter a court, or an other location and criminal justice area"
         When User Set Date Field "Date" To "<InvalidSearchDate>"
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error Banner "There is a problem Enter a valid date Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter a valid date Enter valid hours and minutes Enter a description Enter a court, or an other location and criminal justice area"
         When User Set Date Field "Date" To "<UpdatedSearchDate>"
         When User Set Time Field "Time" To "<InvalidTime1>"
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error Banner "There is a problem Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter valid hours and minutes Enter a description Enter a court, or an other location and criminal justice area"
         When User Clears The Time Field "Time"
         When User Set Time Field "Time" To "<InvalidTime2>"
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error Banner "There is a problem Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter valid hours and minutes Enter a description Enter a court, or an other location and criminal justice area"
         When User Clears The Time Field "Time"
         When User Set Time Field "Time" To "<InvalidTime3>"
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error Banner "There is a problem Enter a valid duration between 00:00 and 23:59 Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter a valid duration between 00:00 and 23:59 Enter a description Enter a court, or an other location and criminal justice area"
         When User Set Time Field "Time" To "<UpdatedTime>"
         Then User Enters "<UpdatedDescription>" Into The "List description" Textbox
-        When User Clicks On The "Update" Button
-        Then User Sees Validation Error Banner "There is a problem Select a status Enter a court, or an other location and criminal justice area"
-        Then User Selects "<Status>" In The "Select list status" Dropdown
         When User Clicks On The "Update" Button
         Then User Sees Validation Error Banner "There is a problem Enter a court, or an other location and criminal justice area"
         Then User Enters "<UpdatedOtherLocation>" Into The "Other location description" Textbox
@@ -165,10 +158,10 @@ Feature: Applications List Update
         When User Clicks On The "Update" Button
         Then User Sees Success Banner "<SuccessMessage>"
         Examples:
-            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description          | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                    | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation      | InvalidCJAValue | InvalidCourtValue | SuccessMessage                                                                     |
+            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description               | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                         | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation           | InvalidCJAValue | InvalidCourtValue | SuccessMessage                                                                     |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {SCENARIO_ID} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {SCENARIO_ID} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {SCENARIO_ID} | InvalidCJA      | InvalidCourt      | Success Application list updatedThe application list has been successfully updated |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1759
     Scenario Outline: Close application list with NO ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -185,9 +178,17 @@ Feature: Applications List Update
             | <DisplayDate> | <Time> | <courtLocation> | <Description> | 0       | OPEN   |
         Then User Clicks On The Link "List details"
         Then User Verify The Page URL Contains "#list-details"
-        Then User Verifies "<BeforeUpdateStatus>" Is Selected In The " Select list status " Dropdown
-        Then User Selects "<Status>" In The "Select list status" Dropdown
-        When User Clicks On The "Update" Button
+        Then User Selects "<Status>" In The "Actions" Dropdown
+        Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
+        Then User See "Are you sure you want to close this application list?" On The Page
+        Then User Should See Row In Table With Values:
+            | Date          | Time   | Location        | Description   | Entries | Status |
+            | <DisplayDate> | <Time> | <courtLocation> | <Description> | 0       | OPEN   |
+        Then User Clicks On The Link "Cancel"
+        Then User Verify The Page URL Contains "#list-details"
+        Then User Selects "<Status>" In The "Actions" Dropdown
+        Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
+        When User Clicks On The "Continue" Button
         Then User Sees Validation Error Banner "There is a problem Please enter positive value for either hours or minutes to close this list"
         When User Clears The Duration Field "Duration"
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
@@ -196,8 +197,7 @@ Feature: Applications List Update
         Then User See "Are you sure you want to close this application list?" On The Page
         Then User Clicks On The Link "Cancel"
         Then User Verify The Page URL Contains "#list-details"
-        Then User Verifies "<BeforeUpdateStatus>" Is Selected In The " Select list status " Dropdown
-        Then User Selects "<Status>" In The "Select list status" Dropdown
+        Then User Selects "<Status>" In The "Actions" Dropdown
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
@@ -205,10 +205,10 @@ Feature: Applications List Update
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Success Application list closed successfully If you believe this was in error, please contact support."
         Examples:
-            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes |
-            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {SCENARIO_ID} | CLOSED | OPEN               | 3             | 3               |
+            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description        | Status     | BeforeUpdateStatus | durationHours | durationMinutes |
+            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {SCENARIO_ID} | Close list | OPEN               | 3             | 3               |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567 @ARCPOC-1759
     Scenario Outline: Close application list with One ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -217,42 +217,42 @@ Feature: Applications List Update
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                         | null                           |
-            | applicationCode                               | MX99009                        |
-            | applicant.person.name.title                   | Mr                             |
+            | standardApplicantCode                         | null                                |
+            | applicationCode                               | MX99009                             |
+            | applicant.person.name.title                   | Mr                                  |
             | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
-            | applicant.person.name.firstName               | Henry                          |
-            | applicant.person.name.middleName              | James                          |
+            | applicant.person.name.firstName               | Henry                               |
+            | applicant.person.name.middleName              | James                               |
             | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
-            | applicant.person.contactDetails.addressLine2  | Westminster                    |
-            | applicant.person.contactDetails.addressLine3  | London                         |
-            | applicant.person.contactDetails.addressLine4  | Greater London                 |
-            | applicant.person.contactDetails.addressLine5  | United Kingdom                 |
-            | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
-            | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
-            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
+            | applicant.person.contactDetails.addressLine2  | Westminster                         |
+            | applicant.person.contactDetails.addressLine3  | London                              |
+            | applicant.person.contactDetails.addressLine4  | Greater London                      |
+            | applicant.person.contactDetails.addressLine5  | United Kingdom                      |
+            | applicant.person.contactDetails.postcode      | SW1A 1AA                            |
+            | applicant.person.contactDetails.phone         | 0203{RANDOM}                        |
+            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                       |
             | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
-            | respondent.person.name.title                  | Ms                             |
+            | respondent.person.name.title                  | Ms                                  |
             | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
-            | respondent.person.name.firstName              | Emily                          |
-            | respondent.person.name.middleName             | Rose                           |
+            | respondent.person.name.firstName              | Emily                               |
+            | respondent.person.name.middleName             | Rose                                |
             | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
-            | respondent.person.contactDetails.addressLine2 | Bristol                        |
-            | respondent.person.contactDetails.addressLine3 | Avon                           |
-            | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-            | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
-            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
+            | respondent.person.contactDetails.addressLine2 | Bristol                             |
+            | respondent.person.contactDetails.addressLine3 | Avon                                |
+            | respondent.person.contactDetails.addressLine4 | United Kingdom                      |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                            |
+            | respondent.person.contactDetails.phone        | 0117{RANDOM}                        |
+            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                       |
             | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | feeStatuses.0.paymentReference                |                                |
-            | feeStatuses.0.paymentStatus                   | <feeStatusDue>                 |
-            | feeStatuses.0.statusDate                      | <feeStatusDate>                |
-            | hasOffsiteFee                                 | false                          |
-            | caseReference                                 | CASE-{RANDOM}                  |
-            | accountNumber                                 | ACC-{RANDOM}                   |
+            | respondent.person.dateOfBirth                 | todayiso-25y                        |
+            | feeStatuses.0.paymentReference                |                                     |
+            | feeStatuses.0.paymentStatus                   | <feeStatusDue>                      |
+            | feeStatuses.0.statusDate                      | <feeStatusDate>                     |
+            | hasOffsiteFee                                 | false                               |
+            | caseReference                                 | CASE-{RANDOM}                       |
+            | accountNumber                                 | ACC-{RANDOM}                        |
             | notes                                         | Case noted with ref {SCENARIO_ID}   |
-            | lodgementDate                                 | todayiso                       |
+            | lodgementDate                                 | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
         Given User Is On The Portal Page
@@ -307,45 +307,45 @@ Feature: Applications List Update
         Then User Sees Validation Error Banner "There is a problem List cannot be closed. No Official is recorded against any of the applications in the list."
         # Official is provided for ALE
         When User Makes PUT API Request To "/application-lists/:listId/entries/:entryId" With Object Builder:
-            | standardApplicantCode                         | null                           |
-            | applicationCode                               | MX99009                        |
-            | applicant.person.name.title                   | Mr                             |
+            | standardApplicantCode                         | null                                |
+            | applicationCode                               | MX99009                             |
+            | applicant.person.name.title                   | Mr                                  |
             | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
-            | applicant.person.name.firstName               | Henry                          |
-            | applicant.person.name.middleName              | James                          |
+            | applicant.person.name.firstName               | Henry                               |
+            | applicant.person.name.middleName              | James                               |
             | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
-            | applicant.person.contactDetails.addressLine2  | Westminster                    |
-            | applicant.person.contactDetails.addressLine3  | London                         |
-            | applicant.person.contactDetails.addressLine4  | Greater London                 |
-            | applicant.person.contactDetails.addressLine5  | United Kingdom                 |
-            | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
-            | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
-            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
+            | applicant.person.contactDetails.addressLine2  | Westminster                         |
+            | applicant.person.contactDetails.addressLine3  | London                              |
+            | applicant.person.contactDetails.addressLine4  | Greater London                      |
+            | applicant.person.contactDetails.addressLine5  | United Kingdom                      |
+            | applicant.person.contactDetails.postcode      | SW1A 1AA                            |
+            | applicant.person.contactDetails.phone         | 0203{RANDOM}                        |
+            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                       |
             | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
-            | respondent.person.name.title                  | Ms                             |
+            | respondent.person.name.title                  | Ms                                  |
             | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
-            | respondent.person.name.firstName              | Emily                          |
-            | respondent.person.name.middleName             | Rose                           |
+            | respondent.person.name.firstName              | Emily                               |
+            | respondent.person.name.middleName             | Rose                                |
             | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
-            | respondent.person.contactDetails.addressLine2 | Bristol                        |
-            | respondent.person.contactDetails.addressLine3 | Avon                           |
-            | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-            | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
-            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
+            | respondent.person.contactDetails.addressLine2 | Bristol                             |
+            | respondent.person.contactDetails.addressLine3 | Avon                                |
+            | respondent.person.contactDetails.addressLine4 | United Kingdom                      |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                            |
+            | respondent.person.contactDetails.phone        | 0117{RANDOM}                        |
+            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                       |
             | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | feeStatuses.0.paymentReference                |                                |
-            | feeStatuses.0.paymentStatus                   | <feeStatusDue>                 |
-            | feeStatuses.0.statusDate                      | <feeStatusDate>                |
-            | hasOffsiteFee                                 | false                          |
-            | caseReference                                 | CASE-{RANDOM}                  |
-            | accountNumber                                 | ACC-{RANDOM}                   |
+            | respondent.person.dateOfBirth                 | todayiso-25y                        |
+            | feeStatuses.0.paymentReference                |                                     |
+            | feeStatuses.0.paymentStatus                   | <feeStatusDue>                      |
+            | feeStatuses.0.statusDate                      | <feeStatusDate>                     |
+            | hasOffsiteFee                                 | false                               |
+            | caseReference                                 | CASE-{RANDOM}                       |
+            | accountNumber                                 | ACC-{RANDOM}                        |
             | notes                                         | Case noted with ref {SCENARIO_ID}   |
-            | officials.0.title                             | Mr                             |
+            | officials.0.title                             | Mr                                  |
             | officials.0.surname                           | Turner {SCENARIO_ID}                |
-            | officials.0.forename                          | Graham                         |
-            | officials.0.type                              | MAGISTRATE                     |
+            | officials.0.forename                          | Graham                              |
+            | officials.0.type                              | MAGISTRATE                          |
         Then User Verify Response Status Code Should Be "200"
         When User Refreshes The Page
         Then User Verifies "<BeforeUpdateStatus>" Is Selected In The " Select list status " Dropdown
@@ -358,45 +358,45 @@ Feature: Applications List Update
         Then User Sees Validation Error Banner "There is a problem List cannot be closed. At least one application does not have a Paid or Remitted fee status."
         # Fee with status PAID is provided for ALE
         When User Makes PUT API Request To "/application-lists/:listId/entries/:entryId" With Object Builder:
-            | standardApplicantCode                         | null                           |
-            | applicationCode                               | MX99009                        |
-            | applicant.person.name.title                   | Mr                             |
+            | standardApplicantCode                         | null                                |
+            | applicationCode                               | MX99009                             |
+            | applicant.person.name.title                   | Mr                                  |
             | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
-            | applicant.person.name.firstName               | Henry                          |
-            | applicant.person.name.middleName              | James                          |
+            | applicant.person.name.firstName               | Henry                               |
+            | applicant.person.name.middleName              | James                               |
             | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
-            | applicant.person.contactDetails.addressLine2  | Westminster                    |
-            | applicant.person.contactDetails.addressLine3  | London                         |
-            | applicant.person.contactDetails.addressLine4  | Greater London                 |
-            | applicant.person.contactDetails.addressLine5  | United Kingdom                 |
-            | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
-            | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
-            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
+            | applicant.person.contactDetails.addressLine2  | Westminster                         |
+            | applicant.person.contactDetails.addressLine3  | London                              |
+            | applicant.person.contactDetails.addressLine4  | Greater London                      |
+            | applicant.person.contactDetails.addressLine5  | United Kingdom                      |
+            | applicant.person.contactDetails.postcode      | SW1A 1AA                            |
+            | applicant.person.contactDetails.phone         | 0203{RANDOM}                        |
+            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                       |
             | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
-            | respondent.person.name.title                  | Ms                             |
+            | respondent.person.name.title                  | Ms                                  |
             | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
-            | respondent.person.name.firstName              | Emily                          |
-            | respondent.person.name.middleName             | Rose                           |
+            | respondent.person.name.firstName              | Emily                               |
+            | respondent.person.name.middleName             | Rose                                |
             | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
-            | respondent.person.contactDetails.addressLine2 | Bristol                        |
-            | respondent.person.contactDetails.addressLine3 | Avon                           |
-            | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-            | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
-            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
+            | respondent.person.contactDetails.addressLine2 | Bristol                             |
+            | respondent.person.contactDetails.addressLine3 | Avon                                |
+            | respondent.person.contactDetails.addressLine4 | United Kingdom                      |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                            |
+            | respondent.person.contactDetails.phone        | 0117{RANDOM}                        |
+            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                       |
             | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | feeStatuses.0.paymentReference                | <feeStatusPaidReference>       |
-            | feeStatuses.0.paymentStatus                   | <feeStatusPaid>                |
-            | feeStatuses.0.statusDate                      | <feeStatusDate>                |
-            | hasOffsiteFee                                 | false                          |
-            | caseReference                                 | CASE-{RANDOM}                  |
-            | accountNumber                                 | ACC-{RANDOM}                   |
+            | respondent.person.dateOfBirth                 | todayiso-25y                        |
+            | feeStatuses.0.paymentReference                | <feeStatusPaidReference>            |
+            | feeStatuses.0.paymentStatus                   | <feeStatusPaid>                     |
+            | feeStatuses.0.statusDate                      | <feeStatusDate>                     |
+            | hasOffsiteFee                                 | false                               |
+            | caseReference                                 | CASE-{RANDOM}                       |
+            | accountNumber                                 | ACC-{RANDOM}                        |
             | notes                                         | Case noted with ref {SCENARIO_ID}   |
-            | officials.0.title                             | Mr                             |
+            | officials.0.title                             | Mr                                  |
             | officials.0.surname                           | Turner {SCENARIO_ID}                |
-            | officials.0.forename                          | Graham                         |
-            | officials.0.type                              | MAGISTRATE                     |
+            | officials.0.forename                          | Graham                              |
+            | officials.0.type                              | MAGISTRATE                          |
         Then User Verify Response Status Code Should Be "200"
         When User Refreshes The Page
         Then User Verifies "<BeforeUpdateStatus>" Is Selected In The " Select list status " Dropdown
@@ -415,9 +415,9 @@ Feature: Applications List Update
             | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |
         Then User Should See Table "Application list entries" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         Then User Verify "Open" Button Is Not Present In Row Of Table "Application list entries" With:
-            | Date          | Applicant             | Respondent           | Application title                                        | Fee | Resulted | Status |
+            | Date          | Applicant                  | Respondent                | Application title                                        | Fee | Resulted | Status |
             | <DisplayDate> | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | Application for order re public health measures (person) | Yes | Yes      | CLOSED |
 
         Examples:
-            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes | feeStatusPaidReference | feeStatusDue | feeStatusDate | feeStatusPaid |
+            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description        | Status | BeforeUpdateStatus | durationHours | durationMinutes | feeStatusPaidReference | feeStatusDue | feeStatusDate | feeStatusPaid |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {SCENARIO_ID} | CLOSED | OPEN               | 3             | 3               | REF-{RANDOM}           | DUE          | todayiso      | PAID          |

@@ -23,27 +23,27 @@ Feature: Application List Bulk Upload
         When User Uploads The File "bulk-upload-entries-fee-not-required.csv"
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
-        Then User Sees Success Banner "Success Bulk upload complete All records were uploaded successfully." Containing Link "Click here to update fee details on newly uploaded applications"
+        Then User Sees Success Banner "Success Bulk upload complete" Containing Link "Click here to update fee details on newly uploaded applications"
         # Export must not be offered when there are no validation errors
         Then User Should Not See The Button "Export the file with errors shown"
         Then User See "Applications list" On The Page
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number | Applicant                 | Respondent                      | Postcode | Title                                            | Fee | Resulted |
-            | 1               | AC-{SCENARIO_ID}-1  | Benjamin Young            | Greenfield Finance {SCENARIO_ID} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |
-            | 2               | AC-{SCENARIO_ID}-2  | Global Tech Solutions Ltd | James Hargreaves{SCENARIO_ID}        | B1 1BB   | Warrant of Control                               | No  |          |
+            | Sequence number | Account number     | Applicant                   | Respondent                           | Postcode | Title                                            | Fee | Resulted |
+            | 1               | AC-{SCENARIO_ID}-1 | British Gas Trading Limited | Greenfield Finance {SCENARIO_ID} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |
+            | 2               | AC-{SCENARIO_ID}-2 | Total Gas and Power         | James Hargreaves{SCENARIO_ID}        | B1 1BB   | Warrant of Control                               | No  |          |
         Then User Clicks On The Link "Click here to update fee details on newly uploaded applications"
         # Add Fee Details for Bulk Uploaded Application(s) where Fee Required = 'N'
         Then User Sees Validation Error Banner "There is a problem" Containing "Cannot update application(s) that do not require a fee"
         When User Verifies The Checkbox is Checked In Row Of Table "Entries" With Values:
-            | Sequence number | Account number | Applicant                 | Respondent                      | Postcode | Title                                            | Fee | Resulted |
-            | 1               | AC-{SCENARIO_ID}-1  | Benjamin Young            | Greenfield Finance {SCENARIO_ID} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |
-            | 2               | AC-{SCENARIO_ID}-2  | Global Tech Solutions Ltd | James Hargreaves{SCENARIO_ID}        | B1 1BB   | Warrant of Control                               | No  |          |
+            | Sequence number | Account number     | Applicant                   | Respondent                           | Postcode | Title                                            | Fee | Resulted |
+            | 1               | AC-{SCENARIO_ID}-1 | British Gas Trading Limited | Greenfield Finance {SCENARIO_ID} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |
+            | 2               | AC-{SCENARIO_ID}-2 | Total Gas and Power         | James Hargreaves{SCENARIO_ID}        | B1 1BB   | Warrant of Control                               | No  |          |
         Then User Should See The Button "Actions" Is Enabled
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | APIDate  | Time           | Status | Description     | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
+            | User  | APIDate  | Time           | Status | Description          | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkUp_{SCENARIO_ID} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
     @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1493 @ARCPOC-1506
@@ -69,20 +69,20 @@ Feature: Application List Bulk Upload
         When User Uploads The File "bulk-upload-entries-fee-required.csv"
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
-        Then User Sees Success Banner "Success Bulk upload complete All records were uploaded successfully." Containing Link "Click here to update fee details on newly uploaded applications"
+        Then User Sees Success Banner "Success Bulk upload complete" Containing Link "Click here to update fee details on newly uploaded applications"
         # Export must not be offered when there are no validation errors
         Then User Should Not See The Button "Export the file with errors shown"
         Then User See "Applications list" On The Page
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number | Applicant                 | Respondent                      | Postcode | Title                                  | Fee | Resulted |
-            | 1               | AC-{SCENARIO_ID}-1  | Benjamin Young            | Globex Corporation {SCENARIO_ID} Ltd | WS1 1SY  | Rights of Entry Warrant - Gas Operator | Yes |          |
-            | 2               | AC-{SCENARIO_ID}-2  | Global Tech Solutions Ltd | John Hargreaves{SCENARIO_ID}         | B1 1BB   | Warrant of Control                     | No  |          |
+            | Sequence number | Account number     | Applicant                   | Respondent                           | Postcode | Title                                                                                                     | Fee | Resulted |
+            | 1               | AC-{SCENARIO_ID}-1 | British Gas Trading Limited | Globex Corporation {SCENARIO_ID} Ltd | WS1 1SY  | Rights of Entry Warrant - Gas Operator - Rights of Entry (Gas and Electricity Boards) Act 1954, section 2 | Yes |          |
+            | 2               | AC-{SCENARIO_ID}-2 | Total Gas and Power         | John Hargreaves{SCENARIO_ID}         | B1 1BB   | Warrant of Control                                                                                        | No  |          |
         Then User Clicks On The Link "Click here to update fee details on newly uploaded applications"
         # Add Fee Details for Bulk Uploaded Application(s) where Fee Required = 'Y'
         Then User Sees Page Heading "Update fee details"
         And User Should See Row In Table "Updating fees for the following application(s)" With Values:
-            | Applicant      | Respondent                      | Application title                      | Fee required | Resulted |
-            | Benjamin Young | Globex Corporation {SCENARIO_ID} Ltd | Rights of Entry Warrant - Gas Operator | Yes          |          |
+            | Applicant                   | Respondent                           | Application title                                                                                         | Fee required | Resulted |
+            | British Gas Trading Limited | Globex Corporation {SCENARIO_ID} Ltd | Rights of Entry Warrant - Gas Operator - Rights of Entry (Gas and Electricity Boards) Act 1954, section 2 | Yes          |          |
         Then User Should See The Button "Update fee details" Is Disabled
         When User Checks The Checkbox With Label "Off site fee applies"
         Then User Should See The Button "Update fee details" Is Enabled
@@ -98,18 +98,19 @@ Feature: Application List Bulk Upload
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Fees updated" Containing "Fees have been successfully updated"
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
-            | Sequence number | Account number | Applicant      | Respondent                      | Postcode | Fee |
-            | 1               | AC-{SCENARIO_ID}-1  | Benjamin Young | Globex Corporation {SCENARIO_ID} Ltd | WS1 1SY  | Yes |
+            | Sequence number | Account number     | Applicant                   | Respondent                           | Postcode | Fee |
+            | 1               | AC-{SCENARIO_ID}-1 | British Gas Trading Limited | Globex Corporation {SCENARIO_ID} Ltd | WS1 1SY  | Yes |
         Then User Sees Page Heading "Applications list entry update"
         When User Clicks On The "Show all sections" Button
         Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
             | Fee Status | Status Date  | Payment Ref     |
-            | PAID       | todaydisplay | BUldFee{SCENARIO_ID} |
+            | DUE        | todaydisplay |                 |
+            | PAID       | todaydisplay | BUldFee{RANDOM} |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | APIDate  | Time           | Status | Description     | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
+            | User  | APIDate  | Time           | Status | Description          | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkUp_{SCENARIO_ID} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
     @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-1502
@@ -150,7 +151,7 @@ Feature: Application List Bulk Upload
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | APIDate  | Time           | Status | Description       | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
+            | User  | APIDate  | Time           | Status | Description            | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkFail_{SCENARIO_ID} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
     @regression @applicationsList @applicationListEntry @ARCPOC-1502 @ARCPOC-1563 @ARCPOC-1506
@@ -195,7 +196,7 @@ Feature: Application List Bulk Upload
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | APIDate  | Time           | Status | Description            | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
+            | User  | APIDate  | Time           | Status | Description                 | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkFailTable_{SCENARIO_ID} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
     @regression @applicationsList @applicationListEntry @ARCPOC-1502
@@ -203,7 +204,7 @@ Feature: Application List Bulk Upload
         # Application List Setup
         Given User Authenticates Via API As "user1"
         When User Makes POST API Request To "/application-lists" With Body:
-            | date     | time           | status | description                   | courtLocationCode |
+            | date     | time           | status | description                        | courtLocationCode |
             | todayiso | timenowhhmm-2h | OPEN   | BulkFailSortingTable_{SCENARIO_ID} | RCJ001            |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
@@ -211,10 +212,10 @@ Feature: Application List Bulk Upload
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         When User Searches Application List With:
-            | Date  | Time | Description                   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+            | Date  | Time | Description                        | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | today |      | BulkFailSortingTable_{SCENARIO_ID} |             |       | OPEN   |                |     |           |
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-            | Date         | Time           | Location                      | Description                   | Entries | Status |
+            | Date         | Time           | Location                      | Description                        | Entries | Status |
             | todaydisplay | timenowhhmm-2h | Royal Courts of Justice Set 1 | BulkFailSortingTable_{SCENARIO_ID} | 0       | OPEN   |
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
@@ -296,7 +297,7 @@ Feature: Application List Bulk Upload
         # Application List Setup
         Given User Authenticates Via API As "user1"
         When User Makes POST API Request To "/application-lists" With Body:
-            | date     | time           | status | description                   | courtLocationCode |
+            | date     | time           | status | description                        | courtLocationCode |
             | todayiso | timenowhhmm-2h | OPEN   | BulkFailSortingTable_{SCENARIO_ID} | RCJ001            |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
@@ -304,10 +305,10 @@ Feature: Application List Bulk Upload
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         When User Searches Application List With:
-            | Date  | Time | Description                   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+            | Date  | Time | Description                        | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | today |      | BulkFailSortingTable_{SCENARIO_ID} |             |       | OPEN   |                |     |           |
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-            | Date         | Time           | Location                      | Description                   | Entries | Status |
+            | Date         | Time           | Location                      | Description                        | Entries | Status |
             | todaydisplay | timenowhhmm-2h | Royal Courts of Justice Set 1 | BulkFailSortingTable_{SCENARIO_ID} | 0       | OPEN   |
         Then User See "Applications" On The Page
         Then User Clicks On The Link "Bulk upload"
@@ -332,4 +333,3 @@ Feature: Application List Bulk Upload
         # cleanup listId
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
-

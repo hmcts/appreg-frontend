@@ -10,169 +10,169 @@ Feature: Applications List  - Bulk Result Selected
         Then User Stores Response Body Property "id" As "listId"
         # Entry 1 - Organisation applicant + Organisation respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                               | null                          |
-            | applicationCode                                     | AP99001                       |
+            | standardApplicantCode                               | null                               |
+            | applicationCode                                     | AP99001                            |
             | applicant.organisation.name                         | Test Acme Industries {SCENARIO_ID} |
             | applicant.organisation.contactDetails.addressLine1  | {SCENARIO_ID} King Street          |
-            | applicant.organisation.contactDetails.addressLine2  | Westminster                   |
-            | applicant.organisation.contactDetails.addressLine3  | London                        |
-            | applicant.organisation.contactDetails.addressLine4  | Greater London                |
-            | applicant.organisation.contactDetails.addressLine5  | United Kingdom                |
-            | applicant.organisation.contactDetails.postcode      | SW1A 1AA                      |
-            | applicant.organisation.contactDetails.phone         | 0203{RANDOM}                  |
-            | applicant.organisation.contactDetails.mobile        | 07123{RANDOM}                 |
+            | applicant.organisation.contactDetails.addressLine2  | Westminster                        |
+            | applicant.organisation.contactDetails.addressLine3  | London                             |
+            | applicant.organisation.contactDetails.addressLine4  | Greater London                     |
+            | applicant.organisation.contactDetails.addressLine5  | United Kingdom                     |
+            | applicant.organisation.contactDetails.postcode      | SW1A 1AA                           |
+            | applicant.organisation.contactDetails.phone         | 0203{RANDOM}                       |
+            | applicant.organisation.contactDetails.mobile        | 07123{RANDOM}                      |
             | applicant.organisation.contactDetails.email         | {SCENARIO_ID}@example.com          |
             | respondent.organisation.name                        | Test Respondent Ltd {SCENARIO_ID}  |
             | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Market Road          |
-            | respondent.organisation.contactDetails.addressLine2 | Bristol                       |
-            | respondent.organisation.contactDetails.addressLine3 | Avon                          |
-            | respondent.organisation.contactDetails.addressLine4 | United Kingdom                |
-            | respondent.organisation.contactDetails.postcode     | BS15 5AA                      |
-            | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                  |
-            | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                 |
-            | wordingFields.0.key                                 | Date of Hearing               |
+            | respondent.organisation.contactDetails.addressLine2 | Bristol                            |
+            | respondent.organisation.contactDetails.addressLine3 | Avon                               |
+            | respondent.organisation.contactDetails.addressLine4 | United Kingdom                     |
+            | respondent.organisation.contactDetails.postcode     | BS15 5AA                           |
+            | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                       |
+            | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                      |
+            | wordingFields.0.key                                 | Date of Hearing                    |
             | wordingFields.0.value                               | "{SCENARIO_ID}"                    |
-            | hasOffsiteFee                                       | true                          |
-            | caseReference                                       | CASE-{RANDOM}                 |
+            | hasOffsiteFee                                       | true                               |
+            | caseReference                                       | CASE-{RANDOM}                      |
             | notes                                               | Case noted with ref {SCENARIO_ID}  |
-            | lodgementDate                                       | todayiso                      |
-            | officials.0.title                                   | Mr                            |
+            | lodgementDate                                       | todayiso                           |
+            | officials.0.title                                   | Mr                                 |
             | officials.0.surname                                 | Turner {SCENARIO_ID}               |
-            | officials.0.forename                                | Graham                        |
-            | officials.0.type                                    | MAGISTRATE                    |
+            | officials.0.forename                                | Graham                             |
+            | officials.0.type                                    | MAGISTRATE                         |
         Then User Verify Response Status Code Should Be "201"
         # Entry 2 - Person applicant + Person respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                         | null                           |
-            | applicationCode                               | AP99001                        |
-            | applicant.person.name.title                   | Mr                             |
+            | standardApplicantCode                         | null                                |
+            | applicationCode                               | AP99001                             |
+            | applicant.person.name.title                   | Mr                                  |
             | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
-            | applicant.person.name.firstName               | Henry                          |
-            | applicant.person.name.middleName              | James                          |
+            | applicant.person.name.firstName               | Henry                               |
+            | applicant.person.name.middleName              | James                               |
             | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
-            | applicant.person.contactDetails.addressLine2  | Westminster                    |
-            | applicant.person.contactDetails.addressLine3  | London                         |
-            | applicant.person.contactDetails.addressLine4  | Greater London                 |
-            | applicant.person.contactDetails.addressLine5  | United Kingdom                 |
-            | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
-            | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
-            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
+            | applicant.person.contactDetails.addressLine2  | Westminster                         |
+            | applicant.person.contactDetails.addressLine3  | London                              |
+            | applicant.person.contactDetails.addressLine4  | Greater London                      |
+            | applicant.person.contactDetails.addressLine5  | United Kingdom                      |
+            | applicant.person.contactDetails.postcode      | SW1A 1AA                            |
+            | applicant.person.contactDetails.phone         | 0203{RANDOM}                        |
+            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                       |
             | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
-            | respondent.person.name.title                  | Ms                             |
+            | respondent.person.name.title                  | Ms                                  |
             | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
-            | respondent.person.name.firstName              | Emily                          |
-            | respondent.person.name.middleName             | Rose                           |
+            | respondent.person.name.firstName              | Emily                               |
+            | respondent.person.name.middleName             | Rose                                |
             | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
-            | respondent.person.contactDetails.addressLine2 | Bristol                        |
-            | respondent.person.contactDetails.addressLine3 | Avon                           |
-            | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-            | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
-            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
+            | respondent.person.contactDetails.addressLine2 | Bristol                             |
+            | respondent.person.contactDetails.addressLine3 | Avon                                |
+            | respondent.person.contactDetails.addressLine4 | United Kingdom                      |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                            |
+            | respondent.person.contactDetails.phone        | 0117{RANDOM}                        |
+            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                       |
             | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | wordingFields.0.key                           | Date of Hearing                |
+            | respondent.person.dateOfBirth                 | todayiso-25y                        |
+            | wordingFields.0.key                           | Date of Hearing                     |
             | wordingFields.0.value                         | "{SCENARIO_ID}"                     |
-            | hasOffsiteFee                                 | true                           |
-            | caseReference                                 | CASE-{RANDOM}                  |
-            | accountNumber                                 | ACC-E2-{RANDOM}                |
+            | hasOffsiteFee                                 | true                                |
+            | caseReference                                 | CASE-{RANDOM}                       |
+            | accountNumber                                 | ACC-E2-{RANDOM}                     |
             | notes                                         | Case noted with ref {SCENARIO_ID}   |
-            | lodgementDate                                 | todayiso                       |
+            | lodgementDate                                 | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         # Entry 3 - Person applicant + Organisation respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                               | null                           |
-            | applicationCode                                     | EF99001                        |
-            | applicant.person.name.title                         | Mrs                            |
+            | standardApplicantCode                               | null                                |
+            | applicationCode                                     | EF99001                             |
+            | applicant.person.name.title                         | Mrs                                 |
             | applicant.person.name.lastName                      | Johnson {SCENARIO_ID}               |
-            | applicant.person.name.firstName                     | Sarah                          |
-            | applicant.person.name.middleName                    | Louise                         |
+            | applicant.person.name.firstName                     | Sarah                               |
+            | applicant.person.name.middleName                    | Louise                              |
             | applicant.person.contactDetails.addressLine1        | {SCENARIO_ID} High Street           |
-            | applicant.person.contactDetails.addressLine2        | Manchester                     |
-            | applicant.person.contactDetails.addressLine3        | Greater Manchester             |
-            | applicant.person.contactDetails.postcode            | M1 1AA                         |
-            | applicant.person.contactDetails.phone               | 0161{RANDOM}                   |
-            | applicant.person.contactDetails.mobile              | 07700{RANDOM}                  |
+            | applicant.person.contactDetails.addressLine2        | Manchester                          |
+            | applicant.person.contactDetails.addressLine3        | Greater Manchester                  |
+            | applicant.person.contactDetails.postcode            | M1 1AA                              |
+            | applicant.person.contactDetails.phone               | 0161{RANDOM}                        |
+            | applicant.person.contactDetails.mobile              | 07700{RANDOM}                       |
             | applicant.person.contactDetails.email               | applicant{SCENARIO_ID}@example.com  |
             | respondent.organisation.name                        | Greenfield Consulting {SCENARIO_ID} |
             | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Park Lane             |
-            | respondent.organisation.contactDetails.addressLine2 | Birmingham                     |
-            | respondent.organisation.contactDetails.addressLine3 | West Midlands                  |
-            | respondent.organisation.contactDetails.postcode     | B1 1AA                         |
-            | respondent.organisation.contactDetails.phone        | 0121{RANDOM}                   |
-            | respondent.organisation.contactDetails.mobile       | 07800{RANDOM}                  |
-            | wordingFields.0.key                                 | account balance                |
+            | respondent.organisation.contactDetails.addressLine2 | Birmingham                          |
+            | respondent.organisation.contactDetails.addressLine3 | West Midlands                       |
+            | respondent.organisation.contactDetails.postcode     | B1 1AA                              |
+            | respondent.organisation.contactDetails.phone        | 0121{RANDOM}                        |
+            | respondent.organisation.contactDetails.mobile       | 07800{RANDOM}                       |
+            | wordingFields.0.key                                 | account balance                     |
             | wordingFields.0.value                               | {SCENARIO_ID}                       |
-            | hasOffsiteFee                                       | false                          |
-            | caseReference                                       | CASE-{RANDOM}                  |
-            | accountNumber                                       | ACC-E3-{RANDOM}                |
+            | hasOffsiteFee                                       | false                               |
+            | caseReference                                       | CASE-{RANDOM}                       |
+            | accountNumber                                       | ACC-E3-{RANDOM}                     |
             | notes                                               | Case noted with ref {SCENARIO_ID}   |
-            | lodgementDate                                       | todayiso                       |
+            | lodgementDate                                       | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         # Entry 4 - Organisation applicant + Person respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                              | null                           |
-            | applicationCode                                    | AP99001                        |
+            | standardApplicantCode                              | null                                |
+            | applicationCode                                    | AP99001                             |
             | applicant.organisation.name                        | Apex Solutions Ltd {SCENARIO_ID}    |
             | applicant.organisation.contactDetails.addressLine1 | {SCENARIO_ID} King Street           |
-            | applicant.organisation.contactDetails.addressLine2 | Leeds                          |
-            | applicant.organisation.contactDetails.addressLine3 | West Yorkshire                 |
-            | applicant.organisation.contactDetails.addressLine4 | United Kingdom                 |
-            | applicant.organisation.contactDetails.postcode     | WS4A 5AA                       |
-            | applicant.organisation.contactDetails.phone        | 0113{RANDOM}                   |
-            | applicant.organisation.contactDetails.mobile       | 07600{RANDOM}                  |
+            | applicant.organisation.contactDetails.addressLine2 | Leeds                               |
+            | applicant.organisation.contactDetails.addressLine3 | West Yorkshire                      |
+            | applicant.organisation.contactDetails.addressLine4 | United Kingdom                      |
+            | applicant.organisation.contactDetails.postcode     | WS4A 5AA                            |
+            | applicant.organisation.contactDetails.phone        | 0113{RANDOM}                        |
+            | applicant.organisation.contactDetails.mobile       | 07600{RANDOM}                       |
             | applicant.organisation.contactDetails.email        | {SCENARIO_ID}@example.com           |
-            | respondent.person.name.title                       | Mr                             |
+            | respondent.person.name.title                       | Mr                                  |
             | respondent.person.name.lastName                    | Smith {SCENARIO_ID}                 |
-            | respondent.person.name.firstName                   | John                           |
+            | respondent.person.name.firstName                   | John                                |
             | respondent.person.contactDetails.addressLine1      | {SCENARIO_ID} Queen Street          |
-            | respondent.person.contactDetails.addressLine2      | Leeds                          |
-            | respondent.person.contactDetails.addressLine3      | West Yorkshire                 |
-            | respondent.person.contactDetails.postcode          | LS1 1AA                        |
-            | respondent.person.contactDetails.phone             | 0113{RANDOM}                   |
-            | respondent.person.contactDetails.mobile            | 07500{RANDOM}                  |
+            | respondent.person.contactDetails.addressLine2      | Leeds                               |
+            | respondent.person.contactDetails.addressLine3      | West Yorkshire                      |
+            | respondent.person.contactDetails.postcode          | LS1 1AA                             |
+            | respondent.person.contactDetails.phone             | 0113{RANDOM}                        |
+            | respondent.person.contactDetails.mobile            | 07500{RANDOM}                       |
             | respondent.person.contactDetails.email             | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                      | todayiso-30y                   |
-            | wordingFields.0.key                                | Date of Hearing                |
+            | respondent.person.dateOfBirth                      | todayiso-30y                        |
+            | wordingFields.0.key                                | Date of Hearing                     |
             | wordingFields.0.value                              | "{SCENARIO_ID}"                     |
-            | hasOffsiteFee                                      | true                           |
-            | caseReference                                      | CASE-{RANDOM}                  |
+            | hasOffsiteFee                                      | true                                |
+            | caseReference                                      | CASE-{RANDOM}                       |
             | notes                                              | Case noted with ref {SCENARIO_ID}   |
-            | lodgementDate                                      | todayiso                       |
+            | lodgementDate                                      | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         # Entry 5 - Person applicant + Person respondent (pre-set with result via API)
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                         | null                           |
-            | applicationCode                               | EF99001                        |
-            | applicant.person.name.title                   | Mr                             |
+            | standardApplicantCode                         | null                                |
+            | applicationCode                               | EF99001                             |
+            | applicant.person.name.title                   | Mr                                  |
             | applicant.person.name.lastName                | Brown {SCENARIO_ID}                 |
-            | applicant.person.name.firstName               | James                          |
-            | applicant.person.name.middleName              | Edward                         |
+            | applicant.person.name.firstName               | James                               |
+            | applicant.person.name.middleName              | Edward                              |
             | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} Victoria Road         |
-            | applicant.person.contactDetails.addressLine2  | Sheffield                      |
-            | applicant.person.contactDetails.addressLine3  | South Yorkshire                |
-            | applicant.person.contactDetails.postcode      | S1 1AA                         |
-            | applicant.person.contactDetails.phone         | 0114{RANDOM}                   |
-            | applicant.person.contactDetails.mobile        | 07400{RANDOM}                  |
+            | applicant.person.contactDetails.addressLine2  | Sheffield                           |
+            | applicant.person.contactDetails.addressLine3  | South Yorkshire                     |
+            | applicant.person.contactDetails.postcode      | S1 1AA                              |
+            | applicant.person.contactDetails.phone         | 0114{RANDOM}                        |
+            | applicant.person.contactDetails.mobile        | 07400{RANDOM}                       |
             | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
-            | respondent.person.name.title                  | Ms                             |
+            | respondent.person.name.title                  | Ms                                  |
             | respondent.person.name.lastName               | Davis {SCENARIO_ID}                 |
-            | respondent.person.name.firstName              | Laura                          |
+            | respondent.person.name.firstName              | Laura                               |
             | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Church Lane           |
-            | respondent.person.contactDetails.addressLine2 | Liverpool                      |
-            | respondent.person.contactDetails.addressLine3 | Merseyside                     |
-            | respondent.person.contactDetails.postcode     | L1 1AA                         |
-            | respondent.person.contactDetails.phone        | 0151{RANDOM}                   |
-            | respondent.person.contactDetails.mobile       | 07300{RANDOM}                  |
+            | respondent.person.contactDetails.addressLine2 | Liverpool                           |
+            | respondent.person.contactDetails.addressLine3 | Merseyside                          |
+            | respondent.person.contactDetails.postcode     | L1 1AA                              |
+            | respondent.person.contactDetails.phone        | 0151{RANDOM}                        |
+            | respondent.person.contactDetails.mobile       | 07300{RANDOM}                       |
             | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                 | todayiso-35y                   |
-            | wordingFields.0.key                           | account balance                |
+            | respondent.person.dateOfBirth                 | todayiso-35y                        |
+            | wordingFields.0.key                           | account balance                     |
             | wordingFields.0.value                         | {SCENARIO_ID}                       |
-            | hasOffsiteFee                                 | false                          |
-            | caseReference                                 | CASE-{RANDOM}                  |
-            | accountNumber                                 | ACC-E5-{RANDOM}                |
+            | hasOffsiteFee                                 | false                               |
+            | caseReference                                 | CASE-{RANDOM}                       |
+            | accountNumber                                 | ACC-E5-{RANDOM}                     |
             | notes                                         | Case noted with ref {SCENARIO_ID}   |
-            | lodgementDate                                 | todayiso                       |
+            | lodgementDate                                 | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
@@ -194,82 +194,82 @@ Feature: Applications List  - Bulk Result Selected
         Then User Verify Response Status Code Should Be "201"
         # Entry 6 - Standard applicant APP036 + Person respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                         | APP036                         |
-            | applicationCode                               | AP99001                        |
-            | respondent.person.name.title                  | Mr                             |
+            | standardApplicantCode                         | BGAS                                |
+            | applicationCode                               | AP99001                             |
+            | respondent.person.name.title                  | Mr                                  |
             | respondent.person.name.lastName               | Wilson {SCENARIO_ID}                |
-            | respondent.person.name.firstName              | Robert                         |
+            | respondent.person.name.firstName              | Robert                              |
             | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Station Road          |
-            | respondent.person.contactDetails.addressLine2 | Newcastle                      |
-            | respondent.person.contactDetails.addressLine3 | Tyne and Wear                  |
-            | respondent.person.contactDetails.postcode     | NE1 1AA                        |
-            | respondent.person.contactDetails.phone        | 0191{RANDOM}                   |
-            | respondent.person.contactDetails.mobile       | 07200{RANDOM}                  |
+            | respondent.person.contactDetails.addressLine2 | Newcastle                           |
+            | respondent.person.contactDetails.addressLine3 | Tyne and Wear                       |
+            | respondent.person.contactDetails.postcode     | NE1 1AA                             |
+            | respondent.person.contactDetails.phone        | 0191{RANDOM}                        |
+            | respondent.person.contactDetails.mobile       | 07200{RANDOM}                       |
             | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                 | todayiso-40y                   |
-            | wordingFields.0.key                           | Date of Hearing                |
+            | respondent.person.dateOfBirth                 | todayiso-40y                        |
+            | wordingFields.0.key                           | Date of Hearing                     |
             | wordingFields.0.value                         | "{SCENARIO_ID}"                     |
-            | hasOffsiteFee                                 | false                          |
-            | caseReference                                 | CASE-{RANDOM}                  |
-            | accountNumber                                 | ACC-E6-{RANDOM}                |
+            | hasOffsiteFee                                 | false                               |
+            | caseReference                                 | CASE-{RANDOM}                       |
+            | accountNumber                                 | ACC-E6-{RANDOM}                     |
             | notes                                         | Case noted with ref {SCENARIO_ID}   |
-            | lodgementDate                                 | todayiso                       |
+            | lodgementDate                                 | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         # Entry 7 - Standard applicant APP013 + Organisation respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                               | APP013                       |
-            | applicationCode                                     | EF99001                      |
+            | standardApplicantCode                               | Total                             |
+            | applicationCode                                     | EF99001                           |
             | respondent.organisation.name                        | Metro Finance Ltd {SCENARIO_ID}   |
             | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Broad Street        |
-            | respondent.organisation.contactDetails.addressLine2 | Edinburgh                    |
-            | respondent.organisation.contactDetails.addressLine3 | Scotland                     |
-            | respondent.organisation.contactDetails.postcode     | EH1 1AA                      |
-            | respondent.organisation.contactDetails.phone        | 0131{RANDOM}                 |
-            | respondent.organisation.contactDetails.mobile       | 07100{RANDOM}                |
-            | wordingFields.0.key                                 | account balance              |
+            | respondent.organisation.contactDetails.addressLine2 | Edinburgh                         |
+            | respondent.organisation.contactDetails.addressLine3 | Scotland                          |
+            | respondent.organisation.contactDetails.postcode     | EH1 1AA                           |
+            | respondent.organisation.contactDetails.phone        | 0131{RANDOM}                      |
+            | respondent.organisation.contactDetails.mobile       | 07100{RANDOM}                     |
+            | wordingFields.0.key                                 | account balance                   |
             | wordingFields.0.value                               | {SCENARIO_ID}                     |
-            | hasOffsiteFee                                       | true                         |
-            | caseReference                                       | CASE-{RANDOM}                |
-            | accountNumber                                       | ACC-E7-{RANDOM}              |
+            | hasOffsiteFee                                       | true                              |
+            | caseReference                                       | CASE-{RANDOM}                     |
+            | accountNumber                                       | ACC-E7-{RANDOM}                   |
             | notes                                               | Case noted with ref {SCENARIO_ID} |
-            | lodgementDate                                       | todayiso                     |
+            | lodgementDate                                       | todayiso                          |
         Then User Verify Response Status Code Should Be "201"
         # Entry 8 - Person applicant + Person respondent with MX99019 (fee-bearing)
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                         | null                           |
-            | applicationCode                               | MX99019                        |
-            | applicant.person.name.title                   | Mr                             |
+            | standardApplicantCode                         | null                                |
+            | applicationCode                               | MX99019                             |
+            | applicant.person.name.title                   | Mr                                  |
             | applicant.person.name.lastName                | Hughes {SCENARIO_ID}                |
-            | applicant.person.name.firstName               | Daniel                         |
-            | applicant.person.name.middleName              | Paul                           |
+            | applicant.person.name.firstName               | Daniel                              |
+            | applicant.person.name.middleName              | Paul                                |
             | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} Bridge Street         |
-            | applicant.person.contactDetails.addressLine2  | Cardiff                        |
-            | applicant.person.contactDetails.addressLine3  | Wales                          |
-            | applicant.person.contactDetails.addressLine4  | United Kingdom                 |
-            | applicant.person.contactDetails.postcode      | CF10 1AA                       |
-            | applicant.person.contactDetails.phone         | 029{RANDOM}11111               |
-            | applicant.person.contactDetails.mobile        | 07900{RANDOM}111               |
+            | applicant.person.contactDetails.addressLine2  | Cardiff                             |
+            | applicant.person.contactDetails.addressLine3  | Wales                               |
+            | applicant.person.contactDetails.addressLine4  | United Kingdom                      |
+            | applicant.person.contactDetails.postcode      | CF10 1AA                            |
+            | applicant.person.contactDetails.phone         | 029{RANDOM}11111                    |
+            | applicant.person.contactDetails.mobile        | 07900{RANDOM}111                    |
             | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
-            | respondent.person.name.title                  | Mrs                            |
+            | respondent.person.name.title                  | Mrs                                 |
             | respondent.person.name.lastName               | Hughes {SCENARIO_ID}                |
-            | respondent.person.name.firstName              | Claire                         |
+            | respondent.person.name.firstName              | Claire                              |
             | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Mill Lane             |
-            | respondent.person.contactDetails.addressLine2 | Cardiff                        |
-            | respondent.person.contactDetails.addressLine3 | Wales                          |
-            | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.person.contactDetails.postcode     | CF10 2AA                       |
-            | respondent.person.contactDetails.phone        | 029{RANDOM}11111               |
-            | respondent.person.contactDetails.mobile       | 07800{RANDOM}111               |
+            | respondent.person.contactDetails.addressLine2 | Cardiff                             |
+            | respondent.person.contactDetails.addressLine3 | Wales                               |
+            | respondent.person.contactDetails.addressLine4 | United Kingdom                      |
+            | respondent.person.contactDetails.postcode     | CF10 2AA                            |
+            | respondent.person.contactDetails.phone        | 029{RANDOM}11111                    |
+            | respondent.person.contactDetails.mobile       | 07800{RANDOM}111                    |
             | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                 | todayiso-28y                   |
-            | feeStatuses.0.paymentReference                |                                |
-            | feeStatuses.0.paymentStatus                   | <feeStatusDue>                 |
-            | feeStatuses.0.statusDate                      | <feeStatusDate>                |
-            | hasOffsiteFee                                 | false                          |
-            | caseReference                                 | CASE-{RANDOM}                  |
-            | accountNumber                                 | ACC-E8-{RANDOM}                |
+            | respondent.person.dateOfBirth                 | todayiso-28y                        |
+            | feeStatuses.0.paymentReference                |                                     |
+            | feeStatuses.0.paymentStatus                   | <feeStatusDue>                      |
+            | feeStatuses.0.statusDate                      | <feeStatusDate>                     |
+            | hasOffsiteFee                                 | false                               |
+            | caseReference                                 | CASE-{RANDOM}                       |
+            | accountNumber                                 | ACC-E8-{RANDOM}                     |
             | notes                                         | Case noted with ref {SCENARIO_ID}   |
-            | lodgementDate                                 | todayiso                       |
+            | lodgementDate                                 | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
@@ -291,14 +291,14 @@ Feature: Applications List  - Bulk Result Selected
         Then User Should See Table "Entries" Header "Resulted" Has Sort Order "none"
         # Verify all 8 rows
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number  | Applicant                     | Respondent                     | Postcode | Title                                                      | Fee | Resulted |
+            | Sequence number | Account number  | Applicant                          | Respondent                          | Postcode | Title                                                      | Fee | Resulted |
             | 1               |                 | Test Acme Industries {SCENARIO_ID} | Test Respondent Ltd {SCENARIO_ID}   | BS15 5AA | Appeal to Crown Court                                      | No  |          |
             | 2               | ACC-E2-{RANDOM} | Henry Taylor {SCENARIO_ID}         | Emily Clark {SCENARIO_ID}           | BS15 5AA | Appeal to Crown Court                                      | No  |          |
             | 3               | ACC-E3-{RANDOM} | Sarah Johnson {SCENARIO_ID}        | Greenfield Consulting {SCENARIO_ID} | B1 1AA   | Collection Order - Financial Penalty Account               | No  |          |
             | 4               |                 | Apex Solutions Ltd {SCENARIO_ID}   | John Smith {SCENARIO_ID}            | LS1 1AA  | Appeal to Crown Court                                      | No  |          |
             | 5               | ACC-E5-{RANDOM} | James Brown {SCENARIO_ID}          | Laura Davis {SCENARIO_ID}           | L1 1AA   | Collection Order - Financial Penalty Account               | No  | RTC      |
-            | 6               | ACC-E6-{RANDOM} | Innovative Solutions Inc      | Robert Wilson {SCENARIO_ID}         | NE1 1AA  | Appeal to Crown Court                                      | No  |          |
-            | 7               | ACC-E7-{RANDOM} | Amelia Hall                   | Metro Finance Ltd {SCENARIO_ID}     | EH1 1AA  | Collection Order - Financial Penalty Account               | No  |          |
+            | 6               | ACC-E6-{RANDOM} | Britisha Gas Trading Limited       | Robert Wilson {SCENARIO_ID}         | NE1 1AA  | Appeal to Crown Court                                      | No  |          |
+            | 7               | ACC-E7-{RANDOM} | Total Gas and Power                | Metro Finance Ltd {SCENARIO_ID}     | EH1 1AA  | Collection Order - Financial Penalty Account               | No  |          |
             | 8               | ACC-E8-{RANDOM} | Daniel Hughes {SCENARIO_ID}        | Claire Hughes {SCENARIO_ID}         | CF10 2AA | Application for order re public health measures (premises) | Yes |          |
         # Sort by each column ascending and verify sort order changes
         When User Clicks On Table Header "Account number" In Table "Entries"
@@ -331,7 +331,7 @@ Feature: Applications List  - Bulk Result Selected
         Then User Should See The Button "Actions" Is Disabled
         # Select rows 2, 3 and 5 in one step
         When User Checks The Checkbox In Row Of Table "Entries" With:
-            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted |
+            | Sequence number | Account number  | Applicant                   | Respondent                          | Postcode | Title                                        | Fee | Resulted |
             | 2               | ACC-E2-{RANDOM} | Henry Taylor {SCENARIO_ID}  | Emily Clark {SCENARIO_ID}           | BS15 5AA | Appeal to Crown Court                        | No  |          |
             | 3               | ACC-E3-{RANDOM} | Sarah Johnson {SCENARIO_ID} | Greenfield Consulting {SCENARIO_ID} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
             | 5               | ACC-E5-{RANDOM} | James Brown {SCENARIO_ID}   | Laura Davis {SCENARIO_ID}           | L1 1AA   | Collection Order - Financial Penalty Account | No  | RTC      |
@@ -340,7 +340,7 @@ Feature: Applications List  - Bulk Result Selected
         Then User See "Result applications" On The Page
         # Verify all 3 selected rows appear on the result page
         Then User Should See Row In Table "Application(s) to result" With Values:
-            | Sequence number | Applicant              | Respondent                     | Application title                            |
+            | Sequence number | Applicant                   | Respondent                          | Application title                            |
             | 2               | Henry Taylor {SCENARIO_ID}  | Emily Clark {SCENARIO_ID}           | Appeal to Crown Court                        |
             | 3               | Sarah Johnson {SCENARIO_ID} | Greenfield Consulting {SCENARIO_ID} | Collection Order - Financial Penalty Account |
             | 5               | James Brown {SCENARIO_ID}   | Laura Davis {SCENARIO_ID}           | Collection Order - Financial Penalty Account |
@@ -384,7 +384,7 @@ Feature: Applications List  - Bulk Result Selected
         Then User Clicks On The Breadcrumb Link "Applications list details"
         # Verify rows 2, 3, 5 have PROA and COST applied; row 5 retains pre-existing RTC; rows 1, 4, 6, 7, 8 unchanged
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                        | Fee | Resulted        |
+            | Sequence number | Account number  | Applicant                   | Respondent                          | Postcode | Title                                        | Fee | Resulted        |
             | 2               | ACC-E2-{RANDOM} | Henry Taylor {SCENARIO_ID}  | Emily Clark {SCENARIO_ID}           | BS15 5AA | Appeal to Crown Court                        | No  | PROA, COST      |
             | 3               | ACC-E3-{RANDOM} | Sarah Johnson {SCENARIO_ID} | Greenfield Consulting {SCENARIO_ID} | B1 1AA   | Collection Order - Financial Penalty Account | No  | PROA, COST      |
             | 5               | ACC-E5-{RANDOM} | James Brown {SCENARIO_ID}   | Laura Davis {SCENARIO_ID}           | L1 1AA   | Collection Order - Financial Penalty Account | No  | RTC, PROA, COST |
@@ -392,5 +392,5 @@ Feature: Applications List  - Bulk Result Selected
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | APIDate  | Time           | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     | feeStatusDue | feeStatusDate |
+            | User  | APIDate  | Time           | Status | Description                                  | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     | feeStatusDue | feeStatusDate |
             | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{SCENARIO_ID} | BCC026            | today      | todayDisplay | 8       | Bristol Crown Court Set 3 | DUE          | todayiso      |
