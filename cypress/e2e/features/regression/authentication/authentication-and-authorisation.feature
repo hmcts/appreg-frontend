@@ -32,6 +32,7 @@ Feature: Authentication and Authorisation
 
   @regression @authentication @ARCPOC-294 @ARCPOC-426 @accessibility
   Scenario: Accessibility check on authenticated core pages
+    Given User Is On The Portal Page
     Then User Checks Accessibility Of The Current Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Navigates To Each URL In The Datatable And Checks Accessibility
@@ -42,6 +43,7 @@ Feature: Authentication and Authorisation
 
   @regression @authentication @ARCPOC-294 @ARCPOC-426
   Scenario: Verify SSO login flow
+    Given User Is On The Portal Page
     Then User Verify The Page Title Is "HMCTS Applications Register - Home - GOV.UK"
     And User See "Applications register" On The Page
     And User See "Sign in" On The Page
