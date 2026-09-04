@@ -186,19 +186,19 @@ Feature: Application List Entries Print
             | Matter considered      | Appeal to Crown Court                        |
             | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE         |
             | Dated                  | <DisplayDateLong>                            |
-            | Produced on            | <SearchDate>                                 |
+            | Produced on            | <DisplayDate>                                |
             | Application brought by | Mrs Sarah Louise Johnson {SCENARIO_ID}            |
             | Respondent             | Greenfield Consulting {SCENARIO_ID}               |
             | Matter considered      | Collection Order - Financial Penalty Account |
             | This matter was before | -                                            |
             | Dated                  | <DisplayDateLong>                            |
-            | Produced on            | <SearchDate>                                 |
+            | Produced on            | <DisplayDate>                                |
             | Application brought by | Innovative Solutions Inc                     |
             | Respondent             | Mr Owen Davies {SCENARIO_ID}                      |
             | Matter considered      | Appeal to Crown Court                        |
             | This matter was before | -                                            |
             | Dated                  | <DisplayDateLong>                            |
-            | Produced on            | <SearchDate>                                 |
+            | Produced on            | <DisplayDate>                                |
         Then User Clears Downloaded PDFs
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"

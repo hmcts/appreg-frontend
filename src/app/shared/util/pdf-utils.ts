@@ -179,21 +179,26 @@ function stripZeroHoursPrefix(durationText: string): string | undefined {
 
   const secondNumberMatch = numberMatcher.exec(trimmedText);
   if (!secondNumberMatch) {
-    return trimmedText;
+    const value = Number(firstNumberMatch[0]);
+    const isHour = trimmedText.toLowerCase().includes('h');
+    return formatDurationPart(value, isHour ? 'Hour' : 'Minute');
   } // hours present so leave
 
   const firstValue = Number(firstNumberMatch[0]);
   const secondValue = Number(secondNumberMatch[0]);
 
-  // "0h 0m", no duration
-  if (firstValue === 0 && secondValue === 0) {
-    return;
-  }
+  const parts = [
+    firstValue ? formatDurationPart(firstValue, 'Hour') : '',
+    secondValue ? formatDurationPart(secondValue, 'Minute') : '',
+  ].filter(Boolean);
 
-  // "0h 5m", drop the "0h" portion
-  if (firstValue === 0 && secondValue !== 0) {
-    return trimmedText.slice(secondNumberMatch.index).trim();
-  }
+  return parts.length ? parts.join(', ') : undefined;
+}
 
-  return trimmedText;
+export function formatDurationPart(
+  value: number,
+  unit: 'Hour' | 'Minute',
+): string {
+  const suffix = value === 1 ? unit : `${unit}s`;
+  return `${value} ${suffix}`;
 }
