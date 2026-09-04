@@ -3,7 +3,6 @@ Feature: Duration Report
   @regression @reports @ARCPOC-249
   Scenario Outline: Duration Report - Download Report for Courts
     Given User Has No Downloaded CSVs
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -52,7 +51,6 @@ Feature: Duration Report
   @regression @reports @ARCPOC-249
   Scenario Outline: Duration Report - Download Report for CJA and Other Location
     Given User Has No Downloaded CSVs
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -83,7 +81,6 @@ Feature: Duration Report
 
   @regression @reports @ARCPOC-1401
   Scenario: Duration Report - verify "Clear search" button functionality
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"
@@ -100,7 +97,6 @@ Feature: Duration Report
 
   @regression @reports @ARCPOC-1401
   Scenario: Duration Report - verify "Clear search" button functionality (CJA + Other location)
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"

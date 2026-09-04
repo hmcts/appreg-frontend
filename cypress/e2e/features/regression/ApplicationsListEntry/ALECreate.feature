@@ -9,7 +9,6 @@ Feature: Applications List Entry Create
       | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     # Search Created Application List
     When User Searches Application List With:
@@ -232,7 +231,6 @@ Feature: Applications List Entry Create
       | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     # Search Created Application List
     When User Searches Application List With:
@@ -385,7 +383,6 @@ Feature: Applications List Entry Create
       | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     # Search Created Application List
     When User Searches Application List With:
@@ -522,7 +519,6 @@ Feature: Applications List Entry Create
       | <APIDate> | <Time> | <Status> | <Description> |               |                 | <CourtCode>       |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     When User Searches Application List With:
       | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |

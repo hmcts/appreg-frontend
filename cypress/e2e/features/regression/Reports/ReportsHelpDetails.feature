@@ -2,7 +2,6 @@ Feature: Reports help details
 
   @regression @reports @helpDetails @ARCPOC-377
   Scenario: Expand and collapse reports help details
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
     Then User Verify The Page URL Contains "/reports"

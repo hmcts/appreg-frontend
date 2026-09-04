@@ -276,7 +276,6 @@ Feature: Applications Print
         Then User Verify Response Status Code Should Be "201"
         # UI: Verify limit of 2000 rows for actions Print continuous and Print page
         Given User Has No Downloaded PDFs
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"

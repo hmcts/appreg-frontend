@@ -44,7 +44,6 @@ Feature: Applications list entry update help details
 
   @regression @applicationListEntry @helpDetails @ARCPOC-377
   Scenario: Expand and collapse update entry help details
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | Time | Description                     | CourtSearch | Court | Status | Other location | CJA | CJASearch |

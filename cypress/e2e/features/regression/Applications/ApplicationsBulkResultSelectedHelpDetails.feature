@@ -42,7 +42,6 @@ Feature: Applications result selected help details
 
   @regression @applications @helpDetails @ARCPOC-377
   Scenario: Expand and collapse applications result selected help details
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Applications"
     Then User Verify The Page URL Contains "/applications"

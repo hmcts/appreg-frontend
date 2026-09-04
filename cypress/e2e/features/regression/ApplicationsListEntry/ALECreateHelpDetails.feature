@@ -10,7 +10,6 @@ Feature: Applications list entry create help details
 
   @regression @applicationListEntry @helpDetails @ARCPOC-377
   Scenario: Expand and collapse create entry help details
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Given User Navigates To The URL "/applications-list/:listId/create-entry"
     Then User Sees Page Heading "Create new entry"

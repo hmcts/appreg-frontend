@@ -1,14 +1,19 @@
 import { When } from '@badeball/cypress-cucumber-preprocessor';
 
+import {
+  APP_URLS,
+  AUTH_CONSTANTS,
+  HTTP_CONSTANTS,
+} from '../../../support/constants/ProjectConstants';
 import { AuthErrorScenarios } from '../../../support/helper/auth/AuthErrorScenarios';
 import { AuthHelper } from '../../../support/helper/auth/AuthHelper';
+import { NavigationHelper } from '../../../support/helper/navigation/NavigationHelper';
 import { resolveParallelUserKey } from '../../../support/utils/ParallelUserResolver';
 
-When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
-  cy.task<Record<string, { email: string; password: string }>>(
-    'getEnv',
-    'SSO_USERS',
-  ).then((ssoUsers) => {
+type SsoUsers = Record<string, { email: string; password: string }>;
+
+const signInWithConfiguredUser = (userType: string): void => {
+  cy.task<SsoUsers>('getEnv', 'SSO_USERS').then((ssoUsers) => {
     const resolvedUserKey = resolveParallelUserKey(userType, ssoUsers);
     const user = ssoUsers[resolvedUserKey] || ssoUsers['default'];
     if (!user) {
@@ -16,9 +21,40 @@ When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
         `SSO user type "${resolvedUserKey}" not found in configuration`,
       );
     }
+    NavigationHelper.navigateToPortalPage();
     AuthHelper.signInWithMicrosoftSSO(user.email, user.password);
     cy.screenshot(`SSOLogin-${resolvedUserKey}`);
   });
+};
+
+const validateSession = (): void => {
+  cy.request({
+    method: 'GET',
+    url: AUTH_CONSTANTS.SESSION_ENDPOINT,
+    failOnStatusCode: false,
+  }).then((response) => {
+    expect(response.status).to.eq(HTTP_CONSTANTS.STATUS_OK);
+    expect(response.body).to.have.property(
+      AUTH_CONSTANTS.AUTHENTICATED_PROPERTY,
+      AUTH_CONSTANTS.AUTHENTICATED_VALUE,
+    );
+  });
+
+  cy.getCookie(AUTH_CONSTANTS.SESSION_COOKIE_NAME).should('exist');
+};
+
+When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
+  cy.session(
+    userType,
+    () => {
+      signInWithConfiguredUser(userType);
+    },
+    {
+      validate: validateSession,
+    },
+  );
+  cy.visit(APP_URLS.HOME);
+  cy.wait(250); // Wait for the page to load completely
 });
 
 When(

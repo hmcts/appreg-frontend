@@ -7,7 +7,6 @@ Feature: Applications List Update
             | date      | time   | description   | status   | otherLocationDescription | cjaCode   | durationHours | durationMinutes |
             | <APIDate> | <Time> | <Description> | <Status> | <OtherLocation>          | <cjaCode> | <HH>          | <MM>            |
         Then User Verify Response Status Code Should Be "201"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
@@ -52,7 +51,6 @@ Feature: Applications List Update
             | date      | time   | description   | status   | courtLocationCode | durationHours | durationMinutes |
             | <APIDate> | <Time> | <Description> | <Status> | <Court>           | <HH>          | <MM>            |
         Then User Verify Response Status Code Should Be "201"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
@@ -99,7 +97,6 @@ Feature: Applications List Update
             | date      | time   | description   | status   | courtLocationCode | durationHours | durationMinutes |
             | <APIDate> | <Time> | <Description> | <Status> | <Court>           | <HH>          | <MM>            |
         Then User Verify Response Status Code Should Be "201"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
@@ -168,7 +165,6 @@ Feature: Applications List Update
             | date      | time   | description   | status               | courtLocationCode | durationHours | durationMinutes |
             | <APIDate> | <Time> | <Description> | <BeforeUpdateStatus> | <Court>           |               |                 |
         Then User Verify Response Status Code Should Be "201"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
@@ -245,7 +241,6 @@ Feature: Applications List Update
             | lodgementDate                                 | todayiso                       |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
-        Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |

@@ -1,7 +1,6 @@
 Feature: Applications List Create
   @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
   Scenario Outline: Create applications list using CJA and other location
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
     Then User Clicks On The Breadcrumb Link "Applications list"
@@ -33,7 +32,6 @@ Feature: Applications List Create
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
   Scenario Outline: Create applications list using Court Autocomplete
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
     When User Set Date Field "Date" To "<Date>"
@@ -61,7 +59,6 @@ Feature: Applications List Create
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792 @ARCPOC-1012
   Scenario Outline: Verify validation messages on creating applications list with No Input
-    Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
     When User Clicks On The "Create" Button
