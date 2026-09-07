@@ -3,51 +3,51 @@ Feature: Applications List Entry Notes Update
     Background: Create applications list entry
         Given User Authenticates Via API As "user1"
         When User Makes POST API Request To "/application-lists" With Body:
-            | date     | time  | status | description                 | courtLocationCode | durationHours | durationMinutes |
+            | date     | time  | status | description                      | courtLocationCode | durationHours | durationMinutes |
             | todayiso | 10:20 | OPEN   | Entry update Notes {SCENARIO_ID} | LCCC065           | 2             | 22              |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         Then User Stores Response Body Property "description" As "initiaDescription"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                         | null                            |
-            | applicationCode                               | MX99009                         |
-            | applicant.person.name.title                   | Mr                              |
+            | standardApplicantCode                         | null                                 |
+            | applicationCode                               | MX99009                              |
+            | applicant.person.name.title                   | Mr                                   |
             | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                 |
-            | applicant.person.name.firstName               | Henry                           |
-            | applicant.person.name.middleName              | James                           |
+            | applicant.person.name.firstName               | Henry                                |
+            | applicant.person.name.middleName              | James                                |
             | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street            |
-            | applicant.person.contactDetails.addressLine2  | Westminster                     |
-            | applicant.person.contactDetails.addressLine3  | London                          |
-            | applicant.person.contactDetails.addressLine4  | Greater London                  |
-            | applicant.person.contactDetails.addressLine5  | United Kingdom                  |
-            | applicant.person.contactDetails.postcode      | SW1A 1AA                        |
-            | applicant.person.contactDetails.phone         | 0203{RANDOM}                    |
-            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                   |
+            | applicant.person.contactDetails.addressLine2  | Westminster                          |
+            | applicant.person.contactDetails.addressLine3  | London                               |
+            | applicant.person.contactDetails.addressLine4  | Greater London                       |
+            | applicant.person.contactDetails.addressLine5  | United Kingdom                       |
+            | applicant.person.contactDetails.postcode      | SW1A 1AA                             |
+            | applicant.person.contactDetails.phone         | 0203{RANDOM}                         |
+            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                        |
             | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com   |
-            | respondent.person.name.title                  | Ms                              |
+            | respondent.person.name.title                  | Ms                                   |
             | respondent.person.name.lastName               | Clark {SCENARIO_ID}                  |
-            | respondent.person.name.firstName              | Emily                           |
-            | respondent.person.name.middleName             | Rose                            |
+            | respondent.person.name.firstName              | Emily                                |
+            | respondent.person.name.middleName             | Rose                                 |
             | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road            |
-            | respondent.person.contactDetails.addressLine2 | Bristol                         |
-            | respondent.person.contactDetails.addressLine3 | Avon                            |
-            | respondent.person.contactDetails.addressLine4 | United Kingdom                  |
-            | respondent.person.contactDetails.postcode     | BS15 5AA                        |
-            | respondent.person.contactDetails.phone        | 0117{RANDOM}                    |
-            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                   |
+            | respondent.person.contactDetails.addressLine2 | Bristol                              |
+            | respondent.person.contactDetails.addressLine3 | Avon                                 |
+            | respondent.person.contactDetails.addressLine4 | United Kingdom                       |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                             |
+            | respondent.person.contactDetails.phone        | 0117{RANDOM}                         |
+            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                        |
             | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com  |
-            | respondent.person.dateOfBirth                 | todayiso-25y                    |
-            | feeStatuses.0.paymentReference                | REF-{RANDOM}                    |
-            | feeStatuses.0.paymentStatus                   | PAID                            |
-            | feeStatuses.0.statusDate                      | todayiso                        |
-            | hasOffsiteFee                                 | false                           |
-            | caseReference                                 | CASE-{RANDOM}                   |
-            | accountNumber                                 | ACC-{RANDOM}                    |
+            | respondent.person.dateOfBirth                 | todayiso-25y                         |
+            | feeStatuses.0.paymentReference                | REF-{RANDOM}                         |
+            | feeStatuses.0.paymentStatus                   | PAID                                 |
+            | feeStatuses.0.statusDate                      | todayiso                             |
+            | hasOffsiteFee                                 | false                                |
+            | caseReference                                 | CASE-{RANDOM}                        |
+            | accountNumber                                 | ACC-{RANDOM}                         |
             | notes                                         | Original Note with ref {SCENARIO_ID} |
-            | officials.0.title                             | Mr                              |
+            | officials.0.title                             | Mr                                   |
             | officials.0.surname                           | Turner {SCENARIO_ID}                 |
-            | officials.0.forename                          | Graham                          |
-            | officials.0.type                              | MAGISTRATE                      |
+            | officials.0.forename                          | Graham                               |
+            | officials.0.type                              | MAGISTRATE                           |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
@@ -59,13 +59,13 @@ Feature: Applications List Entry Notes Update
     Scenario: Validate Update Notes Screen and process
         When User Signs In With Microsoft SSO As "user1"
         When User Searches Application List With:
-            | Date  | Time  | List description            | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+            | Date  | Time  | List description                 | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
             | today | 10:20 | Entry update Notes {SCENARIO_ID} | LCCC065     |       | OPEN               |                            |                       |           |
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
             | Date         | Location                          | Entries | Status |
             | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
         Then User Should See Row In Table "Entries" With Values:
-            | Applicant             | Respondent           |
+            | Applicant                  | Respondent                |
             | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} |
         Then User Clicks On The Link "List details"
         Then User Verify The Page URL Contains "#list-details"
@@ -81,25 +81,25 @@ Feature: Applications List Entry Notes Update
         Then User Should See The Button "Search" Is Enabled
         When User Clicks On The "Search" Button
         When User Clicks "Update notes" Button In Row Of Table "Application list entries" With:
-            | Applicant             | Respondent           |
+            | Applicant                  | Respondent                |
             | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} |
         Then User Verifies The "Application notes" Textbox Has Value "Original Note with ref {SCENARIO_ID}"
         Then User Verifies The "Additional notes" Textbox Is Empty
         Then User Should See The Textbox "Additional notes" Is Enabled
         Then User Should See The Textbox "Application notes" Is Disabled
         Then User Verifies The Summary Table "Selected application" Contains:
-            | Applicant         | Henry Taylor {SCENARIO_ID}                                    |
-            | Respondent        | Emily Clark {SCENARIO_ID}                                     |
+            | Applicant         | Henry Taylor {SCENARIO_ID}                               |
+            | Respondent        | Emily Clark {SCENARIO_ID}                                |
             | Application code  | MX99009                                                  |
             | Application title | Application for order re public health measures (person) |
             | Date              | todaydisplay                                             |
             | Fee               | Yes                                                      |
             | Resulted          | Yes                                                      |
-        Then User See "You have 2970 characters remaining" On The Page
+        Then User See "You have 2969 characters remaining" On The Page
         Then User Enters "Some value" Into The "Additional notes" Textbox
-        Then User See "You have 2960 characters remaining" On The Page
-        When User Clicks On The "Save additional notes" Button
         Then User See "You have 2959 characters remaining" On The Page
+        When User Clicks On The "Save additional notes" Button
+        Then User See "You have 2958 characters remaining" On The Page
         Then User Sees Success Banner "Success" Containing "Application entry updated successfully"
         Then User Verifies The "Application notes" Textbox Has Value "Original Note with ref {SCENARIO_ID} Some value"
         Then User Verifies The "Additional notes" Textbox Is Empty
