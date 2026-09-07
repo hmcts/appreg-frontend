@@ -67,7 +67,15 @@ jobs:
         run: echo "sha=$(git rev-parse HEAD)" >>"$GITHUB_OUTPUT"
 
       - name: Verify runner toolchain
-        run: ./.github/scripts/codex-runner-preflight.sh
+        run: |
+          for attempt in 1 2 3; do
+            if ./.github/scripts/codex-runner-preflight.sh; then
+              exit 0
+            fi
+            echo "::warning::Runner toolchain preflight attempt ${attempt}/3 failed; retrying after a short backoff."
+            sleep "$((attempt * 5))"
+          done
+          exit 1
 
       - name: Prepare read-only planning prompt
         id: prepare
@@ -248,7 +256,15 @@ jobs:
           echo "sha=${actual_sha}" >>"$GITHUB_OUTPUT"
 
       - name: Verify runner toolchain
-        run: ./.github/scripts/codex-runner-preflight.sh
+        run: |
+          for attempt in 1 2 3; do
+            if ./.github/scripts/codex-runner-preflight.sh; then
+              exit 0
+            fi
+            echo "::warning::Runner toolchain preflight attempt ${attempt}/3 failed; retrying after a short backoff."
+            sleep "$((attempt * 5))"
+          done
+          exit 1
 
       - name: Materialise validated Codex plan
         env:
@@ -469,7 +485,15 @@ jobs:
           persist-credentials: false
 
       - name: Verify runner toolchain
-        run: ./.github/scripts/codex-runner-preflight.sh
+        run: |
+          for attempt in 1 2 3; do
+            if ./.github/scripts/codex-runner-preflight.sh; then
+              exit 0
+            fi
+            echo "::warning::Runner toolchain preflight attempt ${attempt}/3 failed; retrying after a short backoff."
+            sleep "$((attempt * 5))"
+          done
+          exit 1
 
       - name: Download Codex output to repair
         uses: actions/download-artifact@v4
@@ -716,7 +740,15 @@ jobs:
           persist-credentials: false
 
       - name: Verify runner toolchain
-        run: ./.github/scripts/codex-runner-preflight.sh
+        run: |
+          for attempt in 1 2 3; do
+            if ./.github/scripts/codex-runner-preflight.sh; then
+              exit 0
+            fi
+            echo "::warning::Runner toolchain preflight attempt ${attempt}/3 failed; retrying after a short backoff."
+            sleep "$((attempt * 5))"
+          done
+          exit 1
 
       - name: Download Codex output to repair
         uses: actions/download-artifact@v4
@@ -963,7 +995,15 @@ jobs:
           persist-credentials: false
 
       - name: Verify runner toolchain
-        run: ./.github/scripts/codex-runner-preflight.sh
+        run: |
+          for attempt in 1 2 3; do
+            if ./.github/scripts/codex-runner-preflight.sh; then
+              exit 0
+            fi
+            echo "::warning::Runner toolchain preflight attempt ${attempt}/3 failed; retrying after a short backoff."
+            sleep "$((attempt * 5))"
+          done
+          exit 1
 
       - name: Download Codex output to repair
         uses: actions/download-artifact@v4
@@ -1484,7 +1524,15 @@ jobs:
           persist-credentials: false
 
       - name: Verify runner toolchain
-        run: ./.github/scripts/codex-runner-preflight.sh
+        run: |
+          for attempt in 1 2 3; do
+            if ./.github/scripts/codex-runner-preflight.sh; then
+              exit 0
+            fi
+            echo "::warning::Runner toolchain preflight attempt ${attempt}/3 failed; retrying after a short backoff."
+            sleep "$((attempt * 5))"
+          done
+          exit 1
 
       - name: Download Codex output to repair
         uses: actions/download-artifact@v4
