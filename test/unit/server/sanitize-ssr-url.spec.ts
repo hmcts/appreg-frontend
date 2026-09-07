@@ -11,6 +11,10 @@ describe('sanitizeSsrUrl', () => {
 
   it.each([
     ['/applications-list', '/applications-list'],
+    [
+      '/applications-list/123?listCreated=true#list-details',
+      '/applications-list/123?listCreated=true#list-details',
+    ],
     ['/assets/main.js', '/assets/main.js'],
     ['/sso/login', '/sso/login'],
   ])('leaves safe URL %s unchanged', (input, expected) => {
