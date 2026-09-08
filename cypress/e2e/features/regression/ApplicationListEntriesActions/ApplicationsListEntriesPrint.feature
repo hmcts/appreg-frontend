@@ -166,7 +166,7 @@ Feature: Application List Entries Print
             | Application Title      | Collection Order - Financial Penalty Account |
             | Result                 | Authorised                                   |
             | This matter was before | -                                            |
-            | Applicant              | Innovative Solutions Inc                     |
+            | Applicant              | British Gas Trading Limited                  |
             | Respondent             | Mr Owen Davies {SCENARIO_ID}                 |
             | Application Code       | AP99001                                      |
             | Application Title      | Appeal to Crown Court                        |
