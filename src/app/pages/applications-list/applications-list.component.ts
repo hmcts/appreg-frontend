@@ -274,16 +274,19 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           this.printRequest.set(null);
 
           if (!mode) {
+            this.appListSignalState.patch({ pdfLoading: false });
             return;
           }
 
           if (dto.length > 1) {
+            this.appListSignalState.patch({ pdfLoading: false });
             return;
           }
 
           if (!this.hasEntries(dto[0])) {
             // We only expect 1 object here
             this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
+            this.appListSignalState.patch({ pdfLoading: false });
             return;
           }
 
@@ -375,12 +378,26 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.onCjaInputChange();
   }
 
-  onPrintPage(id: string): void {
+  onPrintPage(row: ApplicationListRow): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    if (!id) {
+    if (!row) {
+      return;
+    }
+
+    const id = row.id;
+    const entriesCount = row.entries;
+
+    if (!id || entriesCount === undefined) {
+      return;
+    }
+
+    const hasEntries = entriesCount > 0;
+
+    if (!hasEntries) {
+      this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
       return;
     }
 
@@ -398,12 +415,26 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  onPrintContinuous(id: string, isClosed: boolean): void {
+  onPrintContinuous(row: ApplicationListRow, isClosed: boolean): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    if (!id) {
+    if (!row) {
+      return;
+    }
+
+    const id = row.id;
+    const entriesCount = row.entries;
+
+    if (!id || entriesCount === undefined) {
+      return;
+    }
+
+    const hasEntries = entriesCount > 0;
+
+    if (!hasEntries) {
+      this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
       return;
     }
 
