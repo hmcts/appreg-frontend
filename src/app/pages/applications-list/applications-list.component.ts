@@ -383,6 +383,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    this.appListSignalState.patch(clearNotificationsPatch());
+
     if (!row) {
       return;
     }
@@ -419,6 +421,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
+
+    this.appListSignalState.patch(clearNotificationsPatch());
 
     if (!row) {
       return;
