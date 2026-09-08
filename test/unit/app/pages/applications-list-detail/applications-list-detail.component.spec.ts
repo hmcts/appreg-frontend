@@ -737,6 +737,7 @@ describe('ApplicationsListDetail', () => {
         updateOfficialsDone: false,
         updateFeesDone: false,
         deleteDone: false,
+        pdfLoading: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
         body: {
@@ -796,6 +797,7 @@ describe('ApplicationsListDetail', () => {
         updateOfficialsDone: false,
         updateFeesDone: false,
         deleteDone: false,
+        pdfLoading: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
         body: {
@@ -816,15 +818,56 @@ describe('ApplicationsListDetail', () => {
       );
 
       component.id = '';
+      patchDetailState({ pdfLoading: true });
 
       await component.onPrintPageClick();
 
       expect(patchSpy).toHaveBeenCalled();
       expect(setSpy).not.toHaveBeenCalled();
+      expect(vm().pdfLoading).toBe(false);
+    });
+
+    it('leaves pdfLoading false when preview has no eligible entries', async () => {
+      component.id = 'list-123';
+      patchDetailState({ pdfLoading: true });
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+        of(null) as unknown as ReturnType<
+          ApplicationListEntriesApi['applicationListEntryBulkActionPreview']
+        >,
+      );
+
+      await component.onPrintPageClick();
+
+      expect(vm().pdfLoading).toBe(false);
+      expect(apiStub.printApplicationLists).not.toHaveBeenCalled();
     });
   });
 
   describe('printRequest effect', () => {
+    it('clears pdfLoading when a request has no mode', async () => {
+      patchDetailState({ pdfLoading: true });
+      (component as unknown as PrintRequestSignalAccessor).printRequest.set({
+        body: {
+          bulkGetApplicationListEntriesRequestDto: { listIds: ['list-123'] },
+        },
+      });
+      await flushSignalEffects(fixture);
+      expect(vm().pdfLoading).toBe(false);
+    });
+
+    it('clears pdfLoading when the print API returns no entries', async () => {
+      patchDetailState({ pdfLoading: true });
+      apiStub.printApplicationLists.mockReturnValueOnce(of([]));
+      (component as unknown as PrintRequestSignalAccessor).printRequest.set({
+        body: {
+          bulkGetApplicationListEntriesRequestDto: { listIds: ['list-123'] },
+        },
+        mode: 'page',
+      });
+      await flushSignalEffects(fixture);
+      expect(vm().pdfLoading).toBe(false);
+    });
+
     it('calls print api, clears the request, filters selected entries, and routes page mode to handlePrintPage', async () => {
       const setSpy = jest.spyOn(
         (component as unknown as PrintRequestSignalAccessor).printRequest,
@@ -987,6 +1030,7 @@ describe('ApplicationsListDetail', () => {
             text: getProblemText(requestError),
           },
         ],
+        pdfLoading: false,
       });
     });
   });

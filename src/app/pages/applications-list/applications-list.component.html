@@ -153,7 +153,7 @@
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onPrintPage(row.id)"
+              (click)="onPrintPage(row)"
             >
               Print page
             </button>
@@ -163,7 +163,7 @@
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onPrintContinuous(row.id, false)"
+              (click)="onPrintContinuous(row, false)"
             >
               Print continuous
             </button>
@@ -189,7 +189,7 @@
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onPrintPage(row.id)"
+              (click)="onPrintPage(row)"
             >
               Print page
             </button>
@@ -199,7 +199,7 @@
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onPrintContinuous(row.id, true)"
+              (click)="onPrintContinuous(row, true)"
             >
               Print continuous
             </button>
