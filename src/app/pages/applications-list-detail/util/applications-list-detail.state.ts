@@ -104,6 +104,7 @@ export const clearUpdateNotificationsPatch = (): Pick<
   | 'updateFeesDone'
   | 'bulkUploadDone'
   | 'deleteDone'
+  | 'pdfLoading'
 > => ({
   updateDone: false,
   updateOfficialsDone: false,
@@ -116,4 +117,5 @@ export const clearUpdateNotificationsPatch = (): Pick<
   updateFeesDone: false,
   bulkUploadDone: false,
   deleteDone: false,
+  pdfLoading: false,
 });

@@ -739,6 +739,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           this.printRequest.set(null);
 
           if (!mode) {
+            this.detailSignalState.patch({ pdfLoading: false });
             return;
           }
 
@@ -750,6 +751,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
                     text: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
                   },
                 ],
+                pdfLoading: false,
               });
               return;
             }
@@ -774,6 +776,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
                 text: errMsg,
               },
             ],
+            pdfLoading: false,
           });
         },
       },
@@ -1100,16 +1103,14 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   async onPrintContinuousClick(): Promise<void> {
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
-    this.detailSignalState.patch({ pdfLoading: true });
+
     if (!this.id) {
-      this.detailSignalState.patch({ pdfLoading: false });
       return;
     }
 
     const preview = await this.getBulkPreview(BulkActionType.PRINT_CONTINUOUS);
 
     if (!preview) {
-      this.detailSignalState.patch({ pdfLoading: false });
       return;
     }
 
@@ -1123,7 +1124,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         }),
       },
     };
-
+    this.detailSignalState.patch({ pdfLoading: true });
     this.printRequest.set({
       body: params,
       mode: 'continuous',
@@ -1133,16 +1134,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   async onPrintPageClick(): Promise<void> {
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
-    this.detailSignalState.patch({ pdfLoading: true });
     if (!this.id) {
-      this.detailSignalState.patch({ pdfLoading: false });
       return;
     }
 
     const preview = await this.getBulkPreview(BulkActionType.PRINT_PAGE);
 
     if (!preview) {
-      this.detailSignalState.patch({ pdfLoading: false });
       return;
     }
 
@@ -1156,7 +1154,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         }),
       },
     };
-
+    this.detailSignalState.patch({ pdfLoading: true });
     this.printRequest.set({
       body: params,
       mode: 'page',
