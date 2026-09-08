@@ -45,6 +45,7 @@ const PAGED_APPLICATION_LIST_LAYOUT = {
 
 const CONTINUOUS_APPLICATION_LIST_LAYOUT = {
   margin: 40,
+  bottomMargin: 20,
   columnGap: 28,
   labelWidth: 120,
   innerGap: 10,
@@ -312,10 +313,12 @@ export class PdfService {
     const gridWidth = pageW - 2 * layout.margin;
     const columnWidth = Math.floor((gridWidth - layout.columnGap) / 2);
     const secondColumnX = layout.margin + columnWidth + layout.columnGap;
-    const bottom = pageH - layout.margin - layout.footerGutter;
+    const bottom =
+      pageH - layout.margin - layout.footerGutter - layout.bottomMargin;
 
     let y = 0;
     let pageNo = 0;
+    let contentTop = 0;
 
     const pageHeaderTitle = this.getContinuousPageHeader(isClosed);
 
@@ -338,6 +341,7 @@ export class PdfService {
       });
 
       y = Math.round(headerY + layout.headerBottomPadding);
+      contentTop = y;
     };
 
     const ensureSpace = (needed: number): void => {
@@ -444,29 +448,49 @@ export class PdfService {
         labLines.length * layout.labelLineHeight,
         valLines.length * layout.valueLineHeight,
       );
-      ensureSpace(blockH);
 
-      doc.setFont(PDF_FONT.family, PDF_FONT.bold);
-      drawTextBlock(
-        doc,
-        labLines,
-        layout.margin,
-        y,
-        layout.labelFontSize,
-        layout.labelLineHeight,
-      );
+      if (blockH <= bottom - contentTop) {
+        ensureSpace(blockH);
+        this.drawContinuousFullRowPart(doc, labLines, valLines, layout, y);
+        y = Math.round(y + blockH + spacing);
+        return;
+      }
 
-      doc.setFont(PDF_FONT.family, PDF_FONT.normal);
-      drawTextBlock(
-        doc,
-        valLines,
-        layout.margin + layout.labelWidth + layout.innerGap,
-        y,
-        layout.valueFontSize,
-        layout.valueLineHeight,
-      );
+      let remainingLines = valLines;
+      let isFirstPart = true;
 
-      y = Math.round(y + blockH + spacing);
+      while (remainingLines.length) {
+        const labelLines = isFirstPart
+          ? labLines
+          : toLines(doc, `${label} (continued)`, layout.labelWidth);
+        const labelH = labelLines.length * layout.labelLineHeight;
+        const availableHeight = bottom - y;
+        const maxValueLines = Math.floor(
+          availableHeight / layout.valueLineHeight,
+        );
+
+        if (labelH > availableHeight || maxValueLines < 1) {
+          doc.addPage();
+          drawHeader();
+          continue;
+        }
+
+        const valueLines = remainingLines.slice(0, maxValueLines);
+        remainingLines = remainingLines.slice(maxValueLines);
+
+        this.drawContinuousFullRowPart(doc, labelLines, valueLines, layout, y);
+        y = Math.round(
+          y + Math.max(labelH, valueLines.length * layout.valueLineHeight),
+        );
+
+        if (remainingLines.length) {
+          doc.addPage();
+          drawHeader();
+        } else {
+          y = Math.round(y + spacing);
+        }
+        isFirstPart = false;
+      }
     };
 
     drawHeader();
@@ -488,6 +512,34 @@ export class PdfService {
       uniquePlaces.length === 1 ? uniquePlaces[0] : 'applications';
     const datePart = getDateStamp();
     doc.save(`${courtPart}-${datePart}-print-cont.pdf`);
+  }
+
+  private drawContinuousFullRowPart(
+    doc: JsPDFLike,
+    labelLines: string[],
+    valueLines: string[],
+    layout: typeof CONTINUOUS_APPLICATION_LIST_LAYOUT,
+    y: number,
+  ): void {
+    doc.setFont(PDF_FONT.family, PDF_FONT.bold);
+    drawTextBlock(
+      doc,
+      labelLines,
+      layout.margin,
+      y,
+      layout.labelFontSize,
+      layout.labelLineHeight,
+    );
+
+    doc.setFont(PDF_FONT.family, PDF_FONT.normal);
+    drawTextBlock(
+      doc,
+      valueLines,
+      layout.margin + layout.labelWidth + layout.innerGap,
+      y,
+      layout.valueFontSize,
+      layout.valueLineHeight,
+    );
   }
 
   async generateStandardApplicantsPdf(

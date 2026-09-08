@@ -631,13 +631,15 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
   it('adds a new page and increments page number when content exceeds available space', async () => {
     const { __instance } = getJsPDF();
 
-    // Force a very short page height so ensureSpace() triggers
+    // Force a short, but still usable, page height so Notes must span pages.
     const originalGetHeight = __instance.internal.pageSize.getHeight;
-    __instance.internal.pageSize.getHeight = () => 180; // tiny to guarantee breaks
+    __instance.internal.pageSize.getHeight = () => 300;
 
     try {
       // Make one DTO with an entry that has a very tall "Notes" block
-      const tallNotes = new Array(50).fill('line').join('\n');
+      const tallNotes = [...new Array(50).fill('line'), 'final note line'].join(
+        '\n',
+      );
       await service.generateContinuousApplicationListsPdf(
         [
           makeRawDto({}, [
@@ -651,8 +653,36 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
         false,
       );
 
-      expect(__instance.addPage).toHaveBeenCalled(); // at least once
+      expect(__instance.addPage.mock.calls.length).toBeGreaterThan(1);
       expect(textCallsContain('Page 2')).toBe(true);
+      expect(textCallsContain('Notes (continued)')).toBe(true);
+      expect(textCallsContain('final note line')).toBe(true);
+    } finally {
+      __instance.internal.pageSize.getHeight = originalGetHeight;
+    }
+  });
+
+  it('leaves a bottom margin so notes do not run into the footer area', async () => {
+    const { __instance } = getJsPDF();
+
+    const originalGetHeight = __instance.internal.pageSize.getHeight;
+    __instance.internal.pageSize.getHeight = () => 300;
+
+    try {
+      await service.generateContinuousApplicationListsPdf(
+        [
+          makeRawDto({}, [
+            {
+              applicant: { person: { name: { forename: 'A', surname: 'S' } } },
+              respondent: { organisation: { name: 'Org' } },
+              notes: 'A note close to the bottom edge',
+            },
+          ]),
+        ],
+        false,
+      );
+
+      expect(__instance.addPage).toHaveBeenCalledTimes(1);
     } finally {
       __instance.internal.pageSize.getHeight = originalGetHeight;
     }
