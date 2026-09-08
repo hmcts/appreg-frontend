@@ -41,6 +41,19 @@ const makePrintDto = (entries: unknown[] = []): ApplicationListGetPrintDto =>
     entries,
   };
 
+const makeApplicationListRow = (
+  overrides: Partial<ApplicationListRow> = {},
+): ApplicationListRow => ({
+  id: 'abc-123',
+  date: '2025-01-01',
+  time: '10:00',
+  location: 'Test Court',
+  description: 'Test applications list',
+  status: ApplicationListStatus.OPEN,
+  entries: 1,
+  ...overrides,
+});
+
 const applicationsListsApiMock: jest.Mocked<
   Pick<ApplicationListsApi, 'getApplicationLists' | 'printApplicationLists'>
 > = {
@@ -82,6 +95,10 @@ const getRecordsState = (component: ApplicationsList) =>
 
 type AppListSignalStateAccessor = {
   appListSignalState: { patch: (p: Partial<ApplicationsListState>) => void };
+};
+
+type PrintRequestSignalAccessor = {
+  printRequest: { set: (request: unknown) => void };
 };
 
 type AppListRecordsStateAccessor = {
@@ -669,11 +686,42 @@ describe('ApplicationsList.onPrintPage', () => {
     const { comp, api, pdf, patchSpy } = createInstance('browser');
     patchSpy.mockClear();
 
-    comp.onPrintPage('');
+    comp.onPrintPage({ id: '', entries: 1 } as ApplicationListRow);
 
     expect(patchSpy).not.toHaveBeenCalled();
     expect(api.printApplicationLists).not.toHaveBeenCalled();
     expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['missing row', undefined],
+    ['entries count', { id: 'abc-123' }],
+  ])('returns early when %s is unavailable', (_label, row) => {
+    const { comp, api, pdf, patchSpy, showInlineSpy } =
+      createInstance('browser');
+    patchSpy.mockClear();
+
+    comp.onPrintPage(row as ApplicationListRow);
+
+    expect(patchSpy).not.toHaveBeenCalled();
+    expect(showInlineSpy).not.toHaveBeenCalled();
+    expect(api.printApplicationLists).not.toHaveBeenCalled();
+    expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
+  });
+
+  it('shows an inline error and does not request a zero-entry list', () => {
+    const { comp, api, pdf, patchSpy, showInlineSpy } =
+      createInstance('browser');
+    patchSpy.mockClear();
+
+    comp.onPrintPage(makeApplicationListRow({ entries: 0 }));
+
+    expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
+    expect(patchSpy).not.toHaveBeenCalled();
+    expect(api.printApplicationLists).not.toHaveBeenCalled();
+    expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
   });
 
   it('clears errors and calls API with transferCache: false', async () => {
@@ -683,7 +731,7 @@ describe('ApplicationsList.onPrintPage', () => {
     const dto = makePrintDto([]);
     api.printApplicationLists.mockReturnValue(of([dto]));
 
-    comp.onPrintPage('abc-123');
+    comp.onPrintPage({ id: 'abc-123', entries: 1 } as ApplicationListRow);
     await flushSignalEffects(fixture);
 
     expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
@@ -706,11 +754,39 @@ describe('ApplicationsList.onPrintPage', () => {
     const dto = makePrintDto([]);
     api.printApplicationLists.mockReturnValue(of([dto]));
 
-    comp.onPrintPage('abc-123');
+    comp.onPrintPage({ id: 'abc-123', entries: 1 } as ApplicationListRow);
     await flushSignalEffects(fixture);
 
     expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
     expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
+  });
+
+  it('clears the loader when the API returns multiple print DTOs', async () => {
+    const { comp, api, fixture } = createInstance('browser');
+    api.printApplicationLists.mockReturnValue(
+      of([makePrintDto([{}]), makePrintDto([{}])]),
+    );
+
+    comp.onPrintPage(makeApplicationListRow());
+    await flushSignalEffects(fixture);
+
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
+  });
+
+  it('clears the loader when a print request has no mode', async () => {
+    const { comp, api, fixture } = createInstance('browser');
+    api.printApplicationLists.mockReturnValue(of([makePrintDto([{}])]));
+    patchUIState(comp, { pdfLoading: true });
+
+    (comp as unknown as PrintRequestSignalAccessor).printRequest.set({
+      body: {
+        bulkGetApplicationListEntriesRequestDto: { listIds: ['abc-123'] },
+      },
+    });
+    await flushSignalEffects(fixture);
+
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
   });
 
   it('generates PDF on the browser when entries exist', async () => {
@@ -722,7 +798,7 @@ describe('ApplicationsList.onPrintPage', () => {
     // ensure the mock is typed like the real method’s return
     api.printApplicationLists.mockReturnValue(of([dto]));
 
-    comp.onPrintPage('abc-123');
+    comp.onPrintPage({ id: 'abc-123', entries: 1 } as ApplicationListRow);
     await flushSignalEffects(fixture);
 
     expect(pdf.generatePagedApplicationListPdf).toHaveBeenCalledTimes(1);
@@ -743,7 +819,7 @@ describe('ApplicationsList.onPrintPage', () => {
       }),
     );
 
-    comp.onPrintPage('abc-123');
+    comp.onPrintPage({ id: 'abc-123', entries: 1 } as ApplicationListRow);
     fixture.detectChanges();
     await Promise.resolve();
     fixture.detectChanges();
@@ -762,7 +838,7 @@ describe('ApplicationsList.onPrintPage', () => {
     const dto = makePrintDto([]);
     api.printApplicationLists.mockReturnValue(of([dto]));
 
-    comp.onPrintPage('abc-123');
+    comp.onPrintPage({ id: 'abc-123', entries: 1 } as ApplicationListRow);
     await flushSignalEffects(fixture);
 
     expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
@@ -775,10 +851,11 @@ describe('ApplicationsList.onPrintPage', () => {
       throwError(() => ({ status: 404 })),
     );
 
-    comp.onPrintPage('abc-123');
+    comp.onPrintPage({ id: 'abc-123', entries: 1 } as ApplicationListRow);
     await flushSignalEffects(fixture);
 
     expect(showInlineSpy).toHaveBeenCalledWith('Unable to generate PDF.');
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
   });
 
   it('maps non-404 errors to generic banner', async () => {
@@ -788,7 +865,7 @@ describe('ApplicationsList.onPrintPage', () => {
       throwError(() => ({ status: 500 })),
     );
 
-    comp.onPrintPage('abc-123');
+    comp.onPrintPage({ id: 'abc-123', entries: 1 } as ApplicationListRow);
     await flushSignalEffects(fixture);
 
     expect(showInlineSpy).toHaveBeenCalledWith('Unable to generate PDF.');
@@ -805,7 +882,10 @@ describe('ApplicationsList.onPrintContinuous', () => {
       createInstance('server');
     patchSpy.mockClear();
 
-    comp.onPrintContinuous('abc-123', false);
+    comp.onPrintContinuous(
+      { id: 'abc-123', entries: 1 } as ApplicationListRow,
+      false,
+    );
     await flushSignalEffects(fixture);
 
     expect(patchSpy).not.toHaveBeenCalled();
@@ -819,12 +899,43 @@ describe('ApplicationsList.onPrintContinuous', () => {
       createInstance('browser');
     patchSpy.mockClear();
 
-    comp.onPrintContinuous('', false);
+    comp.onPrintContinuous({ id: '', entries: 1 } as ApplicationListRow, false);
 
     expect(patchSpy).not.toHaveBeenCalled();
     expect(api.printApplicationLists).not.toHaveBeenCalled();
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
     expect(showInlineSpy).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['missing row', undefined],
+    ['entries count', { id: 'abc-123' }],
+  ])('returns early when %s is unavailable', (_label, row) => {
+    const { comp, api, pdf, patchSpy, showInlineSpy } =
+      createInstance('browser');
+    patchSpy.mockClear();
+
+    comp.onPrintContinuous(row as ApplicationListRow, false);
+
+    expect(patchSpy).not.toHaveBeenCalled();
+    expect(showInlineSpy).not.toHaveBeenCalled();
+    expect(api.printApplicationLists).not.toHaveBeenCalled();
+    expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
+  });
+
+  it('shows an inline error and does not request a zero-entry list', () => {
+    const { comp, api, pdf, patchSpy, showInlineSpy } =
+      createInstance('browser');
+    patchSpy.mockClear();
+
+    comp.onPrintContinuous(makeApplicationListRow({ entries: 0 }), false);
+
+    expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
+    expect(patchSpy).not.toHaveBeenCalled();
+    expect(api.printApplicationLists).not.toHaveBeenCalled();
+    expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
   });
 
   it('clears errors and calls API with transferCache: false', async () => {
@@ -834,7 +945,10 @@ describe('ApplicationsList.onPrintContinuous', () => {
     const dto = makePrintDto([{ a: 1 }]);
     api.printApplicationLists.mockReturnValue(of([dto]));
 
-    comp.onPrintContinuous('abc-123', false);
+    comp.onPrintContinuous(
+      { id: 'abc-123', entries: 1 } as ApplicationListRow,
+      false,
+    );
     await flushSignalEffects(fixture);
 
     expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
@@ -856,11 +970,27 @@ describe('ApplicationsList.onPrintContinuous', () => {
 
     api.printApplicationLists.mockReturnValue(of([makePrintDto([])]));
 
-    comp.onPrintContinuous('abc-123', false);
+    comp.onPrintContinuous(
+      { id: 'abc-123', entries: 1 } as ApplicationListRow,
+      false,
+    );
     await flushSignalEffects(fixture);
 
     expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
+  });
+
+  it('clears the loader when the API returns multiple print DTOs', async () => {
+    const { comp, api, fixture } = createInstance('browser');
+    api.printApplicationLists.mockReturnValue(
+      of([makePrintDto([{}]), makePrintDto([{}])]),
+    );
+
+    comp.onPrintContinuous(makeApplicationListRow(), false);
+    await flushSignalEffects(fixture);
+
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
   });
 
   it('generates PDF on the browser when entries exist', async () => {
@@ -869,7 +999,10 @@ describe('ApplicationsList.onPrintContinuous', () => {
     const dto = makePrintDto([{}]);
     api.printApplicationLists.mockReturnValue(of([dto]));
 
-    comp.onPrintContinuous('abc-123', false);
+    comp.onPrintContinuous(
+      { id: 'abc-123', entries: 1 } as ApplicationListRow,
+      false,
+    );
     await flushSignalEffects(fixture);
 
     expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
@@ -889,12 +1022,16 @@ describe('ApplicationsList.onPrintContinuous', () => {
       new Error('pdf fail'),
     );
 
-    comp.onPrintContinuous('abc-123', false);
+    comp.onPrintContinuous(
+      { id: 'abc-123', entries: 1 } as ApplicationListRow,
+      false,
+    );
     await flushSignalEffects(fixture);
 
     expect(api.printApplicationLists).toHaveBeenCalledTimes(1);
     expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
     expect(showInlineSpy).toHaveBeenCalledWith('Unable to generate PDF.');
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
   });
 });
 
