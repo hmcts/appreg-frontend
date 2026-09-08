@@ -688,7 +688,7 @@ describe('ApplicationsList.onPrintPage', () => {
 
     comp.onPrintPage({ id: '', entries: 1 } as ApplicationListRow);
 
-    expect(patchSpy).not.toHaveBeenCalled();
+    expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
     expect(api.printApplicationLists).not.toHaveBeenCalled();
     expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
   });
@@ -703,7 +703,7 @@ describe('ApplicationsList.onPrintPage', () => {
 
     comp.onPrintPage(row as ApplicationListRow);
 
-    expect(patchSpy).not.toHaveBeenCalled();
+    expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
     expect(showInlineSpy).not.toHaveBeenCalled();
     expect(api.printApplicationLists).not.toHaveBeenCalled();
     expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
@@ -718,7 +718,7 @@ describe('ApplicationsList.onPrintPage', () => {
     comp.onPrintPage(makeApplicationListRow({ entries: 0 }));
 
     expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
-    expect(patchSpy).not.toHaveBeenCalled();
+    expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
     expect(api.printApplicationLists).not.toHaveBeenCalled();
     expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
     expect(getUIFlagState(comp).pdfLoading).toBe(false);
@@ -901,7 +901,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
 
     comp.onPrintContinuous({ id: '', entries: 1 } as ApplicationListRow, false);
 
-    expect(patchSpy).not.toHaveBeenCalled();
+    expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
     expect(api.printApplicationLists).not.toHaveBeenCalled();
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
     expect(showInlineSpy).not.toHaveBeenCalled();
@@ -917,7 +917,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
 
     comp.onPrintContinuous(row as ApplicationListRow, false);
 
-    expect(patchSpy).not.toHaveBeenCalled();
+    expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
     expect(showInlineSpy).not.toHaveBeenCalled();
     expect(api.printApplicationLists).not.toHaveBeenCalled();
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
@@ -932,7 +932,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
     comp.onPrintContinuous(makeApplicationListRow({ entries: 0 }), false);
 
     expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
-    expect(patchSpy).not.toHaveBeenCalled();
+    expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
     expect(api.printApplicationLists).not.toHaveBeenCalled();
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
     expect(getUIFlagState(comp).pdfLoading).toBe(false);
