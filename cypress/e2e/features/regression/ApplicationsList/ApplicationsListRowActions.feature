@@ -26,7 +26,7 @@ Feature: Application List Row Actions
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                              | Entries | Status | SelectButtonText | ButtonName       |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                                   | Entries | Status | SelectButtonText | ButtonName       |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1     | Test_{SCENARIO_ID} for Applications to review | 0       | OPEN   | Select           | Print continuous |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Test_{SCENARIO_ID} for Leeds applications     | 0       | OPEN   | Select           | Print page       |
 
@@ -195,27 +195,27 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
         Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Date & Time            | <DisplayDate> <Time>                                                                                                                      |
-            | Duration               | <durationHours> Hours, <durationMinutes> Minutes                                                                                          |
-            | Location               | <Court>                                                                                                                                   |
-            | Applicant              | Mr Henry James Taylor {SCENARIO_ID}                                                                                                            |
-            | Respondent             | Ms Emily Rose Clark {SCENARIO_ID}                                                                                                              |
-            | Case Reference         | CASE-{RANDOM}                                                                                                                             |
-            | Application Code       | AP99001                                                                                                                                   |
-            | Account Reference      | ACC-{RANDOM}                                                                                                                              |
-            | Application Title      | Appeal to Crown Court                                                                                                                     |
-            | Result                 | -                                                                                                                                         |
-            | Notes                  | Case noted with ref {SCENARIO_ID}                                                                                                              |
+            | Date & Time            | <DisplayDate> <Time>                                                                                                                                          |
+            | Duration               | <durationHours> Hours, <durationMinutes> Minutes                                                                                                              |
+            | Location               | <Court>                                                                                                                                                       |
+            | Applicant              | Mr Henry James Taylor {SCENARIO_ID}                                                                                                                           |
+            | Respondent             | Ms Emily Rose Clark {SCENARIO_ID}                                                                                                                             |
+            | Case Reference         | CASE-{RANDOM}                                                                                                                                                 |
+            | Application Code       | AP99001                                                                                                                                                       |
+            | Account Reference      | ACC-{RANDOM}                                                                                                                                                  |
+            | Application Title      | Appeal to Crown Court                                                                                                                                         |
+            | Result                 | -                                                                                                                                                             |
+            | Notes                  | Case noted with ref {SCENARIO_ID}                                                                                                                             |
             | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
-            | Applicant              | Mr John A B Smith {SCENARIO_ID}                                                                                                                |
-            | Respondent             | -                                                                                                                                         |
-            | Case Reference         | CASE-{RANDOM}                                                                                                                             |
-            | Application Code       | AD99002                                                                                                                                   |
-            | Account Reference      | ACC-{RANDOM}                                                                                                                              |
-            | Application Title      | Copy documents (electronic)                                                                                                               |
-            | Result                 | -                                                                                                                                         |
-            | Notes                  | Application discussion ref {SCENARIO_ID}                                                                                                       |
-            | This matter was before | Mr Smith {SCENARIO_ID} John MAGISTRATE                                                                                                         |
+            | Applicant              | Mr John A B Smith {SCENARIO_ID}                                                                                                                               |
+            | Respondent             | -                                                                                                                                                             |
+            | Case Reference         | CASE-{RANDOM}                                                                                                                                                 |
+            | Application Code       | AD99002                                                                                                                                                       |
+            | Account Reference      | ACC-{RANDOM}                                                                                                                                                  |
+            | Application Title      | Copy documents (electronic)                                                                                                                                   |
+            | Result                 | -                                                                                                                                                             |
+            | Notes                  | Application discussion ref {SCENARIO_ID}                                                                                                                      |
+            | This matter was before | Mr Smith {SCENARIO_ID} John MAGISTRATE                                                                                                                        |
         Then User Clears Downloaded PDFs
         When User Clicks "<SelectButtonText>" Then "Print page" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
@@ -226,22 +226,22 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Has <Pages> Pages
         Then User Verifies Latest Downloaded PDF Contains Text "<Court>"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Application brought by | Mr Henry James Taylor {SCENARIO_ID}                                                                                                            |
-            | Respondent             | Ms Emily Rose Clark {SCENARIO_ID}                                                                                                              |
-            | Matter considered      | Appeal to Crown Court                                                                                                                     |
+            | Application brought by | Mr Henry James Taylor {SCENARIO_ID}                                                                                                                           |
+            | Respondent             | Ms Emily Rose Clark {SCENARIO_ID}                                                                                                                             |
+            | Matter considered      | Appeal to Crown Court                                                                                                                                         |
             | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
-            | Dated                  | <DisplayDateLong>                                                                                                                         |
-            | Produced on            | <DisplayDate>                                                                                                                             |
-            | Application brought by | Mr John A B Smith {SCENARIO_ID}                                                                                                                |
-            | Respondent             | -                                                                                                                                         |
-            | Matter considered      | Copy documents (electronic)                                                                                                               |
-            | AD99002                | Request for copy documents on computer disc or in electronic form                                                                         |
-            | This matter was before | Mr Smith {SCENARIO_ID} John MAGISTRATE                                                                                                         |
-            | Dated                  | <DisplayDateLong>                                                                                                                         |
-            | Produced on            | <DisplayDate>                                                                                                                             |
+            | Dated                  | <DisplayDateLong>                                                                                                                                             |
+            | Produced on            | <DisplayDate>                                                                                                                                                 |
+            | Application brought by | Mr John A B Smith {SCENARIO_ID}                                                                                                                               |
+            | Respondent             | -                                                                                                                                                             |
+            | Matter considered      | Copy documents (electronic)                                                                                                                                   |
+            | AD99002                | Request for copy documents on computer disc or in electronic form                                                                                             |
+            | This matter was before | Mr Smith {SCENARIO_ID} John MAGISTRATE                                                                                                                        |
+            | Dated                  | <DisplayDateLong>                                                                                                                                             |
+            | Produced on            | <DisplayDate>                                                                                                                                                 |
         Then User Clears Downloaded PDFs
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                                  | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 2     |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449
@@ -314,16 +314,16 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
         Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Date & Time            | <DisplayDate> <Time>                                                                                                                      |
-            | Duration               | -                                                                                                                                         |
-            | Location               | <otherLocationDescription> A8 - Derby                                                                                                     |
-            | Applicant              | British Gas Trading Limited Millstream, Maidenhead Road, Windsor, SL4 5GD                                                                 |
-            | Respondent             | -                                                                                                                                         |
-            | Case Reference         | CASE-{RANDOM}                                                                                                                             |
-            | Application Code       | AD99004                                                                                                                                   |
-            | Account Reference      | ACC-{RANDOM}                                                                                                                              |
-            | Result                 | -                                                                                                                                         |
-            | Notes                  | Case noted with ref {SCENARIO_ID}                                                                                                              |
+            | Date & Time            | <DisplayDate> <Time>                                                                                                                                          |
+            | Duration               | -                                                                                                                                                             |
+            | Location               | <otherLocationDescription> A8 - Derby                                                                                                                         |
+            | Applicant              | British Gas Trading Limited Millstream, Maidenhead Road, Windsor, SL4 5GD                                                                                     |
+            | Respondent             | -                                                                                                                                                             |
+            | Case Reference         | CASE-{RANDOM}                                                                                                                                                 |
+            | Application Code       | AD99004                                                                                                                                                       |
+            | Account Reference      | ACC-{RANDOM}                                                                                                                                                  |
+            | Result                 | -                                                                                                                                                             |
+            | Notes                  | Case noted with ref {SCENARIO_ID}                                                                                                                             |
             | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
         Then User Clears Downloaded PDFs
         When User Clicks "<SelectButtonText>" Then "Print page" From Menu In Row Of Table "<TableName>" With:
@@ -336,14 +336,14 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains Text "<otherLocationDescription>"
         Then User Verifies Latest Downloaded PDF Contains Text "<cjaCode> - <OptionText>"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Application brought by | British Gas Trading Limited Maidenhead Road, Windsor, SL4 5GD                                                                             |
-            | Respondent             | -                                                                                                                                         |
+            | Application brought by | British Gas Trading Limited Maidenhead Road, Windsor, SL4 5GD                                                                                                 |
+            | Respondent             | -                                                                                                                                                             |
             | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
-            | Dated                  | <DisplayDateLong>                                                                                                                         |
-            | Produced on            | <DisplayDate>                                                                                                                             |
+            | Dated                  | <DisplayDateLong>                                                                                                                                             |
+            | Produced on            | <DisplayDate>                                                                                                                                                 |
         Then User Clears Downloaded PDFs
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | cjaCode | OptionText | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous         | PDFNamePage               | Pages |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | cjaCode | OptionText | otherLocationDescription                     | Description                    | Entries | Status | SelectButtonText | PDFNameContinuous         | PDFNamePage               | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-1h | A8      | Derby      | This is a location description {SCENARIO_ID} | ENFORCEMENT LIST-{SCENARIO_ID} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
 
 
@@ -444,16 +444,16 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains Text "Applications Register Report"
         Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Date & Time            | <DisplayDate> <Time>                                              |
-            | Duration               | <durationMinutes> Minutes                                         |
-            | Location               | <Court>                                                           |
+            | Date & Time            | <DisplayDate> <Time>                                                   |
+            | Duration               | <durationMinutes> Minutes                                              |
+            | Location               | <Court>                                                                |
             | Applicant              | ACME Industries LTD {SCENARIO_ID} Downing Street, Westminster, London, |
             | Respondent             | Beta Solutions Inc {SCENARIO_ID} Fleet Street, London, EC4Y 1AA        |
-            | Case Reference         | CASE-{RANDOM}                                                     |
-            | Application Code       | MS99006                                                           |
-            | Account Reference      | ACC-{RANDOM}                                                      |
-            | Application Title      | Condemnation of Unfit Food                                        |
-            | Result                 | Authorised                                                        |
+            | Case Reference         | CASE-{RANDOM}                                                          |
+            | Application Code       | MS99006                                                                |
+            | Account Reference      | ACC-{RANDOM}                                                           |
+            | Application Title      | Condemnation of Unfit Food                                             |
+            | Result                 | Authorised                                                             |
             | Notes                  | Case noted with ref {SCENARIO_ID}                                      |
             | This matter was before | Ms Patel {SCENARIO_ID} Anita MAGISTRATE                                |
         Then User Clears Downloaded PDFs
@@ -468,16 +468,16 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
             | Application brought by | ACME Industries LTD {SCENARIO_ID} Downing Street, Westminster, London, SW1A 2AA Email: john-test@gmail.com Phone: 01225 123456 Mobile: 07123456789 ACC-{RANDOM} |
             | Respondent             | Beta Solutions Inc {SCENARIO_ID} Fleet Street, London, EC4Y 1AA Email: betasolutions@gmail.com Phone: 01132 654321 Mobile: 07987654321                          |
-            | Matter considered      | Condemnation of Unfit Food                                                                                                                                 |
+            | Matter considered      | Condemnation of Unfit Food                                                                                                                                      |
             | This matter was before | Ms Patel {SCENARIO_ID} Anita MAGISTRATE                                                                                                                         |
-            | Dated                  | <DisplayDateLong>                                                                                                                                          |
-            | Produced on            | <DisplayDate>                                                                                                                                              |
+            | Dated                  | <DisplayDateLong>                                                                                                                                               |
+            | Produced on            | <DisplayDate>                                                                                                                                                   |
         Then User Clears Downloaded PDFs
         # Application list cannot be deleted if it is CLOSED
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "400"
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                                  | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037 @ARCPOC-1688
@@ -500,8 +500,7 @@ Feature: Application List Row Actions
         Then User See "List details" On The Page
         Then User Should See The Button "Actions"
         When User Clicks On The "Actions" Button
-        Then User Should See The Button "Delete list"
-        When User Clicks On The "Delete list" Button
+        Then User Clicks On The Link "Delete list"
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         Then User Clicks On The Link "Cancel"
@@ -510,8 +509,7 @@ Feature: Application List Row Actions
         Then User Verifies The "List description" Textbox Has Value "<Description>"
         Then User Should See The Button "Actions"
         When User Clicks On The "Actions" Button
-        Then User Should See The Button "Delete list"
-        When User Clicks On The "Delete list" Button
+        Then User Clicks On The Link "Delete list"
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
@@ -526,7 +524,7 @@ Feature: Application List Row Actions
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                             | Status | SelectButtonText |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                                  | Status | SelectButtonText |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | OPEN   | Select           |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
@@ -538,57 +536,57 @@ Feature: Application List Row Actions
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                         | null                           |
-            | applicationCode                               | AP99001                        |
-            | applicant.person.name.title                   | Mr                             |
+            | standardApplicantCode                         | null                                |
+            | applicationCode                               | AP99001                             |
+            | applicant.person.name.title                   | Mr                                  |
             | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
-            | applicant.person.name.firstName               | Henry                          |
-            | applicant.person.name.middleName              | James                          |
+            | applicant.person.name.firstName               | Henry                               |
+            | applicant.person.name.middleName              | James                               |
             | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
-            | applicant.person.contactDetails.addressLine2  | Westminster                    |
-            | applicant.person.contactDetails.addressLine3  | London                         |
-            | applicant.person.contactDetails.addressLine4  | Greater London                 |
-            | applicant.person.contactDetails.addressLine5  | United Kingdom                 |
-            | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
-            | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
-            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
+            | applicant.person.contactDetails.addressLine2  | Westminster                         |
+            | applicant.person.contactDetails.addressLine3  | London                              |
+            | applicant.person.contactDetails.addressLine4  | Greater London                      |
+            | applicant.person.contactDetails.addressLine5  | United Kingdom                      |
+            | applicant.person.contactDetails.postcode      | SW1A 1AA                            |
+            | applicant.person.contactDetails.phone         | 0203{RANDOM}                        |
+            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                       |
             | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
-            | respondent.person.name.title                  | Ms                             |
+            | respondent.person.name.title                  | Ms                                  |
             | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
-            | respondent.person.name.firstName              | Emily                          |
-            | respondent.person.name.middleName             | Rose                           |
+            | respondent.person.name.firstName              | Emily                               |
+            | respondent.person.name.middleName             | Rose                                |
             | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
-            | respondent.person.contactDetails.addressLine2 | Bristol                        |
-            | respondent.person.contactDetails.addressLine3 | Avon                           |
-            | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-            | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
-            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
+            | respondent.person.contactDetails.addressLine2 | Bristol                             |
+            | respondent.person.contactDetails.addressLine3 | Avon                                |
+            | respondent.person.contactDetails.addressLine4 | United Kingdom                      |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                            |
+            | respondent.person.contactDetails.phone        | 0117{RANDOM}                        |
+            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                       |
             | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | wordingFields.0.key                           | Date of Hearing                |
+            | respondent.person.dateOfBirth                 | todayiso-25y                        |
+            | wordingFields.0.key                           | Date of Hearing                     |
             | wordingFields.0.value                         | "{SCENARIO_ID}"                     |
-            | hasOffsiteFee                                 | true                           |
-            | caseReference                                 | CASE-{RANDOM}                  |
-            | accountNumber                                 | ACC-{RANDOM}                   |
+            | hasOffsiteFee                                 | true                                |
+            | caseReference                                 | CASE-{RANDOM}                       |
+            | accountNumber                                 | ACC-{RANDOM}                        |
             | notes                                         | Case noted with ref {SCENARIO_ID}   |
-            | lodgementDate                                 | todayiso                       |
-            | officials.0.title                             | Mr                             |
+            | lodgementDate                                 | todayiso                            |
+            | officials.0.title                             | Mr                                  |
             | officials.0.surname                           | Turner {SCENARIO_ID}                |
-            | officials.0.forename                          | Graham                         |
-            | officials.0.type                              | MAGISTRATE                     |
-            | officials.1.title                             | Ms                             |
+            | officials.0.forename                          | Graham                              |
+            | officials.0.type                              | MAGISTRATE                          |
+            | officials.1.title                             | Ms                                  |
             | officials.1.surname                           | Hayes {SCENARIO_ID}                 |
-            | officials.1.forename                          | Laura                          |
-            | officials.1.type                              | MAGISTRATE                     |
-            | officials.2.title                             | Mr                             |
+            | officials.1.forename                          | Laura                               |
+            | officials.1.type                              | MAGISTRATE                          |
+            | officials.2.title                             | Mr                                  |
             | officials.2.surname                           | Miller {SCENARIO_ID}                |
-            | officials.2.forename                          | Peter                          |
-            | officials.2.type                              | CLERK                          |
-            | officials.3.title                             | Ms                             |
+            | officials.2.forename                          | Peter                               |
+            | officials.2.type                              | CLERK                               |
+            | officials.3.title                             | Ms                                  |
             | officials.3.surname                           | Patel {SCENARIO_ID}                 |
-            | officials.3.forename                          | Anita                          |
-            | officials.3.type                              | MAGISTRATE                     |
+            | officials.3.forename                          | Anita                               |
+            | officials.3.type                              | MAGISTRATE                          |
         Then User Verify Response Status Code Should Be "201"
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
@@ -611,5 +609,5 @@ Feature: Application List Row Actions
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                             | Entries | Status | SelectButtonText |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                                  | Entries | Status | SelectButtonText |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   | Select           |

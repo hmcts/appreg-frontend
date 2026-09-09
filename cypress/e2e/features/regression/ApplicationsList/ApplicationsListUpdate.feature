@@ -158,7 +158,7 @@ Feature: Applications List Update
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description               | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                         | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation           | InvalidCJAValue | InvalidCourtValue | SuccessMessage                                                                     |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {SCENARIO_ID} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {SCENARIO_ID} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {SCENARIO_ID} | InvalidCJA      | InvalidCourt      | Success Application list updatedThe application list has been successfully updated |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1759
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1759 @tp
     Scenario Outline: Close application list with NO ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -174,28 +174,18 @@ Feature: Applications List Update
             | <DisplayDate> | <Time> | <courtLocation> | <Description> | 0       | OPEN   |
         Then User Clicks On The Link "List details"
         Then User Verify The Page URL Contains "#list-details"
-        Then User Selects "<Status>" In The "Actions" Dropdown
-        Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
-        Then User See "Are you sure you want to close this application list?" On The Page
-        Then User Should See Row In Table With Values:
-            | Date          | Time   | Location        | Description   | Entries | Status |
-            | <DisplayDate> | <Time> | <courtLocation> | <Description> | 0       | OPEN   |
-        Then User Clicks On The Link "Cancel"
-        Then User Verify The Page URL Contains "#list-details"
-        Then User Selects "<Status>" In The "Actions" Dropdown
-        Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
-        When User Clicks On The "Continue" Button
+        When User Clicks "Actions" Then "Close list" From The Page Header Menu
         Then User Sees Validation Error Banner "There is a problem Please enter positive value for either hours or minutes to close this list"
         When User Clears The Duration Field "Duration"
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
+        Then User Sees Success Banner "Success" Containing "The application list has been successfully updated"
+        When User Clicks "Actions" Then "Close list" From The Page Header Menu
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         Then User Clicks On The Link "Cancel"
         Then User Verify The Page URL Contains "#list-details"
-        Then User Selects "<Status>" In The "Actions" Dropdown
-        When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
-        When User Clicks On The "Update" Button
+        When User Clicks "Actions" Then "Close list" From The Page Header Menu
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
@@ -204,7 +194,7 @@ Feature: Applications List Update
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description        | Status     | BeforeUpdateStatus | durationHours | durationMinutes |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {SCENARIO_ID} | Close list | OPEN               | 3             | 3               |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567 @ARCPOC-1759
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567 @ARCPOC-1759 @tp
     Scenario Outline: Close application list with One ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -260,14 +250,14 @@ Feature: Applications List Update
             | <DisplayDate> | <Time> | <courtLocation> | <Description> | 1       | OPEN   |
         Then User Clicks On The Link "List details"
         Then User Verify The Page URL Contains "#list-details"
-        Then User Verifies "<BeforeUpdateStatus>" Is Selected In The " Select list status " Dropdown
-        Then User Selects "<Status>" In The "Select list status" Dropdown
-        When User Clicks On The "Update" Button
+        When User Clicks "Actions" Then "Close list" From The Page Header Menu
         # Duration Hours and Minutes are provided
         Then User Sees Validation Error Banner "There is a problem Please enter positive value for either hours or minutes to close this list"
         When User Clears The Duration Field "Duration"
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
+        Then User Sees Success Banner "Success" Containing "The application list has been successfully updated"
+        When User Clicks "Actions" Then "Close list" From The Page Header Menu
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
@@ -292,10 +282,7 @@ Feature: Applications List Update
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "resultId"
         When User Refreshes The Page
-        Then User Verifies "<BeforeUpdateStatus>" Is Selected In The " Select list status " Dropdown
-        Then User Selects "<Status>" In The "Select list status" Dropdown
-        When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
-        When User Clicks On The "Update" Button
+        When User Clicks "Actions" Then "Close list" From The Page Header Menu
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
@@ -343,10 +330,7 @@ Feature: Applications List Update
             | officials.0.type                              | MAGISTRATE                          |
         Then User Verify Response Status Code Should Be "200"
         When User Refreshes The Page
-        Then User Verifies "<BeforeUpdateStatus>" Is Selected In The " Select list status " Dropdown
-        Then User Selects "<Status>" In The "Select list status" Dropdown
-        When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
-        When User Clicks On The "Update" Button
+        When User Clicks "Actions" Then "Close list" From The Page Header Menu
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
@@ -394,10 +378,7 @@ Feature: Applications List Update
             | officials.0.type                              | MAGISTRATE                          |
         Then User Verify Response Status Code Should Be "200"
         When User Refreshes The Page
-        Then User Verifies "<BeforeUpdateStatus>" Is Selected In The " Select list status " Dropdown
-        Then User Selects "<Status>" In The "Select list status" Dropdown
-        When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
-        When User Clicks On The "Update" Button
+        When User Clicks "Actions" Then "Close list" From The Page Header Menu
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
