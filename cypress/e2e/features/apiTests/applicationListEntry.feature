@@ -616,8 +616,8 @@ Feature: API - Application List Entry
       | totalElements                              | 3                   |
       | elementsOnPage                             | 3                   |
       | content[0].applicant.organisation.name     | Beta Org            |
-      | content[1].applicant.person.name.lastName  | Turner{SCENARIO_ID} |
-      | content[2].respondent.person.name.lastName | Abbott{SCENARIO_ID} |
+      | content[1].respondent.person.name.lastName | Abbott{SCENARIO_ID} |
+      | content[2].applicant.person.name.lastName  | Turner{SCENARIO_ID} |
     Then User Verify Response Body Array Property "content" At Field "id" Should Contain Values:
       | :entryId1 |
       | :entryId2 |

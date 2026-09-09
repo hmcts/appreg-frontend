@@ -3,51 +3,51 @@ Feature: Applications List Search
   Background: Create Applications List and Entry via API
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Body:
-      | date     | time           | status | description                                | courtLocationCode |
+      | date     | time           | status | description                                     | courtLocationCode |
       | todayiso | timenowhhmm-2h | OPEN   | Test Applications List for Search {SCENARIO_ID} | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     Then User Stores Response Body Property "description" As "listDescription"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                         | null                           |
-      | applicationCode                               | AP99001                        |
-      | applicant.person.name.title                   | Mr                             |
+      | standardApplicantCode                         | null                                |
+      | applicationCode                               | AP99001                             |
+      | applicant.person.name.title                   | Mr                                  |
       | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
-      | applicant.person.name.firstName               | Henry                          |
-      | applicant.person.name.middleName              | James                          |
+      | applicant.person.name.firstName               | Henry                               |
+      | applicant.person.name.middleName              | James                               |
       | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
-      | applicant.person.contactDetails.addressLine2  | Westminster                    |
-      | applicant.person.contactDetails.addressLine3  | London                         |
-      | applicant.person.contactDetails.addressLine4  | Greater London                 |
-      | applicant.person.contactDetails.addressLine5  | United Kingdom                 |
-      | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
-      | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
-      | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
+      | applicant.person.contactDetails.addressLine2  | Westminster                         |
+      | applicant.person.contactDetails.addressLine3  | London                              |
+      | applicant.person.contactDetails.addressLine4  | Greater London                      |
+      | applicant.person.contactDetails.addressLine5  | United Kingdom                      |
+      | applicant.person.contactDetails.postcode      | SW1A 1AA                            |
+      | applicant.person.contactDetails.phone         | 0203{RANDOM}                        |
+      | applicant.person.contactDetails.mobile        | 07123{RANDOM}                       |
       | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
-      | respondent.person.name.title                  | Ms                             |
+      | respondent.person.name.title                  | Ms                                  |
       | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
-      | respondent.person.name.firstName              | Emily                          |
-      | respondent.person.name.middleName             | Rose                           |
+      | respondent.person.name.firstName              | Emily                               |
+      | respondent.person.name.middleName             | Rose                                |
       | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
-      | respondent.person.contactDetails.addressLine2 | Bristol                        |
-      | respondent.person.contactDetails.addressLine3 | Avon                           |
-      | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-      | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-      | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
-      | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
+      | respondent.person.contactDetails.addressLine2 | Bristol                             |
+      | respondent.person.contactDetails.addressLine3 | Avon                                |
+      | respondent.person.contactDetails.addressLine4 | United Kingdom                      |
+      | respondent.person.contactDetails.postcode     | BS15 5AA                            |
+      | respondent.person.contactDetails.phone        | 0117{RANDOM}                        |
+      | respondent.person.contactDetails.mobile       | 07984{RANDOM}                       |
       | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-      | respondent.person.dateOfBirth                 | todayiso-25y                   |
-      | wordingFields.0.key                           | Date of Hearing                |
+      | respondent.person.dateOfBirth                 | todayiso-25y                        |
+      | wordingFields.0.key                           | Date of Hearing                     |
       | wordingFields.0.value                         | "{SCENARIO_ID}"                     |
-      | hasOffsiteFee                                 | true                           |
-      | caseReference                                 | CASE-{RANDOM}                  |
-      | accountNumber                                 | ACC-{RANDOM}                   |
+      | hasOffsiteFee                                 | true                                |
+      | caseReference                                 | CASE-{RANDOM}                       |
+      | accountNumber                                 | ACC-{RANDOM}                        |
       | notes                                         | Case noted with ref {SCENARIO_ID}   |
-      | lodgementDate                                 | todayiso                       |
-      | officials.0.title                             | Mr                             |
+      | lodgementDate                                 | todayiso                            |
+      | officials.0.title                             | Mr                                  |
       | officials.0.surname                           | Turner {SCENARIO_ID}                |
-      | officials.0.forename                          | Graham                         |
-      | officials.0.type                              | MAGISTRATE                     |
+      | officials.0.forename                          | Graham                              |
+      | officials.0.type                              | MAGISTRATE                          |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId"
 
@@ -267,126 +267,126 @@ Feature: Applications List Search
       | Date         | Location    | Entries | Status |
       | todaydisplay | <CourtName> | 0       | CLOSED |
     Examples:
-      | CourtCode | CourtName                         | Description                              |
+      | CourtCode | CourtName                         | Description                                   |
       | LCCC025   | Leeds Combined Court Centre Set 3 | Test Applications List to Close {SCENARIO_ID} |
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891
   Scenario: Verify applications list table sorting functionality and pagination persistence
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date                     | todayiso                         |
-      | time                     | 05:54                            |
-      | status                   | OPEN                             |
+      | date                     | todayiso                              |
+      | time                     | 05:54                                 |
+      | status                   | OPEN                                  |
       | description              | Sort Seed {SCENARIO_ID} Alpha         |
-      | durationHours            | 1                                |
-      | durationMinutes          | 0                                |
+      | durationHours            | 1                                     |
+      | durationMinutes          | 0                                     |
       | otherLocationDescription | Sorting London Venue 01 {SCENARIO_ID} |
-      | cjaCode                  | 01                               |
+      | cjaCode                  | 01                                    |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date                     | todayiso                         |
-      | time                     | 05:54                            |
-      | status                   | OPEN                             |
+      | date                     | todayiso                              |
+      | time                     | 05:54                                 |
+      | status                   | OPEN                                  |
       | description              | Sort Seed {SCENARIO_ID} Bravo         |
-      | durationHours            | 1                                |
-      | durationMinutes          | 0                                |
+      | durationHours            | 1                                     |
+      | durationMinutes          | 0                                     |
       | otherLocationDescription | Sorting London Venue 02 {SCENARIO_ID} |
-      | cjaCode                  | 01                               |
+      | cjaCode                  | 01                                    |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date                     | todayiso                         |
-      | time                     | 05:54                            |
-      | status                   | OPEN                             |
+      | date                     | todayiso                              |
+      | time                     | 05:54                                 |
+      | status                   | OPEN                                  |
       | description              | Sort Seed {SCENARIO_ID} Charlie       |
-      | durationHours            | 1                                |
-      | durationMinutes          | 0                                |
+      | durationHours            | 1                                     |
+      | durationMinutes          | 0                                     |
       | otherLocationDescription | Sorting London Venue 03 {SCENARIO_ID} |
-      | cjaCode                  | 01                               |
+      | cjaCode                  | 01                                    |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date                     | todayiso                         |
-      | time                     | 05:54                            |
-      | status                   | OPEN                             |
+      | date                     | todayiso                              |
+      | time                     | 05:54                                 |
+      | status                   | OPEN                                  |
       | description              | Sort Seed {SCENARIO_ID} Delta         |
-      | durationHours            | 1                                |
-      | durationMinutes          | 0                                |
+      | durationHours            | 1                                     |
+      | durationMinutes          | 0                                     |
       | otherLocationDescription | Sorting London Venue 04 {SCENARIO_ID} |
-      | cjaCode                  | 01                               |
+      | cjaCode                  | 01                                    |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date                     | todayiso                         |
-      | time                     | 05:54                            |
-      | status                   | OPEN                             |
+      | date                     | todayiso                              |
+      | time                     | 05:54                                 |
+      | status                   | OPEN                                  |
       | description              | Sort Seed {SCENARIO_ID} Echo          |
-      | durationHours            | 1                                |
-      | durationMinutes          | 0                                |
+      | durationHours            | 1                                     |
+      | durationMinutes          | 0                                     |
       | otherLocationDescription | Sorting London Venue 05 {SCENARIO_ID} |
-      | cjaCode                  | 01                               |
+      | cjaCode                  | 01                                    |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date                     | todayiso                         |
-      | time                     | 05:54                            |
-      | status                   | OPEN                             |
+      | date                     | todayiso                              |
+      | time                     | 05:54                                 |
+      | status                   | OPEN                                  |
       | description              | Sort Seed {SCENARIO_ID} Foxtrot       |
-      | durationHours            | 1                                |
-      | durationMinutes          | 0                                |
+      | durationHours            | 1                                     |
+      | durationMinutes          | 0                                     |
       | otherLocationDescription | Sorting London Venue 06 {SCENARIO_ID} |
-      | cjaCode                  | 01                               |
+      | cjaCode                  | 01                                    |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date                     | todayiso                         |
-      | time                     | 05:54                            |
-      | status                   | OPEN                             |
+      | date                     | todayiso                              |
+      | time                     | 05:54                                 |
+      | status                   | OPEN                                  |
       | description              | Sort Seed {SCENARIO_ID} Golf          |
-      | durationHours            | 1                                |
-      | durationMinutes          | 0                                |
+      | durationHours            | 1                                     |
+      | durationMinutes          | 0                                     |
       | otherLocationDescription | Sorting London Venue 07 {SCENARIO_ID} |
-      | cjaCode                  | 01                               |
+      | cjaCode                  | 01                                    |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date                     | todayiso                         |
-      | time                     | 05:54                            |
-      | status                   | OPEN                             |
+      | date                     | todayiso                              |
+      | time                     | 05:54                                 |
+      | status                   | OPEN                                  |
       | description              | Sort Seed {SCENARIO_ID} Hotel         |
-      | durationHours            | 1                                |
-      | durationMinutes          | 0                                |
+      | durationHours            | 1                                     |
+      | durationMinutes          | 0                                     |
       | otherLocationDescription | Sorting London Venue 08 {SCENARIO_ID} |
-      | cjaCode                  | 01                               |
+      | cjaCode                  | 01                                    |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date                     | todayiso                         |
-      | time                     | 05:54                            |
-      | status                   | OPEN                             |
+      | date                     | todayiso                              |
+      | time                     | 05:54                                 |
+      | status                   | OPEN                                  |
       | description              | Sort Seed {SCENARIO_ID} India         |
-      | durationHours            | 1                                |
-      | durationMinutes          | 0                                |
+      | durationHours            | 1                                     |
+      | durationMinutes          | 0                                     |
       | otherLocationDescription | Sorting London Venue 09 {SCENARIO_ID} |
-      | cjaCode                  | 01                               |
+      | cjaCode                  | 01                                    |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date                     | todayiso                         |
-      | time                     | 05:54                            |
-      | status                   | OPEN                             |
+      | date                     | todayiso                              |
+      | time                     | 05:54                                 |
+      | status                   | OPEN                                  |
       | description              | Sort Seed {SCENARIO_ID} Juliet        |
-      | durationHours            | 1                                |
-      | durationMinutes          | 0                                |
+      | durationHours            | 1                                     |
+      | durationMinutes          | 0                                     |
       | otherLocationDescription | Sorting London Venue 10 {SCENARIO_ID} |
-      | cjaCode                  | 01                               |
+      | cjaCode                  | 01                                    |
     Then User Verify Response Status Code Should Be "201"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date                     | todayiso                         |
-      | time                     | 05:54                            |
-      | status                   | OPEN                             |
+      | date                     | todayiso                              |
+      | time                     | 05:54                                 |
+      | status                   | OPEN                                  |
       | description              | Sort Seed {SCENARIO_ID} Kilo          |
-      | durationHours            | 1                                |
-      | durationMinutes          | 0                                |
+      | durationHours            | 1                                     |
+      | durationMinutes          | 0                                     |
       | otherLocationDescription | Sorting London Venue 11 {SCENARIO_ID} |
-      | cjaCode                  | 01                               |
+      | cjaCode                  | 01                                    |
     Then User Verify Response Status Code Should Be "201"
     When User Signs In With Microsoft SSO As "user1"
     # Search to get table with multiple pages
     When User Searches Application List With:
-      | Date | Time  | List description   | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | Date | Time  | List description        | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       |      | 05:54 | Sort Seed {SCENARIO_ID} |             |       |                    |                            | London                |           |
     Then User Should See The Table "Lists"
     # Verify all sortable headers default to 'none'
@@ -404,7 +404,7 @@ Feature: Applications List Search
     # Search to get table with multiple pages
     When User Clicks On The "Clear search" Button
     When User Searches Application List With:
-      | Date | Time  | List description   | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | Date | Time  | List description        | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       |      | 05:54 | Sort Seed {SCENARIO_ID} |             |       |                    |                            | London                |           |
     # Test Time column
     When User Clicks On Table Header "Time" In Table "Lists"
