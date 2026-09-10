@@ -16,6 +16,23 @@ export class GovukTextareaComponent {
   ariaDescribedBy = input.required<string>();
   isInvalid = input(false);
   characterCountEnabled = input(true);
+  errorMessage = input<string>('');
+  label = input<string>('');
+
+  get errorId(): string {
+    return `${this.id()}-error`;
+  }
+
+  get describedBy(): string | null {
+    const describedBy = [
+      this.ariaDescribedBy(),
+      this.isInvalid() && this.errorMessage() ? this.errorId : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    return describedBy || null;
+  }
 
   get remainingCharacterCount(): number {
     const ctrl = this.control();

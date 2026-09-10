@@ -31,6 +31,43 @@ describe('GovukTextareaComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('renders GOV.UK error markup and accessibility attributes when invalid', () => {
+    fixture.componentRef.setInput('isInvalid', true);
+    fixture.componentRef.setInput(
+      'errorMessage',
+      'Enter a reason for the change',
+    );
+    fixture.detectChanges();
+
+    const group = fixture.nativeElement.querySelector('.govuk-form-group');
+    const error = fixture.nativeElement.querySelector('.govuk-error-message');
+    const textarea = fixture.nativeElement.querySelector('textarea');
+
+    expect(group.classList).toContain('govuk-form-group--error');
+    expect(error.id).toBe('change-reason-error');
+    expect(error.textContent.replace(/\s+/g, ' ').trim()).toBe(
+      'Error: Enter a reason for the change',
+    );
+    expect(textarea.classList).toContain('govuk-textarea--error');
+    expect(textarea.getAttribute('aria-invalid')).toBe('true');
+    expect(textarea.getAttribute('aria-describedby')).toBe(
+      'change-reason change-reason-error',
+    );
+  });
+
+  it('does not render an error message or error attributes when valid', () => {
+    const group = fixture.nativeElement.querySelector('.govuk-form-group');
+    const textarea = fixture.nativeElement.querySelector('textarea');
+
+    expect(
+      fixture.nativeElement.querySelector('.govuk-error-message'),
+    ).toBeNull();
+    expect(group.classList).not.toContain('govuk-form-group--error');
+    expect(textarea.classList).not.toContain('govuk-textarea--error');
+    expect(textarea.getAttribute('aria-invalid')).toBeNull();
+    expect(textarea.getAttribute('aria-describedby')).toBe('change-reason');
+  });
+
   it('should get the remaining character count', () => {
     fixture.componentRef.setInput(
       'control',

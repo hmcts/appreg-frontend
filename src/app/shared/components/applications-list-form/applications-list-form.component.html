@@ -65,7 +65,6 @@
 
     <!-- Description -->
     @if (mode() === 'create' || mode() === 'update') {
-      <label class="govuk-label" for="description"> Description </label>
       <app-govuk-textarea
         [control]="form().controls.description"
         id="description"
@@ -73,6 +72,8 @@
         ariaDescribedBy="description"
         [maxCharacterLimit]="200"
         [isInvalid]="!!errorText('description')"
+        label="Description"
+        [errorMessage]="errorText('description')"
       />
     } @else {
       <div class="govuk-grid-row">

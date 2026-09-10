@@ -1,20 +1,28 @@
-<textarea
-  class="govuk-textarea"
-  [id]="id()"
-  [name]="name()"
-  [rows]="rows()"
-  [attr.aria-describedby]="ariaDescribedBy() || null"
-  [formControl]="control()"
-  [maxlength]="maxCharacterLimit()"
-  [class.govuk-input--error]="isInvalid()"
-></textarea>
+<div class="govuk-form-group" [class.govuk-form-group--error]="isInvalid()">
+  <label class="govuk-label" [for]="id()">{{ label() }}</label>
 
-@if (characterCountEnabled()) {
-  <div
-    [id]="id() + '-hint'"
-    class="govuk-hint"
-    [class.govuk-error-text]="isInvalid()"
-  >
-    {{ charLimitText }}
-  </div>
-}
+  @if (isInvalid() && errorMessage()) {
+    <p [id]="errorId" class="govuk-error-message">
+      <span class="govuk-visually-hidden">Error:</span>
+      {{ errorMessage() }}
+    </p>
+  }
+
+  <textarea
+    class="govuk-textarea"
+    [id]="id()"
+    [name]="name()"
+    [rows]="rows()"
+    [attr.aria-describedby]="describedBy"
+    [attr.aria-invalid]="isInvalid() ? 'true' : null"
+    [formControl]="control()"
+    [maxlength]="maxCharacterLimit()"
+    [class.govuk-textarea--error]="isInvalid()"
+  ></textarea>
+
+  @if (characterCountEnabled()) {
+    <div [id]="id() + '-hint'" class="govuk-hint">
+      {{ charLimitText }}
+    </div>
+  }
+</div>
