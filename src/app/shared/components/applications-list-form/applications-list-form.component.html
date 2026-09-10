@@ -62,21 +62,21 @@
 
   <ng-template #advancedFields>
     <!-- Advanced fields block -->
-
     <!-- Description -->
-    @if (mode() === 'create' || mode() === 'update') {
-      <app-govuk-textarea
-        [control]="form().controls.description"
-        id="description"
-        name="description"
-        ariaDescribedBy="description"
-        [maxCharacterLimit]="200"
-        [isInvalid]="!!errorText('description')"
-        label="Description"
-        [errorMessage]="errorText('description')"
-      />
-    } @else {
-      <div class="govuk-grid-row">
+    <div class="govuk-grid-row">
+      @if (mode() === 'create' || mode() === 'update') {
+        <app-govuk-textarea
+          [control]="form().controls.description"
+          id="description"
+          name="description"
+          ariaDescribedBy="description"
+          [maxCharacterLimit]="200"
+          [isInvalid]="!!errorText('description')"
+          label="Description"
+          [errorMessage]="errorText('description')"
+          [containerWidthClass]="'govuk-grid-column-one-half'"
+        />
+      } @else {
         <app-text-input
           formControlName="description"
           label="List description"
@@ -85,8 +85,8 @@
           containerWidthClass="govuk-grid-column-one-half"
           widthClass="govuk-!-width-two-thirds"
         />
-      </div>
-    }
+      }
+    </div>
 
     <div class="govuk-grid-row">
       <!-- CJA -->

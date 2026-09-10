@@ -18,6 +18,7 @@ export class GovukTextareaComponent {
   characterCountEnabled = input(true);
   errorMessage = input<string>('');
   label = input<string>('');
+  containerWidthClass = input('');
 
   get errorId(): string {
     return `${this.id()}-error`;
