@@ -29,6 +29,8 @@ trusted_pipeline_path="${artifact_dir}/trusted-codex-local-pipeline.sh"
 changed_paths_path="${artifact_dir}/changed-paths.bin"
 rebuilt_patch_path="${artifact_dir}/changes.patch"
 trusted_pipeline_sha=""
+trusted_checks_archive="${artifact_dir}/trusted-checks.tar"
+trusted_checks_sha=""
 trusted_allowed_paths=""
 guardrail_review_required="false"
 allowed_paths=()
@@ -299,6 +301,8 @@ fi
 cp bin/codex-local-pipeline.sh "${trusted_pipeline_path}"
 chmod +x "${trusted_pipeline_path}"
 trusted_pipeline_sha="$(file_sha256 "${trusted_pipeline_path}")"
+tar -cf "${trusted_checks_archive}" .github/scripts .github/workflows .github/schemas bin
+trusted_checks_sha="$(file_sha256 "${trusted_checks_archive}")"
 
 if ! git_sanitized rev-parse --verify --quiet "refs/remotes/origin/${default_branch}" >/dev/null; then
   echo "Credential-free verification source is missing origin/${default_branch}." >&2
@@ -319,7 +323,10 @@ if [[ "${SKIP_LOCAL_PIPELINE:-false}" == "true" ]]; then
   echo "Skipping local pipeline because SKIP_LOCAL_PIPELINE=true"
 else
   verify_trusted_file "${trusted_pipeline_path}" "${trusted_pipeline_sha}" "pipeline wrapper"
-  run_sanitized "${trusted_pipeline_path}" "${local_pipeline_mode}" --base "${default_branch}" --no-fetch
+  verify_trusted_file "${trusted_checks_archive}" "${trusted_checks_sha}" "check bundle"
+  trusted_checks_root="$(mktemp -d "${artifact_dir}/trusted-checks.XXXXXX")"
+  tar -xf "${trusted_checks_archive}" -C "${trusted_checks_root}"
+  run_sanitized env CODEX_TRUST_ROOT="${trusted_checks_root}" "${trusted_pipeline_path}" "${local_pipeline_mode}" --base "${default_branch}" --no-fetch
   assert_worktree_within_plan "local verification"
 fi
 
