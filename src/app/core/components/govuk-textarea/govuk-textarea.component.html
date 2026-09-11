@@ -19,6 +19,7 @@
       [attr.aria-describedby]="describedBy"
       [attr.aria-invalid]="isInvalid() ? 'true' : null"
       [formControl]="control()"
+      (input)="onInput($event)"
       [maxlength]="maxCharacterLimit()"
       [class.govuk-textarea--error]="isInvalid()"
     ></textarea>

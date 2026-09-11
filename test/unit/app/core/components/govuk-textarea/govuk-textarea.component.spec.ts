@@ -109,6 +109,29 @@ describe('GovukTextareaComponent', () => {
     expect(result).toEqual(200);
   });
 
+  it('updates the rendered character count when the user enters text', () => {
+    fixture.componentRef.setInput(
+      'control',
+      new FormControl<string | null>('', { updateOn: 'submit' }),
+    );
+    fixture.componentRef.setInput('maxCharacterLimit', 200);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const textarea = element.querySelector<HTMLTextAreaElement>('textarea');
+    if (!textarea) {
+      throw new Error('Expected the textarea to be rendered');
+    }
+
+    textarea.value = 'List description';
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('#change-reason-hint')?.textContent,
+    ).toContain('You have 184 characters remaining');
+  });
+
   it.each([
     {
       value: 'abc',
