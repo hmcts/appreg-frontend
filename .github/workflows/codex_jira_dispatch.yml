@@ -38,7 +38,13 @@ permissions:
 
 jobs:
   codex-plan-action:
-    runs-on: codex-frontend-azure-aks
+    environment: codex-model
+    if: >-
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      github.workflow_ref == format('{0}/.github/workflows/codex_jira_dispatch.yml@refs/heads/{1}', github.repository, github.event.repository.default_branch)
+    runs-on:
+      group: appreg-codex
+      labels: codex-frontend-azure-aks
     timeout-minutes: 120
     permissions:
       contents: read
@@ -207,13 +213,16 @@ jobs:
           retention-days: 1
 
   codex-generate-action:
+    environment: codex-model
     needs: [codex-plan-action, validate-codex-plan]
     if: >-
       ${{
         needs.validate-codex-plan.result == 'success' &&
         needs.validate-codex-plan.outputs.ready_to_implement == 'true'
       }}
-    runs-on: codex-frontend-azure-aks
+    runs-on:
+      group: appreg-codex
+      labels: codex-frontend-azure-aks
     timeout-minutes: 120
     permissions:
       contents: read
@@ -437,9 +446,12 @@ jobs:
           retention-days: 1
 
   repair-codex-output-1-action:
+    environment: codex-model
     needs: [codex-generate, verify-codex-output, validate-codex-plan]
     if: needs.codex-generate.outputs.has_changes == 'true' && needs.verify-codex-output.outputs.passed != 'true'
-    runs-on: codex-frontend-azure-aks
+    runs-on:
+      group: appreg-codex
+      labels: codex-frontend-azure-aks
     timeout-minutes: 120
     permissions:
       contents: read
@@ -684,9 +696,12 @@ jobs:
           retention-days: 1
 
   repair-codex-output-2-action:
+    environment: codex-model
     needs: [codex-generate, verify-codex-output-1, validate-codex-plan]
     if: needs.verify-codex-output-1.outputs.passed == 'false'
-    runs-on: codex-frontend-azure-aks
+    runs-on:
+      group: appreg-codex
+      labels: codex-frontend-azure-aks
     timeout-minutes: 120
     permissions:
       contents: read
@@ -931,9 +946,12 @@ jobs:
           retention-days: 1
 
   repair-codex-output-3-action:
+    environment: codex-model
     needs: [codex-generate, verify-codex-output-2, validate-codex-plan]
     if: needs.verify-codex-output-2.outputs.passed == 'false'
-    runs-on: codex-frontend-azure-aks
+    runs-on:
+      group: appreg-codex
+      labels: codex-frontend-azure-aks
     timeout-minutes: 120
     permissions:
       contents: read
@@ -1178,6 +1196,7 @@ jobs:
           retention-days: 1
 
   publish-pr:
+    environment: codex-publisher
     needs:
       - codex-generate
       - prepare-codex-verification-source
@@ -1379,6 +1398,7 @@ jobs:
           retention-days: 1
 
   verify-published-pr:
+    environment: codex-status
     needs: [codex-generate, publish-pr, verify-published-pr-patch]
     if: always() && needs.publish-pr.outputs.pr_number != ''
     runs-on: ubuntu-latest
@@ -1451,10 +1471,13 @@ jobs:
           retention-days: 1
 
   repair-published-pr-1-action:
+    environment: codex-model
     needs:
       [codex-generate, publish-pr, verify-published-pr, validate-codex-plan]
     if: always() && needs.verify-published-pr.outputs.passed == 'false'
-    runs-on: codex-frontend-azure-aks
+    runs-on:
+      group: appreg-codex
+      labels: codex-frontend-azure-aks
     timeout-minutes: 120
     permissions:
       contents: read
@@ -1706,6 +1729,7 @@ jobs:
           retention-days: 1
 
   publish-published-pr-repair-1:
+    environment: codex-publisher
     needs:
       [
         codex-generate,
@@ -1872,6 +1896,7 @@ jobs:
           fi
           exit 0
   verify-published-pr-1:
+    environment: codex-status
     needs:
       [
         codex-generate,

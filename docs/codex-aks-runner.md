@@ -1,7 +1,13 @@
 # Codex AKS Runner
 
-This repository runs the Applications Register Codex workflows on the
-`codex-frontend-azure-aks` ARC scale set.
+Model jobs run on the `codex-frontend-azure-aks` ARC scale set in the restricted
+`appreg-codex` organisation runner group. Publisher and verification jobs use
+fresh GitHub-hosted compute.
+
+Before deploying these changes, complete the
+[trusted execution rollout](codex-trusted-execution.md). Protected environments,
+secret migration and runner-group policies are required; workflow guards alone
+cannot restrict a modified feature-branch workflow.
 
 ## Codex Action authentication
 
@@ -116,11 +122,15 @@ organisation usage dashboard at least weekly. See OpenAI's
 [Usage and Costs API guide](https://developers.openai.com/cookbook/examples/completions_usage_api)
 and [organisation usage dashboard](https://platform.openai.com/settings/organization/usage).
 
-## Required repository secrets
+## Protected environment secrets
+
+Store these only in the master-only environments specified in the
+[rollout guide](codex-trusted-execution.md), not as repository secrets.
 
 - `CODEX_OPENAI_API_KEY`: OpenAI API key used only by the official Codex Action proxy.
 - `CODEX_GITHUB_APP_PRIVATE_KEY`: private key for the HMCTS-owned Codex GitHub App, used only to mint repository-scoped installation tokens in trusted jobs.
 - `CODEX_JIRA_PR_NOTIFY_URL`: Azure Function URL, including its function key, for PR-created notifications.
+- `CODEX_SONAR_TOKEN`: Sonar status API credential, restricted to codex-status.
 
 ## Required repository variables
 

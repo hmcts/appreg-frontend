@@ -11,6 +11,9 @@ permissions:
 
 jobs:
   detect-conflicted-pr:
+    if: >-
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      github.workflow_ref == format('{0}/.github/workflows/codex_merge_conflict_resolution.yml@refs/heads/{1}', github.repository, github.event.repository.default_branch)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -186,9 +189,12 @@ jobs:
           } >>"$GITHUB_OUTPUT"
 
   codex-conflict-generate-action:
+    environment: codex-model
     needs: detect-conflicted-pr
     if: needs.detect-conflicted-pr.outputs.should_run == 'true'
-    runs-on: codex-frontend-azure-aks
+    runs-on:
+      group: appreg-codex
+      labels: codex-frontend-azure-aks
     timeout-minutes: 120
     permissions:
       contents: read
@@ -422,6 +428,7 @@ jobs:
           retention-days: 1
 
   publish-conflict-resolution:
+    environment: codex-publisher
     needs:
       [
         detect-conflicted-pr,
