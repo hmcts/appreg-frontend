@@ -12,6 +12,7 @@ import { SuggestionsFacade } from './facade/applications-list-form.facade';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { DurationInputComponent } from '@components/duration-input/duration-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { GovukTextareaComponent } from '@components/govuk-textarea/govuk-textarea.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import {
@@ -43,6 +44,7 @@ type AppListForm =
     TextInputComponent,
     SuggestionsComponent,
     SelectInputComponent,
+    GovukTextareaComponent,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-form.component.html',

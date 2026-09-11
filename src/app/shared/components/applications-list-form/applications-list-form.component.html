@@ -62,16 +62,30 @@
 
   <ng-template #advancedFields>
     <!-- Advanced fields block -->
+    <!-- Description -->
     <div class="govuk-grid-row">
-      <!-- Description -->
-      <app-text-input
-        formControlName="description"
-        label="List description"
-        idPrefix="description"
-        [error]="errorText('description')"
-        containerWidthClass="govuk-grid-column-one-half"
-        widthClass="govuk-!-width-two-thirds"
-      />
+      @if (mode() === 'create' || mode() === 'update') {
+        <app-govuk-textarea
+          [control]="form().controls.description"
+          id="description"
+          name="description"
+          ariaDescribedBy="description-hint"
+          [maxCharacterLimit]="200"
+          [isInvalid]="!!errorText('description')"
+          label="List description"
+          [errorMessage]="errorText('description')"
+          [containerWidthClass]="'govuk-grid-column-one-half'"
+        />
+      } @else {
+        <app-text-input
+          formControlName="description"
+          label="List description"
+          idPrefix="description"
+          [error]="errorText('description')"
+          containerWidthClass="govuk-grid-column-one-half"
+          widthClass="govuk-!-width-two-thirds"
+        />
+      }
     </div>
 
     <div class="govuk-grid-row">

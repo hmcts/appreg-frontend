@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  input,
+  signal,
+} from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
@@ -16,11 +22,47 @@ export class GovukTextareaComponent {
   ariaDescribedBy = input.required<string>();
   isInvalid = input(false);
   characterCountEnabled = input(true);
+  errorMessage = input<string>('');
+  label = input<string>('');
+  containerWidthClass = input('');
+
+  private readonly value = signal<string>('');
+
+  constructor() {
+    effect((onCleanup) => {
+      const control = this.control();
+      this.value.set(control.value ?? '');
+
+      const subscription = control.valueChanges.subscribe((value) => {
+        this.value.set(value ?? '');
+      });
+
+      onCleanup(() => subscription.unsubscribe());
+    });
+  }
+
+  get errorId(): string {
+    return `${this.id()}-error`;
+  }
+
+  get describedBy(): string | null {
+    const describedBy = [
+      this.ariaDescribedBy(),
+      this.isInvalid() && this.errorMessage() ? this.errorId : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    return describedBy || null;
+  }
+
+  onInput(event: Event): void {
+    const textarea = event.target as HTMLTextAreaElement;
+    this.value.set(textarea.value);
+  }
 
   get remainingCharacterCount(): number {
-    const ctrl = this.control();
-    const value = ctrl?.value ?? '';
-    return this.maxCharacterLimit() - value.length;
+    return this.maxCharacterLimit() - this.value().length;
   }
 
   get charLimitText(): string {
