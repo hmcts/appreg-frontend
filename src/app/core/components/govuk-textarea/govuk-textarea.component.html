@@ -1,6 +1,8 @@
 <div [class]="containerWidthClass()">
   <div class="govuk-form-group" [class.govuk-form-group--error]="isInvalid()">
-    <label class="govuk-label" [for]="id()">{{ label() }}</label>
+    @if (label().length) {
+      <label class="govuk-label" [for]="id()">{{ label() }}</label>
+    }
 
     @if (isInvalid() && errorMessage()) {
       <p [id]="errorId" class="govuk-error-message">

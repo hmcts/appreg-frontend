@@ -69,10 +69,10 @@
           [control]="form().controls.description"
           id="description"
           name="description"
-          ariaDescribedBy="description"
+          ariaDescribedBy="description-hint"
           [maxCharacterLimit]="200"
           [isInvalid]="!!errorText('description')"
-          label="Description"
+          label="List description"
           [errorMessage]="errorText('description')"
           [containerWidthClass]="'govuk-grid-column-one-half'"
         />
