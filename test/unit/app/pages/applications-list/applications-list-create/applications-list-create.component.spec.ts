@@ -158,9 +158,16 @@ describe('ApplicationsListCreate', () => {
       cja: '',
     });
     submit('create');
-
+    expect(component.disableCreateButton()).toBe(true);
     await flushSignalEffects();
 
+    expect(component.disableCreateButton()).toBe(false);
+    expect(
+      (
+        fixture.debugElement.query(By.css('#create'))
+          .nativeElement as HTMLButtonElement
+      ).disabled,
+    ).toBe(false);
     expect(appListsMock.createApplicationList).toHaveBeenCalledTimes(1);
     const arg = (
       appListsMock.createApplicationList.mock.calls[0][0] as {
@@ -270,8 +277,33 @@ describe('ApplicationsListCreate', () => {
 
     await flushSignalEffects();
 
+    expect(component.disableCreateButton()).toBe(false);
+    expect(
+      (
+        fixture.debugElement.query(By.css('#create'))
+          .nativeElement as HTMLButtonElement
+      ).disabled,
+    ).toBe(false);
     expect(getState(component).createInvalid).toBe(true);
     expect(getState(component).errorHint).toContain('There is a problem');
+  });
+
+  it('submission disables submit button', () => {
+    component.form.setValue({
+      date: '2025-10-02',
+      time: { hours: 8, minutes: 5 },
+      description: 'Morning list',
+      status: 'OPEN',
+      court: 'A1',
+      location: '',
+      cja: '',
+    });
+    submit('create');
+    fixture.detectChanges();
+
+    const createButton = fixture.debugElement.query(By.css('#create'))
+      .nativeElement as HTMLButtonElement;
+    expect(createButton.disabled).toBe(true);
   });
 
   it('loads move context from browser history and updates breadcrumbs', async () => {

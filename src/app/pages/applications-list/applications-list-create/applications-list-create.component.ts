@@ -85,6 +85,8 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
     null,
   );
 
+  disableCreateButton = signal(false);
+
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
   readonly errorMap = APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES;
@@ -181,6 +183,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             fragment: 'list-details',
           });
           this.createRequest.set(null);
+          this.disableCreateButton.set(false);
         },
         onError: (err) => {
           const msg = getProblemText(err);
@@ -191,6 +194,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             errorSummary: [{ text: msg, href: '#create', id: 'create' }],
           });
           this.createRequest.set(null);
+          this.disableCreateButton.set(false);
         },
       },
       this.envInjector,
@@ -231,6 +235,8 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
       errorHint: '',
       errorSummary: [],
     });
+
+    this.disableCreateButton.set(true);
 
     const payload = this.buildPayload(this.form.getRawValue());
     this.createRequest.set(payload);
