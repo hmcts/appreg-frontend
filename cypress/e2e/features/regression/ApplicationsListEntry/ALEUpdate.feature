@@ -5,57 +5,57 @@ Feature: Applications List Entry Update
         Given User Authenticates Via API As "user1"
         # Create Application List
         When User Makes POST API Request To "/application-lists" With Body:
-            | date     | time  | status | description                             | courtLocationCode |
+            | date     | time  | status | description                                  | courtLocationCode |
             | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} | LCCC065           |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         # Create Application List Entry - Person applicant + Person respondent, Application Code with Fee Required = Y and Respondent Required = Y
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-            | standardApplicantCode                         | null                           |
-            | applicationCode                               | MX99006                        |
-            | applicant.person.name.title                   | Mr                             |
+            | standardApplicantCode                         | null                                |
+            | applicationCode                               | MX99006                             |
+            | applicant.person.name.title                   | Mr                                  |
             | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
-            | applicant.person.name.firstName               | Henry                          |
+            | applicant.person.name.firstName               | Henry                               |
             | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
-            | applicant.person.contactDetails.addressLine2  | Westminster                    |
-            | applicant.person.contactDetails.addressLine3  | London                         |
-            | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
-            | applicant.person.contactDetails.phone         | 01632960001                    |
-            | applicant.person.contactDetails.mobile        | 07700900001                    |
+            | applicant.person.contactDetails.addressLine2  | Westminster                         |
+            | applicant.person.contactDetails.addressLine3  | London                              |
+            | applicant.person.contactDetails.postcode      | SW1A 1AA                            |
+            | applicant.person.contactDetails.phone         | 01632960001                         |
+            | applicant.person.contactDetails.mobile        | 07700900001                         |
             | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
-            | respondent.person.name.title                  | Ms                             |
+            | respondent.person.name.title                  | Ms                                  |
             | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
-            | respondent.person.name.firstName              | Emily                          |
+            | respondent.person.name.firstName              | Emily                               |
             | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
-            | respondent.person.contactDetails.addressLine2 | Bristol                        |
-            | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-            | respondent.person.contactDetails.phone        | 01632960001                    |
-            | respondent.person.contactDetails.mobile       | 07700900001                    |
+            | respondent.person.contactDetails.addressLine2 | Bristol                             |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                            |
+            | respondent.person.contactDetails.phone        | 01632960001                         |
+            | respondent.person.contactDetails.mobile       | 07700900001                         |
             | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-            | respondent.person.dateOfBirth                 | todayiso-25y                   |
-            | wordingFields.0.key                           | Describe Seized Food           |
+            | respondent.person.dateOfBirth                 | todayiso-25y                        |
+            | wordingFields.0.key                           | Describe Seized Food                |
             | wordingFields.0.value                         | {SCENARIO_ID}                       |
-            | feeStatuses.0.paymentReference                | PAY-E5-{RANDOM}                |
-            | feeStatuses.0.paymentStatus                   | PAID                           |
-            | feeStatuses.0.statusDate                      | todayiso                       |
-            | hasOffsiteFee                                 | false                          |
-            | caseReference                                 | CASEE1{RANDOM}                 |
-            | accountNumber                                 | ACCSE1{RANDOM}                 |
-            | notes                                         | Entry search person person     |
-            | lodgementDate                                 | todayiso                       |
+            | feeStatuses.0.paymentReference                | PAY-E5-{RANDOM}                     |
+            | feeStatuses.0.paymentStatus                   | PAID                                |
+            | feeStatuses.0.statusDate                      | todayiso                            |
+            | hasOffsiteFee                                 | false                               |
+            | caseReference                                 | CASEE1{RANDOM}                      |
+            | accountNumber                                 | ACCSE1{RANDOM}                      |
+            | notes                                         | Entry search person person          |
+            | lodgementDate                                 | todayiso                            |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId1"
         When User Signs In With Microsoft SSO As "user1"
         # Search and Open Created Application List
         When User Searches Application List With:
-            | Date  | Time | List description                        | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+            | Date  | Time | List description                             | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
             | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-            | Date         | Time  | Location                          | Description                             | Entries | Status |
+            | Date         | Time  | Location                          | Description                                  | Entries | Status |
             | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   |
         # Search and Open Created Application List Entry
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
-            | Sequence number | Account number | Applicant             | Respondent           | Postcode | Title                      | Fee | Resulted |
+            | Sequence number | Account number | Applicant                  | Respondent                | Postcode | Title                      | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
         When User Clicks On The "Show all sections" Button
         Then User Should See The Button "Hide all sections"
@@ -109,3 +109,70 @@ Feature: Applications List Entry Update
         # Remove Reult to check 'Removed' banner
         Then User Clicks The Link "Remove" In Summary Card "PROA - Production Order (to allow access)"
         Then User Sees Success Banner "Success Result removed The result has been removed from this application list entry."
+
+    @applicationListEntry @regression @ARCPOC-1707
+    Scenario: Update Application List Entry, Change Application Code, expect wording and fee accordion to be expanded
+        Given User Authenticates Via API As "user1"
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date     | time  | status | description                                  | courtLocationCode |
+            | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} | LCCC065           |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        # Create Application List Entry - Person applicant + Person respondent, Application Code with Fee Required = Y and Respondent Required = Y
+        When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
+            | standardApplicantCode                         | null                                |
+            | applicationCode                               | MX99006                             |
+            | applicant.person.name.title                   | Mr                                  |
+            | applicant.person.name.lastName                | Taylor {SCENARIO_ID}                |
+            | applicant.person.name.firstName               | Henry                               |
+            | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} King Street           |
+            | applicant.person.contactDetails.addressLine2  | Westminster                         |
+            | applicant.person.contactDetails.addressLine3  | London                              |
+            | applicant.person.contactDetails.postcode      | SW1A 1AA                            |
+            | applicant.person.contactDetails.phone         | 01632960001                         |
+            | applicant.person.contactDetails.mobile        | 07700900001                         |
+            | applicant.person.contactDetails.email         | applicant{SCENARIO_ID}@example.com  |
+            | respondent.person.name.title                  | Ms                                  |
+            | respondent.person.name.lastName               | Clark {SCENARIO_ID}                 |
+            | respondent.person.name.firstName              | Emily                               |
+            | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Road           |
+            | respondent.person.contactDetails.addressLine2 | Bristol                             |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                            |
+            | respondent.person.contactDetails.phone        | 01632960001                         |
+            | respondent.person.contactDetails.mobile       | 07700900001                         |
+            | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
+            | respondent.person.dateOfBirth                 | todayiso-25y                        |
+            | wordingFields.0.key                           | Describe Seized Food                |
+            | wordingFields.0.value                         | {SCENARIO_ID}                       |
+            | feeStatuses.0.paymentReference                | PAY-E5-{RANDOM}                     |
+            | feeStatuses.0.paymentStatus                   | PAID                                |
+            | feeStatuses.0.statusDate                      | todayiso                            |
+            | hasOffsiteFee                                 | false                               |
+            | caseReference                                 | CASEE1{RANDOM}                      |
+            | accountNumber                                 | ACCSE1{RANDOM}                      |
+            | notes                                         | Entry search person person          |
+            | lodgementDate                                 | todayiso                            |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "entryId1"
+        When User Signs In With Microsoft SSO As "user1"
+        # Search and Open Created Application List
+        When User Searches Application List With:
+            | Date  | Time | List description                             | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+            | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date         | Time  | Location                          | Description                                  | Entries | Status |
+            | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   |
+        # Search and Open Created Application List Entry
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+            | Sequence number | Account number | Applicant                  | Respondent                | Postcode | Title                      | Fee | Resulted |
+            | 1               | ACCSE1{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
+        Then User Sees Page Heading "Applications list entry update"
+        Then User See "Summary of application list entry" On The Page
+        Then User Enters "MX99002" Into The Textbox "Application code" In The Accordion "Application codes"
+        When User Clicks On The "Search" Button In The Accordion "Application codes"
+        Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
+        Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
+            | Code    | Title          | Bulk | Fee required |
+            | MX99002 | Change of name | No   | Yes          |
+        Then User Should See The Text "Attends to make a statutory declaration that henceforth the applicant will be known as " In The Accordion "Wording"
+        Then User Should See The Text "Fee Reference: CO7.2 " In The Accordion "Civil fee"
