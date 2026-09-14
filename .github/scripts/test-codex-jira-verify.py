@@ -69,6 +69,8 @@ class CodexJiraVerifyTest(unittest.TestCase):
         yarn = self.repo / YARN_PATH
         for path in (verifier, runtime, pipeline, yarn):
             path.parent.mkdir(parents=True, exist_ok=True)
+        for directory in (".github/workflows", ".github/schemas"):
+            (self.repo / directory).mkdir(parents=True, exist_ok=True)
         shutil.copy2(VERIFIER_SOURCE, verifier)
         shutil.copy2(RUNTIME_SOURCE, runtime)
         shutil.copy2(PIPELINE_SOURCE, pipeline)
