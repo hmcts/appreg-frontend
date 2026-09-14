@@ -98,7 +98,12 @@
   </details>
 
   <div class="govuk-button-group">
-    <button class="govuk-button" value="search" (click)="onSearch()">
+    <button
+      class="govuk-button"
+      value="search"
+      (click)="onSearch()"
+      [disabled]="disableSearchButton()"
+    >
       Search
     </button>
     <button

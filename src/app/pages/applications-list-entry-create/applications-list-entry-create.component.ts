@@ -300,7 +300,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       })
       .subscribe({
         next: (entry) => {
-          this.appListEntryCreatePatch({ createDone: true });
+          this.appListEntryCreatePatch({ createDone: true, submitted: false });
           void this.router.navigate(
             ['applications-list', entry.listId, 'update-entry', entry.id],
             { queryParams: { listCreated: true } },
@@ -312,10 +312,10 @@ export class ApplicationsListEntryCreate implements OnInit {
             summaryErrors: [
               { text: mapHttpErrorToSummary(err).errorSummary[0].text },
             ],
+            submitted: false,
           });
         },
       });
-    this.appListEntryCreatePatch({ submitted: false });
   }
 
   get respondentErrorItems(): ErrorItem[] {

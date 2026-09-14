@@ -161,6 +161,17 @@ describe('ApplicationsListUpdateComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('disables Update while an update is pending', () => {
+    fixture.componentRef.setInput('updatePending', true);
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+        'button[type="submit"]',
+      )?.disabled,
+    ).toBe(true);
+  });
+
   it('provides a delete-list action with list-detail navigation state', () => {
     const listRow = {
       id: 'list-1',

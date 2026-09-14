@@ -25,6 +25,8 @@ export class OfficialsSectionComponent {
 
   readonly saveOfficialsClicked = output<void>();
 
+  readonly disableOfficialButton = input(false);
+
   errorFor(domId: string): string | null {
     return errorTextForDomId(this.errorByDomId(), domId);
   }

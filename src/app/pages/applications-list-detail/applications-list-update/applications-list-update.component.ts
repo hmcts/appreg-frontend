@@ -88,6 +88,7 @@ export class ApplicationsListUpdateComponent {
   readonly errorMap = DETAIL_FIELD_MESSAGES;
 
   readonly originalListDetails = input<Readonly<DetailFormValue> | null>(null);
+  readonly updatePending = input(false);
 
   private readonly hrefs = {
     date: `#${DETAIL_ERROR_ANCHORS.date}`,

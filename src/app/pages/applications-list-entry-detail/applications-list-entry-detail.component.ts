@@ -302,6 +302,9 @@ export class ApplicationsListEntryDetail implements OnInit {
   openResultSection = signal(false);
   openOfficialSection = signal(false);
 
+  disableOfficialButton = signal(false);
+  disableSaveCompleteAppBtn = signal(false);
+
   ngOnInit(): void {
     const state = readNavState(this.location, this.platformId);
     this.navState = state;
@@ -790,6 +793,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   private submitEntryUpdate(
     entryUpdateDto: EntryUpdateDto,
     successBanner: SuccessBanner,
+    onComplete?: () => void,
   ): void {
     const entryId = getEntryId(this.route);
     this.submitAttempt.update((attempt) => attempt + 1);
@@ -800,6 +804,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           { text: 'Entry is not loaded. Reload the page and try again.' },
         ],
       });
+      onComplete?.();
       return;
     }
 
@@ -808,6 +813,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       entryId,
       entryUpdateDto,
     };
+
+    this.disableSaveCompleteAppBtn.set(true);
 
     this.entriesApi
       .updateApplicationListEntry(params, 'body', false, {
@@ -832,10 +839,14 @@ export class ApplicationsListEntryDetail implements OnInit {
           } else {
             this.form.controls.standardApplicantCode.markAsPristine();
           }
+          onComplete?.();
+          this.disableSaveCompleteAppBtn.set(false);
         },
         error: (err) => {
           this.appListEntryDetailPatch({ formSubmitted: false });
           this.applyMappedError(err);
+          onComplete?.();
+          this.disableSaveCompleteAppBtn.set(false);
         },
       });
   }
@@ -946,9 +957,12 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    this.disableOfficialButton.set(true);
+
     this.submitEntryUpdate(
       this.buildEntryUpdateDto(),
       ENTRY_SUCCESS_MESSAGES.officialsUpdated,
+      () => this.disableOfficialButton.set(false),
     );
   }
 
