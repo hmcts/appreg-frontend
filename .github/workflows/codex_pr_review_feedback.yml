@@ -119,9 +119,7 @@ jobs:
     environment: codex-model
     needs: detect-codex-pr
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true'
-    runs-on:
-      group: appreg-codex
-      labels: codex-frontend-azure-aks
+    runs-on: codex-frontend-azure-aks
     permissions:
       contents: read
       pull-requests: read
@@ -400,9 +398,7 @@ jobs:
         codex-review-verify,
       ]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify.outputs.passed != 'true'
-    runs-on:
-      group: appreg-codex
-      labels: codex-frontend-azure-aks
+    runs-on: codex-frontend-azure-aks
     permissions:
       contents: read
       pull-requests: read
@@ -641,9 +637,7 @@ jobs:
         codex-review-verify-1,
       ]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-1.outputs.passed == 'false'
-    runs-on:
-      group: appreg-codex
-      labels: codex-frontend-azure-aks
+    runs-on: codex-frontend-azure-aks
     permissions:
       contents: read
       pull-requests: read
@@ -882,9 +876,7 @@ jobs:
         codex-review-verify-2,
       ]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-2.outputs.passed == 'false'
-    runs-on:
-      group: appreg-codex
-      labels: codex-frontend-azure-aks
+    runs-on: codex-frontend-azure-aks
     permissions:
       contents: read
       pull-requests: read
@@ -1364,9 +1356,7 @@ jobs:
         prepare-published-review-repair-source,
       ]
     if: always() && needs.verify-review-status.outputs.passed == 'false'
-    runs-on:
-      group: appreg-codex
-      labels: codex-frontend-azure-aks
+    runs-on: codex-frontend-azure-aks
     timeout-minutes: 120
     permissions:
       contents: read

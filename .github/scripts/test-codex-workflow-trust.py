@@ -74,8 +74,26 @@ class WorkflowTrustTests(unittest.TestCase):
         self.replace("codex_runner_smoke.yml", "    needs: verify-auth-response\n    runs-on: ubuntu-latest", "    needs: verify-auth-response\n    runs-on: codex-example-aks")
         self.check(False)
 
-    def test_model_runner_group_cannot_be_omitted(self):
-        self.replace("codex_jira_dispatch.yml", "      group: appreg-codex\n", "")
+    def test_model_runner_selection_is_enforced_in_every_workflow(self):
+        for filename in (
+            "codex_jira_dispatch.yml", "codex_pr_review_feedback.yml",
+            "codex_merge_conflict_resolution.yml", "codex_runner_smoke.yml",
+        ):
+            for replacement in (
+                "ubuntu-latest", "codex-pilot-azure-aks", "self-hosted",
+                "${{ inputs.runner }}", "[self-hosted, codex-frontend-azure-aks]",
+            ):
+                with self.subTest(workflow=filename, runner=replacement):
+                    path = self.root / ".github/workflows" / filename
+                    original = path.read_text()
+                    self.replace(filename, "runs-on: codex-frontend-azure-aks",
+                                 f"runs-on: {replacement}")
+                    self.check(False)
+                    path.write_text(original)
+
+    def test_unconfigured_runner_group_is_rejected(self):
+        self.replace("codex_jira_dispatch.yml", "    runs-on: codex-frontend-azure-aks",
+                     "    runs-on:\n      group: appreg-codex\n      labels: codex-frontend-azure-aks")
         self.check(False)
 
     def test_dispatch_sha_checkout_is_rejected(self):

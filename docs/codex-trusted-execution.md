@@ -10,12 +10,14 @@ runner-group workflow restrictions, configured by administrators outside the
 repository checkout. The workflow guards and local tests are regression checks,
 not protection against a writer who also modifies those checks.
 
-## Do not activate before the control-plane migration
+## Complete credential protection before activation
 
-The PR alone does not close the finding. Do not merge until the environments,
-secret migration and runner-group migration below are ready for a coordinated
-cutover. No live settings are changed by the scripts in this PR. The publisher
-App identity, model choices and human merge approval are unchanged.
+The PR alone does not close the finding. Complete the protected environments
+and secret migration below before activation. The current frontend rollout uses
+the existing repository-scoped `codex-frontend-azure-aks` runner label; the
+organisation runner-group migration is deferred. No live settings are changed
+by the scripts in this PR. The publisher App identity, model choices and human
+merge approval are unchanged.
 
 ### Protect credentials
 
@@ -54,7 +56,7 @@ permissions to read-only and disable GitHub Actions PR approval. These settings
 reduce ambient token privileges; they do not prevent a writer from requesting
 explicit permissions in a new workflow.
 
-### Restrict runner scheduling
+### Organisation runner-group migration (deferred)
 
 Repository-scoped ARC registration cannot enforce an organisation runner-group
 workflow allow-list. Migrate the two Apps Reg scale sets to organisation-scoped
@@ -90,7 +92,10 @@ the old repository-scoped scale sets; leaving them registered preserves an
 alternative route to the AKS runners. Do not change the seven Juror scale sets
 as part of this Apps Reg change.
 
-The model jobs now explicitly select the group and repository-specific label.
+When implementing this migration, update model jobs to select the group and
+repository-specific label together. Current model jobs select only the frontend
+runner label; the live-settings audit below still reports the missing group and
+does not certify organisation-level scheduling restrictions for this rollout.
 Publisher and verification jobs run on fresh GitHub-hosted compute. Keep runner
 network isolation, service-account permissions and absence of mounted secrets
 under platform review; scheduling policy is not a substitute for pod isolation.

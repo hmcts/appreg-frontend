@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# Regression guard only. GitHub environment and runner-group policies are the boundary.
+# Regression guard only. Protected environments enforce credential access.
 require "yaml"
 require "json"
 
@@ -60,9 +60,8 @@ contracts.each do |filename, (event, entry)|
     end
     runner = job["runs-on"]
     if model_index
-      unless runner.is_a?(Hash) && runner["group"] == "appreg-codex" &&
-             ["codex-pilot-azure-aks", "codex-frontend-azure-aks"].include?(runner["labels"])
-        errors << "#{filename}:#{name}: model execution requires the restricted appreg-codex runner group"
+      unless runner == "codex-frontend-azure-aks"
+        errors << "#{filename}:#{name}: model execution requires the frontend ARC runner label"
       end
     elsif runner != "ubuntu-latest"
       errors << "#{filename}:#{name}: non-model jobs must use GitHub-hosted compute"
