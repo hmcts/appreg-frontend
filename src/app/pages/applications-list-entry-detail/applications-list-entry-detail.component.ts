@@ -814,8 +814,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       entryUpdateDto,
     };
 
-    this.disableSaveCompleteAppBtn.set(true);
-
     this.entriesApi
       .updateApplicationListEntry(params, 'body', false, {
         context: undefined,
@@ -918,6 +916,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (this.runFullSubmitValidation()) {
       return;
     }
+
+    this.disableSaveCompleteAppBtn.set(true);
 
     // Save result if there are pending results to be saved
     if (this.appListEntryDetailState().pendingResults) {

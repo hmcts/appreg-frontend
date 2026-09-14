@@ -600,12 +600,11 @@ describe('ApplicationsListEntryDetail', () => {
       lodgementDate: '2025-11-01',
     };
     component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    component['buildEntryUpdateDto'] = jest.fn().mockReturnValue({});
     mockUpdateApplicationListEntry.mockReturnValueOnce(response);
 
-    component['submitEntryUpdate']({} as EntryUpdateDto, {
-      heading: 'Saved',
-      body: 'Saved',
-    });
+    component.onUpdateApplication();
 
     expect(component.disableSaveCompleteAppBtn()).toBe(true);
 
@@ -624,12 +623,11 @@ describe('ApplicationsListEntryDetail', () => {
       lodgementDate: '2025-11-01',
     };
     component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    component['buildEntryUpdateDto'] = jest.fn().mockReturnValue({});
     mockUpdateApplicationListEntry.mockReturnValueOnce(response);
 
-    component['submitEntryUpdate']({} as EntryUpdateDto, {
-      heading: 'Saved',
-      body: 'Saved',
-    });
+    component.onUpdateApplication();
     expect(component.disableSaveCompleteAppBtn()).toBe(true);
 
     response.error(new Error('Save failed'));
