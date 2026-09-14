@@ -7,7 +7,7 @@ import {
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import {
   UpdateNotesApplicationContext,
@@ -141,6 +141,103 @@ describe('UpdateNotesComponent', () => {
     ]);
   });
 
+  it.each([undefined, null, '', ' \n '])(
+    'shows the empty state without an existing-notes box for notes %p',
+    (notes) => {
+      entriesApiStub.getApplicationListEntryFromClosedList.mockReturnValue(
+        of({ ...entryDetail, notes } as EntryGetDetailDto),
+      );
+      const freshFixture = TestBed.createComponent(UpdateNotesComponent);
+      freshFixture.detectChanges();
+      const element = freshFixture.nativeElement as HTMLElement;
+
+      expect(element.textContent).toContain(
+        'There are no existing application notes.',
+      );
+      expect(element.querySelector('#application-notes')).toBeNull();
+      expect(
+        element.querySelector('label[for="application-notes"]'),
+      ).toBeNull();
+      expect(
+        element.querySelector<HTMLTextAreaElement>(
+          'textarea[name="additionalNotes"]',
+        )?.disabled,
+      ).toBe(false);
+    },
+  );
+
+  it('shows existing notes without the empty-state message', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    const notes = element.querySelector<HTMLTextAreaElement>(
+      'textarea[name="applicationNotes"]',
+    );
+
+    expect(notes?.value).toBe(entryDetail.notes);
+    expect(notes?.disabled).toBe(true);
+    expect(element.textContent).not.toContain(
+      'There are no existing application notes.',
+    );
+  });
+
+  it('waits for a successful load before showing the empty state', () => {
+    const entryResponse = new Subject<EntryGetDetailDto>();
+    entriesApiStub.getApplicationListEntryFromClosedList.mockReturnValue(
+      entryResponse,
+    );
+    const freshFixture = TestBed.createComponent(UpdateNotesComponent);
+    freshFixture.detectChanges();
+    const element = freshFixture.nativeElement as HTMLElement;
+
+    expect(element.textContent).not.toContain(
+      'There are no existing application notes.',
+    );
+    expect(element.querySelector('#application-notes')).toBeNull();
+
+    entryResponse.next({ ...entryDetail, notes: '' });
+    freshFixture.detectChanges();
+
+    expect(element.textContent).toContain(
+      'There are no existing application notes.',
+    );
+    entryResponse.complete();
+  });
+
+  it.each([{}, { notes: 'First application note' }])(
+    'replaces the empty state with notes after the first save with response %p',
+    (response) => {
+      entriesApiStub.getApplicationListEntryFromClosedList.mockReturnValue(
+        of({ ...entryDetail, notes: '' }),
+      );
+      entriesApiStub.updateClosedApplicationListEntry.mockReturnValue(
+        of(response),
+      );
+      const freshFixture = TestBed.createComponent(UpdateNotesComponent);
+      freshFixture.detectChanges();
+      const freshComponent = freshFixture.componentInstance;
+      const element = freshFixture.nativeElement as HTMLElement;
+      expect(element.textContent).toContain(
+        'There are no existing application notes.',
+      );
+
+      freshComponent.form.controls.additionalNotes.setValue(
+        'First application note',
+      );
+      element.querySelector<HTMLButtonElement>('button.govuk-button')?.click();
+      freshFixture.detectChanges();
+
+      expect(element.textContent).not.toContain(
+        'There are no existing application notes.',
+      );
+      expect(
+        element.querySelector<HTMLTextAreaElement>(
+          'textarea[name="applicationNotes"]',
+        )?.value,
+      ).toBe('First application note');
+      expect(freshComponent.form.controls.additionalNotes.value).toBe('');
+      expect(freshComponent.additionalNotesCharacterLimit()).toBe(2977);
+    },
+  );
+
   it('omits selected application context rows when values are not provided', () => {
     component.context.set({
       id: 'entry-1',
@@ -233,6 +330,9 @@ describe('UpdateNotesComponent', () => {
     expect(freshComponent.errorSummaryItems()).toEqual([
       { text: 'Unable to load application notes' },
     ]);
+    expect(
+      (freshFixture.nativeElement as HTMLElement).textContent,
+    ).not.toContain('There are no existing application notes.');
   });
 
   it('saves additional notes using the closed entry update endpoint', () => {
