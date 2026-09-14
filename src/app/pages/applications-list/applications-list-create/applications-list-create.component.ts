@@ -157,6 +157,8 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
           }),
         onSuccess: async (response) => {
           // Nav to move-confirm page instead
+          this.createRequest.set(null);
+          this.disableCreateButton.set(false);
           if (this.fromMoveApplications()) {
             const targetListDetails: ApplicationListRow = toRow(response);
 
@@ -182,10 +184,10 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             queryParams: { listCreated: true },
             fragment: 'list-details',
           });
-          this.createRequest.set(null);
-          this.disableCreateButton.set(false);
         },
         onError: (err) => {
+          this.createRequest.set(null);
+          this.disableCreateButton.set(false);
           const msg = getProblemText(err);
           this.appListCreatesignalState.patch({
             submitted: true,
@@ -193,8 +195,6 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             errorHint: 'There is a problem',
             errorSummary: [{ text: msg, href: '#create', id: 'create' }],
           });
-          this.createRequest.set(null);
-          this.disableCreateButton.set(false);
         },
       },
       this.envInjector,

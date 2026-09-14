@@ -9,7 +9,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { jest } from '@jest/globals';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { ApplicationsListCreate } from '@components/applications-list/applications-list-create/applications-list-create.component';
 import { ApplicationsListCreateState } from '@components/applications-list/applications-list-create/util/applications-list-create.state';
@@ -288,7 +288,9 @@ describe('ApplicationsListCreate', () => {
     expect(getState(component).errorHint).toContain('There is a problem');
   });
 
-  it('submission disables submit button', () => {
+  it('submission disables submit button until the create request completes', async () => {
+    const response = new Subject<{ id: number }>();
+    appListsMock.createApplicationList.mockReturnValueOnce(response);
     component.form.setValue({
       date: '2025-10-02',
       time: { hours: 8, minutes: 5 },
@@ -304,6 +306,12 @@ describe('ApplicationsListCreate', () => {
     const createButton = fixture.debugElement.query(By.css('#create'))
       .nativeElement as HTMLButtonElement;
     expect(createButton.disabled).toBe(true);
+
+    response.next({ id: 123 });
+    response.complete();
+    await flushSignalEffects();
+
+    expect(createButton.disabled).toBe(false);
   });
 
   it('loads move context from browser history and updates breadcrumbs', async () => {
