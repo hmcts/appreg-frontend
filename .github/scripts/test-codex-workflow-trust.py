@@ -50,6 +50,54 @@ class WorkflowTrustTests(unittest.TestCase):
                 self.check(False)
                 path.write_text(original)
 
+    def test_automatic_pr_review_requires_pull_request_target(self):
+        self.replace("codex_pr_review.yml", "  pull_request_target:", "  pull_request:")
+        self.check(False)
+
+    def test_automatic_pr_review_rejects_forks(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "github.event.pull_request.head.repo.full_name == github.repository",
+            "github.event.pull_request.head.repo.full_name != github.repository",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_does_not_skip_drafts(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "github.event.pull_request.head.repo.full_name == github.repository",
+            "github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_cannot_checkout_pr_code(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "ref: ${{ github.event.pull_request.base.sha }}",
+            "ref: ${{ github.event.pull_request.head.sha }}",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_cannot_fetch_a_different_head(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "${PR_HEAD_SHA}:refs/remotes/origin/codex-pr/${PR_NUMBER}",
+            "refs/pull/${PR_NUMBER}/head:refs/remotes/origin/codex-pr/${PR_NUMBER}",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_must_be_read_only(self):
+        self.replace("codex_pr_review.yml", "permission-profile: ':read-only'", "permission-profile: ':workspace'")
+        self.check(False)
+
+    def test_automatic_pr_review_cannot_publish_before_analysis(self):
+        self.replace("codex_pr_review.yml", "    needs: analyze", "    needs: []")
+        self.check(False)
+
+    def test_automatic_pr_review_failure_is_non_blocking(self):
+        self.replace("codex_pr_review.yml", "    continue-on-error: true", "    continue-on-error: false")
+        self.check(False)
+
     def test_missing_protected_environment_is_rejected(self):
         self.replace("codex_jira_dispatch.yml", "    environment: codex-model\n", "")
         self.check(False)

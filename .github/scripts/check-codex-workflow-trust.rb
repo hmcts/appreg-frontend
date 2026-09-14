@@ -7,6 +7,7 @@ root = ARGV.fetch(0, ".")
 contracts = {
   "codex_jira_dispatch.yml" => ["workflow_dispatch", "codex-plan-action"],
   "codex_pr_review_feedback.yml" => ["issue_comment", "detect-codex-pr"],
+  "codex_pr_review.yml" => ["pull_request_target", "analyze"],
   "codex_merge_conflict_resolution.yml" => ["issue_comment", "detect-conflicted-pr"],
   "codex_runner_smoke.yml" => ["workflow_dispatch", "codex-auth-smoke"]
 }
@@ -32,10 +33,17 @@ contracts.each do |filename, (event, entry)|
     errors << "#{filename}: workflow permissions must be explicitly read-only or empty"
   end
   jobs = workflow.fetch("jobs")
-  guard = "github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && " \
-    "github.workflow_ref == format('{0}/.github/workflows/#{filename}@refs/heads/{1}', github.repository, github.event.repository.default_branch)"
-  unless jobs.fetch(entry).fetch("if", "").split.join(" ") == guard
-    errors << "#{filename}: entry job must require the default branch and exact workflow ref"
+  if event == "pull_request_target"
+    guard = "github.event.pull_request.head.repo.full_name == github.repository"
+    unless jobs.fetch(entry).fetch("if", "").split.join(" ") == guard
+      errors << "#{filename}: model job must skip pull requests from forks"
+    end
+  else
+    guard = "github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && " \
+      "github.workflow_ref == format('{0}/.github/workflows/#{filename}@refs/heads/{1}', github.repository, github.event.repository.default_branch)"
+    unless jobs.fetch(entry).fetch("if", "").split.join(" ") == guard
+      errors << "#{filename}: entry job must require the default branch and exact workflow ref"
+    end
   end
   jobs.each do |name, job|
     encoded = JSON.generate(job)
@@ -85,6 +93,50 @@ contracts.each do |filename, (event, entry)|
     end
   end
 end
+
+# .github/workflows/codex_pr_review.yml
+pr_review_path = File.join(root, ".github/workflows/codex_pr_review.yml")
+pr_review = YAML.load_file(pr_review_path)
+review_jobs = pr_review.fetch("jobs")
+review_steps = review_jobs.fetch("analyze").fetch("steps")
+checkout = review_steps.find { |step| step.fetch("uses", "").start_with?("actions/checkout@") }
+
+unless checkout && checkout.fetch("with", {}) == {
+  "ref" => "${{ github.event.pull_request.base.sha }}",
+  "fetch-depth" => 1,
+  "persist-credentials" => false
+}
+  errors << "codex_pr_review.yml: model job must check out only the trusted base revision without credentials"
+end
+
+fetch = review_steps.find { |step| step.fetch("name", "") == "Fetch the pull request head without checking it out" }
+expected_fetch = <<~SHELL
+  git fetch --no-tags origin "${PR_HEAD_SHA}:refs/remotes/origin/codex-pr/${PR_NUMBER}"
+  test "$(git rev-parse "refs/remotes/origin/codex-pr/${PR_NUMBER}")" = "${PR_HEAD_SHA}"
+SHELL
+
+unless fetch && fetch["env"] == {
+  "PR_HEAD_SHA" => "${{ github.event.pull_request.head.sha }}",
+  "PR_NUMBER" => "${{ github.event.pull_request.number }}"
+} && fetch.fetch("run", "") == expected_fetch
+  errors << "codex_pr_review.yml: model job must fetch and verify the event head SHA without checking it out"
+end
+
+model = review_steps.find { |step| step.fetch("id", "") == "codex" }
+unless model && model.fetch("with", {})["permission-profile"] == ":read-only"
+  errors << "codex_pr_review.yml: automated review must use the read-only permission profile"
+end
+
+publisher = review_jobs.fetch("publish")
+unless publisher["needs"] == "analyze" && publisher["runs-on"] == "ubuntu-latest" &&
+       publisher["permissions"] == { "pull-requests" => "write" }
+  errors << "codex_pr_review.yml: publishing must be a GitHub-hosted job after analysis with only pull-request write permission"
+end
+
+unless review_jobs.values.all? { |job| job["continue-on-error"] == true }
+  errors << "codex_pr_review.yml: all jobs must allow failure so the advisory review cannot block a merge"
+end
+
 hosted_path = File.join(root, ".github/workflows/codex_trust_checks.yml")
 hosted = YAML.load_file(hosted_path)
 hosted_events = hosted["on"] || hosted[true] || {}
