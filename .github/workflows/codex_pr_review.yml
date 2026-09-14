@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   analyze:
-    name: Codex Code Review - Analyse changes
+    name: Analyze changes
     environment: codex-model
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository
@@ -28,14 +28,14 @@ jobs:
       final_message: ${{ steps.codex.outputs.final-message }}
 
     steps:
-      - name: Codex Code Review - Check out the trusted base revision
+      - name: Check out the trusted base revision
         uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Codex Code Review - Fetch the pull request head without checking it out
+      - name: Fetch the pull request head without checking it out
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -43,10 +43,10 @@ jobs:
           git fetch --no-tags origin "${PR_HEAD_SHA}:refs/remotes/origin/codex-pr/${PR_NUMBER}"
           test "$(git rev-parse "refs/remotes/origin/codex-pr/${PR_NUMBER}")" = "${PR_HEAD_SHA}"
 
-      - name: Codex Code Review - Verify runner toolchain
+      - name: Verify runner toolchain
         run: ./.github/scripts/codex-runner-preflight.sh
 
-      - name: Codex Code Review - Review the diff with Codex
+      - name: Review the diff with Codex
         id: codex
         uses: openai/codex-action@v1
         with:
@@ -93,7 +93,7 @@ jobs:
             No actionable finding was confirmed in the diff.
 
   publish:
-    name: Codex Code Review - Publish comment
+    name: Publish comment
     needs: analyze
     if: needs.analyze.outputs.final_message != ''
     runs-on: ubuntu-latest
@@ -103,7 +103,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Codex Code Review - Comment on the pull request
+      - name: Comment on the pull request
         uses: actions/github-script@v7
         env:
           CODEX_RESULT: ${{ needs.analyze.outputs.final_message }}
