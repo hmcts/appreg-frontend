@@ -33,7 +33,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.base.sha }}
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Fetch the pull request head without checking it out
@@ -43,6 +43,18 @@ jobs:
         run: |
           git fetch --no-tags origin "${PR_HEAD_SHA}:refs/remotes/origin/codex-pr/${PR_NUMBER}"
           test "$(git rev-parse "refs/remotes/origin/codex-pr/${PR_NUMBER}")" = "${PR_HEAD_SHA}"
+      - name: Determine the pull request merge base # exclude unrelated changes introduced on master
+        id: merge-base
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          merge_base="$(git merge-base "${PR_BASE_SHA}" "refs/remotes/origin/codex-pr/${PR_NUMBER}")"
+          test -n "${merge_base}"
+          git merge-base --is-ancestor "${merge_base}" "${PR_BASE_SHA}"
+          git merge-base --is-ancestor "${merge_base}" "${PR_HEAD_SHA}"
+          printf '%s\n' "sha=${merge_base}" >>"${GITHUB_OUTPUT}"
 
       - name: Verify runner toolchain
         run: ./.github/scripts/codex-runner-preflight.sh
@@ -66,8 +78,12 @@ jobs:
 
             Base commit: ${{ github.event.pull_request.base.sha }}
             Head commit: ${{ github.event.pull_request.head.sha }}
+            Verified merge-base commit: ${{ steps.merge-base.outputs.sha }}
 
-            Use `git diff` and only the minimum repository context needed to establish whether a changed line introduces a real problem.
+            Identify the changes introduced by this pull request with exactly:
+            `git diff --no-ext-diff ${{ steps.merge-base.outputs.sha }} ${{ github.event.pull_request.head.sha }}`.
+            Do not compare the base tip directly with the head tip and do not use a two-dot or three-dot diff.
+            Use only the minimum additional repository context needed to establish whether a changed line introduces a real problem.
             The checked-out worktree is the trusted base revision.
             Do not check it out, modify the worktree, or execute anything from it.
 

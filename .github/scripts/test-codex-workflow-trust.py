@@ -90,11 +90,27 @@ class WorkflowTrustTests(unittest.TestCase):
         )
         self.check(False)
 
+    def test_automatic_pr_review_requires_full_base_history(self):
+        self.replace("codex_pr_review.yml", "fetch-depth: 0", "fetch-depth: 1")
+        self.check(False)
+
     def test_automatic_pr_review_cannot_fetch_a_different_head(self):
         self.replace(
             "codex_pr_review.yml",
             "${PR_HEAD_SHA}:refs/remotes/origin/codex-pr/${PR_NUMBER}",
             "refs/pull/${PR_NUMBER}/head:refs/remotes/origin/codex-pr/${PR_NUMBER}",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_requires_a_verified_merge_base(self):
+        self.replace("codex_pr_review.yml", "id: merge-base", "id: merge-base-disabled")
+        self.check(False)
+
+    def test_automatic_pr_review_must_diff_from_the_merge_base(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "git diff --no-ext-diff ${{ steps.merge-base.outputs.sha }} ${{ github.event.pull_request.head.sha }}",
+            "git diff --no-ext-diff ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}",
         )
         self.check(False)
 

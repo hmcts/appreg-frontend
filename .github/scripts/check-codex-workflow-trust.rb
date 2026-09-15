@@ -111,7 +111,7 @@ checkout = review_steps.find { |step| step.fetch("uses", "").start_with?("action
 
 unless checkout && checkout.fetch("with", {}) == {
   "ref" => "${{ github.event.pull_request.base.sha }}",
-  "fetch-depth" => 1,
+  "fetch-depth" => 0,
   "persist-credentials" => false
 }
   errors << "codex_pr_review.yml: model job must check out only the trusted base revision without credentials"
@@ -130,8 +130,27 @@ unless fetch && fetch["env"] == {
   errors << "codex_pr_review.yml: model job must fetch and verify the event head SHA without checking it out"
 end
 
+merge_base = review_steps.find { |step| step.fetch("id", "") == "merge-base" }
+expected_merge_base = <<~SHELL
+  merge_base="$(git merge-base "${PR_BASE_SHA}" "refs/remotes/origin/codex-pr/${PR_NUMBER}")"
+  test -n "${merge_base}"
+  git merge-base --is-ancestor "${merge_base}" "${PR_BASE_SHA}"
+  git merge-base --is-ancestor "${merge_base}" "${PR_HEAD_SHA}"
+  printf '%s\\n' "sha=${merge_base}" >>"${GITHUB_OUTPUT}"
+SHELL
+
+unless merge_base && merge_base["env"] == {
+  "PR_BASE_SHA" => "${{ github.event.pull_request.base.sha }}",
+  "PR_HEAD_SHA" => "${{ github.event.pull_request.head.sha }}",
+  "PR_NUMBER" => "${{ github.event.pull_request.number }}"
+} && merge_base.fetch("run", "") == expected_merge_base
+  errors << "codex_pr_review.yml: model job must verify the merge base for the exact base and head commits"
+end
+
 model = review_steps.find { |step| step.fetch("id", "") == "codex" }
-unless model && model.fetch("with", {})["permission-profile"] == ":read-only"
+expected_diff_instruction = "git diff --no-ext-diff ${{ steps.merge-base.outputs.sha }} ${{ github.event.pull_request.head.sha }}"
+unless model && model.fetch("with", {})["permission-profile"] == ":read-only" &&
+       model.fetch("with", {})["prompt"].include?(expected_diff_instruction)
   errors << "codex_pr_review.yml: automated review must use the read-only permission profile"
 end
 
