@@ -28,6 +28,14 @@ contracts.each do |filename, (event, entry)|
   if event == "issue_comment" && triggers.fetch(event, {}) != {"types" => ["created"]}
     errors << "#{filename}: only newly created PR conversation comments are supported"
   end
+
+  if event == "pull_request_target" && triggers.fetch(event, {}) != {
+    "branches" => ["master"],
+    "types" => ["opened", "reopened", "synchronize", "ready_for_review", "converted_to_draft"]
+  }
+    errors << "#{filename}: only master PR activity may start the automated review"
+  end
+
   permissions = workflow["permissions"]
   unless permissions.is_a?(Hash) && permissions.values.all? { |value| ["read", "none"].include?(value) }
     errors << "#{filename}: workflow permissions must be explicitly read-only or empty"

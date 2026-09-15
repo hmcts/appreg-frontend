@@ -54,6 +54,18 @@ class WorkflowTrustTests(unittest.TestCase):
         self.replace("codex_pr_review.yml", "  pull_request_target:", "  pull_request:")
         self.check(False)
 
+    def test_automatic_pr_review_requires_master_base_branch(self):
+        self.replace("codex_pr_review.yml", "    branches: [master]", "    branches: [develop]")
+        self.check(False)
+
+    def test_automatic_pr_review_requires_all_configured_pr_activity(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]",
+            "types: [opened, reopened, synchronize, ready_for_review]",
+        )
+        self.check(False)
+
     def test_automatic_pr_review_rejects_forks(self):
         self.replace(
             "codex_pr_review.yml",
