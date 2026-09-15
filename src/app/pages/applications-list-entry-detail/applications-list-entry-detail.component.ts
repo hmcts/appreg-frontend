@@ -1460,6 +1460,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    this.resetSuccessBanner();
     this.resultsFacade.setPending(payload.pendingToCreate ?? []);
 
     this.resultAppliedBannerVisible.set(true);

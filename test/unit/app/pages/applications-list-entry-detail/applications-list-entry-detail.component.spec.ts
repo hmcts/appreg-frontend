@@ -1957,10 +1957,14 @@ describe('ApplicationsListEntryDetail', () => {
     const submitSpy = jest
       .spyOn(component.resultsFacade, 'submitResultChanges')
       .mockImplementation();
+    component['appListEntryDetailPatch']({
+      successBanner: ENTRY_SUCCESS_MESSAGES.listCreated,
+    });
 
     component.onSubmitResults(payload);
 
     const state = component['appListEntryDetailState']();
+    expect(state.successBanner).toBeNull();
     expect(setPendingSpy).toHaveBeenCalledWith(payload.pendingToCreate);
     expect(submitSpy).not.toHaveBeenCalled();
     expect(component.resultAppliedBannerVisible()).toBe(true);
