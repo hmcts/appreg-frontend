@@ -151,6 +151,13 @@ describe('UpdateNotesComponent', () => {
       freshFixture.detectChanges();
       const element = freshFixture.nativeElement as HTMLElement;
 
+      expect(
+        freshFixture.componentInstance.additionalNotesCharacterLimit(),
+      ).toBe(3000);
+      expect(
+        freshFixture.componentInstance.form.controls.applicationNotes.value,
+      ).toBe('');
+
       expect(element.textContent).toContain(
         'There are no existing application notes.',
       );
@@ -175,6 +182,75 @@ describe('UpdateNotesComponent', () => {
     expect(notes?.value).toBe(entryDetail.notes);
     expect(notes?.disabled).toBe(true);
     expect(element.textContent).not.toContain(
+      'There are no existing application notes.',
+    );
+  });
+
+  it('preserves formatting and counts whitespace in non-empty notes', () => {
+    const notes = ' \n Existing note\n ';
+    entriesApiStub.getApplicationListEntryFromClosedList.mockReturnValue(
+      of({ ...entryDetail, notes }),
+    );
+    const freshFixture = TestBed.createComponent(UpdateNotesComponent);
+    freshFixture.detectChanges();
+
+    expect(
+      freshFixture.componentInstance.form.controls.applicationNotes.value,
+    ).toBe(notes);
+    expect(freshFixture.componentInstance.additionalNotesCharacterLimit()).toBe(
+      3000 - notes.length - 1,
+    );
+  });
+
+  it('accepts a 3000-character first note after whitespace-only notes without adding a separator', () => {
+    entriesApiStub.getApplicationListEntryFromClosedList.mockReturnValue(
+      of({ ...entryDetail, notes: ' \n ' }),
+    );
+    entriesApiStub.updateClosedApplicationListEntry.mockReturnValue(of({}));
+    const freshFixture = TestBed.createComponent(UpdateNotesComponent);
+    freshFixture.detectChanges();
+    const freshComponent = freshFixture.componentInstance;
+    const additionalNotes = 'a'.repeat(3000);
+    freshComponent.form.controls.additionalNotes.setValue(additionalNotes);
+
+    freshComponent.onSaveAdditionalNotes();
+    freshFixture.detectChanges();
+
+    expect(
+      entriesApiStub.updateClosedApplicationListEntry,
+    ).toHaveBeenCalledWith(
+      {
+        listId: 'list-1',
+        entryId: 'entry-1',
+        entryUpdateClosedDto: { additionalNotes },
+      },
+      'body',
+      false,
+      { transferCache: false },
+    );
+    expect(freshComponent.form.controls.applicationNotes.value).toBe(
+      additionalNotes,
+    );
+    expect(freshComponent.additionalNotesCharacterLimit()).toBe(0);
+    expect(
+      (
+        freshFixture.nativeElement as HTMLElement
+      ).querySelector<HTMLTextAreaElement>('textarea[name="applicationNotes"]')
+        ?.value,
+    ).toBe(additionalNotes);
+  });
+
+  it('normalizes whitespace-only notes returned after saving', () => {
+    entriesApiStub.updateClosedApplicationListEntry.mockReturnValue(
+      of({ notes: ' \n ' }),
+    );
+
+    component.onSaveAdditionalNotes();
+    fixture.detectChanges();
+
+    expect(component.form.controls.applicationNotes.value).toBe('');
+    expect(component.additionalNotesCharacterLimit()).toBe(3000);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
       'There are no existing application notes.',
     );
   });

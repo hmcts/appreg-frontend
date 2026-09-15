@@ -354,8 +354,9 @@ export class UpdateNotesComponent implements OnInit {
   }
 
   private setApplicationNotes(notes: string): void {
-    this.form.controls.applicationNotes.setValue(notes);
-    this.applicationNotesLength.set(notes.length);
+    const normalizedNotes = notes.trim() ? notes : '';
+    this.form.controls.applicationNotes.setValue(normalizedNotes);
+    this.applicationNotesLength.set(normalizedNotes.length);
     this.updateAdditionalNotesValidator();
   }
 
