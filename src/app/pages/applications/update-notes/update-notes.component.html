@@ -38,19 +38,25 @@
 }
 
 <form [formGroup]="form">
-  <div class="govuk-form-group">
-    <label class="govuk-label govuk-label--s" for="application-notes">
-      Application notes
-    </label>
-    <app-govuk-textarea
-      [control]="form.controls.applicationNotes"
-      id="application-notes"
-      name="applicationNotes"
-      ariaDescribedBy=""
-      [rows]="6"
-      [characterCountEnabled]="false"
-    />
-  </div>
+  @if (hasLoadedEntry()) {
+    @if (form.controls.applicationNotes.value) {
+      <div class="govuk-form-group">
+        <label class="govuk-label govuk-label--s" for="application-notes">
+          Application notes
+        </label>
+        <app-govuk-textarea
+          [control]="form.controls.applicationNotes"
+          id="application-notes"
+          name="applicationNotes"
+          ariaDescribedBy=""
+          [rows]="6"
+          [characterCountEnabled]="false"
+        />
+      </div>
+    } @else {
+      <p class="govuk-body">There are no existing application notes.</p>
+    }
+  }
 
   <div
     class="govuk-form-group"
