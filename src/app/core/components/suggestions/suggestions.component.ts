@@ -178,6 +178,12 @@ export class SuggestionsComponent implements ControlValueAccessor {
       this.allValuesVisible = this.showAllValues();
     }
 
+    // Commit restored location text before this same Return submits the form.
+    // Ignore Return while an input method is still composing text.
+    if (event.key === 'Enter' && !event.isComposing) {
+      this.selectExactLocationMatch();
+    }
+
     if (event.key === 'Escape') {
       this.closePopup();
     }
@@ -199,8 +205,32 @@ export class SuggestionsComponent implements ControlValueAccessor {
     const nextFocusedElement = event.relatedTarget as Node | null;
     const autocomplete = event.currentTarget as HTMLElement;
 
+    // Confirm only when leaving the whole autocomplete, not when tabbing into its menu.
     if (!nextFocusedElement || !autocomplete.contains(nextFocusedElement)) {
+      this.selectExactLocationMatch();
       this.closePopup();
+    }
+  }
+
+  private selectExactLocationMatch(): void {
+    if (
+      this.disabledState() ||
+      this.showAllValues() ||
+      this.isCommittedText ||
+      !this.hasQuery
+    ) {
+      return;
+    }
+    // Only a unique full court/CJA label can restore a selection; partial text
+    // and other suggestion types still require an explicit choice.
+    const query = trimStringToLowerCase(this.searchState());
+    const matches = this.suggestions().filter(
+      (item) =>
+        (item.kind === 'court' || item.kind === 'cja') &&
+        trimStringToLowerCase(item.label) === query,
+    );
+    if (matches.length === 1) {
+      this.choose(matches[0]);
     }
   }
 
@@ -212,8 +242,10 @@ export class SuggestionsComponent implements ControlValueAccessor {
     return item.value;
   }
 
-  choose(item: SuggestionsItem, e: Event): void {
-    e.preventDefault();
+  choose(item: SuggestionsItem, e?: Event): void {
+    // Menu choices prevent default; automatic selection omits the event so
+    // Return can still submit after the stored value has been updated.
+    e?.preventDefault();
 
     // still emit the object if parent wants it
     this.selectItem.emit(item);

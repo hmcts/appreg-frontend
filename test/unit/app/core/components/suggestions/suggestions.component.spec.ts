@@ -3,7 +3,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
-import { CourtSuggestionItem } from '@components/suggestions/suggestions.types';
+import {
+  CourtSuggestionItem,
+  SuggestionsItem,
+} from '@components/suggestions/suggestions.types';
 
 @Component({
   standalone: true,
@@ -73,6 +76,181 @@ describe('SuggestionsComponent', () => {
     expect(component.labelFor(suggestion('C1', 'C1 - Alpha Court'))).toBe(
       'C1 - Alpha Court',
     );
+  });
+
+  it.each<SuggestionsItem>([
+    {
+      kind: 'court',
+      value: 'A1',
+      label: 'A1 - Alpha-Central Court',
+      locationCode: 'A1',
+      name: 'Alpha-Central Court',
+    },
+    {
+      kind: 'cja',
+      value: 'C1',
+      label: 'C1 - Area One',
+      code: 'C1',
+      description: 'Area One',
+    },
+  ])(
+    'commits a unique exact $kind label only when leaving the autocomplete',
+    (item) => {
+      setInput('suggestions', [item]);
+      const emit = jest.spyOn(component.selectItem, 'emit');
+      const onChange = jest.fn();
+      component.registerOnChange(onChange);
+      component.onFocus();
+      component.onInput(`  ${item.label.toUpperCase()}  `);
+      fixture.detectChanges();
+      expect(emit).not.toHaveBeenCalled();
+      expect(onChange).not.toHaveBeenCalled();
+
+      const input = fixture.nativeElement.querySelector(
+        'input',
+      ) as HTMLInputElement;
+      const option = fixture.nativeElement.querySelector(
+        'button',
+      ) as HTMLButtonElement;
+      input.dispatchEvent(
+        new FocusEvent('focusout', { bubbles: true, relatedTarget: option }),
+      );
+      expect(emit).not.toHaveBeenCalled();
+
+      option.dispatchEvent(
+        new FocusEvent('focusout', {
+          bubbles: true,
+          relatedTarget: document.body,
+        }),
+      );
+      expect(emit).toHaveBeenCalledWith(item);
+      expect(onChange).toHaveBeenCalledWith(item.value);
+      expect(component.searchState()).toBe(item.label);
+      expect(component.isCommittedText).toBe(true);
+      expect(component.open).toBe(false);
+
+      input.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+      expect(emit).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it.each(['court', 'cja'] as const)(
+    'confirms an edited and restored %s and allows submission on the same Return',
+    (kind) => {
+      const item: SuggestionsItem =
+        kind === 'court'
+          ? suggestion('A1', 'A1 - Alpha Court')
+          : {
+              kind: 'cja',
+              value: 'C1',
+              label: 'C1 - Area One',
+              code: 'C1',
+              description: 'Area One',
+            };
+      setInput('suggestions', [item]);
+      component.onFocus();
+      component.choose(item, new Event('mousedown'));
+      const emit = jest.spyOn(component.selectItem, 'emit');
+      const onChange = jest.fn();
+      component.registerOnChange(onChange);
+      component.onInput(item.label.slice(0, -1));
+      component.onInput(`  ${item.label.toUpperCase()}  `);
+      fixture.detectChanges();
+      const input = fixture.nativeElement.querySelector(
+        'input',
+      ) as HTMLInputElement;
+
+      input.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Enter',
+          isComposing: true,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+      expect(emit).not.toHaveBeenCalled();
+
+      const firstReturn = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+        cancelable: true,
+      });
+      input.dispatchEvent(firstReturn);
+      expect(firstReturn.defaultPrevented).toBe(false);
+      expect(emit).toHaveBeenCalledWith(item);
+      expect(onChange).toHaveBeenCalledWith(item.value);
+      expect(component.searchState()).toBe(item.label);
+      expect(component.open).toBe(false);
+
+      const secondReturn = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+        cancelable: true,
+      });
+      input.dispatchEvent(secondReturn);
+      expect(secondReturn.defaultPrevented).toBe(false);
+      expect(emit).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it.each([
+    'partial',
+    'ambiguous',
+    'disabled',
+    'showAllValues',
+    'otherKind',
+    'empty',
+  ])('does not auto-select a %s match', (scenario) => {
+    const item = suggestion('A1', 'A1 - Alpha Court');
+    const items: SuggestionsItem[] =
+      scenario === 'otherKind'
+        ? [
+            {
+              kind: 'result-code',
+              value: 'A1',
+              label: item.label,
+              resultCode: 'A1',
+              title: 'Alpha Court',
+            },
+          ]
+        : scenario === 'ambiguous'
+          ? [item, { ...item, value: 'A2' }]
+          : [item];
+    setInput('suggestions', items);
+    if (scenario === 'disabled') {
+      setInput('disabled', true);
+    }
+    if (scenario === 'showAllValues') {
+      setInput('showAllValues', true);
+    }
+    const emit = jest.spyOn(component.selectItem, 'emit');
+    component.onFocus();
+    component.onInput(
+      scenario === 'partial'
+        ? 'A1 - Alpha'
+        : scenario === 'empty'
+          ? ''
+          : item.label,
+    );
+    fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector(
+      'input',
+    ) as HTMLInputElement;
+    const enter = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      bubbles: true,
+      cancelable: true,
+    });
+    input.dispatchEvent(enter);
+    expect(enter.defaultPrevented).toBe(false);
+    expect(emit).not.toHaveBeenCalled();
+    input.dispatchEvent(
+      new FocusEvent('focusout', {
+        bubbles: true,
+        relatedTarget: document.body,
+      }),
+    );
+    expect(emit).not.toHaveBeenCalled();
   });
 
   it('choose prevents default, emits selectItem, and commits the selected label', () => {
