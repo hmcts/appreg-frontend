@@ -85,6 +85,8 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
     null,
   );
 
+  disableCreateButton = signal(false);
+
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
   readonly errorMap = APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES;
@@ -155,6 +157,8 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
           }),
         onSuccess: async (response) => {
           // Nav to move-confirm page instead
+          this.createRequest.set(null);
+          this.disableCreateButton.set(false);
           if (this.fromMoveApplications()) {
             const targetListDetails: ApplicationListRow = toRow(response);
 
@@ -180,9 +184,10 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             queryParams: { listCreated: true },
             fragment: 'list-details',
           });
-          this.createRequest.set(null);
         },
         onError: (err) => {
+          this.createRequest.set(null);
+          this.disableCreateButton.set(false);
           const msg = getProblemText(err);
           this.appListCreatesignalState.patch({
             submitted: true,
@@ -190,7 +195,6 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             errorHint: 'There is a problem',
             errorSummary: [{ text: msg, href: '#create', id: 'create' }],
           });
-          this.createRequest.set(null);
         },
       },
       this.envInjector,
@@ -231,6 +235,8 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
       errorHint: '',
       errorSummary: [],
     });
+
+    this.disableCreateButton.set(true);
 
     const payload = this.buildPayload(this.form.getRawValue());
     this.createRequest.set(payload);

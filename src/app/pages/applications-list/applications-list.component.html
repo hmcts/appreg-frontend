@@ -93,7 +93,13 @@
   />
 
   <div class="govuk-button-group">
-    <button id="search" type="submit" class="govuk-button" value="search">
+    <button
+      id="search"
+      type="submit"
+      class="govuk-button"
+      value="search"
+      [disabled]="disableSearchButton()"
+    >
       Search
     </button>
     <button

@@ -139,6 +139,7 @@
   <button
     class="govuk-button govuk-button__export"
     (click)="onExportErrorFilesClick()"
+    [disabled]="disableExportErrButton()"
   >
     Export the file with errors shown
   </button>

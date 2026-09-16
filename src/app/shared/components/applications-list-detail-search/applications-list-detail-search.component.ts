@@ -78,6 +78,8 @@ export class ApplicationsListDetailSearchComponent {
   );
   readonly incrementSubmitAttempt = input.required<() => void>();
 
+  disableSearchButton = signal(false);
+
   form = new FormGroup({
     // Max lengths aligned with openapi spec
     sequenceNumber: new FormControl<string>('', {
@@ -154,6 +156,8 @@ export class ApplicationsListDetailSearchComponent {
       return;
     }
 
+    this.disableSearchButton.set(true);
+
     const reqFilter = this.toFilter();
     this.searchStarted.emit(reqFilter);
 
@@ -176,11 +180,13 @@ export class ApplicationsListDetailSearchComponent {
         reqFilter,
         errors: [],
       });
+      this.disableSearchButton.set(false);
     } catch (err) {
       const apiErrors = this.buildApiErrors(err).length
         ? this.buildApiErrors(err)
         : [{ text: getProblemText(err) }];
 
+      this.disableSearchButton.set(false);
       if (apiErrors.length > 0) {
         this.localErrors.set(apiErrors);
         this.searchResult.emit({

@@ -518,10 +518,6 @@ export class StandardApplicants implements OnInit {
     page: number,
     filters: StandardApplicantFilters = this.appliedFilters,
   ): void {
-    if (this.vm().isLoading) {
-      return;
-    }
-
     const sort = this.vm().sortField;
     const apiSortKey = toStandardApplicantSortKey(sort.key);
 

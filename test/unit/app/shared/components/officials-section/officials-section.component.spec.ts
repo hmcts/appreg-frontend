@@ -60,6 +60,17 @@ describe('OfficialsSectionComponent', () => {
     expect(emitSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('disables Save recording officials when requested by its parent', () => {
+    fixture.componentRef.setInput('disableOfficialButton', true);
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+        'button.govuk-button',
+      )?.disabled,
+    ).toBe(true);
+  });
+
   it('should accept the provided group input', () => {
     const group = createGroup();
 

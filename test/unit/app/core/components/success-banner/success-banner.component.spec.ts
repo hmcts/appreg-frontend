@@ -1,8 +1,12 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router, RouterLink, provideRouter } from '@angular/router';
 
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
+
+@Component({ template: '' })
+class ApplicationsListRouteComponent {}
 
 describe('SuccessBannerComponent (external template)', () => {
   let fixture: ComponentFixture<SuccessBannerComponent>;
@@ -22,7 +26,14 @@ describe('SuccessBannerComponent (external template)', () => {
         SuccessBannerComponent,
       ],
       // RouterTestingModule is deprecated — use functional providers
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([
+          {
+            path: 'applications-list',
+            component: ApplicationsListRouteComponent,
+          },
+        ]),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SuccessBannerComponent);
