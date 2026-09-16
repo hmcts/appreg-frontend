@@ -142,7 +142,7 @@
       type="submit"
       class="govuk-button"
       (click)="onSubmit($event)"
-      [disabled]="vm().submitted"
+      [disabled]="disableSubmissionBtn()"
     >
       Create entry
     </button>

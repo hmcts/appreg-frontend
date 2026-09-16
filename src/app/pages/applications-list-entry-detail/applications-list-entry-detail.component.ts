@@ -937,7 +937,10 @@ export class ApplicationsListEntryDetail implements OnInit {
             ENTRY_SUCCESS_MESSAGES.listUpdated,
           );
         },
-        (err) => this.applyMappedError(err),
+        (err) => {
+          this.applyMappedError(err);
+          this.disableSaveCompleteAppBtn.set(false);
+        },
       );
     } else {
       this.submitEntryUpdate(
