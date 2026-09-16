@@ -147,7 +147,12 @@
   </fieldset>
 
   <div class="govuk-button-group">
-    <button type="button" class="govuk-button" (click)="onSaveOfficials()">
+    <button
+      type="button"
+      class="govuk-button"
+      (click)="onSaveOfficials()"
+      [disabled]="disableOfficialButton()"
+    >
       Save recording officials
     </button>
   </div>

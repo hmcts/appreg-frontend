@@ -10,7 +10,7 @@ import {
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
 
 import {
   ApplicationsListEntryDetail,
@@ -590,6 +590,51 @@ describe('ApplicationsListEntryDetail', () => {
     expect(found).toBe(true);
   });
 
+  it('keeps the complete-application save disabled until the entry update completes', () => {
+    const response = new Subject<unknown>();
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    component['buildEntryUpdateDto'] = jest.fn().mockReturnValue({});
+    mockUpdateApplicationListEntry.mockReturnValueOnce(response);
+
+    component.onUpdateApplication();
+
+    expect(component.disableSaveCompleteAppBtn()).toBe(true);
+
+    response.next({});
+
+    expect(component.disableSaveCompleteAppBtn()).toBe(false);
+  });
+
+  it('re-enables the complete-application save when the entry update fails', () => {
+    const response = new Subject<unknown>();
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    component['buildEntryUpdateDto'] = jest.fn().mockReturnValue({});
+    mockUpdateApplicationListEntry.mockReturnValueOnce(response);
+
+    component.onUpdateApplication();
+    expect(component.disableSaveCompleteAppBtn()).toBe(true);
+
+    response.error(new Error('Save failed'));
+
+    expect(component.disableSaveCompleteAppBtn()).toBe(false);
+  });
+
   it('runFullSubmitValidation returns true and sets errorFound when person name fields blank', () => {
     component['form'].controls.applicantType.setValue('person');
 
@@ -895,6 +940,52 @@ describe('ApplicationsListEntryDetail', () => {
     const bannerArg = callArgs[1];
     expect(bannerArg).toBeTruthy();
     expect(typeof bannerArg.heading).toBe('string');
+  });
+
+  it('keeps Save recording officials disabled until its update request succeeds', () => {
+    const response = new Subject<unknown>();
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    component['buildEntryUpdateDto'] = jest.fn().mockReturnValue({});
+    mockUpdateApplicationListEntry.mockReturnValueOnce(response);
+
+    component.onSaveOfficials();
+
+    expect(component.disableOfficialButton()).toBe(true);
+
+    response.next({});
+
+    expect(component.disableOfficialButton()).toBe(false);
+  });
+
+  it('re-enables Save recording officials when its update request fails', () => {
+    const response = new Subject<unknown>();
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    component['buildEntryUpdateDto'] = jest.fn().mockReturnValue({});
+    mockUpdateApplicationListEntry.mockReturnValueOnce(response);
+
+    component.onSaveOfficials();
+
+    expect(component.disableOfficialButton()).toBe(true);
+
+    response.error(new Error('Save failed'));
+
+    expect(component.disableOfficialButton()).toBe(false);
   });
 
   it('persistHasOffsiteFee rolls back form value on API error', () => {

@@ -231,6 +231,32 @@ describe('StandardApplicantsComponent', () => {
     );
   });
 
+  it('keeps Search disabled until the standard applicants request completes', async () => {
+    const response = new Subject<StandardApplicantPage>();
+    getStandardApplicantsMock.mockReturnValue(response);
+    component.form.patchValue({ code: 'ABC' });
+
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    const searchButton = fixture.nativeElement.querySelector(
+      'form button[type="submit"]',
+    ) as HTMLButtonElement;
+    expect(searchButton.disabled).toBe(true);
+
+    response.next({
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 0,
+      elementsOnPage: 0,
+      totalPages: 0,
+      content: [],
+    });
+    await flushSignalEffects(fixture);
+
+    expect(searchButton.disabled).toBe(false);
+  });
+
   it('shows validation errors and prevents submit when filters exceed max lengths', async () => {
     component.form.patchValue({
       code: '12345678901',

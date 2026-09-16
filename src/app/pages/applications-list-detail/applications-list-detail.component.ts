@@ -226,6 +226,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly tableDataRequest = signal<tableDataReq | null>(null);
   private readonly listDetailRequest = signal<listDetailsReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
+  readonly updatePending = computed(() => this.updateRequest() !== null);
   private readonly printRequest = signal<BulkPrintRequest | null>(null);
 
   private readonly loadFailed = signal(false);

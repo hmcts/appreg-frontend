@@ -185,6 +185,8 @@ export class ApplicationsListBulkUpload implements OnInit {
     return this.sortedErrorRows().slice(start, start + this.pageSize);
   });
 
+  disableExportErrButton = signal(false);
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -455,6 +457,8 @@ export class ApplicationsListBulkUpload implements OnInit {
       return;
     }
 
+    this.disableExportErrButton.set(true);
+
     this.jobApi
       .downloadReport({ jobId: this.jobId }, 'response', false, {
         httpHeaderAccept: 'text/csv',
@@ -464,6 +468,7 @@ export class ApplicationsListBulkUpload implements OnInit {
       .subscribe({
         next: (response) => {
           this.saveCsv(response);
+          this.disableExportErrButton.set(false);
         },
         error: (err) => {
           this.submitAttempt.update((attempt) => attempt + 1);
@@ -471,6 +476,7 @@ export class ApplicationsListBulkUpload implements OnInit {
             fileUploadStatus: 'error',
             errorSummary: [{ text: getProblemText(err) }],
           });
+          this.disableExportErrButton.set(false);
         },
       });
   }

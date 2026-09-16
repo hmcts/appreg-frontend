@@ -155,6 +155,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   readonly submitAttempt = signal(0);
   readonly listIsClosed = signal(false);
 
+  disableSearchButton = signal(false);
+
   columns: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
 
   ngOnInit(): void {
@@ -235,6 +237,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             rows: content.map((x) => toRow(x)),
           });
           this.loadRequest.set(null); // Clears request signal
+          this.disableSearchButton.set(false);
         },
         onError: (err) => {
           const msg = getProblemText(err);
@@ -248,6 +251,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             totalPages: 0,
           });
           this.loadRequest.set(null);
+          this.disableSearchButton.set(false);
         },
       },
       this.envInjector,
@@ -477,6 +481,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     if (this.appListState().isLoading) {
       return;
     }
+
+    this.disableSearchButton.set(true);
 
     this.searchForm.setState({
       ...DEFAULT_STATE,
