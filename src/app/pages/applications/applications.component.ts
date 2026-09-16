@@ -180,6 +180,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   readonly submitAttempt = signal(0);
 
+  disableSearchButton = signal(false);
+
   override form = new FormGroup(
     {
       date: new FormControl<string | null>(null),
@@ -558,9 +560,11 @@ export class Applications extends PlaceFieldsBase implements OnInit {
             getFilters: params.filter ?? {},
           });
           this.saveSearchState();
+          this.patchApp({ isLoading: false });
         },
         error: () => {
           this.patchApp(searchErrorPatch());
+          this.patchApp({ isLoading: false });
         },
       });
   }

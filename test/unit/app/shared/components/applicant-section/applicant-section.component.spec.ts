@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
 import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
@@ -60,6 +61,7 @@ describe('ApplicantSectionComponent', () => {
           imports: [
             ReactiveFormsModule,
             SelectInputComponent,
+            HelpDetailsComponent,
             MockPersonSectionComponent,
             MockOrganisationSectionComponent,
             MockStandardApplicantSelectComponent,

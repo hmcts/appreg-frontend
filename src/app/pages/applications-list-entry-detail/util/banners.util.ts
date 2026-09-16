@@ -35,7 +35,7 @@ export function focusLocalBanner(
 
   setTimeout(() => {
     const el = document.querySelector<HTMLElement>(bannerId);
-    el?.focus?.();
+    el?.focus?.({ preventScroll: true });
     el?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
   });
 }

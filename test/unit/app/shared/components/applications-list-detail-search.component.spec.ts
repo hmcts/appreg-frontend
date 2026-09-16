@@ -1,6 +1,6 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
 
 import {
   ApplicationsListDetailSearchComponent,
@@ -73,6 +73,27 @@ describe('ApplicationsListDetailSearchComponent', () => {
         ],
       },
     ]);
+  });
+
+  it('keeps search disabled until the deferred API request completes', async () => {
+    const response = new Subject<EntryPage>();
+    entriesApiStub.getApplicationListEntries.mockReturnValue(response as never);
+
+    const searchPromise = component.onSearch();
+
+    expect(component.disableSearchButton()).toBe(true);
+
+    response.next({
+      content: [],
+      pageNumber: 0,
+      pageSize: 10,
+      elementsOnPage: 0,
+      totalPages: 0,
+      totalElements: 0,
+    });
+    await searchPromise;
+
+    expect(component.disableSearchButton()).toBe(false);
   });
 
   it('emits maxlength validation errors for the new search field validators', async () => {

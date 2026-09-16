@@ -65,6 +65,8 @@
   />
 
   <div class="govuk-button-group">
-    <button type="submit" class="govuk-button">Update</button>
+    <button type="submit" class="govuk-button" [disabled]="updatePending()">
+      Update
+    </button>
   </div>
 </form>
