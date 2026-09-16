@@ -102,6 +102,7 @@ export class UpdateNotesComponent implements OnInit {
   readonly errorSummaryItems = signal<ErrorItem[]>([]);
   readonly successMessage = signal<string | null>(null);
   readonly isSubmitting = signal(false);
+  readonly hasLoadedEntry = signal(false);
   private readonly applicationNotesLength = signal(0);
 
   onCreateErrorClick = onCreateErrorClickFn;
@@ -337,6 +338,7 @@ export class UpdateNotesComponent implements OnInit {
   private applyEntry(entry: EntryGetDetailDto): void {
     this.errorSummaryItems.set([]);
     this.setApplicationNotes(entry.notes ?? '');
+    this.hasLoadedEntry.set(true);
     this.form.controls.additionalNotes.setValue('');
 
     const currentContext = this.context();
@@ -352,8 +354,9 @@ export class UpdateNotesComponent implements OnInit {
   }
 
   private setApplicationNotes(notes: string): void {
-    this.form.controls.applicationNotes.setValue(notes);
-    this.applicationNotesLength.set(notes.length);
+    const normalizedNotes = notes.trim() ? notes : '';
+    this.form.controls.applicationNotes.setValue(normalizedNotes);
+    this.applicationNotesLength.set(normalizedNotes.length);
     this.updateAdditionalNotesValidator();
   }
 
