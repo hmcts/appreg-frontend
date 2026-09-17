@@ -187,6 +187,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       respondentOrg: new FormControl<string>(''),
       applicantSurname: new FormControl<string>(''),
       respondentSurname: new FormControl<string>(''),
+      applicationTitle: new FormControl<string>(''),
       location: new FormControl<string>(''),
       standardApplicantCode: new FormControl<string>(''),
       respondentPostcode: new FormControl<string>('', {
@@ -687,6 +688,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       filter.respondentSurname = v.respondentSurname.trim();
     }
 
+    if (v.applicationTitle?.trim()) {
+      filter.applicationTitle = v.applicationTitle.trim();
+    }
+
     if (v.respondentPostcode?.trim()) {
       filter.respondentPostcode = v.respondentPostcode.trim();
     }
@@ -765,6 +770,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       respondentOrg: value.respondentOrg ?? '',
       applicantSurname: value.applicantSurname ?? '',
       respondentSurname: value.respondentSurname ?? '',
+      applicationTitle: value.applicationTitle ?? '',
       location: value.location ?? '',
       standardApplicantCode: value.standardApplicantCode ?? '',
       respondentPostcode: value.respondentPostcode ?? '',
