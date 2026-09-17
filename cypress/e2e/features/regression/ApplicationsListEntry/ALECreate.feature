@@ -560,19 +560,35 @@ Feature: Applications List Entry Create
             Given User Authenticates Via API As "user1"
             # Create Application List
             When User Makes POST API Request To "/application-lists" With Body:
-                  | date     | time  | status | description                                              | durationHours | durationMinutes | courtLocationCode |
-                  | todayiso | 10:20 | OPEN   | (Accordion) Applications to review at Test_{SCENARIO_ID} |               |                 | LCCC065           |
+                  | date     | time  | status | description                                  | durationHours | durationMinutes | courtLocationCode |
+                  | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} |               |                 | LCCC065           |
             Then User Verify Response Status Code Should Be "201"
             Then User Stores Response Body Property "id" As "listId"
             When User Signs In With Microsoft SSO As "user1"
             # Search Created Application List
             When User Searches Application List With:
-                  | Date  | Time | List description                                         | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-                  | today |      | (Accordion) Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
+                  | Date  | Time | List description                             | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+                  | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
             When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-                  | Date         | Time  | Location                          | Description                                              | Entries | Status |
-                  | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | (Accordion) Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   |
+                  | Date         | Time  | Location                          | Description                                  | Entries | Status |
+                  | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   |
             Then User Clicks On The Link "Create application"
+            # Applicant Details
+            When User Fills In The Applicant Details
+                  | Select applicant type | Person                             |
+                  | Select title          | Dr                                 |
+                  | First name            | John                               |
+                  | Middle name(s)        | Michael                            |
+                  | Surname               | Smith {SCENARIO_ID}                |
+                  | Address line 1        | {SCENARIO_ID} High Street          |
+                  | Address line 2        | Apartment 4B                       |
+                  | Town or city          | Leeds                              |
+                  | County or region      | West Yorkshire                     |
+                  | Post town             | Leeds                              |
+                  | Postcode              | LS10 1PJ                           |
+                  | Phone number          | 01632960001                        |
+                  | Mobile number         | 07700900001                        |
+                  | Email address         | applicant{SCENARIO_ID}@example.com |
             # Application code
             Then User Enters "MX99002" Into The Textbox "Application code" In The Accordion "Application codes"
             When User Clicks On The "Search" Button In The Accordion "Application codes"
@@ -580,43 +596,8 @@ Feature: Applications List Entry Create
             Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
                   | Code    | Title          | Bulk | Fee required |
                   | MX99002 | Change of name | No   | Yes          |
+            Then User Should See The Accordion "Wording" Expanded
+            Then User Should See The Accordion "Civil fee" Expanded
             Then User Should See The Text "Attends to make a statutory declaration that henceforth the applicant will be known as " In The Accordion "Wording"
             Then User Should See The Text "Fee Reference: CO7.2 " In The Accordion "Civil fee"
-
-      @applicationListEntry @regression @ARCPOC-1707
-      Scenario: Update Application List Entry, Change Application Code, expect wording and fee accordion to be expanded
-            Given User Authenticates Via API As "user1"
-            # Create Application List
-            When User Makes POST API Request To "/application-lists" With Body:
-                  | date     | time  | status | description                                              | durationHours | durationMinutes | courtLocationCode |
-                  | todayiso | 10:20 | OPEN   | (Accordion) Applications to review at Test_{SCENARIO_ID} |               |                 | LCCC065           |
-            Then User Verify Response Status Code Should Be "201"
-            Then User Stores Response Body Property "id" As "listId"
-            When User Signs In With Microsoft SSO As "user1"
-            # Search Created Application List
-            When User Searches Application List With:
-                  | Date  | Time | List description                                         | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-                  | today |      | (Accordion) Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
-            When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-                  | Date         | Time  | Location                          | Description                                              | Entries | Status |
-                  | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | (Accordion) Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   |
-            Then User Clicks On The Link "Create application"
-            # Application code
-            Then User Enters "MX99002" Into The Textbox "Application code" In The Accordion "Application codes"
-            When User Clicks On The "Search" Button In The Accordion "Application codes"
-            Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
-            Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
-                  | Code    | Title          | Bulk | Fee required |
-                  | MX99002 | Change of name | No   | Yes          |
-            Then User Should See The Text "Attends to make a statutory declaration that henceforth the applicant will be known as " In The Accordion "Wording"
-            Then User Verifies The "Wording" Accordion Has textbox with placeholder "Attends to make a statutory declaration that henceforth the applicant will be known as" and Enters "Barry White"
-            Then User Should See The Text "Fee Reference: CO7.2 " In The Accordion "Civil fee"
-            Then User Should See The Text "Amount £31.00" In The Accordion "Civil fee"
-            Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
-            Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
-            Then User Enters "PAY-{RANDOM}" Into The Textbox "Payment reference" In The Accordion "Civil fee"
-            When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
-            When User Clicks On The "Create entry" Button
-            Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
-# Updating the created application list entry
 

@@ -174,5 +174,7 @@ Feature: Applications List Entry Update
         Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
             | Code    | Title          | Bulk | Fee required |
             | MX99002 | Change of name | No   | Yes          |
+        Then User Should See The Accordion "Wording" Expanded
+        Then User Should See The Accordion "Civil fee" Expanded
         Then User Should See The Text "Attends to make a statutory declaration that henceforth the applicant will be known as " In The Accordion "Wording"
         Then User Should See The Text "Fee Reference: CO7.2 " In The Accordion "Civil fee"
