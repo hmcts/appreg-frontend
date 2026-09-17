@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  ViewChild,
+  input,
+} from '@angular/core';
 
 @Component({
   selector: 'app-async-job-progress',
@@ -7,7 +14,15 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './async-job-progress.component.scss',
 })
-export class AsyncJobProgressComponent {
+export class AsyncJobProgressComponent implements AfterViewInit {
   heading = input.required<string>();
   body = input.required<string>();
+
+  @ViewChild('progressEl')
+  private readonly progressEl?: ElementRef<HTMLElement>;
+
+  // Focus component after init
+  ngAfterViewInit(): void {
+    setTimeout(() => this.progressEl?.nativeElement.focus(), 0);
+  }
 }

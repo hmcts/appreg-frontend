@@ -234,6 +234,10 @@ describe('ApplicationsComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('renders application title as a search criterion', () => {
+    expect(fixture.nativeElement.textContent).toContain('Application title');
+  });
+
   it('configures the results table for server-side sorting', () => {
     appStateSignal(component).update((s) => ({
       ...s,
@@ -439,6 +443,7 @@ describe('ApplicationsComponent', () => {
         respondentOrg: '',
         applicantSurname: '',
         respondentSurname: '',
+        applicationTitle: '',
         location: '',
         standardApplicantCode: '',
         respondentPostcode: '',
@@ -502,6 +507,7 @@ describe('ApplicationsComponent', () => {
         respondentOrg: '',
         applicantSurname: '',
         respondentSurname: '',
+        applicationTitle: '',
         location: '',
         standardApplicantCode: '',
         respondentPostcode: '',
@@ -563,6 +569,59 @@ describe('ApplicationsComponent', () => {
         component.vm().searchErrors.some((e) => e.id === 'search-error'),
       ).toBe(false);
     });
+
+    it('when submitted with application title only: searches using the application title filter', () => {
+      getEntriesMock.mockClear();
+
+      component.form.patchValue({ applicationTitle: 'Private prosecution' });
+
+      submitSearch();
+
+      expect(getEntriesMock).toHaveBeenCalledTimes(1);
+      const [params] = getEntriesMock.mock.calls[0];
+      expect(params?.filter).toEqual({
+        applicationTitle: 'Private prosecution',
+      });
+      expect(
+        component.vm().searchErrors.some((e) => e.id === 'search-error'),
+      ).toBe(false);
+    });
+
+    it.each([
+      [
+        'more than 500 characters',
+        'A'.repeat(501),
+        'Application title must be 500 characters or fewer',
+      ],
+      [
+        'invalid characters',
+        'Private prosecution #1',
+        'Application title contains invalid characters',
+      ],
+    ])(
+      'when submitted with application title containing %s: shows a validation error and does not call API',
+      (_caseName, applicationTitle, errorText) => {
+        getEntriesMock.mockClear();
+
+        component.form.patchValue({ applicationTitle });
+
+        submitSearch();
+
+        expect(getEntriesMock).not.toHaveBeenCalled();
+        expect(component.vm().searchErrors).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'applicationTitle',
+              href: '#applicationTitle',
+              text: errorText,
+            }),
+          ]),
+        );
+        expect(
+          component.vm().searchErrors.some((e) => e.id === 'search-error'),
+        ).toBe(false);
+      },
+    );
 
     it('resets sort to the default when a new search is submitted', () => {
       getEntriesMock.mockClear();
@@ -644,6 +703,7 @@ describe('ApplicationsComponent', () => {
         applicantSurname: '  Smith ',
         respondentOrg: ' Resp Org ',
         respondentSurname: '  Jones ',
+        applicationTitle: '  Private prosecution ',
         respondentPostcode: '  AB1 2CD ',
         standardApplicantCode: '  STD123 ',
         accountReference: '  ACC-999 ',
@@ -662,6 +722,7 @@ describe('ApplicationsComponent', () => {
           applicantSurname: 'Smith',
           respondentOrganisation: 'Resp Org',
           respondentSurname: 'Jones',
+          applicationTitle: 'Private prosecution',
           respondentPostcode: 'AB1 2CD',
           standardApplicantCode: 'STD123',
           accountReference: 'ACC-999',
@@ -708,6 +769,7 @@ describe('ApplicationsComponent', () => {
         respondentOrg: '',
         applicantSurname: '',
         respondentSurname: '',
+        applicationTitle: '',
         location: '',
         standardApplicantCode: '',
         respondentPostcode: '',

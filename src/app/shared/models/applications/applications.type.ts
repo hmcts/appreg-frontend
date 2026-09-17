@@ -6,6 +6,7 @@ export type ApplicationsSearchFormValue = {
   respondentOrg: string;
   applicantSurname: string;
   respondentSurname: string;
+  applicationTitle: string;
   location: string;
   standardApplicantCode: string;
   respondentPostcode: string;

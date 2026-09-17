@@ -9,6 +9,9 @@ export const STANDARD_APPLICANT_CODE_REGEX: RegExp = /^[a-zA-Z0-9+\-._ ]*$/;
 
 export const APPLICATION_CODE_REGEX: RegExp = /^[a-zA-Z0-9]*$/;
 
+export const APPLICATION_TITLE_REGEX: RegExp =
+  /^[a-zA-Z0-9\-+.,£@?'()/%_ &!:]*$/;
+
 // Name/address free-text (aligned with BE):
 // Allows any characters except control characters:
 // - C0 controls: \u0000–\u001F (includes tab/newline/carriage return)
