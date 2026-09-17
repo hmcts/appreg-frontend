@@ -59,7 +59,7 @@ import {
 } from '@util/types/applications-list-entry/types';
 import { accountReferenceRequiredForApplicationCode } from '@validators/account-reference.validator';
 import { officialRowRequiredValidator } from '@validators/official-row-required.validator';
-import { optional } from '@validators/optional.validator';
+import { isEmpty, optional } from '@validators/optional.validator';
 import { standardApplicantCodeConditionalRequired } from '@validators/standard-applicant-code.validator';
 import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format.validator';
 
@@ -108,6 +108,8 @@ const MAX_15 = Validators.maxLength(15);
 const MAX_60 = Validators.maxLength(60);
 const MAX_100 = Validators.maxLength(100);
 const REQUIRED: ValidatorFn = (c) => Validators.required(c);
+const REQUIRED_TEXT: ValidatorFn = (c) =>
+  isEmpty(c.value) ? { required: true } : null;
 const EMAIL: ValidatorFn = (c) => Validators.email(c);
 
 // Bulk respondent
@@ -247,7 +249,7 @@ export function buildPersonOrgSharedControls(
 ): PersonOrgSharedControls {
   return {
     addressLine1: fb.control<string>('', {
-      validators: [REQUIRED, MAX_35, Validators.pattern(ADDRESS_REGEX)],
+      validators: [REQUIRED_TEXT, MAX_35, Validators.pattern(ADDRESS_REGEX)],
     }),
     addressLine2: fb.control<string>('', {
       validators: [MAX_35, Validators.pattern(ADDRESS_REGEX)],
@@ -283,13 +285,13 @@ export function buildPersonForm(
   const commonFormGroup = {
     title: fb.control<string | null>(null),
     firstName: fb.control<string>('', {
-      validators: [REQUIRED, MAX_100, Validators.pattern(NAME_REGEX)],
+      validators: [REQUIRED_TEXT, MAX_100, Validators.pattern(NAME_REGEX)],
     }),
     middleNames: fb.control<string>('', {
       validators: [MAX_100, Validators.pattern(NAME_REGEX)],
     }),
     surname: fb.control<string | null>(null, {
-      validators: [REQUIRED, MAX_100, Validators.pattern(NAME_REGEX)],
+      validators: [REQUIRED_TEXT, MAX_100, Validators.pattern(NAME_REGEX)],
     }),
     ...buildPersonOrgSharedControls(fb),
   };
@@ -311,7 +313,7 @@ export function buildOrganisationForm(
 ): OrganisationForm {
   return fb.group({
     name: fb.control<string>('', {
-      validators: [REQUIRED, MAX_100, Validators.pattern(NAME_REGEX)],
+      validators: [REQUIRED_TEXT, MAX_100, Validators.pattern(NAME_REGEX)],
     }),
     ...buildPersonOrgSharedControls(fb),
   });
