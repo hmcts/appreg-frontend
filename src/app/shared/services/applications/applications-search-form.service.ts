@@ -12,6 +12,7 @@ export const DEFAULT_APPLICATIONS_SEARCH_FORM: ApplicationsSearchFormValue = {
   respondentOrg: '',
   applicantSurname: '',
   respondentSurname: '',
+  applicationTitle: '',
   location: '',
   standardApplicantCode: '',
   respondentPostcode: '',
