@@ -128,17 +128,6 @@
   </div>
 
   <div class="govuk-grid-row">
-    <!-- Application title -->
-    <app-text-input
-      formControlName="applicationTitle"
-      label="Application title"
-      idPrefix="application-title"
-      containerWidthClass="govuk-grid-column-one-half"
-      widthClass="govuk-!-width-two-thirds"
-    />
-  </div>
-
-  <div class="govuk-grid-row">
     <!-- Status -->
     <app-select-input
       formControlName="status"
@@ -225,6 +214,17 @@
           idPrefix="account-reference"
           containerWidthClass="govuk-grid-column-one-quarter"
           widthClass="govuk-!-width-full"
+        />
+      </div>
+
+      <div class="govuk-grid-row">
+        <!-- Application title -->
+        <app-text-input
+          formControlName="applicationTitle"
+          label="Application title"
+          idPrefix="application-title"
+          containerWidthClass="govuk-grid-column-one-half"
+          widthClass="govuk-!-width-two-thirds"
         />
       </div>
     </div>
