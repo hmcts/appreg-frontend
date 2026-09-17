@@ -587,6 +587,42 @@ describe('ApplicationsComponent', () => {
       ).toBe(false);
     });
 
+    it.each([
+      [
+        'more than 500 characters',
+        'A'.repeat(501),
+        'Application title must be 500 characters or fewer',
+      ],
+      [
+        'invalid characters',
+        'Private prosecution #1',
+        'Application title contains invalid characters',
+      ],
+    ])(
+      'when submitted with application title containing %s: shows a validation error and does not call API',
+      (_caseName, applicationTitle, errorText) => {
+        getEntriesMock.mockClear();
+
+        component.form.patchValue({ applicationTitle });
+
+        submitSearch();
+
+        expect(getEntriesMock).not.toHaveBeenCalled();
+        expect(component.vm().searchErrors).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'applicationTitle',
+              href: '#applicationTitle',
+              text: errorText,
+            }),
+          ]),
+        );
+        expect(
+          component.vm().searchErrors.some((e) => e.id === 'search-error'),
+        ).toBe(false);
+      },
+    );
+
     it('resets sort to the default when a new search is submitted', () => {
       getEntriesMock.mockClear();
 

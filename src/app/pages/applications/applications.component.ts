@@ -68,6 +68,7 @@ import {
   APPLICATIONS_LIST_CHOOSE_STATUS,
   APPLICATIONS_LIST_ERROR_MESSAGES,
 } from '@constants/applications-list/applications-list.constants';
+import { APPLICATION_TITLE_REGEX } from '@constants/regex';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
@@ -189,7 +190,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       respondentOrg: new FormControl<string>(''),
       applicantSurname: new FormControl<string>(''),
       respondentSurname: new FormControl<string>(''),
-      applicationTitle: new FormControl<string>(''),
+      applicationTitle: new FormControl<string>('', {
+        validators: [
+          Validators.maxLength(500),
+          Validators.pattern(APPLICATION_TITLE_REGEX),
+        ],
+      }),
       location: new FormControl<string>(''),
       standardApplicantCode: new FormControl<string>(''),
       respondentPostcode: new FormControl<string>('', {
