@@ -5,6 +5,10 @@ import { AsyncJobProgressComponent } from '@components/async-job-progress/async-
 describe('AsyncJobProgressComponent', () => {
   let fixture: ComponentFixture<AsyncJobProgressComponent>;
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AsyncJobProgressComponent],
@@ -16,10 +20,11 @@ describe('AsyncJobProgressComponent', () => {
       'body',
       'Your CSV is being generated and will download automatically when ready.',
     );
-    fixture.detectChanges();
   });
 
   it('renders progress content with an output live region', () => {
+    fixture.detectChanges();
+
     const progress = fixture.nativeElement.querySelector(
       '.app-async-job-progress',
     ) as HTMLElement;
@@ -37,5 +42,19 @@ describe('AsyncJobProgressComponent', () => {
     expect(progress.textContent).toContain(
       'Your CSV is being generated and will download automatically when ready.',
     );
+  });
+
+  it('focuses the progress element after view init', () => {
+    jest.useFakeTimers();
+    const progress = fixture.nativeElement.querySelector(
+      '.app-async-job-progress',
+    ) as HTMLElement;
+    const focusSpy = jest.spyOn(progress, 'focus');
+
+    fixture.detectChanges();
+    jest.runAllTimers();
+
+    expect(progress.getAttribute('tabindex')).toBe('-1');
+    expect(focusSpy).toHaveBeenCalledTimes(1);
   });
 });

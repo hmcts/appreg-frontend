@@ -1,4 +1,8 @@
-<section class="app-async-job-progress govuk-inset-text">
+<section
+  class="app-async-job-progress govuk-inset-text"
+  tabindex="-1"
+  #progressEl
+>
   <output class="govuk-visually-hidden" aria-live="polite" aria-atomic="true">
     {{ heading() }}. {{ body() }}
   </output>
