@@ -19,8 +19,8 @@ Feature: Applications Register Portal Access
     Then User Verify The Page URL Contains "/login"
     Examples:
       | role   |
-      | user2  |
-      | admin2 |
+      | user1  |
+      | admin1 |
 
   @ignore @IngestStandardApplicants @ARCPOC-1537
   Scenario Outline: Ingestion Test Standard Applicants
