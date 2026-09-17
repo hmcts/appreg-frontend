@@ -9,6 +9,6 @@ Then('User Should See The Accordion {string}', (accordionTitle: string) => {
 Then(
   'User Should See The Accordion {string} Expanded',
   (accordionTitle: string) => {
-    AccordionHelper.isAccordionExpanded(accordionTitle);
+    AccordionHelper.isAccordionExpanded(accordionTitle).should('eq', true);
   },
 );
