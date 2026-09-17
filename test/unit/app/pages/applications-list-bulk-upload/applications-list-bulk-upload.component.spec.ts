@@ -170,6 +170,29 @@ describe('ApplicationsListBulkUpload', () => {
       expect(saveCsvSpy).toHaveBeenCalledWith(response);
     });
 
+    it('keeps export disabled until the report request completes', () => {
+      const response = new Subject<HttpResponse<Blob>>();
+      reportsApiMock.downloadReport.mockReturnValue(response);
+      (component as unknown as { jobId: string }).jobId = 'job-1';
+      jest
+        .spyOn(
+          component as unknown as {
+            saveCsv: (response: HttpResponse<Blob>) => void;
+          },
+          'saveCsv',
+        )
+        .mockImplementation(() => {});
+
+      component.onExportErrorFilesClick();
+
+      expect(component.disableExportErrButton()).toBe(true);
+
+      response.next(new HttpResponse({ body: new Blob(['error']) }));
+      response.complete();
+
+      expect(component.disableExportErrButton()).toBe(false);
+    });
+
     it('adds the API error to the error summary', () => {
       reportsApiMock.downloadReport.mockReturnValue(
         throwError(() => new Error('Export failed')),

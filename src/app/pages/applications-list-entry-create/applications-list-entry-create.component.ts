@@ -213,6 +213,8 @@ export class ApplicationsListEntryCreate implements OnInit {
   openApplicationCode = signal(true);
   openNotes = signal(false);
 
+  disableSubmissionBtn = signal(false);
+
   // Civil fee
   civilFeeColumns = CIVIL_FEE_COLUMNS;
   feeStatusOptions = FEE_STATUS_OPTIONS;
@@ -292,7 +294,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       this.form.value.standardApplicantCode,
     );
 
-    this.appListEntryCreatePatch({ submitted: true });
+    this.disableSubmissionBtn.set(true);
     this.appEntryApi
       .createApplicationListEntry({
         listId: this.appListEntryCreateState().id,
@@ -301,12 +303,14 @@ export class ApplicationsListEntryCreate implements OnInit {
       .subscribe({
         next: (entry) => {
           this.appListEntryCreatePatch({ createDone: true });
+          this.disableSubmissionBtn.set(false);
           void this.router.navigate(
             ['applications-list', entry.listId, 'update-entry', entry.id],
             { queryParams: { listCreated: true } },
           );
         },
         error: (err: HttpErrorResponse) => {
+          this.disableSubmissionBtn.set(false);
           this.appListEntryCreatePatch({
             errorFound: true,
             summaryErrors: [
@@ -315,7 +319,6 @@ export class ApplicationsListEntryCreate implements OnInit {
           });
         },
       });
-    this.appListEntryCreatePatch({ submitted: false });
   }
 
   get respondentErrorItems(): ErrorItem[] {

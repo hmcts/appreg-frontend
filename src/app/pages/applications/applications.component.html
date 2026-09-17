@@ -231,7 +231,13 @@
   </details>
 
   <div class="govuk-button-group">
-    <button id="search" type="submit" class="govuk-button" value="search">
+    <button
+      id="search"
+      type="submit"
+      class="govuk-button"
+      value="search"
+      [disabled]="vm().isLoading"
+    >
       Search
     </button>
     <button
@@ -346,14 +352,6 @@
             [disabled]="row.status === 'CLOSED'"
           >
             Open
-          </button>
-          <!-- Update notes -->
-          <button
-            type="button"
-            class="govuk-button moj-button-menu__item govuk-button--secondary"
-            (click)="onUpdateNotesClick(row)"
-          >
-            Update notes
           </button>
         </div>
       } @else {

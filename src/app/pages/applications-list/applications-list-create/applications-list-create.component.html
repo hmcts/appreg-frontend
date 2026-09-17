@@ -24,7 +24,13 @@
   />
 
   <div class="govuk-button-group">
-    <button id="create" type="submit" class="govuk-button" value="create">
+    <button
+      id="create"
+      type="submit"
+      class="govuk-button"
+      value="create"
+      [disabled]="disableCreateButton()"
+    >
       Create
     </button>
 

@@ -3,7 +3,7 @@ import { LOCALE_ID, PLATFORM_ID, type WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
 import { type ApplicationsState } from '@components/applications/util/applications.state';
@@ -460,6 +460,42 @@ describe('ApplicationsComponent', () => {
 
       expect(button).toBeTruthy();
       expect(button.disabled).toBe(false);
+    });
+
+    it('keeps Search disabled until the entries request succeeds', () => {
+      const response = new Subject<HttpResponse<EntryPage>>();
+      getEntriesMock.mockReturnValue(response);
+
+      component.loadApplications();
+
+      expect(component.vm().isLoading).toBe(true);
+
+      response.next(
+        new HttpResponse<EntryPage>({
+          body: {
+            content: [],
+            totalPages: 0,
+            totalElements: 0,
+            pageNumber: 0,
+            pageSize: 0,
+            elementsOnPage: 0,
+          },
+        }),
+      );
+
+      expect(component.vm().isLoading).toBe(false);
+    });
+
+    it('re-enables Search when the entries request fails', () => {
+      const response = new Subject<HttpResponse<EntryPage>>();
+      getEntriesMock.mockReturnValue(response);
+
+      component.loadApplications();
+      expect(component.vm().isLoading).toBe(true);
+
+      response.error(new Error('Search failed'));
+
+      expect(component.vm().isLoading).toBe(false);
     });
 
     it('when submitted with no params: sets invalid search criteria error and does not call API', () => {
@@ -994,42 +1030,6 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('onUpdateNotesClick', () => {
-    it('keeps the update notes row action clickable for open rows so validation can be shown', () => {
-      const router = TestBed.inject(Router);
-      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
-
-      appStateSignal(component).update((s) => ({
-        ...s,
-        rows: [
-          makeEntry({
-            id: 'entry-1',
-            listId: 'list-1',
-            status: ApplicationListStatus.OPEN,
-          }),
-        ],
-      }));
-      fixture.detectChanges();
-
-      const updateNotesButton = Array.from(
-        fixture.nativeElement.querySelectorAll('button'),
-      ).find(
-        (button): button is HTMLButtonElement =>
-          button instanceof HTMLButtonElement &&
-          button.textContent?.trim() === 'Update notes',
-      );
-
-      expect(updateNotesButton).toBeTruthy();
-      expect(updateNotesButton?.disabled).toBe(false);
-
-      updateNotesButton?.click();
-      fixture.detectChanges();
-
-      expect(navSpy).not.toHaveBeenCalled();
-      expect(fixture.nativeElement.textContent).toContain(
-        'Application list entry cannot be updated in its current state. The parent application list is not closed.',
-      );
-    });
-
     it('navigates to update-notes with the row application context', async () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);

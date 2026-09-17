@@ -100,6 +100,7 @@ describe('focusLocalBanner', () => {
     jest.useFakeTimers();
     const banner = document.createElement('app-alert');
     banner.id = 'results-local-banner';
+    banner.tabIndex = -1;
     const focusSpy = jest.spyOn(banner, 'focus');
     const scrollIntoView = jest.fn<
       void,
@@ -113,7 +114,8 @@ describe('focusLocalBanner', () => {
 
     jest.runOnlyPendingTimers();
 
-    expect(focusSpy).toHaveBeenCalledTimes(1);
+    expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
+    expect(document.activeElement).toBe(banner);
     expect(scrollIntoView).toHaveBeenCalledWith({
       behavior: 'smooth',
       block: 'center',
