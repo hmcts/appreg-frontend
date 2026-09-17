@@ -108,7 +108,7 @@ Feature: Standard Applicants
         And User Should See Summary List Row With Key "Address line 1" And Value "Millstream"
         And User Should See Summary List Row With Key "Use from" And Value "1 Jun 2016"
 
-    @regression @standardApplicants @ARCPOC-243 @ARCPOC-1613
+    @regression @standardApplicants @ARCPOC-243 @ARCPOC-1613 @ARCPOC-1774
     Scenario: Export Standard Applicants as a CSV
         And User Has No Downloaded CSVs
         When User Signs In With Microsoft SSO As "user1"
@@ -120,7 +120,8 @@ Feature: Standard Applicants
         Then User Should See The Table "Standard applicants"
         Then User Should See Table "Standard applicants" Has Rows
         When User Clicks "Actions" Then "Export CSV" From Caption Menu In Table "Standard applicants"
-        Then User Sees Validation Error Banner "There is a problem Either code or name must be provided, but not both. Please perform a search with either code or name"
+        Then User Verifies CSV ".csv" Is Downloaded
+        And User Has No Downloaded CSVs
         # Search and export CSV with invalid code filter
         Then User Enters "1234567890" Into The "Code" Textbox
         When User Clicks On The "Search" Button
@@ -128,8 +129,9 @@ Feature: Standard Applicants
         And User Sees Notification Banner "Important No standard applicants found Try different filters"
         And User Should Not See The Button "Actions"
         When User Clicks On The "Clear search" Button
-        # Search and export CSV with valid code filter
+        # Search and export CSV with combined code and name filters
         Then User Enters "BGAS" Into The "Code" Textbox
+        Then User Enters "British Gas" Into The "Standard applicant name" Textbox
         When User Clicks On The "Search" Button
         Then User Should See The Table "Standard applicants"
         Then User Should See Table "Standard applicants" Header "Code" Has Sort Order "ascending"

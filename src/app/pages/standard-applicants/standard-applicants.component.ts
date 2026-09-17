@@ -256,18 +256,7 @@ export class StandardApplicants implements OnInit {
       searchErrors: [],
       isActionLoading: true,
     });
-    this.submitAttempt.update((attempt) => attempt + 1);
-    this.form.markAllAsTouched();
-    this.form.updateValueAndValidity({ emitEvent: false });
-
-    const params = this.getParamsForRequest();
-
-    if (!params) {
-      this.signalState.patch({ isActionLoading: false });
-      return;
-    }
-
-    this.exportRequest.set(params);
+    this.exportRequest.set(this.getParamsForRequest());
   }
 
   onPrintButtonClick(): void {
@@ -278,18 +267,7 @@ export class StandardApplicants implements OnInit {
       searchErrors: [],
       isActionLoading: true,
     });
-    this.submitAttempt.update((attempt) => attempt + 1);
-    this.form.markAllAsTouched();
-    this.form.updateValueAndValidity({ emitEvent: false });
-
-    const params = this.getParamsForRequest();
-
-    if (!params) {
-      this.signalState.patch({ isActionLoading: false });
-      return;
-    }
-
-    this.printRequest.set(params);
+    this.printRequest.set(this.getParamsForRequest());
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
@@ -557,31 +535,13 @@ export class StandardApplicants implements OnInit {
     });
   }
 
-  private getParamsForRequest():
-    | PrintStandardApplicantsRequestParams
-    | StandardApplicantsExportRequestParams
-    | undefined {
-    const values = this.appliedFilters;
-    const code = trimToUndefined(values.code);
-    const name = trimToUndefined(values.name);
-
-    if (!!code === !!name) {
-      // Endpoint only supports either code or name (XOR). Applies to the active filters, not the current form values.
-      this.signalState.patch({
-        searchErrors: [
-          {
-            text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
-          },
-        ],
-      });
-      return;
-    }
-
-    const params: PrintStandardApplicantsRequestParams = {
-      ...(code && { code }),
-      ...(name && { name }),
+  private getParamsForRequest(): PrintStandardApplicantsRequestParams &
+    StandardApplicantsExportRequestParams {
+    const sort = this.vm().sortField;
+    return {
+      code: trimToUndefined(this.appliedFilters.code),
+      name: trimToUndefined(this.appliedFilters.name),
+      sort: [`${toStandardApplicantSortKey(sort.key)},${sort.direction}`],
     };
-
-    return params;
   }
 }

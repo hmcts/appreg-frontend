@@ -928,30 +928,24 @@ describe('StandardApplicantsComponent', () => {
     it.each([
       [{ code: ' SA01 ' }, { code: 'SA01' }],
       [{ name: ' Applicant Org ' }, { name: 'Applicant Org' }],
+      [
+        { code: ' SA01 ', name: ' Applicant Org ' },
+        { code: 'SA01', name: 'Applicant Org' },
+      ],
+      [{}, {}],
+      [{ code: '   ', name: '   ' }, {}],
     ])(
-      'returns trimmed params when exactly one filter is present',
+      'returns trimmed applied filters and sort without pagination',
       (filters, expected) => {
         setAppliedFilters(filters);
 
-        expect(getParamsForRequest()).toEqual(expected);
+        expect(getParamsForRequest()).toEqual({
+          ...expected,
+          sort: ['code,asc'],
+        });
         expect(component.vm().searchErrors).toEqual([]);
       },
     );
-
-    it.each([
-      [{}],
-      [{ code: 'SA01', name: 'Applicant Org' }],
-      [{ code: '   ', name: '   ' }],
-    ])('returns undefined and adds an error', (filters) => {
-      setAppliedFilters(filters);
-
-      expect(getParamsForRequest()).toBeUndefined();
-      expect(component.vm().searchErrors).toEqual([
-        {
-          text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
-        },
-      ]);
-    });
   });
 
   it('exports CSV using the last applied filters and downloads a dated file', async () => {
@@ -994,7 +988,7 @@ describe('StandardApplicantsComponent', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(standardApplicantsExportMock).toHaveBeenCalledWith(
-      { code: 'SA01' },
+      { code: 'SA01', sort: ['code,asc'] },
       'response',
       false,
       {
@@ -1018,41 +1012,45 @@ describe('StandardApplicantsComponent', () => {
     ).toContain('Successfully exported CSV');
   });
 
-  it('shows an export validation error when no code or name has been searched', async () => {
-    component.onSubmit(new SubmitEvent('submit'));
-    await flushSignalEffects(fixture);
+  it.each([
+    {},
+    { code: 'SA01' },
+    { name: 'Applicant Org' },
+    { code: 'SA01', name: 'Applicant Org' },
+  ])(
+    'exports and prints all matches using applied filters %o and selected sort',
+    async (filters) => {
+      component.form.patchValue(filters);
+      component.onSubmit(new SubmitEvent('submit'));
+      await flushSignalEffects(fixture);
+      component.onSortChange({ key: 'name', direction: 'desc' });
+      await flushSignalEffects(fixture);
+      component.onPageChange(1);
+      await flushSignalEffects(fixture);
+      component.form.patchValue({
+        code: 'unsubmitted-invalid-code',
+        name: 'Not searched',
+      });
 
-    standardApplicantsExportMock.mockClear();
-    component.onExportButtonClick();
-    await flushSignalEffects(fixture);
+      component.onExportButtonClick();
+      await flushSignalEffects(fixture);
+      component.onPrintButtonClick();
+      await flushSignalEffects(fixture);
 
-    expect(standardApplicantsExportMock).not.toHaveBeenCalled();
-    expect(component.vm().searchErrors).toEqual([
-      {
-        text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
-      },
-    ]);
-  });
-
-  it('shows an export validation error when both code and name have been searched', async () => {
-    component.form.patchValue({
-      code: 'SA01',
-      name: 'Applicant Org',
-    });
-    component.onSubmit(new SubmitEvent('submit'));
-    await flushSignalEffects(fixture);
-
-    standardApplicantsExportMock.mockClear();
-    component.onExportButtonClick();
-    await flushSignalEffects(fixture);
-
-    expect(standardApplicantsExportMock).not.toHaveBeenCalled();
-    expect(component.vm().searchErrors).toEqual([
-      {
-        text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
-      },
-    ]);
-  });
+      const expected = { ...filters, sort: ['name,desc'] };
+      expect(standardApplicantsExportMock).toHaveBeenCalledWith(
+        expected,
+        'response',
+        false,
+        {
+          httpHeaderAccept: 'text/csv',
+          transferCache: false,
+        },
+      );
+      expect(printStandardApplicantsMock).toHaveBeenCalledWith(expected);
+      expect(component.vm().searchErrors).toEqual([]);
+    },
+  );
 
   it('prints standard applicants using the last applied filter', async () => {
     component.form.patchValue({ name: ' Applicant Org ' });
@@ -1064,6 +1062,7 @@ describe('StandardApplicantsComponent', () => {
 
     expect(printStandardApplicantsMock).toHaveBeenCalledWith({
       name: 'Applicant Org',
+      sort: ['code,asc'],
     });
     expect(generateStandardApplicantsPdfMock).toHaveBeenCalledWith(
       expect.objectContaining({ reportTitle: 'Standard Applicants' }),
@@ -1074,32 +1073,6 @@ describe('StandardApplicantsComponent', () => {
         isActionLoading: false,
         printSuccess: true,
         searchErrors: [],
-      }),
-    );
-  });
-
-  it('does not print when the active filters are invalid', async () => {
-    component.form.patchValue({
-      code: 'SA01',
-      name: 'Applicant Org',
-    });
-    component.onSubmit(new SubmitEvent('submit'));
-    await flushSignalEffects(fixture);
-
-    printStandardApplicantsMock.mockClear();
-    component.onPrintButtonClick();
-    await flushSignalEffects(fixture);
-
-    expect(printStandardApplicantsMock).not.toHaveBeenCalled();
-    expect(component.actionType()).toBe('PDF');
-    expect(component.vm()).toEqual(
-      expect.objectContaining({
-        isActionLoading: false,
-        searchErrors: [
-          {
-            text: 'Either code or name must be provided, but not both. Please perform a search with either code or name',
-          },
-        ],
       }),
     );
   });
