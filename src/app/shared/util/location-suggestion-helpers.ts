@@ -156,16 +156,15 @@ function filterSuggestions<T>(
   return (items ?? []).filter((i) => matches(i, q)).slice(0, limit);
 }
 
-const courtMatches = (
-  c: { name?: string; locationCode?: string },
-  q: string,
-): boolean =>
+// Both location filters also match the displayed "code - name/description"
+// label so editing a selected label does not make its suggestion disappear.
+// Filtering alone does not select an entry or restore its stored code.
+const courtMatches = (c: CourtLocationGetSummaryDto, q: string): boolean =>
   (c.name ?? '').toLowerCase().includes(q) ||
-  (c.locationCode ?? '').toLowerCase().includes(q);
+  (c.locationCode ?? '').toLowerCase().includes(q) ||
+  toCourtSuggestionItem(c).label.toLowerCase().includes(q);
 
-const cjaMatches = (
-  x: { code?: string; description?: string },
-  q: string,
-): boolean =>
+const cjaMatches = (x: CriminalJusticeAreaGetDto, q: string): boolean =>
   (x.code ?? '').toLowerCase().includes(q) ||
-  (x.description ?? '').toLowerCase().includes(q);
+  (x.description ?? '').toLowerCase().includes(q) ||
+  toCjaSuggestionItem(x).label.toLowerCase().includes(q);
