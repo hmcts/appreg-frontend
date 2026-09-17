@@ -1,4 +1,12 @@
-import { HttpHeaders, HttpResponse } from '@angular/common/http';
+import {
+  HttpHeaders,
+  HttpResponse,
+  provideHttpClient,
+} from '@angular/common/http';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
@@ -24,6 +32,35 @@ const flushSignalEffects = async (
   fixture.detectChanges();
   await fixture.whenStable();
 };
+
+describe('Standard applicant generated export client', () => {
+  it.each(['code,asc', 'code,desc', 'name,desc'])(
+    'sends the selected sort %s in the actual HTTP request',
+    (sort) => {
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          StandardApplicantsApi,
+        ],
+      });
+      const http = TestBed.inject(HttpTestingController);
+      const params = { code: 'ss', sort: [sort] };
+      TestBed.inject(StandardApplicantsApi)
+        .standardApplicantsExport(params)
+        .subscribe();
+
+      const request = http.expectOne((req) =>
+        req.url.endsWith('/standard-applicants/export'),
+      );
+      expect(request.request.method).toBe('GET');
+      expect(request.request.params.get('code')).toBe('ss');
+      expect(request.request.params.getAll('sort')).toEqual([sort]);
+      request.flush('Applicant Code');
+      http.verify();
+    },
+  );
+});
 
 describe('StandardApplicantsComponent', () => {
   let component: StandardApplicants;
