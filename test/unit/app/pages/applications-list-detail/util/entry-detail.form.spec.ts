@@ -21,6 +21,46 @@ import type {
 describe('applications-list entry form builders', () => {
   const fb = new FormBuilder().nonNullable;
 
+  it.each([
+    ['person first name', () => buildPersonForm(fb).controls.firstName],
+    ['person surname', () => buildPersonForm(fb).controls.surname],
+    [
+      'party address line 1',
+      () => buildPersonOrgSharedControls(fb).addressLine1,
+    ],
+    ['organisation name', () => buildOrganisationForm(fb).controls.name],
+  ] as const)(
+    'treats whitespace-only %s as missing',
+    (_description, getControl) => {
+      const control = getControl();
+
+      control.setValue('   ');
+
+      expect(control.errors).toHaveProperty('required');
+
+      control.setValue('  Valid text  ');
+
+      expect(control.errors).toBeNull();
+    },
+  );
+
+  it.each([
+    ['person middle names', () => buildPersonForm(fb).controls.middleNames],
+    [
+      'optional address line',
+      () => buildPersonOrgSharedControls(fb).addressLine2,
+    ],
+  ] as const)(
+    'leaves whitespace valid for optional %s',
+    (_description, getControl) => {
+      const control = getControl();
+
+      control.setValue('   ');
+
+      expect(control.errors).toBeNull();
+    },
+  );
+
   describe('buildPersonOrgSharedControls', () => {
     it('addressLine1 is required', () => {
       const controls = buildPersonOrgSharedControls(fb);

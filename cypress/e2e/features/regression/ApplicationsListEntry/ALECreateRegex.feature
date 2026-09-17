@@ -1,6 +1,7 @@
 Feature: Applications List Entry Create Regex Validations
 
   #  Regex Validations
+  @ARCPOC-1793
   @ARCPOC-222 @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319 @SC1
   Scenario Outline: Create an ALE With Regex Validations where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
     Given User Authenticates Via API As "<User>"
@@ -220,6 +221,10 @@ Feature: Applications List Entry Create Regex Validations
     Then User Sees Validation Error Banner "There is a problem Case reference must be 15 characters or fewer Account reference must be 20 characters or fewer"
     Then User Enters "<CaseReference>" Into The Textbox "Case reference" In The Accordion "Notes"
     Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
+    Then User Enters "   " Into The Textbox "First name" In The Accordion "Applicant"
+    When User Clicks On The "Create entry" Button
+    Then User Sees Validation Error Banner "There is a problem Enter applicant first name"
+    Then User Enters "Valid first name" Into The Textbox "First name" In The Accordion "Applicant"
     When User Clicks On The "Create entry" Button
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
 

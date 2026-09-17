@@ -232,6 +232,48 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     );
   });
 
+  it('onSubmit: blocks a whitespace-only applicant first name and submits after correction', () => {
+    component.form.patchValue({
+      applicationCode: 'A001',
+      lodgementDate: '2026-02-01',
+      applicantType: 'person',
+    });
+    component.personForm.patchValue({
+      firstName: '   ',
+      surname: 'Applicant',
+      addressLine1: '1 Applicant Street',
+    });
+
+    component.onSubmit(new Event('submit'));
+
+    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+    expect(component.vm().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'firstName',
+          text: 'Enter applicant first name',
+          href: '#applicant-person-first-name',
+        }),
+      ]),
+    );
+
+    component.personForm.controls.firstName.setValue('  Jane  ');
+    component.onSubmit(new Event('submit'));
+
+    expect(createApplicationListEntryMock).toHaveBeenCalledTimes(1);
+    expect(createApplicationListEntryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entryCreateDto: expect.objectContaining({
+          applicant: expect.objectContaining({
+            person: expect.objectContaining({
+              name: expect.objectContaining({ firstName: 'Jane' }),
+            }),
+          }),
+        }),
+      }),
+    );
+  });
+
   it('onSubmit: validates respondent when partially filled even if not required', () => {
     (
       component as unknown as {
