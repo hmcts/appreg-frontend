@@ -30,7 +30,7 @@ contracts.each do |filename, (event, entry)|
 
   if event == "pull_request_target" && triggers.fetch(event, {}) != {
     "branches" => ["master"],
-    "types" => ["opened", "reopened", "synchronize", "ready_for_review", "converted_to_draft"]
+    "types" => ["opened", "reopened", "synchronize", "ready_for_review"]
   }
     errors << "#{filename}: only master PR activity may start the automated review"
   end
@@ -41,7 +41,9 @@ contracts.each do |filename, (event, entry)|
   end
   jobs = workflow.fetch("jobs")
   if event == "pull_request_target"
-    guard = "github.event.pull_request.head.repo.full_name == github.repository"
+    guard = "needs.review-state.outputs.skip == 'false' && github.event.pull_request.draft == false && " \
+      "github.event.pull_request.head.repo.full_name == github.repository && " \
+      "github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]'"
     unless jobs.fetch(entry).fetch("if", "").split.join(" ") == guard
       errors << "#{filename}: model job must skip pull requests from forks"
     end
@@ -154,13 +156,26 @@ unless model && model.fetch("with", {})["permission-profile"] == ":read-only" &&
 end
 
 publisher = review_jobs.fetch("publish")
-unless publisher["needs"] == "analyze" && publisher["runs-on"] == "ubuntu-latest" &&
-       publisher["permissions"] == { "pull-requests" => "write" }
-  errors << "codex_pr_review.yml: publishing must be a GitHub-hosted job after analysis with only pull-request write permission"
+unless publisher["needs"] == ["review-state", "analyze"] && publisher["runs-on"] == "ubuntu-latest" &&
+       publisher["permissions"] == { "pull-requests" => "write" } &&
+       publisher["if"] == "needs.review-state.outputs.skip == 'false' && needs.analyze.outputs.final_message != ''"
+  errors << "codex_pr_review.yml: publishing must require an explicit successful review-state check after analysis"
 end
 
 unless review_jobs.values.all? { |job| job["continue-on-error"] == true }
   errors << "codex_pr_review.yml: all jobs must allow failure so the advisory review cannot block a merge"
+end
+
+state = review_jobs.fetch("review-state")
+unless state["runs-on"] == "ubuntu-latest" && state["permissions"] == { "pull-requests" => "read" } &&
+       state.fetch("steps", []).any? { |step| step.fetch("id", "") == "state" && step.fetch("uses", "").start_with?("actions/github-script@") } &&
+       state.fetch("outputs", {}).key?("skip")
+  errors << "codex_pr_review.yml: review state must be checked without credentials before model execution"
+end
+
+unless publisher.fetch("steps", []).any? { |step| step.fetch("uses", "").start_with?("actions/checkout@") } &&
+       publisher.fetch("steps", []).any? { |step| step.fetch("uses", "").start_with?("actions/github-script@") && step.fetch("with", {}).fetch("script", "").include?("codex-pr-review-publisher") }
+  errors << "codex_pr_review.yml: publisher must use the trusted sanitizing helper"
 end
 
 hosted_path = File.join(root, ".github/workflows/codex_trust_checks.yml")
@@ -175,6 +190,7 @@ end
 [
   "ruby .github/scripts/check-codex-workflow-trust.rb",
   "python3 .github/scripts/test-codex-workflow-trust.py",
+  "node --test .github/scripts/test-codex-pr-review-publisher.cjs",
   "python3 .github/scripts/test-audit-codex-trust-settings.py",
   "python3 .github/scripts/test-codex-review-feedback.py",
   "python3 .github/scripts/test-codex-verification-bundle.py",

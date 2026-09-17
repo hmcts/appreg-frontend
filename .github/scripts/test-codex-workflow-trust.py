@@ -61,8 +61,16 @@ class WorkflowTrustTests(unittest.TestCase):
     def test_automatic_pr_review_requires_all_configured_pr_activity(self):
         self.replace(
             "codex_pr_review.yml",
-            "types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]",
             "types: [opened, reopened, synchronize, ready_for_review]",
+            "types: [opened, reopened, ready_for_review]",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_rejects_draft_transition_trigger(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "types: [opened, reopened, synchronize, ready_for_review]",
+            "types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]",
         )
         self.check(False)
 
@@ -74,12 +82,28 @@ class WorkflowTrustTests(unittest.TestCase):
         )
         self.check(False)
 
-    def test_automatic_pr_review_does_not_skip_drafts(self):
+    def test_automatic_pr_review_requires_draft_exclusion(self):
         self.replace(
             "codex_pr_review.yml",
-            "github.event.pull_request.head.repo.full_name == github.repository",
-            "github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository",
+            "github.event.pull_request.draft == false &&",
+            "",
         )
+        self.check(False)
+
+    def test_automatic_pr_review_requires_review_state_gate(self):
+        self.replace("codex_pr_review.yml", "needs: review-state\n", "")
+        self.check(False)
+
+    def test_automatic_pr_review_requires_successful_review_state_output(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "needs.review-state.outputs.skip == 'false' &&",
+            "needs.review-state.outputs.skip != 'true' &&",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_requires_dependency_bot_exclusion(self):
+        self.replace("codex_pr_review.yml", "github.actor != 'dependabot[bot]' &&", "")
         self.check(False)
 
     def test_automatic_pr_review_cannot_checkout_pr_code(self):
@@ -119,7 +143,15 @@ class WorkflowTrustTests(unittest.TestCase):
         self.check(False)
 
     def test_automatic_pr_review_cannot_publish_before_analysis(self):
-        self.replace("codex_pr_review.yml", "    needs: analyze", "    needs: []")
+        self.replace("codex_pr_review.yml", "    needs: [review-state, analyze]", "    needs: []")
+        self.check(False)
+
+    def test_publisher_requires_successful_review_state_output(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "if: needs.review-state.outputs.skip == 'false' && needs.analyze.outputs.final_message != ''",
+            "if: needs.review-state.outputs.skip != 'true' && needs.analyze.outputs.final_message != ''",
+        )
         self.check(False)
 
     def test_automatic_pr_review_failure_is_non_blocking(self):
