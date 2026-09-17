@@ -81,10 +81,12 @@ hmcts/appreg-api/.github/workflows/codex_jira_dispatch.yml@refs/heads/master
 hmcts/appreg-api/.github/workflows/codex_pr_review_feedback.yml@refs/heads/master
 hmcts/appreg-api/.github/workflows/codex_merge_conflict_resolution.yml@refs/heads/master
 hmcts/appreg-api/.github/workflows/codex_runner_smoke.yml@refs/heads/master
+hmcts/appreg-api/.github/workflows/codex_pr_review.yml@refs/heads/master
 hmcts/appreg-frontend/.github/workflows/codex_jira_dispatch.yml@refs/heads/master
 hmcts/appreg-frontend/.github/workflows/codex_pr_review_feedback.yml@refs/heads/master
 hmcts/appreg-frontend/.github/workflows/codex_merge_conflict_resolution.yml@refs/heads/master
 hmcts/appreg-frontend/.github/workflows/codex_runner_smoke.yml@refs/heads/master
+hmcts/appreg-frontend/.github/workflows/codex_pr_review.yml@refs/heads/master
 ```
 
 Register ARC against https://github.com/hmcts with runnerGroup appreg-codex.
