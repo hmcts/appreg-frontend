@@ -48,7 +48,8 @@ export const DETAIL_GROUP_MESSAGES = {
 export const CLOSE_MESSAGES = {
   closeInvalid:
     'You cannot close this list. See the error summary for details.',
-  durationMissing: 'A duration must be recorded to close this list.',
+  durationMissing:
+    'A duration must be recorded to close this list. Press update to save the changes.',
   durationNonPositive:
-    'Please enter positive value for either hours or minutes to close this list',
+    'Please enter positive value for either hours or minutes to close this list. Press update to save the changes',
 } as const;
