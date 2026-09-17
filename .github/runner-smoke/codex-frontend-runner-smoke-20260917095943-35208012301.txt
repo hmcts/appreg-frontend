@@ -1,0 +1,7 @@
+codex frontend runner smoke test
+runner_name=GitHub Actions 1002161619
+runner_os=Linux
+runner_arch=X64
+repository=hmcts/appreg-frontend
+workflow_url=https://github.com/hmcts/appreg-frontend/actions/runs/35208012301
+timestamp_utc=2026-09-17T09:59:44Z
