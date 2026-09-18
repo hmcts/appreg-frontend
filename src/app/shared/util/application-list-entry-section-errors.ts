@@ -9,6 +9,7 @@ export type ApplicationListEntryErrorSections = {
   civilFee: boolean;
   notes: boolean;
   officials: boolean;
+  resultWording: boolean;
 };
 
 export function getApplicationListEntryErrorSections(
@@ -23,6 +24,7 @@ export function getApplicationListEntryErrorSections(
     civilFee: childErrors['civilFee'].length > 0,
     notes: childErrors['notes'].length > 0,
     officials: false,
+    resultWording: (childErrors['resultWording']?.length ?? 0) > 0,
   };
 
   for (const error of parentErrors) {

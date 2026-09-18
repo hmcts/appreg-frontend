@@ -877,6 +877,42 @@ describe('ApplicationsListEntryDetail', () => {
     );
   });
 
+  it('opens Results when saving with unapplied result wording changes', () => {
+    Object.defineProperty(component, 'resultWordingSection', {
+      value: { hasUnappliedChanges: () => true },
+      configurable: true,
+    });
+    component.openResultSection.set(false);
+    component.openNotesSection.set(true);
+
+    component.onUpdateApplication();
+
+    expect(component.vm().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ href: ERROR_HREFS.resultWording }),
+      ]),
+    );
+    expect(component.openResultSection()).toBe(true);
+    expect(component.openNotesSection()).toBe(true);
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+  });
+
+  it('opens Results for child validation errors and keeps it open when errors clear', () => {
+    component.openResultSection.set(false);
+    component.openNotesSection.set(true);
+
+    component.onChildErrors('resultWording', [
+      { text: 'Apply the result', href: ERROR_HREFS.resultWording },
+    ]);
+
+    expect(component.openResultSection()).toBe(true);
+    expect(component.openNotesSection()).toBe(true);
+
+    component.onChildErrors('resultWording', []);
+
+    expect(component.openResultSection()).toBe(true);
+  });
+
   it('onUpdateApplication calls submitEntryUpdate when validation passes', () => {
     component['entryDetail'] = {
       id: 'EN-1',

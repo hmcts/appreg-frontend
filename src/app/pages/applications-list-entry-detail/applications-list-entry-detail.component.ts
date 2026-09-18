@@ -723,6 +723,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
       if (source === 'resultWording' && errors?.length > 0) {
         this.resultAppliedBannerVisible.set(false);
+        this.openResultSection.set(true);
       }
 
       return;
@@ -776,6 +777,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.openCivilFeeSection,
       this.openNotesSection,
       this.openOfficialSection,
+      this.openResultSection,
     ] as const;
     const sectionNames = [
       'applicant',
@@ -785,6 +787,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       'civilFee',
       'notes',
       'officials',
+      'resultWording',
     ] as const;
 
     sections.forEach((section, index) => {
