@@ -155,7 +155,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.openApplicant()).toBe(true);
   });
 
-  it('closes sections that have no validation errors', () => {
+  it('preserves open sections when another section has validation errors', () => {
     component.form.patchValue({
       applicantType: 'standard',
       applicationCode: 'APP123',
@@ -172,11 +172,11 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
 
     component.onChildErrors('notes', [{ id: 'notes', text: 'Error' }]);
 
-    expect(component.openApplicant()).toBe(false);
-    expect(component.openApplicationCode()).toBe(false);
-    expect(component.openWording()).toBe(false);
-    expect(component.openRespondent()).toBe(false);
-    expect(component.openCivilFee()).toBe(false);
+    expect(component.openApplicant()).toBe(true);
+    expect(component.openApplicationCode()).toBe(true);
+    expect(component.openWording()).toBe(true);
+    expect(component.openRespondent()).toBe(true);
+    expect(component.openCivilFee()).toBe(true);
     expect(component.openNotes()).toBe(true);
   });
 
@@ -837,6 +837,33 @@ describe('ApplicationsListEntryCreate (payment reference return)', () => {
     updatePaymentReferenceInFeeStatusesControlSpy.mockRestore();
     readNavStateSpy.mockRestore();
     history.replaceState({}, '');
+  });
+
+  it('restores open and closed panels after returning from payment reference editing', () => {
+    fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.openApplicant.set(true);
+    component.openApplicationCode.set(false);
+    component.openWording.set(true);
+    component.openRespondent.set(false);
+    component.openCivilFee.set(true);
+    component.openNotes.set(false);
+
+    const state = component.buildChangePaymentReferenceState();
+    readNavStateSpy.mockReturnValue(state);
+    fixture.destroy();
+    fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.openApplicant()).toBe(true);
+    expect(component.openApplicationCode()).toBe(false);
+    expect(component.openWording()).toBe(true);
+    expect(component.openRespondent()).toBe(false);
+    expect(component.openCivilFee()).toBe(true);
+    expect(component.openNotes()).toBe(false);
   });
 
   it('applies paymentRefReturn from navigation state during init', () => {

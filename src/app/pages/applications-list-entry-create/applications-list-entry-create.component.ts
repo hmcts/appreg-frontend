@@ -524,9 +524,11 @@ export class ApplicationsListEntryCreate implements OnInit {
       'notes',
     ] as const;
 
-    sections.forEach((section, index) =>
-      section.set(sectionsWithErrors[sectionNames[index]]),
-    );
+    sections.forEach((section, index) => {
+      if (sectionsWithErrors[sectionNames[index]]) {
+        section.set(true);
+      }
+    });
   }
 
   private validateChildSectionsForSubmit(): void {
@@ -744,6 +746,14 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   private buildEntryCreateSnapshot(): EntryCreateSnapshot {
     return {
+      expandedSections: {
+        applicant: this.openApplicant(),
+        applicationCode: this.openApplicationCode(),
+        wording: this.openWording(),
+        respondent: this.openRespondent(),
+        civilFee: this.openCivilFee(),
+        notes: this.openNotes(),
+      },
       form: this.form.getRawValue(),
       personForm: this.personForm.getRawValue(),
       organisationForm: this.organisationForm.getRawValue(),
@@ -769,6 +779,21 @@ export class ApplicationsListEntryCreate implements OnInit {
     }
 
     const draft = state as Partial<EntryCreateSnapshot>;
+
+    this.openApplicant.set(
+      draft.expandedSections?.applicant ?? this.openApplicant(),
+    );
+    this.openApplicationCode.set(
+      draft.expandedSections?.applicationCode ?? this.openApplicationCode(),
+    );
+    this.openWording.set(draft.expandedSections?.wording ?? this.openWording());
+    this.openRespondent.set(
+      draft.expandedSections?.respondent ?? this.openRespondent(),
+    );
+    this.openCivilFee.set(
+      draft.expandedSections?.civilFee ?? this.openCivilFee(),
+    );
+    this.openNotes.set(draft.expandedSections?.notes ?? this.openNotes());
 
     if (draft.form) {
       this.form.patchValue(draft.form, { emitEvent: false });
