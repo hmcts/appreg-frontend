@@ -1,6 +1,6 @@
 Feature: API - Application List Entry Results
 
-  @api @applicationListEntryResults @regression @ARCPOC-576 @ARCPOC-577 @ARCPOC-1017
+  @api @applicationListEntryResults @regression @ARCPOC-576 @ARCPOC-577 @ARCPOC-1017 @ARCPOC-1752
   Scenario Outline: Create and retrieve an application list entry result
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -54,6 +54,7 @@ Feature: API - Application List Entry Results
       | wording.substitution-key-constraints[0].key   | Time issued                                       |
       | wording.substitution-key-constraints[0].value | 10:00                                             |
     Then User Stores Response Body Property "id" As "resultId"
+    Then User Stores Response Body Property "updatedDateTime" As "resultUpdatedDateTime"
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId/results?pageNumber=0&pageSize=10"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
@@ -64,6 +65,7 @@ Feature: API - Application List Entry Results
       | content[0].wording.template                              | Granted. Search warrant issued at {{Time issued}} |
       | content[0].wording.substitution-key-constraints[0].key   | Time issued                                       |
       | content[0].wording.substitution-key-constraints[0].value | 10:00                                             |
+      | content[0].updatedDateTime                               | :resultUpdatedDateTime                            |
     Then User Verify Response Body Array Property "content" At Field "id" Should Contain Values:
       | :resultId |
 
@@ -71,7 +73,7 @@ Feature: API - Application List Entry Results
       | User  |
       | user1 |
 
-  @api @applicationListEntryResults @regression @ARCPOC-578 @ARCPOC-579 @ARCPOC-1111
+  @api @applicationListEntryResults @regression @ARCPOC-578 @ARCPOC-579 @ARCPOC-1111 @ARCPOC-1752
   Scenario Outline: Update an application list entry result and retrieve updated details
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -124,6 +126,7 @@ Feature: API - Application List Entry Results
       | wordingFields.0.key   | Reason text           |
       | wordingFields.0.value | Caseworker discretion |
     Then User Verify Response Status Code Should Be "200"
+    Then User Stores Response Body Property "updatedDateTime" As "resultUpdatedDateTime"
     Then User Verify Response Body Should Have:
       | id                                            | :resultId                              |
       | entryId                                       | :entryId                               |
@@ -131,6 +134,7 @@ Feature: API - Application List Entry Results
       | wording.template                              | Fee remitted. Reason: {{Reason text}}. |
       | wording.substitution-key-constraints[0].key   | Reason text                            |
       | wording.substitution-key-constraints[0].value | Caseworker discretion                  |
+      | updatedDateTime                               | :resultUpdatedDateTime                 |
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId/results?pageNumber=0&pageSize=10"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
@@ -140,6 +144,7 @@ Feature: API - Application List Entry Results
       | content[0].wording.template                              | Fee remitted. Reason: {{Reason text}}. |
       | content[0].wording.substitution-key-constraints[0].key   | Reason text                            |
       | content[0].wording.substitution-key-constraints[0].value | Caseworker discretion                  |
+      | content[0].updatedDateTime                               | :resultUpdatedDateTime                 |
     Then User Verify Response Body Array Property "content" At Field "id" Should Contain Values:
       | :resultId |
 

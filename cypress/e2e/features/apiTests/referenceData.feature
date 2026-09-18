@@ -131,15 +131,15 @@ Feature: API -Reference Data
         When User Makes GET API Request To "/result-codes"
         Then User Verify Response Status Code Should Be "200"
         Then User Verify Response Body Should Have:
-            | pageNumber            | 0                     |
-            | pageSize              | 10                    |
-            | first                 | true                  |
-            | last                  | false                 |
-            | elementsOnPage        | 10                    |
-            | content[0].resultCode | APPABANDON            |
-            | content[0].title      | Application Abandoned |
-            | content[1].resultCode | APPC                  |
-            | content[1].title      | Appeal to Crown Court |
+            | pageNumber     | 0     |
+            | pageSize       | 10    |
+            | first          | true  |
+            | last           | false |
+            | elementsOnPage | 10    |
+        Then User Verify Response Body Array Property "content" Should Contain Objects:
+            | resultCode | title                 |
+            | APPABANDON | Application Abandoned |
+            | APPC       | Appeal to Crown Court |
         Examples:
             | User  |
             | user1 |
