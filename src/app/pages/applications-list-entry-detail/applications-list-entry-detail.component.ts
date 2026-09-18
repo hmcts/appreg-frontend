@@ -758,6 +758,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private openSectionsWithErrors(): void {
+    // Different behaviour here, in ALE create we close/open sections with errors
+    // whilst in ALE update we will not close sections without errors
     const submitted = this.vm().formSubmitted;
 
     if (!submitted) {
@@ -775,6 +777,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.openRespondentSection,
       this.openCivilFeeSection,
       this.openNotesSection,
+      this.openResultSection,
+      this.openOfficialSection,
     ] as const;
     const sectionNames = [
       'applicant',
@@ -783,11 +787,15 @@ export class ApplicationsListEntryDetail implements OnInit {
       'respondent',
       'civilFee',
       'notes',
+      'resultWording',
+      'officials',
     ] as const;
 
-    sections.forEach((section, index) =>
-      section.set(sectionsWithErrors[sectionNames[index]]),
-    );
+    sections.forEach((section, index) => {
+      if (sectionsWithErrors[sectionNames[index]]) {
+        section.set(true);
+      }
+    });
   }
 
   private submitEntryUpdate(

@@ -7,6 +7,8 @@ export type ApplicationListEntryErrorSections = {
   respondent: boolean;
   civilFee: boolean;
   notes: boolean;
+  resultWording: boolean;
+  officials: boolean;
 };
 
 export function getApplicationListEntryErrorSections(
@@ -20,6 +22,8 @@ export function getApplicationListEntryErrorSections(
     respondent: childErrors['respondent'].length > 0,
     civilFee: childErrors['civilFee'].length > 0,
     notes: childErrors['notes'].length > 0,
+    resultWording: childErrors['resultWording']?.length > 0,
+    officials: childErrors['officials']?.length > 0,
   };
 
   for (const error of parentErrors) {
@@ -37,6 +41,8 @@ export function getApplicationListEntryErrorSections(
       sectionsWithErrors.civilFee = true;
     } else if (error.id === 'numberOfRespondents') {
       sectionsWithErrors.respondent = true;
+    } else if (error.id?.startsWith('officials-')) {
+      sectionsWithErrors.officials = true;
     }
   }
 
