@@ -1317,34 +1317,48 @@ describe('ApplicationsListDetail', () => {
     });
   });
 
-  it('sets bulk upload success banner text and job id from navigation state', () => {
-    historyStateSpy.mockReturnValue({
-      row: {
-        id: 'id-1',
-        location: 'LOC1',
-        description: '',
-        status: 'OPEN',
-      },
-      msg: '3 records created.',
-      jobId: 'job-123',
-    });
-
-    const route = TestBed.inject(ActivatedRoute);
-    jest
-      .spyOn(route.snapshot.queryParamMap, 'get')
-      .mockImplementation((key) => {
-        if (key === 'bulkUploadSuccess') {
-          return 'true';
-        }
-        return null;
+  it.each([
+    [1940.5, '\nTotal fees for uploaded applications: £1,940.50\n'],
+    [0, '\nTotal fees for uploaded applications: £0.00\n'],
+    [undefined, ''],
+    [null, ''],
+    ['940.00', ''],
+    [Number.NaN, ''],
+    [Number.POSITIVE_INFINITY, ''],
+  ])(
+    'sets bulk upload success banner with total %s',
+    (totalFeeValue, expectedTotal) => {
+      historyStateSpy.mockReturnValue({
+        row: {
+          id: 'id-1',
+          location: 'LOC1',
+          description: '',
+          status: 'OPEN',
+        },
+        msg: '3 records created.',
+        jobId: 'job-123',
+        totalFeeValue,
       });
 
-    component.setSuccessBanner();
+      const route = TestBed.inject(ActivatedRoute);
+      jest
+        .spyOn(route.snapshot.queryParamMap, 'get')
+        .mockImplementation((key) => {
+          if (key === 'bulkUploadSuccess') {
+            return 'true';
+          }
+          return null;
+        });
 
-    expect(vm().bulkUploadDone).toBe(true);
-    expect(vm().bulkUploadBannerText).toBe('3 records created.');
-    expect(component.bulkUploadJobId()).toBe('job-123');
-  });
+      component.setSuccessBanner();
+
+      expect(vm().bulkUploadDone).toBe(true);
+      expect(vm().bulkUploadBannerText).toBe(
+        `3 records created.${expectedTotal}`,
+      );
+      expect(component.bulkUploadJobId()).toBe('job-123');
+    },
+  );
 
   it('preserves returned close errors when the detail page reload completes', async () => {
     patchDetailState({

@@ -63,7 +63,7 @@
     } @else if (body() || linkText()) {
       <p class="govuk-body">
         @if (body()) {
-          {{ body() }}
+          <span style="white-space: pre-line">{{ body() }}</span>
         }
         @if (linkText() && linkHref()) {
           <a

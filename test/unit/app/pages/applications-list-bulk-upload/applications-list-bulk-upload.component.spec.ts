@@ -445,26 +445,31 @@ describe('ApplicationsListBulkUpload', () => {
       );
     });
 
-    it('shows a success banner when the upload succeeds', async () => {
-      const navigateSpy = jest
-        .spyOn(TestBed.inject(Router), 'navigate')
-        .mockResolvedValue(true);
+    it.each([1940.5, 0, undefined])(
+      'passes the total %s when the upload succeeds',
+      async (totalFeeValue) => {
+        const navigateSpy = jest
+          .spyOn(TestBed.inject(Router), 'navigate')
+          .mockResolvedValue(true);
 
-      jobPollingFacadeMock.watchJob.mockReturnValue(of(terminalJob({})));
+        jobPollingFacadeMock.watchJob.mockReturnValue(
+          of(terminalJob({ raw: { totalFeeValue } })),
+        );
 
-      startBulkUploadPolling();
-      await flushSignalEffects(fixture);
+        startBulkUploadPolling();
+        await flushSignalEffects(fixture);
 
-      const banner = fixture.debugElement.query(By.css('app-success-banner'));
-      expect(banner).toBeNull();
-      expect(navigateSpy).toHaveBeenCalledWith(['../'], {
-        relativeTo: TestBed.inject(ActivatedRoute),
-        queryParams: { bulkUploadSuccess: 'true' },
-        state: { msg: '3 records created.', jobId: 'job-1' },
-      });
-      expect(getState(component).uploadSuccessful).toBe(true);
-      expect(getState(component).bulkUploadFeedback).toBeUndefined();
-    });
+        const banner = fixture.debugElement.query(By.css('app-success-banner'));
+        expect(banner).toBeNull();
+        expect(navigateSpy).toHaveBeenCalledWith(['../'], {
+          relativeTo: TestBed.inject(ActivatedRoute),
+          queryParams: { bulkUploadSuccess: 'true' },
+          state: { msg: '3 records created.', jobId: 'job-1', totalFeeValue },
+        });
+        expect(getState(component).uploadSuccessful).toBe(true);
+        expect(getState(component).bulkUploadFeedback).toBeUndefined();
+      },
+    );
 
     it('shows a failure error summary with the backend message', async () => {
       jobPollingFacadeMock.watchJob.mockReturnValue(
