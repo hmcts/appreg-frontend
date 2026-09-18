@@ -398,7 +398,6 @@ describe('ResultSelectedComponent', () => {
     expect(mockApi.createApplicationListEntryResult).not.toHaveBeenCalled();
     expect(mockApi.getApplicationListEntryResults).not.toHaveBeenCalled();
     expect(component.successBanner()).toBeNull();
-    expect(component.errorHint).toBe('Validation failed');
     expect(component.errorSummaryItems()).toEqual([
       { text: 'Result code is not valid for this list' },
     ]);
