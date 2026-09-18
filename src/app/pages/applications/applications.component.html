@@ -216,6 +216,25 @@
           widthClass="govuk-!-width-full"
         />
       </div>
+
+      <div class="govuk-grid-row">
+        <!-- Application title -->
+        <app-text-input
+          formControlName="applicationTitle"
+          label="Application title"
+          idPrefix="applicationTitle"
+          [error]="
+            getControlErrorItem(
+              form.controls.applicationTitle,
+              'applicationTitle',
+              errorMap
+            )?.text ?? null
+          "
+          containerWidthClass="govuk-grid-column-one-half"
+          widthClass="govuk-!-width-two-thirds"
+          [charLimit]="500"
+        />
+      </div>
     </div>
   </details>
 

@@ -192,6 +192,60 @@ describe('PlaceFieldsBase', () => {
     expect(component.getPlaceState().filteredCourthouses).toHaveLength(0);
   });
 
+  it('finds an edited and restored court label without automatically selecting it', () => {
+    component.init();
+    const court = { locationCode: 'A1', name: 'Alpha-Central Court' };
+    component.emitCourts([court, ...COURTS.slice(1)]);
+    component.selectCourthouse(court);
+    const label = component.getPlaceState().courthouseSearch;
+
+    for (const query of [
+      label.slice(0, -1),
+      label,
+      `  ${label.toUpperCase()}  `,
+    ]) {
+      component.setCourthouseSearch(query);
+      component.onCourthouseInputChange();
+      expect(
+        component
+          .getPlaceState()
+          .filteredCourthouses.map((item) => item.locationCode),
+      ).toEqual(['A1']);
+      expect(component.form.controls.court.value).toBe(query);
+    }
+
+    component.selectCourthouse(
+      component.getPlaceState().filteredCourthouses[0],
+    );
+    expect(component.form.controls.court.value).toBe('A1');
+    expect(component.getPlaceState().filteredCourthouses).toEqual([]);
+  });
+
+  it('finds an edited and restored CJA label without automatically selecting it', () => {
+    component.init();
+    const cja = { code: 'C1', description: 'Area One-Central' };
+    component.emitCja([cja, ...CJAS.slice(1)]);
+    component.selectCja(cja);
+    const label = component.getPlaceState().cjaSearch;
+
+    for (const query of [
+      label.slice(0, -1),
+      label,
+      `  ${label.toUpperCase()}  `,
+    ]) {
+      component.setCjaSearch(query);
+      component.onCjaInputChange();
+      expect(
+        component.getPlaceState().filteredCja.map((item) => item.code),
+      ).toEqual(['C1']);
+      expect(component.form.controls.cja.value).toBe(query);
+    }
+
+    component.selectCja(component.getPlaceState().filteredCja[0]);
+    expect(component.form.controls.cja.value).toBe('C1');
+    expect(component.getPlaceState().filteredCja).toEqual([]);
+  });
+
   it('selectCourthouse sets form value, updates search, and clears suggestions', () => {
     component.init();
 

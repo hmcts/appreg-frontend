@@ -821,6 +821,28 @@ describe('ApplicationsListEntryDetail', () => {
     expect(submitEntryUpdateMock).not.toHaveBeenCalled();
   });
 
+  it('onUpdateApplication blocks a whitespace-only applicant first name', () => {
+    component['form'].controls.applicantType.setValue('person');
+    component.personGroup.patchValue({
+      firstName: '   ',
+      surname: 'Applicant',
+      addressLine1: '1 Applicant Street',
+    });
+
+    component.onUpdateApplication();
+
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'firstName',
+          text: 'Enter applicant first name',
+          href: '#applicant-person-first-name',
+        }),
+      ]),
+    );
+  });
+
   it('onUpdateApplication returns early when EF application code has no account reference', () => {
     component['entryDetail'] = {
       id: 'EN-1',

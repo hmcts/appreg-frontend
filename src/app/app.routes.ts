@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { HomeComponent } from '@components/home/home.component';
 import { Login } from '@components/login/login.component';
+import { applicationListGuard } from '@guards/application-list.guard';
 import { sessionGuard } from '@guards/session.guard';
 
 export const routes: Routes = [
@@ -56,6 +57,7 @@ export const routes: Routes = [
       },
       {
         path: ':id',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-detail.component').then(
             (m) => m.ApplicationsListDetail,
@@ -63,6 +65,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/delete',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list/applications-list-delete/applications-list-delete.component').then(
             (m) => m.ApplicationsListDeleteComponent,
@@ -70,6 +73,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/close',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-close/applications-list-close.component').then(
             (m) => m.ApplicationsListCloseComponent,
@@ -77,6 +81,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/create-entry',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-entry-create/applications-list-entry-create.component').then(
             (m) => m.ApplicationsListEntryCreate,
@@ -84,6 +89,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-entry/:entryId',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-entry-detail/applications-list-entry-detail.component').then(
             (m) => m.ApplicationsListEntryDetail,
@@ -91,6 +97,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/:entryId/delete',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-entry-delete/applications-list-entry-delete.component').then(
             (m) => m.ApplicationsListEntryDeleteComponent,
@@ -98,6 +105,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/create-entry/change-payment-reference',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
             (m) => m.PaymentReferenceEditComponent,
@@ -105,6 +113,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-entry/:entryId/change-payment-reference',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
             (m) => m.PaymentReferenceEditComponent,
@@ -112,6 +121,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-upload',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component').then(
             (m) => m.ApplicationsListBulkUpload,
@@ -119,6 +129,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/result-selected',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/result-selected/result-selected.component').then(
             (m) => m.ResultSelected,
@@ -126,6 +137,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-officials',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/update-officials/update-officials.component').then(
             (m) => m.UpdateOfficialsComponent,
@@ -133,6 +145,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-notes/:entryId',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications/update-notes/update-notes.component').then(
             (m) => m.UpdateNotesComponent,
@@ -140,6 +153,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-officials/confirm',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/update-officials/confirm/update-officials-confirm.component').then(
             (m) => m.UpdateOfficialsConfirmComponent,
@@ -147,6 +161,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/move',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-entry-move/applications-list-entry-move.component').then(
             (m) => m.ApplicationsListEntryMoveComponent,
@@ -154,6 +169,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/move/confirm',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-entry-move/move-confirm/move-confirm.component').then(
             (m) => m.MoveConfirmComponent,
@@ -161,6 +177,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-update-fee',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-detail-bulk-update-fees/applications-list-detail-bulk-update-fees.component').then(
             (m) => m.ApplicationsListDetailBulkUpdateFeesComponent,
@@ -168,6 +185,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-update-fee/confirm',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-detail-bulk-update-fees/fee-update-confirm/fee-update-confirm.component').then(
             (m) => m.FeeUpdateConfirmComponent,
@@ -175,6 +193,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-update-fee/change-payment-reference',
+        canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
             (m) => m.PaymentReferenceEditComponent,

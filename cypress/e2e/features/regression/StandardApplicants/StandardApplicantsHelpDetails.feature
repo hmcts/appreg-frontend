@@ -7,7 +7,7 @@ Feature: Standard applicants help details
     Then User Sees Page Heading "Standard applicants"
     Then User Should See The Accordion "Help with standard applicants"
     When User Toggles The Accordion "Help with standard applicants"
-    Then User Should See The Text "Use this page to search for standard applicant records by code or name." In The Accordion "Help with standard applicants"
+    Then User Should See The Text "Use this page to search for standard applicant records by code and/or name." In The Accordion "Help with standard applicants"
     Then User Should See The Text "Select View to see the details for a standard applicant." In The Accordion "Help with standard applicants"
     Then User Should See The Text "Use Export to download standard applicant search results for use in a spreadsheet." In The Accordion "Help with standard applicants"
     Then User Should See The Text "Use Print to create a PDF report of standard applicant search results." In The Accordion "Help with standard applicants"
