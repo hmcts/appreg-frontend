@@ -22,6 +22,8 @@ jobs:
         run: ruby .github/scripts/check-codex-workflow-trust.rb
       - name: Test workflow mutations
         run: python3 .github/scripts/test-codex-workflow-trust.py
+      - name: Test PR review publisher
+        run: node --test .github/scripts/test-codex-pr-review-publisher.cjs
       - name: Test settings audit
         run: python3 .github/scripts/test-audit-codex-trust-settings.py
       - name: Test Conversation review collection
