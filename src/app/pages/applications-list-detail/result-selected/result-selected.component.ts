@@ -75,7 +75,6 @@ export class ResultSelected
   successBanner = signal<SuccessBanner | null>(null);
   readonly submitAttempt = signal(0);
 
-  errorHint: string | null = 'There is a problem';
   errorFound = computed(() => this.errorSummaryItems().length > 0);
   errorSummaryItems = signal<ErrorItem[]>([]);
 
@@ -156,7 +155,6 @@ export class ResultSelected
 
   private applyMappedError(err: unknown): void {
     const mapped = mapHttpErrorToSummary(err);
-    this.errorHint = mapped.errorHint;
 
     this.errorSummaryItems.set(mapped.errorSummary);
   }
