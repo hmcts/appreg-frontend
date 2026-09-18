@@ -266,6 +266,78 @@ describe('ApplicationsListEntryDetail', () => {
     expect(ERROR_HREFS.lodgementDate).toBe('#lodgement-date-day');
   });
 
+  it('preserves the current state of every accordion section when validation finds no errors', () => {
+    component['appListEntryDetailPatch']({ formSubmitted: true });
+    component.openApplicantSection.set(true);
+    component.openApplicationCodeSection.set(false);
+    component.openWordingSection.set(true);
+    component.openRespondentSection.set(false);
+    component.openCivilFeeSection.set(true);
+    component.openNotesSection.set(false);
+    component.openResultSection.set(true);
+    component.openOfficialSection.set(false);
+    component['childErrors'] = {
+      codes: [],
+      notes: [],
+      fee: [],
+      respondent: [],
+      applicant: [],
+      wording: [],
+      civilFee: [],
+      resultWording: [],
+    };
+    component['parentErrors'] = [];
+
+    component['openSectionsWithErrors']();
+
+    expect([
+      component.openApplicantSection(),
+      component.openApplicationCodeSection(),
+      component.openWordingSection(),
+      component.openRespondentSection(),
+      component.openCivilFeeSection(),
+      component.openNotesSection(),
+      component.openResultSection(),
+      component.openOfficialSection(),
+    ]).toEqual([true, false, true, false, true, false, true, false]);
+  });
+
+  it('opens only sections containing errors without closing unrelated sections', () => {
+    component['appListEntryDetailPatch']({ formSubmitted: true });
+    component.openApplicantSection.set(true);
+    component.openApplicationCodeSection.set(false);
+    component.openWordingSection.set(true);
+    component.openRespondentSection.set(false);
+    component.openCivilFeeSection.set(true);
+    component.openNotesSection.set(false);
+    component.openResultSection.set(false);
+    component.openOfficialSection.set(false);
+    component['childErrors'] = {
+      codes: [],
+      notes: [],
+      fee: [],
+      respondent: [],
+      applicant: [],
+      wording: [],
+      civilFee: [],
+      resultWording: [{ id: 'result-code', text: 'Apply the result' }],
+    };
+    component['parentErrors'] = [
+      { id: 'officials-mags1-title', text: 'Enter a title' },
+    ];
+
+    component['openSectionsWithErrors']();
+
+    expect(component.openApplicantSection()).toBe(true);
+    expect(component.openWordingSection()).toBe(true);
+    expect(component.openCivilFeeSection()).toBe(true);
+    expect(component.openResultSection()).toBe(true);
+    expect(component.openOfficialSection()).toBe(true);
+    expect(component.openApplicationCodeSection()).toBe(false);
+    expect(component.openRespondentSection()).toBe(false);
+    expect(component.openNotesSection()).toBe(false);
+  });
+
   it('uses applications breadcrumbs and cancel link when opened from Applications', () => {
     locationStub.getState = jest.fn().mockReturnValue({
       appListId: 'AL-1',
