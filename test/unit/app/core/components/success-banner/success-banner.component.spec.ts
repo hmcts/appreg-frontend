@@ -44,6 +44,24 @@ describe('SuccessBannerComponent (external template)', () => {
     jest.useRealTimers();
   });
 
+  it('preserves body line breaks and keeps the action link working', () => {
+    const body =
+      'All records were uploaded successfully.\nTotal fees for uploaded applications: £55.00\n';
+    setInput('body', body, false);
+    setInput('linkText', 'Update fee details', false);
+    setInput('allowOnClick', true, false);
+    fixture.detectChanges();
+
+    const bodySpan: HTMLSpanElement =
+      fixture.nativeElement.querySelector('.govuk-body > span');
+    expect(bodySpan.textContent).toBe(body);
+    expect(bodySpan.style.whiteSpace).toBe('pre-line');
+
+    const emit = jest.spyOn(comp.linkClick, 'emit');
+    fixture.nativeElement.querySelector('.govuk-body a').click();
+    expect(emit).toHaveBeenCalled();
+  });
+
   it('renders default heading when none provided', () => {
     // defaults: heading = 'Done'
     fixture.detectChanges();
@@ -96,7 +114,7 @@ describe('SuccessBannerComponent (external template)', () => {
     expect(
       bodyP.querySelectorAll('.govuk-notification-banner__link'),
     ).toHaveLength(1);
-    expect(bodyP.querySelectorAll('span')).toHaveLength(2);
+    expect(linkEl.querySelectorAll('span')).toHaveLength(2);
   });
 
   it('renders an href link when linkHref provided', () => {
@@ -119,7 +137,7 @@ describe('SuccessBannerComponent (external template)', () => {
       ),
     ).toHaveLength(1);
     expect(
-      fixture.nativeElement.querySelectorAll('.govuk-body span'),
+      fixture.nativeElement.querySelectorAll('.govuk-body a span'),
     ).toHaveLength(2);
   });
 
