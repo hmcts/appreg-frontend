@@ -775,6 +775,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.openRespondentSection,
       this.openCivilFeeSection,
       this.openNotesSection,
+      this.openOfficialSection,
     ] as const;
     const sectionNames = [
       'applicant',
@@ -783,11 +784,14 @@ export class ApplicationsListEntryDetail implements OnInit {
       'respondent',
       'civilFee',
       'notes',
+      'officials',
     ] as const;
 
-    sections.forEach((section, index) =>
-      section.set(sectionsWithErrors[sectionNames[index]]),
-    );
+    sections.forEach((section, index) => {
+      if (sectionsWithErrors[sectionNames[index]]) {
+        section.set(true);
+      }
+    });
   }
 
   private submitEntryUpdate(
@@ -1278,6 +1282,16 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private buildEntryDetailSnapshot(): EntryDetailSnapshot {
     return {
+      expandedSections: {
+        applicant: this.openApplicantSection(),
+        applicationCode: this.openApplicationCodeSection(),
+        wording: this.openWordingSection(),
+        respondent: this.openRespondentSection(),
+        civilFee: this.openCivilFeeSection(),
+        notes: this.openNotesSection(),
+        result: this.openResultSection(),
+        official: this.openOfficialSection(),
+      },
       form: this.form.getRawValue(),
       personForm: this.personForm.getRawValue(),
       organisationForm: this.organisationForm.getRawValue(),
@@ -1299,6 +1313,32 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (!state) {
       return;
     }
+
+    this.openApplicantSection.set(
+      state.expandedSections?.applicant ?? this.openApplicantSection(),
+    );
+    this.openApplicationCodeSection.set(
+      state.expandedSections?.applicationCode ??
+        this.openApplicationCodeSection(),
+    );
+    this.openWordingSection.set(
+      state.expandedSections?.wording ?? this.openWordingSection(),
+    );
+    this.openRespondentSection.set(
+      state.expandedSections?.respondent ?? this.openRespondentSection(),
+    );
+    this.openCivilFeeSection.set(
+      state.expandedSections?.civilFee ?? this.openCivilFeeSection(),
+    );
+    this.openNotesSection.set(
+      state.expandedSections?.notes ?? this.openNotesSection(),
+    );
+    this.openResultSection.set(
+      state.expandedSections?.result ?? this.openResultSection(),
+    );
+    this.openOfficialSection.set(
+      state.expandedSections?.official ?? this.openOfficialSection(),
+    );
 
     if (state.form) {
       this.form.patchValue(state.form, { emitEvent: false });

@@ -1,4 +1,5 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { OFFICIAL_FIELD_MESSAGES } from '@constants/application-list-entry/error-messages';
 
 export type ApplicationListEntryErrorSections = {
   applicant: boolean;
@@ -7,6 +8,7 @@ export type ApplicationListEntryErrorSections = {
   respondent: boolean;
   civilFee: boolean;
   notes: boolean;
+  officials: boolean;
 };
 
 export function getApplicationListEntryErrorSections(
@@ -20,10 +22,13 @@ export function getApplicationListEntryErrorSections(
     respondent: childErrors['respondent'].length > 0,
     civilFee: childErrors['civilFee'].length > 0,
     notes: childErrors['notes'].length > 0,
+    officials: false,
   };
 
   for (const error of parentErrors) {
-    if (error.id === 'applicationCode' || error.id === 'lodgementDate') {
+    if (error.id && Object.hasOwn(OFFICIAL_FIELD_MESSAGES, error.id)) {
+      sectionsWithErrors.officials = true;
+    } else if (error.id === 'applicationCode' || error.id === 'lodgementDate') {
       sectionsWithErrors.applicationCode = true;
     } else if (error.id?.startsWith('applicationNotes.')) {
       sectionsWithErrors.notes = true;

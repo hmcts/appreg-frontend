@@ -37,6 +37,16 @@ export type PaymentRefReturn = {
 };
 
 export type EntryDetailSnapshot = {
+  expandedSections?: {
+    applicant: boolean;
+    applicationCode: boolean;
+    wording: boolean;
+    respondent: boolean;
+    civilFee: boolean;
+    notes: boolean;
+    result: boolean;
+    official: boolean;
+  };
   form?: unknown;
   personForm?: unknown;
   organisationForm?: unknown;
