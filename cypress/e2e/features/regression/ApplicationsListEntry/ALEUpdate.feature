@@ -1,6 +1,6 @@
 Feature: Applications List Entry Update
 
-    @applicationListEntry @regression @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444 @ARCPOC-1558
+    @applicationListEntry @regression @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444 @ARCPOC-1558 @ARCPOC-1228
     Scenario: Update an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "user1"
         # Create Application List
@@ -106,7 +106,9 @@ Feature: Applications List Entry Update
         Then User Sees Success Banner "Success Officials updated Officials have been updated for this application list entry."
         When User Clicks On The "Save complete application" Button
         Then User Sees Success Banner "Success Application list entry updated The application list entry has been updated successfully."
-        # Remove Reult to check 'Removed' banner
+        # Result Wording - Timestamp
+        Then User Should See "Updated on todaydisplay at timenowhhmm" In Summary Card "PROA - Production Order (to allow access)"
+        # Remove Result to check 'Removed' banner
         Then User Clicks The Link "Remove" In Summary Card "PROA - Production Order (to allow access)"
         Then User Sees Success Banner "Success Result removed The result has been removed from this application list entry."
 

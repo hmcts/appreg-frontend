@@ -197,7 +197,7 @@ Feature: Applications Bulk Result Selected
             | todaydisplay | Sarah Johnson {SCENARIO_ID}       | Finance Corp LTD {SCENARIO_ID} | Rights of Entry Warrant - Electricity Operator |
             | todaydisplay | ACME Industries LTD {SCENARIO_ID} | Emma Williams {SCENARIO_ID}    | Condemnation of Unfit Food                     |
         Then User Should See The Button "Save changes" Is Disabled
-        Then User Selects " " From The Textbox "Result code" Autocomplete By Typing "abc"
+        Then User Selects " " From The Textbox "Result code" Autocomplete By Typing "noresult"
         Then User Verifies "No results found" Is Visible Under The "Result code" Textbox
         # Apply RTC with wording validation, then remove it
         Then User Selects "RTC - Refer to Court" From The Textbox "Result code" Autocomplete By Typing "RTC"
