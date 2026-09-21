@@ -198,6 +198,23 @@ export class ApplicationListEntriesCombinedHelper {
           );
           break;
 
+        case 'Application title':
+          AccordionElement.findAccordionSection('Advanced search').then(
+            ($advancedSearch) => {
+              return TextboxElement.findTextboxWithin(
+                $advancedSearch,
+                'Application title',
+              )
+                .should('be.visible')
+                .should('be.enabled')
+                .scrollIntoView()
+                .clear({ force: true })
+                .should('have.value', '')
+                .type(value, { force: true });
+            },
+          );
+          break;
+
         default:
           cy.log(`Unhandled search field: ${fieldLabel}`);
           break;
