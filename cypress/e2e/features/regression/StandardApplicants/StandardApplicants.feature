@@ -80,10 +80,15 @@ Feature: Standard Applicants
         Then User Should See Table "<TableName>" Has Rows
         Then User Should See The Button "Actions" Is Enabled
         When User Clicks "Actions" Then Sees The Caption Menu With Options "Export CSV, Print PDF" In Table "<TableName>"
-
+        When User Clicks On The "Clear search" Button
+        Then User Enters "<Code>" Into The "Code" Textbox
+        Then User Enters "<Name>" Into The "Standard applicant name" Textbox
+        When User Clicks On The "Search" Button
+        Then User Should See The Table "<TableName>"
+        Then User Should See Table "<TableName>" Has Rows
         Examples:
-            | ExceedingLengthCode | ExceedingLengthName                                                                                             | InvalidCode | Code | TableName           |
-            | 12345678901         | A very long name that exceeds the maximum length of 100 characters for a standard applicant name in the system. | 1234567890  | ad   | Standard applicants |
+            | ExceedingLengthCode | ExceedingLengthName                                                                                             | InvalidCode | Code | TableName           | Name                        |
+            | 12345678901         | A very long name that exceeds the maximum length of 100 characters for a standard applicant name in the system. | 1234567890  | ad   | Standard applicants | ADVANCED COLLECTION SYSTEMS |
 
     @regression @standardApplicants @ARCPOC-766
     Scenario: View a Standard Applicant in read-only mode
