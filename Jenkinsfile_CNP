@@ -78,15 +78,10 @@ withPipeline(type, product, component) {
   def regressionSuite = params.RegressionSuite ?: 'Core'
   echo 'Regression suite: ' + regressionSuite
 
-  yarnBuilder.yarn('cypress:clean:reports')
-
   afterAlways('functionalTest:dev') {
     script { publishFunctionalReports() }
-  }
 
-  afterAlways('functionalTest:stg') {
-    script { publishFunctionalReports() }
-  }
+yarnBuilder.yarn('cypress:clean:reports')
 
   // opt-in tag for a full regression test
   if (regressionSuite == 'Full') {
@@ -131,6 +126,14 @@ withPipeline(type, product, component) {
         }
       }
     }
+  }
+
+  afterAlways('functionalTest:stg') {
+    script { publishFunctionalReports() }
+  }
+
+
+
 
   syncBranchesWithMaster(branchesToSync)
 }
