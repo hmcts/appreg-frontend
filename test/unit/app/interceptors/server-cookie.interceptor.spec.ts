@@ -10,6 +10,7 @@ import {
 } from '@angular/common/http/testing';
 import { REQUEST } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Request } from 'cross-fetch';
 
 import { serverCookieInterceptor } from '@interceptors/server-cookie.interceptor';
 
@@ -18,22 +19,20 @@ describe('serverCookieInterceptor', () => {
     let http: HttpClient;
     let httpMock: HttpTestingController;
 
-    const mockCookie = 'SID=abc.123; Path=/; Secure; HttpOnly; SameSite=Lax';
-    const mockExpressReq = {
-      headers: {
-        cookie: mockCookie,
+    const mockCookie = 'appreg.sid=abc.123; XSRF-TOKEN=csrf-token';
+    const mockSsrRequest = new Request(
+      'http://localhost/standard-applicants/ABMS',
+      {
+        headers: { cookie: mockCookie },
       },
-    };
+    );
 
     beforeEach(() => {
       TestBed.configureTestingModule({
         providers: [
-          // Register the interceptor under test
           provideHttpClient(withInterceptors([serverCookieInterceptor])),
-          // Use the testing backend
           provideHttpClientTesting(),
-          // Provide the SSR REQUEST token with a cookie
-          { provide: REQUEST, useValue: mockExpressReq },
+          { provide: REQUEST, useValue: mockSsrRequest },
         ],
       });
       http = TestBed.inject(HttpClient);
@@ -61,6 +60,37 @@ describe('serverCookieInterceptor', () => {
       expect(req.request.headers.get('cookie')).toBe(mockCookie);
 
       req.flush({ ok: true });
+    });
+  });
+
+  describe('when REQUEST has no cookie header', () => {
+    let http: HttpClient;
+    let httpMock: HttpTestingController;
+
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(withInterceptors([serverCookieInterceptor])),
+          provideHttpClientTesting(),
+          {
+            provide: REQUEST,
+            useValue: new Request('http://localhost/standard-applicants/ABMS'),
+          },
+        ],
+      });
+      http = TestBed.inject(HttpClient);
+      httpMock = TestBed.inject(HttpTestingController);
+    });
+
+    afterEach(() => httpMock.verify());
+
+    it('does not set a cookie header', () => {
+      http.get('/health').subscribe();
+
+      const req = httpMock.expectOne('/health');
+      expect(req.request.headers.has('cookie')).toBeFalsy();
+
+      req.flush({ status: 'OK' });
     });
   });
 
