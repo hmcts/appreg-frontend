@@ -1,6 +1,6 @@
 Feature: Applications List Update
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759
+    @regression @applicationsList @core @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759 @ARCPOC-1748 @ARCPOC-1822
     Scenario Outline: Update applications list Successfully with Other location and CJA selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:

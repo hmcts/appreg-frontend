@@ -1,6 +1,6 @@
 Feature: Applications List  - Bulk Result Selected
 
-    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @ARCPOC-1444 @ARCPOC-1360 @tp
+    @regression @applicationsList @core @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @ARCPOC-1444 @ARCPOC-1360 @ARCPOC-1748 @ARCPOC-1822 @tp
     Scenario Outline: Application List - Result Selected - 5 ALEs Mixed Applicant Types
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:

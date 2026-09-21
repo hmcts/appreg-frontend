@@ -30,7 +30,7 @@ Feature: Applications List Create
       | User  | Date  | Time           | Description   | Status | OtherLocation           | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
       | user1 | today | timenowhhmm-2h | Test_{SCENARIO_ID} | Open   | Other Location_{SCENARIO_ID} | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
+  @regression @core @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-1748 @ARCPOC-1822
   Scenario Outline: Create applications list using Court Autocomplete
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"

@@ -1,6 +1,6 @@
 Feature: Applications List Entry Update
 
-    @applicationListEntry @regression @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444 @ARCPOC-1558 @ARCPOC-1228
+    @applicationListEntry @regression @core @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444 @ARCPOC-1558 @ARCPOC-1228 @ARCPOC-1748 @ARCPCO-1822
     Scenario: Update an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "user1"
         # Create Application List

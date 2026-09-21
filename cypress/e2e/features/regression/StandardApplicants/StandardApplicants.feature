@@ -58,7 +58,7 @@ Feature: Standard Applicants
             | TableName           |
             | Standard applicants |
 
-    @regression @standardApplicants @ARCPOC-762
+    @regression @standardApplicants @core @ARCPOC-762 @ARCPOC-1748 @ARCPOC-1822
     Scenario Outline: Verify Standard Applicant Search functionality
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
