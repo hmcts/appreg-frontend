@@ -877,6 +877,42 @@ describe('ApplicationsListEntryDetail', () => {
     );
   });
 
+  it('opens Results when saving with unapplied result wording changes', () => {
+    Object.defineProperty(component, 'resultWordingSection', {
+      value: { hasUnappliedChanges: () => true },
+      configurable: true,
+    });
+    component.openResultSection.set(false);
+    component.openNotesSection.set(true);
+
+    component.onUpdateApplication();
+
+    expect(component.vm().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ href: ERROR_HREFS.resultWording }),
+      ]),
+    );
+    expect(component.openResultSection()).toBe(true);
+    expect(component.openNotesSection()).toBe(true);
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+  });
+
+  it('opens Results for child validation errors and keeps it open when errors clear', () => {
+    component.openResultSection.set(false);
+    component.openNotesSection.set(true);
+
+    component.onChildErrors('resultWording', [
+      { text: 'Apply the result', href: ERROR_HREFS.resultWording },
+    ]);
+
+    expect(component.openResultSection()).toBe(true);
+    expect(component.openNotesSection()).toBe(true);
+
+    component.onChildErrors('resultWording', []);
+
+    expect(component.openResultSection()).toBe(true);
+  });
+
   it('onUpdateApplication calls submitEntryUpdate when validation passes', () => {
     component['entryDetail'] = {
       id: 'EN-1',
@@ -963,6 +999,27 @@ describe('ApplicationsListEntryDetail', () => {
     expect(bannerArg).toBeTruthy();
     expect(typeof bannerArg.heading).toBe('string');
   });
+
+  it.each(['mags1Title', 'mags2Title', 'mags3Title', 'officialTitle'] as const)(
+    'opens Officials for an incomplete row after setting %s',
+    (field) => {
+      component.form.controls[field].setValue('x'.repeat(16));
+      component.openOfficialSection.set(false);
+      component.openNotesSection.set(true);
+      component.openCivilFeeSection.set(true);
+
+      component.onUpdateApplication();
+
+      expect(component.vm().errorFound).toBe(true);
+      expect(component.vm().summaryErrors).toEqual(
+        expect.arrayContaining([expect.objectContaining({ id: field })]),
+      );
+      expect(component.openOfficialSection()).toBe(true);
+      expect(component.openNotesSection()).toBe(true);
+      expect(component.openCivilFeeSection()).toBe(true);
+      expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+    },
+  );
 
   it('keeps Save recording officials disabled until its update request succeeds', () => {
     const response = new Subject<unknown>();
@@ -1132,6 +1189,33 @@ describe('ApplicationsListEntryDetail', () => {
     expect(replaceSpy).toHaveBeenCalledWith({ keep: 'KEEP_ME' }, '');
 
     replaceSpy.mockRestore();
+  });
+
+  it('restores open and closed panels after returning from payment reference editing', () => {
+    component.openApplicantSection.set(true);
+    component.openApplicationCodeSection.set(false);
+    component.openWordingSection.set(true);
+    component.openRespondentSection.set(false);
+    component.openCivilFeeSection.set(true);
+    component.openNotesSection.set(false);
+    component.openResultSection.set(true);
+    component.openOfficialSection.set(false);
+
+    const state = component.buildChangePaymentReferenceState();
+    jest.spyOn(routingStateUtil, 'readNavState').mockReturnValue(state);
+    fixture.destroy();
+    fixture = TestBed.createComponent(ApplicationsListEntryDetail);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.openApplicantSection()).toBe(true);
+    expect(component.openApplicationCodeSection()).toBe(false);
+    expect(component.openWordingSection()).toBe(true);
+    expect(component.openRespondentSection()).toBe(false);
+    expect(component.openCivilFeeSection()).toBe(true);
+    expect(component.openNotesSection()).toBe(false);
+    expect(component.openResultSection()).toBe(true);
+    expect(component.openOfficialSection()).toBe(false);
   });
 
   it('restores staged snapshot before applying payment reference update', () => {
@@ -1435,7 +1519,17 @@ describe('ApplicationsListEntryDetail', () => {
       emitEvent: false,
     });
 
+    component.openApplicantSection.set(true);
+    component.openCivilFeeSection.set(true);
+    component.openNotesSection.set(true);
+    component.openWordingSection.set(false);
+
     component.onUpdateApplicant();
+
+    expect(component.openApplicantSection()).toBe(true);
+    expect(component.openCivilFeeSection()).toBe(true);
+    expect(component.openNotesSection()).toBe(true);
+    expect(component.openWordingSection()).toBe(false);
 
     expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
 

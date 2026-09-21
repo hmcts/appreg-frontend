@@ -1,4 +1,5 @@
 import { SummaryCardElement } from '../../../pageobjects/generic/summarycard/SummaryCardElement';
+import { TestDataGenerator } from '../../../utils/TestDataGenerator';
 
 export class SummaryCardHelper {
   /**
@@ -48,6 +49,9 @@ export class SummaryCardHelper {
    * Verify text exists in summary card
    */
   static verifyTextInCard(cardTitle: string, expectedText: string): void {
-    SummaryCardElement.assertTextInCard(cardTitle, expectedText);
+    SummaryCardElement.assertTextInCard(
+      cardTitle,
+      TestDataGenerator.parseValue(expectedText),
+    );
   }
 }

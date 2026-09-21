@@ -1,6 +1,6 @@
 Feature: Applications List  - Bulk Result Selected
 
-    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @ARCPOC-1444
+    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @ARCPOC-1444 @ARCPOC-1360 @tp
     Scenario Outline: Application List - Result Selected - 5 ALEs Mixed Applicant Types
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -343,8 +343,10 @@ Feature: Applications List  - Bulk Result Selected
             | 2               | Henry Taylor {SCENARIO_ID}  | Emily Clark {SCENARIO_ID}           | Appeal to Crown Court                        |
             | 3               | Sarah Johnson {SCENARIO_ID} | Greenfield Consulting {SCENARIO_ID} | Collection Order - Financial Penalty Account |
             | 5               | James Brown {SCENARIO_ID}   | Laura Davis {SCENARIO_ID}           | Collection Order - Financial Penalty Account |
+        # Warn Alert for applications which have already been resulted (row 5)
+        Then User Sees Warning Alert "Application(s) which have already been resulted have been removed"
         Then User Should See The Button "Save changes" Is Disabled
-        Then User Selects " " From The Textbox "Result code" Autocomplete By Typing "abc"
+        Then User Selects " " From The Textbox "Result code" Autocomplete By Typing "noresult"
         Then User Verifies "No results found" Is Visible Under The "Result code" Textbox
         # Apply RTC with wording validation, then remove it
         Then User Selects "RTC - Refer to Court" From The Textbox "Result code" Autocomplete By Typing "RTC"
@@ -381,7 +383,7 @@ Feature: Applications List  - Bulk Result Selected
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications list details"
-        # Verify rows 2, 3, 5 have PROA and COST applied; row 5 retains pre-existing RTC; rows 1, 4, 6, 7, 8 unchanged
+        # Verify rows 2, 3 have PROA and COST applied; row 5 retains pre-existing RTC; rows 1, 4, 6, 7, 8 unchanged
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number  | Applicant                   | Respondent                          | Postcode | Title                                        | Fee | Resulted        |
             | 2               | ACC-E2-{RANDOM} | Henry Taylor {SCENARIO_ID}  | Emily Clark {SCENARIO_ID}           | BS15 5AA | Appeal to Crown Court                        | No  | PROA, COST      |

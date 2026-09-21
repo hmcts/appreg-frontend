@@ -380,7 +380,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         return;
       }
 
-      const uploadState = history.state as { msg: string; jobId: string };
+      const uploadState = history.state as {
+        msg: string;
+        jobId: string;
+        totalFeeValue?: unknown;
+      };
 
       if (!uploadState.msg || !uploadState.jobId) {
         return;
@@ -390,7 +394,18 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       const returnedJobId = uploadState.jobId;
       this.bulkUploadJobId.set(returnedJobId);
 
-      this.vm().bulkUploadBannerText = `${uploadState.msg}`;
+      const total = uploadState.totalFeeValue;
+      const totalFees =
+        typeof total === 'number' && Number.isFinite(total)
+          ? `\nTotal fees for uploaded applications: ${new Intl.NumberFormat(
+              'en-GB',
+              {
+                style: 'currency',
+                currency: 'GBP',
+              },
+            ).format(total)}\n`
+          : '';
+      this.vm().bulkUploadBannerText = `${uploadState.msg}${totalFees}`;
     }
 
     // Ensure stale banners are cleared on refresh/revisit

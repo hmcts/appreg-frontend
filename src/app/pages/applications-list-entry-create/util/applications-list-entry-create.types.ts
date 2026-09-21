@@ -8,6 +8,14 @@ import {
 import { CivilFeeMeta } from '@shared-types/civil-fee/civil-fee';
 
 export type EntryCreateSnapshot = {
+  expandedSections?: {
+    applicant: boolean;
+    applicationCode: boolean;
+    wording: boolean;
+    respondent: boolean;
+    civilFee: boolean;
+    notes: boolean;
+  };
   form: ApplicationsListEntryFormValue;
   personForm: PersonFormValue;
   organisationForm: OrganisationFormValue;
