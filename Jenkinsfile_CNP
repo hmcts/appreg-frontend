@@ -67,6 +67,15 @@ def publishFunctionalReports = {
   ])
 }
 
+// If run_full_regression label is present in PR we will run the full suite
+def hasFullRegressionLabel() {
+  def githubApi = new GithubAPI(this)
+
+  return githubApi
+    .getLabelsbyPattern(env.BRANCH_NAME, 'run_full_regression')
+    .any { label -> label == 'run_full_regression' }
+}
+
 def yarnBuilder = new uk.gov.hmcts.contino.YarnBuilder(this)
 
 withPipeline(type, product, component) {
@@ -75,8 +84,12 @@ withPipeline(type, product, component) {
   enableSlackNotifications('#appreg-builds')
 
   // default to core if param is undefined
-  def regressionSuite = params.RegressionSuite ?: 'Core'
-  echo 'Regression suite: ' + regressionSuite
+  // Try to find label else fallback to the build params
+  def regressionSuite = hasFullRegressionLabel()
+    ? 'Full'
+    : (params.RegressionSuite ?: 'Core')
+
+  echo 'Regression suite type that will be run: ' + regressionSuite
 
   afterAlways('functionalTest:dev') {
     script { publishFunctionalReports() }
