@@ -213,7 +213,7 @@ To reproduce staging SSR behaviour locally while using the staging API and Key
 Vault configuration, run:
 
 ```bash
-yarn start:ssr:stg
+yarn dev:stg:ssr
 ```
 
 This starts the local SSR server at `http://localhost:4000`. It performs an
