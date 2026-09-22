@@ -207,6 +207,21 @@ Run the following command to setup pre-commit & pre-push checks
 yarn prepare
 ```
 
+#### Local SSR using staging
+
+To reproduce staging SSR behaviour locally while using the staging API and Key
+Vault configuration, run:
+
+```bash
+yarn dev:stg:ssr
+```
+
+This starts the local SSR server at `http://localhost:4000`. It performs an
+initial production SSR build. An authenticated Azure CLI session with staging Key Vault access is
+required.
+
+Note: this does not actively watch and rebuild on any new changes. Use yarn dev:stg or yarn dev:stub for this instead.
+
 ## Application Insights
 
 Frontend browser telemetry is configured at runtime from `GET /app/config`.
