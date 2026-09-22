@@ -69,13 +69,25 @@ def publishFunctionalReports = {
   ])
 }
 
-// If run_full_regression label is present in PR we will run the full suite
-def hasFullRegressionLabel() {
+// PR labels can override the selected regression suite.
+def getRegressionSuiteFromLabels() {
   def githubApi = new GithubAPI(this)
 
-  return githubApi
+  def skipRegressionTests = githubApi
+    .getLabelsbyPattern(env.BRANCH_NAME, 'skip_regression_tests')
+    .any { label -> label == 'skip_regression_tests' }
+
+  if (skipRegressionTests) {
+    return 'Skip'
+  }
+
+  def runFullRegression = githubApi
     .getLabelsbyPattern(env.BRANCH_NAME, 'run_full_regression')
     .any { label -> label == 'run_full_regression' }
+
+  if (runFullRegression) {
+    return 'Full'
+  }
 }
 
 def yarnBuilder = new uk.gov.hmcts.contino.YarnBuilder(this)
@@ -85,21 +97,19 @@ withPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
 
-  // default to core if param is undefined
-  // Try to find label else fallback to the build params
-  def regressionSuite = hasFullRegressionLabel()
-    ? 'Full'
-    : (params.RegressionSuite ?: 'Core')
+  // Labels take precedence
+  def regressionSuite = getRegressionSuiteFromLabels() ?: (params.RegressionSuite ?: 'Core')
 
   echo 'Regression suite type that will be run: ' + regressionSuite
 
   afterAlways('functionalTest:dev') {
     script { publishFunctionalReports() }
 
-    // This is only shown in the build params
-    if (params.RegressionSuite == 'Skip') {
+    if (regressionSuite == 'Skip') {
       return
     }
+
+    yarnBuilder.yarn('cypress:clean:reports')
 
     // opt-in tag for a full regression test
     if (regressionSuite == 'Full') {
