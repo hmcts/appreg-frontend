@@ -49,20 +49,14 @@ export class BannerHelper {
     message: string,
     options: BannerVerificationOptions = {},
   ): void {
-    // Previous assertion:
-    // BannerElement.findSuccessAlertByText(message)
-    //   .should('be.visible')
-    //   .invoke('text')
-    //   .then((actualText) => {
-    //     const normalizedActual = StringUtils.normalizeText(actualText);
-    //     expect(normalizedActual).to.include(message);
-    //   });
-    BannerElement.findSuccessAlertByText(message)
+    BannerElement.getSuccessAlert()
       .should('be.visible')
-      .then(($banner) => {
+      .should(($banner) => {
         const actualText = $banner.text();
         const normalizedActual = StringUtils.normalizeText(actualText);
         expect(normalizedActual).to.include(message);
+      })
+      .then(($banner) => {
         this.verifyBannerAbovePageHeader($banner, options);
       });
   }

@@ -50,20 +50,33 @@ export class SummaryCardElement {
   }
 
   static assertTextInCard(cardTitle: string, expectedText: string): void {
-    const normalizedExpectedText = StringUtils.normalizeText(expectedText);
+    this.assertTextInCardMatchingAny(cardTitle, [expectedText]);
+  }
+
+  static assertTextInCardMatchingAny(
+    cardTitle: string,
+    expectedTexts: string[],
+  ): void {
+    const normalizedExpectedTexts = expectedTexts.map((text) =>
+      StringUtils.normalizeText(text),
+    );
 
     cy.get('body').should(($body) => {
       const $card = this.findSummaryCardIn($body, cardTitle);
-      const $content = $card.find(this.summaryCardContentSelector);
+      const normalizedContent = StringUtils.normalizeText(
+        $card.find(this.summaryCardContentSelector).text(),
+      );
 
       expect(
         $card.length,
         `summary card "${cardTitle}" should exist`,
       ).to.be.greaterThan(0);
       expect(
-        StringUtils.normalizeText($content.text()),
+        normalizedExpectedTexts.some((expectedText) =>
+          normalizedContent.includes(expectedText),
+        ),
         `summary card "${cardTitle}" content`,
-      ).to.contain(normalizedExpectedText);
+      ).to.equal(true);
     });
   }
 

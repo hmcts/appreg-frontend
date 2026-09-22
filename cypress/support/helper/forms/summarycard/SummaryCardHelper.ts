@@ -49,9 +49,17 @@ export class SummaryCardHelper {
    * Verify text exists in summary card
    */
   static verifyTextInCard(cardTitle: string, expectedText: string): void {
-    SummaryCardElement.assertTextInCard(
-      cardTitle,
-      TestDataGenerator.parseValue(expectedText),
-    );
+    const expectedTexts = [TestDataGenerator.parseValue(expectedText)];
+
+    const currentMinutePattern = /\btimenowhhmm\b(?![+-]\d)/i;
+    if (currentMinutePattern.test(expectedText)) {
+      expectedTexts.push(
+        TestDataGenerator.parseValue(
+          expectedText.replace(/\btimenowhhmm\b(?![+-]\d)/gi, 'timenowhhmm-1m'),
+        ),
+      );
+    }
+
+    SummaryCardElement.assertTextInCardMatchingAny(cardTitle, expectedTexts);
   }
 }
