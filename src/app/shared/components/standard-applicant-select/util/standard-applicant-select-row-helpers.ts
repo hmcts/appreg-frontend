@@ -1,5 +1,5 @@
 import { TableColumn } from '@components/sortable-table/sortable-table.component';
-import { StandardApplicantGetSummaryDto } from '@openapi';
+import { Applicant, StandardApplicantGetSummaryDto } from '@openapi';
 import { formatDate } from '@util/standard-applicant-helpers';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
@@ -11,11 +11,14 @@ export const standardAppColumns: TableColumn[] = [
 ];
 
 export function mapSaToRow(
-  sa: StandardApplicantGetSummaryDto & { name?: string | null },
+  sa: StandardApplicantGetSummaryDto & {
+    name?: string | null;
+    applicant?: Applicant;
+  },
 ): StandardApplicantRow {
   const code = sa.code ?? '';
-  // ponytail: retain the organisation fallback until the BE supplies name
-  // directly. Never fall back to personal name fields.
+  // Optional legacy applicant supports FE-first deployment; remove
+  // after all environments use the flat-name contract. Never use personal names.
   const name = sa.name ?? sa.applicant?.organisation?.name ?? '';
 
   return {

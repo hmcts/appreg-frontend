@@ -19,7 +19,11 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import { StandardApplicantGetDetailDto, StandardApplicantsApi } from '@openapi';
+import {
+  Applicant,
+  StandardApplicantGetDetailDto,
+  StandardApplicantsApi,
+} from '@openapi';
 import { getProblemText } from '@util/http-error-to-text';
 import { formatDate } from '@util/standard-applicant-helpers';
 import { returnOrgName } from '@util/string-helpers';
@@ -79,7 +83,8 @@ export class StandardApplicantsViewComponent implements OnInit {
   }
 
   private mapResponseToSummaryList(
-    data: StandardApplicantGetDetailDto,
+    // Accept the legacy payload during FE-first deployment.
+    data: StandardApplicantGetDetailDto & { applicant?: Applicant },
   ): StandardApplicantSummaryListValues {
     return {
       standardApplicantName: data.name ?? returnOrgName(data.applicant) ?? '—',

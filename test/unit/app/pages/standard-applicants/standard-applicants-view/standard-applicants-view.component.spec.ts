@@ -7,7 +7,11 @@ import {
 import { of } from 'rxjs';
 
 import { StandardApplicantsViewComponent } from '@components/standard-applicants/standard-applicants-view/standard-applicants-view.component';
-import { StandardApplicantGetDetailDto, StandardApplicantsApi } from '@openapi';
+import {
+  Applicant,
+  StandardApplicantGetDetailDto,
+  StandardApplicantsApi,
+} from '@openapi';
 
 describe('StandardApplicantsViewComponent', () => {
   let component!: StandardApplicantsViewComponent;
@@ -26,7 +30,7 @@ describe('StandardApplicantsViewComponent', () => {
   };
 
   const createComponent = async (
-    response: StandardApplicantGetDetailDto,
+    response: StandardApplicantGetDetailDto & { applicant?: Applicant },
   ): Promise<void> => {
     getStandardApplicantByCodeMock.mockReset();
     getStandardApplicantByCodeMock.mockReturnValue(of(response));
@@ -46,6 +50,42 @@ describe('StandardApplicantsViewComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
   };
+
+  it('displays the new flat response without a nested applicant', async () => {
+    await createComponent({
+      code: 'SA01',
+      name: 'Reference organisation',
+      startDate: '2026-01-01',
+      endDate: null,
+    });
+
+    expect(component.summaryListValues).toEqual({
+      standardApplicantName: 'Reference organisation',
+      useFrom: '1 Jan 2026',
+      useTo: '—',
+    });
+  });
+
+  it('supports the legacy organisation name without exposing its address', async () => {
+    await createComponent({
+      code: 'SA01',
+      applicant: {
+        organisation: {
+          name: 'Legacy organisation',
+          contactDetails: { addressLine1: 'Synthetic address' },
+        },
+      },
+      startDate: '2026-01-01',
+      endDate: null,
+    });
+
+    expect(component.summaryListValues.standardApplicantName).toBe(
+      'Legacy organisation',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Synthetic address',
+    );
+  });
 
   it('should create', async () => {
     await createComponent({

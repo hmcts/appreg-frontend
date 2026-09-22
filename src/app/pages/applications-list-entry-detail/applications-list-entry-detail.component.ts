@@ -99,11 +99,13 @@ import {
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import {
+  Applicant,
   ApplicationCodesApi,
   ApplicationListEntriesApi,
   EntryGetDetailDto,
   EntryUpdateDto,
   FeeStatus,
+  StandardApplicantGetDetailDto,
   StandardApplicantsApi,
   TemplateDetail,
   TemplateSubstitution,
@@ -1412,7 +1414,10 @@ export class ApplicationsListEntryDetail implements OnInit {
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (applicant) => {
+        // ponytail: accept the legacy payload during FE-first deployment.
+        next: (
+          applicant: StandardApplicantGetDetailDto & { applicant?: Applicant },
+        ) => {
           this.savedStandardApplicantName =
             applicant.name?.trim() ||
             returnOrgName(applicant.applicant)?.trim() ||
