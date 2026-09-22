@@ -226,7 +226,7 @@ Feature: Applications List Entry Create Regex Validations
     Then User Sees Validation Error Banner "There is a problem Enter applicant first name"
     Then User Enters "Valid first name" Into The Textbox "First name" In The Accordion "Applicant"
     When User Clicks On The "Create entry" Button
-    Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
+    Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
 
     Examples:
       | User  | TableName | SearchDate | DisplayDate  | DOB       | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationTitle           | WordingText                                      | placeholder                  | WordingValue        | CaseReference | AccountReference | OffsiteFeeString                                                                                         | OffsiteFeeCode | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       |
@@ -362,7 +362,7 @@ Feature: Applications List Entry Create Regex Validations
     Then User Enters "<CaseReference>" Into The Textbox "Case reference" In The Accordion "Notes"
     Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
     When User Clicks On The "Create entry" Button
-    Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
+    Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
     Examples:
       | User  | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationTitle                               | WordingText                                                                                                                                                        | placeholder       | TableName | CaseReference | AccountReference |
       | user1 | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   | Select           | Open       | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | Lists     | case{RANDOM}  | account{RANDOM}  |
@@ -460,7 +460,7 @@ Feature: Applications List Entry Create Regex Validations
     Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
     # Submit Application
     When User Clicks On The "Create entry" Button
-    Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
+    Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
 
     Examples:
       | User  | TableName | SearchDate | AppCodeLodgementDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationTitle                                                          | WordingText                                                                                                                                        | placeholder    | InvalidWordingValue | ValidWordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode                | OffsiteFeeValue             | TotalFeeAmount           | FeeReference     | FeeAmount     | StdAppCode | StdAppName                  |

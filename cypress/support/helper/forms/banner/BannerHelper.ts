@@ -45,28 +45,6 @@ export class BannerHelper {
       'not.exist',
     );
   }
-  static verifySuccessBanner(
-    message: string,
-    options: BannerVerificationOptions = {},
-  ): void {
-    // Previous assertion:
-    // BannerElement.findSuccessAlertByText(message)
-    //   .should('be.visible')
-    //   .invoke('text')
-    //   .then((actualText) => {
-    //     const normalizedActual = StringUtils.normalizeText(actualText);
-    //     expect(normalizedActual).to.include(message);
-    //   });
-    BannerElement.findSuccessAlertByText(message)
-      .should('be.visible')
-      .then(($banner) => {
-        const actualText = $banner.text();
-        const normalizedActual = StringUtils.normalizeText(actualText);
-        expect(normalizedActual).to.include(message);
-        this.verifyBannerAbovePageHeader($banner, options);
-      });
-  }
-
   static verifyErrorBanner(
     unexpectedText: string,
     options: BannerVerificationOptions = {},

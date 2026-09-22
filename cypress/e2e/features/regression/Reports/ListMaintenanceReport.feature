@@ -75,7 +75,7 @@ Feature: List Maintenance Report
     When User Clicks On The "Download CSV" Button
     Then User Waits For The Report Download To Complete
     Then User Verifies CSV "<CSVFileName>" Is Downloaded
-    Then User Sees Success Banner "Success Report downloaded The list maintenance report has downloaded."
+    Then User Sees Success Banner "Report downloaded" Containing "The list maintenance report has downloaded."
     Then User Verifies Latest Downloaded CSV Contains Text "List Maintenance Report" In Row 1
     Then User Verifies The Downloaded CSV Has Headers In Row 2:
       | List Date                 |

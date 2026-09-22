@@ -67,7 +67,7 @@ Feature: Activity Audit Report
     Then User Selects "Add application" From The Textbox "Activity" Autocomplete By Typing "Add application"
     Then User Sees Text "Add application" In "Selected activities" Field
     When User Clicks On The "Download CSV" Button
-    Then User Sees Success Banner "Success Report downloaded The activity audit report has downloaded."
+    Then User Sees Success Banner "Report downloaded" Containing "The activity audit report has downloaded."
     Then User Verifies CSV "<CSVFileName>" Is Downloaded
     Then User Verifies Latest Downloaded CSV Contains Text "Activity Audit Report" In Row 1
     Then User Verifies The Downloaded CSV Has Headers In Row 2:

@@ -30,12 +30,6 @@ export class BannerElement {
     return cy.get(this.successAlertSelector);
   }
 
-  static findSuccessAlertByText(
-    text: string,
-  ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.contains(this.successAlertSelector, text, { timeout: 10000 });
-  }
-
   static findSuccessAlertWithLink(
     heading: string,
     linkText: string,
@@ -72,7 +66,7 @@ export class BannerElement {
     bodyText: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
-      .contains(this.successAlertSelector, heading, { timeout: 30000 })
+      .contains(this.successAlertSelector, heading, { timeout: 10000 })
       .should('contain.text', bodyText);
   }
 

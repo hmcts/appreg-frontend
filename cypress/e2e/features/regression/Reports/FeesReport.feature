@@ -19,7 +19,7 @@ Feature: Fees Report
     Then User Selects "Cardiff Crown Court Set 4" From The Textbox "Court" Autocomplete By Typing "Cardiff"
     When User Clicks On The "Download CSV" Button
     Then User Verifies CSV "<CSVFileName>" Is Downloaded
-    Then User Sees Success Banner "Success Report downloaded The fees report has downloaded."
+    Then User Sees Success Banner "Report downloaded" Containing "The fees report has downloaded."
     Then User Verifies Latest Downloaded CSV Contains Text "Fees Report" In Row 1
     Then User Verifies The Downloaded CSV Has Headers In Row 2:
       | List Date               |
@@ -56,7 +56,7 @@ Feature: Fees Report
     Then User Enters "Smith" Into The "Applicant surname or organisation name" Textbox
     When User Clicks On The "Download" Button
     Then User Verifies CSV "<CSVFileName>" Is Downloaded
-    Then User Sees Success Banner "Success Report downloaded The fees report has downloaded."
+    Then User Sees Success Banner "Report downloaded" Containing "The fees report has downloaded."
     Then User Verifies Latest Downloaded CSV Contains Text "Fees Report" In Row 1
     Then User Verifies The Downloaded CSV Has Headers In Row 2:
       | List Date               |
