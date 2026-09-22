@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { HomeComponent } from '@components/home/home.component';
 import { Login } from '@components/login/login.component';
+import type { Reports } from '@components/reports/reports.component';
 import { applicationListGuard } from '@guards/application-list.guard';
 import { sessionGuard } from '@guards/session.guard';
 
@@ -239,6 +240,7 @@ export const routes: Routes = [
   },
   {
     path: 'reports',
+    canDeactivate: [(component: Reports): boolean => component.canLeave()],
     loadComponent: () =>
       import('@components/reports/reports.component').then((m) => m.Reports),
     canActivate: [sessionGuard],
