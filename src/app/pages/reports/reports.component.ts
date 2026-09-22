@@ -21,7 +21,7 @@
  * - Starts polling when report jobs are accepted
  */
 
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -30,6 +30,7 @@ import {
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -333,6 +334,35 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   reportOptions = reportOptions;
 
   suggestionsFacade = buildSuggestionsFacade(this);
+
+  constructor() {
+    super();
+    effect((onCleanup) => {
+      if (!isPlatformBrowser(this.platformId) || !this.isReportInProgress()) {
+        return;
+      }
+
+      const window = this.document.defaultView;
+      const warnBeforeUnload = (event: BeforeUnloadEvent): void => {
+        event.preventDefault();
+        event.returnValue = true;
+      };
+      window?.addEventListener('beforeunload', warnBeforeUnload);
+      onCleanup(() =>
+        window?.removeEventListener('beforeunload', warnBeforeUnload),
+      );
+    });
+  }
+
+  canLeave(): boolean {
+    return (
+      !isPlatformBrowser(this.platformId) ||
+      !this.isReportInProgress() ||
+      this.document.defaultView?.confirm(
+        'Your report is still being generated or downloaded. If you leave this page, you will not receive it. Leave this page?',
+      ) === true
+    );
+  }
 
   ngOnInit(): void {
     this.form.controls.report.valueChanges.subscribe((value) => {

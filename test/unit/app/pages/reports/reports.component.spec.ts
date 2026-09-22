@@ -116,6 +116,60 @@ describe('ReportsComponent', () => {
     jest.useRealTimers();
   });
 
+  it('allows leaving without a warning when no report is active', () => {
+    const confirm = jest.spyOn(window, 'confirm').mockReturnValue(false);
+    expect(component.canLeave()).toBe(true);
+    expect(confirm).not.toHaveBeenCalled();
+    confirm.mockRestore();
+  });
+
+  it.each([false, true])(
+    'respects the navigation confirmation: %s',
+    (leave) => {
+      (component as unknown as ReportsHarness).showReportProgress();
+      const confirm = jest.spyOn(window, 'confirm').mockReturnValue(leave);
+      expect(component.canLeave()).toBe(leave);
+      expect(confirm).toHaveBeenCalledWith(
+        'Your report is still being generated or downloaded. If you leave this page, you will not receive it. Leave this page?',
+      );
+      expect(component.isReportInProgress()).toBe(true);
+      confirm.mockRestore();
+    },
+  );
+
+  it('warns on unload only during progress and removes the listener on destruction', () => {
+    const unload = (): boolean =>
+      window.dispatchEvent(new Event('beforeunload', { cancelable: true }));
+    expect(unload()).toBe(true);
+    (component as unknown as ReportsHarness).showReportProgress();
+    fixture.detectChanges();
+    expect(unload()).toBe(false);
+    fixture.destroy();
+    expect(unload()).toBe(true);
+  });
+
+  it.each(['success', 'error'] as const)(
+    'removes navigation warnings after report %s',
+    (kind) => {
+      (component as unknown as ReportsHarness).showReportProgress();
+      fixture.detectChanges();
+      const internals = component as unknown as {
+        showReportSuccess: () => void;
+        showReportError: (message: string) => void;
+      };
+      if (kind === 'success') {
+        internals.showReportSuccess();
+      } else {
+        internals.showReportError('Failed');
+      }
+      fixture.detectChanges();
+      expect(component.canLeave()).toBe(true);
+      expect(
+        window.dispatchEvent(new Event('beforeunload', { cancelable: true })),
+      ).toBe(true);
+    },
+  );
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });

@@ -1,6 +1,6 @@
 Feature: Applications Search
 
-    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1086
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1086 @ARCPOC-1811
     Scenario: Verify components on applications list entry (ALE) search page
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
@@ -20,6 +20,7 @@ Feature: Applications Search
         Then User Should See The Textbox "Other location description"
         Then User Should See The Textbox "Standard applicant code"
         Then User Should See The Textbox "Account reference"
+        Then User Should See The Textbox "Application title"
         Then User Should See The Button "Search"
         Then User Should See The Button "Clear search"
 
@@ -289,3 +290,23 @@ Feature: Applications Search
         Then User Should See Table "Application list entries" Header "Status" Has Sort Order "ascending"
         When User Clicks On Table Header "Status" In Table "Application list entries"
         Then User Should See Table "Application list entries" Header "Status" Has Sort Order "descending"
+
+    @regression @applicationListEntry @ARCPOC-1811
+    Scenario: Search By Application Title, results found
+        When User Signs In With Microsoft SSO As "user1"
+        Then User Clicks On The Link Using Exact Text Match "Applications"
+        Then User Verify The Page URL Contains "/applications"
+        When User Searches Applications With:
+            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title               |
+            |      |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         |                   | Extract from the Court Register |
+        Then User Should See Table "Application list entries" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+
+    @regression @applicationListEntry @ARCPOC-1811
+    Scenario: Search By Application Title, no results found
+        When User Signs In With Microsoft SSO As "user1"
+        Then User Clicks On The Link Using Exact Text Match "Applications"
+        Then User Verify The Page URL Contains "/applications"
+        When User Searches Applications With:
+            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title                     |
+            |      |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         |                   | Extract from the Court Registerssssss |
+        Then User See "No results found." On The Page

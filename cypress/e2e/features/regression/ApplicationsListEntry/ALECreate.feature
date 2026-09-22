@@ -445,6 +445,7 @@ Feature: Applications List Entry Create
             When User Clicks On The "Create entry" Button
             Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
             # ---------------OPEN APPLICATION LIST ENTRY-----------@ARCPOC-635 SC3
+
             Then User Clicks On The Breadcrumb Link "Applications list details"
             When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
                   | Sequence number | Account number  | Applicant                   | Respondent | Postcode | Title                                                                     | Fee | Resulted |
