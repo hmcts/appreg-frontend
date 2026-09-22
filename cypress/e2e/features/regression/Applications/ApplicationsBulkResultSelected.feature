@@ -209,10 +209,10 @@ Feature: Applications Bulk Result Selected
         Then User Should See "Wording" In Summary Card "RTC - Refer to Court"
         Then User Should See "Referred for full court hearing on" In Summary Card "RTC - Refer to Court"
         When User Clicks On The "Save changes" Button
-        Then User Sees Validation Error Banner "There is a problem Enter a Date in the result wording section Enter a Courthouse in the result wording section"
+        Then User Sees Validation Error Banner "There is a problem Enter a value for “Date” in the result wording section Enter a value for “Courthouse” in the result wording section"
         Then User Verifies The "RTC - Refer to Court" Summary Card Has Textbox With Placeholder "Enter a Date" And Enters "01/04/2026"
         When User Clicks On The "Save changes" Button
-        Then User Sees Validation Error Banner "There is a problem Enter a Courthouse in the result wording section"
+        Then User Sees Validation Error Banner "There is a problem Enter a value for “Courthouse” in the result wording section"
         Then User Verifies The "RTC - Refer to Court" Summary Card Has Textbox With Placeholder "Enter a Courthouse" And Enters "Bristol Crown Court"
         Then User Selects "PROA - Production Order (to allow access)" From The Textbox "Result code" Autocomplete By Typing "PROA"
         Then User Should See Summary Card With Title "PROA - Production Order (to allow access)"

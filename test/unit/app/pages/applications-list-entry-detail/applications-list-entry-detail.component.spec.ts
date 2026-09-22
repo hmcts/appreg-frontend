@@ -521,7 +521,7 @@ describe('ApplicationsListEntryDetail', () => {
     component.onChildErrors('wording', [
       {
         id: 'Court',
-        text: 'Enter a Court in the wording section',
+        text: 'Enter a value for “Court” in the wording section',
         href: '#Court',
       },
     ]);
@@ -531,7 +531,7 @@ describe('ApplicationsListEntryDetail', () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: 'Court',
-          text: 'Enter a Court in the wording section',
+          text: 'Enter a value for “Court” in the wording section',
         }),
       ]),
     );
@@ -1123,7 +1123,10 @@ describe('ApplicationsListEntryDetail', () => {
 
     (component as never)['wordingSection'] = {
       validateForSubmit: () => [
-        { text: 'Enter a Court in the wording section', href: '#Court' },
+        {
+          text: 'Enter a value for “Court” in the wording section',
+          href: '#Court',
+        },
       ],
     } as never;
 
@@ -1137,7 +1140,7 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['appListEntryDetailState']().summaryErrors).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          text: 'Enter a Court in the wording section',
+          text: 'Enter a value for “Court” in the wording section',
         }),
       ]),
     );
@@ -2128,7 +2131,7 @@ describe('ApplicationsListEntryDetail', () => {
   it('onChildErrors stores resultWording child errors', () => {
     const errors = [
       {
-        text: 'Enter a Date in the result wording section',
+        text: 'Enter a value for “Date” in the result wording section',
         href: '#Date',
       },
     ];
@@ -2139,7 +2142,7 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['appListEntryDetailState']().summaryErrors).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          text: 'Enter a Date in the result wording section',
+          text: 'Enter a value for “Date” in the result wording section',
           href: '#Date',
         }),
       ]),

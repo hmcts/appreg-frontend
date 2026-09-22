@@ -1,6 +1,6 @@
 Feature: Applications List Entry Update
 
-    @applicationListEntry @regression @core @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444 @ARCPOC-1558 @ARCPOC-1228 @ARCPOC-1748 @ARCPCOC-1822
+    @applicationListEntry @regression @core @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444 @ARCPOC-1558 @ARCPOC-1228 @ARCPOC-1789 @ARCPOC-1748 @ARCPCOC-1822
     Scenario: Update an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "user1"
         # Create Application List
@@ -61,6 +61,20 @@ Feature: Applications List Entry Update
         Then User Should See The Button "Hide all sections"
         Then User Sees Page Heading "Applications list entry update"
         Then User See "Summary of application list entry" On The Page
+        # Civil fee payment reference update @ARCPOC-1789
+        Then User Clicks "Change" Link In Row Of Table "Current fee statuses table" In The Accordion "Civil fee"
+            | Fee Status | Status Date  | Payment Ref     |
+            | PAID       | todaydisplay | PAY-E5-{RANDOM} |
+        Then User Sees Page Heading "Change payment reference"
+        Then User Verifies The "Payment reference" Textbox Has Value "PAY-E5-{RANDOM}"
+        Then User Clears The "Payment reference" Textbox
+        Then User Enters "PAYUPD-{RANDOM}" Into The "Payment reference" Textbox
+        When User Clicks On The "Save" Button
+        Then User Sees Success Banner "Payment reference updated" Containing "The payment reference has been updated for the selected fee status."
+        Then User Should See The Accordion "Civil fee" Expanded
+        Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
+            | Fee Status | Status Date  | Payment Ref      |
+            | PAID       | todaydisplay | PAYUPD-{RANDOM}  |
         #Result Wording - AUTH
         Then User Selects "AUTH - Authorised" From The Textbox "Result code" Autocomplete By Typing "auth"
         Then User Should See Summary Card With Title "AUTH - Authorised"
