@@ -1,7 +1,7 @@
 import { ApplicantContext } from './routing-state-util';
 
 import { EntryGetDetailDto } from '@openapi';
-import { formatPartyName } from '@util/string-helpers';
+import { formatPartyName, returnOrgName } from '@util/string-helpers';
 
 export function buildResultApplicantContext(
   entry: EntryGetDetailDto,
@@ -15,6 +15,10 @@ export function buildResultApplicantContext(
 }
 
 function formatApplicantForResultContext(entry: EntryGetDetailDto): string {
+  if (entry.standardApplicantCode?.trim()) {
+    return returnOrgName(entry.applicant) || entry.standardApplicantCode.trim();
+  }
+
   const applicantDisplay = formatPartyName(entry.applicant) ?? '';
   if (applicantDisplay) {
     return applicantDisplay;

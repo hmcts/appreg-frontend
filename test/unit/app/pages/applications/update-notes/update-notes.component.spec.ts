@@ -119,6 +119,31 @@ describe('UpdateNotesComponent', () => {
     expect(component.additionalNotesCharacterLimit()).toBe(2973);
   });
 
+  it.each([undefined, { name: 'Synthetic organisation' }])(
+    'replaces stale personal context for standard applicants (%o)',
+    (organisation) => {
+      entriesApiStub.getApplicationListEntryFromClosedList.mockReturnValue(
+        of({
+          ...entryDetail,
+          standardApplicantCode: 'SA001',
+          applicant: {
+            organisation,
+            person: { name: { firstName: 'Synthetic', lastName: 'Person' } },
+          },
+        }),
+      );
+      const freshFixture = TestBed.createComponent(UpdateNotesComponent);
+      freshFixture.detectChanges();
+      expect(freshFixture.componentInstance.context()?.applicant).toBe(
+        organisation?.name ?? 'SA001',
+      );
+      expect(freshFixture.nativeElement.textContent).not.toContain(
+        navigationContext.applicant,
+      );
+      freshFixture.destroy();
+    },
+  );
+
   it('shows the selected application context in a table', () => {
     const element = fixture.nativeElement as HTMLElement;
     const rows = Array.from(
