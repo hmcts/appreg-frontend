@@ -371,13 +371,6 @@ describe('PdfService.generateStandardApplicantsPdf', () => {
     expect(autoTable.mock.calls[0][1].body).toEqual([
       ['Code', 'SA001', 'Use from', '1 Jan 2020'],
       ['Name', 'Citizen Advice Manchester', 'Use to', '—'],
-      ['Title', 'Mr', 'Address line 1', '1 Crown Sq'],
-      ['Forename 1', 'Test', 'Address line 2', 'Manchester'],
-      ['Forename 2', '—', 'Address line 3', '—'],
-      ['Forename 3', '—', 'Address line 4', '—'],
-      ['Surname', 'Applicant', 'Address line 5', '—'],
-      ['Email address', 'email@example.test', 'Postcode', 'M1 1AA'],
-      ['Telephone number', '01234567890', 'Mobile number', '—'],
     ]);
     expect(__instance.save).toHaveBeenCalledWith(
       'standard-applicant-pdf-2025-09-17.pdf',
@@ -473,21 +466,21 @@ describe('PdfService.generateStandardApplicantsPdf', () => {
     it.each([
       ['Code', 'SA001'],
       ['Name', 'Citizen Advice Manchester'],
-      ['Title', 'Mr'],
-      ['Address line 1', '1 Crown Sq'],
-      ['Forename 1', 'John'],
-      ['Address line 2', 'Manchester'],
-      ['Forename 2', 'James'],
-      ['Address line 3', 'Greater Manchester'],
-      ['Forename 3', 'Joseph'],
-      ['Address line 4', 'United Kingdom'],
-      ['Surname', 'Applicant'],
-      ['Address line 5', 'M1 1AA'],
-      ['Email address', 'email@example.test'],
-      ['Postcode', 'M1 1AA'],
-      ['Telephone number', '01234567890'],
-      ['Mobile number', '07123456789'],
-    ])('maps %s to its applicant value', (label, expected) => {
+      ['Title', '—'],
+      ['Address line 1', '—'],
+      ['Forename 1', '—'],
+      ['Address line 2', '—'],
+      ['Forename 2', '—'],
+      ['Address line 3', '—'],
+      ['Forename 3', '—'],
+      ['Address line 4', '—'],
+      ['Surname', '—'],
+      ['Address line 5', '—'],
+      ['Email address', '—'],
+      ['Postcode', '—'],
+      ['Telephone number', '—'],
+      ['Mobile number', '—'],
+    ])('only maps allowed fields (%s)', (label, expected) => {
       expect(priv(service).standardApplicantValue(applicant, label)).toBe(
         expected,
       );
