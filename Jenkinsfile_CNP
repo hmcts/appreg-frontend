@@ -104,12 +104,14 @@ withPipeline(type, product, component) {
 
   afterAlways('functionalTest:dev') {
     script { publishFunctionalReports() }
+    yarnBuilder.yarn('cypress:clean:reports')
 
     if (regressionSuite == 'Skip') {
+      stage('Core regression test') {
+        echo 'Skipped by skip_regression_tests'
+      }
       return
     }
-
-    yarnBuilder.yarn('cypress:clean:reports')
 
     // opt-in tag for a full regression test
     if (regressionSuite == 'Full') {
