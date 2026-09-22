@@ -15,31 +15,31 @@ export class AccordionElement {
     accordionSelector: string,
     detailsSelector: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.get('body').then(($body) => {
+    const findElements = ($body: JQuery<HTMLElement>) => {
       const title = accordionTitle.trim().toLowerCase();
 
       const $accordion = $body
         .find(accordionSelector)
         .filter((_, el) => el.textContent?.trim().toLowerCase() === title);
 
-      if ($accordion.length > 0) {
-        return cy.wrap($accordion.first()) as unknown as Cypress.Chainable<
-          JQuery<HTMLElement>
-        >;
-      }
-
       const $details = $body
         .find(detailsSelector)
         .filter((_, el) => el.textContent?.trim().toLowerCase() === title);
 
-      if ($details.length > 0) {
-        return cy.wrap($details.first()) as unknown as Cypress.Chainable<
-          JQuery<HTMLElement>
-        >;
-      }
+      return $accordion.add($details);
+    };
 
-      throw new Error(`Accordion "${accordionTitle}" not found`);
-    });
+    return cy
+      .get('body')
+      .should(($body) => {
+        expect(
+          findElements($body).length,
+          `Accordion "${accordionTitle}"`,
+        ).to.be.greaterThan(0);
+      })
+      .then(($body) => {
+        return cy.wrap(findElements($body).first());
+      });
   }
   static getAccordionContent(
     accordionTitle: string,
