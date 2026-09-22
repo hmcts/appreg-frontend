@@ -94,7 +94,6 @@ withPipeline(type, product, component) {
   echo 'Regression suite type that will be run: ' + regressionSuite
 
   afterAlways('functionalTest:dev') {
-    yarnBuilder.yarn('cypress:clean:reports')
     script { publishFunctionalReports() }
 
     // This is only shown in the build params
@@ -117,7 +116,7 @@ withPipeline(type, product, component) {
               alwaysLinkToLastBuild: true,
               keepAll              : true,
               reportDir            : 'functional-output/chrome/regression/cucumber-html',
-              reportFiles          : 'full-regression-test-report.html',
+              reportFiles          : 'detailed-test-report.html',
               reportName           : 'Cucumber Full Regression Test Report'
             ]
           }
@@ -138,7 +137,7 @@ withPipeline(type, product, component) {
               alwaysLinkToLastBuild: true,
               keepAll              : true,
               reportDir            : 'functional-output/chrome/regression/cucumber-html',
-              reportFiles          : 'core-regression-test-report.html',
+              reportFiles          : 'detailed-test-report.html',
               reportName           : 'Cucumber Core Regression Test Report'
             ]
           }
