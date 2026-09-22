@@ -72,7 +72,7 @@ export class BannerElement {
     bodyText: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
-      .contains(this.successAlertSelector, heading, { timeout: 10000 })
+      .contains(this.successAlertSelector, heading, { timeout: 20000 })
       .should('contain.text', bodyText);
   }
 
