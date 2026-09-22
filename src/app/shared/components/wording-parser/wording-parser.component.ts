@@ -155,7 +155,8 @@ export class WordingParserComponent {
           formKey,
           this.fb.control('', {
             validators: [
-              (control: AbstractControl) => Validators.required(control),
+              (control: AbstractControl<string | null>) =>
+                control.value?.trim() ? null : { required: true },
               (control: AbstractControl) =>
                 Validators.maxLength(maxLength)(control),
             ],
@@ -291,7 +292,7 @@ export class WordingParserComponent {
 
       if (e['required']) {
         errors.push({
-          text: `Enter a ${key} in the ${this.section()} section`,
+          text: `Enter a value for “${key}” in the ${this.section()} section`,
           href: `#${formKey}`,
         });
       }

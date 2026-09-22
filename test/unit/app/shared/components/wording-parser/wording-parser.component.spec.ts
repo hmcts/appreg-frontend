@@ -210,6 +210,47 @@ describe('WordingParserComponent', () => {
   });
 
   describe('submitWordingFields()', () => {
+    it.each(['', '   ', '\t ', '\r\n', '\u00a0', null])(
+      'rejects blank wording %p with the usual required error',
+      (value) => {
+        const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
+        const dtoSpy = jest.spyOn(component.wordingFieldsDTO, 'emit');
+        (component.form.get('name') as FormControl<string | null>).setValue(
+          value,
+        );
+        component.form.markAsDirty();
+
+        const errors = [
+          {
+            text: 'Enter a value for “name” in the wording section',
+            href: '#name',
+          },
+        ];
+        expect(component.validateForSubmit()).toEqual(errors);
+
+        component.submitWordingFields();
+
+        expect(errorsSpy).toHaveBeenLastCalledWith(errors);
+        expect(dtoSpy).not.toHaveBeenCalled();
+        expect(component.form.dirty).toBe(true);
+      },
+    );
+
+    it('clears the required error for non-blank wording without changing its value', () => {
+      const control = component.form.get('name') as FormControl<string | null>;
+      control.setValue('   ');
+      expect(control.errors).toEqual({ required: true });
+
+      control.setValue(' Court A ');
+      const dtoSpy = jest.spyOn(component.wordingFieldsDTO, 'emit');
+      component.submitWordingFields();
+
+      expect(control.errors).toBeNull();
+      expect(dtoSpy).toHaveBeenCalledWith({
+        wordingFields: [{ key: 'name', value: ' Court A ' }],
+      });
+    });
+
     it('should emit required errors in token order when invalid', () => {
       init(
         makeWordingObject({
@@ -244,8 +285,8 @@ describe('WordingParserComponent', () => {
       expect(dtoSpy).not.toHaveBeenCalled();
 
       expect(errorsSpy).toHaveBeenCalledWith([
-        { text: 'Enter a A in the wording section', href: '#A' },
-        { text: 'Enter a B in the wording section', href: '#B' },
+        { text: 'Enter a value for “A” in the wording section', href: '#A' },
+        { text: 'Enter a value for “B” in the wording section', href: '#B' },
       ]);
     });
 
@@ -368,7 +409,7 @@ describe('WordingParserComponent', () => {
       const errors = component.validateForSubmit();
 
       expect(errors).toEqual([
-        { text: 'Enter a A in the wording section', href: '#A' },
+        { text: 'Enter a value for “A” in the wording section', href: '#A' },
       ]);
       expect(errorsSpy).toHaveBeenCalledWith(errors);
       expect(dtoSpy).not.toHaveBeenCalled();
@@ -439,7 +480,7 @@ describe('WordingParserComponent', () => {
       const errors = component.validateForSubmit();
 
       expect(errors).toEqual([
-        { text: 'Enter a A in the wording section', href: '#A' },
+        { text: 'Enter a value for “A” in the wording section', href: '#A' },
       ]);
       expect(errorsSpy).toHaveBeenCalledWith(errors);
     });
@@ -470,7 +511,7 @@ describe('WordingParserComponent', () => {
       fixture.detectChanges();
 
       expect(errorsSpy).toHaveBeenCalledWith([
-        { text: 'Enter a A in the wording section', href: '#A' },
+        { text: 'Enter a value for “A” in the wording section', href: '#A' },
       ]);
     });
 
