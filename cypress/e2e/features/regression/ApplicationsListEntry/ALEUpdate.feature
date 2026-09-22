@@ -117,14 +117,14 @@ Feature: Applications List Entry Update
         Then User Enters "Violette" In The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
         Then User Enters "Zanetti{SCENARIO_ID}" In The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
         When User Clicks On The "Save recording officials" Button
-        Then User Sees Success Banner "Success Officials updated Officials have been updated for this application list entry."
+        Then User Sees Success Banner "Officials updated" Containing "Officials have been updated for this application list entry."
         When User Clicks On The "Save complete application" Button
-        Then User Sees Success Banner "Success Application list entry updated The application list entry has been updated successfully."
+        Then User Sees Success Banner "Application list entry updated" Containing "The application list entry has been updated successfully."
         # Result Wording - Timestamp
         Then User Should See "Updated on todaydisplay at timenowhhmm" In Summary Card "PROA - Production Order (to allow access)"
         # Remove Result to check 'Removed' banner
         Then User Clicks The Link "Remove" In Summary Card "PROA - Production Order (to allow access)"
-        Then User Sees Success Banner "Success Result removed The result has been removed from this application list entry."
+        Then User Sees Success Banner "Result removed" Containing "The result has been removed from this application list entry."
 
     @applicationListEntry @regression @ARCPOC-1707
     Scenario: Update Application List Entry, Change Application Code, expect wording and fee accordion to be expanded
