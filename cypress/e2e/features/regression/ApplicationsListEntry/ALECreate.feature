@@ -122,7 +122,7 @@ Feature: Applications List Entry Create
             When User Clicks On The "Apply wording" Button In The Accordion "Wording"
             Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
             When User Clicks On The "Create entry" Button
-            Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
+            Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
 
             # ---------------OPEN APPLICATION LIST ENTRY---------------@ARCPOC-635 SC1
 
@@ -296,7 +296,7 @@ Feature: Applications List Entry Create
             Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
             # Submit Application
             When User Clicks On The "Create entry" Button
-            Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
+            Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
 
             # ---------------OPEN APPLICATION LIST ENTRY---------------@ARCPOC-635 SC2
 
@@ -443,7 +443,7 @@ Feature: Applications List Entry Create
             Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
             # Submit Application
             When User Clicks On The "Create entry" Button
-            Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
+            Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
             # ---------------OPEN APPLICATION LIST ENTRY-----------@ARCPOC-635 SC3
             Then User Clicks On The Breadcrumb Link "Applications list details"
             When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
