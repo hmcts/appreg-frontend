@@ -89,7 +89,7 @@ Feature: Applications List Entry Create Regex Validations
     # Wording Details
     Then User Verifies The "Wording" Accordion Has Value "<WordingText>"
     When User Clicks On The "Apply wording" Button In The Accordion "Wording"
-    Then User Sees Validation Error Banner "There is a problem Enter a Describe Seized Food in the wording section"
+    Then User Sees Validation Error Banner "There is a problem Enter a value for “Describe Seized Food” in the wording section"
     Then User Verifies The "Wording" Accordion Has textbox with placeholder "<placeholder>" and Enters "(ctgn sürrreartcée.sstegl( lmamaeceegScerttpaN( )e -))t,eanoce)erc e(v.etth. abthubienr sa,to,)rtqwer"
     # (Bug raised ARCPOC-1230/ARCPOC-1205/AARCPOC-1253 for below statement)
     When User Clicks On The "Apply wording" Button In The Accordion "Wording"
