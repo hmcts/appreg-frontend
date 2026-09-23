@@ -200,9 +200,7 @@ describe('buildStandardApplicantRows', () => {
       },
     ];
 
-    const rows = buildStandardApplicantRows(
-      input as unknown as Parameters<typeof buildStandardApplicantRows>[0],
-    );
+    const rows = buildStandardApplicantRows(input);
 
     expect(rows).toHaveLength(1);
     expect(rows[0]).not.toHaveProperty('address');

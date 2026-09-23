@@ -51,5 +51,5 @@ export const CLOSE_MESSAGES = {
   durationMissing:
     'A duration must be recorded to close this list. Press update to save the changes.',
   durationNonPositive:
-    'Please enter positive value for either hours or minutes to close this list. Press update to save the changes',
+    'Please enter a positive value for either hours or minutes to close this list. Press update to save the changes',
 } as const;

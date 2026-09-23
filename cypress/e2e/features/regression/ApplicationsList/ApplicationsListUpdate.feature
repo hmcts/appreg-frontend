@@ -175,7 +175,7 @@ Feature: Applications List Update
         Then User Clicks On The Link "List details"
         Then User Verify The Page URL Contains "#list-details"
         When User Clicks "Actions" Then "Close list" From The Page Header Menu
-        Then User Sees Validation Error Banner "There is a problem Please enter positive value for either hours or minutes to close this list"
+        Then User Sees Validation Error Banner "There is a problem Please enter a positive value for either hours or minutes to close this list. Press update to save the changes"
         When User Clears The Duration Field "Duration"
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
@@ -252,7 +252,7 @@ Feature: Applications List Update
         Then User Verify The Page URL Contains "#list-details"
         When User Clicks "Actions" Then "Close list" From The Page Header Menu
         # Duration Hours and Minutes are provided
-        Then User Sees Validation Error Banner "There is a problem Please enter positive value for either hours or minutes to close this list"
+        Then User Sees Validation Error Banner "There is a problem Please enter a positive value for either hours or minutes to close this list. Press update to save the changes"
         When User Clears The Duration Field "Duration"
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
