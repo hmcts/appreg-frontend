@@ -160,12 +160,14 @@ describe('StandardApplicantSelectComponent', () => {
 
     expect(component.rows).toHaveLength(2);
     expect(component.rows[0].code).toBe('SA-1');
-    expect(component.rows[0].name).toContain('John');
-    expect(component.rows[0].address).toBe('1 Person St');
+    expect(component.rows[0].name).toBe('');
+    expect(component.rows[0]).not.toHaveProperty('address');
 
     expect(component.rows[1].code).toBe('SA-2');
     expect(component.rows[1].name).toBe('Example Org');
-    expect(component.rows[1].address).toBe('2 Org Rd');
+    expect(component.rows[1]).not.toHaveProperty('address');
+    expect(fixture.nativeElement.textContent).not.toContain('1 Person St');
+    expect(fixture.nativeElement.textContent).not.toContain('2 Org Rd');
 
     expect(component.vm().pageIndex).toBe(0);
     expect(component.vm().totalPages).toBe(1);

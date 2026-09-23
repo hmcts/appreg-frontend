@@ -1,9 +1,27 @@
-import { mapSaToRow } from '@components/standard-applicant-select/util/standard-applicant-select-row-helpers';
+import {
+  mapSaToRow,
+  standardAppColumns,
+} from '@components/standard-applicant-select/util/standard-applicant-select-row-helpers';
 import { StandardApplicantGetSummaryDto } from '@openapi';
 import { formatDate } from '@util/standard-applicant-helpers';
+import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 
 const buildStandardApplicantRows = (input: StandardApplicantGetSummaryDto[]) =>
   input.map((item) => mapSaToRow(item));
+
+describe('toStandardApplicantSortKey', () => {
+  it.each([
+    ['code', 'code'],
+    ['name', 'name'],
+    ['useFrom', 'from'],
+    ['useTo', 'to'],
+    ['address', 'code'],
+    ['addressLine1', 'code'],
+    ['unknown', 'code'],
+  ])('maps %s to safe sort %s', (field, expected) => {
+    expect(toStandardApplicantSortKey(field)).toBe(expected);
+  });
+});
 
 describe('formatDate', () => {
   it('returns formatted date in mediumDate en-GB format for a valid ISO date', () => {
@@ -28,7 +46,31 @@ describe('formatDate', () => {
 });
 
 describe('buildStandardApplicantRows', () => {
-  it('builds a row for a person applicant with full name and address', () => {
+  it('exposes exactly the four allowed columns', () => {
+    expect(standardAppColumns.map(({ field }) => field)).toEqual([
+      'code',
+      'name',
+      'useFrom',
+      'useTo',
+    ]);
+  });
+
+  it('accepts a future flat name without depending on the nested applicant', () => {
+    expect(
+      mapSaToRow({
+        code: 'SA-FLAT',
+        name: 'Synthetic organisation',
+        startDate: '2026-01-01',
+        endDate: null,
+      }),
+    ).toEqual({
+      code: 'SA-FLAT',
+      name: 'Synthetic organisation',
+      useFrom: '1 Jan 2026',
+      useTo: '—',
+    });
+  });
+  it('does not expose personal names or addresses when the standard name is missing', () => {
     const input = [
       {
         code: 'SA-001',
@@ -55,8 +97,7 @@ describe('buildStandardApplicantRows', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toEqual({
       code: 'SA-001',
-      name: 'John Public',
-      address: '1 Test Street',
+      name: '',
       useFrom: '1 Dec 2025',
       useTo: '31 Dec 2025',
     });
@@ -85,13 +126,12 @@ describe('buildStandardApplicantRows', () => {
     expect(rows[0]).toEqual({
       code: 'SA-ORG',
       name: 'Test Org Ltd',
-      address: 'Org House',
       useFrom: '10 Jan 2025',
       useTo: '20 Feb 2025',
     });
   });
 
-  it('prefers organisation name and organisation address when both exist', () => {
+  it('uses only the organisation name when both person and organisation exist', () => {
     const input = [
       {
         code: 'SA-BOTH',
@@ -126,13 +166,12 @@ describe('buildStandardApplicantRows', () => {
     expect(rows[0]).toEqual({
       code: 'SA-BOTH',
       name: 'Org Name Preferred',
-      address: 'Org Address 1',
       useFrom: '1 Mar 2025',
       useTo: '15 Mar 2025',
     });
   });
 
-  it('falls back to organisation address when person address is not present', () => {
+  it('does not fall back to organisation contact details', () => {
     const input = [
       {
         code: 'SA-ADDR',
@@ -161,12 +200,10 @@ describe('buildStandardApplicantRows', () => {
       },
     ];
 
-    const rows = buildStandardApplicantRows(
-      input as unknown as Parameters<typeof buildStandardApplicantRows>[0],
-    );
+    const rows = buildStandardApplicantRows(input);
 
     expect(rows).toHaveLength(1);
-    expect(rows[0].address).toBe('Fallback Address');
+    expect(rows[0]).not.toHaveProperty('address');
   });
 
   it('handles missing applicant, code, and dates gracefully', () => {
@@ -187,7 +224,6 @@ describe('buildStandardApplicantRows', () => {
     expect(rows[0]).toEqual({
       code: '',
       name: '',
-      address: '',
       useFrom: '—',
       useTo: '—',
     });

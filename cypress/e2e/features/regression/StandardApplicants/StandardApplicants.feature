@@ -1,3 +1,4 @@
+@ARCPOC-1823
 Feature: Standard Applicants
 
     @regression @standardApplicants @ARCPOC-1189 @ARCPOC-762
@@ -13,7 +14,6 @@ Feature: Standard Applicants
         Then User Should See The Table "<TableName>"
         Then User Should See Table "<TableName>" Header "Code" Has Sort Order "ascending"
         Then User Should See Table "<TableName>" Header "Name" Has Sort Order "none"
-        Then User Should See Table "<TableName>" Header "Address" Has Sort Order "none"
         Then User Should See Table "<TableName>" Header "Use from" Has Sort Order "none"
         Then User Should See Table "<TableName>" Header "Use to" Has Sort Order "none"
 
@@ -31,13 +31,6 @@ Feature: Standard Applicants
         Then User Should See Table "<TableName>" Has Rows
         When User Clicks On Table Header "Name" In Table "<TableName>"
         Then User Should See Table "<TableName>" Header "Name" Has Sort Order "descending"
-        Then User Should See Table "<TableName>" Has Rows
-
-        When User Clicks On Table Header "Address" In Table "<TableName>"
-        Then User Should See Table "<TableName>" Header "Address" Has Sort Order "ascending"
-        Then User Should See Table "<TableName>" Has Rows
-        When User Clicks On Table Header "Address" In Table "<TableName>"
-        Then User Should See Table "<TableName>" Header "Address" Has Sort Order "descending"
         Then User Should See Table "<TableName>" Has Rows
 
         When User Clicks On Table Header "Use from" In Table "<TableName>"
@@ -80,10 +73,15 @@ Feature: Standard Applicants
         Then User Should See Table "<TableName>" Has Rows
         Then User Should See The Button "Actions" Is Enabled
         When User Clicks "Actions" Then Sees The Caption Menu With Options "Export CSV, Print PDF" In Table "<TableName>"
-
+        When User Clicks On The "Clear search" Button
+        Then User Enters "<Code>" Into The "Code" Textbox
+        Then User Enters "<Name>" Into The "Standard applicant name" Textbox
+        When User Clicks On The "Search" Button
+        Then User Should See The Table "<TableName>"
+        Then User Should See Table "<TableName>" Has Rows
         Examples:
-            | ExceedingLengthCode | ExceedingLengthName                                                                                             | InvalidCode | Code | TableName           |
-            | 12345678901         | A very long name that exceeds the maximum length of 100 characters for a standard applicant name in the system. | 1234567890  | ad   | Standard applicants |
+            | ExceedingLengthCode | ExceedingLengthName                                                                                             | InvalidCode | Code | TableName           | Name                        |
+            | 12345678901         | A very long name that exceeds the maximum length of 100 characters for a standard applicant name in the system. | 1234567890  | ad   | Standard applicants | ADVANCED COLLECTION SYSTEMS |
 
     @regression @standardApplicants @ARCPOC-766
     Scenario: View a Standard Applicant in read-only mode
@@ -96,16 +94,15 @@ Feature: Standard Applicants
         Then User Should See The Table "Standard applicants"
         Then User Should See Table "Standard applicants" Has Rows
         And User Should See Row In Table "Standard applicants" With Values:
-            | Code | Name                        | Address    | Use from   |
-            | BGAS | British Gas Trading Limited | Millstream | 1 Jun 2016 |
+            | Code | Name                        | Use from   |
+            | BGAS | British Gas Trading Limited | 1 Jun 2016 |
         When User Clicks "View" Button In Row Of Table "Standard applicants" With:
-            | Code | Name                        | Address    | Use from   |
-            | BGAS | British Gas Trading Limited | Millstream | 1 Jun 2016 |
+            | Code | Name                        | Use from   |
+            | BGAS | British Gas Trading Limited | 1 Jun 2016 |
         Then User Verify The Page URL Contains "/standard-applicants/BGAS"
         And User Sees Page Heading "Standard applicant details"
         And User Should See Summary List Row With Key "Code" And Value "BGAS"
         And User Should See Summary List Row With Key "Standard applicant name" And Value "British Gas Trading Limited"
-        And User Should See Summary List Row With Key "Address line 1" And Value "Millstream"
         And User Should See Summary List Row With Key "Use from" And Value "1 Jun 2016"
 
     @regression @standardApplicants @ARCPOC-243 @ARCPOC-1613 @ARCPOC-1774
@@ -136,8 +133,8 @@ Feature: Standard Applicants
         Then User Should See The Table "Standard applicants"
         Then User Should See Table "Standard applicants" Header "Code" Has Sort Order "ascending"
         And User Should See Row In Table "Standard applicants" With Values:
-            | Code | Name                        | Address    | Use from   |
-            | BGAS | British Gas Trading Limited | Millstream | 1 Jun 2016 |
+            | Code | Name                        | Use from   |
+            | BGAS | British Gas Trading Limited | 1 Jun 2016 |
         When User Clicks "Actions" Then "Export CSV" From Caption Menu In Table "Standard applicants"
         Then User Verifies CSV ".csv" Is Downloaded
         And User Verifies The Downloaded CSV Has Headers In Row 1:
@@ -159,8 +156,8 @@ Feature: Standard Applicants
         Then User Should See The Table "Standard applicants"
         Then User Should See Table "Standard applicants" Header "Code" Has Sort Order "ascending"
         And User Should See Row In Table "Standard applicants" With Values:
-            | Code | Name                        | Address    | Use from   |
-            | BGAS | British Gas Trading Limited | Millstream | 1 Jun 2016 |
+            | Code | Name                        | Use from   |
+            | BGAS | British Gas Trading Limited | 1 Jun 2016 |
         When User Clicks "Actions" Then "Print PDF" From Caption Menu In Table "Standard applicants"
         Then User Sees Success Banner "Successfully printed PDF" Containing "Standard applicant PDF has been successfully printed"
         Then User Verifies PDF ".pdf" Is Downloaded
@@ -170,22 +167,17 @@ Feature: Standard Applicants
         And User Verifies Latest Downloaded PDF Contains The Following Values:
             | Code             | BGAS                        |
             | Name             | British Gas Trading Limited |
-            | Title            | -                           |
-            | Forename 1       | -                           |
-            | Forename 2       | —                           |
-            | Forename 3       | —                           |
-            | Surname          | -                           |
-            | Address line 1   | Millstream                  |
-            | Address line 2   | Maidenhead Road             |
-            | Address line 3   | Windsor                     |
-            | Address line 4   | Berkshire                   |
-            | Address line 5   | —                           |
-            | Postcode         | SL4 5GD                     |
-            | Email address    | -                           |
-            | Telephone number | -                           |
-            | Mobile number    | -                           |
             | Use from         | 1 Jun 2016                  |
             | Use to           | —                           |
         And User Verifies Latest Downloaded PDF Does Not Contain The Following Values:
-            | ApplicantID |
-            | version     |
+            | ApplicantID      |
+            | version          |
+            | Title            |
+            | Forename         |
+            | Surname          |
+            | Address line     |
+            | Postcode         |
+            | Email address    |
+            | Telephone number |
+            | Mobile number    |
+            | Millstream       |

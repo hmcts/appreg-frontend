@@ -573,13 +573,6 @@ export class PdfService {
     const labels = [
       ['Code', 'Use from'],
       ['Name', 'Use to'],
-      ['Title', 'Address line 1'],
-      ['Forename 1', 'Address line 2'],
-      ['Forename 2', 'Address line 3'],
-      ['Forename 3', 'Address line 4'],
-      ['Surname', 'Address line 5'],
-      ['Email address', 'Postcode'],
-      ['Telephone number', 'Mobile number'],
     ] as const;
 
     const rows = dto.applicants ?? [];
@@ -798,20 +791,6 @@ export class PdfService {
       'Use from': 'useFrom',
       Name: 'name',
       'Use to': 'useTo',
-      Title: 'title',
-      'Address line 1': 'addressLine1',
-      'Forename 1': 'forename1',
-      'Address line 2': 'addressLine2',
-      'Forename 2': 'forename2',
-      'Address line 3': 'addressLine3',
-      'Forename 3': 'forename3',
-      'Address line 4': 'addressLine4',
-      Surname: 'surname',
-      'Address line 5': 'addressLine5',
-      'Email address': 'emailAddress',
-      Postcode: 'postcode',
-      'Telephone number': 'telephoneNumber',
-      'Mobile number': 'mobileNumber',
     };
     const field = fieldByLabel[label];
     const value = field ? applicant[field] : null;
