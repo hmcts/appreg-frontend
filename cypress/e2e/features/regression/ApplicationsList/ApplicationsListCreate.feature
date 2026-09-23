@@ -1,5 +1,5 @@
 Feature: Applications List Create
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-801
   Scenario Outline: Create applications list using CJA and other location
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
@@ -7,7 +7,7 @@ Feature: Applications List Create
     Then User Clicks On The Link "Create new list"
     When User Set Date Field "Date" To "<Date>"
     When User Set Time Field "Time" To "<Time>"
-    Then User Enters "<Description>" Into The "List description" Textbox
+    Then User Enters "<Description>" Into The "List description" Textarea
     Then User Enters "<OtherLocation>" Into The "Other location description" Textbox
     Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
@@ -27,7 +27,7 @@ Feature: Applications List Create
     Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
 
     Examples:
-      | User  | Date  | Time           | Description   | Status | OtherLocation           | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
+      | User  | Date  | Time           | Description        | Status | OtherLocation                | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
       | user1 | today | timenowhhmm-2h | Test_{SCENARIO_ID} | Open   | Other Location_{SCENARIO_ID} | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
@@ -54,7 +54,7 @@ Feature: Applications List Create
     When User Clicks On The "Yes - delete" Button
     Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
     Examples:
-      | User  | Date  | Time           | Description   | Status | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
+      | User  | Date  | Time           | Description        | Status | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
       | user1 | today | timenowhhmm-2h | Test_{SCENARIO_ID} | Open   | royal      | Royal Courts of Justice Set 1 | Lists     | todaydisplay | 0       | Select           | Open       |
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792 @ARCPOC-1012
@@ -110,5 +110,5 @@ Feature: Applications List Create
     Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
 
     Examples:
-      | User  | InvalidDate | Date  | InvalidTime | Time  | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | CJA           | SearchText | TableName | DisplayDate  | Entries | SelectButtonText |
+      | User  | InvalidDate | Date  | InvalidTime | Time  | Description        | Status | InvalidCourt | OtherLocation                | InvalidCJA | CJA           | SearchText | TableName | DisplayDate  | Entries | SelectButtonText |
       | user1 | 32/13/2024  | today | 25:61       | 14:30 | Test_{SCENARIO_ID} | Open   | abc          | Other Location_{SCENARIO_ID} | abc        | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           |
