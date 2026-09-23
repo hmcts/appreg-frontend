@@ -51,7 +51,7 @@ import {
   focusErrorSummary,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
-import { formatPartyName } from '@util/string-helpers';
+import { formatPartyName, returnOrgName } from '@util/string-helpers';
 
 export type UpdateNotesApplicationContext = {
   id: string;
@@ -345,7 +345,9 @@ export class UpdateNotesComponent implements OnInit {
     this.context.set({
       ...(currentContext ?? {}),
       id: entry.id,
-      applicant: currentContext?.applicant ?? formatPartyName(entry.applicant),
+      applicant: entry.standardApplicantCode?.trim()
+        ? returnOrgName(entry.applicant) || entry.standardApplicantCode.trim()
+        : (currentContext?.applicant ?? formatPartyName(entry.applicant)),
       respondent:
         currentContext?.respondent ?? formatPartyName(entry.respondent),
       title: currentContext?.title ?? null,

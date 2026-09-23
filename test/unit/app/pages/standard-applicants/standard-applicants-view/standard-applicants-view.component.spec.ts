@@ -7,7 +7,11 @@ import {
 import { of } from 'rxjs';
 
 import { StandardApplicantsViewComponent } from '@components/standard-applicants/standard-applicants-view/standard-applicants-view.component';
-import { StandardApplicantGetDetailDto, StandardApplicantsApi } from '@openapi';
+import {
+  Applicant,
+  StandardApplicantGetDetailDto,
+  StandardApplicantsApi,
+} from '@openapi';
 
 describe('StandardApplicantsViewComponent', () => {
   let component!: StandardApplicantsViewComponent;
@@ -26,7 +30,7 @@ describe('StandardApplicantsViewComponent', () => {
   };
 
   const createComponent = async (
-    response: StandardApplicantGetDetailDto,
+    response: StandardApplicantGetDetailDto & { applicant?: Applicant },
   ): Promise<void> => {
     getStandardApplicantByCodeMock.mockReset();
     getStandardApplicantByCodeMock.mockReturnValue(of(response));
@@ -46,6 +50,42 @@ describe('StandardApplicantsViewComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
   };
+
+  it('displays the new flat response without a nested applicant', async () => {
+    await createComponent({
+      code: 'SA01',
+      name: 'Reference organisation',
+      startDate: '2026-01-01',
+      endDate: null,
+    });
+
+    expect(component.summaryListValues).toEqual({
+      standardApplicantName: 'Reference organisation',
+      useFrom: '1 Jan 2026',
+      useTo: '—',
+    });
+  });
+
+  it('supports the legacy organisation name without exposing its address', async () => {
+    await createComponent({
+      code: 'SA01',
+      applicant: {
+        organisation: {
+          name: 'Legacy organisation',
+          contactDetails: { addressLine1: 'Synthetic address' },
+        },
+      },
+      startDate: '2026-01-01',
+      endDate: null,
+    });
+
+    expect(component.summaryListValues.standardApplicantName).toBe(
+      'Legacy organisation',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Synthetic address',
+    );
+  });
 
   it('should create', async () => {
     await createComponent({
@@ -74,7 +114,7 @@ describe('StandardApplicantsViewComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('maps organisation contact details into summaryListValues', async () => {
+  it('displays only the allowed fields despite populated organisation contact details', async () => {
     await createComponent({
       code: 'SA01',
       name: 'Applicant Org',
@@ -100,21 +140,12 @@ describe('StandardApplicantsViewComponent', () => {
 
     expect(component.summaryListValues).toEqual({
       standardApplicantName: 'Applicant Org',
-      addressLine1: '1 Test Street',
-      addressLine2: 'Suite 2',
-      addressLine3: 'Manchester',
-      addressLine4: '—',
-      addressLine5: '—',
-      postcode: 'M1 1AA',
-      telephoneNumber: '0161 000 0000',
-      mobileNumber: '—',
-      emailAddress: 'org@example.test',
       useFrom: '1 Jan 2026',
       useTo: '—',
     });
   });
 
-  it('maps person contact details into summaryListValues', async () => {
+  it('does not append a personal title or expose personal contact details', async () => {
     await createComponent({
       code: 'SA02',
       name: 'Alex Taylor',
@@ -143,18 +174,18 @@ describe('StandardApplicantsViewComponent', () => {
     });
 
     expect(component.summaryListValues).toEqual({
-      standardApplicantName: 'Mr Alex Taylor',
-      addressLine1: '2 Test Street',
-      addressLine2: '—',
-      addressLine3: 'Leeds',
-      addressLine4: '—',
-      addressLine5: '—',
-      postcode: 'LS1 1AA',
-      telephoneNumber: '0113 000 0000',
-      mobileNumber: '07700 900000',
-      emailAddress: 'alex@example.test',
+      standardApplicantName: 'Alex Taylor',
       useFrom: '3 Feb 2026',
       useTo: '31 Dec 2026',
     });
+    const element: HTMLElement = fixture.nativeElement;
+    expect(
+      Array.from(element.querySelectorAll('dt'), (dt) =>
+        dt.textContent?.trim(),
+      ),
+    ).toEqual(['Code', 'Standard applicant name', 'Use from', 'Use to']);
+    expect(element.textContent).not.toContain('2 Test Street');
+    expect(element.textContent).not.toContain('alex@example.test');
+    expect(element.textContent).not.toContain('Mr');
   });
 });

@@ -91,7 +91,7 @@ describe('buildResultApplicantContext', () => {
     });
   });
 
-  it('prefers applicant details over standard applicant code when both are present', () => {
+  it('uses the standard applicant code rather than exposing personal names', () => {
     const entry = makeEntry({
       standardApplicantCode: 'APP001',
       applicant: {
@@ -111,7 +111,7 @@ describe('buildResultApplicantContext', () => {
     });
 
     expect(buildResultApplicantContext(entry, 'Application title')).toEqual({
-      applicant: 'John Smith',
+      applicant: 'APP001',
       respondent: '',
       title: 'Application title',
     });

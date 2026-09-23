@@ -1,6 +1,19 @@
 import { routes } from '../../../src/app/app.routes';
 
 describe('app.routes', () => {
+  it.each([true, false])(
+    'delegates report navigation to the component: %s',
+    (leave) => {
+      const guard = routes.find((route) => route.path === 'reports')
+        ?.canDeactivate?.[0] as (component: {
+        canLeave: () => boolean;
+      }) => boolean;
+      const component = { canLeave: jest.fn(() => leave) };
+      expect(guard(component)).toBe(leave);
+      expect(component.canLeave).toHaveBeenCalledTimes(1);
+    },
+  );
+
   it('lazy loads top-level feature routes', () => {
     const applicationsRoute = routes.find(
       (route) => route.path === 'applications',

@@ -894,7 +894,6 @@ describe('StandardApplicantsComponent', () => {
       {
         code: 'SA01',
         name: 'Applicant Org',
-        address: '1 Test Street',
         useFrom: '1 Jan 2026',
         useTo: '31 Dec 2026',
       },
@@ -1216,7 +1215,6 @@ describe('StandardApplicantsComponent', () => {
     await component.onViewClick({
       code: '',
       name: 'Applicant Org',
-      address: '1 Test Street',
       useFrom: '1 Jan 2026',
       useTo: '31 Dec 2026',
     });
@@ -1231,7 +1229,6 @@ describe('StandardApplicantsComponent', () => {
     const row = {
       code: 'SA01',
       name: 'Applicant Org',
-      address: '1 Test Street',
       useFrom: '1 Jan 2026',
       useTo: '31 Dec 2026',
     };
@@ -1283,7 +1280,6 @@ describe('StandardApplicantsComponent', () => {
     await component.onViewClick({
       code: 'SA01',
       name: 'Applicant Org',
-      address: '1 Test Street',
       useFrom: '1 Jan 2026',
       useTo: '31 Dec 2026',
     });

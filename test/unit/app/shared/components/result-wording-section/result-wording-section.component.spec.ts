@@ -609,7 +609,12 @@ describe('ResultWordingSectionComponent', () => {
         title: 'RC2 - Second Match',
         content: [],
       },
-      [{ text: 'Enter a Date in the result wording section', href: '#Date' }],
+      [
+        {
+          text: 'Enter a value for “Date” in the result wording section',
+          href: '#Date',
+        },
+      ],
     );
 
     component.onSummaryActionClick({
@@ -659,7 +664,12 @@ describe('ResultWordingSectionComponent', () => {
         title: 'RC2 - Second Match',
         content: [],
       },
-      [{ text: 'Enter a Date in the result wording section', href: '#Date' }],
+      [
+        {
+          text: 'Enter a value for “Date” in the result wording section',
+          href: '#Date',
+        },
+      ],
     );
 
     component.selectResultCode(codes[0]);
