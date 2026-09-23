@@ -325,6 +325,28 @@ describe('ApplicationsListEntryDetail', () => {
     );
   });
 
+  it('does not load entry data during server-side rendering', () => {
+    const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
+    const freshComponent = freshFixture.componentInstance;
+    (
+      freshComponent as unknown as { platformId: object }
+    ).platformId = 'server';
+    mockGetApplicationListEntry.mockClear();
+    mockGetApplicationCodeByCodeAndDate.mockClear();
+
+    freshComponent.ngOnInit();
+
+    expect(mockGetApplicationListEntry).not.toHaveBeenCalled();
+    expect(mockGetApplicationCodeByCodeAndDate).not.toHaveBeenCalled();
+    expect(freshComponent.breadcrumbs()).toEqual([
+      { label: 'Applications list', link: '/applications-list' },
+      {
+        label: 'Applications list details',
+        link: '/applications-list/AL-1',
+      },
+    ]);
+  });
+
   it('hydrates codes section on init: patches lodgementDate, applicationCode, and resolves applicationTitle', () => {
     const raw = component['form'].getRawValue();
 
