@@ -328,9 +328,7 @@ describe('ApplicationsListEntryDetail', () => {
   it('does not load entry data during server-side rendering', () => {
     const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
     const freshComponent = freshFixture.componentInstance;
-    (
-      freshComponent as unknown as { platformId: object }
-    ).platformId = 'server';
+    (freshComponent as unknown as { platformId: object }).platformId = 'server';
     mockGetApplicationListEntry.mockClear();
     mockGetApplicationCodeByCodeAndDate.mockClear();
 
