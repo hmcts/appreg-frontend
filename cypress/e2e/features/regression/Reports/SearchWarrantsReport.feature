@@ -33,7 +33,7 @@ Feature: SearchWarrants Report
     Then User Selects "Cardiff Crown Court Set 4" From The Textbox "Court" Autocomplete By Typing "Cardiff"
     When User Clicks On The "Download CSV" Button
     Then User Verifies CSV "<CSVFileName>" Is Downloaded
-    Then User Sees Success Banner "Success Report downloaded The search warrants report has downloaded."
+    Then User Sees Success Banner "Report downloaded" Containing "The search warrants report has downloaded."
     Then User Verifies Latest Downloaded CSV Contains Text "Search Warrants Report" In Row 1
     Then User Verifies The Downloaded CSV Has Headers In Row 2:
       | List Date                |
@@ -65,7 +65,7 @@ Feature: SearchWarrants Report
     Then User Enters "Other location 1" Into The "Other location description" Textbox
     When User Clicks On The "Download CSV" Button
     Then User Verifies CSV "<CSVFileName>" Is Downloaded
-    Then User Sees Success Banner "Success Report downloaded The search warrants report has downloaded."
+    Then User Sees Success Banner "Report downloaded" Containing "The search warrants report has downloaded."
     Then User Verifies Latest Downloaded CSV Contains Text "Search Warrants Report" In Row 1
     Then User Verifies The Downloaded CSV Has Headers In Row 2:
       | List Date                |

@@ -74,7 +74,7 @@ Feature: Applications List Entry Notes Update
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
-        Then User Sees Success Banner "Success Application list closed successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Application list closed successfully" Containing "If you believe this was in error, please contact support."
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         Then User Enters "Taylor {SCENARIO_ID}" Into The "Applicant surname" Textbox

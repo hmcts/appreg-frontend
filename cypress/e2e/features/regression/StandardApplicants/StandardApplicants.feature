@@ -159,7 +159,7 @@ Feature: Standard Applicants
             | Code | Name                        | Use from   |
             | BGAS | British Gas Trading Limited | 1 Jun 2016 |
         When User Clicks "Actions" Then "Print PDF" From Caption Menu In Table "Standard applicants"
-        Then User Sees Success Banner "Success Successfully printed PDF Standard applicant PDF has been successfully printed"
+        Then User Sees Success Banner "Successfully printed PDF" Containing "Standard applicant PDF has been successfully printed"
         Then User Verifies PDF ".pdf" Is Downloaded
         And User Verifies Latest Downloaded PDF Is Not Empty
         And User Verifies Latest Downloaded PDF Contains Text "Standard applicants report"
