@@ -1,3 +1,4 @@
+import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   ActivatedRoute,
@@ -31,6 +32,7 @@ describe('StandardApplicantsViewComponent', () => {
 
   const createComponent = async (
     response: StandardApplicantGetDetailDto & { applicant?: Applicant },
+    platformId: 'browser' | 'server' = 'browser',
   ): Promise<void> => {
     getStandardApplicantByCodeMock.mockReset();
     getStandardApplicantByCodeMock.mockReturnValue(of(response));
@@ -41,6 +43,7 @@ describe('StandardApplicantsViewComponent', () => {
         provideRouter([]),
         { provide: StandardApplicantsApi, useValue: apiStub },
         { provide: ActivatedRoute, useValue: routeStub },
+        { provide: PLATFORM_ID, useValue: platformId },
       ],
     }).compileComponents();
 
@@ -64,6 +67,22 @@ describe('StandardApplicantsViewComponent', () => {
       useFrom: '1 Jan 2026',
       useTo: '—',
     });
+  });
+
+  it('does not request standard-applicant detail during SSR', async () => {
+    await createComponent(
+      {
+        code: 'SA01',
+        name: 'Reference organisation',
+        startDate: '2026-01-01',
+        endDate: null,
+      },
+      'server',
+    );
+
+    expect(component.code()).toBe('SA01');
+    expect(getStandardApplicantByCodeMock).not.toHaveBeenCalled();
+    expect(component.summaryListValues).toEqual({});
   });
 
   it('supports the legacy organisation name without exposing its address', async () => {
