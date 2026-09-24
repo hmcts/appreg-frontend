@@ -203,4 +203,3 @@ Feature: Applications List Entry Notes Update
         Then User Should See The Textbox "Application notes" Is Disabled
         Then User Verifies The "Application notes" Textbox Has Value "Some value"
         Then User Verifies The "Additional notes" Textbox Is Empty
-
