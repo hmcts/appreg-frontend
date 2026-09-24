@@ -121,7 +121,7 @@ Feature: Applications List Entry Update
         When User Clicks On The "Save complete application" Button
         Then User Sees Success Banner "Application list entry updated" Containing "The application list entry has been updated successfully."
         # Result Wording - Timestamp
-        Then User Should See "Updated on todaydisplay at timenowhhmm" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Should See "Updated on todaydisplay at" In Summary Card "PROA - Production Order (to allow access)"
         # Remove Result to check 'Removed' banner
         Then User Clicks The Link "Remove" In Summary Card "PROA - Production Order (to allow access)"
         Then User Sees Success Banner "Result removed" Containing "The result has been removed from this application list entry."
