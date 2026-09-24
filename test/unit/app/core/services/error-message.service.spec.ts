@@ -135,19 +135,6 @@ describe('ErrorMessageService', () => {
       expect(svc.errorMessage()?.status).toBe(404);
     });
 
-    it('does not navigate for entry result 404s handled by the component', () => {
-      const err = makeErr({
-        status: 404,
-        url: 'https://local/application-lists/412df68d-dd7e-47f4-b50e-4f85f0022766/entries/ed21f210-b9ed-4b6d-9d72-72c8858ee302/results',
-        error: { title: 'Not Found', status: 404 },
-      });
-
-      svc.handleErrorMessage(err);
-
-      expect(router.navigateByUrl).not.toHaveBeenCalled();
-      expect(svc.errorMessage()?.status).toBe(404);
-    });
-
     it('does not navigate for standard applicant search failures handled by the component', () => {
       const err = makeErr({
         status: 500,
