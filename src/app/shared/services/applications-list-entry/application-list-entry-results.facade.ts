@@ -1,6 +1,15 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, catchError, forkJoin, map, of } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  concat,
+  forkJoin,
+  map,
+  of,
+  takeWhile,
+  toArray,
+} from 'rxjs';
 
 import {
   ApplicationListEntryResultsApi,
@@ -568,27 +577,34 @@ export class ApplicationListEntryResultsFacade {
       return;
     }
 
-    forkJoin(allRequests)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    concat(...allRequests)
+      .pipe(
+        takeWhile(
+          (result) => !(this.isBulkResultUpdate(result) && !result.success),
+          true,
+        ),
+        toArray(),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (results) => {
-          this.mergeCreatedEntryResults(
-            results.flatMap((result) => this.toResultGetDtos(result)),
-          );
-
-          const failedUpdates = results.filter(
+          const failedUpdate = results.find(
             (result): result is Extract<BulkResultUpdate, { success: false }> =>
               this.isBulkResultUpdate(result) && !result.success,
+          );
+
+          if (failedUpdate) {
+            onError?.(failedUpdate.error);
+            return;
+          }
+
+          this.mergeCreatedEntryResults(
+            results.flatMap((result) => this.toResultGetDtos(result)),
           );
 
           if (createRequests.length > 0) {
             this.clearPendingToken.update((n) => n + 1);
             this.pendingRows.set([]);
-          }
-
-          if (failedUpdates.length > 0) {
-            onError?.(failedUpdates[0].error);
-            return;
           }
 
           onSuccess?.();
