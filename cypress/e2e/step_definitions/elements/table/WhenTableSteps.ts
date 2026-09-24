@@ -3,6 +3,7 @@ import { When } from '@badeball/cypress-cucumber-preprocessor';
 import { TableInteraction } from '../../../../support/helper/table/TableInteraction';
 
 let entriesSortRequestNumber = 0;
+let applicationListDetailRequestNumber = 0;
 
 /**
  * Table Interaction Steps (Sorting & Row Actions)
@@ -49,12 +50,30 @@ When(
     cy.log(
       `Clicking "${selectButtonText}" → "${menuButtonText}" in table "${tableCaption}" for row: ${JSON.stringify(rowData)}`,
     );
+
+    const openingApplicationList =
+      tableCaption === 'Lists' && menuButtonText === 'Open';
+    const detailRequestAlias = openingApplicationList
+      ? `application-list-detail-${++applicationListDetailRequestNumber}`
+      : undefined;
+
+    if (detailRequestAlias) {
+      cy.intercept('GET', '**/application-lists/*').as(detailRequestAlias);
+    }
+
     TableInteraction.clickMenuButtonInTableRow(
       tableCaption,
       rowData,
       menuButtonText,
       selectButtonText,
     );
+
+    if (detailRequestAlias) {
+      cy.wait(`@${detailRequestAlias}`, { timeout: 20000 })
+        .its('response.statusCode')
+        .should('eq', 200);
+    }
+
     cy.screenshot(`clicked-menu-${selectButtonText}-in-row`);
   },
 );

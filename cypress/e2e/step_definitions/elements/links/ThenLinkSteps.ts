@@ -14,6 +14,10 @@ Then('User Clicks On The Link {string}', (linkText: string) => {
   LinkHelper.clickLink(linkText);
 });
 
+Then('User Clicks On The Tab {string}', (tabName: string) => {
+  LinkHelper.clickTab(tabName);
+});
+
 Then(
   'User Clicks On The Link Using Exact Text Match {string}',
   (linkText: string) => {

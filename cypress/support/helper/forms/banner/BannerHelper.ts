@@ -62,7 +62,7 @@ export class BannerHelper {
   }
 
   static verifyErrorBanner(
-    unexpectedText: string,
+    expectedText: string,
     options: BannerVerificationOptions = {},
   ): void {
     // Previous assertion:
@@ -78,7 +78,8 @@ export class BannerHelper {
       .then(($banner) => {
         const actualText = $banner.text();
         const normalizedActual = StringUtils.normalizeText(actualText);
-        expect(normalizedActual).to.include(unexpectedText);
+        const normalizedExpected = StringUtils.normalizeText(expectedText);
+        expect(normalizedActual).to.include(normalizedExpected);
         this.verifyBannerAbovePageHeader($banner, options);
       });
   }

@@ -7,7 +7,9 @@ Feature: Applications List Create
     Then User Clicks On The Link "Create new list"
     When User Set Date Field "Date" To "<Date>"
     When User Set Time Field "Time" To "<Time>"
+    Then User See "You have 200 characters remaining" On The Page
     Then User Enters "<Description>" Into The "List description" Textarea
+    Then User See "You have 188 characters remaining" On The Page
     Then User Enters "<OtherLocation>" Into The "Other location description" Textbox
     Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
@@ -30,13 +32,15 @@ Feature: Applications List Create
       | User  | Date  | Time           | Description        | Status | OtherLocation                | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
       | user1 | today | timenowhhmm-2h | Test_{SCENARIO_ID} | Open   | Other Location_{SCENARIO_ID} | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-801
   Scenario Outline: Create applications list using Court Autocomplete
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
     When User Set Date Field "Date" To "<Date>"
     When User Set Time Field "Time" To "<Time>"
-    Then User Enters "<Description>" Into The "List description" Textbox
+    Then User See "You have 200 characters remaining" On The Page
+    Then User Enters "<Description>" Into The "List description" Textarea
+    Then User See "You have 188 characters remaining" On The Page
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
     Then User Sees Success Banner "Application list created" Containing "The application list has been successfully created."
@@ -57,7 +61,7 @@ Feature: Applications List Create
       | User  | Date  | Time           | Description        | Status | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
       | user1 | today | timenowhhmm-2h | Test_{SCENARIO_ID} | Open   | royal      | Royal Courts of Justice Set 1 | Lists     | todaydisplay | 0       | Select           | Open       |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792 @ARCPOC-1012
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792 @ARCPOC-1012 @ARCPOC-801
   Scenario Outline: Verify validation messages on creating applications list with No Input
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
@@ -78,7 +82,9 @@ Feature: Applications List Create
     When User Set Time Field "Time" To "<Time>"
     When User Clicks On The "Create" Button
     Then User Sees Validation Error Banner "There is a problem Description is required Enter a court, or an other location and criminal justice area"
-    Then User Enters "<Description>" Into The "List description" Textbox
+    Then User See "You have 200 characters remaining" On The Page
+    Then User Enters "<Description>" Into The "List description" Textarea
+    Then User See "You have 188 characters remaining" On The Page
     When User Clicks On The "Create" Button
     Then User Sees Validation Error Banner "There is a problem Enter a court, or an other location and criminal justice area"
     Then User Enters "<InvalidCourt>" Into The "Court" Textbox

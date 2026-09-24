@@ -1,6 +1,6 @@
 Feature: Applications List Update
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759 @ARCPOC-801
     Scenario Outline: Update applications list Successfully with Other location and CJA selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -14,16 +14,19 @@ Feature: Applications List Update
         When User Clicks "<SelectButtonText>" Then "Open" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location   | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Location> | <Description> | <Entries> | <Status> |
-        Then User Clicks On The Link "List details"
+        Then User Clicks On The Tab "List details"
         Then User Verify The Page URL Contains "#list-details"
         Then User Verifies The Time field "Time" Has Value "<Time>"
-        Then User Verifies The "List description" Textbox Has Value "<Description>"
+        Then User Verifies The "List description" Textarea Has Value "<Description>"
+        Then User See "You have 188 characters remaining" On The Page
         Then User Verifies The "Court" Textbox Has Selected Value "<CourtValue>"
         Then User Verifies The "Other location description" Textbox Has Value "<OtherLocation>"
         Then User Verifies The "Criminal justice area" Textbox Has Value "<cjaCode> - <CJAValue>"
         Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
-        Then User Clears The "List description" Textbox
-        Then User Enters "<UpdatedDescription>" Into The "List description" Textbox
+        Then User Clears The "List description" Textarea
+        Then User See "You have 200 characters remaining" On The Page
+        Then User Enters "<UpdatedDescription>" Into The "List description" Textarea
+        Then User See "You have 180 characters remaining" On The Page
         Then User Clears The "Other location description" Textbox
         Then User Enters "<UpdatedOtherLocation>" Into The "Other location description" Textbox
         Then User Selects "<CJAValue>" From The Textbox "Criminal justice area" Autocomplete By Typing "<cjaCode>"
@@ -44,7 +47,7 @@ Feature: Applications List Update
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description        | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription         | UpdatedOtherLocation   | SuccessBanner                                                                      |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{SCENARIO_ID} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{SCENARIO_ID} | Updated Location_21442 | Success Application list updatedThe application list has been successfully updated |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759 @ARCPOC-801
     Scenario Outline: Update applications list Successfully with Court selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -58,19 +61,21 @@ Feature: Applications List Update
         When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location        | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <CourtLocation> | <Description> | <Entries> | <Status> |
-        Then User Should See The Link "List details"
-        Then User Clicks On The Link "List details"
+        Then User Clicks On The Tab "List details"
         Then User Verify The Page URL Contains "#list-details"
         Then User Verifies The Date field "Date" Has Value "<SearchDate>"
         Then User Verifies The Time field "Time" Has Value "<Time>"
-        Then User Verifies The "List description" Textbox Has Value "<Description>"
+        Then User Verifies The "List description" Textarea Has Value "<Description>"
+        Then User See "You have 188 characters remaining" On The Page
         Then User Verifies The "Court" Textbox Has Selected Value "<Court> - <CourtLocation>"
         Then User Verifies The "Other location description" Textbox Has Value "<OtherLocation>"
         Then User Verifies The "Criminal justice area" Textbox Has Value "<CJAValue>"
         Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
         When User Set "<UpdatedHH>" and "<UpdatedMM>" In The "Duration" Field
         Then User Clears The "List description" Textbox
+        Then User See "You have 200 characters remaining" On The Page
         Then User Enters "<UpdatedDescription>" Into The "List description" Textbox
+        Then User See "You have 172 characters remaining" On The Page
         Then User Clears The "Court" Textbox
         Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
         When User Clicks On The "Update" Button
@@ -90,7 +95,7 @@ Feature: Applications List Update
             | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description        | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessBanner                                                                      |
             | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{SCENARIO_ID} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        | Success Application list updatedThe application list has been successfully updated |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-852 @ARCPOC-1759
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-852 @ARCPOC-1759 @ARCPOC-801
     Scenario Outline: Update applications list Successfully with field validations
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -104,18 +109,20 @@ Feature: Applications List Update
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location        | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <courtLocation> | <Description> | <Entries> | <Status> |
-        Then User Clicks On The Link "List details"
+        Then User Clicks On The Tab "List details"
         Then User Verify The Page URL Contains "#list-details"
         Then User Verifies The Date field "Date" Has Value "<SearchDate>"
         Then User Verifies The Time field "Time" Has Value "<Time>"
-        Then User Verifies The "List description" Textbox Has Value "<Description>"
+        Then User Verifies The "List description" Textarea Has Value "<Description>"
+        Then User See "You have 181 characters remaining" On The Page
         Then User Verifies The "Court" Textbox Has Selected Value "<Court> - <courtLocation>"
         Then User Verifies The "Other location description" Textbox Has Value "<OtherLocation>"
         Then User Verifies The "Criminal justice area" Textbox Has Value "<CJAValue>"
         Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
         When User Clears The Date Field "Date"
         When User Clears The Time Field "Time"
-        Then User Clears The "List description" Textbox
+        Then User Clears The "List description" Textarea
+        Then User See "You have 200 characters remaining" On The Page
         Then User Clears The "Court" Textbox
         When User Clicks On The "Update" Button
         Then User Sees Validation Error Banner "There is a problem Enter day, month and year Enter valid hours and minutes Enter a description Enter a court, or an other location and criminal justice area"
@@ -135,7 +142,8 @@ Feature: Applications List Update
         When User Clicks On The "Update" Button
         Then User Sees Validation Error Banner "There is a problem Enter a valid duration between 00:00 and 23:59 Enter a description Enter a court, or an other location and criminal justice area"
         When User Set Time Field "Time" To "<UpdatedTime>"
-        Then User Enters "<UpdatedDescription>" Into The "List description" Textbox
+        Then User Enters "<UpdatedDescription>" Into The "List description" Textarea
+        Then User See "You have 164 characters remaining" On The Page
         When User Clicks On The "Update" Button
         Then User Sees Validation Error Banner "There is a problem Enter a court, or an other location and criminal justice area"
         Then User Enters "<UpdatedOtherLocation>" Into The "Other location description" Textbox
@@ -158,7 +166,7 @@ Feature: Applications List Update
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description               | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                         | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation           | InvalidCJAValue | InvalidCourtValue | SuccessMessage                                                                     |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {SCENARIO_ID} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {SCENARIO_ID} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {SCENARIO_ID} | InvalidCJA      | InvalidCourt      | Success Application list updatedThe application list has been successfully updated |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1759 @tp
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1759
     Scenario Outline: Close application list with NO ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -172,7 +180,7 @@ Feature: Applications List Update
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location        | Description   | Entries | Status |
             | <DisplayDate> | <Time> | <courtLocation> | <Description> | 0       | OPEN   |
-        Then User Clicks On The Link "List details"
+        Then User Clicks On The Tab "List details"
         Then User Verify The Page URL Contains "#list-details"
         When User Clicks "Actions" Then "Close list" From The Page Header Menu
         Then User Sees Validation Error Banner "There is a problem Please enter a positive value for either hours or minutes to close this list. Press update to save the changes"
@@ -248,7 +256,7 @@ Feature: Applications List Update
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location        | Description   | Entries | Status |
             | <DisplayDate> | <Time> | <courtLocation> | <Description> | 1       | OPEN   |
-        Then User Clicks On The Link "List details"
+        Then User Clicks On The Tab "List details"
         Then User Verify The Page URL Contains "#list-details"
         When User Clicks "Actions" Then "Close list" From The Page Header Menu
         # Duration Hours and Minutes are provided
