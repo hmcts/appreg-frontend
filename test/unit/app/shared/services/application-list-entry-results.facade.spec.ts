@@ -21,6 +21,17 @@ function makeResult(overrides: Partial<ResultGetDto>): ResultGetDto {
   } as unknown as ResultGetDto;
 }
 
+function makePendingResultRow(resultCode: string): PendingResultRow {
+  return {
+    kind: 'pending',
+    tempId: `tmp-${resultCode.toLowerCase()}`,
+    resultCode,
+    display: `${resultCode} - Result`,
+    wordingFields: [],
+    wording: '',
+  };
+}
+
 function makeDetail(
   overrides: Partial<ResultCodeGetDetailDto>,
 ): ResultCodeGetDetailDto {
@@ -411,6 +422,51 @@ describe('ApplicationListEntryResultsFacade', () => {
       expect(facade.clearPendingToken()).toBe(1);
       expect(facade.pendingRows()).toEqual([]);
       expect(onSuccess).toHaveBeenCalled();
+    });
+
+    it('subscribes to pending result creates sequentially', () => {
+      const onSuccess = jest.fn();
+      const subscriptions: string[] = [];
+      const auth = new Subject<ResultGetDto>();
+      const proa = new Subject<ResultGetDto>();
+
+      entryResultsApi.createApplicationListEntryResult
+        .mockReturnValueOnce(
+          defer(() => {
+            subscriptions.push('AUTH');
+            return auth;
+          }),
+        )
+        .mockReturnValueOnce(
+          defer(() => {
+            subscriptions.push('PROA');
+            return proa;
+          }),
+        );
+
+      facade.submitResultChanges(
+        'L-1',
+        'E-1',
+        {
+          pendingToCreate: [
+            makePendingResultRow('AUTH'),
+            makePendingResultRow('PROA'),
+          ],
+          existingToUpdate: [],
+        },
+        onSuccess,
+      );
+
+      expect(subscriptions).toEqual(['AUTH']);
+
+      auth.next(makeResult({ id: 'R-1', entryId: 'E-1', resultCode: 'AUTH' }));
+      auth.complete();
+      expect(subscriptions).toEqual(['AUTH', 'PROA']);
+
+      proa.next(makeResult({ id: 'R-2', entryId: 'E-1', resultCode: 'PROA' }));
+      proa.complete();
+
+      expect(onSuccess).toHaveBeenCalledTimes(1);
     });
   });
 

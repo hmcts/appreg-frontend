@@ -118,7 +118,6 @@ Feature: Applications List Entry Update
         Then User Enters "Zanetti{SCENARIO_ID}" In The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
         When User Clicks On The "Save recording officials" Button
         Then User Sees Success Banner "Officials updated" Containing "Officials have been updated for this application list entry."
-        Then User Waits For 500 Milliseconds
         When User Clicks On The "Save complete application" Button
         Then User Sees Success Banner "Application list entry updated" Containing "The application list entry has been updated successfully."
         # Result Wording - Timestamp

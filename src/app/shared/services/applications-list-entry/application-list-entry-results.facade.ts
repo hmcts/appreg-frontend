@@ -4,7 +4,6 @@ import {
   Observable,
   catchError,
   concat,
-  forkJoin,
   map,
   of,
   takeWhile,
@@ -368,8 +367,8 @@ export class ApplicationListEntryResultsFacade {
       return;
     }
 
-    forkJoin(allRequests)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    concat(...allRequests)
+      .pipe(toArray(), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.loadEntryResults(listId, entryId);
