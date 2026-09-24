@@ -62,7 +62,8 @@ export class BannerHelper {
       .then(($banner) => {
         const actualText = $banner.text();
         const normalizedActual = StringUtils.normalizeText(actualText);
-        expect(normalizedActual).to.include(unexpectedText);
+        const normalizedExpected = StringUtils.normalizeText(unexpectedText);
+        expect(normalizedActual).to.include(normalizedExpected);
         this.verifyBannerAbovePageHeader($banner, options);
       });
   }
