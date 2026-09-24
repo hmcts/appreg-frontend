@@ -73,7 +73,7 @@ const subscribedEndpoints: EndpointRule[] = [
     endpoint: new RegExp(
       `^/application-lists/${regexIdPlaceholder}/entries/${regexIdPlaceholder}/results$`,
     ),
-    responses: [400, 403, 500, 504],
+    responses: [400, 403, 409, 500, 504],
   },
   {
     endpoint: /^\/reports\/[^/]+\/jobs$/,

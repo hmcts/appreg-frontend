@@ -814,6 +814,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         ],
       });
       onComplete?.();
+      this.setEntrySaveButtonsDisabled(false);
       return;
     }
 
@@ -847,13 +848,13 @@ export class ApplicationsListEntryDetail implements OnInit {
             this.form.controls.standardApplicantCode.markAsPristine();
           }
           onComplete?.();
-          this.disableSaveCompleteAppBtn.set(false);
+          this.setEntrySaveButtonsDisabled(false);
         },
         error: (err) => {
           this.appListEntryDetailPatch({ formSubmitted: false });
           this.applyMappedError(err);
           onComplete?.();
-          this.disableSaveCompleteAppBtn.set(false);
+          this.setEntrySaveButtonsDisabled(false);
         },
       });
   }
@@ -899,6 +900,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onUpdateApplicant(): void {
+    if (this.isEntrySaveInProgress()) {
+      return;
+    }
+
     this.submitAttempt.update((attempt) => attempt + 1);
     this.resetErrors();
     this.resetSuccessBanner();
@@ -908,6 +913,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    this.setEntrySaveButtonsDisabled(true);
+
     this.submitEntryUpdate(
       this.buildEntryUpdateDto(),
       ENTRY_SUCCESS_MESSAGES.applicantUpdated,
@@ -915,6 +922,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onUpdateApplication(): void {
+    if (this.isEntrySaveInProgress()) {
+      return;
+    }
+
     this.submitAttempt.update((attempt) => attempt + 1);
     this.resetErrors();
     this.resetSuccessBanner();
@@ -926,7 +937,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    this.disableSaveCompleteAppBtn.set(true);
+    this.setEntrySaveButtonsDisabled(true);
 
     // Save result if there are pending results to be saved
     if (this.appListEntryDetailState().pendingResults) {
@@ -948,7 +959,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         },
         (err) => {
           this.applyMappedError(err);
-          this.disableSaveCompleteAppBtn.set(false);
+          this.setEntrySaveButtonsDisabled(false);
         },
       );
     } else {
@@ -960,6 +971,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onSaveOfficials(): void {
+    if (this.isEntrySaveInProgress()) {
+      return;
+    }
+
     this.submitAttempt.update((attempt) => attempt + 1);
     this.resetErrors();
     this.resetSuccessBanner();
@@ -969,13 +984,21 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    this.disableOfficialButton.set(true);
+    this.setEntrySaveButtonsDisabled(true);
 
     this.submitEntryUpdate(
       this.buildEntryUpdateDto(),
       ENTRY_SUCCESS_MESSAGES.officialsUpdated,
-      () => this.disableOfficialButton.set(false),
     );
+  }
+
+  private isEntrySaveInProgress(): boolean {
+    return this.disableOfficialButton() || this.disableSaveCompleteAppBtn();
+  }
+
+  private setEntrySaveButtonsDisabled(disabled: boolean): void {
+    this.disableOfficialButton.set(disabled);
+    this.disableSaveCompleteAppBtn.set(disabled);
   }
 
   private buildEntryUpdateDto(): EntryUpdateDto {
@@ -1089,6 +1112,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   get isUpdateDisabled(): boolean {
+    if (this.isEntrySaveInProgress()) {
+      return true;
+    }
+
     if (!this.entryDetail) {
       return true;
     }
