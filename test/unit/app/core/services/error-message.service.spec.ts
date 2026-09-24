@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 
@@ -28,7 +29,11 @@ describe('ErrorMessageService', () => {
     router = { navigateByUrl: jest.fn().mockResolvedValue(true) };
 
     TestBed.configureTestingModule({
-      providers: [ErrorMessageService, { provide: Router, useValue: router }],
+      providers: [
+        ErrorMessageService,
+        { provide: Router, useValue: router },
+        { provide: PLATFORM_ID, useValue: 'browser' },
+      ],
     });
 
     svc = TestBed.inject(ErrorMessageService);
@@ -163,6 +168,28 @@ describe('ErrorMessageService', () => {
       svc.handleErrorMessage(err);
 
       expect(router.navigateByUrl).toHaveBeenCalledWith('/page-not-found');
+    });
+
+    it('does not navigate to global error pages during server-side rendering', () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          ErrorMessageService,
+          { provide: Router, useValue: router },
+          { provide: PLATFORM_ID, useValue: 'server' },
+        ],
+      });
+      svc = TestBed.inject(ErrorMessageService);
+
+      const err = makeErr({
+        status: 404,
+        url: 'https://local/something-else',
+      });
+
+      svc.handleErrorMessage(err);
+
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+      expect(svc.errorMessage()?.status).toBe(404);
     });
 
     it('navigates to /internal-error for non-subscribed 500', () => {
