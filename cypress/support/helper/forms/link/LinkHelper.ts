@@ -5,6 +5,24 @@ export class LinkHelper {
     LinkElement.findLink(linkText).click();
   }
 
+  static clickTab(tabName: string): void {
+    const fragment = tabName.trim().toLowerCase().replaceAll(' ', '-');
+
+    LinkElement.findTab(tabName)
+      .should('be.visible')
+      .parents('[data-module="govuk-tabs"]')
+      .should('have.attr', 'data-govuk-tabs-init')
+      .then(() => {
+        LinkElement.findTab(tabName).click();
+      })
+      .then(() => {
+        cy.get(`#${fragment}`).should(
+          'not.have.class',
+          'govuk-tabs__panel--hidden',
+        );
+      });
+  }
+
   static clickLinkExact(linkText: string): void {
     LinkElement.findLinkExact(linkText).click();
   }

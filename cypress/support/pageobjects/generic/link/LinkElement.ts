@@ -25,6 +25,13 @@ export class LinkElement {
     return this.findLink(linkText, true);
   }
 
+  static findTab(
+    tabName: string,
+  ): Cypress.Chainable<JQuery<HTMLAnchorElement>> {
+    const tabId = tabName.trim().toLowerCase().replaceAll(' ', '-');
+    return cy.get<HTMLAnchorElement>(`#tab_${tabId}`);
+  }
+
   static findBreadcrumbLink(breadcrumbLinkText: string): Cypress.Chainable {
     return cy.get(this.breadcrumbNavSelector).contains('a', breadcrumbLinkText);
   }

@@ -400,50 +400,33 @@ export class DateTimeHelper {
       `Verifying time field "${fieldLabel}" is within ±2 minutes of ${expectedTime}`,
     );
 
-    // Check if separate HH/MM inputs exist, otherwise use single time input
-    if (DateTimeElement.hasSeparateHourMinuteInputs(fieldLabel)) {
-      // Get both hour and minute values and verify with tolerance
-      DateTimeElement.findHourInput(fieldLabel)
-        .invoke('val')
-        .then((hourVal) => {
-          return DateTimeElement.findMinuteInput(fieldLabel)
-            .invoke('val')
-            .then((minuteVal) => {
-              const actualHour = (hourVal as string) || '0';
-              const actualMinute = (minuteVal as string) || '0';
-              const actualTime = `${actualHour.padStart(2, '0')}:${actualMinute.padStart(2, '0')}`;
-
-              // Use time tolerance validation (±2 minutes)
-              const isWithinTolerance = DateTimeUtil.isTimeWithinTolerance(
-                actualTime,
-                expectedTime,
-                2,
-              );
-
-              expect(
-                isWithinTolerance,
-                `Time field "${fieldLabel}" should be within ±2 minutes of ${expectedTime}, but found ${actualTime}`,
-              ).to.equal(true);
-            });
-        });
-    } else {
-      // Verify single time input with tolerance
-      DateTimeElement.findTimeInput(fieldLabel).should(($input) => {
-        const timeStr = ($input.val() as string) || '';
-
-        // Use time tolerance validation (±2 minutes)
+    // Assert within one retried callback. The edit form initially renders 00:00
+    // before its list data populates the split hour/minute inputs.
+    cy.contains('label, legend', fieldLabel, { matchCase: false })
+      .parent()
+      .should(($field) => {
+        const actualHour =
+          ($field
+            .find('input[id*="hour"], input[name*="hour"]')
+            .first()
+            .val() as string) || '0';
+        const actualMinute =
+          ($field
+            .find('input[id*="minute"], input[name*="minute"]')
+            .first()
+            .val() as string) || '0';
+        const actualTime = `${actualHour.padStart(2, '0')}:${actualMinute.padStart(2, '0')}`;
         const isWithinTolerance = DateTimeUtil.isTimeWithinTolerance(
-          timeStr,
+          actualTime,
           expectedTime,
           2,
         );
 
         expect(
           isWithinTolerance,
-          `Time field "${fieldLabel}" should be within ±2 minutes of ${expectedTime}, but found ${timeStr}`,
+          `Time field "${fieldLabel}" should be within ±2 minutes of ${expectedTime}, but found ${actualTime}`,
         ).to.equal(true);
       });
-    }
   }
 
   static verifyDurationFieldValuesByLabel(
