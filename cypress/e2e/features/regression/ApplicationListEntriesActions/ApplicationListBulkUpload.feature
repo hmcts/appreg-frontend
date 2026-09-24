@@ -23,6 +23,7 @@ Feature: Application List Bulk Upload
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
         Then User Sees Success Banner "Success Bulk upload complete" Containing Link "Click here to update fee details on newly uploaded applications"
+        Then User Sees Success Banner "Success Bulk upload complete" Containing "Total fees for uploaded applications: £0.00"
         # Export must not be offered when there are no validation errors
         Then User Should Not See The Button "Export the file with errors shown"
         Then User See "Applications list" On The Page
@@ -68,6 +69,7 @@ Feature: Application List Bulk Upload
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
         Then User Sees Success Banner "Success Bulk upload complete" Containing Link "Click here to update fee details on newly uploaded applications"
+        Then User Sees Success Banner "Success Bulk upload complete" Containing "Total fees for uploaded applications: £22.00"
         # Export must not be offered when there are no validation errors
         Then User Should Not See The Button "Export the file with errors shown"
         Then User See "Applications list" On The Page

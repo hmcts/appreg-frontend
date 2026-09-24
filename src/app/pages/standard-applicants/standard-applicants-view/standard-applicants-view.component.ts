@@ -9,10 +9,12 @@
  * - Redirects back to the Standard Applicants search page if loading fails
  */
 
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  PLATFORM_ID,
   inject,
   signal,
 } from '@angular/core';
@@ -45,6 +47,7 @@ export class StandardApplicantsViewComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly saApi = inject(StandardApplicantsApi);
+  private readonly platformId = inject(PLATFORM_ID);
 
   code = signal('');
   summaryListValues: StandardApplicantSummaryListValues = {};
@@ -59,9 +62,13 @@ export class StandardApplicantsViewComponent implements OnInit {
 
     this.code.set(code);
 
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.saApi
       .getStandardApplicantByCode({ code: this.code() }, undefined, undefined, {
-        transferCache: true,
+        transferCache: false,
       })
       .subscribe({
         next: (response) => {

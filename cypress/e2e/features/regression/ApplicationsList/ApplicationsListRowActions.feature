@@ -495,7 +495,7 @@ Feature: Application List Row Actions
         When User Clicks "<SelectButtonText>" Then "Open" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
-        Then User Clicks On The Link "List details"
+        Then User Clicks On The Tab "List details"
         Then User Verify The Page URL Contains "#list-details"
         Then User See "List details" On The Page
         Then User Should See The Button "Actions"
