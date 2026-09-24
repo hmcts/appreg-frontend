@@ -1,4 +1,5 @@
 import { TextboxElement } from '../../../pageobjects/generic/textbox/TextboxElement';
+import { StringUtils } from '../../../utils/StringUtils';
 
 export class TextboxHelper {
   /**
@@ -55,6 +56,35 @@ export class TextboxHelper {
    */
   static verifyTextboxIsVisible(selector: string): Cypress.Chainable {
     return TextboxElement.findTextbox(selector).should('be.visible');
+  }
+
+  /**
+   * Checks that a textbox is not rendered.
+   * @param selector Smart selector for the textbox
+   */
+  static verifyTextboxIsNotVisible(selector: string): Cypress.Chainable {
+    const normalizedSelector = StringUtils.normalizeText(selector);
+    const textboxSelector =
+      'label, input[placeholder], textarea[placeholder], input[aria-label], textarea[aria-label], select[aria-label]';
+
+    return cy.get('body').should(($body) => {
+      const $matchingTextboxes = $body
+        .find(textboxSelector)
+        .filter((_, element) => {
+          const identifier = element.matches('label')
+            ? element.textContent || ''
+            : element.getAttribute('placeholder') ||
+              element.getAttribute('aria-label') ||
+              '';
+
+          return (
+            StringUtils.normalizeText(identifier).toLowerCase() ===
+            normalizedSelector.toLowerCase()
+          );
+        });
+
+      expect($matchingTextboxes, `textbox ${selector}`).to.have.length(0);
+    });
   }
 
   /**
