@@ -193,12 +193,36 @@ export class TextboxHelper {
   }
 
   /**
-   * Asserts that the current DOM context contains the given text.
+   * Asserts that the visible current DOM context contains the given text.
    * Designed for use inside AccordionHelper.within() to check accordion content.
    * @param text The text expected to be present
    */
   static verifyContainsText(text: string): void {
-    TextboxElement.findContainsText(text).should('be.visible');
+    cy.root().should('be.visible').and('contain.text', text);
+  }
+
+  /**
+   * Asserts that the current DOM context has a visible element with the exact text.
+   * Designed for use inside AccordionHelper.within() to distinguish short values
+   * from longer labels that contain the same text.
+   * @param text The text expected to be present
+   */
+  static verifyExactText(text: string): void {
+    const expectedText = StringUtils.normalizeText(text);
+
+    cy.root().should(($root) => {
+      const $matches = $root.find('*').filter((_, element) => {
+        return (
+          Cypress.$(element).is(':visible') &&
+          StringUtils.normalizeText(element.textContent || '') === expectedText
+        );
+      });
+
+      expect(
+        $matches,
+        `visible element with text ${text}`,
+      ).to.have.length.greaterThan(0);
+    });
   }
 
   static typeInTextboxByPlaceholder(placeholder: string, value: string): void {

@@ -513,7 +513,7 @@ Feature: Application List Row Actions
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
-        Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Then User Should See The Link "Create new list"
         Then User Clears The "List description" Textbox
         When User Set Date Field "Date" To "<SearchDate>"
@@ -602,7 +602,7 @@ Feature: Application List Row Actions
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         When User Clicks On The "Yes - delete" Button
         Then User Should See The Link "Create new list"
-        Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         When User Set Date Field "Date" To "<SearchDate>"
         When User Clicks On The "Search" Button
         Then User Should Not See Row In Table "<TableName>" With Values:
