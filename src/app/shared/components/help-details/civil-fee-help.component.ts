@@ -34,7 +34,8 @@ import { HelpDetailsComponent } from './help-details.component';
         </li>
         <li>
           Select Off-site fee if an additional fee applies because a magistrate
-          attended a location away from court premises. clean
+          attended a location away from court premises.
+
           @if (isBulkUpdate()) {
             Selecting this option will apply to all selected applications.
           }
