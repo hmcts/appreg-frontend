@@ -187,7 +187,7 @@
     "mochawesome-report-generator": "^6.2.0",
     "multiple-cucumber-html-reporter": "^3.9.3",
     "nodemon": "^3.1.10",
-    "pa11y": "^9.0.0",
+    "pa11y": "^10.0.0",
     "pdf-parse": "^2.4.5",
     "prettier": "^3.6.2",
     "stylelint": "^16.23.1",
@@ -218,7 +218,8 @@
     "shell-quote": "^1.9.0",
     "browserslist": "^4.28.7",
     "postcss-selector-parser": "^7.1.5",
-    "fflate": "^0.8.3"
+    "fflate": "^0.8.3",
+    "qs": "^6.16.0"
   },
   "packageManager": "yarn@4.10.3"
 }
