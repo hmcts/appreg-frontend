@@ -197,7 +197,7 @@ Feature: Applications List Update
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
-        Then User Sees Success Banner "Success Application list closed successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Application list closed successfully" Containing "If you believe this was in error, please contact support."
         Examples:
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description        | Status     | BeforeUpdateStatus | durationHours | durationMinutes |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {SCENARIO_ID} | Close list | OPEN               | 3             | 3               |
@@ -390,7 +390,7 @@ Feature: Applications List Update
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
-        Then User Sees Success Banner "Success Application list closed successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Application list closed successfully" Containing "If you believe this was in error, please contact support."
         # ARCPOC-1437 Verify Closed ALE cannot be opened
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
