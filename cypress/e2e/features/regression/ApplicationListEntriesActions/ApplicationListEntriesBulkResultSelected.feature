@@ -1,7 +1,7 @@
 Feature: Applications List  - Bulk Result Selected
 
-    @regression @applicationsList @core @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @ARCPOC-1444 @ARCPOC-1360 @ARCPOC-1748 @ARCPOC-1822 @tp
-    Scenario Outline: Application List - Result Selected - 5 ALEs Mixed Applicant Types
+    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @ARCPOC-1444 @ARCPOC-1360
+    Scenario Outline: Application List - Result Selected - 8 ALEs Mixed Applicant Types
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date      | time   | status   | description   | courtLocationCode   |
@@ -296,7 +296,7 @@ Feature: Applications List  - Bulk Result Selected
             | 3               | ACC-E3-{RANDOM} | Sarah Johnson {SCENARIO_ID}        | Greenfield Consulting {SCENARIO_ID} | B1 1AA   | Collection Order - Financial Penalty Account               | No  |          |
             | 4               |                 | Apex Solutions Ltd {SCENARIO_ID}   | John Smith {SCENARIO_ID}            | LS1 1AA  | Appeal to Crown Court                                      | No  |          |
             | 5               | ACC-E5-{RANDOM} | James Brown {SCENARIO_ID}          | Laura Davis {SCENARIO_ID}           | L1 1AA   | Collection Order - Financial Penalty Account               | No  | RTC      |
-            | 6               | ACC-E6-{RANDOM} | Britisha Gas Trading Limited       | Robert Wilson {SCENARIO_ID}         | NE1 1AA  | Appeal to Crown Court                                      | No  |          |
+            | 6               | ACC-E6-{RANDOM} | British Gas Trading Limited        | Robert Wilson {SCENARIO_ID}         | NE1 1AA  | Appeal to Crown Court                                      | No  |          |
             | 7               | ACC-E7-{RANDOM} | Total Gas and Power                | Metro Finance Ltd {SCENARIO_ID}     | EH1 1AA  | Collection Order - Financial Penalty Account               | No  |          |
             | 8               | ACC-E8-{RANDOM} | Daniel Hughes {SCENARIO_ID}        | Claire Hughes {SCENARIO_ID}         | CF10 2AA | Application for order re public health measures (premises) | Yes |          |
         # Sort by each column ascending and verify sort order changes
@@ -328,7 +328,7 @@ Feature: Applications List  - Bulk Result Selected
         When User Clicks On Table Header "Sequence number" In Table "Entries"
         Then User Should See Table "Entries" Header "Sequence number" Has Sort Order "ascending"
         Then User Should See The Button "Actions" Is Disabled
-        # Select rows 2, 3 and 5 in one step
+        # Select rows 2, 3 and 5 in one step (Select mix of Resulted and Unresulted) and verify only un-resulted are selected for result
         When User Checks The Checkbox In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant                   | Respondent                          | Postcode | Title                                        | Fee | Resulted |
             | 2               | ACC-E2-{RANDOM} | Henry Taylor {SCENARIO_ID}  | Emily Clark {SCENARIO_ID}           | BS15 5AA | Appeal to Crown Court                        | No  |          |
@@ -337,12 +337,11 @@ Feature: Applications List  - Bulk Result Selected
         Then User Should See The Button "Actions" Is Enabled
         When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Entries"
         Then User See "Result applications" On The Page
-        # Verify all 3 selected rows appear on the result page
+        # Verify only 2 and 3 are selected which are un-resulted
         Then User Should See Row In Table "Application(s) to result" With Values:
             | Sequence number | Applicant                   | Respondent                          | Application title                            |
             | 2               | Henry Taylor {SCENARIO_ID}  | Emily Clark {SCENARIO_ID}           | Appeal to Crown Court                        |
             | 3               | Sarah Johnson {SCENARIO_ID} | Greenfield Consulting {SCENARIO_ID} | Collection Order - Financial Penalty Account |
-            | 5               | James Brown {SCENARIO_ID}   | Laura Davis {SCENARIO_ID}           | Collection Order - Financial Penalty Account |
         # Warn Alert for applications which have already been resulted (row 5)
         Then User Sees Warning Alert "Application(s) which have already been resulted have been removed"
         Then User Should See The Button "Save changes" Is Disabled
@@ -383,12 +382,53 @@ Feature: Applications List  - Bulk Result Selected
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications list details"
-        # Verify rows 2, 3 have PROA and COST applied; row 5 retains pre-existing RTC; rows 1, 4, 6, 7, 8 unchanged
+        # Verify rows 2, 3 have RTC, PROA and COST applied; row 5 retains pre-existing RTC; rows 1, 4, 6, 7, 8 unchanged
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number  | Applicant                   | Respondent                          | Postcode | Title                                        | Fee | Resulted        |
-            | 2               | ACC-E2-{RANDOM} | Henry Taylor {SCENARIO_ID}  | Emily Clark {SCENARIO_ID}           | BS15 5AA | Appeal to Crown Court                        | No  | PROA, COST      |
-            | 3               | ACC-E3-{RANDOM} | Sarah Johnson {SCENARIO_ID} | Greenfield Consulting {SCENARIO_ID} | B1 1AA   | Collection Order - Financial Penalty Account | No  | PROA, COST      |
-            | 5               | ACC-E5-{RANDOM} | James Brown {SCENARIO_ID}   | Laura Davis {SCENARIO_ID}           | L1 1AA   | Collection Order - Financial Penalty Account | No  | RTC, PROA, COST |
+            | 2               | ACC-E2-{RANDOM} | Henry Taylor {SCENARIO_ID}  | Emily Clark {SCENARIO_ID}           | BS15 5AA | Appeal to Crown Court                        | No  | RTC, PROA, COST |
+            | 3               | ACC-E3-{RANDOM} | Sarah Johnson {SCENARIO_ID} | Greenfield Consulting {SCENARIO_ID} | B1 1AA   | Collection Order - Financial Penalty Account | No  | RTC, PROA, COST |
+            | 5               | ACC-E5-{RANDOM} | James Brown {SCENARIO_ID}   | Laura Davis {SCENARIO_ID}           | L1 1AA   | Collection Order - Financial Penalty Account | No  | RTC             |
+        # Select Only Resulted Rows and attempt to result again, should be blocked
+        When User Checks The Checkbox In Row Of Table "Entries" With:
+            | Sequence number | Account number  | Applicant                   | Respondent                          | Postcode | Title                                        | Fee | Resulted        |
+            | 2               | ACC-E2-{RANDOM} | Henry Taylor {SCENARIO_ID}  | Emily Clark {SCENARIO_ID}           | BS15 5AA | Appeal to Crown Court                        | No  | RTC, PROA, COST |
+            | 3               | ACC-E3-{RANDOM} | Sarah Johnson {SCENARIO_ID} | Greenfield Consulting {SCENARIO_ID} | B1 1AA   | Collection Order - Financial Penalty Account | No  | RTC, PROA, COST |
+            | 5               | ACC-E5-{RANDOM} | James Brown {SCENARIO_ID}   | Laura Davis {SCENARIO_ID}           | L1 1AA   | Collection Order - Financial Penalty Account | No  | RTC             |
+        Then User Should See The Button "Actions" Is Enabled
+        When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Entries"
+        Then User Sees Validation Error Banner "There is a problem Cannot result application(s) that have already been resulted"
+        When User Refreshes The Page
+        # Select Only Unresulted Rows and attempt to result
+        When User Checks The Checkbox In Row Of Table "Entries" With:
+            | Sequence number | Account number  | Applicant                          | Respondent                        | Postcode | Title                                                      | Fee | Resulted |
+            | 1               |                 | Test Acme Industries {SCENARIO_ID} | Test Respondent Ltd {SCENARIO_ID} | BS15 5AA | Appeal to Crown Court                                      | No  |          |
+            | 4               |                 | Apex Solutions Ltd {SCENARIO_ID}   | John Smith {SCENARIO_ID}          | LS1 1AA  | Appeal to Crown Court                                      | No  |          |
+            | 6               | ACC-E6-{RANDOM} | British Gas Trading Limited        | Robert Wilson {SCENARIO_ID}       | NE1 1AA  | Appeal to Crown Court                                      | No  |          |
+            | 7               | ACC-E7-{RANDOM} | Total Gas and Power                | Metro Finance Ltd {SCENARIO_ID}   | EH1 1AA  | Collection Order - Financial Penalty Account               | No  |          |
+            | 8               | ACC-E8-{RANDOM} | Daniel Hughes {SCENARIO_ID}        | Claire Hughes {SCENARIO_ID}       | CF10 2AA | Application for order re public health measures (premises) | Yes |          |
+        Then User Should See The Button "Actions" Is Enabled
+        When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Entries"
+        Then User See "Result applications" On The Page
+        Then User Should See Row In Table "Application(s) to result" With Values:
+            | Sequence number | Applicant                          | Respondent                        | Application title                                          |
+            | 1               | Test Acme Industries {SCENARIO_ID} | Test Respondent Ltd {SCENARIO_ID} | Appeal to Crown Court                                      |
+            | 4               | Apex Solutions Ltd {SCENARIO_ID}   | John Smith {SCENARIO_ID}          | Appeal to Crown Court                                      |
+            | 6               | British Gas Trading Limited        | Robert Wilson {SCENARIO_ID}       | Appeal to Crown Court                                      |
+            | 7               | Total Gas and Power                | Metro Finance Ltd {SCENARIO_ID}   | Collection Order - Financial Penalty Account               |
+            | 8               | Daniel Hughes {SCENARIO_ID}        | Claire Hughes {SCENARIO_ID}       | Application for order re public health measures (premises) |
+        Then User Selects "RTC - Refer to Court" From The Textbox "Result code" Autocomplete By Typing "RTC"
+        Then User Verifies The "RTC - Refer to Court" Summary Card Has Textbox With Placeholder "Enter a Date" And Enters "01/04/2026"
+        Then User Verifies The "RTC - Refer to Court" Summary Card Has Textbox With Placeholder "Enter a Courthouse" And Enters "Bristol Crown Court"
+        When User Clicks On The "Save changes" Button
+        Then User Sees Success Banner "Result codes applied successfully" Containing "Result code(s) 'RTC' applied successfully to application list entries"
+        Then User Clicks On The Breadcrumb Link "Applications list details"
+        Then User Should See Row In Table "Entries" With Values:
+            | Sequence number | Account number  | Applicant                          | Respondent                        | Postcode | Title                                                      | Fee | Resulted |
+            | 1               |                 | Test Acme Industries {SCENARIO_ID} | Test Respondent Ltd {SCENARIO_ID} | BS15 5AA | Appeal to Crown Court                                      | No  | RTC      |
+            | 4               |                 | Apex Solutions Ltd {SCENARIO_ID}   | John Smith {SCENARIO_ID}          | LS1 1AA  | Appeal to Crown Court                                      | No  | RTC      |
+            | 6               | ACC-E6-{RANDOM} | British Gas Trading Limited        | Robert Wilson {SCENARIO_ID}       | NE1 1AA  | Appeal to Crown Court                                      | No  | RTC      |
+            | 7               | ACC-E7-{RANDOM} | Total Gas and Power                | Metro Finance Ltd {SCENARIO_ID}   | EH1 1AA  | Collection Order - Financial Penalty Account               | No  | RTC      |
+            | 8               | ACC-E8-{RANDOM} | Daniel Hughes {SCENARIO_ID}        | Claire Hughes {SCENARIO_ID}       | CF10 2AA | Application for order re public health measures (premises) | No  | RTC      |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"

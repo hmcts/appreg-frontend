@@ -374,7 +374,7 @@ Feature: Applications List Entry Create
             Then User Should See The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
             Then User Should See The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
 
-      @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1561 @SC3
+      @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1561 @ARCPOC-1823 @SC3
       Scenario: Create and Open an ALE where Applicant = Standard Applicant, Respondent = Bulk Application using an Application Code with Fee Required = Y and Respondent Required = N
             Given User Authenticates Via API As "user1"
             # Create Application List
@@ -400,7 +400,7 @@ Feature: Applications List Entry Create
             Then User Enters "BGAS" Into The Textbox "Code" In The Accordion "Applicant"
             When User Clicks On The "Search" Button
             Then User Should See The Text "British Gas Trading Limited" In The Accordion "Applicant"
-            Then User Should See The Text "Millstream" In The Accordion "Applicant"
+            Then User Should See The Text "BGAS" In The Accordion "Applicant"
             Then User Checks The Checkbox With Label "Select BGAS" In The Accordion "Applicant"
             Then User Should See The Text "Currently selected BGAS British Gas Trading Limited" In The Accordion "Applicant"
             # Application Codes
@@ -459,8 +459,8 @@ Feature: Applications List Entry Create
                   | Select applicant type | Standard Applicant |
             Then User Should See The Text "Saved BGAS British Gas Trading Limited" In The Accordion "Applicant"
             Then User Verifies The Checkbox is Checked In Row Of Table "Standard applicants" In The Accordion "Applicant" With:
-                  | Code | Name                        | Address    | Use from   | Use to |
-                  | BGAS | British Gas Trading Limited | Millstream | 1 Jun 2016 | —      |
+                  | Code | Name                        | Use from   | Use to |
+                  | BGAS | British Gas Trading Limited | 1 Jun 2016 | —      |
             # Verify Application Codes Details
             Then User Verifies The Textbox "Application code" Contains "MH99001" In The Accordion "Application codes"
             Then User Verifies The Textbox "Application title" Contains "Issue of warrant of arrest in commitment proceedings - council tax (bulk)" In The Accordion "Application codes"

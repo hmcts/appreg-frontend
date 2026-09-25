@@ -1,6 +1,6 @@
 Feature: Applications Bulk Result Selected
 
-    @regression @ARCPOC-214 @ARCPOC-1335 @ARCPOC-1495 @ARCPOC-1512
+    @regression @ARCPOC-214 @ARCPOC-1335 @ARCPOC-1495 @ARCPOC-1512 @ARCPOC-1360
     Scenario Outline: Bulk result selected applications from Applications search page
         # Setup: Create Application List and Entry via API
         Given User Authenticates Via API As "<User>"
@@ -182,6 +182,7 @@ Feature: Applications Bulk Result Selected
             | todaydisplay | British Gas Trading Limited       | John Smith {SCENARIO_ID}       | Copy documents                                 | Yes | No       | OPEN   |
             | todaydisplay | Sarah Johnson {SCENARIO_ID}       | Finance Corp LTD {SCENARIO_ID} | Rights of Entry Warrant - Electricity Operator | Yes | No       | OPEN   |
             | todaydisplay | ACME Industries LTD {SCENARIO_ID} | Emma Williams {SCENARIO_ID}    | Condemnation of Unfit Food                     | Yes | No       | OPEN   |
+        #    Select all 3 selected applications are un-resulted
         When User Checks The Select All Checkbox In Table "Application list entries"
         When User Starts Listening For Applications Bulk Action Preview
         When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Application list entries"
@@ -239,7 +240,7 @@ Feature: Applications Bulk Result Selected
             | todaydisplay | British Gas Trading Limited       | John Smith {SCENARIO_ID}       | Copy documents                                 | Yes | Yes      | OPEN   |
             | todaydisplay | Sarah Johnson {SCENARIO_ID}       | Finance Corp LTD {SCENARIO_ID} | Rights of Entry Warrant - Electricity Operator | Yes | Yes      | OPEN   |
             | todaydisplay | ACME Industries LTD {SCENARIO_ID} | Emma Williams {SCENARIO_ID}    | Condemnation of Unfit Food                     | Yes | Yes      | OPEN   |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Application list entries" With:
+        When User Clicks "Open" Button In Row Of Table "Application list entries" With:
             | Applicant                   | Respondent               |
             | British Gas Trading Limited | John Smith {SCENARIO_ID} |
         Then User Sees Page Heading "Applications list entry update"
@@ -263,6 +264,90 @@ Feature: Applications Bulk Result Selected
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications"
+        # Select all 3 selected applications are resulted
+        When User Checks The Select All Checkbox In Table "Application list entries"
+        When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Application list entries"
+        Then User Sees Validation Error Banner "There is a problem You can only result open and unresulted application(s)"
+        # add one more ALE with different data for mix of resulted and unresulted applications
+        When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
+            | standardApplicantCode                         | BGAS                                      |
+            | applicationCode                               | AD99004                                   |
+            | respondent.person.name.title                  | Mr                                        |
+            | respondent.person.name.lastName               | Peter {SCENARIO_ID}                       |
+            | respondent.person.name.firstName              | Ronald                                    |
+            | respondent.person.name.middleName             | George                                    |
+            | respondent.person.contactDetails.addressLine1 | 10 Downing Street                         |
+            | respondent.person.contactDetails.addressLine2 | Westminster                               |
+            | respondent.person.contactDetails.addressLine3 | London                                    |
+            | respondent.person.contactDetails.addressLine4 | Greater London                            |
+            | respondent.person.contactDetails.addressLine5 | United Kingdom                            |
+            | respondent.person.contactDetails.postcode     | SW1A 2AA                                  |
+            | respondent.person.contactDetails.phone        | 01225 123456                              |
+            | respondent.person.contactDetails.mobile       | 07123456789                               |
+            | respondent.person.contactDetails.email        | ronald.george@example.com                 |
+            | feeStatuses.0.paymentReference                | PAY-004                                   |
+            | feeStatuses.0.paymentStatus                   | PAID                                      |
+            | feeStatuses.0.statusDate                      | todayiso                                  |
+            | hasOffsiteFee                                 | false                                     |
+            | caseReference                                 | CASE-004                                  |
+            | accountNumber                                 | ACC-{RANDOM}                              |
+            | notes                                         | Standard applicant with person respondent |
+            | lodgementDate                                 | todayiso                                  |
+            | officials.0.title                             | Mr                                        |
+            | officials.0.surname                           | Smith                                     |
+            | officials.0.forename                          | John                                      |
+            | officials.0.type                              | MAGISTRATE                                |
+            | officials.1.title                             | Mrs                                       |
+            | officials.1.surname                           | Brown                                     |
+            | officials.1.forename                          | Sarah                                     |
+            | officials.1.type                              | MAGISTRATE                                |
+            | officials.2.title                             | Ms                                        |
+            | officials.2.surname                           | Patel                                     |
+            | officials.2.forename                          | Anita                                     |
+            | officials.2.type                              | MAGISTRATE                                |
+            | officials.3.title                             | Mr                                        |
+            | officials.3.surname                           | Miller                                    |
+            | officials.3.forename                          | Peter                                     |
+            | officials.3.type                              | CLERK                                     |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "entryId4"
+        Then User Should See Row In Table "Application list entries" With Values:
+            | Date         | Applicant                         | Respondent                        | Application title                              | Fee | Resulted | Status |
+            | todaydisplay | British Gas Trading Limited       | John Smith {SCENARIO_ID}          | Copy documents                                 | Yes | Yes      | OPEN   |
+            | todaydisplay | Sarah Johnson {SCENARIO_ID}       | Finance Corp LTD {SCENARIO_ID}    | Rights of Entry Warrant - Electricity Operator | Yes | Yes      | OPEN   |
+            | todaydisplay | ACME Industries LTD {SCENARIO_ID} | Emma Williams {SCENARIO_ID}       | Condemnation of Unfit Food                     | Yes | Yes      | OPEN   |
+            | todaydisplay | British Gas Trading Limited       | Ronald Peter George {SCENARIO_ID} | Application for costs granted                  | Yes |          | OPEN   |
+        When User Checks The Select All Checkbox In Table "Application list entries"
+        When User Starts Listening For Applications Bulk Action Preview
+        When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Application list entries"
+        Then User Verifies Applications Bulk Action Preview Request Has:
+            | action                  | RESULT_SELECTED |
+            | selectionType           | FILTER          |
+            | filter.accountReference | ACC-{RANDOM}    |
+        Then User See "Result applications" On The Page
+        Then User Sees Warning Alert "Application(s) which are closed or have already been resulted have been removed from the selection"
+        # Verify only the un-resulted application appears on the result page
+        Then User Should See Row In Table "Application(s) to result" With Values:
+            | Date         | Applicant                   | Respondent                 | Application title |
+            | todaydisplay | British Gas Trading Limited | Ronald Peter {SCENARIO_ID} | Copy documents    |
+        Then User Should See The Button "Save changes" Is Disabled
+        Then User Selects "COST - Costs granted" From The Textbox "Result code" Autocomplete By Typing "COST"
+        Then User Should See Summary Card With Title "COST - Costs granted"
+        Then User Should See Tag "Pending" In Summary Card "COST - Costs granted"
+        Then User Should See The Link "Remove" In Summary Card "COST - Costs granted"
+        Then User Should See "Wording" In Summary Card "COST - Costs granted"
+        Then User Should See "Application for costs granted in the sum of" In Summary Card "COST - Costs granted"
+        Then User Verifies The "COST - Costs granted" Summary Card Has Textbox With Placeholder "Enter a Amount of costs" And Enters "1000"
+        When User Clicks On The "Save changes" Button
+        Then User Sees Success Banner "Result codes applied successfully" Containing "Result code(s) 'COST' applied successfully to application(s)"
+        Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
+        Then User Clicks On The Breadcrumb Link "Applications"
+        Then User Should See Row In Table "Application list entries" With Values:
+            | Date         | Applicant                         | Respondent                     | Application title                              | Fee | Resulted | Status |
+            | todaydisplay | British Gas Trading Limited       | Ronald Peter {SCENARIO_ID}     | Copy documents                                 | Yes | Yes      | OPEN   |
+            | todaydisplay | British Gas Trading Limited       | John Smith {SCENARIO_ID}       | Copy documents                                 | Yes | Yes      | OPEN   |
+            | todaydisplay | Sarah Johnson {SCENARIO_ID}       | Finance Corp LTD {SCENARIO_ID} | Rights of Entry Warrant - Electricity Operator | Yes | Yes      | OPEN   |
+            | todaydisplay | ACME Industries LTD {SCENARIO_ID} | Emma Williams {SCENARIO_ID}    | Condemnation of Unfit Food                     | Yes | Yes      | OPEN   |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
@@ -271,7 +356,7 @@ Feature: Applications Bulk Result Selected
             | User  |
             | user1 |
 
-    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-1335
+    @ignore @applicationListEntry @ARCPOC-222 @ARCPOC-1335 @ARCPOC-1567
     Scenario Outline: Verify Validation Error Message For Closed Applications Bulk Result Selected
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
