@@ -927,16 +927,28 @@ describe('ApplicationListEntryResultsFacade', () => {
         id: 'R-1',
         entryId: 'E-1',
         resultCode: 'RC1',
+        wording: {
+          template: 'Original wording',
+          'substitution-key-constraints': [],
+        },
       });
       const originalResult2 = makeResult({
         id: 'R-2',
         entryId: 'E-2',
         resultCode: 'RC1',
+        wording: {
+          template: 'Original wording',
+          'substitution-key-constraints': [],
+        },
       });
       const updatedResult1 = makeResult({
         id: 'R-1',
         entryId: 'E-1',
         resultCode: 'RC1',
+        wording: {
+          template: 'Updated wording',
+          'substitution-key-constraints': [],
+        },
       });
 
       facade.addCreatedEntryResults([originalResult1, originalResult2]);

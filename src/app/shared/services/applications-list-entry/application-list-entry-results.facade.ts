@@ -587,6 +587,10 @@ export class ApplicationListEntryResultsFacade {
       )
       .subscribe({
         next: (results) => {
+          this.mergeCreatedEntryResults(
+            results.flatMap((result) => this.toResultGetDtos(result)),
+          );
+
           const failedUpdate = results.find(
             (result): result is Extract<BulkResultUpdate, { success: false }> =>
               this.isBulkResultUpdate(result) && !result.success,
@@ -596,10 +600,6 @@ export class ApplicationListEntryResultsFacade {
             onError?.(failedUpdate.error);
             return;
           }
-
-          this.mergeCreatedEntryResults(
-            results.flatMap((result) => this.toResultGetDtos(result)),
-          );
 
           if (createRequests.length > 0) {
             this.clearPendingToken.update((n) => n + 1);
