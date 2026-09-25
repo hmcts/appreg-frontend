@@ -81,10 +81,12 @@ hmcts/appreg-api/.github/workflows/codex_jira_dispatch.yml@refs/heads/master
 hmcts/appreg-api/.github/workflows/codex_pr_review_feedback.yml@refs/heads/master
 hmcts/appreg-api/.github/workflows/codex_merge_conflict_resolution.yml@refs/heads/master
 hmcts/appreg-api/.github/workflows/codex_runner_smoke.yml@refs/heads/master
+hmcts/appreg-api/.github/workflows/codex_pr_review.yml@refs/heads/master
 hmcts/appreg-frontend/.github/workflows/codex_jira_dispatch.yml@refs/heads/master
 hmcts/appreg-frontend/.github/workflows/codex_pr_review_feedback.yml@refs/heads/master
 hmcts/appreg-frontend/.github/workflows/codex_merge_conflict_resolution.yml@refs/heads/master
 hmcts/appreg-frontend/.github/workflows/codex_runner_smoke.yml@refs/heads/master
+hmcts/appreg-frontend/.github/workflows/codex_pr_review.yml@refs/heads/master
 ```
 
 Register ARC against https://github.com/hmcts with runnerGroup appreg-codex.
@@ -119,6 +121,15 @@ permission. Feedback is bounded to ten API pages per collection and 64 KiB of
 prompt data, and is always treated as untrusted input. Oversized or unverifiable
 collections fail closed. If the PR head moves during collection, post a fresh
 command. /codex-resolve-conflicts continues to use conversation comments.
+
+Automatic PR reviews run for non-draft, same-repository PRs opened or updated
+by human actors. Dependabot and Renovate PRs are intentionally skipped because
+the Codex action does not grant those actors the required write access. Each
+head SHA is reviewed at most once: a marked `github-actions[bot]` comment is
+used as the review-state record, and a changed head creates a new marked
+comment so earlier findings remain visible. Published model output is treated
+as public content: credentials are redacted, `@` mentions are neutralised, and
+the comment is capped at GitHub's limit.
 
 Authentication smoke ends with the model Action. A separate credential-free
 job validates its structured message, and a separate GitHub-hosted publisher job

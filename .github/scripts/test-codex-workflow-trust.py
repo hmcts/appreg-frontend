@@ -50,6 +50,114 @@ class WorkflowTrustTests(unittest.TestCase):
                 self.check(False)
                 path.write_text(original)
 
+    def test_automatic_pr_review_requires_pull_request_target(self):
+        self.replace("codex_pr_review.yml", "  pull_request_target:", "  pull_request:")
+        self.check(False)
+
+    def test_automatic_pr_review_requires_master_base_branch(self):
+        self.replace("codex_pr_review.yml", "    branches: [master]", "    branches: [develop]")
+        self.check(False)
+
+    def test_automatic_pr_review_requires_all_configured_pr_activity(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "types: [opened, reopened, synchronize, ready_for_review]",
+            "types: [opened, reopened, ready_for_review]",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_rejects_draft_transition_trigger(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "types: [opened, reopened, synchronize, ready_for_review]",
+            "types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_rejects_forks(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "github.event.pull_request.head.repo.full_name == github.repository",
+            "github.event.pull_request.head.repo.full_name != github.repository",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_requires_draft_exclusion(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "github.event.pull_request.draft == false &&",
+            "",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_requires_review_state_gate(self):
+        self.replace("codex_pr_review.yml", "needs: review-state\n", "")
+        self.check(False)
+
+    def test_automatic_pr_review_requires_successful_review_state_output(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "needs.review-state.outputs.skip == 'false' &&",
+            "needs.review-state.outputs.skip != 'true' &&",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_requires_dependency_bot_exclusion(self):
+        self.replace("codex_pr_review.yml", "github.actor != 'dependabot[bot]' &&", "")
+        self.check(False)
+
+    def test_automatic_pr_review_cannot_checkout_pr_code(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "ref: ${{ github.event.pull_request.base.sha }}",
+            "ref: ${{ github.event.pull_request.head.sha }}",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_requires_full_base_history(self):
+        self.replace("codex_pr_review.yml", "fetch-depth: 0", "fetch-depth: 1")
+        self.check(False)
+
+    def test_automatic_pr_review_cannot_fetch_a_different_head(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "${PR_HEAD_SHA}:refs/remotes/origin/codex-pr/${PR_NUMBER}",
+            "refs/pull/${PR_NUMBER}/head:refs/remotes/origin/codex-pr/${PR_NUMBER}",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_requires_a_verified_merge_base(self):
+        self.replace("codex_pr_review.yml", "id: merge-base", "id: merge-base-disabled")
+        self.check(False)
+
+    def test_automatic_pr_review_must_diff_from_the_merge_base(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "git diff --no-ext-diff ${{ steps.merge-base.outputs.sha }} ${{ github.event.pull_request.head.sha }}",
+            "git diff --no-ext-diff ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_must_be_read_only(self):
+        self.replace("codex_pr_review.yml", "permission-profile: ':read-only'", "permission-profile: ':workspace'")
+        self.check(False)
+
+    def test_automatic_pr_review_cannot_publish_before_analysis(self):
+        self.replace("codex_pr_review.yml", "    needs: [review-state, analyze]", "    needs: []")
+        self.check(False)
+
+    def test_publisher_requires_successful_review_state_output(self):
+        self.replace(
+            "codex_pr_review.yml",
+            "if: needs.review-state.outputs.skip == 'false' && needs.analyze.outputs.final_message != ''",
+            "if: needs.review-state.outputs.skip != 'true' && needs.analyze.outputs.final_message != ''",
+        )
+        self.check(False)
+
+    def test_automatic_pr_review_failure_is_non_blocking(self):
+        self.replace("codex_pr_review.yml", "    continue-on-error: true", "    continue-on-error: false")
+        self.check(False)
+
     def test_missing_protected_environment_is_rejected(self):
         self.replace("codex_jira_dispatch.yml", "    environment: codex-model\n", "")
         self.check(False)
