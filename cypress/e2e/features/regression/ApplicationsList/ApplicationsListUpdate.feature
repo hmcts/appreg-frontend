@@ -1,6 +1,6 @@
 Feature: Applications List Update
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759 @ARCPOC-801
+    @regression @applicationsList @core @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759 @ARCPOC-801 @ARCPOC-1748 @ARCPOC-1822
     Scenario Outline: Update applications list Successfully with Other location and CJA selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -31,7 +31,7 @@ Feature: Applications List Update
         Then User Enters "<UpdatedOtherLocation>" Into The "Other location description" Textbox
         Then User Selects "<CJAValue>" From The Textbox "Criminal justice area" Autocomplete By Typing "<cjaCode>"
         When User Clicks On The "Update" Button
-        Then User Sees Success Banner "<SuccessBanner>"
+        Then User Sees Success Banner "<SuccessHeading>" Containing "<SuccessBody>"
         Then User Clicks On The Breadcrumb Link "Applications list"
         When User Searches Application List With:
             | Date         | Time | Description          | CourtSearch | Court | Status | Other location | CJA | CJASearch |
@@ -44,8 +44,8 @@ Feature: Applications List Update
         When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description        | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription         | UpdatedOtherLocation   | SuccessBanner                                                                      |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{SCENARIO_ID} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{SCENARIO_ID} | Updated Location_21442 | Success Application list updatedThe application list has been successfully updated |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description        | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription         | UpdatedOtherLocation   | SuccessHeading         | SuccessBody                                      |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{SCENARIO_ID} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{SCENARIO_ID} | Updated Location_21442 | Application list updated | The application list has been successfully updated |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759 @ARCPOC-801
     Scenario Outline: Update applications list Successfully with Court selected
@@ -79,7 +79,7 @@ Feature: Applications List Update
         Then User Clears The "Court" Textbox
         Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
         When User Clicks On The "Update" Button
-        Then User Sees Success Banner "<SuccessBanner>"
+        Then User Sees Success Banner "<SuccessHeading>" Containing "<SuccessBody>"
         Then User Clicks On The Breadcrumb Link "Applications list"
         When User Searches Application List With:
             | Date         | Time | Description          | CourtSearch | Court | Status | Other location | CJA | CJASearch |
@@ -92,8 +92,8 @@ Feature: Applications List Update
         When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
-            | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description        | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessBanner                                                                      |
-            | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{SCENARIO_ID} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        | Success Application list updatedThe application list has been successfully updated |
+            | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description        | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessHeading         | SuccessBody                                      |
+            | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{SCENARIO_ID} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        | Application list updated | The application list has been successfully updated |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-852 @ARCPOC-1759 @ARCPOC-801
     Scenario Outline: Update applications list Successfully with field validations
@@ -161,10 +161,10 @@ Feature: Applications List Update
         Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
         When User Set "<UpdatedHH>" and "<UpdatedMM>" In The "Duration" Field
         When User Clicks On The "Update" Button
-        Then User Sees Success Banner "<SuccessMessage>"
+        Then User Sees Success Banner "<SuccessHeading>" Containing "<SuccessBody>"
         Examples:
-            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description               | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                         | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation           | InvalidCJAValue | InvalidCourtValue | SuccessMessage                                                                     |
-            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {SCENARIO_ID} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {SCENARIO_ID} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {SCENARIO_ID} | InvalidCJA      | InvalidCourt      | Success Application list updatedThe application list has been successfully updated |
+            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description               | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                         | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation           | InvalidCJAValue | InvalidCourtValue | SuccessHeading         | SuccessBody                                      |
+            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {SCENARIO_ID} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {SCENARIO_ID} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {SCENARIO_ID} | InvalidCJA      | InvalidCourt      | Application list updated | The application list has been successfully updated |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1759
     Scenario Outline: Close application list with NO ALE
@@ -197,7 +197,7 @@ Feature: Applications List Update
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
-        Then User Sees Success Banner "Success Application list closed successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Application list closed successfully" Containing "If you believe this was in error, please contact support."
         Examples:
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description        | Status     | BeforeUpdateStatus | durationHours | durationMinutes |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {SCENARIO_ID} | Close list | OPEN               | 3             | 3               |
@@ -390,7 +390,7 @@ Feature: Applications List Update
         Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
-        Then User Sees Success Banner "Success Application list closed successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Application list closed successfully" Containing "If you believe this was in error, please contact support."
         # ARCPOC-1437 Verify Closed ALE cannot be opened
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"

@@ -1,5 +1,18 @@
 #!groovy
 
+import uk.gov.hmcts.contino.GithubAPI
+
+properties([
+  copyArtifactPermission('*'),
+  parameters([
+    choice(
+      name: 'RegressionSuite',
+      choices: ['Core', 'Full', 'Skip'],
+      description: 'Select one regression suite to run'
+    )
+  ])
+])
+
 @Library('Infrastructure@2.4.4')
 
 def type = 'angular'
@@ -56,13 +69,93 @@ def publishFunctionalReports = {
   ])
 }
 
+// PR labels can override the selected regression suite.
+def getRegressionSuiteFromLabels() {
+  def githubApi = new GithubAPI(this)
+
+  def skipRegressionTests = githubApi
+    .getLabelsbyPattern(env.BRANCH_NAME, 'skip_regression_tests')
+    .any { label -> label == 'skip_regression_tests' }
+
+  if (skipRegressionTests) {
+    return 'Skip'
+  }
+
+  def runFullRegression = githubApi
+    .getLabelsbyPattern(env.BRANCH_NAME, 'run_full_regression')
+    .any { label -> label == 'run_full_regression' }
+
+  if (runFullRegression) {
+    return 'Full'
+  }
+}
+
+def yarnBuilder = new uk.gov.hmcts.contino.YarnBuilder(this)
+
 withPipeline(type, product, component) {
   overrideVaultEnvironments(vaultOverrides)
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
 
+  // Labels take precedence
+  def regressionSuite = getRegressionSuiteFromLabels() ?: (params.RegressionSuite ?: 'Core')
+
+  echo 'Regression suite type that will be run: ' + regressionSuite
+
   afterAlways('functionalTest:dev') {
     script { publishFunctionalReports() }
+    yarnBuilder.yarn('cypress:clean:reports')
+
+    if (regressionSuite == 'Skip') {
+      stage('Core regression test') {
+        echo 'Skipped by skip_regression_tests'
+      }
+      return
+    }
+
+    // opt-in tag for a full regression test
+    if (regressionSuite == 'Full') {
+      stage('Full regression test') {
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Full regression tests failed') {
+          try {
+            yarnBuilder.yarn('test:parallel:regression:chrome')
+          } finally {
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
+            junit allowEmptyResults: true, testResults: 'functional-output/**/*.xml,cypress/reports/junit/**/*.xml'
+
+            publishHTML target: [
+              allowMissing         : true,
+              alwaysLinkToLastBuild: true,
+              keepAll              : true,
+              reportDir            : 'functional-output/chrome/regression/cucumber-html',
+              reportFiles          : 'detailed-test-report.html',
+              reportName           : 'Cucumber Full Regression Test Report'
+            ]
+          }
+        }
+      }
+    }
+
+    if (regressionSuite == 'Core') {
+      stage('Core regression test') {
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Core regression tests failed') {
+          try {
+            yarnBuilder.yarn('test:parallel:regression:core:chrome')
+          } finally {
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
+            junit allowEmptyResults: true, testResults: 'functional-output/**/*.xml,cypress/reports/junit/**/*.xml'
+            publishHTML target: [
+              allowMissing         : true,
+              alwaysLinkToLastBuild: true,
+              keepAll              : true,
+              reportDir            : 'functional-output/chrome/regression/cucumber-html',
+              reportFiles          : 'detailed-test-report.html',
+              reportName           : 'Cucumber Core Regression Test Report'
+            ]
+          }
+        }
+      }
+    }
   }
 
   afterAlways('functionalTest:stg') {

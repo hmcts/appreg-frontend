@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, Subject, defer, of, throwError } from 'rxjs';
 
 import {
   ApplicationListEntryResultsApi,
@@ -19,6 +19,17 @@ function makeResult(overrides: Partial<ResultGetDto>): ResultGetDto {
     resultCode: 'RC1',
     ...overrides,
   } as unknown as ResultGetDto;
+}
+
+function makePendingResultRow(resultCode: string): PendingResultRow {
+  return {
+    kind: 'pending',
+    tempId: `tmp-${resultCode.toLowerCase()}`,
+    resultCode,
+    display: `${resultCode} - Result`,
+    wordingFields: [],
+    wording: '',
+  };
 }
 
 function makeDetail(
@@ -412,6 +423,51 @@ describe('ApplicationListEntryResultsFacade', () => {
       expect(facade.pendingRows()).toEqual([]);
       expect(onSuccess).toHaveBeenCalled();
     });
+
+    it('subscribes to pending result creates sequentially', () => {
+      const onSuccess = jest.fn();
+      const subscriptions: string[] = [];
+      const auth = new Subject<ResultGetDto>();
+      const proa = new Subject<ResultGetDto>();
+
+      entryResultsApi.createApplicationListEntryResult
+        .mockReturnValueOnce(
+          defer(() => {
+            subscriptions.push('AUTH');
+            return auth;
+          }),
+        )
+        .mockReturnValueOnce(
+          defer(() => {
+            subscriptions.push('PROA');
+            return proa;
+          }),
+        );
+
+      facade.submitResultChanges(
+        'L-1',
+        'E-1',
+        {
+          pendingToCreate: [
+            makePendingResultRow('AUTH'),
+            makePendingResultRow('PROA'),
+          ],
+          existingToUpdate: [],
+        },
+        onSuccess,
+      );
+
+      expect(subscriptions).toEqual(['AUTH']);
+
+      auth.next(makeResult({ id: 'R-1', entryId: 'E-1', resultCode: 'AUTH' }));
+      auth.complete();
+      expect(subscriptions).toEqual(['AUTH', 'PROA']);
+
+      proa.next(makeResult({ id: 'R-2', entryId: 'E-1', resultCode: 'PROA' }));
+      proa.complete();
+
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('submitResultChangesForEntries', () => {
@@ -532,6 +588,140 @@ describe('ApplicationListEntryResultsFacade', () => {
         },
       });
       expect(onSuccess).toHaveBeenCalled();
+    });
+
+    it('subscribes to bulk result requests in order and succeeds after all requests complete', () => {
+      const onSuccess = jest.fn();
+      const subscriptions: string[] = [];
+      const first = new Subject<ResultGetDto[]>();
+      const second = new Subject<ResultGetDto[]>();
+      const third = new Subject<ResultGetDto[]>();
+
+      entryResultsApi.bulkResultApplicationListEntries
+        .mockReturnValueOnce(
+          defer(() => {
+            subscriptions.push('RTC');
+            return first;
+          }),
+        )
+        .mockReturnValueOnce(
+          defer(() => {
+            subscriptions.push('PROA');
+            return second;
+          }),
+        )
+        .mockReturnValueOnce(
+          defer(() => {
+            subscriptions.push('COST');
+            return third;
+          }),
+        );
+
+      facade.submitResultChangesForEntries(
+        'L-1',
+        ['E-1'],
+        {
+          pendingToCreate: [
+            {
+              resultCode: 'RTC',
+              wordingFields: [],
+            } as unknown as PendingResultRow,
+            {
+              resultCode: 'PROA',
+              wordingFields: [],
+            } as unknown as PendingResultRow,
+            {
+              resultCode: 'COST',
+              wordingFields: [],
+            } as unknown as PendingResultRow,
+          ],
+          existingToUpdate: [],
+        },
+        onSuccess,
+      );
+
+      expect(subscriptions).toEqual(['RTC']);
+
+      first.next([
+        makeResult({ id: 'R-1', entryId: 'E-1', resultCode: 'RTC' }),
+      ]);
+      first.complete();
+      expect(subscriptions).toEqual(['RTC', 'PROA']);
+
+      second.next([
+        makeResult({ id: 'R-2', entryId: 'E-1', resultCode: 'PROA' }),
+      ]);
+      second.complete();
+      expect(subscriptions).toEqual(['RTC', 'PROA', 'COST']);
+
+      third.next([
+        makeResult({ id: 'R-3', entryId: 'E-1', resultCode: 'COST' }),
+      ]);
+      third.complete();
+
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+      expect(facade.newlyCreatedEntryResults()).toHaveLength(3);
+    });
+
+    it('stops later bulk result requests when a request fails', () => {
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      const subscriptions: string[] = [];
+      const first = new Subject<ResultGetDto[]>();
+      const conflict = new Error('conflict');
+
+      entryResultsApi.bulkResultApplicationListEntries
+        .mockReturnValueOnce(
+          defer(() => {
+            subscriptions.push('RTC');
+            return first;
+          }),
+        )
+        .mockReturnValueOnce(
+          defer(() => {
+            subscriptions.push('PROA');
+            return throwError(() => conflict);
+          }),
+        )
+        .mockReturnValueOnce(
+          defer(() => {
+            subscriptions.push('COST');
+            return of([]);
+          }),
+        );
+
+      facade.submitResultChangesForEntries(
+        'L-1',
+        ['E-1'],
+        {
+          pendingToCreate: [
+            {
+              resultCode: 'RTC',
+              wordingFields: [],
+            } as unknown as PendingResultRow,
+            {
+              resultCode: 'PROA',
+              wordingFields: [],
+            } as unknown as PendingResultRow,
+            {
+              resultCode: 'COST',
+              wordingFields: [],
+            } as unknown as PendingResultRow,
+          ],
+          existingToUpdate: [],
+        },
+        onSuccess,
+        onError,
+      );
+
+      first.next([
+        makeResult({ id: 'R-1', entryId: 'E-1', resultCode: 'RTC' }),
+      ]);
+      first.complete();
+
+      expect(subscriptions).toEqual(['RTC', 'PROA']);
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledWith(conflict);
     });
 
     it('keeps pending rows and calls onError when the bulk request fails', () => {
@@ -737,16 +927,28 @@ describe('ApplicationListEntryResultsFacade', () => {
         id: 'R-1',
         entryId: 'E-1',
         resultCode: 'RC1',
+        wording: {
+          template: 'Original wording',
+          'substitution-key-constraints': [],
+        },
       });
       const originalResult2 = makeResult({
         id: 'R-2',
         entryId: 'E-2',
         resultCode: 'RC1',
+        wording: {
+          template: 'Original wording',
+          'substitution-key-constraints': [],
+        },
       });
       const updatedResult1 = makeResult({
         id: 'R-1',
         entryId: 'E-1',
         resultCode: 'RC1',
+        wording: {
+          template: 'Updated wording',
+          'substitution-key-constraints': [],
+        },
       });
 
       facade.addCreatedEntryResults([originalResult1, originalResult2]);

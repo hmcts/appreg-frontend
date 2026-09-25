@@ -160,6 +160,23 @@ describe('http-error-mapper', () => {
       );
     });
 
+    it('maps 409 -> conflict guidance without retrying the request', () => {
+      const s = mapHttpErrorToSummary({
+        status: 409,
+        error: {
+          title: 'There is a problem',
+          detail: 'The resource was changed by another request.',
+        },
+      });
+      fatal(s);
+
+      expect(s.errorHint).toBe('There is a problem');
+      expect(s.errorSummary).toEqual([
+        { text: 'The resource was changed by another request.' },
+        { text: 'Refresh the page and try again later.' },
+      ]);
+    });
+
     it('maps 0 and >=500 -> server error summary', () => {
       const s0 = mapHttpErrorToSummary({ status: 0, error: {} });
       fatal(s0);

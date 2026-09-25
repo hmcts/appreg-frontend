@@ -129,7 +129,7 @@ Feature: Applications List Search
     Then User Verifies The "Court" Textbox Has Value "LCCC065 - Leeds Combined Court Centre Set 7"
     Then User Should See Table "Lists" Has Rows
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-759
+  @regression @applicationsList @core @ARCPOC-214 @ARCPOC-452 @ARCPOC-759 @ARCPOC-1748 @ARCPOC-1822
   Scenario Outline: Filter and verify applications list with multiple filters
     When User Signs In With Microsoft SSO As "<User>"
     # Test Description and status filter

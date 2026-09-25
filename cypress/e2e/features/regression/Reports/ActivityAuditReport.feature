@@ -52,7 +52,7 @@ Feature: Activity Audit Report
     When User Clicks On The "Download CSV" Button
     Then User Sees Validation Error Banner "At least 1 activity is required"
 
-  @regression @reports @ARCPOC-383
+  @regression @reports @core @ARCPOC-383 @ARCPOC-1748 @ARCPOC-1822
   Scenario: Activity Audit Report - Valid date fields
     When User Signs In With Microsoft SSO As "user1"
     Then User Clears Downloaded CSVs

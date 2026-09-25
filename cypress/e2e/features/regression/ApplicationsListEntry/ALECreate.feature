@@ -1,6 +1,6 @@
 Feature: Applications List Entry Create
 
-      @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-635 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC1
+      @applicationListEntry @regression @core @ARCPOC-222 @ARCPOC-427 @ARCPOC-635 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1748 @ARCPOC-1822 @SC1
       Scenario: Create and Open an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
             Given User Authenticates Via API As "user1"
             # Create Application List
@@ -444,7 +444,6 @@ Feature: Applications List Entry Create
             # Submit Application
             When User Clicks On The "Create entry" Button
             Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
-
             # ---------------OPEN APPLICATION LIST ENTRY-----------@ARCPOC-635 SC3
 
             Then User Clicks On The Breadcrumb Link "Applications list details"

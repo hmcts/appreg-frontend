@@ -45,22 +45,6 @@ export class BannerHelper {
       'not.exist',
     );
   }
-  static verifySuccessBanner(
-    message: string,
-    options: BannerVerificationOptions = {},
-  ): void {
-    BannerElement.getSuccessAlert()
-      .should('be.visible')
-      .should(($banner) => {
-        const actualText = $banner.text();
-        const normalizedActual = StringUtils.normalizeText(actualText);
-        expect(normalizedActual).to.include(message);
-      })
-      .then(($banner) => {
-        this.verifyBannerAbovePageHeader($banner, options);
-      });
-  }
-
   static verifyErrorBanner(
     expectedText: string,
     options: BannerVerificationOptions = {},

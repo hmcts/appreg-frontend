@@ -38,7 +38,7 @@ Feature: Applications Search
             | User  | SearchDate | NotificationMessage                                               |
             | user1 | 15/08/2023 | Important No application list entries found Try different filters |
 
-    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1437 @ARCPOC-1445 @ARCPOC-1771
+    @regression @core @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1437 @ARCPOC-1445 @ARCPOC-1771 @ARCPOC-1748 @ARCPOC-1822
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Court, Applicant Orgs and Respondent Orgs
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
