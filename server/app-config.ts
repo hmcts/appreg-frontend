@@ -2,6 +2,7 @@ import config from 'config';
 
 export interface BrowserAppConfig {
   environment: string;
+  reportNavigationModalEnabled: boolean;
   appInsights: {
     connectionString: string | null;
     enabled: boolean;
@@ -45,6 +46,9 @@ export default function appConfig(): BrowserAppConfig {
 
   return {
     environment,
+    reportNavigationModalEnabled: config.get<boolean>(
+      'reportNavigationModalEnabled',
+    ),
     appInsights: {
       enabled,
       connectionString: enabled ? connectionString : null,

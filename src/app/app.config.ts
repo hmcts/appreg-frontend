@@ -15,7 +15,11 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
 } from '@angular/core';
-import { provideRouter, withPreloading } from '@angular/router';
+import {
+  provideRouter,
+  withPreloading,
+  withRouterConfig,
+} from '@angular/router';
 
 import { routes } from './app.routes';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
@@ -37,7 +41,12 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes, withPreloading(SelectivePreloadingStrategy)),
+    provideRouter(
+      routes,
+      withPreloading(SelectivePreloadingStrategy),
+      // Restore the history position when the report dialog cancels Back/Forward.
+      withRouterConfig({ canceledNavigationResolution: 'computed' }),
+    ),
     provideAppInitializer(() => {
       const appConfigService = inject(AppConfigService);
       const telemetryService = inject(TelemetryService);

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { Observable } from 'rxjs';
 
 import { HomeComponent } from '@components/home/home.component';
 import { Login } from '@components/login/login.component';
@@ -240,7 +241,10 @@ export const routes: Routes = [
   },
   {
     path: 'reports',
-    canDeactivate: [(component: Reports): boolean => component.canLeave()],
+    canDeactivate: [
+      (component: Reports): boolean | Observable<boolean> =>
+        component.canLeave(),
+    ],
     loadComponent: () =>
       import('@components/reports/reports.component').then((m) => m.Reports),
     canActivate: [sessionGuard],
