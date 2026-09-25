@@ -33,6 +33,7 @@ import {
   effect,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -41,7 +42,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Subscription, take } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 
 import {
   ReportsState,
@@ -58,6 +59,7 @@ import {
 import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
+import { ConfirmationDialogComponent } from '@components/confirmation-dialog/confirmation-dialog.component';
 import { DurationSectionComponent } from '@components/duration-section/duration-section.component';
 import {
   ErrorItem,
@@ -76,6 +78,7 @@ import {
   REPORT_ERROR_HREFS,
 } from '@constants/reports/report-err';
 import { reportOptions } from '@constants/reports/report-selector.constant';
+import { AppConfigService } from '@core/services/app-config.service';
 import {
   CreateActivityAuditReportRequestParams,
   CreateDurationReportRequestParams,
@@ -152,12 +155,14 @@ const REPORT_LOCATION_RESET_VALUE = {
     SuccessBannerComponent,
     AsyncJobProgressComponent,
     HelpDetailsComponent,
+    ConfirmationDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './reports.component.html',
 })
 export class Reports extends PlaceFieldsBase implements OnInit {
   private readonly componentDestroyRef = inject(DestroyRef);
+  private readonly appConfig = inject(AppConfigService);
   private readonly document = inject(DOCUMENT);
   private readonly jobPollingFacade = inject(JobPollingFacade);
   private readonly platformId = inject(PLATFORM_ID);
@@ -169,6 +174,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     createSignalState<ReportsState>(initialReportsState);
   private readonly reportStatePatch = this.reportState.patch;
   readonly vm = this.reportState.vm;
+
+  private readonly leaveDialog = viewChild(ConfirmationDialogComponent);
 
   private previousReportId: ReportId | null = null;
   private reportPollingSub: Subscription | null = null;
@@ -338,7 +345,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   constructor() {
     super();
     effect((onCleanup) => {
-      if (!isPlatformBrowser(this.platformId) || !this.isReportInProgress()) {
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
+      }
+      if (!this.isReportInProgress()) {
+        // Stay on the report page when it completes while confirmation is open.
+        this.leaveDialog()?.dismiss();
         return;
       }
 
@@ -354,14 +366,18 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  canLeave(): boolean {
-    return (
-      !isPlatformBrowser(this.platformId) ||
-      !this.isReportInProgress() ||
-      this.document.defaultView?.confirm(
-        'Your report is still being generated or downloaded. If you leave this page, you will not receive it. Leave this page?',
-      ) === true
-    );
+  canLeave(): boolean | Observable<boolean> {
+    if (!isPlatformBrowser(this.platformId) || !this.isReportInProgress()) {
+      return true;
+    }
+    if (!this.appConfig.getAppConfig().reportNavigationModalEnabled) {
+      return (
+        this.document.defaultView?.confirm(
+          'Your report is still being generated or downloaded. If you leave this page, you will not receive it. Leave this page?',
+        ) === true
+      );
+    }
+    return this.leaveDialog()?.confirm() ?? false;
   }
 
   ngOnInit(): void {

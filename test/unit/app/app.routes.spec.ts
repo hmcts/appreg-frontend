@@ -1,3 +1,5 @@
+import { Observable, of } from 'rxjs';
+
 import { routes } from '../../../src/app/app.routes';
 
 describe('app.routes', () => {
@@ -14,7 +16,16 @@ describe('app.routes', () => {
     },
   );
 
-  it('lazy loads top-level feature routes', () => {
+  it('passes an asynchronous report navigation decision to the router unchanged', () => {
+    const decision = of(false);
+    const guard = routes.find((route) => route.path === 'reports')
+      ?.canDeactivate?.[0] as (component: {
+      canLeave: () => Observable<boolean>;
+    }) => Observable<boolean>;
+    expect(guard({ canLeave: () => decision })).toBe(decision);
+  });
+
+  it('lazy loads top-level feature routes', async () => {
     const applicationsRoute = routes.find(
       (route) => route.path === 'applications',
     );
@@ -39,6 +50,15 @@ describe('app.routes', () => {
 
     expect(reportsRoute?.loadComponent).toBeDefined();
     expect(reportsRoute?.component).toBeUndefined();
+
+    for (const route of [
+      applicationsRoute,
+      standardApplicantsIndexRoute,
+      standardApplicantsDetailRoute,
+      reportsRoute,
+    ]) {
+      expect(typeof (await route?.loadComponent?.())).toBe('function');
+    }
   });
 
   it('lazy loads applications-list pages that were previously eager', () => {

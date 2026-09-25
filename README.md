@@ -222,6 +222,17 @@ required.
 
 Note: this does not actively watch and rebuild on any new changes. Use yarn dev:stg or yarn dev:stub for this instead.
 
+## Report navigation confirmation
+
+The custom report navigation modal is enabled by default. To restore the native
+browser confirmation, start the frontend server with
+`REPORT_NAVIGATION_MODAL_ENABLED=false`. Restart the server and reload the page
+when changing this flag. The setting is delivered at runtime through
+`GET /app/config`; it does not require a frontend rebuild.
+
+Refresh and tab-close warnings always remain browser-native. The modal's close
+button and Escape both mean “Stay on this page”.
+
 ## Application Insights
 
 Frontend browser telemetry is configured at runtime from `GET /app/config`.
