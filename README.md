@@ -654,8 +654,3 @@ yarn branch:run
 # Enforce (deletes eligible branches for the latest batch):
 yarn branch:enforce
 ```
-
-### PR options
-
-- `enable_keep_helm`: Retains deployed dev pod allowing you to navigate to it and test changes in a "prod like" environment (requires VPN).
-- `run_full_regression`: By default, all PRs will run a core regression pack. This label will run the full regression suite.
