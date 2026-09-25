@@ -118,10 +118,12 @@ Feature: Applications List Entry Update
         Then User Enters "Zanetti{SCENARIO_ID}" In The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
         When User Clicks On The "Save recording officials" Button
         Then User Sees Success Banner "Officials updated" Containing "Officials have been updated for this application list entry."
+        When User Starts Listening For Result Retrieval
         When User Clicks On The "Save complete application" Button
         Then User Sees Success Banner "Application list entry updated" Containing "The application list entry has been updated successfully."
         # Result Wording - Timestamp
-        Then User Should See "Updated on todaydisplay at" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Stores Updated Date Time For Result "PROA" From Result Retrieval As "proaUpdatedDateTime"
+        Then User Verifies The Local Updated Date And Time In Summary Card "PROA - Production Order (to allow access)" From Alias "proaUpdatedDateTime"
         # Remove Result to check 'Removed' banner
         Then User Clicks The Link "Remove" In Summary Card "PROA - Production Order (to allow access)"
         Then User Sees Success Banner "Result removed" Containing "The result has been removed from this application list entry."

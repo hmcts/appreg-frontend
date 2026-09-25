@@ -1,4 +1,4 @@
-import { Then } from '@badeball/cypress-cucumber-preprocessor';
+import { Then, When } from '@badeball/cypress-cucumber-preprocessor';
 
 import { SummaryCardHelper } from '../../../../support/helper/forms/summarycard/SummaryCardHelper';
 
@@ -34,6 +34,48 @@ Then(
   'User Should See {string} In Summary Card {string}',
   (expectedText: string, cardTitle: string) => {
     SummaryCardHelper.verifyTextInCard(cardTitle, expectedText);
+  },
+);
+
+When('User Starts Listening For Result Retrieval', () => {
+  cy.intercept('GET', '**/application-lists/*/entries/*/results**').as(
+    'resultRetrieval',
+  );
+});
+
+Then(
+  'User Stores Updated Date Time For Result {string} From Result Retrieval As {string}',
+  (resultCode: string, aliasName: string) => {
+    cy.wait('@resultRetrieval').then(({ response }) => {
+      const body = response?.body as
+        | { content?: { resultCode?: string; updatedDateTime?: string }[] }
+        | undefined;
+      const result = body?.content?.find(
+        (item) => item.resultCode === resultCode,
+      );
+
+      if (!result) {
+        throw new Error(
+          `Result ${resultCode} was not found in the retrieval response.`,
+        );
+      }
+      if (!result.updatedDateTime) {
+        throw new Error(
+          `Result ${resultCode} did not include an updatedDateTime.`,
+        );
+      }
+
+      cy.wrap(result.updatedDateTime).as(aliasName);
+    });
+  },
+);
+
+Then(
+  'User Verifies The Local Updated Date And Time In Summary Card {string} From Alias {string}',
+  (cardTitle: string, aliasName: string) => {
+    cy.get<string>(`@${aliasName}`).then((updatedDateTime) => {
+      SummaryCardHelper.verifyUpdatedDateTimeInCard(cardTitle, updatedDateTime);
+    });
   },
 );
 

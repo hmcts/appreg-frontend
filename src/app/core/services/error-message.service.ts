@@ -1,5 +1,6 @@
+import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import {
@@ -111,6 +112,7 @@ const ignoredEndpoints: EndpointRule[] = [
 @Injectable({ providedIn: 'root' })
 export class ErrorMessageService {
   private readonly router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID);
 
   private readonly _errorMessage = signal<ErrorMessage | null>(null);
 
@@ -199,6 +201,10 @@ export class ErrorMessageService {
   }
 
   private showGlobalErrorPage(route: string): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     void this.router.navigateByUrl(route);
   }
 

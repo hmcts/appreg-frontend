@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpRequest } from '@angular/common/http';
-import { ErrorHandler } from '@angular/core';
+import { ErrorHandler, PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { throwError } from 'rxjs';
@@ -28,6 +28,7 @@ describe('errorInterceptor', () => {
         { provide: ErrorHandler, useValue: errorHandler },
         { provide: ErrorMessageService, useValue: errorMessageService },
         { provide: TelemetryService, useValue: telemetryService },
+        { provide: PLATFORM_ID, useValue: 'browser' },
       ],
     });
   });
@@ -116,6 +117,31 @@ describe('errorInterceptor', () => {
         );
 
         expect(errorHandler.handleError).toHaveBeenCalledTimes(1);
+        expect(errorHandler.handleError).toHaveBeenCalledWith(err);
+
+        done();
+      },
+    });
+  });
+
+  it('does not navigate to /login on server-side 401s', (done) => {
+    TestBed.overrideProvider(PLATFORM_ID, { useValue: 'server' });
+
+    const err = new HttpErrorResponse({
+      status: 401,
+      statusText: 'Unauthorized',
+      url: '/api/foo',
+    });
+
+    runInterceptorWithError(err).subscribe({
+      next: () => done.fail('expected error'),
+      error: (e) => {
+        expect(e).toBe(err);
+
+        expect(router.navigate).not.toHaveBeenCalled();
+        expect(errorMessageService.handleErrorMessage).toHaveBeenCalledWith(
+          err,
+        );
         expect(errorHandler.handleError).toHaveBeenCalledWith(err);
 
         done();

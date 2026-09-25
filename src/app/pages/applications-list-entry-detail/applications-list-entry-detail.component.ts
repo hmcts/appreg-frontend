@@ -17,7 +17,7 @@
       - Manages success banners and scroll/focus behaviour for validation and server errors
       - TODO: Eventually use generic components/services for banners & scroll/focus behavior
 */
-import { Location } from '@angular/common';
+import { Location, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -341,6 +341,10 @@ export class ApplicationsListEntryDetail implements OnInit {
     // Watch applicantType changes
     this.bindApplicantTypeChanges();
     this.bindRespondentValidationChanges();
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
 
     this.loadEntryAndPatchForm(listId, entryId, pr, state);
 

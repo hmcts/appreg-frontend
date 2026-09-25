@@ -1,7 +1,7 @@
 @ARCPOC-1823
 Feature: Standard Applicants
 
-    @regression @standardApplicants @ARCPOC-1189 @ARCPOC-762
+    @regression @standardApplicants @ARCPOC-1189 @ARCPOC-762 @ARCPOC-1823
     Scenario Outline: Verify Standard Applicant sorting behaviour
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
@@ -51,7 +51,7 @@ Feature: Standard Applicants
             | TableName           |
             | Standard applicants |
 
-    @regression @standardApplicants @core @ARCPOC-762 @ARCPOC-1748 @ARCPOC-1822
+    @regression @standardApplicants @core @ARCPOC-762 @ARCPOC-1823 @ARCPOC-1748 @ARCPOC-1822
     Scenario Outline: Verify Standard Applicant Search functionality
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
@@ -83,7 +83,7 @@ Feature: Standard Applicants
             | ExceedingLengthCode | ExceedingLengthName                                                                                             | InvalidCode | Code | TableName           | Name                        |
             | 12345678901         | A very long name that exceeds the maximum length of 100 characters for a standard applicant name in the system. | 1234567890  | ad   | Standard applicants | ADVANCED COLLECTION SYSTEMS |
 
-    @regression @standardApplicants @ARCPOC-766
+    @regression @standardApplicants @ARCPOC-766 @ARCPOC-1823
     Scenario: View a Standard Applicant in read-only mode
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
@@ -105,9 +105,9 @@ Feature: Standard Applicants
         And User Should See Summary List Row With Key "Standard applicant name" And Value "British Gas Trading Limited"
         And User Should See Summary List Row With Key "Use from" And Value "1 Jun 2016"
 
-    @regression @standardApplicants @ARCPOC-243 @ARCPOC-1613 @ARCPOC-1774
+    @regression @standardApplicants @ARCPOC-243 @ARCPOC-1613 @ARCPOC-1774 @ARCPOC-1823
     Scenario: Export Standard Applicants as a CSV
-        And User Has No Downloaded CSVs
+        Given User Has No Downloaded CSVs
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Standard applicants"
         Then User Verify The Page URL Contains "/standard-applicants"
@@ -118,7 +118,7 @@ Feature: Standard Applicants
         Then User Should See Table "Standard applicants" Has Rows
         When User Clicks "Actions" Then "Export CSV" From Caption Menu In Table "Standard applicants"
         Then User Verifies CSV ".csv" Is Downloaded
-        And User Has No Downloaded CSVs
+        Given User Has No Downloaded CSVs
         # Search and export CSV with invalid code filter
         Then User Enters "1234567890" Into The "Code" Textbox
         When User Clicks On The "Search" Button
@@ -144,7 +144,7 @@ Feature: Standard Applicants
             | Use To         |
         And User Verifies Latest Downloaded CSV Contains Text "BGAS"
 
-    @regression @standardApplicants @ARCPOC-242
+    @regression @standardApplicants @ARCPOC-242 @ARCPOC-1823
     Scenario: Print Standard Applicants as a PDF
         Given User Has No Downloaded PDFs
         When User Signs In With Microsoft SSO As "user1"
@@ -165,10 +165,10 @@ Feature: Standard Applicants
         And User Verifies Latest Downloaded PDF Contains Text "Standard applicants report"
         And User Verifies Latest Downloaded PDF Contains Text "Code: BGAS"
         And User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Code             | BGAS                        |
-            | Name             | British Gas Trading Limited |
-            | Use from         | 1 Jun 2016                  |
-            | Use to           | —                           |
+            | Code     | BGAS                        |
+            | Name     | British Gas Trading Limited |
+            | Use from | 1 Jun 2016                  |
+            | Use to   | —                           |
         And User Verifies Latest Downloaded PDF Does Not Contain The Following Values:
             | ApplicantID      |
             | version          |
