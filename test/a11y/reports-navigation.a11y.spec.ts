@@ -17,7 +17,11 @@ describe('Report navigation confirmation in a browser', () => {
 
   beforeAll(async () => {
     ({ server, baseUrl } = await startStaticSpaServer());
-    browser = await launch({ headless: true });
+    browser = await launch({
+      headless: true,
+      // Navigation-only checks: prevent CSV downloads from blocking Chrome shutdown.
+      downloadBehavior: { policy: 'deny' },
+    });
   });
 
   afterAll(async () => {
