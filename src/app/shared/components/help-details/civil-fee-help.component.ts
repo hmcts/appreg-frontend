@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 import { HelpDetailsComponent } from './help-details.component';
 
@@ -35,9 +35,15 @@ import { HelpDetailsComponent } from './help-details.component';
         <li>
           Select Off-site fee if an additional fee applies because a magistrate
           attended a location away from court premises.
+
+          @if (isBulkUpdate()) {
+            Selecting this option will apply to all selected applications.
+          }
         </li>
       </ul>
     </app-help-details>
   `,
 })
-export class CivilFeeHelpComponent {}
+export class CivilFeeHelpComponent {
+  isBulkUpdate = input(false);
+}
