@@ -38,7 +38,7 @@
     "test:unit": "jest",
     "test:coverage": "jest --coverage",
     "test:routes": "jest -c jest.routes.config.js",
-    "test:a11y": "jest --detectOpenHandles --forceExit -c jest.a11y.config.js --maxWorkers 15",
+    "test:a11y": "NODE_OPTIONS=--experimental-vm-modules jest --forceExit -c jest.a11y.config.js --maxWorkers 15",
     "test:smoke": "jest -c jest.smoke.config.js",
     "test:functional": "CYPRESS_TAGS=@smoke cypress run --browser chrome --spec 'cypress/e2e/features/**/*.feature' || CODE=$? ; node cypress/scripts/reporting/generate-cucumber-html-report.js chrome smoke ; mkdir -p functional-output/chrome/smoke/cucumber-json functional-output/chrome/smoke/mochawesome && cp cypress/reports/cucumber-json/cucumber-report.json functional-output/chrome/smoke/cucumber-json/ 2>/dev/null || true ; cp -r cypress/reports/screenshots cypress/reports/junit functional-output/chrome/smoke/ 2>/dev/null || true ; yarn mochawesome-merge 'cypress/reports/mochawesome/*.json' -o functional-output/chrome/smoke/mochawesome/mochawesome.json 2>/dev/null || true ; yarn marge functional-output/chrome/smoke/mochawesome/mochawesome.json -f mochawesome -o functional-output/chrome/smoke/mochawesome 2>/dev/null || true ; exit ${CODE:-0}",
     "test:nightly:smoke:chrome": "CYPRESS_TAGS=@smoke cypress run --browser chrome --spec 'cypress/e2e/features/**/*.feature' || CODE=$? ; mkdir -p functional-output/chrome/smoke/cucumber-json && cp cypress/reports/cucumber-json/cucumber-report.json functional-output/chrome/smoke/cucumber-json/ 2>/dev/null || true ; cp -r cypress/reports/screenshots cypress/reports/junit cypress/reports/mochawesome functional-output/chrome/smoke/ 2>/dev/null || true ; exit ${CODE:-0}",
@@ -187,7 +187,7 @@
     "mochawesome-report-generator": "^6.2.0",
     "multiple-cucumber-html-reporter": "^3.9.3",
     "nodemon": "^3.1.10",
-    "pa11y": "^9.0.0",
+    "pa11y": "^10.0.0",
     "pdf-parse": "^2.4.5",
     "prettier": "^3.6.2",
     "stylelint": "^16.23.1",
@@ -218,7 +218,8 @@
     "shell-quote": "^1.9.0",
     "browserslist": "^4.28.7",
     "postcss-selector-parser": "^7.1.5",
-    "fflate": "^0.8.3"
+    "fflate": "^0.8.3",
+    "qs": "^6.16.0"
   },
   "packageManager": "yarn@4.10.3"
 }
