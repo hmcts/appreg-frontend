@@ -244,7 +244,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                                  | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 2     |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-1823
     Scenario Outline: Verify PDF download for print page with entries for CJA
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -317,7 +317,7 @@ Feature: Application List Row Actions
             | Date & Time            | <DisplayDate> <Time>                                                                                                                                          |
             | Duration               | -                                                                                                                                                             |
             | Location               | <otherLocationDescription> A8 - Derby                                                                                                                         |
-            | Applicant              | British Gas Trading Limited Millstream, Maidenhead Road, Windsor, SL4 5GD                                                                                     |
+            | Applicant              | British Gas Trading Limited                                                                                                                                   |
             | Respondent             | -                                                                                                                                                             |
             | Case Reference         | CASE-{RANDOM}                                                                                                                                                 |
             | Application Code       | AD99004                                                                                                                                                       |
