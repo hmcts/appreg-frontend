@@ -1,6 +1,6 @@
 Feature: Applications List  - Bulk Result Selected
 
-    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @ARCPOC-1444 @ARCPOC-1360
+    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @ARCPOC-1444 @ARCPOC-1360 @ARCPOC-1748 @ARCPOC-1822 @ARCPOC-1228
     Scenario Outline: Application List - Result Selected - 8 ALEs Mixed Applicant Types
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -376,10 +376,20 @@ Feature: Applications List  - Bulk Result Selected
         Then User Should See "Wording" In Summary Card "COST - Costs granted"
         Then User Should See "Application for costs granted in the sum of" In Summary Card "COST - Costs granted"
         Then User Verifies The "COST - Costs granted" Summary Card Has Textbox With Placeholder "Enter a Amount of costs" And Enters "500"
+        When User Starts Listening For Bulk Result Submission
         When User Clicks On The "Save changes" Button
         Then User Sees Success Banner "Result codes applied successfully" Containing "Result code(s) 'RTC, PROA, COST' applied successfully to application list entries"
+        #  # Result Wording - Timestamp - RTC
+        Then User Stores Updated Date Time For Result "RTC" From Bulk Result Submission As "proaUpdatedDateTimeRTC"
+        Then User Verifies The Local Updated Date And Time In Summary Card "RTC - Refer to Court" From Alias "proaUpdatedDateTimeRTC"
         Then User Should See Tag "Existing" In Summary Card "RTC - Refer to Court"
+        # Result Wording - Timestamp - PROA
+        Then User Stores Updated Date Time For Result "PROA" From Bulk Result Submission As "proaUpdatedDateTimePROA"
+        Then User Verifies The Local Updated Date And Time In Summary Card "PROA - Production Order (to allow access)" From Alias "proaUpdatedDateTimePROA"
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
+        # Result Wording - Timestamp - COST
+        Then User Stores Updated Date Time For Result "COST" From Bulk Result Submission As "proaUpdatedDateTimeCOST"
+        Then User Verifies The Local Updated Date And Time In Summary Card "COST - Costs granted" From Alias "proaUpdatedDateTimeCOST"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications list details"
         # Verify rows 2, 3 have RTC, PROA and COST applied; row 5 retains pre-existing RTC; rows 1, 4, 6, 7, 8 unchanged
@@ -419,8 +429,13 @@ Feature: Applications List  - Bulk Result Selected
         Then User Selects "RTC - Refer to Court" From The Textbox "Result code" Autocomplete By Typing "RTC"
         Then User Verifies The "RTC - Refer to Court" Summary Card Has Textbox With Placeholder "Enter a Date" And Enters "01/04/2026"
         Then User Verifies The "RTC - Refer to Court" Summary Card Has Textbox With Placeholder "Enter a Courthouse" And Enters "Bristol Crown Court"
+        When User Starts Listening For Bulk Result Submission
         When User Clicks On The "Save changes" Button
         Then User Sees Success Banner "Result codes applied successfully" Containing "Result code(s) 'RTC' applied successfully to application list entries"
+        # Verify Resulted Date Time
+        Then User Stores Updated Date Time For Result "RTC" From Bulk Result Submission As "proaUpdatedDateTime"
+        Then User Verifies The Local Updated Date And Time In Summary Card "RTC - Refer to Court" From Alias "proaUpdatedDateTime"
+        # Back to Applications List Details tab
         Then User Clicks On The Breadcrumb Link "Applications list details"
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number  | Applicant                          | Respondent                        | Postcode | Title                                                      | Fee | Resulted |
@@ -428,7 +443,7 @@ Feature: Applications List  - Bulk Result Selected
             | 4               |                 | Apex Solutions Ltd {SCENARIO_ID}   | John Smith {SCENARIO_ID}          | LS1 1AA  | Appeal to Crown Court                                      | No  | RTC      |
             | 6               | ACC-E6-{RANDOM} | British Gas Trading Limited        | Robert Wilson {SCENARIO_ID}       | NE1 1AA  | Appeal to Crown Court                                      | No  | RTC      |
             | 7               | ACC-E7-{RANDOM} | Total Gas and Power                | Metro Finance Ltd {SCENARIO_ID}   | EH1 1AA  | Collection Order - Financial Penalty Account               | No  | RTC      |
-            | 8               | ACC-E8-{RANDOM} | Daniel Hughes {SCENARIO_ID}        | Claire Hughes {SCENARIO_ID}       | CF10 2AA | Application for order re public health measures (premises) | No  | RTC      |
+            | 8               | ACC-E8-{RANDOM} | Daniel Hughes {SCENARIO_ID}        | Claire Hughes {SCENARIO_ID}       | CF10 2AA | Application for order re public health measures (premises) | Yes | RTC      |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"

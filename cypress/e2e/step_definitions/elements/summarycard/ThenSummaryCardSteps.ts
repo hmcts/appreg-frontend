@@ -43,6 +43,13 @@ When('User Starts Listening For Result Retrieval', () => {
   );
 });
 
+When('User Starts Listening For Bulk Result Submission', () => {
+  cy.intercept(
+    'POST',
+    /\/application-lists(?:\/[^/]+)?\/entries\/results(?:\?.*)?$/,
+  ).as('bulkResultSubmission');
+});
+
 Then(
   'User Stores Updated Date Time For Result {string} From Result Retrieval As {string}',
   (resultCode: string, aliasName: string) => {
@@ -57,6 +64,31 @@ Then(
       if (!result) {
         throw new Error(
           `Result ${resultCode} was not found in the retrieval response.`,
+        );
+      }
+      if (!result.updatedDateTime) {
+        throw new Error(
+          `Result ${resultCode} did not include an updatedDateTime.`,
+        );
+      }
+
+      cy.wrap(result.updatedDateTime).as(aliasName);
+    });
+  },
+);
+
+Then(
+  'User Stores Updated Date Time For Result {string} From Bulk Result Submission As {string}',
+  (resultCode: string, aliasName: string) => {
+    cy.wait('@bulkResultSubmission').then(({ response }) => {
+      const results = response?.body as
+        | { resultCode?: string; updatedDateTime?: string }[]
+        | undefined;
+      const result = results?.find((item) => item.resultCode === resultCode);
+
+      if (!result) {
+        throw new Error(
+          `Result ${resultCode} was not found in the bulk submission response.`,
         );
       }
       if (!result.updatedDateTime) {
