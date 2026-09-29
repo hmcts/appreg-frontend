@@ -84,6 +84,7 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { withDisabledColumnSort } from '@util/table-column-sort';
 import { sortRows } from '@util/table-sort';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
@@ -141,7 +142,13 @@ export class ApplicationsListEntryMoveComponent
   onCreateErrorClick = onCreateErrorClickFn;
 
   columnsEntries = APPLICATION_ENTRIES_MOVE_COLUMNS;
-  columnsLists: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
+  get columnsLists(): TableColumn[] {
+    return withDisabledColumnSort(
+      APPLICATIONS_LIST_COLUMNS_ACTION,
+      'status',
+      true,
+    );
+  }
 
   private readonly pageSize = 10;
   readonly currentPage = signal(0);
@@ -274,6 +281,10 @@ export class ApplicationsListEntryMoveComponent
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    if (sort.key === 'status') {
+      return;
+    }
+
     this.moveEntryPatch({
       sortField: {
         key: APPLICATION_LIST_SORT_MAP[sort.key] ?? sort.key,

@@ -498,6 +498,34 @@ describe('ApplicationsList – search', () => {
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('disables status sorting when a status filter is selected', () => {
+    component.form.controls.status.setValue('open');
+
+    expect(
+      component.columns.find((column) => column.field === 'status'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+  });
+
+  it('ignores status sort changes when a status filter is selected', () => {
+    const loadSpy = jest
+      .spyOn(component, 'loadApplicationsLists')
+      .mockImplementation(() => undefined);
+    patchRecordsState(component, { currentPage: 4 });
+    patchUIState(component, {
+      sortField: { key: 'date', direction: 'desc' },
+    });
+    component.form.controls.status.setValue('open');
+
+    component.onSortChange({ key: 'status', direction: 'asc' });
+
+    expect(getUIFlagState(component).sortField).toEqual({
+      key: 'date',
+      direction: 'desc',
+    });
+    expect(getRecordsState(component).currentPage).toBe(4);
+    expect(loadSpy).not.toHaveBeenCalled();
+  });
+
   it('maps the stored UI sort key to the backend sort param when loading', async () => {
     jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
       status: ApplicationListStatus.OPEN,

@@ -106,6 +106,7 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
 import { isAllMatchingSelected } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { trimStringToLowerCase, trimToUndefined } from '@util/string-helpers';
+import { withDisabledColumnSort } from '@util/table-column-sort';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { atLeastOneRequiredValidator } from '@validators/at-least-one-value.validator';
 
@@ -211,7 +212,13 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     },
   );
 
-  columns = ApplicationsColumns;
+  get columns() {
+    return withDisabledColumnSort(
+      ApplicationsColumns,
+      'status',
+      this.hasStatusFilter(),
+    );
+  }
 
   status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
@@ -582,6 +589,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    if (sort.key === 'status' && this.hasStatusFilter()) {
+      return;
+    }
+
     this.patchApp({
       sortField: {
         key: sort.key,
@@ -590,6 +601,11 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       currentPage: 0,
     });
     this.loadApplications(this.vm().getFilters);
+  }
+
+  private hasStatusFilter(): boolean {
+    const status = this.form.controls.status.value;
+    return typeof status === 'string' ? status.trim().length > 0 : !!status;
   }
 
   onSelectedIdsChange(selectedIds: Set<string>): void {

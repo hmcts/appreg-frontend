@@ -1512,6 +1512,53 @@ describe('ApplicationsListDetail', () => {
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('disables fee and resulted sorting when matching filters are active', () => {
+    patchDetailState({
+      getFilters: { feeRequired: false, resulted: 'YES' },
+    });
+
+    expect(
+      component.columns.find((column) => column.field === 'feeReq'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+    expect(
+      component.columns.find((column) => column.field === 'resulted'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+  });
+
+  it('ignores fee and resulted sort changes when matching filters are active', () => {
+    const loadSpy = jest
+      .spyOn(component, 'loadListDetailsInfo')
+      .mockImplementation(() => undefined);
+    patchDetailState({
+      currentPage: 5,
+      sortField: { key: 'sequenceNumber', direction: 'asc' },
+      getFilters: { feeRequired: true, resulted: 'NO' },
+    });
+
+    component.onSortChange({ key: 'feeReq', direction: 'desc' });
+    component.onSortChange({ key: 'resulted', direction: 'desc' });
+
+    expect(vm().sortField).toEqual({
+      key: 'sequenceNumber',
+      direction: 'asc',
+    });
+    expect(vm().currentPage).toBe(5);
+    expect(loadSpy).not.toHaveBeenCalled();
+  });
+
+  it('resets an active filtered sort when matching search filters are applied', () => {
+    patchDetailState({
+      sortField: { key: 'resulted', direction: 'desc' },
+    });
+
+    component.onSearchStarted({ resulted: 'YES' });
+
+    expect(vm().sortField).toEqual({
+      key: 'sequenceNumber',
+      direction: 'asc',
+    });
+  });
+
   describe('onUpdateFeeButtonClick', () => {
     it('shows an error when all selected applications do not require fees', async () => {
       const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');

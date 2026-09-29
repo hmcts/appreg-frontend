@@ -87,6 +87,7 @@ import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { withDisabledColumnSort } from '@util/table-column-sort';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
@@ -157,7 +158,13 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
   disableSearchButton = signal(false);
 
-  columns: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
+  get columns(): TableColumn[] {
+    return withDisabledColumnSort(
+      APPLICATIONS_LIST_COLUMNS_ACTION,
+      'status',
+      this.hasStatusFilter(),
+    );
+  }
 
   ngOnInit(): void {
     this.restoreFormValues();
@@ -463,6 +470,10 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    if (sort.key === 'status' && this.hasStatusFilter()) {
+      return;
+    }
+
     this.appListSignalState.patch({
       sortField: {
         key: sort.key,
@@ -471,6 +482,11 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     });
     this.storedRecordsState.patch({ currentPage: 0 });
     this.loadApplicationsLists();
+  }
+
+  private hasStatusFilter(): boolean {
+    const status = this.form.controls.status.value;
+    return typeof status === 'string' ? status.trim().length > 0 : !!status;
   }
 
   protected isOpen(row: ApplicationListRow): boolean {

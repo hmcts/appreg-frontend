@@ -454,6 +454,29 @@ describe('ApplicationsListEntryMoveComponent', () => {
     });
   });
 
+  it('disables status sorting for target lists because only open lists are shown', () => {
+    expect(
+      component.columnsLists.find((column) => column.field === 'status'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+  });
+
+  it('ignores status sort changes for target lists', () => {
+    (
+      component as unknown as {
+        storedRecordsState: { patch: (patch: { currentPage: number }) => void };
+      }
+    ).storedRecordsState.patch({ currentPage: 4 });
+
+    component.onSortChange({ key: 'status', direction: 'asc' });
+
+    expect(component.vm().sortField).toEqual({
+      key: 'date',
+      direction: 'desc',
+    });
+    expect(component.storedRecordsVm().currentPage).toBe(4);
+    expect(getApplicationListsMock).not.toHaveBeenCalled();
+  });
+
   it('loads the selected page of results', async () => {
     component.form.patchValue({ description: 'Target' });
 
