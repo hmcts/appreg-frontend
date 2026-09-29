@@ -1,4 +1,4 @@
-import {
+:1156import {
   HttpErrorResponse,
   HttpHeaders,
   HttpResponse,
@@ -1153,7 +1153,7 @@ describe('ReportsComponent', () => {
         button.textContent?.trim() ?? '',
       ),
     );
-    expect(reportActionButtons.length).toBe(2);
+    expect(reportActionButtons).toHaveLength(2);
     expect(reportActionButtons.every((button) => button.disabled)).toBe(true);
   });
 
