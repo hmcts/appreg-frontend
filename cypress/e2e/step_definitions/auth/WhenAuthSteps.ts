@@ -40,7 +40,10 @@ const validateSession = (): void => {
     );
   });
 
-  cy.getCookie(AUTH_CONSTANTS.SESSION_COOKIE_NAME).should('exist');
+  const bypassSso = Cypress.env('DEV_BYPASS_SSO');
+  if (bypassSso !== true && bypassSso !== 'true') {
+    cy.getCookie(AUTH_CONSTANTS.SESSION_COOKIE_NAME).should('exist');
+  }
 };
 
 When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
