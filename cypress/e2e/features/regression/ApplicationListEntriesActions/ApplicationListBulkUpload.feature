@@ -1,6 +1,6 @@
 Feature: Application List Bulk Upload
 
-    @regression @applicationsList @applicationListEntry @core @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1506 @ARCPOC-1748 @ARCPOC-1822
+    @regression @applicationsList @applicationListEntry @core @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1506 @ARCPOC-1748 @ARCPOC-1822 @ARCPOC-1832
     Scenario Outline: Application List - Bulk Upload Entries Via CSV File With Application Codes Fee Required = 'N'
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -22,7 +22,6 @@ Feature: Application List Bulk Upload
         When User Uploads The File "bulk-upload-entries-fee-not-required.csv"
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
-        Then User Sees Success Banner "Success Bulk upload complete" Containing Link "Click here to update fee details on newly uploaded applications"
         Then User Sees Success Banner "Success Bulk upload complete" Containing "Total fees for uploaded applications: £0.00"
         # Export must not be offered when there are no validation errors
         Then User Should Not See The Button "Export the file with errors shown"
@@ -31,14 +30,7 @@ Feature: Application List Bulk Upload
             | Sequence number | Account number     | Applicant                   | Respondent                           | Postcode | Title                                            | Fee | Resulted |
             | 1               | AC-{SCENARIO_ID}-1 | British Gas Trading Limited | Greenfield Finance {SCENARIO_ID} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |
             | 2               | AC-{SCENARIO_ID}-2 | Total Gas and Power         | James Hargreaves{SCENARIO_ID}        | B1 1BB   | Warrant of Control                               | No  |          |
-        Then User Clicks On The Link "Click here to update fee details on newly uploaded applications"
-        # Add Fee Details for Bulk Uploaded Application(s) where Fee Required = 'N'
-        Then User Sees Validation Error Banner "There is a problem" Containing "Cannot update application(s) that do not require a fee"
-        When User Verifies The Checkbox is Checked In Row Of Table "Entries" With Values:
-            | Sequence number | Account number     | Applicant                   | Respondent                           | Postcode | Title                                            | Fee | Resulted |
-            | 1               | AC-{SCENARIO_ID}-1 | British Gas Trading Limited | Greenfield Finance {SCENARIO_ID} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |
-            | 2               | AC-{SCENARIO_ID}-2 | Total Gas and Power         | James Hargreaves{SCENARIO_ID}        | B1 1BB   | Warrant of Control                               | No  |          |
-        Then User Should See The Button "Actions" Is Enabled
+        Then User Should Not See The Link "Click here to update fee details on newly uploaded applications"
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
