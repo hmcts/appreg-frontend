@@ -59,7 +59,10 @@ import { HelpDetailsComponent } from '@components/help-details/help-details.comp
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
-import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import {
+  SortableTableComponent,
+  TableColumn,
+} from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ApplicationsColumns } from '@constants/applications/applications.constants';
@@ -212,7 +215,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     },
   );
 
-  get columns() {
+  get columns(): TableColumn[] {
     return withDisabledColumnSort(
       ApplicationsColumns,
       'status',
