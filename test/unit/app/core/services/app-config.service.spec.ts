@@ -46,6 +46,7 @@ describe('AppConfigService (browser)', () => {
     await loadPromise;
 
     expect(service.getAppConfig()).toEqual({
+      reportNavigationModalEnabled: true,
       environment: 'production',
       appInsights: {
         enabled: true,
@@ -58,6 +59,21 @@ describe('AppConfigService (browser)', () => {
     );
   });
 
+  it.each([true, false, undefined, 'false', null])(
+    'normalizes the report modal flag: %s',
+    async (value) => {
+      const load = service.loadAppConfig();
+      expect(service.loadAppConfig()).toBe(load);
+      httpMock
+        .expectOne('/app/config')
+        .flush({ reportNavigationModalEnabled: value });
+      await load;
+      expect(service.getAppConfig().reportNavigationModalEnabled).toBe(
+        value !== false,
+      );
+    },
+  );
+
   it('falls back to disabled telemetry config when the request fails', async () => {
     const loadPromise = service.loadAppConfig();
 
@@ -67,6 +83,7 @@ describe('AppConfigService (browser)', () => {
     await expect(loadPromise).resolves.toBeUndefined();
 
     expect(service.getAppConfig()).toEqual({
+      reportNavigationModalEnabled: true,
       environment: 'development',
       appInsights: {
         enabled: false,
@@ -97,6 +114,7 @@ describe('AppConfigService (server)', () => {
     await expect(service.loadAppConfig()).resolves.toBeUndefined();
 
     expect(service.getAppConfig()).toEqual({
+      reportNavigationModalEnabled: true,
       environment: 'development',
       appInsights: {
         enabled: false,

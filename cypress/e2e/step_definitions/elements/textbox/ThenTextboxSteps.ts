@@ -8,6 +8,10 @@ Then('User Should See The Textbox {string}', (field: string) => {
   TextboxHelper.verifyTextboxIsVisible(field);
 });
 
+Then('User Should Not See The Textbox {string}', (field: string) => {
+  TextboxHelper.verifyTextboxIsNotVisible(field);
+});
+
 Then(
   'User Enters {string} Into The {string} Textbox',
   (value: string, field: string) => {

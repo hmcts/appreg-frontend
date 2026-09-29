@@ -11,3 +11,12 @@ Then(
     );
   },
 );
+
+Then(
+  'User Should See The Exact Text {string} In The Accordion {string}',
+  (expectedText: string, accordionTitle: string) => {
+    AccordionHelper.within(accordionTitle, () =>
+      TextboxHelper.verifyExactText(expectedText),
+    );
+  },
+);

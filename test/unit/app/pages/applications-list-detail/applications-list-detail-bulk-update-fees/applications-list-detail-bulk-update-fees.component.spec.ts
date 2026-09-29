@@ -316,6 +316,32 @@ describe('ApplicationsListDetailBulkUpdateFeesComponent', () => {
     );
   });
 
+  it('shows the off-site fee warning for a bulk update', () => {
+    history.replaceState(
+      {
+        entriesToUpdateFee: [
+          {
+            id: 'entry-1',
+            applicant: 'Applicant',
+            respondent: 'Respondent',
+            title: 'Title',
+          },
+        ],
+      },
+      '',
+    );
+
+    const fixture = TestBed.createComponent(
+      ApplicationsListDetailBulkUpdateFeesComponent,
+    );
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'Selecting this option will apply to all selected applications.',
+    );
+  });
+
   it('stores fee errors from child sections', () => {
     history.replaceState(
       {

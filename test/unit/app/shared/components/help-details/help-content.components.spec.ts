@@ -42,5 +42,19 @@ describe('help content components', () => {
     expect(details).toHaveLength(2);
     expect(bodyText).toContain('Help with civil fee details');
     expect(bodyText).toContain('Undertaking means the applicant');
+    expect(bodyText).not.toContain(
+      'Selecting this option will apply to all selected applications.',
+    );
+  });
+
+  it('renders the off-site fee warning for bulk updates', () => {
+    const civilFeeFixture = TestBed.createComponent(CivilFeeHelpComponent);
+
+    civilFeeFixture.componentRef.setInput('isBulkUpdate', true);
+    civilFeeFixture.detectChanges();
+
+    expect(civilFeeFixture.nativeElement.textContent).toContain(
+      'Selecting this option will apply to all selected applications.',
+    );
   });
 });

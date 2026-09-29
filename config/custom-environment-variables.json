@@ -1,4 +1,8 @@
 {
+  "reportNavigationModalEnabled": {
+    "__name": "REPORT_NAVIGATION_MODAL_ENABLED",
+    "__format": "boolean"
+  },
   "appInsights": {
     "enabled": {
       "__name": "APPINSIGHTS_ENABLED",

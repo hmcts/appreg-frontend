@@ -18,9 +18,14 @@ module.exports = {
       'ts-jest',
       {
         tsconfig: '<rootDir>/tsconfig.spec.json',
+        useESM: true,
       },
     ],
   },
+
+  // Pa11y 10 loads Puppeteer 25, which is published as ESM.
+  extensionsToTreatAsEsm: ['.ts'],
+  transformIgnorePatterns: ['/node_modules/(?!puppeteer|puppeteer-core/)'],
 
   // Recognize TypeScript and JavaScript
   moduleFileExtensions: ['ts', 'js', 'json'],

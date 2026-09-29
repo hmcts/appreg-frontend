@@ -1,0 +1,50 @@
+@use 'govuk-frontend/dist/govuk/base' as govuk;
+
+dialog {
+  box-sizing: border-box;
+  width: calc(100% - 2rem);
+  max-width: 35rem;
+  max-height: calc(100% - 2rem);
+  padding: 0;
+  border: 5px solid govuk.govuk-colour('black');
+  color: govuk.$govuk-text-colour;
+  background: govuk.govuk-colour('white');
+  overflow: auto;
+
+  &::backdrop {
+    background: rgb(0 0 0 / 50%);
+  }
+
+  .dialog-header {
+    display: flex;
+    justify-content: flex-end;
+    background: govuk.govuk-colour('black');
+  }
+
+  .dialog-close {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    color: govuk.govuk-colour('white');
+    background: transparent;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:focus {
+      outline: 3px solid govuk.$govuk-focus-colour;
+      outline-offset: -3px;
+      color: govuk.$govuk-focus-text-colour;
+      background: govuk.$govuk-focus-colour;
+    }
+  }
+
+  .dialog-content {
+    padding: govuk.govuk-spacing(6);
+  }
+
+  .govuk-button-group {
+    margin-bottom: 0;
+  }
+}

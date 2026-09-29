@@ -174,6 +174,15 @@ function buildNotFoundSummary(problem?: ProblemDetails): HttpErrorSummary {
   return { hasFatalError: true, errorHint, errorSummary };
 }
 
+function buildConflictSummary(problem?: ProblemDetails): HttpErrorSummary {
+  const errorHint = problem?.title ?? 'There is a problem';
+  const errorSummary = makeItems(
+    problem?.detail,
+    'Refresh the page and try again later.',
+  );
+  return { hasFatalError: true, errorHint, errorSummary };
+}
+
 function buildServerErrorSummary(problem?: ProblemDetails): HttpErrorSummary {
   const errorHint = problem?.title ?? 'A server error occurred';
   const errorSummary = makeItems(
@@ -213,6 +222,10 @@ export function mapHttpErrorToSummary(err: unknown): HttpErrorSummary {
 
   if (status === 404) {
     return buildNotFoundSummary(problem);
+  }
+
+  if (status === 409) {
+    return buildConflictSummary(problem);
   }
 
   if (status === 0 || status >= 500) {

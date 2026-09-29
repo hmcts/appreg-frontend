@@ -1,6 +1,6 @@
 Feature: Application List Bulk Upload
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1506
+    @regression @applicationsList @applicationListEntry @core @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1506 @ARCPOC-1748 @ARCPOC-1822
     Scenario Outline: Application List - Bulk Upload Entries Via CSV File With Application Codes Fee Required = 'N'
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:

@@ -49,7 +49,13 @@ const browserDistFolder = join(__dirname, '../browser');
 // ----- App + Angular engine
 const app = express();
 const angularApp = new AngularNodeAppEngine({
-  trustProxyHeaders: ['x-forwarded-host', 'x-forwarded-proto'],
+  trustProxyHeaders: [
+    'x-forwarded-host',
+    'x-forwarded-proto',
+    'x-forwarded-port',
+    'x-forwarded-server',
+    'x-forwarded-for',
+  ],
 });
 
 // Trust proxy (for secure cookies behind ingress)

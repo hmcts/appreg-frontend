@@ -60,7 +60,7 @@ Feature: Authentication and Authorisation
   Scenario: Verify error on valid email and invalid password
     When User Tries To Sign In With Valid Email "ar-test-1@hmcts.net" And Invalid Password "any_password" And Expects Error "Your account or password is incorrect. If you don't remember your password, reset it now."
 
-  @regression @authentication @ARCPOC-294 @ARCPOC-425
+  @regression @authentication @core @ARCPOC-294 @ARCPOC-425 @ARCPOC-1748 @ARCPOC-1822
   Scenario: Complete authentication flow with session and token validation
     Given User Navigates To The URL "/applications-list"
     Then User Verify The Page URL Contains "/login"

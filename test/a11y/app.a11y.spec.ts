@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import pa11y from 'pa11y';
 
 import { startStaticSpaServer } from './a11y.server';

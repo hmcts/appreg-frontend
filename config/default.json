@@ -1,5 +1,6 @@
 {
   "useCSRFProtection": true,
+  "reportNavigationModalEnabled": true,
   "appInsights": {
     "enabled": null
   },

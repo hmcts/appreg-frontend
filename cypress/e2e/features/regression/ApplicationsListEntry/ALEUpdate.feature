@@ -1,6 +1,6 @@
 Feature: Applications List Entry Update
 
-    @applicationListEntry @regression @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444 @ARCPOC-1558 @ARCPOC-1228 @ARCPOC-1789
+    @applicationListEntry @regression @core @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444 @ARCPOC-1558 @ARCPOC-1228 @ARCPOC-1789 @ARCPOC-1748 @ARCPCOC-1822
     Scenario: Update an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "user1"
         # Create Application List
@@ -118,10 +118,12 @@ Feature: Applications List Entry Update
         Then User Enters "Zanetti{SCENARIO_ID}" In The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
         When User Clicks On The "Save recording officials" Button
         Then User Sees Success Banner "Officials updated" Containing "Officials have been updated for this application list entry."
+        When User Starts Listening For Result Retrieval
         When User Clicks On The "Save complete application" Button
         Then User Sees Success Banner "Application list entry updated" Containing "The application list entry has been updated successfully."
         # Result Wording - Timestamp
-        Then User Should See "Updated on todaydisplay at timenowhhmm" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Stores Updated Date Time For Result "PROA" From Result Retrieval As "proaUpdatedDateTime"
+        Then User Verifies The Local Updated Date And Time In Summary Card "PROA - Production Order (to allow access)" From Alias "proaUpdatedDateTime"
         # Remove Result to check 'Removed' banner
         Then User Clicks The Link "Remove" In Summary Card "PROA - Production Order (to allow access)"
         Then User Sees Success Banner "Result removed" Containing "The result has been removed from this application list entry."

@@ -627,10 +627,12 @@ describe('ApplicationsListEntryDetail', () => {
     component.onUpdateApplication();
 
     expect(component.disableSaveCompleteAppBtn()).toBe(true);
+    expect(component.disableOfficialButton()).toBe(true);
 
     response.next({});
 
     expect(component.disableSaveCompleteAppBtn()).toBe(false);
+    expect(component.disableOfficialButton()).toBe(false);
   });
 
   it('re-enables the complete-application save when the entry update fails', () => {
@@ -649,10 +651,12 @@ describe('ApplicationsListEntryDetail', () => {
 
     component.onUpdateApplication();
     expect(component.disableSaveCompleteAppBtn()).toBe(true);
+    expect(component.disableOfficialButton()).toBe(true);
 
     response.error(new Error('Save failed'));
 
     expect(component.disableSaveCompleteAppBtn()).toBe(false);
+    expect(component.disableOfficialButton()).toBe(false);
   });
 
   it('runFullSubmitValidation returns true and sets errorFound when person name fields blank', () => {
@@ -1058,10 +1062,12 @@ describe('ApplicationsListEntryDetail', () => {
     component.onSaveOfficials();
 
     expect(component.disableOfficialButton()).toBe(true);
+    expect(component.disableSaveCompleteAppBtn()).toBe(true);
 
     response.next({});
 
     expect(component.disableOfficialButton()).toBe(false);
+    expect(component.disableSaveCompleteAppBtn()).toBe(false);
   });
 
   it('re-enables Save recording officials when its update request fails', () => {
@@ -1081,10 +1087,63 @@ describe('ApplicationsListEntryDetail', () => {
     component.onSaveOfficials();
 
     expect(component.disableOfficialButton()).toBe(true);
+    expect(component.disableSaveCompleteAppBtn()).toBe(true);
 
     response.error(new Error('Save failed'));
 
     expect(component.disableOfficialButton()).toBe(false);
+    expect(component.disableSaveCompleteAppBtn()).toBe(false);
+  });
+
+  it('does not save officials while a complete-application save is in progress', () => {
+    const runFullSubmitValidationMock = jest.fn();
+    const submitEntryUpdateMock = jest.fn();
+    component['runFullSubmitValidation'] = runFullSubmitValidationMock;
+    component['submitEntryUpdate'] = submitEntryUpdateMock;
+    component.disableSaveCompleteAppBtn.set(true);
+
+    component.onSaveOfficials();
+
+    expect(runFullSubmitValidationMock).not.toHaveBeenCalled();
+    expect(submitEntryUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it('does not save the complete application while an officials save is in progress', () => {
+    const runFullSubmitValidationMock = jest.fn();
+    const submitEntryUpdateMock = jest.fn();
+    component['runFullSubmitValidation'] = runFullSubmitValidationMock;
+    component['submitEntryUpdate'] = submitEntryUpdateMock;
+    component.disableOfficialButton.set(true);
+
+    component.onUpdateApplication();
+
+    expect(runFullSubmitValidationMock).not.toHaveBeenCalled();
+    expect(submitEntryUpdateMock).not.toHaveBeenCalled();
+  });
+
+  it('disables all entry-save controls while updating the applicant', () => {
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    component['buildEntryUpdateDto'] = jest.fn().mockReturnValue({});
+    component['submitEntryUpdate'] = jest.fn();
+
+    component.onUpdateApplicant();
+
+    expect(component.isUpdateDisabled).toBe(true);
+    expect(component.disableOfficialButton()).toBe(true);
+    expect(component.disableSaveCompleteAppBtn()).toBe(true);
+  });
+
+  it('does not update the applicant while another entry save is in progress', () => {
+    const runFullSubmitValidationMock = jest.fn();
+    const submitEntryUpdateMock = jest.fn();
+    component['runFullSubmitValidation'] = runFullSubmitValidationMock;
+    component['submitEntryUpdate'] = submitEntryUpdateMock;
+    component.disableOfficialButton.set(true);
+
+    component.onUpdateApplicant();
+
+    expect(runFullSubmitValidationMock).not.toHaveBeenCalled();
+    expect(submitEntryUpdateMock).not.toHaveBeenCalled();
   });
 
   it('persistHasOffsiteFee rolls back form value on API error', () => {

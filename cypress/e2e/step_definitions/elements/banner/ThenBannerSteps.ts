@@ -54,11 +54,6 @@ Then(
   },
 );
 
-Then('User Sees Success Banner {string}', (expectedText: string) => {
-  BannerHelper.verifySuccessBanner(expectedText);
-  cy.screenshot(`BannerWithText-${expectedText.substring(0, 30)}`);
-});
-
 Then('User Sees Warning Banner {string}', (expectedText: string) => {
   BannerHelper.verifyWarningBanner(expectedText);
   cy.screenshot(`WarningBannerWithText-${expectedText.substring(0, 30)}`);

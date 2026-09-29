@@ -63,5 +63,6 @@ Feature: Application list entries bulk update fees help details
     Then User Should See The Text "Undertaking means the applicant has formally agreed to pay later. The list cannot be closed until this is updated to Paid." In The Accordion "Help with civil fee details"
     Then User Should See The Text "Applications that do not need a fee show No fee required and the fee fields cannot be changed." In The Accordion "Help with civil fee details"
     Then User Should See The Text "Select Off-site fee if an additional fee applies because a magistrate attended a location away from court premises." In The Accordion "Help with civil fee details"
+    Then User Should See The Text "Selecting this option will apply to all selected applications." In The Accordion "Help with civil fee details"
     Then User Takes Screenshot "HelpDetails-BulkUpdateFees-CivilFee-Expanded"
     When User Toggles The Accordion "Help with civil fee details"

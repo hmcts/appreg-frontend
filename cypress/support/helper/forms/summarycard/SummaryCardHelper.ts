@@ -62,4 +62,25 @@ export class SummaryCardHelper {
 
     SummaryCardElement.assertTextInCardMatchingAny(cardTitle, expectedTexts);
   }
+
+  static verifyUpdatedDateTimeInCard(
+    cardTitle: string,
+    updatedDateTime: string,
+  ): void {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/London',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).formatToParts(new Date(updatedDateTime));
+    const part = (type: Intl.DateTimeFormatPartTypes): string =>
+      parts.find((item) => item.type === type)?.value ?? '';
+    const expectedText = `Updated on ${part('day')} ${part('month')} ${part('year')} at ${part('hour')}:${part('minute')}`;
+
+    cy.log(`Asserting local updated date and time: ${expectedText}`);
+    SummaryCardElement.assertTextInCard(cardTitle, expectedText);
+  }
 }

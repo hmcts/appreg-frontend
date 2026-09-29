@@ -367,7 +367,7 @@ Feature: Applications List Entry Create Regex Validations
       | User  | SearchDate | DisplayDate  | Time  | Court                             | Description                                  | Entries | Status | SelectButtonText | ButtonName | ApplicationTitle                               | WordingText                                                                                                                                                        | placeholder       | TableName | CaseReference | AccountReference |
       | user1 | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   | Select           | Open       | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | Lists     | case{RANDOM}  | account{RANDOM}  |
 
-  @regression @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319 @ARCPOC-1561 @SC3
+  @regression @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319 @ARCPOC-1561 @ARCPOC-1823 @SC3
   Scenario Outline: Create an ALE With Regex Validations where Applicant = Standard Applicant, Respondent = Bulk Application using an Application Code with Fee Required = Y and Respondent Required = N
     Given User Authenticates Via API As "<User>"
     # Create Application List
@@ -402,7 +402,7 @@ Feature: Applications List Entry Create Regex Validations
     Then User Enters "British" Into The Textbox "Standard applicant name" In The Accordion "Applicant"
     When User Clicks On The "Search" Button
     Then User Should See The Text "<StdAppName>" In The Accordion "Applicant"
-    Then User Should See The Text "Millstream" In The Accordion "Applicant"
+    Then User Should See The Exact Text "<StdAppCode>" In The Accordion "Applicant"
     Then User Checks The Checkbox With Label "Select <StdAppCode>" In The Accordion "Applicant"
     Then User Should See The Text "Currently selected <StdAppCode> <StdAppName>" In The Accordion "Applicant"
     # Application Codes
