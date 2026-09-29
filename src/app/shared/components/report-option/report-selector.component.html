@@ -13,7 +13,10 @@
             [name]="name()"
             type="radio"
             [value]="r.id"
-            [disabled]="disabled || !!r.disabled"
+            [disabled]="formDisabled || selectorDisabled() || !!r.disabled"
+            [attr.disabled]="
+              formDisabled || selectorDisabled() || !!r.disabled ? true : null
+            "
             [(ngModel)]="value"
             [ngModelOptions]="{ standalone: true }"
             (ngModelChange)="onModelChange($event)"
