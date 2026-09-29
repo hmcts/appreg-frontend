@@ -51,7 +51,11 @@
   <app-success-banner
     heading="Bulk upload complete"
     [body]="vm().bulkUploadBannerText"
-    linkText="Click here to update fee details on newly uploaded applications"
+    [linkText]="
+      bulkUploadFeeUpdateAvailable()
+        ? 'Click here to update fee details on newly uploaded applications'
+        : undefined
+    "
     (linkClick)="onBulkUploadBannerClick()"
     [allowOnClick]="true"
   />

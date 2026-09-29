@@ -214,6 +214,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   entryCount: number = 0;
 
   bulkUploadJobId = signal('');
+  bulkUploadFeeUpdateAvailable = signal(false);
   bulkUploadedEntryIds: string[] | undefined = [];
 
   private readonly detailSignalState =
@@ -283,6 +284,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     this.id = st?.id ?? this.route.snapshot.paramMap.get('id') ?? '';
     this.entryCount = st?.entriesCount ?? 0;
+
+    if (this.vm().bulkUploadDone) {
+      void this.setBulkUploadFeeUpdateAvailability();
+    }
 
     if (isPlatformBrowser(this.platformId)) {
       this.loadApplicationsLists();
@@ -1097,7 +1102,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async onBulkUploadBannerClick(): Promise<void> {
-    await this.bulkImportGetIds(this.bulkUploadJobId());
+    if (!this.bulkUploadedEntryIds?.length) {
+      await this.bulkImportGetIds(this.bulkUploadJobId());
+    }
 
     if (!this.bulkUploadedEntryIds?.length) {
       this.detailSignalState.patch({
@@ -1294,8 +1301,29 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     );
   }
 
-  private async bulkImportGetIds(jobId: string): Promise<void> {
+  private async setBulkUploadFeeUpdateAvailability(): Promise<void> {
+    this.bulkUploadFeeUpdateAvailable.set(false);
+    await this.bulkImportGetIds(this.bulkUploadJobId(), false);
+
+    if (!this.bulkUploadedEntryIds?.length) {
+      return;
+    }
+
+    const preview = await this.getBulkPreview(
+      BulkActionType.UPDATE_FEE_DETAILS,
+      new Set(this.bulkUploadedEntryIds),
+      true,
+      false,
+    );
+    this.bulkUploadFeeUpdateAvailable.set((preview?.eligibleCount ?? 0) > 0);
+  }
+
+  private async bulkImportGetIds(
+    jobId: string,
+    showError = true,
+  ): Promise<void> {
     const id = trimToUndefined(jobId);
+    this.bulkUploadedEntryIds = [];
 
     if (!id) {
       return;
@@ -1309,20 +1337,22 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       );
 
       if (!newEntryIds.length) {
-        this.vm().errorSummary = [
-          { text: 'Failed to get new bulk uploaded IDs' },
-        ];
+        if (showError) {
+          this.detailSignalState.patch({
+            errorSummary: [{ text: 'Failed to get new bulk uploaded IDs' }],
+          });
+        }
         return;
       }
 
       this.bulkUploadedEntryIds = newEntryIds;
     } catch (err) {
-      const msg = getProblemText(err);
-
-      this.detailSignalState.patch({
-        errorSummary: [{ text: msg }],
-        bulkUploadDone: false,
-      });
+      if (showError) {
+        this.detailSignalState.patch({
+          errorSummary: [{ text: getProblemText(err) }],
+          bulkUploadDone: false,
+        });
+      }
     }
   }
 
@@ -1354,6 +1384,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     action: BulkActionType,
     entryIds?: Set<string>,
     forceIds = false,
+    showError = true,
   ): Promise<BulkActionPreviewResponseDto | null> {
     const vm = this.vm();
     const listId = this.id;
@@ -1400,7 +1431,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         msg = getProblemText(err);
       }
 
-      this.detailSignalState.patch({ errorSummary: [{ text: msg }] });
+      if (showError) {
+        this.detailSignalState.patch({ errorSummary: [{ text: msg }] });
+      }
       return null;
     }
   }

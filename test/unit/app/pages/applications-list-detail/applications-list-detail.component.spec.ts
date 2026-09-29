@@ -1706,6 +1706,85 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('onBulkUploadBannerClick', () => {
+    it('only displays the fee update link when an uploaded entry is eligible', async () => {
+      patchDetailState({ bulkUploadDone: true });
+      component.bulkUploadFeeUpdateAvailable.set(false);
+      await flushSignalEffects(fixture);
+
+      let banner = fixture.debugElement.query(By.css('app-success-banner'));
+      expect(banner.componentInstance.linkText()).toBeUndefined();
+
+      component.bulkUploadFeeUpdateAvailable.set(true);
+      await flushSignalEffects(fixture);
+
+      banner = fixture.debugElement.query(By.css('app-success-banner'));
+      expect(banner.componentInstance.linkText()).toBe(
+        'Click here to update fee details on newly uploaded applications',
+      );
+    });
+
+    it.each([
+      [1, true],
+      [0, false],
+    ])(
+      'sets fee update link availability for %s eligible uploaded entries',
+      async (eligibleCount, expected) => {
+        entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReset();
+        entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
+        entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReturnValue(
+          of(['entry-1']) as never,
+        );
+        entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValue(
+          of({
+            action: BulkActionType.UPDATE_FEE_DETAILS,
+            limit: 2000,
+            selectedCount: 1,
+            eligibleCount,
+            ineligibleCount: eligibleCount ? 0 : 1,
+            entryIds: eligibleCount ? ['entry-1'] : [],
+            entries: [],
+          }),
+        );
+        component.id = 'list-123';
+        component.bulkUploadJobId.set('job-123');
+
+        await component['setBulkUploadFeeUpdateAvailability']();
+
+        expect(component.bulkUploadFeeUpdateAvailable()).toBe(expected);
+        expect(
+          entriesApiStub.applicationListEntryBulkActionPreview,
+        ).toHaveBeenCalledWith({
+          listId: 'list-123',
+          applicationListEntryBulkActionPreviewRequestDto: {
+            action: BulkActionType.UPDATE_FEE_DETAILS,
+            selection: {
+              selectionType: BulkActionSelectionType.IDS,
+              entryIds: ['entry-1'],
+            },
+          },
+        });
+      },
+    );
+
+    it('keeps the link hidden without replacing the upload success when eligibility cannot be loaded', async () => {
+      entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReset();
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
+      entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 500 })),
+      );
+      patchDetailState({ bulkUploadDone: true, errorSummary: [] });
+      component.bulkUploadJobId.set('job-123');
+
+      await component['setBulkUploadFeeUpdateAvailability']();
+
+      expect(component.bulkUploadFeeUpdateAvailable()).toBe(false);
+      expect(vm().bulkUploadDone).toBe(true);
+      expect(vm().errorSummary).toEqual([]);
+      expect(
+        entriesApiStub.applicationListEntryBulkActionPreview,
+      ).not.toHaveBeenCalled();
+    });
+
     it('loads uploaded entry ids, patches selection, and opens bulk fee update', async () => {
       entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReturnValue(
         of(['entry-1', 'entry-2']) as never,
