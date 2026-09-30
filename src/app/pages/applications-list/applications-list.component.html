@@ -118,6 +118,15 @@
 />
 
 @if (storedRecordsVm().rows.length) {
+  <app-radio-group
+    [legend]="''"
+    size="m"
+    [options]="[
+      { label: 'Show empty lists only', value: 'empty' },
+      { label: 'Show populated lists only', value: 'nonEmpty' },
+      { label: 'Show all lists', value: 'all' },
+    ]"
+  ></app-radio-group>
   <!-- Sortable table component -->
   <app-sortable-table
     id="sortable-table"

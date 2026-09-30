@@ -23,13 +23,13 @@ describe('RadioButtonComponent', () => {
     fixture = TestBed.createComponent(RadioButtonComponent);
     component = fixture.componentInstance;
 
-    component.idPrefix = 'choice';
-    component.legend = 'Pick one';
-    component.options = [
+    fixture.componentRef.setInput('idPrefix', 'choice');
+    fixture.componentRef.setInput('legend', 'Pick one');
+    fixture.componentRef.setInput('options', [
       { value: 'A', label: 'Alpha' },
       { value: 'B', label: 'Bravo', hint: 'Second option hint' },
       { value: 'C', label: 'Charlie', disabled: true },
-    ];
+    ]);
   });
 
   function el<K extends HTMLElement = HTMLElement>(selector: string): K | null {
@@ -52,6 +52,8 @@ describe('RadioButtonComponent', () => {
   it('renders legend, radios, and labels in order', () => {
     fixture.detectChanges();
 
+    expect(component.legend()).toBe('Pick one');
+
     const legendH1 = el<HTMLHeadingElement>('legend h1');
     expect(legendH1?.textContent?.trim()).toBe('Pick one');
 
@@ -61,7 +63,7 @@ describe('RadioButtonComponent', () => {
   });
 
   it('applies id/for using idPrefix and index; falls back name to idPrefix', () => {
-    component.name = undefined;
+    fixture.componentRef.setInput('name', undefined);
     fixture.detectChanges();
 
     const r = radios();
@@ -79,7 +81,7 @@ describe('RadioButtonComponent', () => {
   });
 
   it('uses provided name when set', () => {
-    component.name = 'customName';
+    fixture.componentRef.setInput('name', 'customName');
     fixture.detectChanges();
 
     const r = radios();
@@ -89,7 +91,7 @@ describe('RadioButtonComponent', () => {
   });
 
   it('shows hint and wires aria-describedby to hint id when hint is present', () => {
-    component.hint = 'Choose wisely';
+    fixture.componentRef.setInput('hint', 'Choose wisely');
     fixture.detectChanges();
 
     const hintEl = el<HTMLElement>('#choice-hint');
@@ -101,8 +103,8 @@ describe('RadioButtonComponent', () => {
   });
 
   it('shows error and wires aria-describedby to error id when showError=true', () => {
-    component.showError = true;
-    component.errorText = 'You must pick one';
+    fixture.componentRef.setInput('showError', true);
+    fixture.componentRef.setInput('errorText', 'You must pick one');
     fixture.detectChanges();
 
     const errEl = el<HTMLElement>('#choice-error');
@@ -114,9 +116,9 @@ describe('RadioButtonComponent', () => {
   });
 
   it('combines hint and error in aria-describedby when both are present', () => {
-    component.hint = 'Choose wisely';
-    component.showError = true;
-    component.errorText = 'You must pick one';
+    fixture.componentRef.setInput('hint', 'Choose wisely');
+    fixture.componentRef.setInput('showError', true);
+    fixture.componentRef.setInput('errorText', 'You must pick one');
     fixture.detectChanges();
 
     const fs = fieldset();

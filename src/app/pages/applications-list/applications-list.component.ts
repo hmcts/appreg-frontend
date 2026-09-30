@@ -57,6 +57,7 @@ import { HelpDetailsComponent } from '@components/help-details/help-details.comp
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
+import { RadioButtonComponent } from '@components/radio-button/radio-button.component';
 import {
   SortableTableComponent,
   TableColumn,
@@ -110,6 +111,7 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
     ApplicationsListFormComponent,
     AsyncJobProgressComponent,
     HelpDetailsComponent,
+    RadioButtonComponent,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list.component.html',

@@ -1,8 +1,9 @@
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  Input,
   forwardRef,
+  input,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
@@ -16,7 +17,7 @@ export type RadioOption = {
 @Component({
   selector: 'app-radio-group',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './radio-button.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
@@ -28,17 +29,19 @@ export type RadioOption = {
   ],
 })
 export class RadioButtonComponent implements ControlValueAccessor {
-  @Input({ required: true }) legend!: string;
-  @Input({ required: true }) options: RadioOption[] = [];
+  readonly legend = input.required<string>();
+  readonly options = input.required<RadioOption[]>();
 
-  @Input() idPrefix = 'radio';
-  @Input() name?: string;
-  @Input() size: 's' | 'm' | 'l' = 'l';
-  @Input() hint?: string;
+  readonly idPrefix = input('radio');
+  readonly name = input<string | undefined>();
+  readonly size = input<'s' | 'm' | 'l'>('l');
+  readonly hint = input<string | undefined>();
 
   // Error display controlled by parent
-  @Input() showError = false;
-  @Input() errorText = 'Select an option';
+  readonly showError = input(false);
+  readonly errorText = input('Select an option');
+
+  readonly buttonsInline = input(true);
 
   value: string | null = null;
   disabled = false;
@@ -70,7 +73,7 @@ export class RadioButtonComponent implements ControlValueAccessor {
   }
 
   get fieldsetLegendClass(): string {
-    switch (this.size) {
+    switch (this.size()) {
       case 's':
         return 'govuk-fieldset__legend govuk-fieldset__legend--s';
       case 'm':
@@ -83,10 +86,10 @@ export class RadioButtonComponent implements ControlValueAccessor {
   describedById(hintPresent: boolean, errorPresent: boolean): string | null {
     const ids: string[] = [];
     if (hintPresent) {
-      ids.push(`${this.idPrefix}-hint`);
+      ids.push(`${this.idPrefix()}-hint`);
     }
     if (errorPresent) {
-      ids.push(`${this.idPrefix}-error`);
+      ids.push(`${this.idPrefix()}-error`);
     }
     return ids.length ? ids.join(' ') : null;
   }
