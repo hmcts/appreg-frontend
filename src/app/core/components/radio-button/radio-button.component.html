@@ -1,4 +1,4 @@
-<div class="govuk-form-group">
+<div class="govuk-form-group" [ngClass]="containerWidthClass()">
   <fieldset
     class="govuk-fieldset"
     [attr.aria-describedby]="describedById(!!hint(), showError())"

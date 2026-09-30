@@ -36,12 +36,13 @@ export class RadioButtonComponent implements ControlValueAccessor {
   readonly name = input<string | undefined>();
   readonly size = input<'s' | 'm' | 'l'>('l');
   readonly hint = input<string | undefined>();
+  readonly containerWidthClass = input('');
 
   // Error display controlled by parent
   readonly showError = input(false);
   readonly errorText = input('Select an option');
 
-  readonly buttonsInline = input(true);
+  readonly buttonsInline = input(false);
 
   value: string | null = null;
   disabled = false;

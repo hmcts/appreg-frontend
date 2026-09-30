@@ -118,6 +118,22 @@
         widthClass="govuk-!-width-full"
       />
     </div>
+
+    @if (isSearch()) {
+      <div class="govuk-grid-row">
+        <app-radio-group
+          [legend]="''"
+          size="m"
+          containerWidthClass="govuk-grid-column-full"
+          [options]="[
+            { label: 'Show empty lists only', value: 'empty' },
+            { label: 'Show populated lists only', value: 'nonEmpty' },
+            { label: 'Show both populated and empty lists', value: 'all' },
+          ]"
+          [buttonsInline]="true"
+        />
+      </div>
+    }
   </ng-template>
 
   @if (isSearch()) {

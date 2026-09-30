@@ -191,4 +191,31 @@ describe('RadioButtonComponent', () => {
     );
     expect(container).toBeTruthy();
   });
+
+  it('applies the inline modifier only when buttonsInline is true', () => {
+    fixture.componentRef.setInput('buttonsInline', false);
+    fixture.detectChanges();
+
+    const container = el<HTMLElement>('.govuk-radios');
+    expect(container?.classList.contains('govuk-radios--inline')).toBe(false);
+
+    fixture.componentRef.setInput('buttonsInline', true);
+    fixture.detectChanges();
+
+    expect(container?.classList.contains('govuk-radios--inline')).toBe(true);
+  });
+
+  it('applies the supplied grid-column class to the form group', () => {
+    fixture.componentRef.setInput(
+      'containerWidthClass',
+      'govuk-grid-column-one-quarter',
+    );
+    fixture.detectChanges();
+
+    expect(
+      el<HTMLElement>('.govuk-form-group')?.classList.contains(
+        'govuk-grid-column-one-quarter',
+      ),
+    ).toBe(true);
+  });
 });
