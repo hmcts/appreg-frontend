@@ -25,6 +25,22 @@ describe('app.routes', () => {
     expect(guard({ canLeave: () => decision })).toBe(decision);
   });
 
+  it.each([true, false])(
+    'delegates bulk-upload navigation to the component: %s',
+    (leave) => {
+      const bulkUploadRoute = routes
+        .find((route) => route.path === 'applications-list')
+        ?.children?.find((route) => route.path === ':id/bulk-upload');
+      const guard = bulkUploadRoute?.canDeactivate?.[0] as (component: {
+        canLeave: () => boolean;
+      }) => boolean;
+      const component = { canLeave: jest.fn(() => leave) };
+
+      expect(guard(component)).toBe(leave);
+      expect(component.canLeave).toHaveBeenCalledTimes(1);
+    },
+  );
+
   it('lazy loads top-level feature routes', async () => {
     const applicationsRoute = routes.find(
       (route) => route.path === 'applications',

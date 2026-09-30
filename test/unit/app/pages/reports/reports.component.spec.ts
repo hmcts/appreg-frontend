@@ -14,7 +14,6 @@ import { DurationSectionComponent } from '@components/duration-section/duration-
 import { Reports } from '@components/reports/reports.component';
 import { SearchWarrantsSectionComponent } from '@components/search-warrants-section/search-warrants-section.component';
 import { WorkloadSectionComponent } from '@components/workload-section/workload-section.component';
-import { AppConfigService } from '@core/services/app-config.service';
 import {
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
@@ -101,12 +100,6 @@ describe('ReportsComponent', () => {
       imports: [Reports],
       providers: [
         provideRouter([]),
-        {
-          provide: AppConfigService,
-          useValue: {
-            getAppConfig: () => ({ reportNavigationModalEnabled: true }),
-          },
-        },
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
         { provide: ReportsApi, useValue: reportsApiMock },
         { provide: JobPollingFacade, useValue: jobPollingFacadeMock },
@@ -135,6 +128,7 @@ describe('ReportsComponent', () => {
     'respects the navigation confirmation: %s',
     (leave) => {
       (component as unknown as ReportsHarness).showReportProgress();
+      fixture.detectChanges();
       const dialog = fixture.debugElement.query(
         By.directive(ConfirmationDialogComponent),
       ).componentInstance as ConfirmationDialogComponent;
@@ -144,34 +138,6 @@ describe('ReportsComponent', () => {
       expect(decision).toHaveBeenCalledWith(leave);
       expect(confirm).toHaveBeenCalledTimes(1);
       expect(component.isReportInProgress()).toBe(true);
-    },
-  );
-
-  it.each([false, true])(
-    'uses the native confirmation when the feature is disabled: %s',
-    (leave) => {
-      const config = TestBed.inject(AppConfigService);
-      jest.spyOn(config, 'getAppConfig').mockReturnValue({
-        ...config.getAppConfig(),
-        reportNavigationModalEnabled: false,
-      });
-      const confirm = jest.spyOn(window, 'confirm').mockReturnValue(leave);
-      const dialog = fixture.debugElement.query(
-        By.directive(ConfirmationDialogComponent),
-      ).componentInstance as ConfirmationDialogComponent;
-      const customConfirm = jest.spyOn(dialog, 'confirm');
-      try {
-        expect(component.canLeave()).toBe(true);
-        expect(confirm).not.toHaveBeenCalled();
-        (component as unknown as ReportsHarness).showReportProgress();
-        expect(component.canLeave()).toBe(leave);
-        expect(confirm).toHaveBeenCalledWith(
-          'Your report is still being generated or downloaded. If you leave this page, you will not receive it. Leave this page?',
-        );
-        expect(customConfirm).not.toHaveBeenCalled();
-      } finally {
-        confirm.mockRestore();
-      }
     },
   );
 
