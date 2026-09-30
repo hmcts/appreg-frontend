@@ -47,8 +47,9 @@ export class ReportSelectorComponent implements ControlValueAccessor {
   /** Optional aria-describedby id */
   // @Input() ariaDescribedBy?: string;
   ariaDescribedBy = input<string | null>(null);
+  selectorDisabled = input(false);
 
-  disabled = false;
+  formDisabled = false;
   value: string | null = null;
 
   onChange: (v: string | null) => void = () => {};
@@ -67,7 +68,7 @@ export class ReportSelectorComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.formDisabled = isDisabled;
   }
 
   onModelChange(v: string): void {

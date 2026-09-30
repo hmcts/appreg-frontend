@@ -57,6 +57,7 @@
 <form class="govuk-form-group" [formGroup]="form">
   <app-report-selector
     [options]="reportOptions"
+    [selectorDisabled]="isReportInProgress()"
     legend="Select the report you wish to download?"
     formControlName="report"
   >
