@@ -7,7 +7,7 @@ fresh GitHub-hosted compute.
 The Codex workflows come from the shared HMCTS
 [codex-agent-workflows](https://github.com/hmcts/codex-agent-workflows)
 repository, pinned to a full commit SHA. This repository keeps two thin
-callers, the runner smoke test, `bin/codex-local-pipeline.sh` and `AGENTS.md`.
+callers, `bin/codex-local-pipeline.sh` and `AGENTS.md`.
 Its settings are the inputs in those callers; the shared
 [caller contract](https://github.com/hmcts/codex-agent-workflows/blob/main/docs/caller-contract.md)
 describes each one.
