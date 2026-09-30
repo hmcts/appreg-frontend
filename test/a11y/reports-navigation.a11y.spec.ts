@@ -171,8 +171,13 @@ describe('Report navigation confirmation in a browser', () => {
   it('protects browser Back within the application history', async () => {
     await page.evaluate(() => history.back());
     await page.waitForSelector('dialog[open]');
-    await page.click('dialog button.govuk-button');
-    await page.waitForFunction(() => location.pathname === '/reports');
+    await Promise.all([
+      // Cancelling Back requires Angular to perform a compensating history traversal.
+      page.waitForFunction(() => location.pathname === '/reports', {
+        timeout: 15_000,
+      }),
+      page.click('dialog button.govuk-button'),
+    ]);
     await page.evaluate(() => history.back());
     await page.waitForSelector('dialog[open]');
     await page.click('dialog button.govuk-button--secondary');
