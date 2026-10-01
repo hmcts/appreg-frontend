@@ -262,7 +262,7 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   }
 
   private invalidClock(): ValidationErrors {
-    return this.invalid('Enter a valid duration between 00:00 and 23:59');
+    return this.invalid('Enter a valid time between 00:00 and 23:59');
   }
 
   private invalid(msg: string): ValidationErrors {
@@ -302,7 +302,7 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     }
     if (e['durationInvalid']) {
       if (this.mode() === 'clock') {
-        return 'Enter a valid duration between 00:00 and 23:59';
+        return 'Enter a valid time between 00:00 and 23:59';
       } else {
         return 'Enter a valid duration: Hours 0-99, Mins 0-59';
       }
