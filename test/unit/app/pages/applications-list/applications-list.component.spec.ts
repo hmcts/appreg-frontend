@@ -1,6 +1,7 @@
 import { HttpResponse } from '@angular/common/http';
 import { LOCALE_ID, PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import {
   ActivatedRoute,
   Router,
@@ -482,6 +483,60 @@ describe('ApplicationsList – search', () => {
     expect(args.filter).toEqual({ status: 'CLOSED' });
   });
 
+  it('maps the selected open status into the application lists request filter', async () => {
+    jest.spyOn(LoadQuery, 'loadQuery').mockRestore();
+    component.form.controls.status.setValue('open');
+
+    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+
+    component.loadApplicationsLists();
+    await flushSignalEffects(fixture);
+
+    const args = service.getApplicationLists.mock
+      .calls[0][0] as GetApplicationListsRequestParams;
+    expect(args.filter).toEqual({ status: ApplicationListStatus.OPEN });
+  });
+
+  it('submits the status selected through the rendered dropdown', async () => {
+    jest.spyOn(LoadQuery, 'loadQuery').mockRestore();
+    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+
+    const statusSelect = fixture.debugElement.query(By.css('#status'))
+      .nativeElement as HTMLSelectElement;
+    statusSelect.value = 'open';
+    statusSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    const { e } = submitEvent('search');
+    component.onSubmit(e);
+    await flushSignalEffects(fixture);
+
+    const args = service.getApplicationLists.mock
+      .calls[0][0] as GetApplicationListsRequestParams;
+    expect(component.form.controls.status.value).toBe('open');
+    expect(args.filter).toEqual({ status: ApplicationListStatus.OPEN });
+  });
+
+  it('submits the status selected through the rendered dropdown on native form submit', async () => {
+    jest.spyOn(LoadQuery, 'loadQuery').mockRestore();
+    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+
+    const statusSelect = fixture.debugElement.query(By.css('#status'))
+      .nativeElement as HTMLSelectElement;
+    statusSelect.value = 'open';
+    statusSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+    const form = fixture.debugElement.query(By.css('form'))
+      .nativeElement as HTMLFormElement;
+    form.dispatchEvent(new SubmitEvent('submit', { bubbles: true }));
+    await flushSignalEffects(fixture);
+
+    const args = service.getApplicationLists.mock
+      .calls[0][0] as GetApplicationListsRequestParams;
+    expect(component.form.controls.status.value).toBe('open');
+    expect(args.filter).toEqual({ status: ApplicationListStatus.OPEN });
+  });
+
   it('onSortChange stores the UI sort key, resets to page 0, and reloads data', () => {
     const loadSpy = jest
       .spyOn(component, 'loadApplicationsLists')
@@ -546,6 +601,20 @@ describe('ApplicationsList – search', () => {
   });
 
   describe('onSubmit', () => {
+    it('submits the selected open status as an application lists request filter', async () => {
+      jest.spyOn(LoadQuery, 'loadQuery').mockRestore();
+      component.form.controls.status.setValue('open');
+      service.getApplicationLists.mockReturnValue(of(pageStub([])));
+
+      const { e } = submitEvent('search');
+      component.onSubmit(e);
+      await flushSignalEffects(fixture);
+
+      const args = service.getApplicationLists.mock
+        .calls[0][0] as GetApplicationListsRequestParams;
+      expect(args.filter).toEqual({ status: ApplicationListStatus.OPEN });
+    });
+
     it('collects date/time validation errors and does not run search', () => {
       const spy = jest.spyOn(component, 'loadApplicationsLists');
 

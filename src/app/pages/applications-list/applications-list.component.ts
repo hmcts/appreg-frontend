@@ -26,6 +26,7 @@ import {
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -165,6 +166,9 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       this.hasStatusFilter(),
     );
   }
+  readonly disabledSortColumns = computed<readonly string[]>(() =>
+    this.hasStatusFilter() ? ['status'] : [],
+  );
 
   ngOnInit(): void {
     this.restoreFormValues();

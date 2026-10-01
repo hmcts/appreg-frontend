@@ -43,6 +43,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import {
+  type ApplicationsState,
   clearNotificationsPatch,
   defaultApplicationsSort,
   initialApplicationsState,
@@ -215,12 +216,26 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     },
   );
 
-  get columns(): TableColumn[] {
-    return withDisabledColumnSort(
+  readonly columns = computed<TableColumn[]>(() =>
+    withDisabledColumnSort(
       ApplicationsColumns,
       'status',
       this.hasStatusFilter(),
-    );
+    ),
+  );
+  readonly disabledSortColumns = computed<readonly string[]>(() =>
+    this.hasStatusFilter() ? ['status'] : [],
+  );
+
+  private statusAwareSortField(
+    filters: EntryGetFilterDto,
+    sortField: ApplicationsState['sortField'],
+  ): ApplicationsState['sortField'] {
+    if (filters.status && sortField.key === 'status') {
+      return defaultApplicationsSort();
+    }
+
+    return sortField;
   }
 
   status = APPLICATIONS_LIST_CHOOSE_STATUS;
@@ -268,7 +283,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       isAdvancedSearch: storedForm.isAdvancedSearch,
       currentPage: storedState.currentPage,
       pageSize: storedState.pageSize,
-      sortField: { ...storedState.sortField },
+      sortField: this.statusAwareSortField(
+        storedState.appliedFilters,
+        storedState.sortField,
+      ),
       getFilters: { ...storedState.appliedFilters },
       selectedIds: new Set<string>(),
       selectedRows: [],
@@ -607,8 +625,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   private hasStatusFilter(): boolean {
-    const status = this.form.controls.status.value;
-    return typeof status === 'string' ? status.trim().length > 0 : !!status;
+    return !!this.vm().getFilters.status;
   }
 
   onSelectedIdsChange(selectedIds: Set<string>): void {
