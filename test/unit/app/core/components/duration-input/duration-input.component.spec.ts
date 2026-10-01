@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormControl } from '@angular/forms';
 
 import {
   Duration,
@@ -120,5 +121,31 @@ describe('DurationInputComponent', () => {
 
     expect(onChange).toHaveBeenCalledWith({ hours: 2, minutes: null });
     expect(onChange).toHaveBeenCalledWith({ hours: 2, minutes: 15 });
+  });
+
+  it('refers to time when a clock value is invalid', () => {
+    component.writeValue({ hours: 24, minutes: 0 });
+
+    expect(component.validate(new FormControl())).toEqual({
+      durationInvalid: true,
+      durationErrorText: 'Enter a valid time between 00:00 and 23:59',
+    });
+    expect(component.errorText).toBe(
+      'Enter a valid time between 00:00 and 23:59',
+    );
+  });
+
+  it('continues to refer to duration when a duration value is invalid', () => {
+    fixture.componentRef.setInput('mode', 'duration');
+    component.writeValue({ hours: 100, minutes: 0 });
+
+    expect(component.validate(new FormControl())).toEqual({
+      hoursErrorText: 'Enter hours between 0 and 99',
+      durationErrorText: 'Enter hours between 0 and 99',
+      durationInvalid: true,
+    });
+    expect(component.errorText).toBe(
+      'Enter a valid duration: Hours 0-99, Mins 0-59',
+    );
   });
 });
