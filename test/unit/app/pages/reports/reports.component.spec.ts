@@ -1138,6 +1138,23 @@ describe('ReportsComponent', () => {
       fixture.nativeElement.querySelector('app-async-job-progress')
         ?.textContent,
     ).toContain('Report in progress');
+    const reportRadios = Array.from<HTMLInputElement>(
+      fixture.nativeElement.querySelectorAll(
+        'app-report-selector input[type="radio"]',
+      ),
+    );
+    expect(reportRadios.length).toBeGreaterThan(0);
+    expect(reportRadios.every((input) => input.disabled)).toBe(true);
+
+    const reportActionButtons = Array.from<HTMLButtonElement>(
+      fixture.nativeElement.querySelectorAll('.govuk-button-group button'),
+    ).filter((button) =>
+      ['Download CSV', 'Clear filters'].includes(
+        button.textContent?.trim() ?? '',
+      ),
+    );
+    expect(reportActionButtons).toHaveLength(2);
+    expect(reportActionButtons.every((button) => button.disabled)).toBe(true);
   });
 
   it('prevents duplicate list maintenance create requests while progress is active', () => {
@@ -1195,6 +1212,13 @@ describe('ReportsComponent', () => {
     expect(
       fixture.nativeElement.querySelector('button.govuk-button')?.disabled,
     ).toBe(false);
+    const reportRadios = Array.from<HTMLInputElement>(
+      fixture.nativeElement.querySelectorAll(
+        'app-report-selector input[type="radio"]',
+      ),
+    );
+    expect(reportRadios.length).toBeGreaterThan(0);
+    expect(reportRadios.every((input) => input.disabled)).toBe(false);
   });
 
   it('shows the backend problem message when a report create request returns 400', () => {
