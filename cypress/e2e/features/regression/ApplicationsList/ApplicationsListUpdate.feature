@@ -140,7 +140,7 @@ Feature: Applications List Update
         When User Clears The Time Field "Time"
         When User Set Time Field "Time" To "<InvalidTime3>"
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error Banner "There is a problem Enter a valid duration between 00:00 and 23:59 Enter a description Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter a valid time between 00:00 and 23:59 Enter a description Enter a court, or an other location and criminal justice area"
         When User Set Time Field "Time" To "<UpdatedTime>"
         Then User Enters "<UpdatedDescription>" Into The "List description" Textarea
         Then User See "You have 164 characters remaining" On The Page

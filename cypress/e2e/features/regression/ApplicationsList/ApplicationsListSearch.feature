@@ -102,7 +102,7 @@ Feature: Applications List Search
     When User Set Date Field "Date" To "today"
     When User Set Time Field "Time" To "25:61"
     When User Clicks On The "Search" Button
-    Then User Sees Validation Error Banner "There is a problem Enter a valid duration between 00:00 and 23:59"
+    Then User Sees Validation Error Banner "There is a problem Enter a valid time between 00:00 and 23:59"
     Examples:
       | User   |
       | admin1 |

@@ -336,7 +336,7 @@ describe('buildFormErrorSummary', () => {
     const messages: ErrorMessageMap = {
       time: {
         required: 'Enter hours and minutes',
-        durationInvalid: 'Enter a valid duration between 00:00 and 23:59',
+        durationInvalid: 'Enter a valid time between 00:00 and 23:59',
       },
     };
 
@@ -352,7 +352,7 @@ describe('buildFormErrorSummary', () => {
       {
         id: 'external.time',
         href: '#external.time',
-        text: 'Enter a valid duration between 00:00 and 23:59',
+        text: 'Enter a valid time between 00:00 and 23:59',
       },
     ]);
   });

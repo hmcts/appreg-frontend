@@ -543,7 +543,7 @@ describe('ApplicationsList – search', () => {
         {
           href: '#time-hours',
           id: 'time',
-          text: 'Enter a valid duration between 00:00 and 23:59',
+          text: 'Enter a valid time between 00:00 and 23:59',
         },
       ]);
       expect(spy).not.toHaveBeenCalled();
