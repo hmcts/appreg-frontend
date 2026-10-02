@@ -3,10 +3,10 @@
     class="govuk-fieldset"
     [attr.aria-describedby]="describedById(!!hint(), showError())"
   >
-    <legend class="{{ fieldsetLegendClass }}">
-      <h1 class="govuk-fieldset__heading">
+    <legend>
+      <p class="govuk-body">
         {{ legend() }}
-      </h1>
+      </p>
     </legend>
 
     @if (hint()) {

@@ -127,11 +127,10 @@
           size="s"
           containerWidthClass="govuk-grid-column-full"
           [options]="[
-            { label: 'Show empty lists only', value: false },
-            { label: 'Show populated lists only', value: true },
-            { label: 'Show both populated and empty lists', value: null },
+            { label: 'Empty lists only', value: false },
+            { label: 'Lists with entries only', value: true },
+            { label: 'All lists', value: null },
           ]"
-          [buttonsInline]="true"
         />
       </div>
     }
