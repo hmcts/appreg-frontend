@@ -17,7 +17,17 @@ type BuildOptions = {
 export class ApplicationsListFormService {
   createSearchForm(): FormGroup<ApplicationsListFormControls> {
     return new FormGroup(this.buildControls({ mode: 'search' }), {
-      validators: [atLeastOneRequiredValidator()],
+      validators: [
+        atLeastOneRequiredValidator([
+          'date',
+          'time',
+          'description',
+          'status',
+          'court',
+          'location',
+          'cja',
+        ]),
+      ],
     });
   }
 
