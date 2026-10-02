@@ -926,6 +926,141 @@ describe('ApplicationsComponent', () => {
       expect(loadSpy).toHaveBeenCalledWith(component.vm().getFilters);
     });
 
+    it('disables status sorting when a status filter is selected', () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        getFilters: { status: ApplicationListStatus.OPEN },
+      }));
+
+      expect(
+        component.columns().find((column) => column.field === 'status'),
+      ).toEqual(expect.objectContaining({ sortable: false }));
+    });
+
+    it('disables date sorting for exact date filters but keeps partial columns sortable', () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        getFilters: {
+          date: '2026-10-01',
+          applicantName: 'smith',
+          applicationTitle: 'order',
+        },
+      }));
+
+      expect(component.disabledSortColumns()).toEqual(['date']);
+      expect(
+        component.columns().find((column) => column.field === 'date'),
+      ).toEqual(expect.objectContaining({ sortable: false }));
+      expect(
+        component.columns().find((column) => column.field === 'applicant'),
+      ).not.toEqual(expect.objectContaining({ sortable: false }));
+      expect(
+        component.columns().find((column) => column.field === 'title'),
+      ).not.toEqual(expect.objectContaining({ sortable: false }));
+    });
+
+    it('renders the status header as non-sortable when a status filter has been applied', () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        rows: [makeEntry({ id: 'row-1' })],
+        getFilters: { status: ApplicationListStatus.OPEN },
+      }));
+      fixture.detectChanges();
+
+      const statusHeader = fixture.debugElement
+        .queryAll(By.css('th'))
+        .find((header) => header.nativeElement.textContent.includes('Status'));
+
+      expect(statusHeader).toBeTruthy();
+      expect(statusHeader?.query(By.css('button'))).toBeNull();
+      expect(statusHeader?.attributes['aria-sort']).toBeUndefined();
+    });
+
+    it('ignores status sort changes when a status filter has been applied', () => {
+      const loadSpy = jest.spyOn(component, 'loadApplications');
+      appStateSignal(component).update((s) => ({
+        ...s,
+        currentPage: 3,
+        sortField: { key: 'date', direction: 'desc' },
+        getFilters: { status: ApplicationListStatus.OPEN },
+      }));
+
+      component.onSortChange({ key: 'status', direction: 'asc' });
+
+      expect(component.vm().sortField).toEqual({
+        key: 'date',
+        direction: 'desc',
+      });
+      expect(component.vm().currentPage).toBe(3);
+      expect(loadSpy).not.toHaveBeenCalled();
+    });
+
+    it('ignores date sort changes when an exact date filter has been applied', () => {
+      const loadSpy = jest.spyOn(component, 'loadApplications');
+      appStateSignal(component).update((s) => ({
+        ...s,
+        currentPage: 3,
+        sortField: { key: 'status', direction: 'asc' },
+        getFilters: { date: '2026-10-01' },
+      }));
+
+      component.onSortChange({ key: 'date', direction: 'asc' });
+
+      expect(component.vm().sortField).toEqual({
+        key: 'status',
+        direction: 'asc',
+      });
+      expect(component.vm().currentPage).toBe(3);
+      expect(loadSpy).not.toHaveBeenCalled();
+    });
+
+    it('keeps status sorting disabled when the draft form status is cleared before submitting', () => {
+      const loadSpy = jest.spyOn(component, 'loadApplications');
+      appStateSignal(component).update((s) => ({
+        ...s,
+        currentPage: 3,
+        sortField: { key: 'date', direction: 'desc' },
+        getFilters: { status: ApplicationListStatus.OPEN },
+      }));
+      component.form.controls.status.setValue(null);
+
+      expect(
+        component.columns().find((column) => column.field === 'status'),
+      ).toEqual(expect.objectContaining({ sortable: false }));
+
+      component.onSortChange({ key: 'status', direction: 'asc' });
+
+      expect(component.vm().sortField).toEqual({
+        key: 'date',
+        direction: 'desc',
+      });
+      expect(component.vm().currentPage).toBe(3);
+      expect(loadSpy).not.toHaveBeenCalled();
+    });
+
+    it('keeps status sorting enabled when the draft form status is selected before submitting', () => {
+      const loadSpy = jest.spyOn(component, 'loadApplications');
+      appStateSignal(component).update((s) => ({
+        ...s,
+        currentPage: 3,
+        getFilters: {},
+      }));
+      component.form.controls.status.setValue('open');
+
+      expect(
+        component.columns().find((column) => column.field === 'status'),
+      ).not.toEqual(expect.objectContaining({ sortable: false }));
+
+      component.onSortChange({ key: 'status', direction: 'asc' });
+
+      expect(component.vm().sortField).toEqual({
+        key: 'status',
+        direction: 'asc',
+      });
+      expect(component.vm().currentPage).toBe(0);
+      expect(loadSpy).toHaveBeenCalledWith(component.vm().getFilters);
+    });
+
     it('maps UI column keys to API sort keys', () => {
       appStateSignal(component).update((s) => ({
         ...s,

@@ -95,7 +95,10 @@ import { HelpDetailsComponent } from '@components/help-details/help-details.comp
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
-import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import {
+  SortableTableComponent,
+  TableColumn,
+} from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import {
   toCjaSuggestionItem,
@@ -143,6 +146,7 @@ import {
 } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { trimToUndefined } from '@util/string-helpers';
+import { withDisabledColumnSort } from '@util/table-column-sort';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
@@ -237,7 +241,22 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   override form = this.appListFormService.createUpdateForm();
 
   statusOptions = appListDetailStatusOptions;
-  columns = appListDetailColumns;
+  get columns(): TableColumn[] {
+    return withDisabledColumnSort(
+      appListDetailColumns,
+      this.disabledSortColumns(),
+    );
+  }
+  readonly disabledSortColumns = computed<readonly string[]>(() => {
+    const disabled: string[] = [];
+    if (this.hasSequenceNumberFilter()) {
+      disabled.push('sequenceNumber');
+    }
+    if (this.hasFeeRequiredFilter()) {
+      disabled.push('feeReq');
+    }
+    return disabled;
+  });
 
   suggestionsFacade = buildSuggestionsFacade(this);
 
@@ -1220,6 +1239,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    if (this.isFilteredSort(sort.key)) {
+      return;
+    }
+
     this.detailSignalState.patch({
       sortField: {
         key: sort.key,
@@ -1236,9 +1259,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   ): void {
     this.submitAttempt.update((attempt) => attempt + 1);
     this.invalidateSelectAllRequest();
+    const currentSort = this.detailSignalState.state().sortField;
     this.detailSignalState.patch({
       currentPage: 0,
       getFilters: filters,
+      sortField: this.isFilteredSort(currentSort.key, filters)
+        ? initialApplicationsListDetailState.sortField
+        : currentSort,
       selectedIds: new Set<string>(),
       selectedRows: [],
       isSelectingAll: false,
@@ -1246,6 +1273,25 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       isFilterSelection: false,
       excludedEntryIds: new Set<string>(),
     });
+  }
+
+  private isFilteredSort(
+    key: string,
+    filters: ApplicationsListDetailSearchResult['reqFilter'] = this.vm()
+      .getFilters,
+  ): boolean {
+    return (
+      (key === 'sequenceNumber' && filters.sequenceNumber !== undefined) ||
+      (key === 'feeReq' && filters.feeRequired !== undefined)
+    );
+  }
+
+  private hasSequenceNumberFilter(): boolean {
+    return this.vm().getFilters.sequenceNumber !== undefined;
+  }
+
+  private hasFeeRequiredFilter(): boolean {
+    return this.vm().getFilters.feeRequired !== undefined;
   }
 
   onSearchResult(result: ApplicationsListDetailSearchResult): void {

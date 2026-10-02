@@ -110,6 +110,7 @@
     [columns]="columnsLists"
     [data]="storedRecordsVm().rows"
     [clientOrServerSort]="'server'"
+    [disabledSortColumns]="disabledListSortColumns()"
     [sortKey]="vm().sortField.key"
     [sortDirection]="vm().sortField.direction"
     (sortChange)="onSortChange($event)"

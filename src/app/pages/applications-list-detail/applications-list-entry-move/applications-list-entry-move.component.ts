@@ -67,6 +67,7 @@ import {
 } from '@constants/applications-list/applications-list.constants';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
+  ApplicationListGetFilterDto,
   ApplicationListGetSummaryDto,
   ApplicationListsApi,
   GetApplicationListsRequestParams,
@@ -84,6 +85,7 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { withDisabledColumnSort } from '@util/table-column-sort';
 import { sortRows } from '@util/table-sort';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
@@ -141,7 +143,15 @@ export class ApplicationsListEntryMoveComponent
   onCreateErrorClick = onCreateErrorClickFn;
 
   columnsEntries = APPLICATION_ENTRIES_MOVE_COLUMNS;
-  columnsLists: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
+  get columnsLists(): TableColumn[] {
+    return withDisabledColumnSort(
+      APPLICATIONS_LIST_COLUMNS_ACTION,
+      this.disabledListSortColumns(),
+    );
+  }
+  readonly disabledListSortColumns = computed<readonly string[]>(() =>
+    this.filteredSortColumns(),
+  );
 
   private readonly pageSize = 10;
   readonly currentPage = signal(0);
@@ -252,7 +262,9 @@ export class ApplicationsListEntryMoveComponent
       return;
     }
 
-    this.loadApplicationsLists();
+    const filters = loadQuery(this.form);
+    this.moveEntryPatch({ appliedFilters: filters });
+    this.loadApplicationsLists(filters);
   }
 
   onSelect(targetList: ApplicationListRow): void {
@@ -274,6 +286,10 @@ export class ApplicationsListEntryMoveComponent
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    if (this.filteredSortColumns().includes(sort.key)) {
+      return;
+    }
+
     this.moveEntryPatch({
       sortField: {
         key: APPLICATION_LIST_SORT_MAP[sort.key] ?? sort.key,
@@ -281,12 +297,12 @@ export class ApplicationsListEntryMoveComponent
       },
     });
     this.storedRecordsState.patch({ currentPage: 0 });
-    this.loadApplicationsLists();
+    this.loadApplicationsLists(this.moveEntryState().appliedFilters);
   }
 
   onPageChange(page: number): void {
     this.storedRecordsState.patch({ currentPage: page });
-    this.loadApplicationsLists();
+    this.loadApplicationsLists(this.moveEntryState().appliedFilters);
   }
 
   onSortChangeSelected(sort: { key: string; direction: 'desc' | 'asc' }): void {
@@ -316,7 +332,9 @@ export class ApplicationsListEntryMoveComponent
     this.resetPlaceSearch();
   }
 
-  private loadApplicationsLists(): void {
+  private loadApplicationsLists(
+    filter: ApplicationListGetFilterDto = loadQuery(this.form),
+  ): void {
     this.moveEntryPatch({ isLoading: true });
 
     this.searchForm.setState({
@@ -335,10 +353,27 @@ export class ApplicationsListEntryMoveComponent
       pageNumber: r.currentPage,
       pageSize: r.pageSize,
       sort: paramSort,
-      filter: loadQuery(this.form),
+      filter,
     };
 
     this.loadRequest.set(params);
+  }
+
+  private filteredSortColumns(): readonly string[] {
+    const filters = this.moveEntryState().appliedFilters;
+    const disabled = ['status'];
+
+    if (filters.date) {
+      disabled.push('date');
+    }
+    if (filters.time) {
+      disabled.push('time');
+    }
+    if (filters.courtLocationCode || filters.cjaCode) {
+      disabled.push('location');
+    }
+
+    return disabled;
   }
 
   private setupEffects(): void {
