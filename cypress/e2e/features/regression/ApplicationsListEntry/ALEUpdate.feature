@@ -73,8 +73,8 @@ Feature: Applications List Entry Update
         Then User Sees Success Banner "Payment reference updated" Containing "The payment reference has been updated for the selected fee status."
         Then User Should See The Accordion "Civil fee" Expanded
         Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
-            | Fee Status | Status Date  | Payment Ref      |
-            | PAID       | todaydisplay | PAYUPD-{RANDOM}  |
+            | Fee Status | Status Date  | Payment Ref     |
+            | PAID       | todaydisplay | PAYUPD-{RANDOM} |
         #Result Wording - AUTH
         Then User Selects "AUTH - Authorised" From The Textbox "Result code" Autocomplete By Typing "auth"
         Then User Should See Summary Card With Title "AUTH - Authorised"
@@ -196,3 +196,99 @@ Feature: Applications List Entry Update
         Then User Should See The Accordion "Civil fee" Expanded
         Then User Should See The Text "Attends to make a statutory declaration that henceforth the applicant will be known as " In The Accordion "Wording"
         Then User Should See The Text "Fee Reference: CO7.2 " In The Accordion "Civil fee"
+
+    @ignore @applicationListEntry @ARCPOC-222 @ARCPOC-428 @ARCPOC-1859
+    Scenario: Update an ALE Applicant from Organisation to SA, Respondent from Organisation to Bulk Respondnet, using an Application Code with Fee Required = Y and Respondent Required = Y
+        Given User Authenticates Via API As "user1"
+        # Create Application List
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date     | time  | status | description                                  | courtLocationCode |
+            | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} | LCCC065           |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        # Create Application List Entry - Organisation applicant + Organisation respondent, Application Code with Fee Required = Y and Respondent Required = Y
+        When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
+            | standardApplicantCode                               | null                                       |
+            | applicationCode                                     | MH99001                                    |
+            | applicant.organisation.name                         | Test Organisation {SCENARIO_ID}            |
+            | applicant.organisation.contactDetails.addressLine1  | {SCENARIO_ID} King Street                  |
+            | applicant.organisation.contactDetails.addressLine2  | Westminster                                |
+            | applicant.organisation.contactDetails.addressLine3  | London                                     |
+            | applicant.organisation.contactDetails.addressLine4  | Greater London                             |
+            | applicant.organisation.contactDetails.addressLine5  | United Kingdom                             |
+            | applicant.organisation.contactDetails.postcode      | SW1A 1AA                                   |
+            | applicant.organisation.contactDetails.phone         | 01632960001                                |
+            | applicant.organisation.contactDetails.mobile        | 07700900001                                |
+            | applicant.organisation.contactDetails.email         |                                            |
+            | respondent.organisation.name                        | Test Respondent Organisation {SCENARIO_ID} |
+            | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Market Road                  |
+            | respondent.organisation.contactDetails.addressLine2 | Bristol                                    |
+            | respondent.organisation.contactDetails.addressLine3 | Avon                                       |
+            | respondent.organisation.contactDetails.addressLine4 | South West                                 |
+            | respondent.organisation.contactDetails.addressLine5 | United Kingdom                             |
+            | respondent.organisation.contactDetails.postcode     | BS15 5AA                                   |
+            | respondent.organisation.contactDetails.phone        | 01632960001                                |
+            | respondent.organisation.contactDetails.mobile       | 07700900001                                |
+            | respondent.organisation.contactDetails.email        |                                            |
+            | wordingFields.0.key                                 | Number                                     |
+            | wordingFields.0.value                               | 10                                         |
+            | feeStatuses.0.paymentReference                      | PAY-E5-{RANDOM}                            |
+            | feeStatuses.0.paymentStatus                         | PAID                                       |
+            | feeStatuses.0.statusDate                            | todayiso                                   |
+            | hasOffsiteFee                                       | false                                      |
+            | caseReference                                       | CASEE1{RANDOM}                             |
+            | accountNumber                                       | ACCSE1{RANDOM}                             |
+            | notes                                               | Entry search organisation organisation     |
+            | lodgementDate                                       | todayiso                                   |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "entryId1"
+        When User Signs In With Microsoft SSO As "user1"
+        # Search and Open Created Application List
+        When User Searches Application List With:
+            | Date  | Time | List description                             | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+            | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date         | Time  | Location                          | Description                                  | Entries | Status |
+            | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   |
+        # Search and Open Created Application List Entry
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+            | Sequence number | Account number | Applicant                       | Respondent                                 | Postcode | Title                                                                     | Fee | Resulted |
+            | 1               | ACCSE1{RANDOM} | Test Organisation {SCENARIO_ID} | Test Respondent Organisation {SCENARIO_ID} | BS15 5AA | Issue of warrant of arrest in commitment proceedings - council tax (bulk) | Yes |          |
+        Then User Sees Page Heading "Applications list entry update"
+        Then User See "Summary of application list entry" On The Page
+        # Update Applicant
+        Then User Selects "Standard Applicant" In The "Select applicant type" Dropdown
+        Then User Enters "BGAS" Into The Textbox "Code" In The Accordion "Applicant"
+        When User Clicks On The "Search" Button
+        Then User Should See The Text "British Gas Trading Limited" In The Accordion "Applicant"
+        Then User Should See The Text "BGAS" In The Accordion "Applicant"
+        Then User Checks The Checkbox With Label "Select BGAS" In The Accordion "Applicant"
+        When User Clicks On The "Update applicant" Button In The Accordion "Applicant"
+        Then User Sees Success Banner "Applicant updated" Containing "The applicant has been updated for this application list entry."
+        # Update Respondent
+        When User Toggles The Accordion "Respondent"
+        When User Fills In The Respondent Details
+            | Select type           | Bulk Application |
+            | Number of respondents | 5                |
+        When User Clicks On The "Save complete application" Button
+        Then User Sees Success Banner "Application list entry updated" Containing "The application list entry has been updated successfully."
+        Then User Should See The Accordion "Applicant" Expanded
+        # Verify Applicant Details
+        When User Verifies In The Applicant Details
+            | Select applicant type | Standard Applicant |
+        Then User Should See The Text "Saved BGAS British Gas Trading Limited" In The Accordion "Applicant"
+        Then User Verifies The Checkbox is Checked In Row Of Table "Standard applicants" In The Accordion "Applicant" With:
+            | Code | Name                        | Use from   | Use to |
+            | BGAS | British Gas Trading Limited | 1 Jun 2016 | —      |
+        # Verify Application Codes Details
+        Then User Verifies The Textbox "Application code" Contains "MH99001" In The Accordion "Application codes"
+        Then User Verifies The Textbox "Application title" Contains "Issue of warrant of arrest in commitment proceedings - council tax (bulk)" In The Accordion "Application codes"
+        Then User Verifies The Date field "Lodgement date" Has Value "today"
+        Then User Verifies Date Field "Lodgement date" Is Disabled In The Accordion "Application codes"
+        # Verify Wording Details
+        Then User Verifies The "Wording" Accordion Has Value "Attends to swear a complaint for the issue of warrants of arrest for the debtors to answer an application for committal to prison (number of cases"
+        Then User Verifies Textbox With Placeholder "Enter a Number" Contains "10" In The Accordion "Wording"
+        # Verify Respondent Details provided (as Bulk Application) even though Respondent Required = N as it is optional provide Respondent Details
+        When User Verifies In The Respondent Details
+            | Select type           | Bulk Application |
+            | Number of respondents | 5                |
