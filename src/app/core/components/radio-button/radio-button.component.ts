@@ -41,6 +41,7 @@ export class RadioButtonComponent implements ControlValueAccessor {
   readonly idPrefix = input('radio');
   readonly name = input<string | undefined>();
   readonly size = input<'s' | 'm' | 'l'>('l');
+  readonly legendIsPageHeading = input(true);
   readonly hint = input<string | undefined>();
   readonly containerWidthClass = input('');
 

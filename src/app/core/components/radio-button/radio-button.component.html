@@ -3,10 +3,14 @@
     class="govuk-fieldset"
     [attr.aria-describedby]="describedById(!!hint(), showError())"
   >
-    <legend>
-      <p class="govuk-body">
-        {{ legend() }}
-      </p>
+    <legend [class]="fieldsetLegendClass">
+      @if (legendIsPageHeading()) {
+        <h1 class="govuk-fieldset__heading">{{ legend() }}</h1>
+      } @else {
+        <p class="govuk-body">
+          {{ legend() }}
+        </p>
+      }
     </legend>
 
     @if (hint()) {
