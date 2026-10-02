@@ -1,6 +1,30 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { RadioButtonComponent } from '@components/radio-button/radio-button.component';
+
+@Component({
+  standalone: true,
+  imports: [ReactiveFormsModule, RadioButtonComponent],
+  template: `
+    <form [formGroup]="form">
+      <app-radio-group
+        formControlName="hasEntries"
+        legend="Which lists to show"
+        [options]="options"
+      />
+    </form>
+  `,
+})
+class RadioFormHostComponent {
+  form = new FormGroup({ hasEntries: new FormControl<boolean | null>(null) });
+  options = [
+    { label: 'Show empty lists only', value: false },
+    { label: 'Show populated lists only', value: true },
+    { label: 'Show both populated and empty lists', value: null },
+  ];
+}
 
 function isCva(x: unknown): x is { writeValue: (v: string | null) => void } {
   return (
@@ -217,5 +241,33 @@ describe('RadioButtonComponent', () => {
         'govuk-grid-column-one-quarter',
       ),
     ).toBe(true);
+  });
+});
+
+describe('RadioButtonComponent with a reactive form', () => {
+  it('checks the default option again when the form is reset', async () => {
+    await TestBed.configureTestingModule({
+      imports: [RadioFormHostComponent],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(RadioFormHostComponent);
+    fixture.detectChanges();
+
+    const radios = fixture.nativeElement.querySelectorAll(
+      'input[type="radio"]',
+    ) as NodeListOf<HTMLInputElement>;
+    expect(radios[2].checked).toBe(true);
+
+    radios[1].click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.form.controls.hasEntries.value).toBe(true);
+    expect(radios[1].checked).toBe(true);
+
+    fixture.componentInstance.form.reset({ hasEntries: null });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.form.controls.hasEntries.value).toBeNull();
+    expect(radios[2].checked).toBe(true);
+    expect(radios[1].checked).toBe(false);
   });
 });

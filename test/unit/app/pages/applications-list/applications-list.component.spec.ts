@@ -383,6 +383,14 @@ describe('ApplicationsList – search', () => {
     ...extras,
   });
 
+  it('labels the list population radio group', () => {
+    const legend = fixture.nativeElement.querySelector(
+      'app-radio-group fieldset legend',
+    ) as HTMLLegendElement | null;
+
+    expect(legend?.textContent?.trim()).toBe('Which lists to show');
+  });
+
   it('merges filter when hasParams=true', async () => {
     jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
       status: ApplicationListStatus.OPEN,
