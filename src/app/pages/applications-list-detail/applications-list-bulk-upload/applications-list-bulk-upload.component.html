@@ -144,3 +144,9 @@
     Export the file with errors shown
   </button>
 }
+
+<app-navigation-warning
+  [active]="vm().isUploadInProgress"
+  heading="Leave the bulk upload page?"
+  message="Your bulk upload is still being processed. If you leave this page, you will not receive the outcome."
+/>
