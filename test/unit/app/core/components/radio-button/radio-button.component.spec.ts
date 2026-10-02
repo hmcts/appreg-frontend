@@ -78,7 +78,7 @@ describe('RadioButtonComponent', () => {
 
     expect(component.legend()).toBe('Pick one');
 
-    const legendH1 = el<HTMLHeadingElement>('legend h1');
+    const legendH1 = el<HTMLHeadingElement>('legend');
     expect(legendH1?.textContent?.trim()).toBe('Pick one');
 
     const labelNodes = els<HTMLLabelElement>('label.govuk-radios__label');
