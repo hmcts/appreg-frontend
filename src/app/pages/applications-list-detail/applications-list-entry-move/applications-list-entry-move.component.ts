@@ -145,10 +145,10 @@ export class ApplicationsListEntryMoveComponent
   get columnsLists(): TableColumn[] {
     return withDisabledColumnSort(
       APPLICATIONS_LIST_COLUMNS_ACTION,
-      'status',
-      true,
+      this.disabledListSortColumns,
     );
   }
+  readonly disabledListSortColumns = ['status'] as const;
 
   private readonly pageSize = 10;
   readonly currentPage = signal(0);

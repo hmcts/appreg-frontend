@@ -217,21 +217,17 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   );
 
   readonly columns = computed<TableColumn[]>(() =>
-    withDisabledColumnSort(
-      ApplicationsColumns,
-      'status',
-      this.hasStatusFilter(),
-    ),
+    withDisabledColumnSort(ApplicationsColumns, this.filteredSortColumns()),
   );
   readonly disabledSortColumns = computed<readonly string[]>(() =>
-    this.hasStatusFilter() ? ['status'] : [],
+    this.filteredSortColumns(),
   );
 
   private statusAwareSortField(
     filters: EntryGetFilterDto,
     sortField: ApplicationsState['sortField'],
   ): ApplicationsState['sortField'] {
-    if (filters.status && sortField.key === 'status') {
+    if (this.filteredSortColumns(filters).includes(sortField.key)) {
       return defaultApplicationsSort();
     }
 
@@ -610,7 +606,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
-    if (sort.key === 'status' && this.hasStatusFilter()) {
+    if (this.filteredSortColumns().includes(sort.key)) {
       return;
     }
 
@@ -624,8 +620,19 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.loadApplications(this.vm().getFilters);
   }
 
-  private hasStatusFilter(): boolean {
-    return !!this.vm().getFilters.status;
+  private filteredSortColumns(
+    filters: EntryGetFilterDto = this.vm().getFilters,
+  ): readonly string[] {
+    const disabled: string[] = [];
+
+    if (filters.date) {
+      disabled.push('date');
+    }
+    if (filters.status) {
+      disabled.push('status');
+    }
+
+    return disabled;
   }
 
   onSelectedIdsChange(selectedIds: Set<string>): void {

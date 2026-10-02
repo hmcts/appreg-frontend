@@ -1,4 +1,5 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { ApplicationListGetFilterDto } from '@openapi';
 
 export interface ApplicationsListState {
   isSearch: boolean;
@@ -10,6 +11,7 @@ export interface ApplicationsListState {
   sortField: { key: string; direction: 'desc' | 'asc' };
   listCloseDone: boolean;
   pdfLoading: boolean;
+  appliedFilters: ApplicationListGetFilterDto;
 }
 
 export const initialApplicationsListState: ApplicationsListState = {
@@ -22,6 +24,7 @@ export const initialApplicationsListState: ApplicationsListState = {
   sortField: { key: 'date', direction: 'desc' },
   listCloseDone: false,
   pdfLoading: false,
+  appliedFilters: {},
 };
 
 // Clear all error/success/notification states

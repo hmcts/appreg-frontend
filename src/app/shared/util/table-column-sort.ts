@@ -2,14 +2,15 @@ import { TableColumn } from '@components/sortable-table/sortable-table.component
 
 export function withDisabledColumnSort(
   columns: TableColumn[],
-  field: string,
-  disabled: boolean,
+  fields: readonly string[],
 ): TableColumn[] {
-  if (!disabled) {
+  if (!fields.length) {
     return columns;
   }
 
+  const disabledFields = new Set(fields);
+
   return columns.map((column) =>
-    column.field === field ? { ...column, sortable: false } : column,
+    disabledFields.has(column.field) ? { ...column, sortable: false } : column,
   );
 }

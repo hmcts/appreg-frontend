@@ -937,6 +937,28 @@ describe('ApplicationsComponent', () => {
       ).toEqual(expect.objectContaining({ sortable: false }));
     });
 
+    it('disables date sorting for exact date filters but keeps partial columns sortable', () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        getFilters: {
+          date: '2026-10-01',
+          applicantName: 'smith',
+          applicationTitle: 'order',
+        },
+      }));
+
+      expect(component.disabledSortColumns()).toEqual(['date']);
+      expect(
+        component.columns().find((column) => column.field === 'date'),
+      ).toEqual(expect.objectContaining({ sortable: false }));
+      expect(
+        component.columns().find((column) => column.field === 'applicant'),
+      ).not.toEqual(expect.objectContaining({ sortable: false }));
+      expect(
+        component.columns().find((column) => column.field === 'title'),
+      ).not.toEqual(expect.objectContaining({ sortable: false }));
+    });
+
     it('renders the status header as non-sortable when a status filter has been applied', () => {
       appStateSignal(component).update((s) => ({
         ...s,
@@ -968,6 +990,25 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().sortField).toEqual({
         key: 'date',
         direction: 'desc',
+      });
+      expect(component.vm().currentPage).toBe(3);
+      expect(loadSpy).not.toHaveBeenCalled();
+    });
+
+    it('ignores date sort changes when an exact date filter has been applied', () => {
+      const loadSpy = jest.spyOn(component, 'loadApplications');
+      appStateSignal(component).update((s) => ({
+        ...s,
+        currentPage: 3,
+        sortField: { key: 'status', direction: 'asc' },
+        getFilters: { date: '2026-10-01' },
+      }));
+
+      component.onSortChange({ key: 'date', direction: 'asc' });
+
+      expect(component.vm().sortField).toEqual({
+        key: 'status',
+        direction: 'asc',
       });
       expect(component.vm().currentPage).toBe(3);
       expect(loadSpy).not.toHaveBeenCalled();

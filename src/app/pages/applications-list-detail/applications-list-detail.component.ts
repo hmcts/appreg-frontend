@@ -242,15 +242,20 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   statusOptions = appListDetailStatusOptions;
   get columns(): TableColumn[] {
     return withDisabledColumnSort(
-      withDisabledColumnSort(
-        appListDetailColumns,
-        'feeReq',
-        this.hasFeeRequiredFilter(),
-      ),
-      'resulted',
-      this.hasResultedFilter(),
+      appListDetailColumns,
+      this.disabledSortColumns(),
     );
   }
+  readonly disabledSortColumns = computed<readonly string[]>(() => {
+    const disabled: string[] = [];
+    if (this.hasSequenceNumberFilter()) {
+      disabled.push('sequenceNumber');
+    }
+    if (this.hasFeeRequiredFilter()) {
+      disabled.push('feeReq');
+    }
+    return disabled;
+  });
 
   suggestionsFacade = buildSuggestionsFacade(this);
 
@@ -1269,17 +1274,17 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       .getFilters,
   ): boolean {
     return (
-      (key === 'feeReq' && filters.feeRequired !== undefined) ||
-      (key === 'resulted' && !!filters.resulted)
+      (key === 'sequenceNumber' && filters.sequenceNumber !== undefined) ||
+      (key === 'feeReq' && filters.feeRequired !== undefined)
     );
+  }
+
+  private hasSequenceNumberFilter(): boolean {
+    return this.vm().getFilters.sequenceNumber !== undefined;
   }
 
   private hasFeeRequiredFilter(): boolean {
     return this.vm().getFilters.feeRequired !== undefined;
-  }
-
-  private hasResultedFilter(): boolean {
-    return !!this.vm().getFilters.resulted;
   }
 
   onSearchResult(result: ApplicationsListDetailSearchResult): void {

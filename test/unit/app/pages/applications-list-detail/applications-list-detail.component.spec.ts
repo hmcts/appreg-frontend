@@ -1512,34 +1512,41 @@ describe('ApplicationsListDetail', () => {
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('disables fee and resulted sorting when matching filters are active', () => {
+  it('disables exact-filter sorting and keeps partial resulted sorting enabled', () => {
     patchDetailState({
-      getFilters: { feeRequired: false, resulted: 'YES' },
+      getFilters: {
+        sequenceNumber: 7,
+        feeRequired: false,
+        resulted: 'YES',
+      },
     });
 
+    expect(
+      component.columns.find((column) => column.field === 'sequenceNumber'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
     expect(
       component.columns.find((column) => column.field === 'feeReq'),
     ).toEqual(expect.objectContaining({ sortable: false }));
     expect(
       component.columns.find((column) => column.field === 'resulted'),
-    ).toEqual(expect.objectContaining({ sortable: false }));
+    ).not.toEqual(expect.objectContaining({ sortable: false }));
   });
 
-  it('ignores fee and resulted sort changes when matching filters are active', () => {
+  it('ignores sequence and fee sort changes when matching exact filters are active', () => {
     const loadSpy = jest
       .spyOn(component, 'loadListDetailsInfo')
       .mockImplementation(() => undefined);
     patchDetailState({
       currentPage: 5,
-      sortField: { key: 'sequenceNumber', direction: 'asc' },
-      getFilters: { feeRequired: true, resulted: 'NO' },
+      sortField: { key: 'title', direction: 'asc' },
+      getFilters: { sequenceNumber: 7, feeRequired: true, resulted: 'NO' },
     });
 
+    component.onSortChange({ key: 'sequenceNumber', direction: 'desc' });
     component.onSortChange({ key: 'feeReq', direction: 'desc' });
-    component.onSortChange({ key: 'resulted', direction: 'desc' });
 
     expect(vm().sortField).toEqual({
-      key: 'sequenceNumber',
+      key: 'title',
       direction: 'asc',
     });
     expect(vm().currentPage).toBe(5);
@@ -1548,10 +1555,10 @@ describe('ApplicationsListDetail', () => {
 
   it('resets an active filtered sort when matching search filters are applied', () => {
     patchDetailState({
-      sortField: { key: 'resulted', direction: 'desc' },
+      sortField: { key: 'feeReq', direction: 'desc' },
     });
 
-    component.onSearchStarted({ resulted: 'YES' });
+    component.onSearchStarted({ feeRequired: true });
 
     expect(vm().sortField).toEqual({
       key: 'sequenceNumber',

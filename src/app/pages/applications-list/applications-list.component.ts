@@ -26,7 +26,6 @@ import {
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
-  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -65,6 +64,7 @@ import {
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
+  ApplicationListGetFilterDto,
   ApplicationListGetSummaryDto,
   ApplicationListStatus,
   ApplicationListsApi,
@@ -162,13 +162,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   get columns(): TableColumn[] {
     return withDisabledColumnSort(
       APPLICATIONS_LIST_COLUMNS_ACTION,
-      'status',
-      this.hasStatusFilter(),
+      this.disabledSortColumns,
     );
   }
-  readonly disabledSortColumns = computed<readonly string[]>(() =>
-    this.hasStatusFilter() ? ['status'] : [],
-  );
+  get disabledSortColumns(): readonly string[] {
+    return this.filteredSortColumns();
+  }
 
   ngOnInit(): void {
     this.restoreFormValues();
@@ -199,7 +198,9 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     // Refresh applications lists after navigating back
     if (this.storedRecordsVm().rows.length > 0) {
-      this.loadApplicationsLists();
+      const restoredFilters = loadQuery(this.form);
+      this.appListSignalState.patch({ appliedFilters: restoredFilters });
+      this.loadApplicationsLists(restoredFilters);
     }
   }
 
@@ -209,7 +210,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
   clearSearch(): void {
     this.appListSignalState.patch(clearNotificationsPatch());
-    this.appListSignalState.patch({ isSearch: false });
+    this.appListSignalState.patch({ isSearch: false, appliedFilters: {} });
     this.storedRecordsState.patch({ submitted: false, rows: [] });
     this.searchForm.reset();
     this.form.reset(this.searchForm.state());
@@ -371,17 +372,19 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     }
 
     if (action === 'search') {
+      const filters = loadQuery(this.form);
       this.storedRecordsState.patch({ submitted: true, currentPage: 0 });
       this.appListSignalState.patch({
         isSearch: true,
+        appliedFilters: filters,
       });
-      this.loadApplicationsLists();
+      this.loadApplicationsLists(filters);
     }
   }
 
   onPageChange(page: number): void {
     this.storedRecordsState.patch({ currentPage: page });
-    this.loadApplicationsLists();
+    this.loadApplicationsLists(this.appListState().appliedFilters);
   }
 
   onCjaSearchChange(value: string): void {
@@ -474,7 +477,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
-    if (sort.key === 'status' && this.hasStatusFilter()) {
+    if (this.filteredSortColumns().includes(sort.key)) {
       return;
     }
 
@@ -485,19 +488,36 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       },
     });
     this.storedRecordsState.patch({ currentPage: 0 });
-    this.loadApplicationsLists();
+    this.loadApplicationsLists(this.appListState().appliedFilters);
   }
 
-  private hasStatusFilter(): boolean {
-    const status = this.form.controls.status.value;
-    return typeof status === 'string' ? status.trim().length > 0 : !!status;
+  private filteredSortColumns(): readonly string[] {
+    const filters = this.appListState().appliedFilters;
+    const disabled: string[] = [];
+
+    if (filters.date) {
+      disabled.push('date');
+    }
+    if (filters.time) {
+      disabled.push('time');
+    }
+    if (filters.courtLocationCode || filters.cjaCode) {
+      disabled.push('location');
+    }
+    if (filters.status) {
+      disabled.push('status');
+    }
+
+    return disabled;
   }
 
   protected isOpen(row: ApplicationListRow): boolean {
     return row.status === ApplicationListStatus.OPEN;
   }
 
-  loadApplicationsLists(): void {
+  loadApplicationsLists(
+    filter: ApplicationListGetFilterDto = loadQuery(this.form),
+  ): void {
     if (this.appListState().isLoading) {
       return;
     }
@@ -524,7 +544,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       pageNumber: r.currentPage,
       pageSize: r.pageSize,
       sort: paramSort,
-      filter: loadQuery(this.form),
+      filter,
     };
 
     this.appListSignalState.patch({ isLoading: true });

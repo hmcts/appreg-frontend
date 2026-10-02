@@ -188,6 +188,7 @@
         [loading]="vm().isLoading"
         [selectable]="true"
         [clientOrServerSort]="'server'"
+        [disabledSortColumns]="disabledSortColumns()"
         [sortKey]="vm().sortField.key"
         [sortDirection]="vm().sortField.direction"
         idField="id"
