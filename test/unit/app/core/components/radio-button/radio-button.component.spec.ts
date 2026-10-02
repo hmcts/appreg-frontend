@@ -1,6 +1,30 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { RadioButtonComponent } from '@components/radio-button/radio-button.component';
+
+@Component({
+  standalone: true,
+  imports: [ReactiveFormsModule, RadioButtonComponent],
+  template: `
+    <form [formGroup]="form">
+      <app-radio-group
+        formControlName="hasEntries"
+        legend="Which lists to show"
+        [options]="options"
+      />
+    </form>
+  `,
+})
+class RadioFormHostComponent {
+  form = new FormGroup({ hasEntries: new FormControl<boolean | null>(null) });
+  options = [
+    { label: 'Show empty lists only', value: false },
+    { label: 'Show populated lists only', value: true },
+    { label: 'Show both populated and empty lists', value: null },
+  ];
+}
 
 function isCva(x: unknown): x is { writeValue: (v: string | null) => void } {
   return (
@@ -23,13 +47,13 @@ describe('RadioButtonComponent', () => {
     fixture = TestBed.createComponent(RadioButtonComponent);
     component = fixture.componentInstance;
 
-    component.idPrefix = 'choice';
-    component.legend = 'Pick one';
-    component.options = [
+    fixture.componentRef.setInput('idPrefix', 'choice');
+    fixture.componentRef.setInput('legend', 'Pick one');
+    fixture.componentRef.setInput('options', [
       { value: 'A', label: 'Alpha' },
       { value: 'B', label: 'Bravo', hint: 'Second option hint' },
       { value: 'C', label: 'Charlie', disabled: true },
-    ];
+    ]);
   });
 
   function el<K extends HTMLElement = HTMLElement>(selector: string): K | null {
@@ -52,6 +76,8 @@ describe('RadioButtonComponent', () => {
   it('renders legend, radios, and labels in order', () => {
     fixture.detectChanges();
 
+    expect(component.legend()).toBe('Pick one');
+
     const legendH1 = el<HTMLHeadingElement>('legend h1');
     expect(legendH1?.textContent?.trim()).toBe('Pick one');
 
@@ -61,7 +87,7 @@ describe('RadioButtonComponent', () => {
   });
 
   it('applies id/for using idPrefix and index; falls back name to idPrefix', () => {
-    component.name = undefined;
+    fixture.componentRef.setInput('name', undefined);
     fixture.detectChanges();
 
     const r = radios();
@@ -79,7 +105,7 @@ describe('RadioButtonComponent', () => {
   });
 
   it('uses provided name when set', () => {
-    component.name = 'customName';
+    fixture.componentRef.setInput('name', 'customName');
     fixture.detectChanges();
 
     const r = radios();
@@ -89,7 +115,7 @@ describe('RadioButtonComponent', () => {
   });
 
   it('shows hint and wires aria-describedby to hint id when hint is present', () => {
-    component.hint = 'Choose wisely';
+    fixture.componentRef.setInput('hint', 'Choose wisely');
     fixture.detectChanges();
 
     const hintEl = el<HTMLElement>('#choice-hint');
@@ -101,8 +127,8 @@ describe('RadioButtonComponent', () => {
   });
 
   it('shows error and wires aria-describedby to error id when showError=true', () => {
-    component.showError = true;
-    component.errorText = 'You must pick one';
+    fixture.componentRef.setInput('showError', true);
+    fixture.componentRef.setInput('errorText', 'You must pick one');
     fixture.detectChanges();
 
     const errEl = el<HTMLElement>('#choice-error');
@@ -114,9 +140,9 @@ describe('RadioButtonComponent', () => {
   });
 
   it('combines hint and error in aria-describedby when both are present', () => {
-    component.hint = 'Choose wisely';
-    component.showError = true;
-    component.errorText = 'You must pick one';
+    fixture.componentRef.setInput('hint', 'Choose wisely');
+    fixture.componentRef.setInput('showError', true);
+    fixture.componentRef.setInput('errorText', 'You must pick one');
     fixture.detectChanges();
 
     const fs = fieldset();
@@ -188,5 +214,60 @@ describe('RadioButtonComponent', () => {
       '.govuk-radios[data-module="govuk-radios"]',
     );
     expect(container).toBeTruthy();
+  });
+
+  it('applies the inline modifier only when buttonsInline is true', () => {
+    fixture.componentRef.setInput('buttonsInline', false);
+    fixture.detectChanges();
+
+    const container = el<HTMLElement>('.govuk-radios');
+    expect(container?.classList.contains('govuk-radios--inline')).toBe(false);
+
+    fixture.componentRef.setInput('buttonsInline', true);
+    fixture.detectChanges();
+
+    expect(container?.classList.contains('govuk-radios--inline')).toBe(true);
+  });
+
+  it('applies the supplied grid-column class to the form group', () => {
+    fixture.componentRef.setInput(
+      'containerWidthClass',
+      'govuk-grid-column-one-quarter',
+    );
+    fixture.detectChanges();
+
+    expect(
+      el<HTMLElement>('.govuk-form-group')?.classList.contains(
+        'govuk-grid-column-one-quarter',
+      ),
+    ).toBe(true);
+  });
+});
+
+describe('RadioButtonComponent with a reactive form', () => {
+  it('checks the default option again when the form is reset', async () => {
+    await TestBed.configureTestingModule({
+      imports: [RadioFormHostComponent],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(RadioFormHostComponent);
+    fixture.detectChanges();
+
+    const radios = fixture.nativeElement.querySelectorAll(
+      'input[type="radio"]',
+    ) as NodeListOf<HTMLInputElement>;
+    expect(radios[2].checked).toBe(true);
+
+    radios[1].click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.form.controls.hasEntries.value).toBe(true);
+    expect(radios[1].checked).toBe(true);
+
+    fixture.componentInstance.form.reset({ hasEntries: null });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.form.controls.hasEntries.value).toBeNull();
+    expect(radios[2].checked).toBe(true);
+    expect(radios[1].checked).toBe(false);
   });
 });

@@ -1,10 +1,12 @@
-/* 
+/*
 Helper function for applications-list.ts - loadApplicationsLists()
 Create a query based on user filter if any filters are populated
 
 Input: FormGroup
 Process: creates a set that is populated with the key value or null/undefined
 Output: ApplicationListGetFilterDto (OpenAPI generated model based on spec)
+
+Omitting hasEntries functions as a show all lists
 */
 
 import { FormGroup } from '@angular/forms';
@@ -23,6 +25,7 @@ export function loadQuery(form: FormGroup): ApplicationListGetFilterDto {
     court?: string | null;
     location?: string | null;
     cja?: string | null;
+    hasEntries?: boolean | null;
   };
 
   const query: Partial<ApplicationListGetFilterDto> = {};
@@ -43,6 +46,7 @@ export function loadQuery(form: FormGroup): ApplicationListGetFilterDto {
   set('courtLocationCode', raw.court?.trim() || undefined);
   set('otherLocationDescription', raw.location?.trim() || undefined);
   set('cjaCode', raw.cja?.trim() || undefined);
+  set('hasEntries', raw.hasEntries ?? undefined);
 
   return query;
 }

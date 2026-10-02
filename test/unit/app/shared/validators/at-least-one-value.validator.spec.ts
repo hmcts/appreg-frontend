@@ -42,6 +42,20 @@ describe('atLeastOneRequiredValidator', () => {
     expect(validate(form)).toBeNull();
   });
 
+  it('checks only the selected controls when names are supplied', () => {
+    const form = new FormGroup({
+      search: new FormControl(''),
+      filter: new FormControl(false),
+    });
+    const validateSearch = atLeastOneRequiredValidator(['search']);
+
+    expect(validateSearch(form)).toEqual({ atLeastOneRequired: true });
+
+    form.controls.search.setValue('Court A');
+
+    expect(validateSearch(form)).toBeNull();
+  });
+
   it('returns null when called with a non-FormGroup control', () => {
     expect(validate(new FormControl('value'))).toBeNull();
   });

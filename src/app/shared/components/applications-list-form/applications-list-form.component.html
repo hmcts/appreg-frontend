@@ -118,6 +118,23 @@
         widthClass="govuk-!-width-full"
       />
     </div>
+
+    @if (isSearch()) {
+      <div class="govuk-grid-row">
+        <app-radio-group
+          formControlName="hasEntries"
+          legend="Which lists to show"
+          size="s"
+          [legendIsPageHeading]="false"
+          containerWidthClass="govuk-grid-column-full"
+          [options]="[
+            { label: 'Empty lists only', value: false },
+            { label: 'Lists with entries only', value: true },
+            { label: 'All lists', value: null },
+          ]"
+        />
+      </div>
+    }
   </ng-template>
 
   @if (isSearch()) {

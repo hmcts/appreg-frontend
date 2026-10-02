@@ -13,6 +13,7 @@ import { DateInputComponent } from '@components/date-input/date-input.component'
 import { DurationInputComponent } from '@components/duration-input/duration-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { GovukTextareaComponent } from '@components/govuk-textarea/govuk-textarea.component';
+import { RadioButtonComponent } from '@components/radio-button/radio-button.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import {
@@ -45,6 +46,7 @@ type AppListForm =
     SuggestionsComponent,
     SelectInputComponent,
     GovukTextareaComponent,
+    RadioButtonComponent,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-form.component.html',

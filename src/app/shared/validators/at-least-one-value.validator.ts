@@ -9,31 +9,35 @@ import {
   ValidatorFn,
 } from '@angular/forms';
 
-export function atLeastOneRequiredValidator(): ValidatorFn {
+export function atLeastOneRequiredValidator(
+  controlNames?: readonly string[],
+): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     if (!(control instanceof FormGroup)) {
       return null;
     }
 
-    const hasValue = Object.values(control.controls).some(
-      (child: AbstractControl) => {
-        const value: unknown = child.value;
+    const controls = controlNames
+      ? controlNames.map((name) => control.controls[name])
+      : Object.values(control.controls);
 
-        if (value === null || value === undefined) {
-          return false;
-        }
+    const hasValue = controls.some((child: AbstractControl) => {
+      const value: unknown = child?.value;
 
-        if (typeof value === 'string') {
-          return value.trim().length > 0;
-        }
+      if (value === null || value === undefined) {
+        return false;
+      }
 
-        if (Array.isArray(value)) {
-          return value.length > 0;
-        }
+      if (typeof value === 'string') {
+        return value.trim().length > 0;
+      }
 
-        return true;
-      },
-    );
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+
+      return true;
+    });
 
     return hasValue ? null : { atLeastOneRequired: true };
   };

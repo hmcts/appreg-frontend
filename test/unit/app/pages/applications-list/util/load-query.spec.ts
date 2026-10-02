@@ -44,6 +44,7 @@ describe('loadQuery', () => {
       court: undefined,
       location: '   ',
       cja: '',
+      hasEntries: null,
     });
 
     const result = loadQuery(form);
@@ -67,6 +68,7 @@ describe('loadQuery', () => {
       court: ' LOC123 ',
       location: '  Town Hall  ',
       cja: ' 52 ',
+      hasEntries: true,
     });
 
     const result = loadQuery(form);
@@ -79,6 +81,7 @@ describe('loadQuery', () => {
       courtLocationCode: 'LOC123',
       otherLocationDescription: 'Town Hall',
       cjaCode: '52',
+      hasEntries: true,
     });
 
     expect(mockedToTimeString).toHaveBeenCalledWith(rawTime);
@@ -119,6 +122,7 @@ describe('loadQuery', () => {
       court: '',
       location: null,
       cja: undefined,
+      hasEntries: false,
     });
 
     const result = loadQuery(form);
@@ -126,6 +130,7 @@ describe('loadQuery', () => {
     expect(result).toEqual({
       date: '2025-01-02',
       status: 'CLOSED',
+      hasEntries: false,
     });
   });
 });

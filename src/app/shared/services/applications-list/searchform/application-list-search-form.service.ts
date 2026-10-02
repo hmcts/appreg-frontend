@@ -10,6 +10,7 @@ export type SearchFormValue = {
   court: string;
   location: string;
   cja: string;
+  hasEntries: boolean | null;
   isAdvancedSearch: boolean;
 };
 
@@ -21,6 +22,7 @@ export const DEFAULT_STATE: SearchFormValue = {
   court: '',
   location: '',
   cja: '',
+  hasEntries: null,
   isAdvancedSearch: false,
 };
 
