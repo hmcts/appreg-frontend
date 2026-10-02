@@ -290,8 +290,8 @@ Feature: Applications Search
         Then User Should See Table "Application list entries" Header "Resulted" Has Sort Order "ascending"
         When User Clicks On Table Header "Resulted" In Table "Application list entries"
         Then User Should See Table "Application list entries" Header "Resulted" Has Sort Order "descending"
-        # Test Status column
-        When User Clicks On Table Header "Status" In Table "Application list entries"
+        # Status is fixed by the applied filter
+        Then User Should See Table "Application list entries" Header "Status" Is Not Sortable
 
     @regression @applicationListEntry @ARCPOC-1811
     Scenario: Search By Application Title, results found
