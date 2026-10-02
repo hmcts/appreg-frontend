@@ -540,6 +540,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
       court: '',
       location: '',
       cja: '',
+      hasEntries: null,
     });
     expect(component.searchFormState()).toEqual(DEFAULT_STATE);
     expect(
