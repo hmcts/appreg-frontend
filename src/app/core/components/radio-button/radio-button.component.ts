@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   forwardRef,
+  inject,
   input,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -31,6 +33,8 @@ type StringBoolNull = string | boolean | null;
   ],
 })
 export class RadioButtonComponent implements ControlValueAccessor {
+  private readonly changeDetector = inject(ChangeDetectorRef);
+
   readonly legend = input.required<string>();
   readonly options = input.required<RadioOption[]>();
 
@@ -55,6 +59,7 @@ export class RadioButtonComponent implements ControlValueAccessor {
 
   writeValue(v: StringBoolNull): void {
     this.value = v ?? null;
+    this.changeDetector.markForCheck();
   }
   registerOnChange(fn: (v: StringBoolNull) => void): void {
     this._onChange = fn;
@@ -64,6 +69,7 @@ export class RadioButtonComponent implements ControlValueAccessor {
   }
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
+    this.changeDetector.markForCheck();
   }
 
   onSelect(v: StringBoolNull): void {
