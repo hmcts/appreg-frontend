@@ -55,6 +55,7 @@ export class ApplicationsListFormService {
           ...placeOpts,
         }),
         cja: new FormControl<string>('', { nonNullable: true, ...placeOpts }),
+        hasEntries: new FormControl<boolean | null>(null),
       };
     }
 

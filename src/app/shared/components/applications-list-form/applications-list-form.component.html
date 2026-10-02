@@ -122,13 +122,14 @@
     @if (isSearch()) {
       <div class="govuk-grid-row">
         <app-radio-group
+          formControlName="hasEntries"
           [legend]="''"
           size="m"
           containerWidthClass="govuk-grid-column-full"
           [options]="[
-            { label: 'Show empty lists only', value: 'empty' },
-            { label: 'Show populated lists only', value: 'nonEmpty' },
-            { label: 'Show both populated and empty lists', value: 'all' },
+            { label: 'Show empty lists only', value: false },
+            { label: 'Show populated lists only', value: true },
+            { label: 'Show both populated and empty lists', value: null },
           ]"
           [buttonsInline]="true"
         />

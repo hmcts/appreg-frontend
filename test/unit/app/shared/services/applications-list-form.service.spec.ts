@@ -18,6 +18,7 @@ describe('ApplicationsListFormService', () => {
     expect(form.controls.court.value).toBe('');
     expect(form.controls.location.value).toBe('');
     expect(form.controls.cja.value).toBe('');
+    expect(form.controls.hasEntries?.value).toBeNull();
   });
 
   it('builds create form with submit updateOn and default status', () => {

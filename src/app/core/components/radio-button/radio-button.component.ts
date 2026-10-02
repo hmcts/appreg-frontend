@@ -9,10 +9,12 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 export type RadioOption = {
   label: string;
-  value: string;
+  value: StringBoolNull;
   hint?: string;
   disabled?: boolean;
 };
+
+type StringBoolNull = string | boolean | null;
 
 @Component({
   selector: 'app-radio-group',
@@ -44,17 +46,17 @@ export class RadioButtonComponent implements ControlValueAccessor {
 
   readonly buttonsInline = input(false);
 
-  value: string | null = null;
+  value: StringBoolNull = null;
   disabled = false;
 
   // CVA
-  private _onChange: (v: string | null) => void = () => {};
+  private _onChange: (v: StringBoolNull) => void = () => {};
   private _onTouched: () => void = () => {};
 
-  writeValue(v: string | null): void {
+  writeValue(v: StringBoolNull): void {
     this.value = v ?? null;
   }
-  registerOnChange(fn: (v: string | null) => void): void {
+  registerOnChange(fn: (v: StringBoolNull) => void): void {
     this._onChange = fn;
   }
   registerOnTouched(fn: () => void): void {
@@ -64,13 +66,17 @@ export class RadioButtonComponent implements ControlValueAccessor {
     this.disabled = isDisabled;
   }
 
-  onSelect(v: string): void {
+  onSelect(v: StringBoolNull): void {
     if (this.disabled) {
       return;
     }
     this.value = v;
     this._onChange(v);
     this._onTouched();
+  }
+
+  radioValue(value: StringBoolNull): string {
+    return value === null ? '' : String(value);
   }
 
   get fieldsetLegendClass(): string {

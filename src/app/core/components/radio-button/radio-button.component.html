@@ -33,7 +33,7 @@
             type="radio"
             [id]="idPrefix() + '-' + (i + 1)"
             [name]="name() || idPrefix()"
-            [value]="opt.value"
+            [value]="radioValue(opt.value)"
             [checked]="value === opt.value"
             [disabled]="disabled || !!opt.disabled"
             (change)="onSelect(opt.value)"
