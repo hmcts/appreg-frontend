@@ -67,6 +67,7 @@ import {
 } from '@constants/applications-list/applications-list.constants';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
+  ApplicationListGetFilterDto,
   ApplicationListGetSummaryDto,
   ApplicationListsApi,
   GetApplicationListsRequestParams,
@@ -145,10 +146,12 @@ export class ApplicationsListEntryMoveComponent
   get columnsLists(): TableColumn[] {
     return withDisabledColumnSort(
       APPLICATIONS_LIST_COLUMNS_ACTION,
-      this.disabledListSortColumns,
+      this.disabledListSortColumns(),
     );
   }
-  readonly disabledListSortColumns = ['status'] as const;
+  readonly disabledListSortColumns = computed<readonly string[]>(() =>
+    this.filteredSortColumns(),
+  );
 
   private readonly pageSize = 10;
   readonly currentPage = signal(0);
@@ -259,7 +262,9 @@ export class ApplicationsListEntryMoveComponent
       return;
     }
 
-    this.loadApplicationsLists();
+    const filters = loadQuery(this.form);
+    this.moveEntryPatch({ appliedFilters: filters });
+    this.loadApplicationsLists(filters);
   }
 
   onSelect(targetList: ApplicationListRow): void {
@@ -281,7 +286,7 @@ export class ApplicationsListEntryMoveComponent
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
-    if (sort.key === 'status') {
+    if (this.filteredSortColumns().includes(sort.key)) {
       return;
     }
 
@@ -292,12 +297,12 @@ export class ApplicationsListEntryMoveComponent
       },
     });
     this.storedRecordsState.patch({ currentPage: 0 });
-    this.loadApplicationsLists();
+    this.loadApplicationsLists(this.moveEntryState().appliedFilters);
   }
 
   onPageChange(page: number): void {
     this.storedRecordsState.patch({ currentPage: page });
-    this.loadApplicationsLists();
+    this.loadApplicationsLists(this.moveEntryState().appliedFilters);
   }
 
   onSortChangeSelected(sort: { key: string; direction: 'desc' | 'asc' }): void {
@@ -327,7 +332,9 @@ export class ApplicationsListEntryMoveComponent
     this.resetPlaceSearch();
   }
 
-  private loadApplicationsLists(): void {
+  private loadApplicationsLists(
+    filter: ApplicationListGetFilterDto = loadQuery(this.form),
+  ): void {
     this.moveEntryPatch({ isLoading: true });
 
     this.searchForm.setState({
@@ -346,10 +353,27 @@ export class ApplicationsListEntryMoveComponent
       pageNumber: r.currentPage,
       pageSize: r.pageSize,
       sort: paramSort,
-      filter: loadQuery(this.form),
+      filter,
     };
 
     this.loadRequest.set(params);
+  }
+
+  private filteredSortColumns(): readonly string[] {
+    const filters = this.moveEntryState().appliedFilters;
+    const disabled = ['status'];
+
+    if (filters.date) {
+      disabled.push('date');
+    }
+    if (filters.time) {
+      disabled.push('time');
+    }
+    if (filters.courtLocationCode || filters.cjaCode) {
+      disabled.push('location');
+    }
+
+    return disabled;
   }
 
   private setupEffects(): void {

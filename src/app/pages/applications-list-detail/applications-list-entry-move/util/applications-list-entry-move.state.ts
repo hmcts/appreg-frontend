@@ -1,5 +1,6 @@
 import { ApplicationEntriesMoveContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { ApplicationListGetFilterDto } from '@openapi';
 
 export interface ApplicationsListEntryMoveState {
   listId: string;
@@ -11,6 +12,7 @@ export interface ApplicationsListEntryMoveState {
   searchDone: boolean;
 
   sortField: { key: string; direction: 'desc' | 'asc' };
+  appliedFilters: ApplicationListGetFilterDto;
 }
 
 export const initialApplicationsListEntryMoveState: ApplicationsListEntryMoveState =
@@ -22,6 +24,7 @@ export const initialApplicationsListEntryMoveState: ApplicationsListEntryMoveSta
       key: 'date',
       direction: 'desc',
     },
+    appliedFilters: {},
     isLoading: false,
     searchDone: false,
   };
@@ -29,7 +32,7 @@ export const initialApplicationsListEntryMoveState: ApplicationsListEntryMoveSta
 // Clear all error/success/notification states
 export const entryMoveClearPatch = (): Pick<
   ApplicationsListEntryMoveState,
-  'searchErrors' | 'isLoading' | 'searchDone' | 'sortField'
+  'searchErrors' | 'isLoading' | 'searchDone' | 'sortField' | 'appliedFilters'
 > => ({
   searchErrors: [],
   isLoading: false,
@@ -38,4 +41,5 @@ export const entryMoveClearPatch = (): Pick<
     key: 'date',
     direction: 'desc',
   },
+  appliedFilters: {},
 });
