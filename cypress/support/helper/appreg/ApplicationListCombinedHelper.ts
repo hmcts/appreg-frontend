@@ -3,8 +3,8 @@ import { AccordionHelper } from '../forms/accordion/accordion/AccordionHelper';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
 import { DateTimeHelper } from '../forms/datetime/DateTimeHelper';
 import { DropdownHelper } from '../forms/dropdown/DropdownHelper';
-import { TextboxHelper } from '../forms/textbox/TextboxHelper';
 import { RadioHelper } from '../forms/radio/RadioHelper';
+import { TextboxHelper } from '../forms/textbox/TextboxHelper';
 
 export class ApplicationListCombinedHelper {
   /**
