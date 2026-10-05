@@ -613,8 +613,9 @@ By default, frontend PR previews use the staging API. To use a backend PR instea
 2. Add exactly one label such as `backend-pr:1234` to the frontend PR, using the backend PR number.
 3. Add `enable_keep_helm` to the frontend PR for manual browser testing, then rebuild its Jenkins PR job.
 
-The frontend preview will use `https://appreg-api-pr-1234.dev.platform.hmcts.net` and that backend's PR database.
-The override is applied in the Jenkins workspace only; staging deployment configuration is unchanged.
+The frontend preview and Cypress API setup will both use `https://appreg-api-pr-1234.dev.platform.hmcts.net`
+and that backend's PR database. The override is applied in the Jenkins workspace only; staging deployment
+configuration is unchanged. The backend PR database must contain the reference data required by the tests.
 Malformed or multiple backend labels fail deployment. Do not combine this with a `pr-values:*` override that
 sets `APPREG_API_BASE_URL`, because those Helm values are applied later and take precedence.
 

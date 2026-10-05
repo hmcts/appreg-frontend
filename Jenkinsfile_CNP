@@ -110,8 +110,10 @@ def configurePrBackend() {
   if (!template.contains(stagingUrl)) {
     error('The preview API URL has changed; cannot apply the backend-pr override safely.')
   }
+  // Cypress API setup must use the same database as the deployed PR frontend.
+  env.APPREG_API_BASE_URL = "https://appreg-api-pr-${backendPr}.dev.platform.hmcts.net"
   writeFile file: templatePath, text: template.replace(
-    stagingUrl, "https://appreg-api-pr-${backendPr}.dev.platform.hmcts.net"
+    stagingUrl, env.APPREG_API_BASE_URL
   )
 }
 
