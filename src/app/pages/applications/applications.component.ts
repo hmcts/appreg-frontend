@@ -43,6 +43,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import {
+  type ApplicationsState,
   clearNotificationsPatch,
   defaultApplicationsSort,
   initialApplicationsState,
@@ -59,7 +60,10 @@ import { HelpDetailsComponent } from '@components/help-details/help-details.comp
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
-import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import {
+  SortableTableComponent,
+  TableColumn,
+} from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ApplicationsColumns } from '@constants/applications/applications.constants';
@@ -106,6 +110,7 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
 import { isAllMatchingSelected } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { trimStringToLowerCase, trimToUndefined } from '@util/string-helpers';
+import { withDisabledColumnSort } from '@util/table-column-sort';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { atLeastOneRequiredValidator } from '@validators/at-least-one-value.validator';
 
@@ -211,7 +216,23 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     },
   );
 
-  columns = ApplicationsColumns;
+  readonly columns = computed<TableColumn[]>(() =>
+    withDisabledColumnSort(ApplicationsColumns, this.filteredSortColumns()),
+  );
+  readonly disabledSortColumns = computed<readonly string[]>(() =>
+    this.filteredSortColumns(),
+  );
+
+  private statusAwareSortField(
+    filters: EntryGetFilterDto,
+    sortField: ApplicationsState['sortField'],
+  ): ApplicationsState['sortField'] {
+    if (this.filteredSortColumns(filters).includes(sortField.key)) {
+      return defaultApplicationsSort();
+    }
+
+    return sortField;
+  }
 
   status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
@@ -258,7 +279,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       isAdvancedSearch: storedForm.isAdvancedSearch,
       currentPage: storedState.currentPage,
       pageSize: storedState.pageSize,
-      sortField: { ...storedState.sortField },
+      sortField: this.statusAwareSortField(
+        storedState.appliedFilters,
+        storedState.sortField,
+      ),
       getFilters: { ...storedState.appliedFilters },
       selectedIds: new Set<string>(),
       selectedRows: [],
@@ -582,6 +606,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    if (this.filteredSortColumns().includes(sort.key)) {
+      return;
+    }
+
     this.patchApp({
       sortField: {
         key: sort.key,
@@ -590,6 +618,21 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       currentPage: 0,
     });
     this.loadApplications(this.vm().getFilters);
+  }
+
+  private filteredSortColumns(
+    filters: EntryGetFilterDto = this.vm().getFilters,
+  ): readonly string[] {
+    const disabled: string[] = [];
+
+    if (filters.date) {
+      disabled.push('date');
+    }
+    if (filters.status) {
+      disabled.push('status');
+    }
+
+    return disabled;
   }
 
   onSelectedIdsChange(selectedIds: Set<string>): void {

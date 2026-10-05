@@ -11,6 +11,7 @@ import { jest } from '@jest/globals';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsListEntryMoveComponent } from '@components/applications-list-detail/applications-list-entry-move/applications-list-entry-move.component';
+import { ApplicationsListEntryMoveState } from '@components/applications-list-detail/applications-list-entry-move/util';
 import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import {
   ApplicationListPage,
@@ -99,6 +100,18 @@ describe('ApplicationsListEntryMoveComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
+  };
+
+  const patchMoveState = (
+    patch: Partial<ApplicationsListEntryMoveState>,
+  ): void => {
+    (
+      component as unknown as {
+        moveEntryPatch: (
+          patch: Partial<ApplicationsListEntryMoveState>,
+        ) => void;
+      }
+    ).moveEntryPatch(patch);
   };
 
   const setHistoryState = (state: unknown): void => {
@@ -454,6 +467,111 @@ describe('ApplicationsListEntryMoveComponent', () => {
     });
   });
 
+  it('disables status sorting for target lists because only open lists are shown', () => {
+    expect(
+      component.columnsLists.find((column) => column.field === 'status'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+  });
+
+  it('disables target-list sorting for exact applied filters', () => {
+    patchMoveState({
+      appliedFilters: {
+        date: '2026-10-02',
+        time: '10:00',
+        courtLocationCode: 'A1',
+      },
+    });
+
+    expect(component.disabledListSortColumns()).toEqual([
+      'status',
+      'date',
+      'time',
+      'location',
+    ]);
+    expect(
+      component.columnsLists.find((column) => column.field === 'date'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+    expect(
+      component.columnsLists.find((column) => column.field === 'time'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+    expect(
+      component.columnsLists.find((column) => column.field === 'location'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+    expect(
+      component.columnsLists.find((column) => column.field === 'description'),
+    ).not.toEqual(expect.objectContaining({ sortable: false }));
+  });
+
+  it('keeps target-list sorting enabled for draft exact filters before searching', () => {
+    component.form.patchValue({
+      date: '2026-10-02',
+      court: 'A1',
+    });
+
+    expect(component.disabledListSortColumns()).toEqual(['status']);
+    expect(
+      component.columnsLists.find((column) => column.field === 'date'),
+    ).not.toEqual(expect.objectContaining({ sortable: false }));
+    expect(
+      component.columnsLists.find((column) => column.field === 'location'),
+    ).not.toEqual(expect.objectContaining({ sortable: false }));
+  });
+
+  it('ignores status sort changes for target lists', () => {
+    (
+      component as unknown as {
+        storedRecordsState: { patch: (patch: { currentPage: number }) => void };
+      }
+    ).storedRecordsState.patch({ currentPage: 4 });
+
+    component.onSortChange({ key: 'status', direction: 'asc' });
+
+    expect(component.vm().sortField).toEqual({
+      key: 'date',
+      direction: 'desc',
+    });
+    expect(component.storedRecordsVm().currentPage).toBe(4);
+    expect(getApplicationListsMock).not.toHaveBeenCalled();
+  });
+
+  it('ignores exact-filter sort changes for target lists', () => {
+    (
+      component as unknown as {
+        storedRecordsState: { patch: (patch: { currentPage: number }) => void };
+      }
+    ).storedRecordsState.patch({ currentPage: 4 });
+    patchMoveState({
+      sortField: { key: 'date', direction: 'desc' },
+      appliedFilters: { courtLocationCode: 'A1' },
+    });
+
+    component.onSortChange({ key: 'location', direction: 'asc' });
+
+    expect(component.vm().sortField).toEqual({
+      key: 'date',
+      direction: 'desc',
+    });
+    expect(component.storedRecordsVm().currentPage).toBe(4);
+    expect(getApplicationListsMock).not.toHaveBeenCalled();
+  });
+
+  it('sorts target lists with applied filters rather than draft form values', async () => {
+    patchMoveState({ appliedFilters: { status: ApplicationListStatus.OPEN } });
+    component.form.patchValue({ court: 'A1' });
+
+    component.onSortChange({ key: 'entries', direction: 'asc' });
+    await flushSignalEffects();
+
+    expect(getApplicationListsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filter: { status: ApplicationListStatus.OPEN },
+      }),
+      undefined,
+      undefined,
+      { transferCache: true },
+    );
+  });
+
   it('loads the selected page of results', async () => {
     component.form.patchValue({ description: 'Target' });
 
@@ -540,6 +658,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
       court: '',
       location: '',
       cja: '',
+      hasEntries: null,
     });
     expect(component.searchFormState()).toEqual(DEFAULT_STATE);
     expect(

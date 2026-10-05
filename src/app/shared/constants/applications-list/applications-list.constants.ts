@@ -52,7 +52,7 @@ export const APPLICATIONS_LIST_FORM_ERROR_MESSAGES = {
     dateInvalid: 'Enter a valid date',
   },
   time: {
-    durationInvalid: 'Enter a valid duration between 00:00 and 23:59',
+    durationInvalid: 'Enter a valid time between 00:00 and 23:59',
   },
   cja: {
     cjaNotFound: 'Criminal justice area not found',
@@ -69,7 +69,7 @@ export const APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES = {
   },
   time: {
     required: 'Enter valid hours and minutes',
-    durationInvalid: 'Enter a valid duration between 00:00 and 23:59',
+    durationInvalid: 'Enter a valid time between 00:00 and 23:59',
   },
   description: {
     required: 'Description is required',

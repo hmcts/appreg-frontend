@@ -57,6 +57,7 @@
 <form class="govuk-form-group" [formGroup]="form">
   <app-report-selector
     [options]="reportOptions"
+    [selectorDisabled]="isReportInProgress()"
     legend="Select the report you wish to download?"
     formControlName="report"
   >
@@ -162,7 +163,8 @@
   </div>
 }
 
-<app-confirmation-dialog
+<app-navigation-warning
+  [active]="isReportInProgress()"
   heading="Leave the reports page?"
   message="Your report is still being generated and downloaded. If you leave this page, you will not receive it."
 />

@@ -32,3 +32,12 @@ For testing guidance, see:
   - `P3`: maintainability/style concerns that do not change runtime behavior.
 - You MUST flag PRs that modify API behavior without corresponding updates to generated clients (`src/generated/openapi`) and related mock data (`wiremock/`) when applicable.
 - You SHOULD expect evidence via relevant suites (`test/unit`, `test/routes`, `test/a11y`, `test/smoke`, or Cypress E2E features).
+
+## Codex automation
+
+These rules apply when Codex plans, implements, repairs or addresses review feedback in this repository:
+
+- When planning, you MUST compare a focused fix with any broader component, shared-service, validation, design-system, accessibility, API-contract or cross-system correction the evidence suggests.
+- You MUST follow the repository's Angular, TypeScript, HMCTS design-system, accessibility, Prettier, ESLint, Stylelint, Jest and Cypress patterns, both when planning a change and its tests and when implementing or repairing it.
+- You MUST add or update unit, route, accessibility or smoke tests where behavior changes.
+- You MUST NOT remove, weaken or bypass failing tests, lint rules, accessibility rules or repository guardrails.

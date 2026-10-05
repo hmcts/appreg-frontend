@@ -12,6 +12,7 @@ export type ApplicationsListFormControls = {
   court: FormControl<string>;
   location: FormControl<string>;
   cja: FormControl<string>;
+  hasEntries?: FormControl<boolean | null>;
 };
 
 export type ApplicationsListUpdateFormControls =

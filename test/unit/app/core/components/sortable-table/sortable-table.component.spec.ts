@@ -168,6 +168,36 @@ describe('SortableTableComponent', () => {
     });
   });
 
+  describe('disabledSortColumns', () => {
+    it('renders disabled server-side sort columns as plain headers', async () => {
+      await create('browser');
+      setInput('clientOrServerSort', 'server', false);
+      setInput('disabledSortColumns', ['name']);
+      fixture.detectChanges();
+
+      const nameHeader = fixture.debugElement
+        .queryAll(By.css('th'))
+        .find((header) => header.nativeElement.textContent.includes('Name'));
+
+      expect(nameHeader).toBeTruthy();
+      expect(nameHeader?.query(By.css('button'))).toBeNull();
+      expect(nameHeader?.attributes['aria-sort']).toBeUndefined();
+    });
+
+    it('does not emit server-side sort changes for disabled sort columns', async () => {
+      await create('browser');
+      setInput('clientOrServerSort', 'server', false);
+      setInput('disabledSortColumns', ['name']);
+      const sortSpy = jest.spyOn(comp.sortChange, 'emit');
+
+      comp.onHeaderClick(new Event('click'), {
+        field: 'name',
+      });
+
+      expect(sortSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('selection', () => {
     it('renders checkbox column when selectable is enabled', async () => {
       await create('browser');

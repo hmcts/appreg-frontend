@@ -1,6 +1,7 @@
 import { HttpResponse } from '@angular/common/http';
 import { LOCALE_ID, PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import {
   ActivatedRoute,
   Router,
@@ -383,6 +384,14 @@ describe('ApplicationsList – search', () => {
     ...extras,
   });
 
+  it('labels the list population radio group', () => {
+    const legend = fixture.nativeElement.querySelector(
+      'app-radio-group fieldset legend',
+    ) as HTMLLegendElement | null;
+
+    expect(legend?.textContent?.trim()).toBe('Which lists to show');
+  });
+
   it('merges filter when hasParams=true', async () => {
     jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
       status: ApplicationListStatus.OPEN,
@@ -482,6 +491,60 @@ describe('ApplicationsList – search', () => {
     expect(args.filter).toEqual({ status: 'CLOSED' });
   });
 
+  it('maps the selected open status into the application lists request filter', async () => {
+    jest.spyOn(LoadQuery, 'loadQuery').mockRestore();
+    component.form.controls.status.setValue('open');
+
+    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+
+    component.loadApplicationsLists();
+    await flushSignalEffects(fixture);
+
+    const args = service.getApplicationLists.mock
+      .calls[0][0] as GetApplicationListsRequestParams;
+    expect(args.filter).toEqual({ status: ApplicationListStatus.OPEN });
+  });
+
+  it('submits the status selected through the rendered dropdown', async () => {
+    jest.spyOn(LoadQuery, 'loadQuery').mockRestore();
+    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+
+    const statusSelect = fixture.debugElement.query(By.css('#status'))
+      .nativeElement as HTMLSelectElement;
+    statusSelect.value = 'open';
+    statusSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    const { e } = submitEvent('search');
+    component.onSubmit(e);
+    await flushSignalEffects(fixture);
+
+    const args = service.getApplicationLists.mock
+      .calls[0][0] as GetApplicationListsRequestParams;
+    expect(component.form.controls.status.value).toBe('open');
+    expect(args.filter).toEqual({ status: ApplicationListStatus.OPEN });
+  });
+
+  it('submits the status selected through the rendered dropdown on native form submit', async () => {
+    jest.spyOn(LoadQuery, 'loadQuery').mockRestore();
+    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+
+    const statusSelect = fixture.debugElement.query(By.css('#status'))
+      .nativeElement as HTMLSelectElement;
+    statusSelect.value = 'open';
+    statusSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+    const form = fixture.debugElement.query(By.css('form'))
+      .nativeElement as HTMLFormElement;
+    form.dispatchEvent(new SubmitEvent('submit', { bubbles: true }));
+    await flushSignalEffects(fixture);
+
+    const args = service.getApplicationLists.mock
+      .calls[0][0] as GetApplicationListsRequestParams;
+    expect(component.form.controls.status.value).toBe('open');
+    expect(args.filter).toEqual({ status: ApplicationListStatus.OPEN });
+  });
+
   it('onSortChange stores the UI sort key, resets to page 0, and reloads data', () => {
     const loadSpy = jest
       .spyOn(component, 'loadApplicationsLists')
@@ -496,6 +559,99 @@ describe('ApplicationsList – search', () => {
     });
     expect(getRecordsState(component).currentPage).toBe(0);
     expect(loadSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables status sorting when a status filter is selected', () => {
+    patchUIState(component, {
+      appliedFilters: { status: ApplicationListStatus.OPEN },
+    });
+
+    expect(
+      component.columns.find((column) => column.field === 'status'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+  });
+
+  it('disables sorting for exact filters but keeps partial search columns sortable', () => {
+    patchUIState(component, {
+      appliedFilters: {
+        date: '2026-10-01',
+        courtLocationCode: '123',
+        description: 'morning',
+        otherLocationDescription: 'annex',
+      },
+    });
+
+    expect(component.disabledSortColumns).toEqual(['date', 'location']);
+    expect(component.columns.find((column) => column.field === 'date')).toEqual(
+      expect.objectContaining({ sortable: false }),
+    );
+    expect(
+      component.columns.find((column) => column.field === 'location'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+    expect(
+      component.columns.find((column) => column.field === 'description'),
+    ).not.toEqual(expect.objectContaining({ sortable: false }));
+  });
+
+  it('keeps location sorting enabled when a draft court filter is selected before searching', () => {
+    component.form.controls.court.setValue('123');
+
+    expect(component.disabledSortColumns).toEqual([]);
+    expect(
+      component.columns.find((column) => column.field === 'location'),
+    ).not.toEqual(expect.objectContaining({ sortable: false }));
+  });
+
+  it('ignores status sort changes when a status filter is selected', () => {
+    const loadSpy = jest
+      .spyOn(component, 'loadApplicationsLists')
+      .mockImplementation(() => undefined);
+    patchRecordsState(component, { currentPage: 4 });
+    patchUIState(component, {
+      sortField: { key: 'date', direction: 'desc' },
+      appliedFilters: { status: ApplicationListStatus.OPEN },
+    });
+
+    component.onSortChange({ key: 'status', direction: 'asc' });
+
+    expect(getUIFlagState(component).sortField).toEqual({
+      key: 'date',
+      direction: 'desc',
+    });
+    expect(getRecordsState(component).currentPage).toBe(4);
+    expect(loadSpy).not.toHaveBeenCalled();
+  });
+
+  it('ignores location sort changes when an exact court filter is selected', () => {
+    const loadSpy = jest
+      .spyOn(component, 'loadApplicationsLists')
+      .mockImplementation(() => undefined);
+    patchRecordsState(component, { currentPage: 4 });
+    patchUIState(component, {
+      sortField: { key: 'date', direction: 'desc' },
+      appliedFilters: { courtLocationCode: '123' },
+    });
+
+    component.onSortChange({ key: 'location', direction: 'asc' });
+
+    expect(getUIFlagState(component).sortField).toEqual({
+      key: 'date',
+      direction: 'desc',
+    });
+    expect(getRecordsState(component).currentPage).toBe(4);
+    expect(loadSpy).not.toHaveBeenCalled();
+  });
+
+  it('uses applied filters rather than draft form values when sorting', () => {
+    const loadSpy = jest
+      .spyOn(component, 'loadApplicationsLists')
+      .mockImplementation(() => undefined);
+    patchUIState(component, { appliedFilters: {} });
+    component.form.controls.court.setValue('123');
+
+    component.onSortChange({ key: 'location', direction: 'asc' });
+
+    expect(loadSpy).toHaveBeenCalledWith({});
   });
 
   it('maps the stored UI sort key to the backend sort param when loading', async () => {
@@ -518,6 +674,20 @@ describe('ApplicationsList – search', () => {
   });
 
   describe('onSubmit', () => {
+    it('submits the selected open status as an application lists request filter', async () => {
+      jest.spyOn(LoadQuery, 'loadQuery').mockRestore();
+      component.form.controls.status.setValue('open');
+      service.getApplicationLists.mockReturnValue(of(pageStub([])));
+
+      const { e } = submitEvent('search');
+      component.onSubmit(e);
+      await flushSignalEffects(fixture);
+
+      const args = service.getApplicationLists.mock
+        .calls[0][0] as GetApplicationListsRequestParams;
+      expect(args.filter).toEqual({ status: ApplicationListStatus.OPEN });
+    });
+
     it('collects date/time validation errors and does not run search', () => {
       const spy = jest.spyOn(component, 'loadApplicationsLists');
 
@@ -543,7 +713,7 @@ describe('ApplicationsList – search', () => {
         {
           href: '#time-hours',
           id: 'time',
-          text: 'Enter a valid duration between 00:00 and 23:59',
+          text: 'Enter a valid time between 00:00 and 23:59',
         },
       ]);
       expect(spy).not.toHaveBeenCalled();
@@ -600,7 +770,7 @@ describe('ApplicationsList – search', () => {
       expect(getRecordsState(component).submitted).toBe(true);
       expect(getUIFlagState(component).isSearch).toBe(true);
       expect(getRecordsState(component).currentPage).toBe(0);
-      expect(spy).toHaveBeenCalledWith();
+      expect(spy).toHaveBeenCalledWith({ date: '2025-12-15' });
     });
 
     it('defaults action to "search" when submitter is missing', () => {
@@ -615,7 +785,7 @@ describe('ApplicationsList – search', () => {
       const { e } = submitEvent(null);
       component.onSubmit(e);
 
-      expect(spy).toHaveBeenCalledWith();
+      expect(spy).toHaveBeenCalledWith({ date: '2025-12-15' });
     });
 
     it('blocks search and shows cjaNotFound when typed CJA is not a valid code', () => {
@@ -672,7 +842,7 @@ describe('ApplicationsList – search', () => {
       component.onSubmit(e);
 
       expect(getUIFlagState(component).searchErrors).toEqual([]);
-      expect(spy).toHaveBeenCalledWith();
+      expect(spy).toHaveBeenCalledWith({ cjaCode: '01' });
     });
   });
 });
@@ -1061,7 +1231,10 @@ describe('ApplicationsList.clearSearch', () => {
     comp.clearSearch();
 
     expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
-    expect(patchSpy).toHaveBeenCalledWith({ isSearch: false });
+    expect(patchSpy).toHaveBeenCalledWith({
+      isSearch: false,
+      appliedFilters: {},
+    });
 
     expect(storedPatchSpy).toHaveBeenCalledWith({ submitted: false, rows: [] });
 

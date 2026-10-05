@@ -85,14 +85,14 @@
                 col.wrap === false || col.field === 'actions'
               "
               [attr.aria-sort]="
-                !isSortableColumn(col)
+                !isSortEnabled(col)
                   ? null
                   : clientOrServerSort() === 'server'
                     ? ariaSortFor(col.field)
                     : (col.defaultSort ?? 'none')
               "
             >
-              @if (clientOrServerSort() === 'server' && isSortableColumn(col)) {
+              @if (clientOrServerSort() === 'server' && isSortEnabled(col)) {
                 <button
                   type="button"
                   class="app-sortable-table__header-button"

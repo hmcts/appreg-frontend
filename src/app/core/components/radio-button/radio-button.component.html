@@ -1,42 +1,50 @@
-<div class="govuk-form-group">
+<div class="govuk-form-group" [ngClass]="containerWidthClass()">
   <fieldset
     class="govuk-fieldset"
-    [attr.aria-describedby]="describedById(!!hint, showError)"
+    [attr.aria-describedby]="describedById(!!hint(), showError())"
   >
-    <legend class="{{ fieldsetLegendClass }}">
-      <h1 class="govuk-fieldset__heading">
-        {{ legend }}
-      </h1>
+    <legend [class]="fieldsetLegendClass">
+      @if (legendIsPageHeading()) {
+        <h1 class="govuk-fieldset__heading">{{ legend() }}</h1>
+      } @else {
+        <p class="govuk-body">
+          {{ legend() }}
+        </p>
+      }
     </legend>
 
-    @if (hint) {
-      <div class="govuk-hint" [id]="idPrefix + '-hint'">
-        {{ hint }}
+    @if (hint()) {
+      <div class="govuk-hint" [id]="idPrefix() + '-hint'">
+        {{ hint() }}
       </div>
     }
 
-    @if (showError) {
-      <p class="govuk-error-message" [id]="idPrefix + '-error'">
-        <span class="govuk-visually-hidden">Error:</span> {{ errorText }}
+    @if (showError()) {
+      <p class="govuk-error-message" [id]="idPrefix() + '-error'">
+        <span class="govuk-visually-hidden">Error:</span> {{ errorText() }}
       </p>
     }
 
-    <div class="govuk-radios" data-module="govuk-radios">
-      @for (opt of options; track opt.value; let i = $index) {
+    <div
+      class="govuk-radios"
+      [ngClass]="{ 'govuk-radios--inline': buttonsInline() }"
+      data-module="govuk-radios"
+    >
+      @for (opt of options(); track opt.value; let i = $index) {
         <div class="govuk-radios__item">
           <input
             class="govuk-radios__input"
             type="radio"
-            [id]="idPrefix + '-' + (i + 1)"
-            [name]="name || idPrefix"
-            [value]="opt.value"
+            [id]="idPrefix() + '-' + (i + 1)"
+            [name]="name() || idPrefix()"
+            [value]="radioValue(opt.value)"
             [checked]="value === opt.value"
             [disabled]="disabled || !!opt.disabled"
             (change)="onSelect(opt.value)"
           />
           <label
             class="govuk-label govuk-radios__label"
-            [for]="idPrefix + '-' + (i + 1)"
+            [for]="idPrefix() + '-' + (i + 1)"
           >
             {{ opt.label }}
           </label>

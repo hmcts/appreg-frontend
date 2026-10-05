@@ -266,11 +266,12 @@
 @if (vm().rows.length) {
   <!-- Sortable table component -->
   <app-sortable-table
-    [columns]="columns"
+    [columns]="columns()"
     [data]="tableRows()"
     [sortKey]="vm().sortField.key"
     [sortDirection]="vm().sortField.direction"
     [clientOrServerSort]="'server'"
+    [disabledSortColumns]="disabledSortColumns()"
     [selectable]="true"
     idField="id"
     [selectAllScope]="'external'"

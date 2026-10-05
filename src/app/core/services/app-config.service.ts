@@ -9,7 +9,6 @@ const CONFIG_PATH = '/app/config';
 
 const DEFAULT_APP_CONFIG: BrowserAppConfig = Object.freeze({
   environment: 'development',
-  reportNavigationModalEnabled: true,
   appInsights: {
     enabled: false,
     connectionString: null,
@@ -84,7 +83,6 @@ function normalizeAppConfig(
 
   return {
     environment,
-    reportNavigationModalEnabled: value?.reportNavigationModalEnabled !== false,
     appInsights: {
       enabled: enabled && Boolean(connectionString),
       connectionString,

@@ -94,6 +94,7 @@ export class SortableTableComponent
   loading = input(false);
 
   dateFieldIdentifier = input<string>('date');
+  disabledSortColumns = input<readonly string[]>([]);
 
   // Table sort: server side
   // Make sure to set default key and direction in page component
@@ -333,11 +334,7 @@ export class SortableTableComponent
     event: Event | null,
     col: { field: string; sortable?: boolean },
   ): void {
-    if (
-      this.clientOrServerSort() !== 'server' ||
-      col.sortable === false ||
-      col.field === 'actions'
-    ) {
+    if (this.clientOrServerSort() !== 'server' || !this.isSortEnabled(col)) {
       return;
     }
 
@@ -363,6 +360,13 @@ export class SortableTableComponent
 
   isSortableColumn(col: { field: string; sortable?: boolean }): boolean {
     return col.sortable !== false && col.field !== 'actions';
+  }
+
+  isSortEnabled(col: { field: string; sortable?: boolean }): boolean {
+    return (
+      this.isSortableColumn(col) &&
+      !this.disabledSortColumns().includes(col.field)
+    );
   }
 
   private coerceRowId(row: Row): string | null {

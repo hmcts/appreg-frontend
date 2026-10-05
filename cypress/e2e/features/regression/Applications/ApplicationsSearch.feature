@@ -99,7 +99,8 @@ Feature: Applications Search
             | Date         | CourtSearch   | Court   | Applicant organisation | Applicant surname  | Respondent organisation | Respondent surname  | Select application status | Respondent post code | CJASearch   | Criminal justice area | Other location description | Standard applicant code | Account reference  |
             | <SearchDate> | <CourtSearch> | <Court> | <ApplicantOrg>         | <ApplicantSurname> | <RespondentOrg>         | <RespondentSurname> | <SelectStatus>            | <RespondentPostcode> | <CJASearch> | <CJA>                 | <OtherLocation>            | <ApplicantCode>         | <AccountReference> |
 
-        Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+        Then User Should See Table "<TableName>" Has Sortable Headers "Applicant, Respondent, Application title, Fee, Resulted, Status"
+        And User Should See Table "<TableName>" Header "Date" Is Not Sortable
         And User Should See Table "<TableName>" Header "Actions" Is Not Sortable
         And User Should See Row In Table "<TableName>" With Values:
             | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
@@ -110,7 +111,8 @@ Feature: Applications Search
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
         Then User Sees Page Heading "Applications list entry update"
         Then User Clicks On The Breadcrumb Link "Applications"
-        Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+        Then User Should See Table "<TableName>" Has Sortable Headers "Applicant, Respondent, Application title, Fee, Resulted, Status"
+        And User Should See Table "<TableName>" Header "Date" Is Not Sortable
         Examples:
             | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                       | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                          | Respondent                          | ApplicationTitle      | Fee | Resulted | Status |
             | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {SCENARIO_ID} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {SCENARIO_ID} | Respondent Industries {SCENARIO_ID} | Appeal to Crown Court | No  | No       | OPEN   |
@@ -182,7 +184,8 @@ Feature: Applications Search
         When User Searches Applications With:
             | Date         | CourtSearch   | Court   | Applicant organisation | Applicant surname  | Respondent organisation | Respondent surname  | Select application status | Respondent post code | CJASearch   | Criminal justice area | Other location description | Standard applicant code | Account reference  |
             | <SearchDate> | <CourtSearch> | <Court> | <ApplicantOrg>         | <ApplicantSurname> | <RespondentOrg>         | <RespondentSurname> | <SelectStatus>            | <RespondentPostcode> | <CJASearch> | <CJA>                 | <OtherLocation>            | <ApplicantCode>         | <AccountReference> |
-        Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+        Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted"
+        And User Should See Table "<TableName>" Header "Status" Is Not Sortable
         And User Should See Table "<TableName>" Header "Actions" Is Not Sortable
         And User Should See Row In Table "<TableName>" With Values:
             | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
@@ -193,7 +196,8 @@ Feature: Applications Search
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
         Then User Sees Page Heading "Applications list entry update"
         Then User Clicks On The Breadcrumb Link "Applications"
-        Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+        Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted"
+        And User Should See Table "<TableName>" Header "Status" Is Not Sortable
         Examples:
             | User  | Dateiso  | Time           | Description                                  | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname     | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                  | Respondent                | ApplicationTitle      | Fee | Resulted | Status |
             | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{SCENARIO_ID} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              | Taylor {SCENARIO_ID} |               |                   | Open         | BS15               | 01        | London |               |               |                  | Application list entries | todaydisplay | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | Appeal to Crown Court | No  | No       | OPEN   |
@@ -246,7 +250,8 @@ Feature: Applications Search
         Then User Selects "Closed" In The "Select application status" Dropdown
         When User Clicks On The "Search" Button
         Then User Should See The Table "Application list entries"
-        Then User Should See Table "Application list entries" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+        Then User Should See Table "Application list entries" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted"
+        And User Should See Table "Application list entries" Header "Status" Is Not Sortable
         # Verify default sort order
         Then User Should See Table "Application list entries" Header "Date" Has Sort Order "descending"
         Then User Should See Table "Application list entries" Header "Applicant" Has Sort Order "none"
@@ -254,7 +259,7 @@ Feature: Applications Search
         Then User Should See Table "Application list entries" Header "Application title" Has Sort Order "none"
         Then User Should See Table "Application list entries" Header "Fee" Has Sort Order "none"
         Then User Should See Table "Application list entries" Header "Resulted" Has Sort Order "none"
-        Then User Should See Table "Application list entries" Header "Status" Has Sort Order "none"
+        Then User Should See Table "Application list entries" Header "Status" Is Not Sortable
         # Test Date column
         When User Clicks On Table Header "Date" In Table "Application list entries"
         Then User Should See Table "Application list entries" Header "Date" Has Sort Order "ascending"
@@ -285,11 +290,8 @@ Feature: Applications Search
         Then User Should See Table "Application list entries" Header "Resulted" Has Sort Order "ascending"
         When User Clicks On Table Header "Resulted" In Table "Application list entries"
         Then User Should See Table "Application list entries" Header "Resulted" Has Sort Order "descending"
-        # Test Status column
-        When User Clicks On Table Header "Status" In Table "Application list entries"
-        Then User Should See Table "Application list entries" Header "Status" Has Sort Order "ascending"
-        When User Clicks On Table Header "Status" In Table "Application list entries"
-        Then User Should See Table "Application list entries" Header "Status" Has Sort Order "descending"
+        # Status is fixed by the applied filter
+        Then User Should See Table "Application list entries" Header "Status" Is Not Sortable
 
     @regression @applicationListEntry @ARCPOC-1811
     Scenario: Search By Application Title, results found

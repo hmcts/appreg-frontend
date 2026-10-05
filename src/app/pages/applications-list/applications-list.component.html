@@ -70,6 +70,10 @@
       CJA.
     </li>
     <li>
+      Enter at least one search field, such as a date, status or location etc.
+      Then choose whether to show empty lists, populated lists or both.
+    </li>
+    <li>
       Print continuous prints all applications together as a court list or
       register.
     </li>
@@ -126,6 +130,7 @@
     [columns]="columns"
     [data]="storedRecordsVm().rows"
     [clientOrServerSort]="'server'"
+    [disabledSortColumns]="disabledSortColumns"
     [sortKey]="vm().sortField.key"
     [sortDirection]="vm().sortField.direction"
     (sortChange)="onSortChange($event)"

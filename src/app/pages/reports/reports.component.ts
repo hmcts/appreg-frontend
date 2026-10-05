@@ -21,7 +21,7 @@
  * - Starts polling when report jobs are accepted
  */
 
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { DOCUMENT } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -30,7 +30,6 @@ import {
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
-  effect,
   inject,
   signal,
   viewChild,
@@ -59,7 +58,6 @@ import {
 import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
-import { ConfirmationDialogComponent } from '@components/confirmation-dialog/confirmation-dialog.component';
 import { DurationSectionComponent } from '@components/duration-section/duration-section.component';
 import {
   ErrorItem,
@@ -68,6 +66,7 @@ import {
 import { FeesSectionComponent } from '@components/fees-section/fees-section.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { ListMaintenanceSectionComponent } from '@components/list-maintenance-section/list-maintenance-section.component';
+import { NavigationWarningComponent } from '@components/navigation-warning/navigation-warning.component';
 import { PrivateProsecutorsIndexSectionComponent } from '@components/private-prosecutors-index-section/private-prosecutors-index-section.component';
 import { ReportSelectorComponent } from '@components/report-option/report-selector.component';
 import { SearchWarrantsSectionComponent } from '@components/search-warrants-section/search-warrants-section.component';
@@ -78,7 +77,6 @@ import {
   REPORT_ERROR_HREFS,
 } from '@constants/reports/report-err';
 import { reportOptions } from '@constants/reports/report-selector.constant';
-import { AppConfigService } from '@core/services/app-config.service';
 import {
   CreateActivityAuditReportRequestParams,
   CreateDurationReportRequestParams,
@@ -155,14 +153,13 @@ const REPORT_LOCATION_RESET_VALUE = {
     SuccessBannerComponent,
     AsyncJobProgressComponent,
     HelpDetailsComponent,
-    ConfirmationDialogComponent,
+    NavigationWarningComponent,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './reports.component.html',
 })
 export class Reports extends PlaceFieldsBase implements OnInit {
   private readonly componentDestroyRef = inject(DestroyRef);
-  private readonly appConfig = inject(AppConfigService);
   private readonly document = inject(DOCUMENT);
   private readonly jobPollingFacade = inject(JobPollingFacade);
   private readonly platformId = inject(PLATFORM_ID);
@@ -175,7 +172,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   private readonly reportStatePatch = this.reportState.patch;
   readonly vm = this.reportState.vm;
 
-  private readonly leaveDialog = viewChild(ConfirmationDialogComponent);
+  private readonly navigationWarning = viewChild(NavigationWarningComponent);
 
   private previousReportId: ReportId | null = null;
   private reportPollingSub: Subscription | null = null;
@@ -342,42 +339,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
   suggestionsFacade = buildSuggestionsFacade(this);
 
-  constructor() {
-    super();
-    effect((onCleanup) => {
-      if (!isPlatformBrowser(this.platformId)) {
-        return;
-      }
-      if (!this.isReportInProgress()) {
-        // Stay on the report page when it completes while confirmation is open.
-        this.leaveDialog()?.dismiss();
-        return;
-      }
-
-      const window = this.document.defaultView;
-      const warnBeforeUnload = (event: BeforeUnloadEvent): void => {
-        event.preventDefault();
-        event.returnValue = true;
-      };
-      window?.addEventListener('beforeunload', warnBeforeUnload);
-      onCleanup(() =>
-        window?.removeEventListener('beforeunload', warnBeforeUnload),
-      );
-    });
-  }
-
   canLeave(): boolean | Observable<boolean> {
-    if (!isPlatformBrowser(this.platformId) || !this.isReportInProgress()) {
-      return true;
-    }
-    if (!this.appConfig.getAppConfig().reportNavigationModalEnabled) {
-      return (
-        this.document.defaultView?.confirm(
-          'Your report is still being generated or downloaded. If you leave this page, you will not receive it. Leave this page?',
-        ) === true
-      );
-    }
-    return this.leaveDialog()?.confirm() ?? false;
+    return (
+      this.navigationWarning()?.canLeave(this.isReportInProgress()) ?? true
+    );
   }
 
   ngOnInit(): void {

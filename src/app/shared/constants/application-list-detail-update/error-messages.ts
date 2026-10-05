@@ -8,7 +8,7 @@ export const DETAIL_FIELD_MESSAGES = {
   },
   time: {
     required: 'Enter valid hours and minutes',
-    durationInvalid: 'Enter a valid duration between 00:00 and 23:59',
+    durationInvalid: 'Enter a valid time between 00:00 and 23:59',
   },
   description: {
     required: 'Enter a description',

@@ -1,22 +1,27 @@
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
-  Input,
   forwardRef,
+  inject,
+  input,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 export type RadioOption = {
   label: string;
-  value: string;
+  value: StringBoolNull;
   hint?: string;
   disabled?: boolean;
 };
 
+type StringBoolNull = string | boolean | null;
+
 @Component({
   selector: 'app-radio-group',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './radio-button.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
@@ -28,29 +33,36 @@ export type RadioOption = {
   ],
 })
 export class RadioButtonComponent implements ControlValueAccessor {
-  @Input({ required: true }) legend!: string;
-  @Input({ required: true }) options: RadioOption[] = [];
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
-  @Input() idPrefix = 'radio';
-  @Input() name?: string;
-  @Input() size: 's' | 'm' | 'l' = 'l';
-  @Input() hint?: string;
+  readonly legend = input.required<string>();
+  readonly options = input.required<RadioOption[]>();
+
+  readonly idPrefix = input('radio');
+  readonly name = input<string | undefined>();
+  readonly size = input<'s' | 'm' | 'l'>('l');
+  readonly legendIsPageHeading = input(true);
+  readonly hint = input<string | undefined>();
+  readonly containerWidthClass = input('');
 
   // Error display controlled by parent
-  @Input() showError = false;
-  @Input() errorText = 'Select an option';
+  readonly showError = input(false);
+  readonly errorText = input('Select an option');
 
-  value: string | null = null;
+  readonly buttonsInline = input(false);
+
+  value: StringBoolNull = null;
   disabled = false;
 
   // CVA
-  private _onChange: (v: string | null) => void = () => {};
+  private _onChange: (v: StringBoolNull) => void = () => {};
   private _onTouched: () => void = () => {};
 
-  writeValue(v: string | null): void {
+  writeValue(v: StringBoolNull): void {
     this.value = v ?? null;
+    this.changeDetector.markForCheck();
   }
-  registerOnChange(fn: (v: string | null) => void): void {
+  registerOnChange(fn: (v: StringBoolNull) => void): void {
     this._onChange = fn;
   }
   registerOnTouched(fn: () => void): void {
@@ -58,9 +70,10 @@ export class RadioButtonComponent implements ControlValueAccessor {
   }
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
+    this.changeDetector.markForCheck();
   }
 
-  onSelect(v: string): void {
+  onSelect(v: StringBoolNull): void {
     if (this.disabled) {
       return;
     }
@@ -69,8 +82,12 @@ export class RadioButtonComponent implements ControlValueAccessor {
     this._onTouched();
   }
 
+  radioValue(value: StringBoolNull): string {
+    return value === null ? '' : String(value);
+  }
+
   get fieldsetLegendClass(): string {
-    switch (this.size) {
+    switch (this.size()) {
       case 's':
         return 'govuk-fieldset__legend govuk-fieldset__legend--s';
       case 'm':
@@ -83,10 +100,10 @@ export class RadioButtonComponent implements ControlValueAccessor {
   describedById(hintPresent: boolean, errorPresent: boolean): string | null {
     const ids: string[] = [];
     if (hintPresent) {
-      ids.push(`${this.idPrefix}-hint`);
+      ids.push(`${this.idPrefix()}-hint`);
     }
     if (errorPresent) {
-      ids.push(`${this.idPrefix}-error`);
+      ids.push(`${this.idPrefix()}-error`);
     }
     return ids.length ? ids.join(' ') : null;
   }

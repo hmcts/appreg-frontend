@@ -77,7 +77,7 @@ Feature: Applications List Create
     Then User Should See The Time Field "Time"
     When User Set Time Field "Time" To "<InvalidTime>"
     When User Clicks On The "Create" Button
-    Then User Sees Validation Error Banner "There is a problem Enter a valid duration between 00:00 and 23:59 Description is required Enter a court, or an other location and criminal justice area"
+    Then User Sees Validation Error Banner "There is a problem Enter a valid time between 00:00 and 23:59 Description is required Enter a court, or an other location and criminal justice area"
     Then User Should See The Time Field "Time"
     When User Set Time Field "Time" To "<Time>"
     When User Clicks On The "Create" Button

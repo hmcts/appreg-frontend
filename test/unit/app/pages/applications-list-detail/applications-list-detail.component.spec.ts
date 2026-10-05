@@ -1512,6 +1512,60 @@ describe('ApplicationsListDetail', () => {
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('disables exact-filter sorting and keeps partial resulted sorting enabled', () => {
+    patchDetailState({
+      getFilters: {
+        sequenceNumber: 7,
+        feeRequired: false,
+        resulted: 'YES',
+      },
+    });
+
+    expect(
+      component.columns.find((column) => column.field === 'sequenceNumber'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+    expect(
+      component.columns.find((column) => column.field === 'feeReq'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+    expect(
+      component.columns.find((column) => column.field === 'resulted'),
+    ).not.toEqual(expect.objectContaining({ sortable: false }));
+  });
+
+  it('ignores sequence and fee sort changes when matching exact filters are active', () => {
+    const loadSpy = jest
+      .spyOn(component, 'loadListDetailsInfo')
+      .mockImplementation(() => undefined);
+    patchDetailState({
+      currentPage: 5,
+      sortField: { key: 'title', direction: 'asc' },
+      getFilters: { sequenceNumber: 7, feeRequired: true, resulted: 'NO' },
+    });
+
+    component.onSortChange({ key: 'sequenceNumber', direction: 'desc' });
+    component.onSortChange({ key: 'feeReq', direction: 'desc' });
+
+    expect(vm().sortField).toEqual({
+      key: 'title',
+      direction: 'asc',
+    });
+    expect(vm().currentPage).toBe(5);
+    expect(loadSpy).not.toHaveBeenCalled();
+  });
+
+  it('resets an active filtered sort when matching search filters are applied', () => {
+    patchDetailState({
+      sortField: { key: 'feeReq', direction: 'desc' },
+    });
+
+    component.onSearchStarted({ feeRequired: true });
+
+    expect(vm().sortField).toEqual({
+      key: 'sequenceNumber',
+      direction: 'asc',
+    });
+  });
+
   describe('onUpdateFeeButtonClick', () => {
     it('shows an error when all selected applications do not require fees', async () => {
       const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');

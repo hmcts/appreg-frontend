@@ -1,10 +1,9 @@
 import { Routes } from '@angular/router';
-import { Observable } from 'rxjs';
 
 import { HomeComponent } from '@components/home/home.component';
 import { Login } from '@components/login/login.component';
-import type { Reports } from '@components/reports/reports.component';
 import { applicationListGuard } from '@guards/application-list.guard';
+import { canLeavePageGuard } from '@guards/can-leave-page.guard';
 import { sessionGuard } from '@guards/session.guard';
 
 export const routes: Routes = [
@@ -124,6 +123,7 @@ export const routes: Routes = [
       {
         path: ':id/bulk-upload',
         canActivate: [applicationListGuard],
+        canDeactivate: [canLeavePageGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component').then(
             (m) => m.ApplicationsListBulkUpload,
@@ -241,10 +241,7 @@ export const routes: Routes = [
   },
   {
     path: 'reports',
-    canDeactivate: [
-      (component: Reports): boolean | Observable<boolean> =>
-        component.canLeave(),
-    ],
+    canDeactivate: [canLeavePageGuard],
     loadComponent: () =>
       import('@components/reports/reports.component').then((m) => m.Reports),
     canActivate: [sessionGuard],

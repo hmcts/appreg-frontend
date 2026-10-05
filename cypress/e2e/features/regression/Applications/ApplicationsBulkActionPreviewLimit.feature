@@ -1,6 +1,6 @@
 Feature: Applications Details Bulk Action Preview Limit Validation
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-222 @ARCPOC-1513
+    @regression @applicationsList @applicationListEntry @ARCPOC-222 @ARCPOC-1513 @ARCPOC-1832
     Scenario Outline: Verify Validation Error Message For Application List Entries Details Bulk Action Preview Limit
         Given User Authenticates Via API As "user1"
         When User Makes POST API Request To "/application-lists" With Object Builder:

@@ -19,11 +19,12 @@ import {
   computed,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { take } from 'rxjs';
+import { Observable, take } from 'rxjs';
 
 import {
   ApplicationsListBulkUploadState,
@@ -35,6 +36,7 @@ import { AsyncJobProgressComponent } from '@components/async-job-progress/async-
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
+import { NavigationWarningComponent } from '@components/navigation-warning/navigation-warning.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
@@ -128,6 +130,7 @@ const AffectedColumn: Record<string, string> = {
     HelpDetailsComponent,
     AsyncJobProgressComponent,
     NotificationBannerComponent,
+    NavigationWarningComponent,
     SortableTableComponent,
     PaginationComponent,
   ],
@@ -145,6 +148,7 @@ export class ApplicationsListBulkUpload implements OnInit {
   private readonly componentDestroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly document = inject(DOCUMENT);
+  private readonly navigationWarning = viewChild(NavigationWarningComponent);
 
   // Initialise signal state
   private readonly bulkUploadSignalState =
@@ -260,11 +264,11 @@ export class ApplicationsListBulkUpload implements OnInit {
     }
 
     this.jobId = job.id;
-
+    // Clear progress before successful navigation so this page does not block itself.
+    this.bulkUploadPatch({ isUploadInProgress: false });
     this.bulkUploadPatch({
       bulkUploadFeedback: this.toBulkUploadFeedback(job),
       uploadSuccessful: job.state === 'succeeded',
-      isUploadInProgress: false,
     });
   }
 
@@ -385,6 +389,12 @@ export class ApplicationsListBulkUpload implements OnInit {
       errorSummary: [{ text: getProblemText(err) }],
       isUploadInProgress: false,
     });
+  }
+
+  canLeave(): boolean | Observable<boolean> {
+    return (
+      this.navigationWarning()?.canLeave(this.vm().isUploadInProgress) ?? true
+    );
   }
 
   onFileSelected(event: Event): void {

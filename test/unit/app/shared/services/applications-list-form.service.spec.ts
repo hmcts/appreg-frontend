@@ -18,7 +18,23 @@ describe('ApplicationsListFormService', () => {
     expect(form.controls.court.value).toBe('');
     expect(form.controls.location.value).toBe('');
     expect(form.controls.cja.value).toBe('');
+    expect(form.controls.hasEntries?.value).toBeNull();
   });
+
+  it.each([false, true])(
+    'requires a search field when hasEntries is %s',
+    (hasEntries) => {
+      const form = service.createSearchForm();
+
+      form.controls.hasEntries?.setValue(hasEntries);
+
+      expect(form.hasError('atLeastOneRequired')).toBe(true);
+
+      form.controls.court.setValue('Court A');
+
+      expect(form.valid).toBe(true);
+    },
+  );
 
   it('builds create form with submit updateOn and default status', () => {
     const form = service.createCreateForm();

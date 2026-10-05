@@ -12,10 +12,11 @@ import {
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
-import { EMPTY, Subject, from, of, throwError } from 'rxjs';
+import { EMPTY, Observable, Subject, from, of, throwError } from 'rxjs';
 
 import { ApplicationsListBulkUpload } from '@components/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component';
 import { ApplicationsListBulkUploadState } from '@components/applications-list-detail/applications-list-bulk-upload/util/applications-list-bulk-upload.state';
+import { ConfirmationDialogComponent } from '@components/confirmation-dialog/confirmation-dialog.component';
 import {
   ApplicationListEntriesApi,
   JobAcknowledgement,
@@ -277,6 +278,42 @@ describe('ApplicationsListBulkUpload', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('navigation warning', () => {
+    it('allows leaving before an upload starts', () => {
+      expect(component.canLeave()).toBe(true);
+    });
+
+    it.each([false, true])(
+      'respects the confirmation while an upload is in progress: %s',
+      (leave) => {
+        patchState(component, { isUploadInProgress: true });
+        fixture.detectChanges();
+        const dialog = fixture.debugElement.query(
+          By.directive(ConfirmationDialogComponent),
+        ).componentInstance as ConfirmationDialogComponent;
+        jest.spyOn(dialog, 'confirm').mockReturnValue(of(leave));
+        const decision = jest.fn();
+
+        (component.canLeave() as Observable<boolean>).subscribe(decision);
+
+        expect(decision).toHaveBeenCalledWith(leave);
+      },
+    );
+
+    it('warns on unload only while an upload is in progress', () => {
+      const unload = (): boolean =>
+        window.dispatchEvent(new Event('beforeunload', { cancelable: true }));
+
+      expect(unload()).toBe(true);
+      patchState(component, { isUploadInProgress: true });
+      fixture.detectChanges();
+      expect(unload()).toBe(false);
+      patchState(component, { isUploadInProgress: false });
+      fixture.detectChanges();
+      expect(unload()).toBe(true);
+    });
+  });
+
   describe('onFileSelected', () => {
     it('sets the selected file and validCSV to true', () => {
       const event = {
@@ -474,7 +511,10 @@ describe('ApplicationsListBulkUpload', () => {
       async (totalFeeValue) => {
         const navigateSpy = jest
           .spyOn(TestBed.inject(Router), 'navigate')
-          .mockResolvedValue(true);
+          .mockImplementation(() => {
+            expect(getState(component).isUploadInProgress).toBe(false);
+            return Promise.resolve(true);
+          });
 
         jobPollingFacadeMock.watchJob.mockReturnValue(
           of(terminalJob({ raw: { totalFeeValue } })),
