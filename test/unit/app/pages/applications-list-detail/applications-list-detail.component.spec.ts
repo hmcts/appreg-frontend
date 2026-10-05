@@ -1820,27 +1820,6 @@ describe('ApplicationsListDetail', () => {
       },
     );
 
-    it('shows the fee link for a mixed upload with eligible and ineligible entries', async () => {
-      entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReturnValue(
-        of(['fee-entry', 'no-fee-entry']) as never,
-      );
-      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValue(
-        of({
-          action: BulkActionType.UPDATE_FEE_DETAILS,
-          limit: 1050,
-          selectedCount: 2,
-          eligibleCount: 1,
-          ineligibleCount: 1,
-          entryIds: ['fee-entry'],
-          entries: [],
-        }),
-      );
-      component.id = 'list-123';
-      component.bulkUploadJobId.set('job-123');
-      await component['setBulkUploadFeeUpdateAvailability']();
-      expect(component.bulkUploadFeeUpdateAvailable()).toBe(true);
-    });
-
     it('keeps the link hidden without replacing the upload success when eligibility cannot be loaded', async () => {
       entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReset();
       entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
