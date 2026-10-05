@@ -9,6 +9,7 @@ Feature: Activity Audit Report
     Then User See "Select the report you wish to download?" On The Page
     When User Selects The Radio Button "Activity audit"
     Then User See "Activity audit" On The Page
+    Then User See "Provides a report of all user activity for a given period and optionally filtered by username" On The Page
     Then User Should See The Date Field "Date from"
     Then User Should See The Date Field "Date to"
     Then User Should See The Textbox "Username"
@@ -101,3 +102,32 @@ Feature: Activity Audit Report
     Then User Verifies The Date field "Date to" Is Empty
     Then User Verifies The "Username" Textbox Is Empty
     Then User Verifies The "Activity" Textbox Is Empty
+
+  @regression @reports @ARCPOC-1831
+  Scenario Outline: Activity Audit Report - Verify modal dialog for Warnings When User Tries To Navigate Away While Report Is Being Generated
+    When User Signs In With Microsoft SSO As "user1"
+    Then User Clicks On The Link Using Exact Text Match "Reports"
+    Then User Verify The Page URL Contains "/reports"
+    Then User See "Reports" On The Page
+    Then User See "Select the report you wish to download?" On The Page
+    When User Selects The Radio Button "Activity audit"
+    When User Set Date Field "Date from" To "<StartDate>"
+    When User Set Date Field "Date to" To "<EndDate>"
+    Then User Should Not See The Link "Remove"
+    Then User Selects "Add application" From The Textbox "Activity" Autocomplete By Typing "Add application"
+    Then User Sees Text "Add application" In "Selected activities" Field
+    When User Clicks On The "Download CSV" Button
+    Then User Clicks On The Link Using Exact Text Match "Applications"
+    Then User Should See The Modal Dialog With Heading "Leave the reports page?"
+    Then User Should See The Text "Your report is still being generated and downloaded. If you leave this page, you will not receive it." In The Modal Dialog
+    Then User Should See The Modal Dialog With Button "Stay on this page"
+    Then User Should See The Modal Dialog With Button "Leave this page"
+    When User Clicks On The "Stay on this page" Button
+    Then User Clicks On The Link Using Exact Text Match "Applications"
+    Then User Should See The Modal Dialog With Heading "Leave the reports page?"
+    When User Clicks On The "Leave this page" Button
+    Then User Should Not See The Modal Dialog
+
+    Examples:
+      | StartDate  | EndDate |
+      | 01/01/2001 | today   |
