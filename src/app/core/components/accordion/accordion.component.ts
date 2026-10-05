@@ -159,23 +159,70 @@ export class AccordionComponent {
       }
 
       const expanded = item.expanded === true;
-      section.classList.toggle('govuk-accordion__section--expanded', expanded);
-
-      const content = section.querySelector<HTMLElement>(
-        '.govuk-accordion__section-content',
-      );
-      if (content) {
-        if (expanded) {
-          content.removeAttribute('hidden');
-        } else {
-          content.setAttribute('hidden', 'until-found');
-        }
-      }
-
-      section
-        .querySelector<HTMLElement>('.govuk-accordion__section-button')
-        ?.setAttribute('aria-expanded', String(expanded));
+      this.syncSectionExpandedState(section, expanded);
     });
+
+    this.syncShowAllState(root, Array.from(sections));
+  }
+
+  private syncSectionExpandedState(
+    section: HTMLElement,
+    expanded: boolean,
+  ): void {
+    section.classList.toggle('govuk-accordion__section--expanded', expanded);
+
+    const content = section.querySelector<HTMLElement>(
+      '.govuk-accordion__section-content',
+    );
+    if (content) {
+      if (expanded) {
+        content.removeAttribute('hidden');
+      } else {
+        content.setAttribute('hidden', 'until-found');
+      }
+    }
+
+    section
+      .querySelector<HTMLElement>('.govuk-accordion__section-button')
+      ?.setAttribute('aria-expanded', String(expanded));
+
+    const showHideText = section.querySelector<HTMLElement>(
+      '.govuk-accordion__section-toggle-text',
+    );
+    if (showHideText) {
+      showHideText.textContent = expanded ? 'Hide' : 'Show';
+    }
+
+    section
+      .querySelector<HTMLElement>('.govuk-accordion-nav__chevron')
+      ?.classList.toggle('govuk-accordion-nav__chevron--down', !expanded);
+  }
+
+  private syncShowAllState(root: HTMLElement, sections: HTMLElement[]): void {
+    const allExpanded =
+      sections.length > 0 &&
+      sections.every((section) =>
+        section.classList.contains('govuk-accordion__section--expanded'),
+      );
+
+    root
+      .querySelector<HTMLElement>('.govuk-accordion__show-all')
+      ?.setAttribute('aria-expanded', String(allExpanded));
+
+    const showAllText = root.querySelector<HTMLElement>(
+      '.govuk-accordion__show-all-text',
+    );
+    if (showAllText) {
+      showAllText.textContent = allExpanded
+        ? 'Hide all sections'
+        : 'Show all sections';
+    }
+
+    root
+      .querySelector<HTMLElement>(
+        '.govuk-accordion__show-all .govuk-accordion-nav__chevron',
+      )
+      ?.classList.toggle('govuk-accordion-nav__chevron--down', !allExpanded);
   }
 
   // Sync show/collapse all
