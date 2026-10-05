@@ -13,7 +13,7 @@ properties([
   ])
 ])
 
-@Library('Infrastructure@2.4.4')
+@Library('Infrastructure@2.11.2')
 
 def type = 'angular'
 def product = 'appreg'
@@ -90,6 +90,31 @@ def getRegressionSuiteFromLabels() {
   }
 }
 
+// Only the checked-out PR preview template is changed; staging deployments are untouched.
+def configurePrBackend() {
+  def labels = new GithubAPI(this)
+    .getLabelsbyPattern(env.BRANCH_NAME, 'backend-pr')
+    .findAll { label -> label.startsWith('backend-pr') }
+
+  if (!labels) {
+    return
+  }
+  if (labels.size() != 1 || !(labels[0] ==~ /backend-pr:[1-9][0-9]*/)) {
+    error('Use exactly one backend-pr:<positive PR number> label.')
+  }
+
+  def backendPr = labels[0].substring('backend-pr:'.length())
+  def templatePath = 'charts/appreg-frontend/values.dev.template.yaml'
+  def template = readFile(templatePath)
+  def stagingUrl = 'https://appreg-api.staging.platform.hmcts.net'
+  if (!template.contains(stagingUrl)) {
+    error('The preview API URL has changed; cannot apply the backend-pr override safely.')
+  }
+  writeFile file: templatePath, text: template.replace(
+    stagingUrl, "https://appreg-api-pr-${backendPr}.dev.platform.hmcts.net"
+  )
+}
+
 def yarnBuilder = new uk.gov.hmcts.contino.YarnBuilder(this)
 
 withPipeline(type, product, component) {
@@ -101,6 +126,12 @@ withPipeline(type, product, component) {
   def regressionSuite = getRegressionSuiteFromLabels() ?: (params.RegressionSuite ?: 'Core')
 
   echo 'Regression suite type that will be run: ' + regressionSuite
+
+  before('akschartsinstall') {
+    onPR {
+      configurePrBackend()
+    }
+  }
 
   afterAlways('functionalTest:dev') {
     script { publishFunctionalReports() }

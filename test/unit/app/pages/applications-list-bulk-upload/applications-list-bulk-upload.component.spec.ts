@@ -413,6 +413,30 @@ describe('ApplicationsListBulkUpload', () => {
       expect(getState(component).isUploadInProgress).toBe(false);
     });
 
+    it('displays the entry-limit rejection without polling or success navigation', async () => {
+      const detail =
+        'Uploaded file must contain no more than 1,050 application entries. Split the entries into smaller files and try again.';
+      const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
+      actionsApiMock.bulkUploadApplicationListEntries.mockReturnValue(
+        throwError(
+          () => new HttpErrorResponse({ status: 413, error: { detail } }),
+        ),
+      );
+      patchState(component, {
+        listId: 'list-123',
+        file: new File(['csv-content'], 'test.csv', { type: 'text/csv' }),
+      });
+
+      component.onSubmit();
+      await flushSignalEffects(fixture);
+
+      expect(getState(component).errorSummary).toEqual([{ text: detail }]);
+      expect(fixture.nativeElement.textContent).toContain(detail);
+      expect(getState(component).isUploadInProgress).toBe(false);
+      expect(jobPollingFacadeMock.watchJob).not.toHaveBeenCalled();
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+
     it('shows an inline error when the upload request is not accepted', async () => {
       const ack: JobAcknowledgement = {
         id: 'job-1',

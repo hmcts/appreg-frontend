@@ -605,6 +605,21 @@ If you want to use a specific OpenAPI spec version, you can edit `scripts/fetch-
 
 `let SPEC_VERSION = envOr('SPEC_VERSION', '**ENTER SPEC VERSION HERE AS A STRING**');`
 
+## Pairing a frontend PR with a backend PR
+
+By default, frontend PR previews use the staging API. To use a backend PR instead:
+
+1. Add `enable_keep_helm` to the backend PR and deploy it successfully.
+2. Add exactly one label such as `backend-pr:1234` to the frontend PR, using the backend PR number.
+3. Add `enable_keep_helm` to the frontend PR for manual browser testing, then rebuild its Jenkins PR job.
+
+The frontend preview will use `https://appreg-api-pr-1234.dev.platform.hmcts.net` and that backend's PR database.
+The override is applied in the Jenkins workspace only; staging deployment configuration is unchanged.
+Malformed or multiple backend labels fail deployment. Do not combine this with a `pr-values:*` override that
+sets `APPREG_API_BASE_URL`, because those Helm values are applied later and take precedence.
+
+Remove the `backend-pr:*` label and rebuild to return to staging. Label changes alone may not trigger a build.
+
 ## Branch Retention (auto-cleanup)
 
 This repository includes an automated policy to keep old/inactive branches tidy. It runs in two stages:
