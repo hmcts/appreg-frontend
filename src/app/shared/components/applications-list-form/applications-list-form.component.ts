@@ -91,6 +91,13 @@ export class ApplicationsListFormComponent {
     return this.submitted() ? (this.getControlError(id)?.text ?? '') : '';
   }
 
+  onAdvancedToggle(e: Event): void {
+    const section = e.target as HTMLDetailsElement;
+    if (section.open !== this.advancedOpen()) {
+      this.onToggleAdvanced()?.();
+    }
+  }
+
   onAdvancedClick(e: Event): void {
     e.preventDefault();
     this.onToggleAdvanced()?.();

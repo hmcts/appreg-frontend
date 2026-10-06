@@ -43,6 +43,16 @@ function focusByIdOrFirstFocusable(idOrHref: string): void {
     ? root
     : (root.querySelector<HTMLElement>(selector) ?? root);
 
+  // Native details keep their fields in the DOM, but hidden inputs cannot focus.
+  // Toggle listeners keep Angular-controlled sections in sync with this reveal.
+  for (
+    let section = target.closest('details');
+    section;
+    section = section.parentElement?.closest('details') ?? null
+  ) {
+    section.open = true;
+  }
+
   target.focus?.({ preventScroll: true });
 
   const scrollTarget = target.closest<HTMLElement>('.govuk-form-group') ?? root;

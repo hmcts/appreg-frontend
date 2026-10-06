@@ -20,7 +20,6 @@
 @if (vm().errorSummary.length || vm().updateInvalid) {
   <app-error-summary
     [title]="vm().errorHint || 'There is a problem'"
-    (itemSelect)="onCreateErrorClick($event)"
     [items]="vm().errorSummary"
     [focusKey]="submitAttempt()"
   />

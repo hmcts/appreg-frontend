@@ -104,6 +104,44 @@ describe('error focus utils', () => {
     });
   });
 
+  it('reveals nested details before focusing a grouped date input and scrolling its form group', () => {
+    document.body.innerHTML = `
+      <details id="outer"><summary>Outer</summary>
+        <details id="inner"><summary>Inner</summary>
+          <div class="govuk-form-group"><div id="date"><input id="date-day" /></div></div>
+        </details>
+      </details>`;
+    const input = document.getElementById('date-day') as HTMLInputElement;
+    const outer = document.getElementById('outer') as HTMLDetailsElement;
+    const inner = document.getElementById('inner') as HTMLDetailsElement;
+    const nativeFocus = input.focus.bind(input);
+    jest.spyOn(input, 'focus').mockImplementation((options) => {
+      expect(outer.open).toBe(true);
+      expect(inner.open).toBe(true);
+      nativeFocus(options);
+    });
+    const scroll = jest.spyOn(
+      input.closest('.govuk-form-group') as HTMLElement,
+      'scrollIntoView',
+    );
+    onCreateErrorClick({ text: 'Invalid date', href: '#date' });
+    expect(document.activeElement).toBe(input);
+    expect(scroll).toHaveBeenCalledWith({ behavior: 'auto', block: 'center' });
+  });
+
+  it('resolves a suggestions host to its input even when both have the same id', () => {
+    document.body.innerHTML =
+      '<app-suggestions id="cja"><input id="cja" /></app-suggestions>';
+    onCreateErrorClick({ text: 'Invalid CJA', href: '#cja' });
+    expect(document.activeElement).toBe(document.querySelector('input'));
+  });
+
+  it('can focus a non-editable target with tabindex', () => {
+    document.body.innerHTML = '<div id="table" tabindex="-1"></div>';
+    onCreateErrorClick({ text: 'Table error', id: 'table' });
+    expect(document.activeElement).toBe(document.getElementById('table'));
+  });
+
   describe('focusField', () => {
     it('prevents default when event provided and focuses first focusable child when root is not itself focusable', () => {
       document.body.innerHTML = `
