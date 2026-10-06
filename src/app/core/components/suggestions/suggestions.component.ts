@@ -22,6 +22,7 @@ import { trimStringToLowerCase } from '@util/string-helpers';
   templateUrl: './suggestions.component.html',
   styleUrl: './suggestions.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
+  host: { '[attr.id]': 'null' },
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -51,6 +52,8 @@ export class SuggestionsComponent implements ControlValueAccessor {
   private focused = false;
   private justSelected = false;
   private allValuesVisible = false;
+  private popupDismissed = false;
+  activeIndex = signal(-1);
   private committedLabel: string | null = null;
   searchState = signal('');
   private readonly controlValue = signal('');
@@ -105,6 +108,12 @@ export class SuggestionsComponent implements ControlValueAccessor {
     this.justSelected = true;
   });
 
+  private readonly resetActiveOption = effect(() => {
+    this.searchState();
+    this.suggestions();
+    this.activeIndex.set(-1);
+  });
+
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
 
@@ -135,6 +144,8 @@ export class SuggestionsComponent implements ControlValueAccessor {
     this.searchState.set(v);
     this.searchChange.emit(v);
     this.allValuesVisible = this.showAllValues();
+    this.popupDismissed = false;
+    this.activeIndex.set(-1);
 
     this.justSelected = false;
     if (!this.hasQuery || !this.isCommittedText) {
@@ -150,19 +161,10 @@ export class SuggestionsComponent implements ControlValueAccessor {
     this.onInput((event.target as HTMLInputElement).value ?? '');
   }
 
-  onItemKeydown(item: SuggestionsItem, event: KeyboardEvent): void {
-    if (
-      event.key === 'Enter' ||
-      event.key === ' ' || // spacebar
-      event.key === 'Spacebar'
-    ) {
-      this.choose(item, event);
-    }
-  }
-
   onFocus(): void {
     this.focused = true;
     this.allValuesVisible = this.showAllValues();
+    this.popupDismissed = false;
   }
 
   onClick(): void {
@@ -174,18 +176,51 @@ export class SuggestionsComponent implements ControlValueAccessor {
       return;
     }
 
-    if (event.key === 'ArrowDown' || event.key === 'Enter') {
+    switch (event.key) {
+      case 'ArrowDown':
+        this.handleArrowKey(1);
+        event.preventDefault();
+        break;
+      case 'ArrowUp':
+        this.handleArrowKey(-1);
+        event.preventDefault();
+        break;
+      case 'Enter':
+        event.preventDefault();
+        if (!event.isComposing) {
+          this.selectOnEnter();
+        }
+        break;
+      case 'Escape':
+        this.closePopup();
+        event.preventDefault();
+        break;
+    }
+  }
+
+  private handleArrowKey(direction: 1 | -1): void {
+    this.popupDismissed = false;
+    if (!this.open) {
       this.allValuesVisible = this.showAllValues();
     }
+    this.moveActiveOption(direction);
+  }
 
-    // Commit restored location text before this same Return submits the form.
-    // Ignore Return while an input method is still composing text.
-    if (event.key === 'Enter' && !event.isComposing) {
-      this.selectExactLocationMatch();
+  private selectOnEnter(): void {
+    if (!this.open) {
+      return;
     }
-
-    if (event.key === 'Escape') {
-      this.closePopup();
+    const options = this.visibleSuggestions;
+    const activeIndex = this.activeIndex();
+    if (activeIndex >= 0) {
+      const activeItem = options[activeIndex];
+      if (activeItem) {
+        this.choose(activeItem);
+      }
+      return;
+    }
+    if (options.length === 1) {
+      this.choose(options[0]);
     }
   }
 
@@ -205,33 +240,44 @@ export class SuggestionsComponent implements ControlValueAccessor {
     const nextFocusedElement = event.relatedTarget as Node | null;
     const autocomplete = event.currentTarget as HTMLElement;
 
-    // Confirm only when leaving the whole autocomplete, not when tabbing into its menu.
+    // Close only when leaving the whole autocomplete.
     if (!nextFocusedElement || !autocomplete.contains(nextFocusedElement)) {
-      this.selectExactLocationMatch();
       this.closePopup();
     }
   }
 
-  private selectExactLocationMatch(): void {
-    if (
-      this.disabledState() ||
-      this.showAllValues() ||
-      this.isCommittedText ||
-      !this.hasQuery
-    ) {
+  private moveActiveOption(direction: 1 | -1): void {
+    this.focused = true;
+    const count = this.visibleSuggestions.length;
+    if (count === 0) {
+      this.activeIndex.set(-1);
       return;
     }
-    // Only a unique full court/CJA label can restore a selection; partial text
-    // and other suggestion types still require an explicit choice.
-    const query = trimStringToLowerCase(this.searchState());
-    const matches = this.suggestions().filter(
-      (item) =>
-        (item.kind === 'court' || item.kind === 'cja') &&
-        trimStringToLowerCase(item.label) === query,
-    );
-    if (matches.length === 1) {
-      this.choose(matches[0]);
+    const current = this.activeIndex();
+    let next = current + direction;
+    if (current < 0) {
+      next = direction === 1 ? 0 : count - 1;
     }
+    if (next < 0 || next >= count) {
+      return;
+    }
+    this.activeIndex.set(next);
+    const optionId = this.optionId(next);
+    setTimeout(() => {
+      if (typeof document !== 'undefined') {
+        document
+          .getElementById(optionId)
+          ?.scrollIntoView?.({ block: 'nearest' });
+      }
+    });
+  }
+
+  optionId(index: number): string {
+    return `${this.listboxId}-option-${index}`;
+  }
+
+  onOptionMouseDown(event: MouseEvent): void {
+    event.preventDefault();
   }
 
   labelFor(item: SuggestionsItem): string {
@@ -243,8 +289,6 @@ export class SuggestionsComponent implements ControlValueAccessor {
   }
 
   choose(item: SuggestionsItem, e?: Event): void {
-    // Menu choices prevent default; automatic selection omits the event so
-    // Return can still submit after the stored value has been updated.
     e?.preventDefault();
 
     // still emit the object if parent wants it
@@ -264,6 +308,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
     }
 
     this.allValuesVisible = false;
+    this.activeIndex.set(-1);
     this.justSelected = true;
 
     // update CVA/form value
@@ -280,7 +325,9 @@ export class SuggestionsComponent implements ControlValueAccessor {
 
   private closePopup(): void {
     this.focused = false;
+    this.popupDismissed = true;
     this.allValuesVisible = false;
+    this.activeIndex.set(-1);
   }
 
   get statusId(): string {
@@ -292,12 +339,13 @@ export class SuggestionsComponent implements ControlValueAccessor {
   }
 
   get popupVisible(): boolean {
-    return this.open || this.noResultsVisible;
+    return !this.popupDismissed && (this.open || this.noResultsVisible);
   }
 
   get noResultsVisible(): boolean {
     return (
       this.focused &&
+      !this.popupDismissed &&
       this.hasQuery &&
       (this.visibleSuggestions.length ?? 0) === 0 &&
       !this.isCommittedText &&
@@ -312,6 +360,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
 
     return (
       !this.disabledState() &&
+      !this.popupDismissed &&
       (this.hasQuery || canShowAllValues) &&
       !this.isCommittedText &&
       this.visibleSuggestions.length > 0
