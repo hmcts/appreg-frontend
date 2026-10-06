@@ -6,7 +6,9 @@ import { SuggestionsComponent } from '@components/suggestions/suggestions.compon
 import {
   CourtSuggestionItem,
   SuggestionsItem,
+  toActivitySuggestionItem,
 } from '@components/suggestions/suggestions.types';
+import { ActivityType } from '@openapi';
 
 @Component({
   standalone: true,
@@ -78,14 +80,26 @@ describe('SuggestionsComponent', () => {
     );
   });
 
-  it.each<SuggestionsItem>([
-    {
-      kind: 'court',
-      value: 'A1',
-      label: 'A1 - Alpha-Central Court',
-      locationCode: 'A1',
-      name: 'Alpha-Central Court',
-    },
+  it('closes on focus leaving without selecting a typed value', () => {
+    const item = suggestion('A1', 'A1 - Alpha Court');
+    setInput('suggestions', [item]);
+    component.onFocus();
+    component.onInput(item.label);
+    const emit = jest.spyOn(component.selectItem, 'emit');
+    const autocomplete = document.createElement('div');
+
+    component.onFocusOut({
+      currentTarget: autocomplete,
+      relatedTarget: document.body,
+    } as unknown as FocusEvent);
+
+    expect(emit).not.toHaveBeenCalled();
+    expect(component.searchState()).toBe(item.label);
+    expect(component.popupVisible).toBe(false);
+  });
+
+  it.each([
+    suggestion('A1', 'A1 - Alpha Court'),
     {
       kind: 'cja',
       value: 'C1',
@@ -93,165 +107,120 @@ describe('SuggestionsComponent', () => {
       code: 'C1',
       description: 'Area One',
     },
-  ])(
-    'commits a unique exact $kind label only when leaving the autocomplete',
+    {
+      kind: 'result-code',
+      value: 'R1',
+      label: 'R1 - Granted',
+      resultCode: 'R1',
+      title: 'Granted',
+    },
+    toActivitySuggestionItem(ActivityType.REPORT_CREATED, 'Activity'),
+  ] as SuggestionsItem[])(
+    'selects the sole visible $kind option with Enter, including partial input',
     (item) => {
       setInput('suggestions', [item]);
-      const emit = jest.spyOn(component.selectItem, 'emit');
-      const onChange = jest.fn();
-      component.registerOnChange(onChange);
       component.onFocus();
-      component.onInput(`  ${item.label.toUpperCase()}  `);
+      component.onInput(item.label.slice(0, 2));
       fixture.detectChanges();
-      expect(emit).not.toHaveBeenCalled();
-      expect(onChange).not.toHaveBeenCalled();
-
       const input = fixture.nativeElement.querySelector(
         'input',
       ) as HTMLInputElement;
-      const option = fixture.nativeElement.querySelector(
-        'button',
-      ) as HTMLButtonElement;
-      input.dispatchEvent(
-        new FocusEvent('focusout', { bubbles: true, relatedTarget: option }),
-      );
+      const emit = jest.spyOn(component.selectItem, 'emit');
+      const onChange = jest.fn();
+      component.registerOnChange(onChange);
+
+      const composing = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        isComposing: true,
+        bubbles: true,
+        cancelable: true,
+      });
+      input.dispatchEvent(composing);
       expect(emit).not.toHaveBeenCalled();
 
-      option.dispatchEvent(
-        new FocusEvent('focusout', {
-          bubbles: true,
-          relatedTarget: document.body,
-        }),
-      );
+      const firstEnter = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+        cancelable: true,
+      });
+      input.dispatchEvent(firstEnter);
+      expect(firstEnter.defaultPrevented).toBe(true);
       expect(emit).toHaveBeenCalledWith(item);
       expect(onChange).toHaveBeenCalledWith(item.value);
       expect(component.searchState()).toBe(item.label);
-      expect(component.isCommittedText).toBe(true);
       expect(component.open).toBe(false);
-
-      input.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
-      expect(emit).toHaveBeenCalledTimes(1);
-    },
-  );
-
-  it.each(['court', 'cja'] as const)(
-    'confirms an edited and restored %s and allows submission on the same Return',
-    (kind) => {
-      const item: SuggestionsItem =
-        kind === 'court'
-          ? suggestion('A1', 'A1 - Alpha Court')
-          : {
-              kind: 'cja',
-              value: 'C1',
-              label: 'C1 - Area One',
-              code: 'C1',
-              description: 'Area One',
-            };
-      setInput('suggestions', [item]);
-      component.onFocus();
-      component.choose(item, new Event('mousedown'));
-      const emit = jest.spyOn(component.selectItem, 'emit');
-      const onChange = jest.fn();
-      component.registerOnChange(onChange);
-      component.onInput(item.label.slice(0, -1));
-      component.onInput(`  ${item.label.toUpperCase()}  `);
-      fixture.detectChanges();
-      const input = fixture.nativeElement.querySelector(
-        'input',
-      ) as HTMLInputElement;
 
       input.dispatchEvent(
         new KeyboardEvent('keydown', {
           key: 'Enter',
-          isComposing: true,
           bubbles: true,
           cancelable: true,
         }),
       );
-      expect(emit).not.toHaveBeenCalled();
-
-      const firstReturn = new KeyboardEvent('keydown', {
-        key: 'Enter',
-        bubbles: true,
-        cancelable: true,
-      });
-      input.dispatchEvent(firstReturn);
-      expect(firstReturn.defaultPrevented).toBe(false);
-      expect(emit).toHaveBeenCalledWith(item);
-      expect(onChange).toHaveBeenCalledWith(item.value);
-      expect(component.searchState()).toBe(item.label);
-      expect(component.open).toBe(false);
-
-      const secondReturn = new KeyboardEvent('keydown', {
-        key: 'Enter',
-        bubbles: true,
-        cancelable: true,
-      });
-      input.dispatchEvent(secondReturn);
-      expect(secondReturn.defaultPrevented).toBe(false);
       expect(emit).toHaveBeenCalledTimes(1);
     },
   );
 
-  it.each([
-    'partial',
-    'ambiguous',
-    'disabled',
-    'showAllValues',
-    'otherKind',
-    'empty',
-  ])('does not auto-select a %s match', (scenario) => {
-    const item = suggestion('A1', 'A1 - Alpha Court');
-    const items: SuggestionsItem[] =
-      scenario === 'otherKind'
-        ? [
-            {
-              kind: 'result-code',
-              value: 'A1',
-              label: item.label,
-              resultCode: 'A1',
-              title: 'Alpha Court',
-            },
-          ]
-        : scenario === 'ambiguous'
-          ? [item, { ...item, value: 'A2' }]
-          : [item];
-    setInput('suggestions', items);
-    if (scenario === 'disabled') {
-      setInput('disabled', true);
-    }
-    if (scenario === 'showAllValues') {
-      setInput('showAllValues', true);
-    }
-    const emit = jest.spyOn(component.selectItem, 'emit');
+  it('does not select when multiple options are visible and none is active', () => {
+    setInput('suggestions', [
+      suggestion('A1', 'A1 - Alpha'),
+      suggestion('A2', 'A2 - Alpha'),
+    ]);
     component.onFocus();
-    component.onInput(
-      scenario === 'partial'
-        ? 'A1 - Alpha'
-        : scenario === 'empty'
-          ? ''
-          : item.label,
-    );
-    fixture.detectChanges();
-    const input = fixture.nativeElement.querySelector(
-      'input',
-    ) as HTMLInputElement;
-    const enter = new KeyboardEvent('keydown', {
+    component.onInput('Alpha');
+    const emit = jest.spyOn(component.selectItem, 'emit');
+    const event = new KeyboardEvent('keydown', {
       key: 'Enter',
-      bubbles: true,
       cancelable: true,
     });
-    input.dispatchEvent(enter);
-    expect(enter.defaultPrevented).toBe(false);
-    expect(emit).not.toHaveBeenCalled();
-    input.dispatchEvent(
-      new FocusEvent('focusout', {
-        bubbles: true,
-        relatedTarget: document.body,
-      }),
-    );
+
+    component.onKeydown(event);
+
+    expect(event.defaultPrevented).toBe(true);
     expect(emit).not.toHaveBeenCalled();
   });
+
+  it('selects the sole option in showAllValues mode with an empty query', () => {
+    const item = suggestion('A1', 'Alpha');
+    setInput('showAllValues', true);
+    setInput('suggestions', [item]);
+    component.onFocus();
+    const emit = jest.spyOn(component.selectItem, 'emit');
+
+    component.onKeydown(
+      new KeyboardEvent('keydown', { key: 'Enter', cancelable: true }),
+    );
+
+    expect(emit).toHaveBeenCalledWith(item);
+  });
+
+  it.each(['empty', 'disabled', 'dismissed'] as const)(
+    'does not select when the popup is %s',
+    (scenario) => {
+      setInput(
+        'suggestions',
+        scenario === 'empty' ? [] : [suggestion('A1', 'Alpha')],
+      );
+      component.onFocus();
+      component.onInput('Al');
+      if (scenario === 'disabled') {
+        setInput('disabled', true);
+      }
+      if (scenario === 'dismissed') {
+        component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+      }
+      const emit = jest.spyOn(component.selectItem, 'emit');
+      const event = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        cancelable: true,
+      });
+
+      component.onKeydown(event);
+
+      expect(event.defaultPrevented).toBe(scenario !== 'disabled');
+      expect(emit).not.toHaveBeenCalled();
+    },
+  );
 
   it('choose prevents default, emits selectItem, and commits the selected label', () => {
     setInput('suggestions', [
@@ -276,39 +245,131 @@ describe('SuggestionsComponent', () => {
     expect(component.open).toBe(false);
   });
 
-  it.each(['Enter', ' ', 'Spacebar'])(
-    'selects the focused menu item when %s is pressed',
-    (key) => {
-      const alpha = suggestion('A1', 'Alpha');
-      setInput('suggestions', [alpha]);
-      const emit = jest.spyOn(component.selectItem, 'emit');
-      const event = new KeyboardEvent('keydown', { key });
-      const preventDefault = jest.spyOn(event, 'preventDefault');
-
-      component.onItemKeydown(alpha, event);
-
-      expect(preventDefault).toHaveBeenCalledTimes(1);
-      expect(emit).toHaveBeenCalledWith(alpha);
-      expect(component.searchState()).toBe('Alpha');
-    },
-  );
-
-  it('wires menu-item keydown events to keyboard selection', () => {
+  it('moves the active option with arrow keys and selects it with Enter', () => {
     setInput('id', 'court');
     const alpha = suggestion('A1', 'Alpha');
-    setInput('suggestions', [alpha]);
+    const beta = suggestion('B1', 'Beta');
+    setInput('suggestions', [alpha, beta]);
     component.onFocus();
     component.onInput('alp');
     fixture.detectChanges();
 
-    const option = fixture.nativeElement.querySelector(
-      '.app-autocomplete__link',
-    ) as HTMLButtonElement;
-    option.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    const input = fixture.nativeElement.querySelector(
+      'input',
+    ) as HTMLInputElement;
+    const emit = jest.spyOn(component.selectItem, 'emit');
+    input.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'ArrowDown',
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    fixture.detectChanges();
+    expect(component.activeIndex()).toBe(0);
+    expect(input.getAttribute('aria-activedescendant')).toBe(
+      'court-listbox-option-0',
+    );
+    input.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'ArrowDown',
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    fixture.detectChanges();
+    expect(component.activeIndex()).toBe(1);
+    input.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'ArrowUp',
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    fixture.detectChanges();
+    expect(component.activeIndex()).toBe(0);
+    input.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
     fixture.detectChanges();
 
-    expect(component.searchState()).toBe('Alpha');
+    expect(emit).toHaveBeenCalledTimes(1);
+    expect(emit).toHaveBeenCalledWith(alpha);
+    expect(component.searchState()).toBe(alpha.label);
     expect(component.open).toBe(false);
+  });
+
+  it('starts ArrowUp at the last option and stops at the menu boundaries', () => {
+    setInput('suggestions', [
+      suggestion('A1', 'Alpha'),
+      suggestion('B1', 'Beta'),
+    ]);
+    component.onFocus();
+    component.onInput('a');
+
+    const pressArrow = (key: 'ArrowUp' | 'ArrowDown') =>
+      component.onKeydown(new KeyboardEvent('keydown', { key }));
+
+    pressArrow('ArrowUp');
+    expect(component.activeIndex()).toBe(1);
+    pressArrow('ArrowDown');
+    expect(component.activeIndex()).toBe(1);
+    pressArrow('ArrowUp');
+    expect(component.activeIndex()).toBe(0);
+    pressArrow('ArrowUp');
+    expect(component.activeIndex()).toBe(0);
+  });
+
+  it('selects a clicked option without moving focus away from the input', () => {
+    const alpha = suggestion('A1', 'Alpha');
+    setInput('suggestions', [alpha]);
+    component.onFocus();
+    component.onInput('partial');
+    fixture.detectChanges();
+
+    const option = fixture.nativeElement.querySelector(
+      '[role="option"]',
+    ) as HTMLElement;
+    const emit = jest.spyOn(component.selectItem, 'emit');
+    option.dispatchEvent(
+      new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
+    );
+    option.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true }),
+    );
+    fixture.detectChanges();
+
+    expect(emit).toHaveBeenCalledTimes(1);
+    expect(emit).toHaveBeenCalledWith(alpha);
+    expect(component.searchState()).toBe(alpha.label);
+    expect(component.open).toBe(false);
+  });
+
+  it('uses the same Enter handler if an option receives keyboard focus', () => {
+    const alpha = suggestion('A1', 'Alpha');
+    setInput('suggestions', [alpha]);
+    component.onFocus();
+    component.onInput('Al');
+    fixture.detectChanges();
+
+    const option = fixture.nativeElement.querySelector(
+      '[role="option"]',
+    ) as HTMLElement;
+    const emit = jest.spyOn(component.selectItem, 'emit');
+    expect(option.tabIndex).toBe(-1);
+    option.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+
+    expect(emit).toHaveBeenCalledWith(alpha);
   });
 
   it('choose clears search text when showAllValues is enabled', () => {
@@ -410,7 +471,7 @@ describe('SuggestionsComponent', () => {
     expect(component.open).toBe(true);
   });
 
-  it('renders suggestions as native button actions in a popup list', () => {
+  it('renders suggestions with combobox and listbox semantics', () => {
     setInput('id', 'court');
     setInput('showAllValues', true);
     setInput('suggestions', [suggestion('A1', 'Alpha')]);
@@ -422,20 +483,21 @@ describe('SuggestionsComponent', () => {
       'input#court',
     ) as HTMLInputElement;
     const listbox = fixture.nativeElement.querySelector(
-      'ul#court-listbox',
-    ) as HTMLUListElement;
+      'div#court-listbox',
+    ) as HTMLDivElement;
     const option = fixture.nativeElement.querySelector(
-      '.app-autocomplete__link',
-    ) as HTMLButtonElement;
+      '[role="option"]',
+    ) as HTMLElement;
 
-    expect(input.hasAttribute('role')).toBe(false);
-    expect(input.hasAttribute('aria-autocomplete')).toBe(false);
-    expect(input.hasAttribute('aria-haspopup')).toBe(false);
-    expect(input.hasAttribute('aria-expanded')).toBe(false);
-    expect(input.hasAttribute('aria-controls')).toBe(false);
+    expect(input.getAttribute('role')).toBe('combobox');
+    expect(input.getAttribute('aria-autocomplete')).toBe('list');
+    expect(input.getAttribute('aria-haspopup')).toBe('listbox');
+    expect(input.getAttribute('aria-expanded')).toBe('true');
+    expect(input.getAttribute('aria-controls')).toBe('court-listbox');
     expect(listbox).toBeTruthy();
-    expect(listbox.hasAttribute('role')).toBe(false);
-    expect(option.tagName).toBe('BUTTON');
+    expect(listbox.getAttribute('role')).toBe('listbox');
+    expect(option.getAttribute('role')).toBe('option');
+    expect(option.getAttribute('aria-selected')).toBe('false');
   });
 
   it('closes the popup when focus moves to another page control without selecting', () => {
@@ -470,6 +532,11 @@ describe('SuggestionsComponent', () => {
 
     expect(status.textContent?.trim()).toBe('No results found');
     expect(status.getAttribute('aria-live')).toBe('polite');
+    expect(status.tagName).toBe('OUTPUT');
+    expect(status.classList.contains('app-autocomplete__link')).toBe(true);
+    expect(status.parentElement?.parentElement?.classList).toContain(
+      'app-autocomplete__menu',
+    );
   });
 
   it('onKeydown opens all values for ArrowDown and Enter when enabled', () => {
@@ -480,9 +547,15 @@ describe('SuggestionsComponent', () => {
 
     component.onKeydown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
     expect(component.open).toBe(true);
+    expect(component.activeIndex()).toBe(0);
 
-    component.onKeydown(new KeyboardEvent('keydown', { key: 'Enter' }));
-    expect(component.open).toBe(true);
+    const enter = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      cancelable: true,
+    });
+    component.onKeydown(enter);
+    expect(enter.defaultPrevented).toBe(true);
+    expect(component.open).toBe(false);
   });
 
   it('closes an open popup when Escape is pressed', () => {
@@ -491,10 +564,12 @@ describe('SuggestionsComponent', () => {
     component.onFocus();
 
     expect(component.popupVisible).toBe(true);
+    component.onInput('keep this text');
 
     component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
 
     expect(component.popupVisible).toBe(false);
+    expect(component.searchState()).toBe('keep this text');
   });
 
   it('noResultsVisible is true when focused + hasQuery + suggestions empty + not committed + not justSelected + not disabled', () => {
