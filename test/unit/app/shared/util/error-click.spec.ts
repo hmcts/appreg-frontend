@@ -129,6 +129,84 @@ describe('error focus utils', () => {
     expect(scroll).toHaveBeenCalledWith({ behavior: 'auto', block: 'center' });
   });
 
+  it('opens containing accordions and details before focus without opening unrelated sections', () => {
+    document.body.innerHTML = `
+      <div class="govuk-accordion__section" id="outer">
+        <div class="govuk-accordion__section-header"><button class="govuk-accordion__section-button" aria-expanded="false">Outer</button></div>
+        <section hidden><details id="details"><summary>Details</summary>
+          <div class="govuk-accordion__section" id="inner">
+            <div class="govuk-accordion__section-header"><button class="govuk-accordion__section-button" aria-expanded="false">Inner</button></div>
+            <section hidden><input id="field" /></section>
+          </div>
+        </details></section>
+      </div>
+      <div class="govuk-accordion__section" id="unrelated">
+        <div class="govuk-accordion__section-header"><button class="govuk-accordion__section-button" aria-expanded="false">Unrelated</button></div>
+      </div>`;
+    const outer = document.getElementById('outer') as HTMLElement;
+    const inner = document.getElementById('inner') as HTMLElement;
+    const details = document.getElementById('details') as HTMLDetailsElement;
+    const input = document.getElementById('field') as HTMLInputElement;
+    const buttons = [outer, inner].map((section) => {
+      const button = section.querySelector('button') as HTMLButtonElement;
+      // Model the synchronous reveal performed by the GOV.UK click handler.
+      button.addEventListener('click', () => {
+        section.classList.add('govuk-accordion__section--expanded');
+        button.setAttribute('aria-expanded', 'true');
+        (section.querySelector('section') as HTMLElement).hidden = false;
+      });
+      return jest.spyOn(button, 'click');
+    });
+    const unrelated = document.querySelector(
+      '#unrelated button',
+    ) as HTMLButtonElement;
+    const unrelatedClick = jest.spyOn(unrelated, 'click');
+    const nativeFocus = input.focus.bind(input);
+    jest.spyOn(input, 'focus').mockImplementation((options) => {
+      expect(details.open).toBe(true);
+      for (const section of [outer, inner]) {
+        expect(
+          section.classList.contains('govuk-accordion__section--expanded'),
+        ).toBe(true);
+        expect(
+          section.querySelector('button')?.getAttribute('aria-expanded'),
+        ).toBe('true');
+        expect((section.querySelector('section') as HTMLElement).hidden).toBe(
+          false,
+        );
+      }
+      nativeFocus(options);
+    });
+
+    onCreateErrorClick({ text: 'Required', href: '#field' });
+    onCreateErrorClick({ text: 'Required', href: '#field' });
+
+    expect(document.activeElement).toBe(input);
+    for (const button of buttons) {
+      expect(button).toHaveBeenCalledTimes(1);
+    }
+    expect(unrelatedClick).not.toHaveBeenCalled();
+  });
+
+  it('does not click an already expanded accordion or an unrelated nested section button', () => {
+    document.body.innerHTML = `
+      <div class="govuk-accordion__section govuk-accordion__section--expanded">
+        <div class="govuk-accordion__section-header"><button class="govuk-accordion__section-button">Open</button></div>
+        <input id="open-field" />
+      </div>
+      <div class="govuk-accordion__section">
+        <input id="no-button-field" />
+        <div class="govuk-accordion__section">
+          <div class="govuk-accordion__section-header"><button class="govuk-accordion__section-button">Nested</button></div>
+        </div>
+      </div>`;
+    const clicks = jest.spyOn(HTMLButtonElement.prototype, 'click');
+    focusField('open-field');
+    expect(document.activeElement?.id).toBe('open-field');
+    focusField('no-button-field');
+    expect(clicks).not.toHaveBeenCalled();
+  });
+
   it('resolves a suggestions host to its input even when both have the same id', () => {
     document.body.innerHTML =
       '<app-suggestions id="cja"><input id="cja" /></app-suggestions>';

@@ -43,14 +43,26 @@ function focusByIdOrFirstFocusable(idOrHref: string): void {
     ? root
     : (root.querySelector<HTMLElement>(selector) ?? root);
 
-  // Native details keep their fields in the DOM, but hidden inputs cannot focus.
-  // Toggle listeners keep Angular-controlled sections in sync with this reveal.
+  // Reveal containing sections before focus. Use accordion buttons so GOV.UK
+  // updates its labels and accessibility state, and Angular observes the change.
+  const sections = 'details, .govuk-accordion__section';
   for (
-    let section = target.closest('details');
+    let section = target.closest<HTMLElement>(sections);
     section;
-    section = section.parentElement?.closest('details') ?? null
+    section = section.parentElement?.closest<HTMLElement>(sections) ?? null
   ) {
-    section.open = true;
+    if (section instanceof HTMLDetailsElement) {
+      section.open = true;
+    } else if (
+      !section.classList.contains('govuk-accordion__section--expanded')
+    ) {
+      Array.from(section.children)
+        .find((child) =>
+          child.classList.contains('govuk-accordion__section-header'),
+        )
+        ?.querySelector<HTMLButtonElement>('.govuk-accordion__section-button')
+        ?.click();
+    }
   }
 
   target.focus?.({ preventScroll: true });
