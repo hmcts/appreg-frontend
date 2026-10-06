@@ -143,9 +143,15 @@ describe('AccordionComponent', () => {
     `;
     root.insertBefore(controls, root.firstChild);
 
-    sections.forEach((section) => {
+    sections.forEach((section, index) => {
       const button = (section.nativeElement as HTMLElement).querySelector(
         '.govuk-accordion__section-button',
+      );
+      button?.setAttribute(
+        'aria-label',
+        index === 0
+          ? 'First section , Hide this section'
+          : 'Second section , Show this section',
       );
       button?.insertAdjacentHTML(
         'beforeend',
@@ -167,6 +173,14 @@ describe('AccordionComponent', () => {
     ).map((label) => label.textContent);
 
     expect(toggleLabels).toEqual(['Show', 'Hide']);
+    expect(
+      Array.from(root.querySelectorAll('.govuk-accordion__section-button')).map(
+        (button) => button.getAttribute('aria-label'),
+      ),
+    ).toEqual([
+      'First section , Show this section',
+      'Second section , Hide this section',
+    ]);
     expect(
       root.querySelector('.govuk-accordion__show-all-text')?.textContent,
     ).toBe('Show all sections');

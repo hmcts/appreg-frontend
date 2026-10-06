@@ -159,7 +159,7 @@ export class AccordionComponent {
       }
 
       const expanded = item.expanded === true;
-      this.syncSectionExpandedState(section, expanded);
+      this.syncSectionExpandedState(section, expanded, item.heading);
     });
 
     this.syncShowAllState(root, Array.from(sections));
@@ -168,6 +168,7 @@ export class AccordionComponent {
   private syncSectionExpandedState(
     section: HTMLElement,
     expanded: boolean,
+    heading: string,
   ): void {
     section.classList.toggle('govuk-accordion__section--expanded', expanded);
 
@@ -182,9 +183,23 @@ export class AccordionComponent {
       }
     }
 
-    section
-      .querySelector<HTMLElement>('.govuk-accordion__section-button')
-      ?.setAttribute('aria-expanded', String(expanded));
+    const button = section.querySelector<HTMLElement>(
+      '.govuk-accordion__section-button',
+    );
+    button?.setAttribute('aria-expanded', String(expanded));
+
+    const headingText = section.querySelector<HTMLElement>(
+      '.govuk-accordion__section-heading-text',
+    );
+    const summary = section.querySelector<HTMLElement>(
+      '.govuk-accordion__section-summary',
+    );
+    const ariaLabelParts = [headingText?.textContent?.trim() ?? heading];
+    if (summary) {
+      ariaLabelParts.push(summary.textContent?.trim() ?? '');
+    }
+    ariaLabelParts.push(expanded ? 'Hide this section' : 'Show this section');
+    button?.setAttribute('aria-label', ariaLabelParts.join(' , '));
 
     const showHideText = section.querySelector<HTMLElement>(
       '.govuk-accordion__section-toggle-text',
