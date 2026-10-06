@@ -19,7 +19,7 @@
 
 @if (applictionsHaveBeenRemoved()) {
   <app-alert
-    [alertType]="'information'"
+    [alertType]="'warning'"
     [message]="'Application(s) which do not require a fee have been removed'"
   />
 }

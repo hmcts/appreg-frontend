@@ -389,7 +389,7 @@ describe('ApplicationsList – search', () => {
       'app-radio-group fieldset legend',
     ) as HTMLLegendElement | null;
 
-    expect(legend?.textContent?.trim()).toBe('Which lists to show');
+    expect(legend?.textContent?.trim()).toBe('Lists to show');
   });
 
   it('merges filter when hasParams=true', async () => {
