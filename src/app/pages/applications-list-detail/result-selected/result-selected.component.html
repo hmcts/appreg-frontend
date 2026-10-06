@@ -15,7 +15,6 @@
     [items]="errorSummaryItems()"
     [focusKey]="submitAttempt()"
     targetId="results-applicant-table"
-    (itemSelect)="onCreateErrorClick($event)"
   />
 } @else if (successBanner(); as successBanner) {
   <app-success-banner
