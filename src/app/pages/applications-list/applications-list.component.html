@@ -4,7 +4,6 @@
     [items]="vm().searchErrors"
     [focusKey]="submitAttempt()"
     targetId="search"
-    (itemSelect)="onCreateErrorClick($event)"
   />
 } @else {
   @if (vm().isSearch && !vm().isLoading && !storedRecordsVm().rows.length) {
