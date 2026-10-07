@@ -1248,55 +1248,75 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     expect(component.form.controls.applicationTitle?.value).toBeNull();
   });
 
-  it("onSubmit: respondent validation path with bulk (respondentEntryType='bulk')", () => {
-    component.form.patchValue({
-      applicationCode: 'A001',
-      lodgementDate: '2026-02-01',
-      applicantType: 'standard',
-      standardApplicantCode: 'SA-1',
-      respondentEntryType: 'bulk',
-      numberOfRespondents: -1, // Value out of range
-    });
+  it.each([0, '0', -1, '1.5', 'abc', 10000, '10000'])(
+    'onSubmit: rejects invalid optional bulk count %p',
+    (count) => {
+      component['appListEntryCreatePatch']({
+        appCodeDetail: {
+          requiresRespondent: false,
+        } as ApplicationCodeGetDetailDto,
+      });
+      component.form.patchValue({
+        applicationCode: 'A001',
+        lodgementDate: '2026-02-01',
+        applicantType: 'standard',
+        standardApplicantCode: 'SA-1',
+        respondentEntryType: 'bulk',
+        numberOfRespondents: count as number,
+      });
 
-    component.onSubmit(new Event('submit'));
+      component.onSubmit(new Event('submit'));
 
-    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
-    expect(component.vm().errorFound).toBe(true);
-    expect(component.respondentErrorItems.length).toBeGreaterThan(0);
-  });
-
-  it('onSubmit: adds bulk required error to summary when respondent is required and bulk is empty', () => {
-    (
-      component as unknown as {
-        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
-      }
-    ).appListEntryCreatePatch({
-      appCodeDetail: { requiresRespondent: true },
-    });
-
-    component.form.patchValue({
-      applicationCode: 'A001',
-      lodgementDate: '2026-02-01',
-      applicantType: 'standard',
-      standardApplicantCode: 'SA-1',
-      respondentEntryType: 'bulk',
-      numberOfRespondents: null,
-    });
-
-    component.onSubmit(new Event('submit'));
-
-    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
-    expect(component.vm().errorFound).toBe(true);
-    expect(component.vm().summaryErrors).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
+      expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+      expect(component.vm().errorFound).toBe(true);
+      expect(component.respondentErrorItems).toEqual([
+        {
           id: 'numberOfRespondents',
-          text: 'Enter number of respondents',
+          text: 'Number of respondents must be a whole number from 1 to 9999',
           href: '#respondent-number-of-respondents',
-        }),
-      ]),
-    );
-  });
+        },
+      ]);
+      expect(component.vm().summaryErrors).toEqual(
+        expect.arrayContaining(component.respondentErrorItems),
+      );
+    },
+  );
+
+  it.each([true, false])(
+    'onSubmit: requires a selected bulk count (requiresRespondent=%p)',
+    (requiresRespondent) => {
+      (
+        component as unknown as {
+          appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+        }
+      ).appListEntryCreatePatch({
+        appCodeDetail: { requiresRespondent },
+      });
+
+      component.form.patchValue({
+        applicationCode: 'A001',
+        lodgementDate: '2026-02-01',
+        applicantType: 'standard',
+        standardApplicantCode: 'SA-1',
+        respondentEntryType: 'bulk',
+        numberOfRespondents: null,
+      });
+
+      component.onSubmit(new Event('submit'));
+
+      expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+      expect(component.vm().errorFound).toBe(true);
+      expect(component.vm().summaryErrors).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'numberOfRespondents',
+            text: 'Enter number of respondents',
+            href: '#respondent-number-of-respondents',
+          }),
+        ]),
+      );
+    },
+  );
 
   it('onCodeSelected makes API call with code/date and expected args', () => {
     const s = new Subject<unknown>();

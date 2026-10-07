@@ -3,7 +3,7 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { RespondentEntryType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
-import { controlHasAnyValue } from '@util/respondent-helpers';
+import { isEmpty } from '@validators/optional.validator';
 
 interface BuildRespondentErrorsParams<ErrorMessageMap> {
   respondentEntryType: RespondentEntryType | null | undefined;
@@ -72,7 +72,7 @@ export function buildRespondentErrors<TErrorMessages extends ErrorMessageMap>({
 
     BulkRequiredError(
       respondentBulkControl,
-      bulkCountRequired && !controlHasAnyValue(respondentBulkControl),
+      bulkCountRequired && isEmpty(respondentBulkControl.value),
     );
 
     const bulkGroup = new FormGroup({
