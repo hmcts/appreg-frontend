@@ -51,7 +51,7 @@
     heading="Bulk upload complete"
     [body]="vm().bulkUploadBannerText"
     [linkText]="
-      bulkUploadFeeUpdateAvailable()
+      canModifyList() && bulkUploadFeeUpdateAvailable()
         ? 'Click here to update fee details on newly uploaded applications'
         : undefined
     "
@@ -76,14 +76,18 @@
 
 <app-page-header
   title="Applications list"
-  [actions]="[
-    {
-      label: 'Create application',
-      routerLink: ['create-entry'],
-      startIcon: true,
-      variant: 'primary',
-    },
-  ]"
+  [actions]="
+    canModifyList()
+      ? [
+          {
+            label: 'Create application',
+            routerLink: ['create-entry'],
+            startIcon: true,
+            variant: 'primary',
+          },
+        ]
+      : []
+  "
 />
 
 <!-- Tabs -->
@@ -130,13 +134,17 @@
     <app-page-header
       title="Applications"
       size="l"
-      [actions]="[
-        {
-          label: 'Bulk upload',
-          variant: 'secondary',
-          routerLink: ['bulk-upload'],
-        },
-      ]"
+      [actions]="
+        canModifyList()
+          ? [
+              {
+                label: 'Bulk upload',
+                variant: 'secondary',
+                routerLink: ['bulk-upload'],
+              },
+            ]
+          : []
+      "
     >
     </app-page-header>
 
@@ -226,37 +234,39 @@
                 data-align-menu="right"
                 data-button-classes="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
               >
-                <button
-                  type="button"
-                  class="govuk-button moj-button-menu__item govuk-button--secondary"
-                  (click)="onResultButtonClick()"
-                >
-                  Result selected
-                </button>
+                @if (canModifyList()) {
+                  <button
+                    type="button"
+                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                    (click)="onResultButtonClick()"
+                  >
+                    Result selected
+                  </button>
 
-                <button
-                  type="button"
-                  class="govuk-button moj-button-menu__item govuk-button--secondary"
-                  (click)="onMoveButtonClick()"
-                >
-                  Move entries
-                </button>
+                  <button
+                    type="button"
+                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                    (click)="onMoveButtonClick()"
+                  >
+                    Move entries
+                  </button>
 
-                <button
-                  type="button"
-                  class="govuk-button moj-button-menu__item govuk-button--secondary"
-                  (click)="onUpdateOfficialsButtonClick()"
-                >
-                  Update officials
-                </button>
+                  <button
+                    type="button"
+                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                    (click)="onUpdateOfficialsButtonClick()"
+                  >
+                    Update officials
+                  </button>
 
-                <button
-                  type="button"
-                  class="govuk-button moj-button-menu__item govuk-button--secondary"
-                  (click)="onUpdateFeeButtonClick()"
-                >
-                  Update fee details
-                </button>
+                  <button
+                    type="button"
+                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                    (click)="onUpdateFeeButtonClick()"
+                  >
+                    Update fee details
+                  </button>
+                }
 
                 <button
                   type="button"
@@ -294,14 +304,16 @@
               Open
             </button>
 
-            <!-- Delete button -->
-            <button
-              type="button"
-              class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onDeleteButtonClick(row)"
-            >
-              Delete
-            </button>
+            @if (canModifyList()) {
+              <!-- Delete button -->
+              <button
+                type="button"
+                class="govuk-button moj-button-menu__item govuk-button--secondary"
+                (click)="onDeleteButtonClick(row)"
+              >
+                Delete
+              </button>
+            }
           </div>
         </ng-template>
       </app-sortable-table>
@@ -309,9 +321,11 @@
       <app-notification-banner
         id="noEntries"
         heading="No lists entries found"
-        body="Try again, or "
-        linkText="create a new list entry"
-        [linkCommands]="['/applications-list', id, 'create-entry']"
+        [body]="canModifyList() ? 'Try again, or ' : ''"
+        [linkText]="canModifyList() ? 'create a new list entry' : ''"
+        [linkCommands]="
+          canModifyList() ? ['/applications-list', id, 'create-entry'] : []
+        "
       />
     }
 
@@ -332,6 +346,7 @@
   >
     <app-applications-list-update
       [form]="form"
+      [canModifyList]="canModifyList()"
       [vm]="vm()"
       [statusOptions]="statusOptions"
       [placeState]="state()"

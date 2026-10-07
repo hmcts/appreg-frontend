@@ -66,6 +66,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/delete',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list/applications-list-delete/applications-list-delete.component').then(
@@ -74,6 +75,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/close',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-close/applications-list-close.component').then(
@@ -82,6 +84,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/create-entry',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-entry-create/applications-list-entry-create.component').then(
@@ -90,6 +93,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-entry/:entryId',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-entry-detail/applications-list-entry-detail.component').then(
@@ -98,6 +102,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/:entryId/delete',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-entry-delete/applications-list-entry-delete.component').then(
@@ -106,6 +111,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/create-entry/change-payment-reference',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
@@ -114,6 +120,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-entry/:entryId/change-payment-reference',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
@@ -122,6 +129,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-upload',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         canDeactivate: [canLeavePageGuard],
         loadComponent: () =>
@@ -131,6 +139,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/result-selected',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/result-selected/result-selected.component').then(
@@ -139,6 +148,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-officials',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/update-officials/update-officials.component').then(
@@ -155,6 +165,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-officials/confirm',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/update-officials/confirm/update-officials-confirm.component').then(
@@ -163,6 +174,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/move',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-entry-move/applications-list-entry-move.component').then(
@@ -171,6 +183,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/move/confirm',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-entry-move/move-confirm/move-confirm.component').then(
@@ -179,6 +192,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-update-fee',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-detail-bulk-update-fees/applications-list-detail-bulk-update-fees.component').then(
@@ -187,6 +201,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-update-fee/confirm',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-detail-bulk-update-fees/fee-update-confirm/fee-update-confirm.component').then(
@@ -195,6 +210,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-update-fee/change-payment-reference',
+        data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
