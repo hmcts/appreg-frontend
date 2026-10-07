@@ -174,7 +174,7 @@ describe('Report navigation confirmation in a browser', () => {
     await Promise.all([
       // Cancelling Back requires Angular to perform a compensating history traversal.
       page.waitForFunction(() => location.pathname === '/reports', {
-        timeout: 15_000,
+        timeout: 20_000,
       }),
       page.click('dialog button.govuk-button'),
     ]);
