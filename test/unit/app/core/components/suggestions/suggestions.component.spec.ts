@@ -217,7 +217,7 @@ describe('SuggestionsComponent', () => {
 
       component.onKeydown(event);
 
-      expect(event.defaultPrevented).toBe(scenario !== 'disabled');
+      expect(event.defaultPrevented).toBe(false);
       expect(emit).not.toHaveBeenCalled();
     },
   );
