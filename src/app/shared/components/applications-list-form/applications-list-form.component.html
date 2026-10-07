@@ -138,7 +138,11 @@
   </ng-template>
 
   @if (isSearch()) {
-    <details class="govuk-details" [open]="advancedOpen()">
+    <details
+      class="govuk-details"
+      [open]="advancedOpen()"
+      (toggle)="onAdvancedToggle($event)"
+    >
       <summary class="govuk-details__summary" (click)="onAdvancedClick($event)">
         <span class="govuk-details__summary-text">Advanced search</span>
       </summary>

@@ -43,6 +43,28 @@ function focusByIdOrFirstFocusable(idOrHref: string): void {
     ? root
     : (root.querySelector<HTMLElement>(selector) ?? root);
 
+  // Reveal containing sections before focus. Use accordion buttons so GOV.UK
+  // updates its labels and accessibility state, and Angular observes the change.
+  const sections = 'details, .govuk-accordion__section';
+  for (
+    let section = target.closest<HTMLElement>(sections);
+    section;
+    section = section.parentElement?.closest<HTMLElement>(sections) ?? null
+  ) {
+    if (section instanceof HTMLDetailsElement) {
+      section.open = true;
+    } else if (
+      !section.classList.contains('govuk-accordion__section--expanded')
+    ) {
+      Array.from(section.children)
+        .find((child) =>
+          child.classList.contains('govuk-accordion__section-header'),
+        )
+        ?.querySelector<HTMLButtonElement>('.govuk-accordion__section-button')
+        ?.click();
+    }
+  }
+
   target.focus?.({ preventScroll: true });
 
   const scrollTarget = target.closest<HTMLElement>('.govuk-form-group') ?? root;
