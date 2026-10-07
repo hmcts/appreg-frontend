@@ -1446,7 +1446,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        // ponytail: accept the legacy payload during FE-first deployment.
+        // accept the legacy payload during FE-first deployment.
         next: (
           applicant: StandardApplicantGetDetailDto & { applicant?: Applicant },
         ) => {
