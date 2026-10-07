@@ -37,35 +37,51 @@
           (hint() ? id() + '-hint ' : '') + (showError() ? id() + '-error' : '')
         "
         [attr.aria-labelledby]="id() + '-label'"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-haspopup="listbox"
+        [attr.aria-expanded]="open"
+        [attr.aria-controls]="open ? listboxId : null"
+        [attr.aria-activedescendant]="
+          open && activeIndex() >= 0 ? optionId(activeIndex()) : null
+        "
         autocomplete="off"
       />
 
-      @if (popupVisible) {
-        <ul [id]="listboxId" class="govuk-list app-autocomplete__menu">
-          @if (open) {
-            @for (item of visibleSuggestions; track item) {
-              <li>
-                <button
-                  type="button"
-                  class="app-autocomplete__link"
-                  (mousedown)="choose(item, $event)"
-                  (keydown)="onItemKeydown(item, $event)"
-                >
-                  {{ labelFor(item) }}
-                </button>
-              </li>
-            }
-          } @else {
-            <li>
-              <span
-                [id]="statusId"
-                class="app-autocomplete__link"
-                aria-live="polite"
-              >
-                No results found
-              </span>
-            </li>
+      @if (open) {
+        <div
+          [id]="listboxId"
+          class="govuk-list app-autocomplete__menu"
+          role="listbox"
+          [attr.aria-labelledby]="id() + '-label'"
+        >
+          @for (item of visibleSuggestions; track item; let index = $index) {
+            <div
+              [id]="optionId(index)"
+              class="app-autocomplete__link"
+              [class.app-autocomplete__link--active]="activeIndex() === index"
+              role="option"
+              tabindex="-1"
+              [attr.aria-selected]="activeIndex() === index"
+              (mousedown)="onOptionMouseDown($event)"
+              (click)="choose(item, $event)"
+              (keydown)="onKeydown($event)"
+            >
+              {{ labelFor(item) }}
+            </div>
           }
+        </div>
+      } @else if (noResultsVisible) {
+        <ul [id]="listboxId" class="govuk-list app-autocomplete__menu">
+          <li>
+            <output
+              [id]="statusId"
+              class="app-autocomplete__link"
+              aria-live="polite"
+            >
+              No results found
+            </output>
+          </li>
         </ul>
       }
     </div>
