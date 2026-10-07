@@ -299,30 +299,37 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.respondentErrorItems.length).toBeGreaterThan(0);
   });
 
-  it('onSubmit: does not mark respondent submitted when respondent is optional and empty', () => {
-    (
-      component as unknown as {
-        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
-      }
-    ).appListEntryCreatePatch({
-      appCodeDetail: { requiresRespondent: false },
-    });
+  it.each(['person', 'organisation'] as const)(
+    'onSubmit: accepts optional empty %s respondent',
+    (respondentEntryType) => {
+      jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      (
+        component as unknown as {
+          appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+        }
+      ).appListEntryCreatePatch({
+        appCodeDetail: { requiresRespondent: false },
+      });
 
-    component.form.patchValue({
-      applicationCode: '   ', // keep submit invalid via non-respondent field
-      respondentEntryType: 'person',
-      numberOfRespondents: null,
-    });
-    component.forms.respondentPersonForm.reset();
-    component.forms.respondentOrganisationForm.reset();
+      component.form.patchValue({
+        applicationCode: 'A001',
+        lodgementDate: '2026-02-01',
+        applicantType: 'standard',
+        standardApplicantCode: 'SA-1',
+        respondentEntryType,
+        numberOfRespondents: null,
+      });
+      component.forms.respondentPersonForm.reset();
+      component.forms.respondentOrganisationForm.reset();
 
-    component.onSubmit(new Event('submit'));
+      component.onSubmit(new Event('submit'));
 
-    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
-    expect(component.vm().submitted).toBe(true);
-    expect(component.respondentSubmittedAndRequired).toBe(false);
-    expect(component.respondentErrorItems).toEqual([]);
-  });
+      expect(createApplicationListEntryMock).toHaveBeenCalledTimes(1);
+      expect(component.vm().submitted).toBe(true);
+      expect(component.respondentSubmittedAndRequired).toBe(false);
+      expect(component.respondentErrorItems).toEqual([]);
+    },
+  );
 
   it('does not rebuild respondent errors when respondent becomes populated after submit', () => {
     (
