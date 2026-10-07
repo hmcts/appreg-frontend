@@ -20,7 +20,7 @@
 @if (vm().errorSummary.length || vm().updateInvalid) {
   <app-error-summary
     [title]="vm().errorHint || 'There is a problem'"
-    [items]="vm().errorSummary"
+    [items]="summaryItems()"
     [focusKey]="submitAttempt()"
   />
 }
