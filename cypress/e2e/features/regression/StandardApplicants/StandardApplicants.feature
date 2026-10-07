@@ -79,9 +79,10 @@ Feature: Standard Applicants
         When User Clicks On The "Search" Button
         Then User Should See The Table "<TableName>"
         Then User Should See Table "<TableName>" Has Rows
+        # BGAS is an active base CSDS record, not an environment-specific test applicant.
         Examples:
-            | ExceedingLengthCode | ExceedingLengthName                                                                                             | InvalidCode | Code | TableName           | Name                        |
-            | 12345678901         | A very long name that exceeds the maximum length of 100 characters for a standard applicant name in the system. | 1234567890  | ad   | Standard applicants | ADVANCED COLLECTION SYSTEMS |
+            | ExceedingLengthCode | ExceedingLengthName                                                                                             | InvalidCode | Code   | TableName           | Name                      |
+            | 12345678901         | A very long name that exceeds the maximum length of 100 characters for a standard applicant name in the system. | 1234567890  | BGAS   | Standard applicants | British Gas Trading Limited |
 
     @regression @standardApplicants @ARCPOC-766 @ARCPOC-1823
     Scenario: View a Standard Applicant in read-only mode

@@ -230,13 +230,18 @@ module.exports = defineConfig({
             `BGAS||Greenfield Finance ${suffix} Ltd|||||${suffix} High Street|Walsall|Darlaston|Walsall|West Midlands|WS1 1SY|greenfield-finance-${suffix}@test.cgi.com|0207 1234567|07700 900001|AC-${suffix}-1|SW99062|Benjamin Young|`,
             `total|Mr||James|Edward|Thomas|Hargreaves${suffix}|${suffix} Park Road|Birmingham|Handsworth|Birchfield|West Midlands|B1 1BB|james.hargreaves-${suffix}@test.cgi.com|0121 9876543|07700 900002|AC-${suffix}-2|EF99007|£500.00|`,
           ];
+          // Core regression uses deployment-seeded applicants, not staging-only companies.
+          const coreFeeNotRequiredRows = [
+            `BGAS||Greenfield Finance ${suffix} Ltd|||||${suffix} High Street|Walsall|Darlaston|Walsall|West Midlands|WS1 1SY|greenfield-finance-${suffix}@test.cgi.com|0207 1234567|07700 900001|AC-${suffix}-1|EF99023|£500.00|`,
+            `Total|Mr||James|Edward|Thomas|Hargreaves${suffix}|${suffix} Park Road|Birmingham|Handsworth|Birchfield|West Midlands|B1 1BB|james.hargreaves-${suffix}@test.cgi.com|0121 9876543|07700 900002|AC-${suffix}-2|EF99007|£500.00|`,
+          ];
           const feeRequiredRows = [
             `BGAS||Globex Corporation ${suffix} Ltd|||||${suffix} High Street|Walsall|Darlaston|Walsall|West Midlands|WS1 1SY|greenfield-finance-${suffix}@test.cgi.com|0207 1234567|07700 900001|AC-${suffix}-1|RE99001|Test Address for Benjamin Young|`,
             `Total|Mr||John|Smith|Alexander|Hargreaves${suffix}|${suffix} Park Road|Birmingham|Handsworth|Birchfield|West Midlands|B1 1BB|james.hargreaves-${suffix}@test.cgi.com|0121 9876543|07700 900002|AC-${suffix}-2|EF99007|£500.00|`,
           ];
           const rowsByFile = {
             'bulk-upload-entries.csv': feeNotRequiredRows,
-            'bulk-upload-entries-fee-not-required.csv': feeNotRequiredRows,
+            'bulk-upload-entries-fee-not-required.csv': coreFeeNotRequiredRows,
             'bulk-upload-entries-fee-required.csv': feeRequiredRows,
           };
           const rows = rowsByFile[fileName];

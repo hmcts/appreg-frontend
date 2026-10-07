@@ -262,6 +262,26 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
   });
 
+  it('renders untargeted API errors as text and keeps explicit field links', () => {
+    component['appListEntryDetailPatch']({
+      errorFound: true,
+      summaryErrors: [
+        { text: 'Application entry does not exist' },
+        { text: 'Enter a lodgement date', href: '#lodgement-date-day' },
+      ],
+    });
+    fixture.detectChanges();
+
+    const items = fixture.nativeElement.querySelectorAll(
+      'app-error-summary li',
+    );
+    expect(items[0].textContent).toContain('Application entry does not exist');
+    expect(items[0].querySelector('a')).toBeNull();
+    expect(items[1].querySelector('a').getAttribute('href')).toBe(
+      '#lodgement-date-day',
+    );
+  });
+
   it('maps lodgementDate error summary links to the date input day field', () => {
     expect(ERROR_HREFS.lodgementDate).toBe('#lodgement-date-day');
   });

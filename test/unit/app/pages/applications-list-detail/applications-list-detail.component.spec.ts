@@ -1119,6 +1119,30 @@ describe('ApplicationsListDetail', () => {
     expect(vm().preserveErrorSummaryOnLoad).toBe(true);
   });
 
+  it('renders close errors as text while preserving field links and internal IDs', async () => {
+    const closeError = {
+      id: 'status-close',
+      href: '#status',
+      text: 'List cannot be closed. Please result all the applications in the list and try again',
+    };
+    const durationError = {
+      id: 'duration',
+      href: '#duration-hours',
+      text: 'Enter a duration',
+    };
+    patchDetailState({ errorSummary: [closeError, durationError] });
+    await flushSignalEffects(fixture);
+
+    const summary = fixture.debugElement.query(By.css('app-error-summary'));
+    const items = summary.queryAll(By.css('li'));
+    expect(items[0].nativeElement.textContent).toContain(closeError.text);
+    expect(items[0].query(By.css('a'))).toBeNull();
+    expect(items[1].query(By.css('a')).nativeElement.getAttribute('href')).toBe(
+      '#duration-hours',
+    );
+    expect(vm().errorSummary).toEqual([closeError, durationError]);
+  });
+
   it('maps move errors from navigation state onto the detail page', async () => {
     historyStateSpy.mockReturnValue({
       row: {
@@ -1819,6 +1843,27 @@ describe('ApplicationsListDetail', () => {
         });
       },
     );
+
+    it('shows the fee link for a mixed upload with eligible and ineligible entries', async () => {
+      entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReturnValue(
+        of(['fee-entry', 'no-fee-entry']) as never,
+      );
+      entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValue(
+        of({
+          action: BulkActionType.UPDATE_FEE_DETAILS,
+          limit: 1050,
+          selectedCount: 2,
+          eligibleCount: 1,
+          ineligibleCount: 1,
+          entryIds: ['fee-entry'],
+          entries: [],
+        }),
+      );
+      component.id = 'list-123';
+      component.bulkUploadJobId.set('job-123');
+      await component['setBulkUploadFeeUpdateAvailability']();
+      expect(component.bulkUploadFeeUpdateAvailable()).toBe(true);
+    });
 
     it('keeps the link hidden without replacing the upload success when eligibility cannot be loaded', async () => {
       entriesApiStub.getBulkResultApplicationListEntriesByJobId.mockReset();

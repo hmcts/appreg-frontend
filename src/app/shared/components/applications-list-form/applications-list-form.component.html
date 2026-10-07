@@ -123,7 +123,7 @@
       <div class="govuk-grid-row">
         <app-radio-group
           formControlName="hasEntries"
-          legend="Which lists to show"
+          legend="Lists to show"
           size="s"
           [legendIsPageHeading]="false"
           containerWidthClass="govuk-grid-column-full"
@@ -138,7 +138,11 @@
   </ng-template>
 
   @if (isSearch()) {
-    <details class="govuk-details" [open]="advancedOpen()">
+    <details
+      class="govuk-details"
+      [open]="advancedOpen()"
+      (toggle)="onAdvancedToggle($event)"
+    >
       <summary class="govuk-details__summary" (click)="onAdvancedClick($event)">
         <span class="govuk-details__summary-text">Advanced search</span>
       </summary>

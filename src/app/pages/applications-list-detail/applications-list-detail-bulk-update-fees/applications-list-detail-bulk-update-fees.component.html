@@ -13,13 +13,12 @@
     [title]="'There is a problem'"
     [items]="vm().feeErrors"
     [focusKey]="submitAttempt()"
-    (itemSelect)="onCreateErrorClick($event)"
   />
 }
 
 @if (applictionsHaveBeenRemoved()) {
   <app-alert
-    [alertType]="'information'"
+    [alertType]="'warning'"
     [message]="'Application(s) which do not require a fee have been removed'"
   />
 }

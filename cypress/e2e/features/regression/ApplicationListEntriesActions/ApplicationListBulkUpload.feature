@@ -19,6 +19,7 @@ Feature: Application List Bulk Upload
         Then User Clicks On The Link "Bulk upload"
         Then User See "Bulk upload applications" On The Page
         Then User See "Select the bulk applications file you wish to upload." On The Page
+        # Use active base CSDS applicants BGAS and Total, not environment-specific test applicants.
         When User Uploads The File "bulk-upload-entries-fee-not-required.csv"
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
@@ -28,8 +29,8 @@ Feature: Application List Bulk Upload
         Then User See "Applications list" On The Page
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number     | Applicant                   | Respondent                           | Postcode | Title                                            | Fee | Resulted |
-            | 1               | AC-{SCENARIO_ID}-1 | British Gas Trading Limited | Greenfield Finance {SCENARIO_ID} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |
-            | 2               | AC-{SCENARIO_ID}-2 | Total Gas and Power         | James Hargreaves{SCENARIO_ID}        | B1 1BB   | Warrant of Control                               | No  |          |
+            | 1               | AC-{SCENARIO_ID}-1 | British Gas Trading Limited | Greenfield Finance {SCENARIO_ID} Ltd | WS1 1SY  | Warrant of Control (Company) | No  |          |
+            | 2               | AC-{SCENARIO_ID}-2 | Total Gas and Power  | James Hargreaves{SCENARIO_ID}        | B1 1BB   | Warrant of Control           | No  |          |
         Then User Should Not See The Link "Click here to update fee details on newly uploaded applications"
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"

@@ -227,6 +227,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     );
 
   readonly vm = this.detailSignalState.vm;
+  // Keep the close-error ID in state for inline errors, not as a navigation target.
+  readonly summaryItems = computed(() =>
+    this.vm().errorSummary.map((item) =>
+      item.id === 'status-close' ? { text: item.text } : item,
+    ),
+  );
 
   private readonly tableDataRequest = signal<tableDataReq | null>(null);
   private readonly listDetailRequest = signal<listDetailsReq | null>(null);
