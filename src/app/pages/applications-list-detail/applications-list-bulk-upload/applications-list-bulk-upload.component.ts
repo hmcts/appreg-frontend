@@ -284,7 +284,7 @@ export class ApplicationsListBulkUpload implements OnInit {
             msg:
               job.createdCount === null
                 ? 'All records were uploaded successfully.'
-                : `${this.formatCount(job.createdCount, 'record')} created.`,
+                : `${this.formatCount(job.createdCount, 'application')} imported successfully.`,
             jobId: job.id,
             totalFeeValue: job.raw['totalFeeValue'],
           },
@@ -338,7 +338,7 @@ export class ApplicationsListBulkUpload implements OnInit {
           rejectedValue,
         }) => ({
           errorType: errorType === 'DATA_ERROR' ? 'Data error' : 'Header error',
-          rowNumber,
+          rowNumber: rowNumber === -1 ? '—' : (rowNumber ?? '—'),
           location: this.errorColumnReadable(trimToUndefined(location) ?? '—'),
           message: trimToUndefined(message) ?? '—',
           name: trimToUndefined(code) ?? '—',

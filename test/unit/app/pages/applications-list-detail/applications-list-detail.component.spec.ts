@@ -1359,7 +1359,7 @@ describe('ApplicationsListDetail', () => {
           description: '',
           status: 'OPEN',
         },
-        msg: '3 records created.',
+        msg: '3 applications imported successfully.',
         jobId: 'job-123',
         totalFeeValue,
       });
@@ -1378,7 +1378,7 @@ describe('ApplicationsListDetail', () => {
 
       expect(vm().bulkUploadDone).toBe(true);
       expect(vm().bulkUploadBannerText).toBe(
-        `3 records created.${expectedTotal}`,
+        `3 applications imported successfully.${expectedTotal}`,
       );
       expect(component.bulkUploadJobId()).toBe('job-123');
     },
