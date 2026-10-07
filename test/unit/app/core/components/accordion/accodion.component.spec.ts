@@ -126,6 +126,66 @@ describe('AccordionComponent', () => {
     expect(expandedChange).toHaveBeenCalledWith({ index: 1, expanded: true });
   });
 
+  it('syncs GOV.UK generated show/hide labels when item inputs change', async () => {
+    const root = fixture.debugElement.query(By.css('.govuk-accordion'))
+      .nativeElement as HTMLElement;
+    const sections = fixture.debugElement.queryAll(
+      By.css('.govuk-accordion__section'),
+    );
+
+    const controls = document.createElement('div');
+    controls.className = 'govuk-accordion__controls';
+    controls.innerHTML = `
+      <button type="button" class="govuk-accordion__show-all" aria-expanded="false">
+        <span class="govuk-accordion-nav__chevron govuk-accordion-nav__chevron--down"></span>
+        <span class="govuk-accordion__show-all-text">Show all sections</span>
+      </button>
+    `;
+    root.insertBefore(controls, root.firstChild);
+
+    sections.forEach((section, index) => {
+      const button = (section.nativeElement as HTMLElement).querySelector(
+        '.govuk-accordion__section-button',
+      );
+      button?.setAttribute(
+        'aria-label',
+        index === 0
+          ? 'First section , Hide this section'
+          : 'Second section , Show this section',
+      );
+      button?.insertAdjacentHTML(
+        'beforeend',
+        '<span class="govuk-accordion__section-toggle"><span class="govuk-accordion-nav__chevron"></span><span class="govuk-accordion__section-toggle-text"></span></span>',
+      );
+    });
+
+    fixture.componentRef.setInput('items', [
+      { heading: 'First section', content: 'First content', expanded: false },
+      { heading: 'Second section', content: 'Second content', expanded: true },
+    ]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const toggleLabels = Array.from(
+      root.querySelectorAll<HTMLElement>(
+        '.govuk-accordion__section-toggle-text',
+      ),
+    ).map((label) => label.textContent);
+
+    expect(toggleLabels).toEqual(['Show', 'Hide']);
+    expect(
+      Array.from(root.querySelectorAll('.govuk-accordion__section-button')).map(
+        (button) => button.getAttribute('aria-label'),
+      ),
+    ).toEqual([
+      'First section , Show this section',
+      'Second section , Hide this section',
+    ]);
+    expect(
+      root.querySelector('.govuk-accordion__show-all-text')?.textContent,
+    ).toBe('Show all sections');
+  });
+
   it('uses the provided id as the root accordion id', () => {
     const root = fixture.debugElement.query(By.css('.govuk-accordion'));
     expect(root).toBeTruthy();
