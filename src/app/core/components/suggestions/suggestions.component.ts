@@ -186,9 +186,8 @@ export class SuggestionsComponent implements ControlValueAccessor {
         event.preventDefault();
         break;
       case 'Enter':
-        event.preventDefault();
         if (!event.isComposing) {
-          this.selectOnEnter();
+          this.selectOnEnter(event);
         }
         break;
       case 'Escape':
@@ -206,21 +205,29 @@ export class SuggestionsComponent implements ControlValueAccessor {
     this.moveActiveOption(direction);
   }
 
-  private selectOnEnter(): void {
+  private selectOnEnter(event: KeyboardEvent): void {
     if (!this.open) {
       return;
     }
     const options = this.visibleSuggestions;
     const activeIndex = this.activeIndex();
+
     if (activeIndex >= 0) {
       const activeItem = options[activeIndex];
       if (activeItem) {
+        event.preventDefault();
         this.choose(activeItem);
       }
       return;
     }
+
     if (options.length === 1) {
+      event.preventDefault();
       this.choose(options[0]);
+    }
+
+    if (options.length > 1) {
+      event.preventDefault();
     }
   }
 
