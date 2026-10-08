@@ -15,7 +15,7 @@ export const APPLICATIONS_LIST_COLUMNS: TableColumn[] = [
     wrap: true,
   },
   { header: 'Entries', field: 'entries', numeric: true },
-  { header: 'Status', field: 'status' },
+  { header: 'Status', field: 'status', wrap: false },
 ];
 
 export const APPLICATIONS_LIST_COLUMNS_ACTION: TableColumn[] = [

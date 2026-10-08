@@ -14,4 +14,8 @@ export class RadioHelper {
   static verifyNotSelected(labelText: string): void {
     RadioElement.findRadio(labelText).should('not.be.checked');
   }
+
+  static verifyDisabled(labelText: string): void {
+    RadioElement.findRadio(labelText).should('be.disabled');
+  }
 }

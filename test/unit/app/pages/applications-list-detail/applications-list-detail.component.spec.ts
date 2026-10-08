@@ -9,7 +9,7 @@ import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
 import { ApplicationsListUpdateComponent } from '@components/applications-list-detail/applications-list-update/applications-list-update.component';
@@ -166,6 +166,7 @@ describe('ApplicationsListDetail', () => {
 
     const dto = {
       entriesCount: 0,
+      status: ApplicationListStatus.OPEN,
     } as unknown as ApplicationListGetDetailDto;
 
     apiStub.getApplicationList.mockReturnValue(
@@ -266,6 +267,181 @@ describe('ApplicationsListDetail', () => {
 
   it('creates', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('closed-list permissions', () => {
+    const loadStatus = async (status: ApplicationListStatus) => {
+      apiStub.getApplicationList.mockReturnValueOnce(
+        of(
+          new HttpResponse<ApplicationListGetDetailDto>({
+            body: {
+              id: 'id-1',
+              status,
+              courtCode: 'ABC',
+              courtName: 'Court',
+              description: 'Saved details',
+            } as ApplicationListGetDetailDto,
+          }),
+        ),
+      );
+      component.loadListDetailsInfo();
+      await flushSignalEffects(fixture);
+    };
+
+    it('hides mutations but preserves selection, printing and entry access', async () => {
+      await loadStatus(ApplicationListStatus.CLOSED);
+      patchDetailState({ selectedIds: new Set(['abc']), bulkUploadDone: true });
+      component.bulkUploadFeeUpdateAvailable.set(true);
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      expect(component.canModifyList()).toBe(false);
+      expect(component.form.disabled).toBe(true);
+      expect(component.listRow?.status).toBe(ApplicationListStatus.CLOSED);
+      const text = root.textContent ?? '';
+      for (const action of [
+        'Create application',
+        'Bulk upload',
+        'Result selected',
+        'Move entries',
+        'Update officials',
+        'Update fee details',
+        'Close list',
+        'Delete list',
+      ]) {
+        expect(
+          [...root.querySelectorAll('a,button')].some(
+            (el) => el.textContent?.trim() === action,
+          ),
+        ).toBe(false);
+      }
+      expect(text).toContain('Print continuous');
+      expect(text).toContain('Print page');
+      expect(root.querySelector('input[type="checkbox"]')).not.toBeNull();
+      expect(root.querySelector('button[type="submit"]')).toBeNull();
+      expect(root.querySelector('a[href$="create-entry"]')).toBeNull();
+      expect(text).not.toContain('Click here to update fee details');
+
+      const navigate = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      await component.openUpdate({ id: 'abc' });
+      expect(navigate).toHaveBeenCalledWith([
+        '/applications-list',
+        'id-1',
+        'update-notes',
+        'abc',
+      ]);
+    });
+
+    it('does not call previews, updates or delete navigation from closed-list mutation handlers', async () => {
+      await loadStatus(ApplicationListStatus.CLOSED);
+      const navigate = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      navigate.mockClear();
+      entriesApiStub.applicationListEntryBulkActionPreview.mockClear();
+      await component.onUpdateOfficialsButtonClick();
+      await component.onResultButtonClick();
+      await component.onUpdateFeeButtonClick();
+      await component.onMoveButtonClick();
+      await component.onBulkUploadBannerClick();
+      await component.onDeleteButtonClick({ id: 'abc' });
+      component.setUpdateRequestFn({
+        id: 'id-1',
+        etag: null,
+        payload: {
+          date: '2026-10-07',
+          time: '10:00',
+          description: 'Update',
+          status: ApplicationListStatus.OPEN,
+        },
+      });
+      await flushSignalEffects(fixture);
+      expect(
+        entriesApiStub.applicationListEntryBulkActionPreview,
+      ).not.toHaveBeenCalled();
+      expect(apiStub.updateApplicationList).not.toHaveBeenCalled();
+      expect(navigate).not.toHaveBeenCalled();
+      component.setUpdateRequestFn(null);
+    });
+
+    it('does not offer creation for an empty closed list', async () => {
+      await loadStatus(ApplicationListStatus.CLOSED);
+      patchDetailState({ rows: [] });
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      expect(root.textContent).toContain('No lists entries found');
+      expect(root.querySelector('a[href$="create-entry"]')).toBeNull();
+    });
+
+    it('locks stale navigation data until authoritative status is loaded', async () => {
+      const response = new Subject<HttpResponse<ApplicationListGetDetailDto>>();
+      apiStub.getApplicationList.mockReturnValueOnce(response);
+      const pendingFixture = TestBed.createComponent(ApplicationsListDetail);
+      pendingFixture.detectChanges();
+      expect(pendingFixture.componentInstance.canModifyList()).toBe(false);
+      expect(
+        pendingFixture.nativeElement.querySelector('a[href$="create-entry"]'),
+      ).toBeNull();
+      response.next(
+        new HttpResponse({
+          body: {
+            status: ApplicationListStatus.CLOSED,
+          } as ApplicationListGetDetailDto,
+        }),
+      );
+      await flushSignalEffects(pendingFixture);
+      expect(pendingFixture.componentInstance.canModifyList()).toBe(false);
+      pendingFixture.destroy();
+      response.complete();
+    });
+
+    it('keeps open-list edits on refresh but refreshes status and details when closed', async () => {
+      component.form.controls.description.setValue('Unsaved edit');
+      await loadStatus(ApplicationListStatus.OPEN);
+      expect(component.form.controls.description.value).toBe('Unsaved edit');
+      await loadStatus(ApplicationListStatus.CLOSED);
+      expect(component.form.controls.description.value).toBe('Saved details');
+      expect(component.form.disabled).toBe(true);
+      await loadStatus(ApplicationListStatus.OPEN);
+      expect(component.form.controls.description.enabled).toBe(true);
+      expect(component.form.controls.court.enabled).toBe(true);
+      expect(component.form.controls.location.disabled).toBe(true);
+    });
+
+    it('locks the form and hides mutations when the API returns no list details', async () => {
+      apiStub.getApplicationList.mockReturnValueOnce(
+        of(new HttpResponse<ApplicationListGetDetailDto>({ body: null })),
+      );
+      component.loadListDetailsInfo();
+      await flushSignalEffects(fixture);
+      expect(component.canModifyList()).toBe(false);
+      expect(component.form.disabled).toBe(true);
+      expect(
+        fixture.nativeElement.querySelector('a[href$="create-entry"]'),
+      ).toBeNull();
+      expect(vm().errorSummary).toEqual([
+        { text: 'No data returned from server.' },
+      ]);
+    });
+
+    it('keeps mutations unavailable when list loading fails', async () => {
+      apiStub.getApplicationList.mockReturnValueOnce(
+        throwError(() => new HttpErrorResponse({ status: 500 })),
+      );
+      component.loadListDetailsInfo();
+      await flushSignalEffects(fixture);
+      expect(component.canModifyList()).toBe(false);
+      expect(
+        fixture.nativeElement.querySelector('a[href$="create-entry"]'),
+      ).toBeNull();
+      const navigate = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      navigate.mockClear();
+      await component.openUpdate({ id: 'abc' });
+      expect(navigate).not.toHaveBeenCalled();
+    });
   });
 
   it('passes the original list detail to the update component', () => {
