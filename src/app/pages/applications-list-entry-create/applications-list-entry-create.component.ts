@@ -28,7 +28,7 @@
  * - Adds fee status rows to the Civil Fee table
  */
 
-import { Location } from '@angular/common';
+import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -723,6 +723,10 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private restoreNavigationState(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     const rawNavState = readNavState(this.location, this.platformId);
     const navState = parseCreateNavState(rawNavState);
 

@@ -11,6 +11,7 @@
  * - Removes previously created Result Codes from the selected entries
  */
 
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -102,6 +103,9 @@ export class ResultSelected
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.listId = id;
+    }
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
     }
     this.rows =
       (
