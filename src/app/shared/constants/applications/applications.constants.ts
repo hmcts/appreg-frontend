@@ -5,6 +5,6 @@ export const ApplicationsColumns = [
   { header: 'Application title', field: 'title' },
   { header: 'Fee', field: 'fee' },
   { header: 'Resulted', field: 'resulted' },
-  { header: 'Status', field: 'status' },
+  { header: 'Status', field: 'status', wrap: false },
   { header: 'Actions', field: 'actions', sortable: false },
 ];
