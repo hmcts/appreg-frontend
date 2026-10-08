@@ -6,9 +6,6 @@ Then('User Verifies The Radio Button {string} Is Selected', (label: string) => {
   RadioHelper.verifySelected(label);
 });
 
-Then(
-  'User Verifies The Radio Button {string} Is Not Selected',
-  (label: string) => {
-    RadioHelper.verifyNotSelected(label);
-  },
-);
+Then('User Verifies The Radio Button {string} Is Disabled', (label: string) => {
+  RadioHelper.verifyDisabled(label);
+});

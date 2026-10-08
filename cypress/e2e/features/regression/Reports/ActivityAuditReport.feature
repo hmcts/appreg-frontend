@@ -103,7 +103,7 @@ Feature: Activity Audit Report
     Then User Verifies The "Username" Textbox Is Empty
     Then User Verifies The "Activity" Textbox Is Empty
 
-  @regression @reports @ARCPOC-1831
+  @regression @reports @ARCPOC-1831 @ARCPOC-1833
   Scenario Outline: Activity Audit Report - Verify modal dialog for Warnings When User Tries To Navigate Away While Report Is Being Generated
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link Using Exact Text Match "Reports"
@@ -117,6 +117,15 @@ Feature: Activity Audit Report
     Then User Selects "Add application" From The Textbox "Activity" Autocomplete By Typing "Add application"
     Then User Sees Text "Add application" In "Selected activities" Field
     When User Clicks On The "Download CSV" Button
+    # ARCPOC-1833: All the radio button are disabled while the report is being generated
+    Then User Verifies The Radio Button "Activity audit" Is Disabled
+    Then User Verifies The Radio Button "Fees" Is Disabled
+    Then User Verifies The Radio Button "List maintenance" Is Disabled
+    Then User Verifies The Radio Button "Search warrants" Is Disabled
+    Then User Verifies The Radio Button "Workload" Is Disabled
+    Then User Verifies The Radio Button "Duration" Is Disabled
+    Then User Verifies The Radio Button "Private prosecutors index" Is Disabled
+    # User Tries to move away from the page while the report is being generated
     Then User Clicks On The Link Using Exact Text Match "Applications"
     Then User Should See The Modal Dialog With Heading "Leave the reports page?"
     Then User Should See The Text "Your report is still being generated and downloaded. If you leave this page, you will not receive it." In The Modal Dialog
