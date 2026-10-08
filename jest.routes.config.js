@@ -25,6 +25,17 @@ module.exports = {
         tsconfig: '<rootDir>/tsconfig.spec.json',
       },
     ],
+    '^.+\\.m?js$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          target: 'ES2022',
+          module: 'CommonJS',
+          esModuleInterop: true,
+          allowJs: true,
+        },
+      },
+    ],
   },
 
   // Map tsconfig paths
@@ -32,8 +43,10 @@ module.exports = {
     prefix: '<rootDir>/',
   }),
 
-  // Don’t try to transform node_modules
-  transformIgnorePatterns: ['/node_modules/'],
+  // The v4 proxy and its ESM dependencies need transformation for Jest's CJS runner.
+  transformIgnorePatterns: [
+    '/node_modules/(?!(http-proxy-middleware|httpxy|is-plain-obj)/)',
+  ],
 
   collectCoverage: false,
 
