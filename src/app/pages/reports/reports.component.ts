@@ -21,7 +21,7 @@
  * - Starts polling when report jobs are accepted
  */
 
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -77,6 +77,7 @@ import {
   REPORT_ERROR_HREFS,
 } from '@constants/reports/report-err';
 import { reportOptions } from '@constants/reports/report-selector.constant';
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
   CreateActivityAuditReportRequestParams,
   CreateDurationReportRequestParams,
@@ -86,6 +87,7 @@ import {
   CreateSearchWarrantsReportRequestParams,
   CreateWorkloadReportRequestParams,
   JobAcknowledgement,
+  RecentReport,
   ReportsApi,
 } from '@openapi';
 import {
@@ -140,6 +142,7 @@ const REPORT_LOCATION_RESET_VALUE = {
   selector: 'app-reports',
   standalone: true,
   imports: [
+    DateTimePipe,
     ReactiveFormsModule,
     ReportSelectorComponent,
     ActivityAuditSectionComponent,
@@ -192,6 +195,11 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   private readonly createPpiRequest =
     signal<CreatePrivateProsecutorsIndexReportRequestParams | null>(null);
   readonly submitAttempt = signal(0);
+  readonly recentReports = signal<RecentReport[]>([]);
+  readonly recentReportsLoading = signal(false);
+  readonly recentReportsError = signal<string | null>(null);
+  readonly recentDownloadId = signal<string | null>(null);
+  readonly recentDownloadFeedback = signal<string | null>(null);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -355,6 +363,88 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     });
 
     this.setupEffects();
+    this.loadRecentReports();
+  }
+
+  loadRecentReports(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    this.recentReportsLoading.set(true);
+    this.recentReportsError.set(null);
+    this.reportsApi
+      .getRecentReports(undefined, false, REPORT_JSON_OPTIONS)
+      .pipe(take(1), takeUntilDestroyed(this.componentDestroyRef))
+      .subscribe({
+        next: (reports) => {
+          this.recentReports.set(reports);
+          this.recentReportsLoading.set(false);
+        },
+        error: () => {
+          this.recentReportsError.set(
+            'Recent reports could not be loaded. Try again.',
+          );
+          this.recentReportsLoading.set(false);
+        },
+      });
+  }
+
+  recentReportLabel(report: RecentReport): string {
+    const reportId = report.type
+      .toLowerCase()
+      .replace(/_report$/, '')
+      .replaceAll('_', '-');
+    return (
+      reportOptions.find((option) => option.id === reportId)?.label ?? 'Report'
+    );
+  }
+
+  onDownloadRecent(report: RecentReport): void {
+    if (this.recentDownloadId()) {
+      return;
+    }
+    this.recentDownloadId.set(report.id);
+    this.recentDownloadFeedback.set(null);
+    this.reportsApi
+      .downloadReport(
+        { jobId: report.id },
+        'response',
+        false,
+        REPORT_CSV_OPTIONS,
+      )
+      .pipe(take(1), takeUntilDestroyed(this.componentDestroyRef))
+      .subscribe({
+        next: (response) => {
+          this.recentDownloadId.set(null);
+          if (!response.body) {
+            this.recentDownloadFeedback.set(
+              'No CSV was returned. Try downloading again.',
+            );
+            return;
+          }
+          // The saved report is independent of the currently selected form and its criteria.
+          saveCsvFile(
+            response,
+            `${report.type.toLowerCase()}-${report.id}.csv`,
+            this.document,
+            this.platformId,
+          );
+          this.recentDownloadFeedback.set(
+            `The ${this.recentReportLabel(report).toLowerCase()} report has downloaded.`,
+          );
+        },
+        error: (err) => {
+          this.recentDownloadId.set(null);
+          const status = getHttpStatus(err);
+          this.recentDownloadFeedback.set(
+            status === 400 || status === 404 || status === 409 || status === 410
+              ? 'This report is no longer available to download.'
+              : status === 401 || status === 403
+                ? this.toReportRequestError(err)
+                : 'The report could not be downloaded. Try again.',
+          );
+        },
+      });
   }
 
   onDownload(): void {
@@ -896,6 +986,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.stopReportPolling();
 
     if (job.state === 'succeeded') {
+      // Refresh before downloading so a failed automatic download can still be retried.
+      this.loadRecentReports();
       this.downloadReport(job.id);
       return;
     }

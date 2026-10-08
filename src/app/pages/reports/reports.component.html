@@ -162,6 +162,78 @@
   </div>
 }
 
+@if (form.get('report')?.value) {
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+}
+
+<section aria-labelledby="recent-reports-heading">
+  <h2 id="recent-reports-heading" class="govuk-heading-m">Recent reports</h2>
+  @if (recentReportsLoading()) {
+    <p class="govuk-body" role="status">Loading recent reports…</p>
+  } @else if (recentReportsError(); as error) {
+    <p class="govuk-body" role="status">{{ error }}</p>
+    <button
+      type="button"
+      class="govuk-button govuk-button--secondary"
+      (click)="loadRecentReports()"
+    >
+      Try again
+    </button>
+  } @else if (!recentReports().length) {
+    <p class="govuk-body">You have no recent reports available for download.</p>
+  } @else {
+    <p class="govuk-body">
+      You can download your recently generated reports again.
+    </p>
+    <table class="govuk-table">
+      <caption class="govuk-table__caption govuk-visually-hidden">
+        Recently completed reports
+      </caption>
+      <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+          <th scope="col" class="govuk-table__header">Report type</th>
+          <th scope="col" class="govuk-table__header">Completed</th>
+          <th scope="col" class="govuk-table__header">Download</th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        @for (report of recentReports(); track report.id) {
+          <tr class="govuk-table__row">
+            <th scope="row" class="govuk-table__header">
+              {{ recentReportLabel(report) }}
+            </th>
+            <td class="govuk-table__cell">
+              {{ report.completedAt | dateTime: 'mediumDateTime' }}
+            </td>
+            <td class="govuk-table__cell">
+              <button
+                type="button"
+                class="govuk-button govuk-button--secondary govuk-!-margin-bottom-0"
+                [disabled]="recentDownloadId() !== null"
+                (click)="onDownloadRecent(report)"
+              >
+                {{
+                  recentDownloadId() === report.id ? 'Downloading…' : 'Download'
+                }}
+                <span class="govuk-visually-hidden"
+                  >{{ recentReportLabel(report) }}, completed
+                  {{ report.completedAt | dateTime: 'mediumDateTime' }}
+                  UK time</span
+                >
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+  <p class="govuk-body" role="status" aria-live="polite">
+    {{ recentDownloadFeedback() }}
+  </p>
+</section>
+
 <app-navigation-warning
   [active]="isReportInProgress()"
   heading="Leave the reports page?"

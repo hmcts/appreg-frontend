@@ -18,6 +18,7 @@ import {
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
   JobAcknowledgement,
+  RecentReport,
   ReportsApi,
 } from '@openapi';
 import {
@@ -36,6 +37,7 @@ const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
 };
 
 const reportsApiMock = {
+  getRecentReports: jest.fn(),
   createDurationReport: jest.fn(),
   createFeesReport: jest.fn(),
   createListMaintenanceReport: jest.fn(),
@@ -83,6 +85,7 @@ describe('ReportsComponent', () => {
   let createObjectUrlSpy: jest.Mock;
 
   beforeEach(async () => {
+    reportsApiMock.getRecentReports.mockReturnValue(of([]));
     createObjectUrlSpy = jest.fn(() => 'blob:report-csv');
     Object.defineProperty(URL, 'createObjectURL', {
       configurable: true,
@@ -178,6 +181,158 @@ describe('ReportsComponent', () => {
       ).toBe(true);
     },
   );
+
+  const recentReport: RecentReport = {
+    id: 'recent-job',
+    type: 'FEES_REPORT',
+    completedAt: '2026-10-07T12:30:00Z',
+  };
+
+  it('loads recent reports on entry and again after navigating back', () => {
+    expect(reportsApiMock.getRecentReports).toHaveBeenCalledWith(
+      undefined,
+      false,
+      expect.objectContaining({ transferCache: false }),
+    );
+    fixture.destroy();
+    reportsApiMock.getRecentReports.mockReturnValue(of([recentReport]));
+    fixture = TestBed.createComponent(Reports);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    expect(component.recentReports()).toEqual([recentReport]);
+    expect(fixture.nativeElement.textContent).toContain('7 Oct 2026 at 13:30');
+    expect(fixture.nativeElement.textContent).toContain('Download');
+  });
+
+  it.each([
+    ['2026-01-07T12:30:00Z', '7 Jan 2026 at 12:30'],
+    ['2026-07-07T12:30:00Z', '7 Jul 2026 at 13:30'],
+  ])('displays %s in UK time', (completedAt, expected) => {
+    component.recentReports.set([{ ...recentReport, completedAt }]);
+    fixture.detectChanges();
+    const section = fixture.nativeElement.querySelector(
+      'section[aria-labelledby="recent-reports-heading"]',
+    ) as HTMLElement;
+    expect(section.textContent).toContain(expected);
+    expect(section.textContent).toContain('Completed');
+    expect(
+      section.querySelector('button .govuk-visually-hidden')?.textContent,
+    ).toContain(expected);
+  });
+
+  it('shows loading, an error and a working retry for recent reports', () => {
+    const response = new Subject<RecentReport[]>();
+    reportsApiMock.getRecentReports.mockReturnValue(response);
+    component.loadRecentReports();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Loading recent reports',
+    );
+    response.error(new Error('network'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Recent reports could not be loaded',
+    );
+    reportsApiMock.getRecentReports.mockReturnValue(of([]));
+    (
+      fixture.nativeElement.querySelector(
+        'section[aria-labelledby="recent-reports-heading"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(
+      'You have no recent reports available for download.',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'You can download your recently generated reports again.',
+    );
+  });
+
+  it('downloads the saved job repeatedly without generation or changing the current form', () => {
+    component.form.controls.report.setValue('duration');
+    reportsApiMock.downloadReport.mockReturnValue(
+      of(new HttpResponse({ body: new Blob(['CSV']) })),
+    );
+    component.recentReports.set([recentReport]);
+    fixture.detectChanges();
+    const button = fixture.nativeElement.querySelector(
+      'section[aria-labelledby="recent-reports-heading"] button',
+    ) as HTMLButtonElement;
+    button.click();
+    button.click();
+    expect(reportsApiMock.downloadReport).toHaveBeenCalledTimes(2);
+    expect(reportsApiMock.downloadReport).toHaveBeenCalledWith(
+      { jobId: 'recent-job' },
+      'response',
+      false,
+      expect.objectContaining({ transferCache: false }),
+    );
+    expect(component.form.controls.report.value).toBe('duration');
+    expect(component.recentDownloadFeedback()).toContain(
+      'fees report has downloaded',
+    );
+    expect(reportsApiMock.createDurationReport).not.toHaveBeenCalled();
+    expect(jobPollingFacadeMock.watchJob).not.toHaveBeenCalled();
+  });
+
+  it('prevents duplicate concurrent downloads and handles an empty response', () => {
+    const response = new Subject<HttpResponse<Blob>>();
+    reportsApiMock.downloadReport.mockReturnValue(response);
+    component.onDownloadRecent(recentReport);
+    component.onDownloadRecent(recentReport);
+    expect(reportsApiMock.downloadReport).toHaveBeenCalledTimes(1);
+    expect(component.recentDownloadId()).toBe('recent-job');
+    response.next(new HttpResponse<Blob>());
+    expect(component.recentDownloadId()).toBeNull();
+    expect(component.recentDownloadFeedback()).toContain('No CSV was returned');
+  });
+
+  it.each([
+    [400, 'no longer available'],
+    [404, 'no longer available'],
+    [409, 'no longer available'],
+    [410, 'no longer available'],
+    [401, 'sign in'],
+    [403, 'permission'],
+    [500, 'Try again'],
+  ])(
+    'handles recent download HTTP %s without dropping the saved report',
+    (status, text) => {
+      component.recentReports.set([recentReport]);
+      reportsApiMock.downloadReport.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: Number(status) })),
+      );
+      component.onDownloadRecent(recentReport);
+      expect(component.recentDownloadFeedback()).toContain(text);
+      expect(component.recentDownloadId()).toBeNull();
+      expect(component.recentReports()).toEqual([recentReport]);
+    },
+  );
+
+  it('refreshes recent reports on completion even if automatic downloading fails', () => {
+    reportsApiMock.getRecentReports.mockReturnValue(of([recentReport]));
+    reportsApiMock.downloadReport.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 500 })),
+    );
+    (
+      component as unknown as {
+        handleReportJobStatus: (job: PolledJobStatus) => void;
+      }
+    ).handleReportJobStatus(completedJob);
+    expect(reportsApiMock.getRecentReports).toHaveBeenCalledTimes(2);
+    expect(component.recentReports()).toEqual([recentReport]);
+    expect(component.vm().reportFeedback?.kind).toBe('error');
+  });
+
+  it('identifies all report types independently of the selected form', () => {
+    for (const option of component.reportOptions) {
+      const report = {
+        ...recentReport,
+        type: `${option.id.replaceAll('-', '_').toUpperCase()}_REPORT` as RecentReport['type'],
+      };
+      expect(component.recentReportLabel(report)).toBe(option.label);
+    }
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();
