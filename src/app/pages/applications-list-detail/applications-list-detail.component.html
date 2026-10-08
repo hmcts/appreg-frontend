@@ -320,6 +320,7 @@
     } @else if (noEntries && !vm().isLoading) {
       <app-notification-banner
         id="noEntries"
+        [autoFocus]="false"
         heading="No lists entries found"
         [body]="canModifyList() ? 'Try again, or ' : ''"
         [linkText]="canModifyList() ? 'create a new list entry' : ''"
