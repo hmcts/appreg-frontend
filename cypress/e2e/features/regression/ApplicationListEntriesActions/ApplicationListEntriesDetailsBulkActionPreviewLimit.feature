@@ -1,6 +1,6 @@
 Feature: Application List Entries Details Bulk Action Preview Limit Validation
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-222 @ARCPOC-1513 @ARCPOC-1832
+    @regression @applicationsList @applicationListEntry @ARCPOC-222 @ARCPOC-1513 @ARCPOC-1832 @ARCPOC-1834
     Scenario Outline: Verify Validation Error Message For Application List Entries Details Bulk Action Preview Limit
         # Create applications list
         Given User Authenticates Via API As "user1"
@@ -60,6 +60,12 @@ Feature: Application List Entries Details Bulk Action Preview Limit Validation
         When User Uploads The File "bulk-upload-entries-preview-limit-1050.csv"
         # Upload 1050 ALEs
         When User Clicks On The "Upload file" Button
+        # ARCPOC-1834: User Tries to move away from the page while Bulk upload is being processed
+        Then User Clicks On The Link Using Exact Text Match "Applications list"
+        Then User Should See The Modal Dialog With Heading "Leave the bulk upload page?"
+        Then User Should See The Text "Your bulk upload is still being processed. If you leave this page, you will not receive the outcome." In The Modal Dialog
+        When User Clicks On The "Stay on this page" Button
+        # Wait for the file upload to complete
         When User Waits For The File Upload To Complete
         Then User Sees Success Banner "Success Bulk upload complete" Containing Link "Click here to update fee details on newly uploaded applications"
         Then User See "Applications list" On The Page
