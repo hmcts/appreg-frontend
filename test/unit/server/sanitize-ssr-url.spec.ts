@@ -11,6 +11,7 @@ describe('sanitizeSsrUrl', () => {
 
   it.each([
     ['/applications-list', '/applications-list'],
+    ['/applications-list#list-details', '/applications-list#list-details'],
     [
       '/applications-list/123?listCreated=true#list-details',
       '/applications-list/123?listCreated=true#list-details',
