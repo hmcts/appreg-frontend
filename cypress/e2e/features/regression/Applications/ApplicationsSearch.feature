@@ -38,7 +38,7 @@ Feature: Applications Search
             | User  | SearchDate | NotificationMessage                                               |
             | user1 | 15/08/2023 | Important No application list entries found Try different filters |
 
-    @regression @core @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1437 @ARCPOC-1445 @ARCPOC-1771 @ARCPOC-1748 @ARCPOC-1822
+    @regression @core @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1437 @ARCPOC-1445 @ARCPOC-1771 @ARCPOC-1748 @ARCPOC-1822 @ARCPOC-1769
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Court, Applicant Orgs and Respondent Orgs
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -117,7 +117,7 @@ Feature: Applications Search
             | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                       | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                          | Respondent                          | ApplicationTitle      | Fee | Resulted | Status |
             | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {SCENARIO_ID} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {SCENARIO_ID} | Respondent Industries {SCENARIO_ID} | Appeal to Crown Court | No  | No       | OPEN   |
 
-    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1343 @ARCPOC-1437 @ARCPOC-1445 @ARCPOC-1771
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1343 @ARCPOC-1437 @ARCPOC-1445 @ARCPOC-1771 @ARCPOC-1769
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Other Location and CJA, Applicant Person and Respondent Person
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -241,7 +241,7 @@ Feature: Applications Search
             | InvalidDate | ValidDate  | InvalidCourt | InvalidCJA | InvalidPostcode | ValidPostcode | OptionText | SearchText | Info             |
             | 31/13/2048  | 12/01/2025 | InvalidCourt | InvalidCJA | ABC123          | AB1 2CD       |            | Cardiff    | No results found |
 
-    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1368
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1368 @ARCPOC-1769
     Scenario: Verify Applications List Entry table sorting functionality
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
