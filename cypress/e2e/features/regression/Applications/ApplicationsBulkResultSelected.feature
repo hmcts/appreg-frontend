@@ -375,7 +375,7 @@ Feature: Applications Bulk Result Selected
             | User  |
             | user1 |
 
-    @ignore @applicationListEntry @ARCPOC-222 @ARCPOC-1335 @ARCPOC-1567
+    @ignore @applicationListEntry @ARCPOC-222 @ARCPOC-1335 @ARCPOC-1567 @ARCPOC-1769
     Scenario Outline: Verify Validation Error Message For Closed Applications Bulk Result Selected
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
@@ -384,7 +384,8 @@ Feature: Applications Bulk Result Selected
         When User Searches Applications With:
             | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             |      |             |       |                        |                   |                         |                    | Closed                    |                      |           |                       |                            |                         |                   |
-        Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+        Then User Should See Table "<TableName>" Header "Status" Is Not Sortable
+        Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted"
         And User Should See Table "<TableName>" Header "Actions" Is Not Sortable
         When User Checks The Checkbox In Row 1 Of Table "<TableName>"
         When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Entries"
