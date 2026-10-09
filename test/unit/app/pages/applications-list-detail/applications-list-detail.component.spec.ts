@@ -539,6 +539,27 @@ describe('ApplicationsListDetail', () => {
     );
   });
 
+  it('keeps bulk upload success focus when the empty entries banner renders', async () => {
+    patchDetailState({
+      bulkUploadDone: true,
+      bulkUploadBannerText: '1 application imported successfully.',
+      rows: [],
+      isLoading: false,
+    });
+    await flushSignalEffects(fixture);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const success = fixture.debugElement.query(
+      By.css('app-success-banner [role="alert"]'),
+    );
+    const emptyEntries = fixture.debugElement.query(
+      By.css('app-notification-banner'),
+    );
+    expect(emptyEntries).toBeTruthy();
+    expect(emptyEntries.componentInstance.autoFocus()).toBe(false);
+    expect(document.activeElement).toBe(success.nativeElement);
+  });
+
   it('shows success banner when updateDone is true', async () => {
     patchDetailState({ updateDone: true });
     await flushSignalEffects(fixture);
@@ -1608,7 +1629,7 @@ describe('ApplicationsListDetail', () => {
           description: '',
           status: 'OPEN',
         },
-        msg: '3 records created.',
+        msg: '3 applications imported successfully.',
         jobId: 'job-123',
         totalFeeValue,
       });
@@ -1627,7 +1648,7 @@ describe('ApplicationsListDetail', () => {
 
       expect(vm().bulkUploadDone).toBe(true);
       expect(vm().bulkUploadBannerText).toBe(
-        `3 records created.${expectedTotal}`,
+        `3 applications imported successfully.${expectedTotal}`,
       );
       expect(component.bulkUploadJobId()).toBe('job-123');
     },

@@ -111,7 +111,7 @@
     "glob": "^13.0.1",
     "govuk-frontend": "^5.12.0",
     "helmet": "^7.0.0",
-    "http-proxy-middleware": "^3.0.7",
+    "http-proxy-middleware": "^4.2.0",
     "jspdf": "^4.2.0",
     "jspdf-autotable": "^5.0.8",
     "lodash": "^4.18.1",
