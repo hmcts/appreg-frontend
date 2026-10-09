@@ -11,6 +11,11 @@
   padding: 0;
 }
 
+.govuk-checkboxes--small {
+  // Keep the 10px GOV.UK hover halo inside the horizontally scrolling frame.
+  padding-left: 10px;
+}
+
 .app-sortable-table__frame {
   position: relative;
   max-width: 100%;

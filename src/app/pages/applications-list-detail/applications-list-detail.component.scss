@@ -6,21 +6,18 @@
   margin-bottom: 0;
 }
 
-:host ::ng-deep #noEntries .govuk-notification-banner {
+:host ::ng-deep #no-entries .govuk-notification-banner {
   margin-bottom: 0;
 }
 
-:host ::ng-deep .app-sortable-table__frame .moj-button-menu {
-  position: relative;
-}
-
 :host ::ng-deep .app-sortable-table__loading {
-  inset: 0 0 50px 0;
+  inset: 0 0 50px;
 }
 
 .table-caption__actions {
   float: right;
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
   justify-content: flex-end;
   align-items: center;
@@ -29,4 +26,8 @@
 .table-caption__actions .moj-button-menu,
 .table-caption__action-button {
   margin-bottom: 1.75rem;
+}
+
+:host ::ng-deep .app-sortable-table__frame .moj-button-menu {
+  position: relative;
 }

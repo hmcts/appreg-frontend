@@ -215,9 +215,23 @@
           class="govuk-table__caption govuk-table__caption--m"
           id="sortable-Lists"
         >
-          <span class="table-caption__text"> Entries </span>
+          <span
+            class="table-caption__text"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            Entries ({{ selectedCount }} of {{ vm().totalEntries }} selected)
+          </span>
 
           <span class="table-caption__actions" aria-label="Table actions">
+            <button
+              type="button"
+              class="govuk-button govuk-button--secondary table-caption__action-button"
+              data-module="govuk-button"
+              (click)="clearSelection()"
+            >
+              Clear selections
+            </button>
             @if (!canUseBulkActions) {
               <button
                 type="button"
@@ -319,7 +333,7 @@
       </app-sortable-table>
     } @else if (noEntries && !vm().isLoading) {
       <app-notification-banner
-        id="noEntries"
+        id="no-entries"
         [autoFocus]="false"
         heading="No lists entries found"
         [body]="canModifyList() ? 'Try again, or ' : ''"
