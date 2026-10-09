@@ -165,13 +165,16 @@ export const OFFICIAL_FIELD_MESSAGES = {
   },
 } as const;
 
+const RESPONDENT_COUNT_RANGE_MESSAGE =
+  'Number of respondents must be a whole number from 1 to 9999';
+
 export const NUMBER_OF_RESPONDENT_MESSAGES = {
   numberOfRespondents: {
     required: 'Enter number of respondents',
-    pattern:
-      'Number of respondents must be a positive whole number between 1 - 9999',
-    maxlength:
-      'Number of respondents must be less than or equal to 4 characters',
+    pattern: RESPONDENT_COUNT_RANGE_MESSAGE,
+    maxlength: RESPONDENT_COUNT_RANGE_MESSAGE,
+    min: RESPONDENT_COUNT_RANGE_MESSAGE,
+    max: RESPONDENT_COUNT_RANGE_MESSAGE,
   },
 } as const;
 

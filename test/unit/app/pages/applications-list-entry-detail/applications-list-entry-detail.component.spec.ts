@@ -1759,6 +1759,37 @@ describe('ApplicationsListEntryDetail', () => {
     ).toBe(true);
   });
 
+  it.each([0, '0'])(
+    'onUpdateApplication rejects optional bulk count %p',
+    (count) => {
+      component['appListEntryDetailPatch']({
+        appCodeDetail: {
+          requiresRespondent: false,
+        } as ApplicationCodeGetDetailDto,
+      });
+      component['form'].patchValue({
+        applicantType: 'standard',
+        respondentEntryType: 'bulk',
+        numberOfRespondents: count as number,
+      });
+      component.onStandardApplicantCodeChanged('SA-123');
+
+      component.onUpdateApplication();
+
+      expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+      expect(component.respondentErrorItems).toEqual([
+        {
+          id: 'numberOfRespondents',
+          text: 'Number of respondents must be a whole number from 1 to 9999',
+          href: '#respondent-number-of-respondents',
+        },
+      ]);
+      expect(component.vm().summaryErrors).toEqual(
+        component.respondentErrorItems,
+      );
+    },
+  );
+
   it('does not rebuild respondent errors when respondent becomes populated after binding', () => {
     component['forms'].respondentPersonForm.reset();
     component['forms'].respondentOrganisationForm.reset();
