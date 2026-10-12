@@ -68,7 +68,7 @@ export class WordingParserComponent {
 
   tokens: Token[] = [];
 
-  isSaveDisabled = computed(() =>
+  hasWordingInput = computed(() =>
     this.tokens.some((token) => token.type === 'input'),
   );
 

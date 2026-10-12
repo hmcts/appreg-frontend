@@ -233,6 +233,12 @@ export class ApplicationCodeSearchComponent implements OnInit {
       return;
     }
 
+    // why is this fixing the issue with the button not appearing?
+    this.selectCodeAndLodgementDate.emit({
+      code: '',
+      date: '',
+    });
+
     this.form.patchValue({ code, title });
 
     this.selectCodeAndLodgementDate.emit({
