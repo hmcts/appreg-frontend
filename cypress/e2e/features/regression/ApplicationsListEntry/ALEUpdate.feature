@@ -345,8 +345,7 @@ Feature: Applications List Entry Update
             | 1               | ACCSE1{RANDOM} | Test Organisation {SCENARIO_ID} | Test Respondent Organisation {SCENARIO_ID} | BS15 5AA | Order for the disposal of uncollected controlled goods | No  |          |
         # Update application code by highlighting and replacing code
         When User Toggles The Accordion "Application codes"
-        Then User Highlights The Text In Text Input "Application code"
-        Then User Enters "MX99002" Into The Textbox "Application code" In The Accordion "Application codes"
+        Then User Highlights And Replaces The Text In Text Input "Application code" With "MX99002"
         Then User Clears The "Application title" Textbox
         When User Clicks On The "Search" Button In The Accordion "Application codes"
         Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
