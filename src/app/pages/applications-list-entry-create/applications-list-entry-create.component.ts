@@ -230,7 +230,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   ngOnInit(): void {
     this.appListEntryCreateState().id = this.route.snapshot.paramMap.get('id')!;
     this.bindApplicantTypeChanges();
-    this.bindRespondentValidationChanges();
+    this.bindPartyValidationChanges();
     this.restoreNavigationState();
   }
 
@@ -696,10 +696,10 @@ export class ApplicationsListEntryCreate implements OnInit {
       });
   }
 
-  private bindRespondentValidationChanges(): void {
-    const hasBeenSubmmitted = this.vm().submitted;
-
+  private bindPartyValidationChanges(): void {
     merge(
+      this.forms.personForm.valueChanges,
+      this.forms.organisationForm.valueChanges,
       this.form.controls.respondentEntryType.valueChanges,
       this.form.controls.numberOfRespondents.valueChanges,
       this.forms.respondentPersonForm.valueChanges,
@@ -707,7 +707,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        if (!hasBeenSubmmitted) {
+        if (!this.vm().submitted) {
           return;
         }
 

@@ -1790,7 +1790,56 @@ describe('ApplicationsListEntryDetail', () => {
     },
   );
 
-  it('does not rebuild respondent errors when respondent becomes populated after binding', () => {
+  it.each([
+    ['personForm', 'person', 'firstName', '#applicant-person-first-name'],
+    ['organisationForm', 'org', 'name', '#applicant-org-name'],
+    [
+      'respondentPersonForm',
+      'person',
+      'firstName',
+      '#respondent-person-first-name',
+    ],
+    ['respondentOrganisationForm', 'org', 'name', '#respondent-org-name'],
+  ] as const)(
+    'refreshes %s field errors after a failed save without submitting again',
+    (formName, applicantType, field, href) => {
+      component['form'].patchValue({
+        applicantType,
+        respondentEntryType:
+          formName === 'respondentPersonForm' ? 'person' : 'organisation',
+      });
+      component['appListEntryDetailPatch']({
+        appCodeDetail: {
+          requiresRespondent: true,
+        } as ApplicationCodeGetDetailDto,
+      });
+      const group = component['forms'][formName];
+      group.reset();
+      group.get(field)!.setValue('   ');
+      expect(component.vm().summaryErrors).toEqual([]);
+
+      component.onUpdateApplication();
+      const error = expect.objectContaining({ href });
+      expect(component.vm().summaryErrors).toContainEqual(error);
+      const submitAttempt = component.submitAttempt();
+      group.get(field)!.setValue('  ');
+      expect(component.vm().summaryErrors).toContainEqual(error);
+
+      group.get(field)!.setValue('Example');
+      const errors = formName.startsWith('respondent')
+        ? component.respondentErrorItems
+        : component.applicantErrorItems;
+      expect(errors).not.toContainEqual(error);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(component.vm().summaryErrors).not.toContainEqual(error);
+      group.get(field)!.setValue('   ');
+      expect(component.vm().summaryErrors).toContainEqual(error);
+      expect(component.submitAttempt()).toBe(submitAttempt);
+      expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+    },
+  );
+
+  it('rebuilds optional respondent errors immediately when populated after submit', () => {
     component['forms'].respondentPersonForm.reset();
     component['forms'].respondentOrganisationForm.reset();
     component['form'].patchValue({
@@ -1810,55 +1859,16 @@ describe('ApplicationsListEntryDetail', () => {
       firstName: 'Jane',
     });
 
-    expect(component.respondentErrorItems).toEqual([]);
+    expect(component.respondentErrorItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ href: '#respondent-person-surname' }),
+      ]),
+    );
     expect(
       component['appListEntryDetailState']().summaryErrors.some(
         ({ text }) => text === 'Enter respondent last name',
       ),
-    ).toBe(false);
-  });
-
-  it('rebuilds respondent errors when the application is submitted after respondent becomes populated', () => {
-    component['forms'].respondentPersonForm.reset();
-    component['forms'].respondentOrganisationForm.reset();
-    component['form'].patchValue({
-      respondentEntryType: 'person',
-      numberOfRespondents: null,
-    });
-    component['appListEntryDetailPatch']({
-      appCodeDetail: {
-        requiresRespondent: false,
-      } as ApplicationCodeGetDetailDto,
-      formSubmitted: true,
-    });
-
-    component['forms'].respondentPersonForm.patchValue({
-      firstName: 'Jane',
-    });
-
-    expect(component.respondentErrorItems).toEqual([]);
-
-    component.onUpdateApplication();
-
-    expect(component.respondentErrorItems).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          text: 'Enter respondent last name',
-          href: '#respondent-person-surname',
-        }),
-        expect.objectContaining({
-          text: 'Enter respondent address line 1',
-          href: '#respondent-person-address-line-1',
-        }),
-      ]),
-    );
-    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          text: 'Enter respondent last name',
-        }),
-      ]),
-    );
+    ).toBe(true);
   });
 
   it('toEntryDetailPatch maps wordingFields to values and preserves other fields', () => {

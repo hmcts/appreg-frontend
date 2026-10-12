@@ -340,7 +340,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // Watch applicantType changes
     this.bindApplicantTypeChanges();
-    this.bindRespondentValidationChanges();
+    this.bindPartyValidationChanges();
 
     if (!isPlatformBrowser(this.platformId)) {
       return;
@@ -1217,9 +1217,10 @@ export class ApplicationsListEntryDetail implements OnInit {
       });
   }
 
-  private bindRespondentValidationChanges(): void {
-    const hasBeenSubmmitted = this.vm().formSubmitted;
+  private bindPartyValidationChanges(): void {
     merge(
+      this.forms.personForm.valueChanges,
+      this.forms.organisationForm.valueChanges,
       this.form.controls.respondentEntryType.valueChanges,
       this.form.controls.numberOfRespondents.valueChanges,
       this.forms.respondentPersonForm.valueChanges,
@@ -1227,7 +1228,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        if (!hasBeenSubmmitted) {
+        if (!this.vm().formSubmitted) {
           return;
         }
 
