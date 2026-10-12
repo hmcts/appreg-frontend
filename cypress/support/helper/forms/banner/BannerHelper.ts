@@ -107,6 +107,15 @@ export class BannerHelper {
       .then(($banner) => this.verifyBannerAbovePageHeader($banner, options));
   }
 
+  static verifySuccessBannerDoesNotContainLink(
+    heading: string,
+    linkText: string,
+  ): void {
+    BannerElement.findSuccessAlertWithoutLink(heading, linkText).should(
+      'be.visible',
+    );
+  }
+
   static verifyErrorBannerContaining(
     heading: string,
     bodyText: string,
