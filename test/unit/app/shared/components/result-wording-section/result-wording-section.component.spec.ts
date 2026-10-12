@@ -22,6 +22,12 @@ function makeExistingResult(overrides: Partial<ResultGetDto>): ResultGetDto {
   return { ...base, ...overrides } as unknown as ResultGetDto;
 }
 
+function dispatchKeydown(element: HTMLElement, key: string): void {
+  element.dispatchEvent(
+    new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }),
+  );
+}
+
 describe('ResultWordingSectionComponent', () => {
   let component: ResultWordingSectionComponent;
   let fixture: ComponentFixture<ResultWordingSectionComponent>;
@@ -98,6 +104,64 @@ describe('ResultWordingSectionComponent', () => {
 
     expect(res).toHaveLength(1);
     expect(res[0].resultCode).toBe('RC2');
+  });
+
+  it('keeps the highlighted result code while navigating and selects it with Enter', () => {
+    const pendingEmitSpy = jest.spyOn(component.pendingChange, 'emit');
+    const input = fixture.nativeElement.querySelector(
+      '#result-code',
+    ) as HTMLInputElement;
+
+    input.focus();
+    input.value = 'RC';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+
+    dispatchKeydown(input, 'ArrowDown');
+    fixture.detectChanges();
+    dispatchKeydown(input, 'ArrowDown');
+    fixture.detectChanges();
+    dispatchKeydown(input, 'Enter');
+    fixture.detectChanges();
+
+    expect(pendingEmitSpy).toHaveBeenCalledTimes(1);
+    expect(pendingEmitSpy.mock.calls[0][0][0].resultCode).toBe('RC2');
+  });
+
+  it('selects the clicked option after the result code list refreshes', () => {
+    const pendingEmitSpy = jest.spyOn(component.pendingChange, 'emit');
+    const input = fixture.nativeElement.querySelector(
+      '#result-code',
+    ) as HTMLInputElement;
+
+    input.focus();
+    input.value = 'RC';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+
+    const option = fixture.nativeElement.querySelector(
+      '[role="option"]:nth-child(2)',
+    ) as HTMLElement;
+    option.dispatchEvent(
+      new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
+    );
+    fixture.componentRef.setInput(
+      'resultCodesList',
+      codes.map((code) => ({ ...code })),
+    );
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('[role="option"]')[1]).toBe(
+      option,
+    );
+
+    option.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true }),
+    );
+    fixture.detectChanges();
+
+    expect(pendingEmitSpy).toHaveBeenCalledTimes(1);
+    expect(pendingEmitSpy.mock.calls[0][0][0].resultCode).toBe('RC2');
   });
 
   it('filteredResultCodes excludes pending rows but still returns other matches', () => {
