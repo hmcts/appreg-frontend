@@ -1,72 +1,86 @@
 <div appMojButtonMenu>
   <app-page-header
     title="List details"
-    [actions]="[
-      {
-        label: 'Delete list',
-        variant: 'warning',
-        routerLink: ['delete'],
-        state: { listRow: listRow(), fromListDetails: true },
-      },
-      {
-        label: 'Close list',
-        variant: 'secondary',
-        onClick: () => onCloseListClick(),
-      },
-    ]"
+    [actions]="
+      canModifyList()
+        ? [
+            {
+              label: 'Delete list',
+              variant: 'warning',
+              routerLink: ['delete'],
+              state: { listRow: listRow(), fromListDetails: true },
+            },
+            {
+              label: 'Close list',
+              variant: 'secondary',
+              onClick: () => onCloseListClick(),
+            },
+          ]
+        : []
+    "
     [size]="'l'"
   />
 </div>
-<app-help-details summary="Help with application list details">
-  <p class="govuk-body">
-    To delete a list click on the button menu labeled "Actions" and click
-    "Delete list"
-  </p>
-  <p class="govuk-body">
-    To close a list, click on the button menu labeled "Actions" and click "Close
-    list".
-  </p>
+@if (canModifyList()) {
+  <app-help-details summary="Help with application list details">
+    <p class="govuk-body">
+      To delete a list click on the button menu labeled "Actions" and click
+      "Delete list"
+    </p>
+    <p class="govuk-body">
+      To close a list, click on the button menu labeled "Actions" and click
+      "Close list".
+    </p>
 
-  <p class="govuk-body">A list can only be closed when:</p>
+    <p class="govuk-body">A list can only be closed when:</p>
 
-  <ul class="govuk-list govuk-list--bullet">
-    <li>every application has at least one result</li>
-    <li>every application with a fee has a status of Paid or Remitted</li>
-    <li>
-      every application has at least one justice of the peace or official
-      recorded
-    </li>
-    <li>the list duration has been completed</li>
-  </ul>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>every application has at least one result</li>
+      <li>every application with a fee has a status of Paid or Remitted</li>
+      <li>
+        every application has at least one justice of the peace or official
+        recorded
+      </li>
+      <li>the list duration has been completed</li>
+    </ul>
 
+    <p class="govuk-body">
+      Close a list to keep it for reference; delete a list to permanently remove
+      it and its contents.
+    </p>
+  </app-help-details>
+} @else {
   <p class="govuk-body">
-    Close a list to keep it for reference; delete a list to permanently remove
-    it and its contents.
+    This application list is view-only. Closed lists cannot be changed.
   </p>
-</app-help-details>
+}
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
 <form [formGroup]="form()" (ngSubmit)="onUpdate()" autocomplete="off">
-  <app-applications-list-form
-    [form]="form()"
-    [mode]="'update'"
-    [submitted]="vm().updateInvalid"
-    [suggestions]="suggestionsFacade()"
-    [errorMap]="errorMap"
-    [externalErrors]="vm().errorSummary"
-    [hasCloseErrors]="hasCloseErrors()"
-    [closeErrorText]="closeErrorText()"
-    [updateInvalid]="vm().updateInvalid"
-    [hasDurationCloseError]="hasDurationCloseError()"
-    [durationCloseErrorText]="durationCloseErrorText()"
-    [showStatusField]="false"
-  />
-
-  <div class="govuk-button-group">
-    <button type="submit" class="govuk-button" [disabled]="updatePending()">
-      Update
-    </button>
-  </div>
+  <fieldset class="govuk-fieldset" [disabled]="!canModifyList()">
+    <legend class="govuk-visually-hidden">List details</legend>
+    <app-applications-list-form
+      [form]="form()"
+      [mode]="'update'"
+      [submitted]="vm().updateInvalid"
+      [suggestions]="suggestionsFacade()"
+      [errorMap]="errorMap"
+      [externalErrors]="vm().errorSummary"
+      [hasCloseErrors]="hasCloseErrors()"
+      [closeErrorText]="closeErrorText()"
+      [updateInvalid]="vm().updateInvalid"
+      [hasDurationCloseError]="hasDurationCloseError()"
+      [durationCloseErrorText]="durationCloseErrorText()"
+      [showStatusField]="false"
+    />
+  </fieldset>
+  @if (canModifyList()) {
+    <div class="govuk-button-group">
+      <button type="submit" class="govuk-button" [disabled]="updatePending()">
+        Update
+      </button>
+    </div>
+  }
 </form>

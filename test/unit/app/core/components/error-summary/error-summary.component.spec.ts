@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import {
   ErrorItem,
@@ -12,10 +12,9 @@ describe('ErrorSummaryComponent (external template)', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ErrorSummaryComponent], // standalone component w/ external HTML
+      imports: [ErrorSummaryComponent],
       providers: [provideRouter([])],
     }).compileComponents();
-
     fixture = TestBed.createComponent(ErrorSummaryComponent);
     comp = fixture.componentInstance;
   });
@@ -25,184 +24,132 @@ describe('ErrorSummaryComponent (external template)', () => {
     document.body.innerHTML = '';
   });
 
-  it('renders items and computes hrefs when a navigation target exists', () => {
+  it('renders external hrefs and local targetId fallback links', () => {
     fixture.componentRef.setInput('items', [
-      { text: 'With explicit href', href: '/somewhere' },
-      { text: 'With targetId (hash)' },
+      { text: 'External', href: '/somewhere' },
+      { text: 'Fallback' },
     ]);
-    fixture.componentRef.setInput('targetId', 'sortable-table'); // affects item[1]
+    fixture.componentRef.setInput('targetId', 'sortable-table');
     fixture.detectChanges();
-
-    const links = fixture.nativeElement.querySelectorAll(
-      'a.govuk-link',
-    ) as NodeListOf<HTMLAnchorElement>;
-
-    expect(links).toHaveLength(2);
+    const links = fixture.nativeElement.querySelectorAll('a');
     expect(links[0].getAttribute('href')).toBe('/somewhere');
-    expect(links[1].getAttribute('href')).toContain('#sortable-table');
+    expect(links[1].getAttribute('href')).toBe('#sortable-table');
   });
 
-  it('renders plain text when an item has no navigation target', () => {
-    fixture.componentRef.setInput('items', [{ text: 'No href or targetId' }]);
-    fixture.componentRef.setInput('targetId', undefined);
+  it('renders plain text without a navigation target', () => {
+    fixture.componentRef.setInput('items', [{ text: 'No target' }]);
     fixture.detectChanges();
-
-    const fallbackLink = fixture.nativeElement.querySelector('a.govuk-link');
-    expect(fallbackLink).toBeNull();
-    expect(fixture.nativeElement.textContent).toContain('No href or targetId');
+    expect(fixture.nativeElement.querySelector('a')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('No target');
   });
 
-  it('autoFocus focuses the summary element after view init', () => {
-    fixture.componentRef.setInput('items', [{ text: 'Any' }]);
-    fixture.componentRef.setInput('autoFocus', true);
-
+  it('focuses on initial render and again for changed items or submit cycles', () => {
     jest.useFakeTimers();
-    fixture.detectChanges(); // triggers ngAfterViewInit
-
-    const el = fixture.nativeElement.querySelector(
-      '[data-component="error-summary"]',
-    ) as HTMLDivElement;
-    const focusSpy = jest.spyOn(el, 'focus');
-
+    const items = [{ text: 'Error', id: 'field' }];
+    fixture.componentRef.setInput('items', items);
+    fixture.detectChanges();
+    const summary = fixture.nativeElement.querySelector('.govuk-error-summary');
+    const focus = jest.spyOn(summary, 'focus');
     jest.runAllTimers();
-    expect(focusSpy).toHaveBeenCalledTimes(1);
+    expect(focus).toHaveBeenCalledTimes(1);
+
+    fixture.componentRef.setInput('items', [...items]);
+    fixture.detectChanges();
+    jest.runAllTimers();
+    expect(focus).toHaveBeenCalledTimes(1);
+
+    fixture.componentRef.setInput('focusKey', 1);
+    fixture.detectChanges();
+    jest.runAllTimers();
+    expect(focus).toHaveBeenCalledTimes(2);
+
+    fixture.componentRef.setInput('items', [{ text: 'Changed error' }]);
+    fixture.detectChanges();
+    jest.runAllTimers();
+    expect(focus).toHaveBeenCalledTimes(3);
+
+    fixture.componentRef.setInput('items', []);
+    fixture.detectChanges();
+    fixture.componentRef.setInput('items', [{ text: 'Changed error' }]);
+    fixture.detectChanges();
+    jest.runAllTimers();
+    expect(focus).toHaveBeenCalledTimes(4);
   });
 
-  it('autoFocus focuses when items are added after initial render', () => {
-    fixture.componentRef.setInput('items', []);
-    fixture.componentRef.setInput('autoFocus', true);
-
+  it('focuses when errors arrive after initial render', () => {
     jest.useFakeTimers();
     fixture.detectChanges();
-
-    const el = fixture.nativeElement.querySelector(
-      '[data-component="error-summary"]',
-    ) as HTMLDivElement;
-    const focusSpy = jest.spyOn(el, 'focus');
-
+    const summary = fixture.nativeElement.querySelector('.govuk-error-summary');
+    const focus = jest.spyOn(summary, 'focus');
     fixture.componentRef.setInput('items', [{ text: 'Late error' }]);
     fixture.detectChanges();
-
     jest.runAllTimers();
-    expect(focusSpy).toHaveBeenCalledTimes(1);
+    expect(focus).toHaveBeenCalledTimes(1);
   });
 
-  it('focuses again when focusKey changes even if items stay the same', () => {
-    const items = [{ text: 'Repeated error', id: 'field-id' }];
-    fixture.componentRef.setInput('items', items);
-    fixture.componentRef.setInput('autoFocus', true);
-    fixture.componentRef.setInput('focusKey', 1);
-
+  it('does not autofocus when disabled, including subsequent GOV.UK initialisation', () => {
     jest.useFakeTimers();
+    fixture.componentRef.setInput('items', [{ text: 'Error' }]);
+    fixture.componentRef.setInput('autoFocus', false);
     fixture.detectChanges();
-
-    const el = fixture.nativeElement.querySelector(
-      '[data-component="error-summary"]',
-    ) as HTMLDivElement;
-    const focusSpy = jest.spyOn(el, 'focus');
-
+    const summary = fixture.nativeElement.querySelector('.govuk-error-summary');
+    const focus = jest.spyOn(summary, 'focus');
     jest.runAllTimers();
-    expect(focusSpy).toHaveBeenCalledTimes(1);
-
-    fixture.componentRef.setInput('focusKey', 2);
-    fixture.detectChanges();
-
-    jest.runAllTimers();
-    expect(focusSpy).toHaveBeenCalledTimes(2);
+    expect(focus).not.toHaveBeenCalled();
+    expect(summary.getAttribute('data-disable-auto-focus')).toBe('true');
   });
 
-  it('emits itemSelect when a link is clicked', () => {
-    const item: ErrorItem = { text: 'Click me', id: 'field-id' };
+  it.each([
+    [{ text: 'Error', href: '#field' }, undefined],
+    [{ text: 'Error', id: 'field' }, undefined],
+    [{ text: 'Error' }, 'field'],
+  ] satisfies [ErrorItem, string | undefined][])(
+    'focuses local target once without router navigation: %j',
+    (item, targetId) => {
+      fixture.componentRef.setInput('items', [item]);
+      fixture.componentRef.setInput('targetId', targetId);
+      fixture.componentRef.setInput('autoFocus', false);
+      fixture.detectChanges();
+      document.body.appendChild(fixture.nativeElement);
+      const input = document.createElement('input');
+      input.id = 'field';
+      document.body.appendChild(input);
+      const focus = jest.spyOn(input, 'focus');
+      const navigate = jest.spyOn(TestBed.inject(Router), 'navigateByUrl');
+      const delegatedClick = jest.fn();
+      fixture.nativeElement.addEventListener('click', delegatedClick);
+      const handler = jest.fn();
+      comp.itemSelect.subscribe(handler);
+      const link = fixture.nativeElement.querySelector('a');
+      expect(link.getAttribute('href')).toBe('#field');
+      const event = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+      });
+      link.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(true);
+      expect(document.activeElement).toBe(input);
+      expect(focus).toHaveBeenCalledTimes(1);
+      expect(handler).toHaveBeenCalledWith(item);
+      expect(navigate).not.toHaveBeenCalled();
+      expect(delegatedClick).not.toHaveBeenCalled();
+      link.click();
+      expect(document.activeElement).toBe(input);
+      expect(focus).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it('preserves non-fragment navigation and custom itemSelect handlers', () => {
+    const item = { text: 'External', href: '/somewhere' };
     fixture.componentRef.setInput('items', [item]);
+    fixture.componentRef.setInput('targetId', 'field');
     fixture.detectChanges();
-
     const handler = jest.fn();
-    const sub = comp.itemSelect.subscribe(handler);
-
-    const a = fixture.nativeElement.querySelector(
-      'a.govuk-link',
-    ) as HTMLAnchorElement;
-    a.click();
-
-    expect(handler).toHaveBeenCalledWith(item);
-    sub.unsubscribe();
-  });
-
-  it('prevents default hash navigation when parent handles fragment clicks', () => {
-    const item: ErrorItem = { text: 'Click me', href: '#field-id' };
-    fixture.componentRef.setInput('items', [item]);
-    fixture.componentRef.setInput('preventFragmentNavigation', true);
-    fixture.detectChanges();
-
-    const handler = jest.fn();
-    const sub = comp.itemSelect.subscribe(handler);
-    const event = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    const a = fixture.nativeElement.querySelector(
-      'a.govuk-link',
-    ) as HTMLAnchorElement;
-    expect(a.getAttribute('href')).toBe('#field-id');
-    expect(a.getAttribute('ng-reflect-router-link')).toBeNull();
-
-    a.dispatchEvent(event);
-
-    expect(event.defaultPrevented).toBe(true);
-    expect(handler).toHaveBeenCalledWith(item);
-    sub.unsubscribe();
-  });
-
-  it('prevents default hash navigation for targetId fallback links', () => {
-    const item: ErrorItem = { text: 'Click me' };
-    fixture.componentRef.setInput('items', [item]);
-    fixture.componentRef.setInput('targetId', 'summary-target');
-    fixture.componentRef.setInput('preventFragmentNavigation', true);
-    fixture.detectChanges();
-
-    const handler = jest.fn();
-    const sub = comp.itemSelect.subscribe(handler);
-    const event = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    const a = fixture.nativeElement.querySelector(
-      'a.govuk-link',
-    ) as HTMLAnchorElement;
-    expect(a.getAttribute('href')).toBe('#summary-target');
-
-    a.dispatchEvent(event);
-
-    expect(event.defaultPrevented).toBe(true);
-    expect(handler).toHaveBeenCalledWith(item);
-    sub.unsubscribe();
-  });
-
-  it('does not prevent default for explicit non-fragment hrefs when targetId fallback exists', () => {
-    const item: ErrorItem = { text: 'Click me', href: '/somewhere' };
-    fixture.componentRef.setInput('items', [item]);
-    fixture.componentRef.setInput('targetId', 'summary-target');
-    fixture.componentRef.setInput('preventFragmentNavigation', true);
-    fixture.detectChanges();
-
-    const handler = jest.fn();
-    const sub = comp.itemSelect.subscribe(handler);
-    const event = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    const a = fixture.nativeElement.querySelector(
-      'a.govuk-link',
-    ) as HTMLAnchorElement;
-    expect(a.getAttribute('href')).toBe('/somewhere');
-
-    a.dispatchEvent(event);
-
+    comp.itemSelect.subscribe(handler);
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    fixture.nativeElement.querySelector('a').dispatchEvent(event);
     expect(event.defaultPrevented).toBe(false);
     expect(handler).toHaveBeenCalledWith(item);
-    sub.unsubscribe();
+    expect(comp.fragmentTarget(item)).toBeUndefined();
   });
 });

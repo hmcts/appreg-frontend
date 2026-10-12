@@ -20,8 +20,7 @@
 @if (vm().errorSummary.length || vm().updateInvalid) {
   <app-error-summary
     [title]="vm().errorHint || 'There is a problem'"
-    (itemSelect)="onCreateErrorClick($event)"
-    [items]="vm().errorSummary"
+    [items]="summaryItems()"
     [focusKey]="submitAttempt()"
   />
 }
@@ -52,7 +51,7 @@
     heading="Bulk upload complete"
     [body]="vm().bulkUploadBannerText"
     [linkText]="
-      bulkUploadFeeUpdateAvailable()
+      canModifyList() && bulkUploadFeeUpdateAvailable()
         ? 'Click here to update fee details on newly uploaded applications'
         : undefined
     "
@@ -77,14 +76,18 @@
 
 <app-page-header
   title="Applications list"
-  [actions]="[
-    {
-      label: 'Create application',
-      routerLink: ['create-entry'],
-      startIcon: true,
-      variant: 'primary',
-    },
-  ]"
+  [actions]="
+    canModifyList()
+      ? [
+          {
+            label: 'Create application',
+            routerLink: ['create-entry'],
+            startIcon: true,
+            variant: 'primary',
+          },
+        ]
+      : []
+  "
 />
 
 <!-- Tabs -->
@@ -131,13 +134,17 @@
     <app-page-header
       title="Applications"
       size="l"
-      [actions]="[
-        {
-          label: 'Bulk upload',
-          variant: 'secondary',
-          routerLink: ['bulk-upload'],
-        },
-      ]"
+      [actions]="
+        canModifyList()
+          ? [
+              {
+                label: 'Bulk upload',
+                variant: 'secondary',
+                routerLink: ['bulk-upload'],
+              },
+            ]
+          : []
+      "
     >
     </app-page-header>
 
@@ -208,9 +215,23 @@
           class="govuk-table__caption govuk-table__caption--m"
           id="sortable-Lists"
         >
-          <span class="table-caption__text"> Entries </span>
+          <span
+            class="table-caption__text"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            Entries ({{ selectedCount }} of {{ vm().totalEntries }} selected)
+          </span>
 
           <span class="table-caption__actions" aria-label="Table actions">
+            <button
+              type="button"
+              class="govuk-button govuk-button--secondary table-caption__action-button"
+              data-module="govuk-button"
+              (click)="clearSelection()"
+            >
+              Clear selections
+            </button>
             @if (!canUseBulkActions) {
               <button
                 type="button"
@@ -227,37 +248,39 @@
                 data-align-menu="right"
                 data-button-classes="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
               >
-                <button
-                  type="button"
-                  class="govuk-button moj-button-menu__item govuk-button--secondary"
-                  (click)="onResultButtonClick()"
-                >
-                  Result selected
-                </button>
+                @if (canModifyList()) {
+                  <button
+                    type="button"
+                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                    (click)="onResultButtonClick()"
+                  >
+                    Result selected
+                  </button>
 
-                <button
-                  type="button"
-                  class="govuk-button moj-button-menu__item govuk-button--secondary"
-                  (click)="onMoveButtonClick()"
-                >
-                  Move entries
-                </button>
+                  <button
+                    type="button"
+                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                    (click)="onMoveButtonClick()"
+                  >
+                    Move entries
+                  </button>
 
-                <button
-                  type="button"
-                  class="govuk-button moj-button-menu__item govuk-button--secondary"
-                  (click)="onUpdateOfficialsButtonClick()"
-                >
-                  Update officials
-                </button>
+                  <button
+                    type="button"
+                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                    (click)="onUpdateOfficialsButtonClick()"
+                  >
+                    Update officials
+                  </button>
 
-                <button
-                  type="button"
-                  class="govuk-button moj-button-menu__item govuk-button--secondary"
-                  (click)="onUpdateFeeButtonClick()"
-                >
-                  Update fee details
-                </button>
+                  <button
+                    type="button"
+                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                    (click)="onUpdateFeeButtonClick()"
+                  >
+                    Update fee details
+                  </button>
+                }
 
                 <button
                   type="button"
@@ -295,24 +318,29 @@
               Open
             </button>
 
-            <!-- Delete button -->
-            <button
-              type="button"
-              class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onDeleteButtonClick(row)"
-            >
-              Delete
-            </button>
+            @if (canModifyList()) {
+              <!-- Delete button -->
+              <button
+                type="button"
+                class="govuk-button moj-button-menu__item govuk-button--secondary"
+                (click)="onDeleteButtonClick(row)"
+              >
+                Delete
+              </button>
+            }
           </div>
         </ng-template>
       </app-sortable-table>
     } @else if (noEntries && !vm().isLoading) {
       <app-notification-banner
-        id="noEntries"
+        id="no-entries"
+        [autoFocus]="false"
         heading="No lists entries found"
-        body="Try again, or "
-        linkText="create a new list entry"
-        [linkCommands]="['/applications-list', id, 'create-entry']"
+        [body]="canModifyList() ? 'Try again, or ' : ''"
+        [linkText]="canModifyList() ? 'create a new list entry' : ''"
+        [linkCommands]="
+          canModifyList() ? ['/applications-list', id, 'create-entry'] : []
+        "
       />
     }
 
@@ -333,6 +361,7 @@
   >
     <app-applications-list-update
       [form]="form"
+      [canModifyList]="canModifyList()"
       [vm]="vm()"
       [statusOptions]="statusOptions"
       [placeState]="state()"

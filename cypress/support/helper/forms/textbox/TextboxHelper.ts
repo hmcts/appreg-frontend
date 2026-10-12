@@ -130,25 +130,25 @@ export class TextboxHelper {
       .scrollIntoView()
       .type(text, { force: true });
 
-    // Wait for autocomplete dropdown to appear and trigger mousedown on the link
-    cy.get('.app-autocomplete__menu')
-      .should('be.visible')
-      .then(($menu) => {
-        if (optionText) {
-          cy.wrap($menu)
-            .contains('.app-autocomplete__link', optionText, {
-              matchCase: false,
-            })
-            .should('be.visible')
-            .trigger('mousedown');
-        } else {
-          cy.wrap($menu)
-            .find('.app-autocomplete__link')
-            .first()
-            .should('be.visible')
-            .trigger('mousedown');
-        }
-      });
+    const listbox = TextboxElement.findTextbox(selector)
+      .closest('.app-autocomplete')
+      .find('[role="listbox"]')
+      .should('be.visible');
+
+    if (optionText) {
+      listbox
+        .contains('[role="option"]', optionText, { matchCase: false })
+        .should('be.visible')
+        .click();
+    } else {
+      listbox.find('[role="option"]').first().should('be.visible').click();
+    }
+
+    TextboxElement.findTextbox(selector).should(
+      'have.attr',
+      'aria-expanded',
+      'false',
+    );
   }
 
   /**

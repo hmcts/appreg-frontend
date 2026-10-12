@@ -3,6 +3,7 @@ import { AccordionHelper } from '../forms/accordion/accordion/AccordionHelper';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
 import { DateTimeHelper } from '../forms/datetime/DateTimeHelper';
 import { DropdownHelper } from '../forms/dropdown/DropdownHelper';
+import { RadioHelper } from '../forms/radio/RadioHelper';
 import { TextboxHelper } from '../forms/textbox/TextboxHelper';
 
 export class ApplicationListCombinedHelper {
@@ -82,6 +83,10 @@ export class ApplicationListCombinedHelper {
         case 'List description':
         case 'Description':
           TextboxHelper.typeInTextbox('List description', value);
+          break;
+
+        case 'Lists to Show':
+          RadioHelper.select(value);
           break;
       }
     }

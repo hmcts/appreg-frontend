@@ -3,7 +3,6 @@
     [items]="vm().searchErrors"
     [focusKey]="submitAttempt()"
     title="There is a problem"
-    (itemSelect)="onCreateErrorClick($event)"
   />
 } @else {
   @if (vm().hasSearched && !vm().isLoading && !vm().rows.length) {

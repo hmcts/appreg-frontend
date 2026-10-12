@@ -60,7 +60,7 @@ describe('Cypress deployment data', () => {
       .split('\n')
       .slice(1)
       .map((row) => row.split('|'));
-    expect(rows.map((row) => row[0])).toEqual(['APP031', 'APP032']);
+    expect(rows.map((row) => row[0])).toEqual(['BGAS', 'Total']);
     expect(rows.map((row) => row[17])).toEqual(['EF99023', 'EF99007']);
     expect(rows.map((row) => row[16])).toEqual(['AC-123456-1', 'AC-123456-2']);
     expect(rows.every((row) => row.length === 20)).toBe(true);

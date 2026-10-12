@@ -4,7 +4,6 @@
     [items]="vm().errorSummary"
     [focusKey]="submitAttempt()"
     targetId="search"
-    (itemSelect)="onCreateErrorClick($event)"
   />
 } @else if (vm().searchErrors.length) {
   <app-error-summary
@@ -12,7 +11,6 @@
     [items]="vm().searchErrors"
     [focusKey]="submitAttempt()"
     targetId="search"
-    (itemSelect)="onCreateErrorClick($event)"
   />
 } @else {
   @if (vm().isSearch && !vm().isLoading && !vm().rows.length) {
@@ -137,7 +135,11 @@
     />
   </div>
 
-  <details class="govuk-details" [open]="vm().isAdvancedSearch">
+  <details
+    class="govuk-details"
+    [open]="vm().isAdvancedSearch"
+    (toggle)="onAdvancedToggle($event)"
+  >
     <summary
       class="govuk-details__summary"
       (click)="$event.preventDefault(); toggleAdvancedSearch()"

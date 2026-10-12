@@ -262,6 +262,26 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
   });
 
+  it('renders untargeted API errors as text and keeps explicit field links', () => {
+    component['appListEntryDetailPatch']({
+      errorFound: true,
+      summaryErrors: [
+        { text: 'Application entry does not exist' },
+        { text: 'Enter a lodgement date', href: '#lodgement-date-day' },
+      ],
+    });
+    fixture.detectChanges();
+
+    const items = fixture.nativeElement.querySelectorAll(
+      'app-error-summary li',
+    );
+    expect(items[0].textContent).toContain('Application entry does not exist');
+    expect(items[0].querySelector('a')).toBeNull();
+    expect(items[1].querySelector('a').getAttribute('href')).toBe(
+      '#lodgement-date-day',
+    );
+  });
+
   it('maps lodgementDate error summary links to the date input day field', () => {
     expect(ERROR_HREFS.lodgementDate).toBe('#lodgement-date-day');
   });
@@ -1738,6 +1758,37 @@ describe('ApplicationsListEntryDetail', () => {
       ),
     ).toBe(true);
   });
+
+  it.each([0, '0'])(
+    'onUpdateApplication rejects optional bulk count %p',
+    (count) => {
+      component['appListEntryDetailPatch']({
+        appCodeDetail: {
+          requiresRespondent: false,
+        } as ApplicationCodeGetDetailDto,
+      });
+      component['form'].patchValue({
+        applicantType: 'standard',
+        respondentEntryType: 'bulk',
+        numberOfRespondents: count as number,
+      });
+      component.onStandardApplicantCodeChanged('SA-123');
+
+      component.onUpdateApplication();
+
+      expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+      expect(component.respondentErrorItems).toEqual([
+        {
+          id: 'numberOfRespondents',
+          text: 'Number of respondents must be a whole number from 1 to 9999',
+          href: '#respondent-number-of-respondents',
+        },
+      ]);
+      expect(component.vm().summaryErrors).toEqual(
+        component.respondentErrorItems,
+      );
+    },
+  );
 
   it('does not rebuild respondent errors when respondent becomes populated after binding', () => {
     component['forms'].respondentPersonForm.reset();

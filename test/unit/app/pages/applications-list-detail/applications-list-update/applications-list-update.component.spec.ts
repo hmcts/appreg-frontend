@@ -142,6 +142,7 @@ describe('ApplicationsListUpdateComponent', () => {
     fixture = TestBed.createComponent(ApplicationsListUpdateComponent);
     component = fixture.componentInstance;
     fixture.componentRef.setInput('form', mkForm());
+    fixture.componentRef.setInput('canModifyList', true);
     fixture.componentRef.setInput('statusOptions', []);
     fixture.componentRef.setInput('placeState', mkPlaceState());
     fixture.componentRef.setInput('id', 'list-1');
@@ -159,6 +160,25 @@ describe('ApplicationsListUpdateComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('makes list details view-only and prevents update and close handlers', () => {
+    fixture.componentRef.setInput('canModifyList', false);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector<HTMLFieldSetElement>('fieldset')?.disabled).toBe(
+      true,
+    );
+    expect(root.querySelector('button[type="submit"]')).toBeNull();
+    const header = fixture.debugElement.query(By.directive(PageHeaderComponent))
+      .componentInstance as PageHeaderComponent;
+    expect(header.actions()).toEqual([]);
+
+    component.onUpdate();
+    component.onCloseListClick();
+    expect(setUpdateRequest).not.toHaveBeenCalled();
+    expect(incrementSubmitAttempt).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('disables Update while an update is pending', () => {

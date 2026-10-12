@@ -654,8 +654,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private updateRespondentErrors(): void {
-    // Run validation if respondent is required
-    // and when respondent forms are fully/partially populated
+    // Validate selected Bulk applications even when respondents are optional.
     const isRespondentRequired =
       this.appListEntryDetailState().appCodeDetail?.requiresRespondent ?? true;
 
@@ -666,7 +665,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
 
     const shouldValidateRespondent =
-      isRespondentRequired || respondentFormHasValues;
+      this.form.controls.respondentEntryType.value === 'bulk' ||
+      isRespondentRequired ||
+      respondentFormHasValues;
 
     if (shouldValidateRespondent) {
       this.childErrors.respondent = buildRespondentErrors({
@@ -678,7 +679,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
         respondentBulkControl: this.form.controls.numberOfRespondents,
         respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
-        bulkCountRequired: isRespondentRequired,
+        bulkCountRequired: true,
       });
       return;
     }
@@ -1444,7 +1445,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        // ponytail: accept the legacy payload during FE-first deployment.
+        // accept the legacy payload during FE-first deployment.
         next: (
           applicant: StandardApplicantGetDetailDto & { applicant?: Applicant },
         ) => {

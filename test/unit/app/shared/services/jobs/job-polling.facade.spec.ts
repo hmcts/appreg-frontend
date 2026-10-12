@@ -55,7 +55,7 @@ describe('JobPollingFacade', () => {
           new HttpResponse({
             body: {
               id: 'job-1',
-              status: 'SUCCEEDED',
+              status: 'COMPLETED',
               createdCount: 3,
             },
           }),

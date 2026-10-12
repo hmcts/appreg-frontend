@@ -1,11 +1,7 @@
 <app-breadcrumbs [items]="[{ label: 'Applications', link: '/applications' }]" />
 
 @if (errorSummaryItems().length) {
-  <app-error-summary
-    title="There is a problem"
-    [items]="errorSummaryItems()"
-    (itemSelect)="onCreateErrorClick($event)"
-  />
+  <app-error-summary title="There is a problem" [items]="errorSummaryItems()" />
 } @else if (successMessage(); as message) {
   <app-success-banner
     [heading]="message"

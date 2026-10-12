@@ -4,6 +4,10 @@ import { FormControl, FormGroup } from '@angular/forms';
 
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import type { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
+import {
+  toCjaSuggestionItem,
+  toCourtSuggestionItem,
+} from '@components/suggestions/suggestions.types';
 import { APPLICATIONS_LIST_FORM_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 
 describe('ApplicationsListFormComponent (Jest)', () => {
@@ -169,6 +173,42 @@ describe('ApplicationsListFormComponent (Jest)', () => {
 
       expect(component.errorText('court')).toBe('Court location not found');
     });
+  });
+
+  it('delegates suggestion selection only to the matching field', () => {
+    const suggestions = { selectCourthouse: jest.fn(), selectCja: jest.fn() };
+    fixture.componentRef.setInput('suggestions', suggestions);
+    const court = toCourtSuggestionItem({
+      locationCode: 'TEST',
+      name: 'Test court',
+    });
+    const cja = toCjaSuggestionItem({ code: '01', description: 'Test area' });
+    component.onCourthouseSuggestionSelected(court);
+    component.onCourthouseSuggestionSelected(cja);
+    component.onCjaSuggestionSelected(cja);
+    component.onCjaSuggestionSelected(court);
+    expect(suggestions.selectCourthouse).toHaveBeenCalledTimes(1);
+    expect(suggestions.selectCourthouse).toHaveBeenCalledWith(court);
+    expect(suggestions.selectCja).toHaveBeenCalledTimes(1);
+    expect(suggestions.selectCja).toHaveBeenCalledWith(cja);
+  });
+
+  it('synchronises an error-driven reveal without toggling an already matching state', () => {
+    const callback = jest.fn();
+    fixture.componentRef.setInput('onToggleAdvanced', callback);
+    const details = document.createElement('details');
+    details.open = true;
+    const event = { target: details } as unknown as Event;
+    component.onAdvancedToggle(event);
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    fixture.componentRef.setInput('advancedOpen', true);
+    component.onAdvancedToggle(event);
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    details.open = false;
+    component.onAdvancedToggle(event);
+    expect(callback).toHaveBeenCalledTimes(2);
   });
 
   describe('onAdvancedClick', () => {

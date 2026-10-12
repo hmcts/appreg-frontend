@@ -3,6 +3,7 @@
   [attr.aria-label]="title() || 'There is a problem'"
   aria-describedby="error-summary-body"
   data-module="govuk-error-summary"
+  data-disable-auto-focus="true"
   data-component="error-summary"
   tabindex="-1"
   #summaryEl
@@ -24,19 +25,10 @@
             >
               {{ err.text }}
             </a>
-          } @else if (preventFragmentNavigation()) {
-            <a
-              class="govuk-link"
-              [attr.href]="fragmentHref(err)"
-              (click)="onItemClick($event, err)"
-            >
-              {{ err.text }}
-            </a>
           } @else {
             <a
               class="govuk-link"
-              [routerLink]="[]"
-              [fragment]="fragmentTarget(err)"
+              [attr.href]="fragmentHref(err)"
               (click)="onItemClick($event, err)"
             >
               {{ err.text }}

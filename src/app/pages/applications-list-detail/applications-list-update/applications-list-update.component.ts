@@ -89,6 +89,7 @@ export class ApplicationsListUpdateComponent {
 
   readonly originalListDetails = input<Readonly<DetailFormValue> | null>(null);
   readonly updatePending = input(false);
+  readonly canModifyList = input(false);
 
   private readonly hrefs = {
     date: `#${DETAIL_ERROR_ANCHORS.date}`,
@@ -97,6 +98,9 @@ export class ApplicationsListUpdateComponent {
   } as const;
 
   onUpdate(): void {
+    if (!this.canModifyList()) {
+      return;
+    }
     this.incrementSubmitAttempt()();
 
     // reset flags/errors
@@ -148,6 +152,9 @@ export class ApplicationsListUpdateComponent {
   }
 
   onCloseListClick(): void {
+    if (!this.canModifyList()) {
+      return;
+    }
     const originalListDetails = this.originalListDetails();
     if (!originalListDetails) {
       return;

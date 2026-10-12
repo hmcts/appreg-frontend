@@ -45,3 +45,9 @@ button.app-autocomplete__link {
   text-decoration: underline;
   background: #f3f2f1;
 }
+
+.app-autocomplete__link--active {
+  background: #f3f2f1;
+  outline: 2px solid #0b0c0c;
+  outline-offset: -2px;
+}

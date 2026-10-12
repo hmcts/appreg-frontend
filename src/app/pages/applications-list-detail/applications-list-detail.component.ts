@@ -118,6 +118,7 @@ import {
   ApplicationListEntryBulkActionSelectionDto,
   ApplicationListGetDetailDto,
   ApplicationListGetPrintDto,
+  ApplicationListStatus,
   ApplicationListsApi,
   BulkActionPreviewResponseDto,
   BulkActionSelectionType,
@@ -227,6 +228,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     );
 
   readonly vm = this.detailSignalState.vm;
+  // Keep the close-error ID in state for inline errors, not as a navigation target.
+  readonly summaryItems = computed(() =>
+    this.vm().errorSummary.map((item) =>
+      item.id === 'status-close' ? { text: item.text } : item,
+    ),
+  );
 
   private readonly tableDataRequest = signal<tableDataReq | null>(null);
   private readonly listDetailRequest = signal<listDetailsReq | null>(null);
@@ -235,6 +242,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly printRequest = signal<BulkPrintRequest | null>(null);
 
   private readonly loadFailed = signal(false);
+  readonly listStatus = signal<ApplicationListStatus | undefined>(undefined);
+  readonly canModifyList = computed(
+    () =>
+      this.listStatus() === ApplicationListStatus.OPEN && !this.loadFailed(),
+  );
   readonly submitAttempt = signal(0);
   private selectAllRequestVersion = 0;
 
@@ -573,6 +585,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         onSuccess: (res: HttpResponse<ApplicationListGetDetailDto>) => {
           const dto = res.body;
           if (!dto) {
+            this.loadFailed.set(true);
+            this.form.disable({ emitEvent: false });
             this.detailSignalState.patch({
               isLoading: false,
               updateInvalid: true,
@@ -593,9 +607,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
           const vm = this.vm();
 
-          if (!vm.hasPrefilledFromApi) {
+          if (!vm.hasPrefilledFromApi || dto.status !== this.listStatus()) {
             this.prefillFromApi(dto);
             this.detailSignalState.patch({ hasPrefilledFromApi: true });
+          } else {
+            this.listStatus.set(dto.status);
+            this.syncFormPermissions();
           }
 
           this.patchLoadSuccessState({});
@@ -950,6 +967,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async onUpdateOfficialsButtonClick(): Promise<void> {
+    if (!this.canModifyList()) {
+      return;
+    }
     const preview = await this.getBulkPreview(BulkActionType.UPDATE_OFFICIALS);
 
     if (!preview) {
@@ -978,6 +998,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async onResultButtonClick(): Promise<void> {
+    if (!this.canModifyList()) {
+      return;
+    }
     const preview = await this.getBulkPreview(BulkActionType.RESULT_SELECTED);
 
     if (!preview) {
@@ -1035,6 +1058,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async onUpdateFeeButtonClick(): Promise<void> {
+    if (!this.canModifyList()) {
+      return;
+    }
     const preview = await this.getBulkPreview(
       BulkActionType.UPDATE_FEE_DETAILS,
     );
@@ -1093,6 +1119,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async onMoveButtonClick(): Promise<void> {
+    if (!this.canModifyList()) {
+      return;
+    }
     const preview = await this.getBulkPreview(BulkActionType.MOVE_ENTRIES);
 
     if (!preview) {
@@ -1121,6 +1150,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async onBulkUploadBannerClick(): Promise<void> {
+    if (!this.canModifyList()) {
+      return;
+    }
     if (!this.bulkUploadedEntryIds?.length) {
       await this.bulkImportGetIds(this.bulkUploadJobId());
     }
@@ -1214,7 +1246,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   };
 
   readonly setUpdateRequestFn = (req: UpdateReq | null): void => {
-    this.updateRequest.set(req);
+    if (!req || this.canModifyList()) {
+      this.updateRequest.set(req);
+    }
   };
 
   private mapUpdateHttpError(err: HttpErrorResponse): ErrorItem[] {
@@ -1317,6 +1351,18 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async openUpdate(row: Partial<selectedRow>): Promise<void> {
+    if (this.listStatus() === ApplicationListStatus.CLOSED) {
+      await this.router.navigate([
+        '/applications-list',
+        this.id,
+        'update-notes',
+        row.id,
+      ]);
+      return;
+    }
+    if (!this.canModifyList()) {
+      return;
+    }
     await this.router.navigate(
       ['/applications-list', this.id, 'update-entry', row.id],
       {
@@ -1333,7 +1379,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async onDeleteButtonClick(row: Partial<selectedRow>): Promise<void> {
-    if (!this.id || !row?.id) {
+    if (!this.canModifyList() || !this.id || !row?.id) {
       return;
     }
 
@@ -1506,7 +1552,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       onError: (message) => this.patchPrintError(message),
       noEntriesMessage: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
       generateErrorMessage: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
-      isClosed: false,
+      isClosed: this.listStatus() === ApplicationListStatus.CLOSED,
     });
   }
 
@@ -1517,6 +1563,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {
+    this.listStatus.set(dto.status);
     const duration =
       dto.durationHours !== null || dto.durationMinutes !== null
         ? {
@@ -1536,7 +1583,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       duration,
     };
 
-    this.listRow ??= toRow(dto);
+    this.listRow = toRow(dto);
     this.listRow.etag = this.etag; // This isn't stored in the DTO
 
     this.entryCount = dto.entriesCount ?? this.entryCount;
@@ -1558,6 +1605,17 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           description: '',
         });
       this.selectCja(area);
+    }
+    this.syncFormPermissions();
+  }
+
+  private syncFormPermissions(): void {
+    if (!this.canModifyList()) {
+      this.form.disable({ emitEvent: false });
+    } else if (this.form.controls.description.disabled) {
+      this.form.enable({ emitEvent: false });
+      // Reapply the existing court vs other-location disabling rules.
+      this.form.controls.court.updateValueAndValidity();
     }
   }
 

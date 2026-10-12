@@ -170,6 +170,27 @@ describe('ApplicationListEntryFormService', () => {
     expect(forms.respondentOrganisationForm.dirty).toBe(false);
   });
 
+  it.each([1, 9999])('maps bulk count %p and reopens it as Bulk', (count) => {
+    const forms = service.createForms();
+    forms.form.patchValue({
+      respondentEntryType: 'bulk',
+      numberOfRespondents: String(count) as unknown as number,
+    });
+    expect(forms.form.controls.numberOfRespondents.valid).toBe(true);
+
+    const dto = service.buildCreateDto(forms);
+    expect(dto.numberOfRespondents).toBe(count);
+    expect(dto.respondent).toBeNull();
+
+    const reopened = service.createForms();
+    service.hydrateFromDto(
+      makeDetail({ numberOfRespondents: dto.numberOfRespondents }),
+      reopened,
+    );
+    expect(reopened.form.controls.respondentEntryType.value).toBe('bulk');
+    expect(reopened.form.controls.numberOfRespondents.value).toBe(count);
+  });
+
   it('createCivilFeeForm reuses the fee controls from the main form', () => {
     const forms = service.createForms();
     const civilFeeForm = service.createCivilFeeForm(forms);

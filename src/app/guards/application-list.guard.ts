@@ -3,7 +3,7 @@ import { PLATFORM_ID, inject } from '@angular/core';
 import { CanActivateFn, RedirectCommand, Router } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 
-import { ApplicationListsApi } from '@openapi';
+import { ApplicationListStatus, ApplicationListsApi } from '@openapi';
 import { getHttpStatus } from '@util/http-error-to-text';
 
 export const applicationListGuard: CanActivateFn = (route) => {
@@ -29,13 +29,29 @@ export const applicationListGuard: CanActivateFn = (route) => {
     return redirect;
   }
 
+  const requiresOpenList = route.data['requiresOpenList'] === true;
+  const viewList = new RedirectCommand(
+    router.createUrlTree(['/applications-list', listId]),
+    { replaceUrl: true },
+  );
+
   return api
     .getApplicationList({ listId }, 'body', false, { transferCache: false })
     .pipe(
-      map(() => true),
-      // Only a missing list warrants a redirect. Preserve other error handling.
+      map((list) =>
+        requiresOpenList && list.status !== ApplicationListStatus.OPEN
+          ? viewList
+          : true,
+      ),
+      // Failed lookups must not open a modifying workflow; the detail page shows errors.
       catchError((err: unknown) =>
-        of(getHttpStatus(err) === 404 ? redirect : true),
+        of(
+          getHttpStatus(err) === 404
+            ? redirect
+            : requiresOpenList
+              ? viewList
+              : true,
+        ),
       ),
     );
 };

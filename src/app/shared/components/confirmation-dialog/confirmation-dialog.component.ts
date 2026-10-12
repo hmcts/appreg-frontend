@@ -71,7 +71,7 @@ export class ConfirmationDialogComponent implements OnDestroy {
         subscriber.complete();
       };
       element.showModal();
-      // ponytail: one dialog at a time; router unsubscription also cleans up superseded navigation.
+      // one dialog at a time; router unsubscription also cleans up superseded navigation.
       return () => {
         this.resolve = undefined;
         element.close();

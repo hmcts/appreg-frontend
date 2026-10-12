@@ -427,14 +427,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.patchApp(clearNotificationsPatch());
 
     if (!row.applicationListId || !row.id) {
-      this.showUpdateNotesError(
-        'Unable to update notes for selected application',
-      );
+      this.showActionError('Unable to update notes for selected application');
       return;
     }
 
     if (!this.canUpdateNotes(row)) {
-      this.showUpdateNotesError(
+      this.showActionError(
         'Application list entry cannot be updated in its current state. The parent application list is not closed.',
       );
       return;
@@ -458,7 +456,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     );
   }
 
-  private showUpdateNotesError(text: string): void {
+  private showActionError(text: string): void {
     this.patchApp({
       errorSummary: [{ text }],
     });
@@ -487,9 +485,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
     // Only result status = 'open' applications
     if (eligibleCount <= 0) {
-      this.patchApp({
-        errorSummary: [{ text: 'You can only result open application(s)' }],
-      });
+      this.showActionError('You can only result open application(s)');
       return;
     }
 
@@ -500,11 +496,9 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     );
 
     if (!rowsToResult.length) {
-      this.patchApp({
-        errorSummary: [
-          { text: 'You can only result open and unresulted application(s)' },
-        ],
-      });
+      this.showActionError(
+        'You can only result open and unresulted application(s)',
+      );
       return;
     }
 
@@ -792,6 +786,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  onAdvancedToggle(event: Event): void {
+    const section = event.target as HTMLDetailsElement;
+    this.patchApp({ isAdvancedSearch: section.open });
+    this.searchForm.patchState({ isAdvancedSearch: section.open });
+  }
+
   toggleAdvancedSearch(): void {
     const isAdvancedSearch = !this.vm().isAdvancedSearch;
 
@@ -900,7 +900,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
         msg = getProblemText(err);
       }
 
-      this.patchApp({ errorSummary: [{ text: msg }] });
+      this.showActionError(msg);
       return null;
     }
   }

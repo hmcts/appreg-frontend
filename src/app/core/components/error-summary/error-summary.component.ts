@@ -10,7 +10,6 @@ import {
   output,
   viewChild,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 
 import { onCreateErrorClick } from '@util/error-click';
 
@@ -19,7 +18,6 @@ export type ErrorItem = { text: string; href?: string; id?: string };
 @Component({
   selector: 'app-error-summary',
   standalone: true,
-  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: 'error-summary.component.html',
 })
@@ -36,8 +34,6 @@ export class ErrorSummaryComponent {
   focusKey = input<number>(0);
   /** If you want to run custom logic (e.g. focus a form field), listen to this */
   itemSelect = output<ErrorItem>();
-  /** Prevent native/router hash scrolling when the parent handles focus/scroll manually. */
-  preventFragmentNavigation = input(false);
 
   private readonly platformId = inject(PLATFORM_ID);
   private readonly summaryEl =
@@ -88,15 +84,14 @@ export class ErrorSummaryComponent {
   }
 
   onItemClick(event: MouseEvent, item: ErrorItem): void {
-    const isFragmentLink = !!this.fragmentTarget(item);
+    const target = this.fragmentTarget(item);
 
-    if (isFragmentLink) {
-      onCreateErrorClick(item);
-    }
-
-    if (isFragmentLink && this.preventFragmentNavigation()) {
+    if (target) {
+      // Local errors are not route changes; navigation can reinitialise GOV.UK
+      // and steal focus back to the summary. Handle focus only once here.
       event.preventDefault();
       event.stopImmediatePropagation();
+      onCreateErrorClick({ ...item, href: `#${target}` });
     }
 
     this.itemSelect.emit(item);

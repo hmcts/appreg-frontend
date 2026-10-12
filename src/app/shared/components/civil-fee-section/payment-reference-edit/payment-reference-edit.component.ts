@@ -1,7 +1,9 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  PLATFORM_ID,
   inject,
   signal,
 } from '@angular/core';
@@ -30,6 +32,7 @@ const PAYMENT_REF_EDIT_ERRORS = {
 export class PaymentReferenceEditComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly platformId = inject(PLATFORM_ID);
 
   row: Row | null = null;
   paymentReference = new FormControl<string>('', {
@@ -45,7 +48,11 @@ export class PaymentReferenceEditComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const maybeRow: unknown = (history.state as { row?: unknown }).row;
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const maybeRow: unknown = (history.state as { row?: unknown } | null)?.row;
 
     if (!isRowLike(maybeRow)) {
       void this.router.navigate(['../'], {

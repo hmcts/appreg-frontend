@@ -234,6 +234,28 @@ describe('ApplicationsComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('synchronises Advanced search after an error reveal and supports immediate collapse/reopen', () => {
+    const details = fixture.nativeElement.querySelector(
+      'details.govuk-details:last-of-type',
+    ) as HTMLDetailsElement;
+    const event = { target: details } as unknown as Event;
+    details.open = true;
+    component.onAdvancedToggle(event);
+    expect(component.vm().isAdvancedSearch).toBe(true);
+    expect(
+      TestBed.inject(ApplicationsSearchFormService).state().isAdvancedSearch,
+    ).toBe(true);
+    component.toggleAdvancedSearch();
+    expect(component.vm().isAdvancedSearch).toBe(false);
+    component.toggleAdvancedSearch();
+    expect(component.vm().isAdvancedSearch).toBe(true);
+    details.open = false;
+    component.onAdvancedToggle(event);
+    expect(
+      TestBed.inject(ApplicationsSearchFormService).state().isAdvancedSearch,
+    ).toBe(false);
+  });
+
   it('renders application title as a search criterion', () => {
     expect(fixture.nativeElement.textContent).toContain('Application title');
   });
@@ -1788,6 +1810,55 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('onResultSelectedClick', () => {
+    it('refocuses the same preview error after Print page, but not on ordinary rerenders', async () => {
+      bulkActionPreviewMock.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 413 })),
+      );
+      const initialAttempt = component.submitAttempt();
+      await component.onPrintPageClick();
+      await flushSignalEffects(fixture);
+      const summary = fixture.nativeElement.querySelector(
+        '.govuk-error-summary',
+      ) as HTMLElement;
+      const message = summary.textContent;
+      const focusSpy = jest.spyOn(summary, 'focus');
+      const scrollSpy = jest.spyOn(summary, 'scrollIntoView');
+      const search = fixture.nativeElement.querySelector(
+        'button[type="submit"]',
+      ) as HTMLButtonElement;
+      search.focus();
+
+      await component.onResultSelectedClick();
+      await flushSignalEffects(fixture);
+
+      expect(component.submitAttempt()).toBe(initialAttempt + 2);
+      expect(summary.textContent).toBe(message);
+      expect(focusSpy).toHaveBeenCalledTimes(1);
+      expect(scrollSpy).toHaveBeenCalledWith({
+        behavior: 'smooth',
+        block: 'center',
+      });
+      expect(document.activeElement).toBe(summary);
+
+      focusSpy.mockClear();
+      scrollSpy.mockClear();
+      search.focus();
+      await flushSignalEffects(fixture);
+      expect(focusSpy).not.toHaveBeenCalled();
+      expect(scrollSpy).not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(search);
+    });
+
+    it('signals a fresh error cycle on each ineligible result action', async () => {
+      const initialAttempt = component.submitAttempt();
+      await component.onResultSelectedClick();
+      await component.onResultSelectedClick();
+      expect(component.vm().errorSummary).toEqual([
+        { text: 'You can only result open application(s)' },
+      ]);
+      expect(component.submitAttempt()).toBe(initialAttempt + 2);
+    });
+
     const makeResultRow = (id: string): ApplicationRow => ({
       ...makeSelectedRow(id, `list-${id}`),
       date: '2026-06-12',
@@ -1915,6 +1986,7 @@ describe('ApplicationsComponent', () => {
     });
 
     it('shows an error and does not navigate when every selected application is closed or resulted', async () => {
+      const initialAttempt = component.submitAttempt();
       const navigateSpy = jest
         .spyOn((component as unknown as { router: Router }).router, 'navigate')
         .mockResolvedValue(true);
@@ -1950,6 +2022,7 @@ describe('ApplicationsComponent', () => {
           text: 'You can only result open and unresulted application(s)',
         },
       ]);
+      expect(component.submitAttempt()).toBe(initialAttempt + 1);
       expect(navigateSpy).not.toHaveBeenCalled();
     });
   });

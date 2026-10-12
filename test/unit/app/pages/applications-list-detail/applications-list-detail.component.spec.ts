@@ -9,7 +9,7 @@ import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
 import { ApplicationsListUpdateComponent } from '@components/applications-list-detail/applications-list-update/applications-list-update.component';
@@ -166,6 +166,7 @@ describe('ApplicationsListDetail', () => {
 
     const dto = {
       entriesCount: 0,
+      status: ApplicationListStatus.OPEN,
     } as unknown as ApplicationListGetDetailDto;
 
     apiStub.getApplicationList.mockReturnValue(
@@ -268,6 +269,254 @@ describe('ApplicationsListDetail', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('selection caption', () => {
+    const caption = (): HTMLElement =>
+      fixture.nativeElement.querySelector('#sortable-Lists');
+    const captionText = (): string =>
+      caption()
+        .querySelector('.table-caption__text')!
+        .textContent.replace(/\s+/g, ' ')
+        .trim();
+    const clearButton = (): HTMLButtonElement =>
+      caption().querySelector('button.govuk-button--secondary')!;
+
+    it('shows the total at zero and keeps Clear selections enabled', () => {
+      expect(captionText()).toBe('Entries (0 of 1 selected)');
+      expect(clearButton().textContent.trim()).toBe('Clear selections');
+      expect(clearButton().disabled).toBe(false);
+      clearButton().click();
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (0 of 1 selected)');
+      expect(component.canUseBulkActions).toBe(false);
+    });
+
+    it('counts selections across pages and updates when deselected', () => {
+      jest.spyOn(component, 'loadListDetailsInfo').mockImplementation(() => {});
+      patchDetailState({ totalEntries: 40, totalPages: 2 });
+      component.onSelectedIdsChange(new Set(['abc']));
+      component.onPageChange(2);
+      component.onSelectedIdsChange(new Set(['abc', 'other-page-entry']));
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (2 of 40 selected)');
+      component.onSelectedIdsChange(new Set(['other-page-entry']));
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (1 of 40 selected)');
+      expect(caption().querySelector('[aria-live="polite"]')).not.toBeNull();
+    });
+
+    it('counts all filtered matches minus exclusions and clears every selection', () => {
+      patchDetailState({ totalEntries: 4 });
+      component.onSelectAllMatchingClick();
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (4 of 4 selected)');
+      component.onSelectedIdsChange(new Set());
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (3 of 4 selected)');
+      clearButton().click();
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (0 of 4 selected)');
+      expect(vm().selectedIds.size).toBe(0);
+      expect(vm().selectedRows).toEqual([]);
+      expect(vm().excludedEntryIds.size).toBe(0);
+      expect(vm().isFilterSelection).toBe(false);
+      expect(vm().allMatchingSelected).toBe(false);
+      expect(component.canUseBulkActions).toBe(false);
+      expect(component.tableSelectedIds().size).toBe(0);
+    });
+
+    it('resets selection and updates the total when filters change', () => {
+      component.onSelectAllMatchingClick();
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (1 of 1 selected)');
+      component.onSearchStarted({ applicantName: 'New' });
+      component.onSearchResult({
+        rows: [{ id: 'filtered-entry' }],
+        totalEntries: 3,
+        totalPages: 1,
+        reqFilter: { applicantName: 'New' },
+        errors: [],
+      });
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (0 of 3 selected)');
+      expect(clearButton().disabled).toBe(false);
+    });
+  });
+
+  describe('closed-list permissions', () => {
+    const loadStatus = async (status: ApplicationListStatus) => {
+      apiStub.getApplicationList.mockReturnValueOnce(
+        of(
+          new HttpResponse<ApplicationListGetDetailDto>({
+            body: {
+              id: 'id-1',
+              status,
+              courtCode: 'ABC',
+              courtName: 'Court',
+              description: 'Saved details',
+            } as ApplicationListGetDetailDto,
+          }),
+        ),
+      );
+      component.loadListDetailsInfo();
+      await flushSignalEffects(fixture);
+    };
+
+    it('hides mutations but preserves selection, printing and entry access', async () => {
+      await loadStatus(ApplicationListStatus.CLOSED);
+      patchDetailState({ selectedIds: new Set(['abc']), bulkUploadDone: true });
+      component.bulkUploadFeeUpdateAvailable.set(true);
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      expect(component.canModifyList()).toBe(false);
+      expect(component.form.disabled).toBe(true);
+      expect(component.listRow?.status).toBe(ApplicationListStatus.CLOSED);
+      const text = root.textContent ?? '';
+      for (const action of [
+        'Create application',
+        'Bulk upload',
+        'Result selected',
+        'Move entries',
+        'Update officials',
+        'Update fee details',
+        'Close list',
+        'Delete list',
+      ]) {
+        expect(
+          [...root.querySelectorAll('a,button')].some(
+            (el) => el.textContent?.trim() === action,
+          ),
+        ).toBe(false);
+      }
+      expect(text).toContain('Print continuous');
+      expect(text).toContain('Print page');
+      expect(root.querySelector('input[type="checkbox"]')).not.toBeNull();
+      expect(root.querySelector('button[type="submit"]')).toBeNull();
+      expect(root.querySelector('a[href$="create-entry"]')).toBeNull();
+      expect(text).not.toContain('Click here to update fee details');
+
+      const navigate = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      await component.openUpdate({ id: 'abc' });
+      expect(navigate).toHaveBeenCalledWith([
+        '/applications-list',
+        'id-1',
+        'update-notes',
+        'abc',
+      ]);
+    });
+
+    it('does not call previews, updates or delete navigation from closed-list mutation handlers', async () => {
+      await loadStatus(ApplicationListStatus.CLOSED);
+      const navigate = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      navigate.mockClear();
+      entriesApiStub.applicationListEntryBulkActionPreview.mockClear();
+      await component.onUpdateOfficialsButtonClick();
+      await component.onResultButtonClick();
+      await component.onUpdateFeeButtonClick();
+      await component.onMoveButtonClick();
+      await component.onBulkUploadBannerClick();
+      await component.onDeleteButtonClick({ id: 'abc' });
+      component.setUpdateRequestFn({
+        id: 'id-1',
+        etag: null,
+        payload: {
+          date: '2026-10-07',
+          time: '10:00',
+          description: 'Update',
+          status: ApplicationListStatus.OPEN,
+        },
+      });
+      await flushSignalEffects(fixture);
+      expect(
+        entriesApiStub.applicationListEntryBulkActionPreview,
+      ).not.toHaveBeenCalled();
+      expect(apiStub.updateApplicationList).not.toHaveBeenCalled();
+      expect(navigate).not.toHaveBeenCalled();
+      component.setUpdateRequestFn(null);
+    });
+
+    it('does not offer creation for an empty closed list', async () => {
+      await loadStatus(ApplicationListStatus.CLOSED);
+      patchDetailState({ rows: [] });
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      expect(root.textContent).toContain('No lists entries found');
+      expect(root.querySelector('a[href$="create-entry"]')).toBeNull();
+    });
+
+    it('locks stale navigation data until authoritative status is loaded', async () => {
+      const response = new Subject<HttpResponse<ApplicationListGetDetailDto>>();
+      apiStub.getApplicationList.mockReturnValueOnce(response);
+      const pendingFixture = TestBed.createComponent(ApplicationsListDetail);
+      pendingFixture.detectChanges();
+      expect(pendingFixture.componentInstance.canModifyList()).toBe(false);
+      expect(
+        pendingFixture.nativeElement.querySelector('a[href$="create-entry"]'),
+      ).toBeNull();
+      response.next(
+        new HttpResponse({
+          body: {
+            status: ApplicationListStatus.CLOSED,
+          } as ApplicationListGetDetailDto,
+        }),
+      );
+      await flushSignalEffects(pendingFixture);
+      expect(pendingFixture.componentInstance.canModifyList()).toBe(false);
+      pendingFixture.destroy();
+      response.complete();
+    });
+
+    it('keeps open-list edits on refresh but refreshes status and details when closed', async () => {
+      component.form.controls.description.setValue('Unsaved edit');
+      await loadStatus(ApplicationListStatus.OPEN);
+      expect(component.form.controls.description.value).toBe('Unsaved edit');
+      await loadStatus(ApplicationListStatus.CLOSED);
+      expect(component.form.controls.description.value).toBe('Saved details');
+      expect(component.form.disabled).toBe(true);
+      await loadStatus(ApplicationListStatus.OPEN);
+      expect(component.form.controls.description.enabled).toBe(true);
+      expect(component.form.controls.court.enabled).toBe(true);
+      expect(component.form.controls.location.disabled).toBe(true);
+    });
+
+    it('locks the form and hides mutations when the API returns no list details', async () => {
+      apiStub.getApplicationList.mockReturnValueOnce(
+        of(new HttpResponse<ApplicationListGetDetailDto>({ body: null })),
+      );
+      component.loadListDetailsInfo();
+      await flushSignalEffects(fixture);
+      expect(component.canModifyList()).toBe(false);
+      expect(component.form.disabled).toBe(true);
+      expect(
+        fixture.nativeElement.querySelector('a[href$="create-entry"]'),
+      ).toBeNull();
+      expect(vm().errorSummary).toEqual([
+        { text: 'No data returned from server.' },
+      ]);
+    });
+
+    it('keeps mutations unavailable when list loading fails', async () => {
+      apiStub.getApplicationList.mockReturnValueOnce(
+        throwError(() => new HttpErrorResponse({ status: 500 })),
+      );
+      component.loadListDetailsInfo();
+      await flushSignalEffects(fixture);
+      expect(component.canModifyList()).toBe(false);
+      expect(
+        fixture.nativeElement.querySelector('a[href$="create-entry"]'),
+      ).toBeNull();
+      const navigate = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      navigate.mockClear();
+      await component.openUpdate({ id: 'abc' });
+      expect(navigate).not.toHaveBeenCalled();
+    });
+  });
+
   it('passes the original list detail to the update component', () => {
     const updateComponent = fixture.debugElement.query(
       By.directive(ApplicationsListUpdateComponent),
@@ -288,6 +537,27 @@ describe('ApplicationsListDetail', () => {
     expect(detailsTab.nativeElement.getAttribute('aria-selected')).toBe(
       'false',
     );
+  });
+
+  it('keeps bulk upload success focus when the empty entries banner renders', async () => {
+    patchDetailState({
+      bulkUploadDone: true,
+      bulkUploadBannerText: '1 application imported successfully.',
+      rows: [],
+      isLoading: false,
+    });
+    await flushSignalEffects(fixture);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const success = fixture.debugElement.query(
+      By.css('app-success-banner [role="alert"]'),
+    );
+    const emptyEntries = fixture.debugElement.query(
+      By.css('app-notification-banner'),
+    );
+    expect(emptyEntries).toBeTruthy();
+    expect(emptyEntries.componentInstance.autoFocus()).toBe(false);
+    expect(document.activeElement).toBe(success.nativeElement);
   });
 
   it('shows success banner when updateDone is true', async () => {
@@ -1119,6 +1389,30 @@ describe('ApplicationsListDetail', () => {
     expect(vm().preserveErrorSummaryOnLoad).toBe(true);
   });
 
+  it('renders close errors as text while preserving field links and internal IDs', async () => {
+    const closeError = {
+      id: 'status-close',
+      href: '#status',
+      text: 'List cannot be closed. Please result all the applications in the list and try again',
+    };
+    const durationError = {
+      id: 'duration',
+      href: '#duration-hours',
+      text: 'Enter a duration',
+    };
+    patchDetailState({ errorSummary: [closeError, durationError] });
+    await flushSignalEffects(fixture);
+
+    const summary = fixture.debugElement.query(By.css('app-error-summary'));
+    const items = summary.queryAll(By.css('li'));
+    expect(items[0].nativeElement.textContent).toContain(closeError.text);
+    expect(items[0].query(By.css('a'))).toBeNull();
+    expect(items[1].query(By.css('a')).nativeElement.getAttribute('href')).toBe(
+      '#duration-hours',
+    );
+    expect(vm().errorSummary).toEqual([closeError, durationError]);
+  });
+
   it('maps move errors from navigation state onto the detail page', async () => {
     historyStateSpy.mockReturnValue({
       row: {
@@ -1335,7 +1629,7 @@ describe('ApplicationsListDetail', () => {
           description: '',
           status: 'OPEN',
         },
-        msg: '3 records created.',
+        msg: '3 applications imported successfully.',
         jobId: 'job-123',
         totalFeeValue,
       });
@@ -1354,7 +1648,7 @@ describe('ApplicationsListDetail', () => {
 
       expect(vm().bulkUploadDone).toBe(true);
       expect(vm().bulkUploadBannerText).toBe(
-        `3 records created.${expectedTotal}`,
+        `3 applications imported successfully.${expectedTotal}`,
       );
       expect(component.bulkUploadJobId()).toBe('job-123');
     },
