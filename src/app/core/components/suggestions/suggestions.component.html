@@ -55,7 +55,11 @@
           role="listbox"
           [attr.aria-labelledby]="id() + '-label'"
         >
-          @for (item of visibleSuggestions; track item; let index = $index) {
+          @for (
+            item of visibleSuggestions;
+            track item.value;
+            let index = $index
+          ) {
             <div
               [id]="optionId(index)"
               class="app-autocomplete__link"
