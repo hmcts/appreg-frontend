@@ -107,14 +107,16 @@ Feature: Applications List Search
       | User   |
       | admin1 |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-977
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-977 @ARCPOC-1769
   Scenario: Verify applications list table is displayed with search results and values retained
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | List description | CourtSearch | Court                             | Select list status | Other location description | Criminal justice area | CJASearch |
       | today | @listDescription | LCCC065     | Leeds Combined Court Centre Set 7 |                    |                            |                       |           |
     # Table and header validation
-    Then User Should See Table "Lists" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
+    Then User Should See Table "Lists" Header "Date" Is Not Sortable
+    Then User Should See Table "Lists" Header "Location" Is Not Sortable
+    Then User Should See Table "Lists" Has Sortable Headers "Time, Description, Entries, Status"
     Then User Should See Table "Lists" Header "Actions" Is Not Sortable
     # Row value validation - verify the list created in Background appears
     Then User Should See Row In Table "Lists" With Values:
@@ -223,13 +225,16 @@ Feature: Applications List Search
       | User   | SearchText | ValidationErrorMessage                      | OptionText | ExpectedValue | Info             |
       | admin1 | zzzzzzzz   | There is a problem Court location not found |            | Kent          | No results found |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-417
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-417 @ARCPOC-1769
   Scenario: Verify application list Open
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | today | @listDescription | LCCC065     |       | OPEN               |                            |                       |           |
-    Then User Should See Table "Lists" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
+    Then User Should See Table "Lists" Header "Date" Is Not Sortable
+    Then User Should See Table "Lists" Header "Location" Is Not Sortable
+    Then User Should See Table "Lists" Header "Status" Is Not Sortable
+    Then User Should See Table "Lists" Has Sortable Headers "Time, Description, Entries"
     Then User Should See Table "Lists" Header "Actions" Is Not Sortable
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
       | Date         | Location                          | Entries | Status |

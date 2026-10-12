@@ -9,7 +9,10 @@
     "wiremock/**"
   ],
   "rules": {
-    "string-quotes": null,
-    "selector-class-pattern": null
+    "selector-class-pattern": null,
+    "selector-pseudo-element-no-unknown": [
+      true,
+      { "ignorePseudoElements": ["ng-deep"] }
+    ]
   }
 }

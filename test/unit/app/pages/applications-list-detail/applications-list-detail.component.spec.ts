@@ -269,6 +269,79 @@ describe('ApplicationsListDetail', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('selection caption', () => {
+    const caption = (): HTMLElement =>
+      fixture.nativeElement.querySelector('#sortable-Lists');
+    const captionText = (): string =>
+      caption()
+        .querySelector('.table-caption__text')!
+        .textContent.replace(/\s+/g, ' ')
+        .trim();
+    const clearButton = (): HTMLButtonElement =>
+      caption().querySelector('button.govuk-button--secondary')!;
+
+    it('shows the total at zero and keeps Clear selections enabled', () => {
+      expect(captionText()).toBe('Entries (0 of 1 selected)');
+      expect(clearButton().textContent.trim()).toBe('Clear selections');
+      expect(clearButton().disabled).toBe(false);
+      clearButton().click();
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (0 of 1 selected)');
+      expect(component.canUseBulkActions).toBe(false);
+    });
+
+    it('counts selections across pages and updates when deselected', () => {
+      jest.spyOn(component, 'loadListDetailsInfo').mockImplementation(() => {});
+      patchDetailState({ totalEntries: 40, totalPages: 2 });
+      component.onSelectedIdsChange(new Set(['abc']));
+      component.onPageChange(2);
+      component.onSelectedIdsChange(new Set(['abc', 'other-page-entry']));
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (2 of 40 selected)');
+      component.onSelectedIdsChange(new Set(['other-page-entry']));
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (1 of 40 selected)');
+      expect(caption().querySelector('[aria-live="polite"]')).not.toBeNull();
+    });
+
+    it('counts all filtered matches minus exclusions and clears every selection', () => {
+      patchDetailState({ totalEntries: 4 });
+      component.onSelectAllMatchingClick();
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (4 of 4 selected)');
+      component.onSelectedIdsChange(new Set());
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (3 of 4 selected)');
+      clearButton().click();
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (0 of 4 selected)');
+      expect(vm().selectedIds.size).toBe(0);
+      expect(vm().selectedRows).toEqual([]);
+      expect(vm().excludedEntryIds.size).toBe(0);
+      expect(vm().isFilterSelection).toBe(false);
+      expect(vm().allMatchingSelected).toBe(false);
+      expect(component.canUseBulkActions).toBe(false);
+      expect(component.tableSelectedIds().size).toBe(0);
+    });
+
+    it('resets selection and updates the total when filters change', () => {
+      component.onSelectAllMatchingClick();
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (1 of 1 selected)');
+      component.onSearchStarted({ applicantName: 'New' });
+      component.onSearchResult({
+        rows: [{ id: 'filtered-entry' }],
+        totalEntries: 3,
+        totalPages: 1,
+        reqFilter: { applicantName: 'New' },
+        errors: [],
+      });
+      fixture.detectChanges();
+      expect(captionText()).toBe('Entries (0 of 3 selected)');
+      expect(clearButton().disabled).toBe(false);
+    });
+  });
+
   describe('closed-list permissions', () => {
     const loadStatus = async (status: ApplicationListStatus) => {
       apiStub.getApplicationList.mockReturnValueOnce(

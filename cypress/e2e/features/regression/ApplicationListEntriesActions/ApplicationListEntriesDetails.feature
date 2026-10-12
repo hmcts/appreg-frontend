@@ -1,6 +1,6 @@
 Feature: Application List Entries Search
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-1246 @ARCPOC-1226
+    @regression @applicationsList @applicationListEntry @ARCPOC-1246 @ARCPOC-1226 @ARCPOC-1769
     Scenario Outline: Application List - Search Entries - Mixed Applicants, Respondents, Fees And Results
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -171,6 +171,9 @@ Feature: Application List Entries Search
         When User Searches Application List With:
             | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      |             | <courtLocationCode> | <Court> |        |                |     |           |
+        Then User Should See Table "List" Has Sortable Headers " Time, Description, Entries, Status"
+        And User Should See Table "List" Header "Date" Is Not Sortable
+        And User Should See Table "List" Header "Location" Is Not Sortable
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
@@ -212,6 +215,8 @@ Feature: Application List Entries Search
             | Sequence number | Account number | Applicant                       | Respondent                         | Postcode | Title                      | Fee | Resulted |
             | 4               | ACCSE4{RANDOM} | Fiona Morgan {SCENARIO_ID}      | Civic Respondent Ltd {SCENARIO_ID} | CF1 1AA  | Condemnation of Unfit Food | Yes |          |
             | 5               | ACCSE5{RANDOM} | Registry Services {SCENARIO_ID} | Liam Wilson {SCENARIO_ID}          | NE1 2AA  | Condemnation of Unfit Food | Yes | AUTH     |
+        Then User Should See Table "Entries" Header "Fee" Is Not Sortable
+        Then User Should See Table "Entries" Has Sortable Headers "Sequence number, Account number, Applicant, Respondent, Postcode, Title, Resulted"
         When User Searches Application List Entries With:
             | Applicant | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
             |           |            |                     |                 |                |                   |     | AUTH     |
