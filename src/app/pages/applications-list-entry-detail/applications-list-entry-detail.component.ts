@@ -31,7 +31,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { map, merge } from 'rxjs';
+import { map } from 'rxjs';
 
 import {
   ApplicationsListEntryDetailState,
@@ -1218,14 +1218,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private bindPartyValidationChanges(): void {
-    merge(
-      this.forms.personForm.valueChanges,
-      this.forms.organisationForm.valueChanges,
-      this.form.controls.respondentEntryType.valueChanges,
-      this.form.controls.numberOfRespondents.valueChanges,
-      this.forms.respondentPersonForm.valueChanges,
-      this.forms.respondentOrganisationForm.valueChanges,
-    )
+    this.formSvc
+      .partyValidationChanges(this.forms)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         if (!this.vm().formSubmitted) {
