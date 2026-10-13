@@ -65,6 +65,11 @@ import {
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import {
+  type SuggestionsItem,
+  isAppcodeSuggestionItem,
+  toAppcodeSuggestionsItem,
+} from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ApplicationsColumns } from '@constants/applications/applications.constants';
 import { APPLICATIONS_ERROR_MAP } from '@constants/applications/error-messages';
@@ -182,6 +187,19 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   readonly errorMap = APPLICATIONS_ERROR_MAP;
 
+  readonly applicationTitleSearch = signal('');
+  readonly filteredApplicationTitles = computed(() => {
+    const query = this.applicationTitleSearch().trim().toLowerCase();
+    if (!query) {
+      return [];
+    }
+
+    return [...new Set(this.refFacade.applicationCodeTitles())]
+      .filter((title) => title.toLowerCase().includes(query))
+      .slice(0, 20)
+      .map(toAppcodeSuggestionsItem);
+  });
+
   private readonly printRequest = signal<BulkPrintRequest | null>(null);
 
   readonly submitAttempt = signal(0);
@@ -257,6 +275,9 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   ngOnInit(): void {
     this.restoreSearchState();
+    this.applicationTitleSearch.set(
+      this.form.controls.applicationTitle.value ?? '',
+    );
     this.initPlaceFields(this.form, this.refFacade);
     this.setupEffects();
 
@@ -689,6 +710,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.searchState.reset();
 
     this.form.reset(DEFAULT_APPLICATIONS_SEARCH_FORM);
+    this.applicationTitleSearch.set('');
 
     this.patch({
       courthouseSearch: '',
@@ -696,6 +718,18 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       filteredCourthouses: [],
       filteredCja: [],
     });
+  }
+
+  onApplicationTitleInputChange(value: string): void {
+    this.applicationTitleSearch.set(value);
+    this.form.controls.applicationTitle.setValue(value);
+  }
+
+  onApplicationTitleSuggestionSelected(item: SuggestionsItem): void {
+    if (isAppcodeSuggestionItem(item)) {
+      this.applicationTitleSearch.set(item.value);
+      this.form.controls.applicationTitle.setValue(item.value);
+    }
   }
 
   // Helpers
