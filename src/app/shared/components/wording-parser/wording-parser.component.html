@@ -19,7 +19,7 @@
       }
     }
   </p>
-  @if (isSaveDisabled() && showSaveButton()) {
+  @if (hasWordingInput() && showSaveButton()) {
     <button
       id="save-wording-button"
       class="govuk-button"

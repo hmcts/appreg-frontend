@@ -197,15 +197,15 @@ describe('WordingParserComponent', () => {
     });
   });
 
-  describe('isSaveDisabled()', () => {
+  describe('hasWordingInput()', () => {
     it('should return true if input tokens exist', () => {
       init(makeWordingObject({ template: 'Hi {{A}}' }));
-      expect(component.isSaveDisabled()).toBe(true);
+      expect(component.hasWordingInput()).toBe(true);
     });
 
     it('should return false if no input tokens', () => {
       init(makeWordingObject({ template: 'Just text' }));
-      expect(component.isSaveDisabled()).toBe(false);
+      expect(component.hasWordingInput()).toBe(false);
     });
   });
 
