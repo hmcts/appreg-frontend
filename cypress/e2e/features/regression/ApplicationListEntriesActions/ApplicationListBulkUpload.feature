@@ -1,6 +1,6 @@
 Feature: Application List Bulk Upload
 
-    @regression @applicationsList @applicationListEntry @core @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1506 @ARCPOC-1748 @ARCPOC-1822 @ARCPOC-1832
+    @regression @applicationsList @applicationListEntry @core @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1506 @ARCPOC-1748 @ARCPOC-1822 @ARCPOC-1832 @ARCPOC-1848
     Scenario Outline: Application List - Bulk Upload Entries Via CSV File With Application Codes Fee Required = 'N'
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -23,6 +23,8 @@ Feature: Application List Bulk Upload
         When User Uploads The File "bulk-upload-entries-fee-not-required.csv"
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
+        Then User Sees Success Banner "Success Bulk upload complete" Does Not Contain Link "Click here to update fee details on newly uploaded applications"
+        Then User Sees Success Banner "Success Bulk upload complete" Containing "2 applications imported successfully."
         Then User Sees Success Banner "Success Bulk upload complete" Containing "Total fees for uploaded applications: £0.00"
         # Export must not be offered when there are no validation errors
         Then User Should Not See The Button "Export the file with errors shown"
@@ -39,7 +41,7 @@ Feature: Application List Bulk Upload
             | User  | APIDate  | Time           | Status | Description          | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkUp_{SCENARIO_ID} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1493 @ARCPOC-1506
+    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1493 @ARCPOC-1506 @ARCPOC-1848
     Scenario Outline: Application List - Bulk Upload Entries Via CSV File With Application Codes Fee Required = 'Y'
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -62,6 +64,7 @@ Feature: Application List Bulk Upload
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
         Then User Sees Success Banner "Success Bulk upload complete" Containing Link "Click here to update fee details on newly uploaded applications"
+        Then User Sees Success Banner "Success Bulk upload complete" Containing "2 applications imported successfully."
         Then User Sees Success Banner "Success Bulk upload complete" Containing "Total fees for uploaded applications: £22.00"
         # Export must not be offered when there are no validation errors
         Then User Should Not See The Button "Export the file with errors shown"

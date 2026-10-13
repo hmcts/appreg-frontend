@@ -1,6 +1,6 @@
 Feature: Application List Entries Details Bulk Action Preview Limit Validation
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-222 @ARCPOC-1513 @ARCPOC-1832 @ARCPOC-1834
+    @regression @applicationsList @applicationListEntry @ARCPOC-222 @ARCPOC-1513 @ARCPOC-1832 @ARCPOC-1834 @ARCPOC-1848 @ARCPOC-1849
     Scenario Outline: Verify Validation Error Message For Application List Entries Details Bulk Action Preview Limit
         # Create applications list
         Given User Authenticates Via API As "user1"
@@ -68,6 +68,8 @@ Feature: Application List Entries Details Bulk Action Preview Limit Validation
         # Wait for the file upload to complete
         When User Waits For The File Upload To Complete
         Then User Sees Success Banner "Success Bulk upload complete" Containing Link "Click here to update fee details on newly uploaded applications"
+        Then User Sees Success Banner "Success Bulk upload complete" Containing "1050 applications imported successfully."
+        Then User Sees Success Banner "Success Bulk upload complete" Containing "Total fees for uploaded applications: £5,764.00"
         Then User See "Applications list" On The Page
         # Different Actions Validations on 1051 ALEs (1 ALE + 1050 ALEs uploaded)
         Then User Clicks On The Breadcrumb Link "Applications list"
@@ -80,26 +82,40 @@ Feature: Application List Entries Details Bulk Action Preview Limit Validation
         Then User Should See The Table "Entries"
         # Action - Result Selected
         When User Checks The Select All Checkbox In Table "Entries"
+        Then User See "Entries (1051 of 1051 selected)" On The Page
+        When User Clicks On The "Clear selections" Button
+        Then User See "Entries (0 of 1051 selected)" On The Page
+        When User Checks The Select All Checkbox In Table "Entries"
         When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 1050. Please reduce the number of rows selected"
         # Action - Move Entries
+        When User Clicks On The "Clear selections" Button
         When User Checks The Select All Checkbox In Table "Entries"
+        Then User See "Entries (1051 of 1051 selected)" On The Page
         When User Clicks "Actions" Then "Move entries" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 1050. Please reduce the number of rows selected"
         # Action - Update officials
+        When User Clicks On The "Clear selections" Button
         When User Checks The Select All Checkbox In Table "Entries"
+        Then User See "Entries (1051 of 1051 selected)" On The Page
         When User Clicks "Actions" Then "Update officials" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 1050. Please reduce the number of rows selected"
         # Action - Update fee details
+        When User Clicks On The "Clear selections" Button
         When User Checks The Select All Checkbox In Table "Entries"
+        Then User See "Entries (1051 of 1051 selected)" On The Page
         When User Clicks "Actions" Then "Update fee details" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 1050. Please reduce the number of rows selected"
         # Action - Print continuous
+        When User Clicks On The "Clear selections" Button
         When User Checks The Select All Checkbox In Table "Entries"
+        Then User See "Entries (1051 of 1051 selected)" On The Page
         When User Clicks "Actions" Then "Print continuous" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 1050. Please reduce the number of rows selected"
         # Action - Print page
+        When User Clicks On The "Clear selections" Button
         When User Checks The Select All Checkbox In Table "Entries"
+        Then User See "Entries (1051 of 1051 selected)" On The Page
         When User Clicks "Actions" Then "Print page" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 1050. Please reduce the number of rows selected"
         # Application List Cleanup

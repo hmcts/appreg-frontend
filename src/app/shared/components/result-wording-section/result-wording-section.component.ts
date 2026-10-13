@@ -133,7 +133,15 @@ export class ResultWordingSectionComponent {
   totalPages = input(1);
   pageChange = output<number>();
 
-  resultCodeSearch = '';
+  private readonly resultCodeSearchState = signal('');
+
+  get resultCodeSearch(): string {
+    return this.resultCodeSearchState();
+  }
+
+  set resultCodeSearch(value: string) {
+    this.resultCodeSearchState.set(value);
+  }
 
   constructor() {
     effect(() => {
@@ -160,8 +168,10 @@ export class ResultWordingSectionComponent {
     });
   }
 
-  get filteredResultCodes(): ResultCodeSuggestionItem[] {
-    const q = this.norm(this.resultCodeSearch);
+  private readonly filteredResultCodesState = computed<
+    ResultCodeSuggestionItem[]
+  >(() => {
+    const q = this.norm(this.resultCodeSearchState());
     if (!q) {
       return [];
     }
@@ -183,6 +193,10 @@ export class ResultWordingSectionComponent {
       })
       .map(toResultCodeSuggestionItem)
       .slice(0, 50);
+  });
+
+  get filteredResultCodes(): ResultCodeSuggestionItem[] {
+    return this.filteredResultCodesState();
   }
 
   onAppliedBannerDismissed(): void {
