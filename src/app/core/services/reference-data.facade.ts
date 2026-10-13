@@ -16,6 +16,7 @@ import { EMPTY, Observable, of } from 'rxjs';
 import { catchError, expand, map, reduce } from 'rxjs/operators';
 
 import {
+  ApplicationCodesApi,
   CourtLocationGetSummaryDto,
   CourtLocationsApi,
   CriminalJusticeAreaGetDto,
@@ -26,19 +27,25 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 interface ReferenceDataState {
   cja: CriminalJusticeAreaGetDto[];
   courtLocations: CourtLocationGetSummaryDto[];
+  applicationCodeTitles: string[];
   cjaLoading: boolean;
   courtsLoading: boolean;
+  appCodeLoading: boolean;
   cjaLoadError: boolean;
   courtsLoadError: boolean;
+  appCodeLoadError: boolean;
 }
 
 const initialReferenceDataState: ReferenceDataState = {
   cja: [],
   courtLocations: [],
+  applicationCodeTitles: [],
   cjaLoading: false,
   courtsLoading: false,
+  appCodeLoading: false,
   cjaLoadError: false,
   courtsLoadError: false,
+  appCodeLoadError: false,
 };
 
 @Injectable({ providedIn: 'root' })
@@ -46,6 +53,7 @@ export class ReferenceDataFacade {
   // API
   private readonly cjaApi = inject(CriminalJusticeAreasApi);
   private readonly courtApi = inject(CourtLocationsApi);
+  private readonly appcodeApi = inject(ApplicationCodesApi);
 
   private readonly envInjector = inject(EnvironmentInjector);
   private readonly pageSize = 100;
@@ -68,6 +76,7 @@ export class ReferenceDataFacade {
   // Request signals
   private readonly loadCjaRequest = signal<boolean | null>(true);
   private readonly loadCourtsRequest = signal<boolean | null>(true);
+  private readonly loadAllAppCodeTitlesRequest = signal<boolean | null>(true);
 
   private readonly platformId = inject(PLATFORM_ID);
 
@@ -79,9 +88,14 @@ export class ReferenceDataFacade {
     this.setupEffects();
 
     // Trigger initial loads
-    this.signalState.patch({ cjaLoading: true, courtsLoading: true });
+    this.signalState.patch({
+      cjaLoading: true,
+      courtsLoading: true,
+      appCodeLoading: true,
+    });
     this.loadCjaRequest.set(true);
     this.loadCourtsRequest.set(true);
+    this.loadAllAppCodeTitlesRequest.set(true);
   }
 
   // Manual refresh
@@ -89,11 +103,14 @@ export class ReferenceDataFacade {
     this.signalState.patch({
       cjaLoading: true,
       courtsLoading: true,
+      appCodeLoading: true,
       cjaLoadError: false,
       courtsLoadError: false,
+      appCodeLoadError: false,
     });
     this.loadCjaRequest.set(true);
     this.loadCourtsRequest.set(true);
+    this.loadAllAppCodeTitlesRequest.set(true);
   }
 
   private setupEffects(): void {
@@ -150,6 +167,33 @@ export class ReferenceDataFacade {
       },
       this.envInjector,
     );
+
+    setupLoadEffect(
+      {
+        request: () => this.loadAllAppCodeTitlesRequest(),
+        load: () =>
+          this.loadAllAppCodeTitles().pipe(
+            catchError(() => of([] as string[])),
+          ),
+        onSuccess: (items) => {
+          this.signalState.patch({
+            applicationCodeTitles: items,
+            appCodeLoading: false,
+            appCodeLoadError: false,
+          });
+          this.loadAllAppCodeTitlesRequest.set(null);
+        },
+        onError: () => {
+          this.signalState.patch({
+            applicationCodeTitles: [],
+            appCodeLoading: false,
+            appCodeLoadError: true,
+          });
+          this.loadAllAppCodeTitlesRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
   }
 
   private loadAllCja(): Observable<CriminalJusticeAreaGetDto[]> {
@@ -195,6 +239,26 @@ export class ReferenceDataFacade {
         (all, content) => all.concat(content),
         [] as CourtLocationGetSummaryDto[],
       ),
+    );
+  }
+
+  private loadAllAppCodeTitles(): Observable<string[]> {
+    const first$ = this.appcodeApi.getApplicationCodes({
+      pageNumber: 0,
+      pageSize: this.pageSize,
+    });
+
+    return first$.pipe(
+      expand((page) =>
+        page.last
+          ? EMPTY
+          : this.appcodeApi.getApplicationCodes({
+              pageNumber: page.pageNumber + 1,
+              pageSize: this.pageSize,
+            }),
+      ),
+      map((page) => page.content.map((code) => code.title) ?? []),
+      reduce((all, content) => all.concat(content), [] as string[]),
     );
   }
 }
