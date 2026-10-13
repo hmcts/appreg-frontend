@@ -1090,6 +1090,40 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     resetSectionsSpy.mockRestore();
   });
 
+  it('onCodeSelected clears fee rows, inputs and errors for a non-fee code', () => {
+    const service = TestBed.inject(ApplicationListEntryFormService);
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(
+      of(applicationCodeDetail({ isFeeDue: true })),
+    );
+    component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
+    component.form.patchValue({
+      feeStatuses: [{ paymentStatus: 'PAID', statusDate: '2026-02-01' }],
+      feeStatus: 'PAID',
+      feeStatusDate: '2026-02-01',
+      paymentRef: 'TEST-REF',
+      hasOffsiteFee: true,
+    });
+    component.onChildErrors('civilFee', [
+      { id: 'feeStatus', text: 'Select a fee status' },
+    ]);
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(
+      of(applicationCodeDetail({ applicationCode: 'FREE' })),
+    );
+
+    component.onCodeSelected({ code: 'FREE', date: '2026-02-01' });
+
+    expect(component.civilFeeForm.getRawValue()).toEqual({
+      feeStatuses: null,
+      feeStatus: null,
+      feeStatusDate: null,
+      paymentRef: null,
+      hasOffsiteFee: null,
+    });
+    expect(component.vm().isFeeRequired).toBe(false);
+    expect(component.vm().summaryErrors).toEqual([]);
+    expect(service.buildCreateDto(component.forms).feeStatuses).toBeUndefined();
+  });
+
   it('onCodeSelected sets bulkApplicationsAllowed from API detail.bulkRespondentAllowed', () => {
     getApplicationCodeByCodeAndDateMock.mockReturnValue(
       of(applicationCodeDetail({ bulkRespondentAllowed: true })),
@@ -1152,6 +1186,7 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
   });
 
   it('onCodeSelected stores the expanded fee metadata from the API detail', () => {
+    component.form.controls.feeStatus.setValue('PAID');
     getApplicationCodeByCodeAndDateMock.mockReturnValue(
       of(
         applicationCodeDetail({
@@ -1175,6 +1210,7 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
 
     component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
 
+    expect(component.form.controls.feeStatus.value).toBe('PAID');
     expect(component.feeMeta).toEqual({
       feeReference: 'CO7.2',
       feeDescription: 'Main fee description',
