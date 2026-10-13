@@ -54,6 +54,14 @@ Then(
   },
 );
 
+Then(
+  'User Sees Success Banner {string} Does Not Contain Link {string}',
+  (heading: string, linkText: string) => {
+    BannerHelper.verifySuccessBannerDoesNotContainLink(heading, linkText);
+    cy.screenshot(`BannerWithText-${heading.substring(0, 30)}`);
+  },
+);
+
 Then('User Sees Warning Banner {string}', (expectedText: string) => {
   BannerHelper.verifyWarningBanner(expectedText);
   cy.screenshot(`WarningBannerWithText-${expectedText.substring(0, 30)}`);

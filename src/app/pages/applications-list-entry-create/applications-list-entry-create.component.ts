@@ -28,7 +28,7 @@
  * - Adds fee status rows to the Civil Fee table
  */
 
-import { Location } from '@angular/common';
+import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -392,9 +392,6 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private updateRespondentErrors(): void {
-    const isRespondentRequired =
-      this.appListEntryCreateState().appCodeDetail?.requiresRespondent === true;
-
     if (this.shouldValidateRespondent()) {
       this.childErrors.respondent = buildRespondentErrors({
         respondentEntryType: this.form.controls.respondentEntryType.value,
@@ -405,7 +402,7 @@ export class ApplicationsListEntryCreate implements OnInit {
         respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
         respondentBulkControl: this.form.controls.numberOfRespondents,
         respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
-        bulkCountRequired: isRespondentRequired,
+        bulkCountRequired: true,
       });
       return;
     }
@@ -414,8 +411,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private shouldValidateRespondent(): boolean {
-    // Run validation if respondent is required, or if user has started filling
-    // respondent fields even when optional.
+    // Validate selected Bulk applications even when respondents are optional.
     const isRespondentRequired =
       this.appListEntryCreateState().appCodeDetail?.requiresRespondent === true;
 
@@ -425,7 +421,11 @@ export class ApplicationsListEntryCreate implements OnInit {
       respondentOrganisationForm: this.forms.respondentOrganisationForm,
     });
 
-    return isRespondentRequired || respondentFormHasValues;
+    return (
+      this.form.controls.respondentEntryType.value === 'bulk' ||
+      isRespondentRequired ||
+      respondentFormHasValues
+    );
   }
 
   private updateErrors(opts: {
@@ -723,6 +723,10 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private restoreNavigationState(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     const rawNavState = readNavState(this.location, this.platformId);
     const navState = parseCreateNavState(rawNavState);
 

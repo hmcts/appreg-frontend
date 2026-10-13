@@ -37,6 +37,18 @@ publisher private key or Jira callback URL to the model environment.
 Keep `CODEX_GITHUB_APP_CLIENT_ID` as a repository variable. Keep default
 workflow permissions read-only and GitHub Actions PR approval disabled.
 
+### Preview sign-in for Codex PRs
+
+The PR environment jobs in `on-pr.yml` and `close-pr.yml` skip `codex/`
+branches, because a pull request runs the branch's own copy of those workflows
+with the app-registration credentials. Without them, a Codex PR's preview has
+no registered sign-in callbacks and its Cypress tests cannot sign in.
+
+`codex-preview-redirects.yml` does their job for Codex PRs instead. Every five
+minutes, and when dispatched by hand, it runs from `master`, registers the
+login and logout callbacks for open Codex PRs and removes them once those PRs
+close. It never checks out or runs PR code.
+
 ## Restrict runner scheduling
 
 Model jobs run in the `appreg-codex` organisation runner group, each on its

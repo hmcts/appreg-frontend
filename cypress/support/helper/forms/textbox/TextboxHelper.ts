@@ -284,4 +284,21 @@ export class TextboxHelper {
           .invoke('val');
       });
   }
+
+  static highlightTextInput(
+    selector: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    // highlight text on focused element
+
+    const textBox = TextboxElement.findTextbox(selector)
+      .click()
+      .type('{selectAll}');
+
+    return textBox;
+  }
+
+  static highlightAndReplaceText(selector: string, newText: string): void {
+    // highlight text on focused element and replace it with new text
+    TextboxHelper.highlightTextInput(selector).type(newText);
+  }
 }

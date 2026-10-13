@@ -107,14 +107,16 @@ Feature: Applications List Search
       | User   |
       | admin1 |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-977
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-977 @ARCPOC-1769
   Scenario: Verify applications list table is displayed with search results and values retained
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | List description | CourtSearch | Court                             | Select list status | Other location description | Criminal justice area | CJASearch |
       | today | @listDescription | LCCC065     | Leeds Combined Court Centre Set 7 |                    |                            |                       |           |
     # Table and header validation
-    Then User Should See Table "Lists" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
+    Then User Should See Table "Lists" Header "Date" Is Not Sortable
+    Then User Should See Table "Lists" Header "Location" Is Not Sortable
+    Then User Should See Table "Lists" Has Sortable Headers "Time, Description, Entries, Status"
     Then User Should See Table "Lists" Header "Actions" Is Not Sortable
     # Row value validation - verify the list created in Background appears
     Then User Should See Row In Table "Lists" With Values:
@@ -223,13 +225,16 @@ Feature: Applications List Search
       | User   | SearchText | ValidationErrorMessage                      | OptionText | ExpectedValue | Info             |
       | admin1 | zzzzzzzz   | There is a problem Court location not found |            | Kent          | No results found |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-417
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-417 @ARCPOC-1769
   Scenario: Verify application list Open
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
       | Date  | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | today | @listDescription | LCCC065     |       | OPEN               |                            |                       |           |
-    Then User Should See Table "Lists" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
+    Then User Should See Table "Lists" Header "Date" Is Not Sortable
+    Then User Should See Table "Lists" Header "Location" Is Not Sortable
+    Then User Should See Table "Lists" Header "Status" Is Not Sortable
+    Then User Should See Table "Lists" Has Sortable Headers "Time, Description, Entries"
     Then User Should See Table "Lists" Header "Actions" Is Not Sortable
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
       | Date         | Location                          | Entries | Status |
@@ -270,7 +275,7 @@ Feature: Applications List Search
       | CourtCode | CourtName                         | Description                                   |
       | LCCC025   | Leeds Combined Court Centre Set 3 | Test Applications List to Close {SCENARIO_ID} |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891 @ARCPOC-1769
   Scenario: Verify applications list table sorting functionality and pagination persistence
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -390,8 +395,8 @@ Feature: Applications List Search
       |      | 05:54 | Sort Seed {SCENARIO_ID} |             |       |                    |                            | London                |           |
     Then User Should See The Table "Lists"
     # Verify all sortable headers default to 'none'
-    Then User Should See Table "Lists" Header "Time" Has Sort Order "none"
-    Then User Should See Table "Lists" Header "Location" Has Sort Order "none"
+    Then User Should See Table "Lists" Header "Time" Is Not Sortable
+    Then User Should See Table "Lists" Header "Location" Is Not Sortable
     Then User Should See Table "Lists" Header "Description" Has Sort Order "none"
     Then User Should See Table "Lists" Header "Entries" Has Sort Order "none"
     Then User Should See Table "Lists" Header "Status" Has Sort Order "none"
@@ -404,8 +409,8 @@ Feature: Applications List Search
     # Search to get table with multiple pages
     When User Clicks On The "Clear search" Button
     When User Searches Application List With:
-      | Date | Time  | List description        | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      |      | 05:54 | Sort Seed {SCENARIO_ID} |             |       |                    |                            | London                |           |
+      | Date | Time | List description        | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      |      |      | Sort Seed {SCENARIO_ID} |             |       |                    |                            |                       |           |
     # Test Time column
     When User Clicks On Table Header "Time" In Table "Lists"
     Then User Should See Table "Lists" Header "Time" Has Sort Order "ascending"

@@ -528,14 +528,40 @@ describe('ApplicationsListBulkUpload', () => {
         expect(navigateSpy).toHaveBeenCalledWith(['../'], {
           relativeTo: TestBed.inject(ActivatedRoute),
           queryParams: { bulkUploadSuccess: 'true' },
-          state: { msg: '3 records created.', jobId: 'job-1', totalFeeValue },
+          state: {
+            msg: '3 applications imported successfully.',
+            jobId: 'job-1',
+            totalFeeValue,
+          },
         });
         expect(getState(component).uploadSuccessful).toBe(true);
         expect(getState(component).bulkUploadFeedback).toBeUndefined();
       },
     );
 
+    it.each<[number | null, string]>([
+      [1, '1 application imported successfully.'],
+      [12, '12 applications imported successfully.'],
+      [0, '0 applications imported successfully.'],
+      [null, 'All records were uploaded successfully.'],
+    ])('uses count %s in the success message', async (createdCount, msg) => {
+      const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
+      jobPollingFacadeMock.watchJob.mockReturnValue(
+        of(terminalJob({ createdCount })),
+      );
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      expect(navigateSpy).toHaveBeenCalledWith(['../'], {
+        relativeTo: TestBed.inject(ActivatedRoute),
+        queryParams: { bulkUploadSuccess: 'true' },
+        state: { msg, jobId: 'job-1', totalFeeValue: undefined },
+      });
+    });
+
     it('shows a failure error summary with the backend message', async () => {
+      const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
       jobPollingFacadeMock.watchJob.mockReturnValue(
         of(
           terminalJob({
@@ -561,84 +587,88 @@ describe('ApplicationsListBulkUpload', () => {
         'The uploaded file could not be processed.',
       );
       expect(getState(component).uploadSuccessful).toBe(false);
+      expect(navigateSpy).not.toHaveBeenCalled();
     });
 
-    it('maps structured backend errors into table rows and renders the export action', async () => {
-      const onExportErrorFilesClick = jest.spyOn(
-        component,
-        'onExportErrorFilesClick',
-      );
-      const errorMessage = JSON.stringify([
-        {
-          errorType: 'DATA_ERROR',
-          rowNumber: 4,
-          location: ' applicantName ',
-          message: ' Invalid value ',
-          code: ' Jane Doe ',
-          addressLine1: ' 1 High Street ',
-          rejectedValue: ' ??? ',
-        },
-        {
-          errorType: 'HEADER_ERROR',
-          rowNumber: null,
-          location: null,
-          message: '',
-          code: null,
-          addressLine1: '   ',
-          rejectedValue: null,
-        },
-      ]);
+    it.each([-1, null])(
+      'maps structured backend errors with header row %s and renders the export action',
+      async (headerRowNumber) => {
+        const onExportErrorFilesClick = jest.spyOn(
+          component,
+          'onExportErrorFilesClick',
+        );
+        const errorMessage = JSON.stringify([
+          {
+            errorType: 'DATA_ERROR',
+            rowNumber: 4,
+            location: ' applicantName ',
+            message: ' Invalid value ',
+            code: ' Jane Doe ',
+            addressLine1: ' 1 High Street ',
+            rejectedValue: ' ??? ',
+          },
+          {
+            errorType: 'HEADER_ERROR',
+            rowNumber: headerRowNumber,
+            location: null,
+            message: '',
+            code: null,
+            addressLine1: '   ',
+            rejectedValue: null,
+          },
+        ]);
 
-      jobPollingFacadeMock.watchJob.mockReturnValue(
-        of(
-          terminalJob({
-            rawStatus: 'FAILED',
-            state: 'failed',
-            createdCount: null,
-            errorCount: null,
-            totalCount: null,
-            message: errorMessage,
-          }),
-        ),
-      );
+        jobPollingFacadeMock.watchJob.mockReturnValue(
+          of(
+            terminalJob({
+              rawStatus: 'FAILED',
+              state: 'failed',
+              createdCount: null,
+              errorCount: null,
+              totalCount: null,
+              message: errorMessage,
+            }),
+          ),
+        );
 
-      startBulkUploadPolling();
-      await flushSignalEffects(fixture);
+        startBulkUploadPolling();
+        await flushSignalEffects(fixture);
 
-      expect(component.errorRows()).toEqual([
-        {
-          errorType: 'Data error',
-          rowNumber: 4,
-          location: 'applicantName',
-          message: 'Invalid value',
-          name: 'Jane Doe',
-          addressLine1: '1 High Street',
-          rejectedValue: '???',
-        },
-        {
-          errorType: 'Header error',
-          rowNumber: null,
-          location: '—',
-          message: '—',
-          name: '—',
-          addressLine1: '—',
-          rejectedValue: '—',
-        },
-      ]);
-      expect(
-        fixture.debugElement.query(By.css('app-sortable-table')),
-      ).toBeTruthy();
+        expect(component.errorRows()).toEqual([
+          {
+            errorType: 'Data error',
+            rowNumber: 4,
+            location: 'applicantName',
+            message: 'Invalid value',
+            name: 'Jane Doe',
+            addressLine1: '1 High Street',
+            rejectedValue: '???',
+          },
+          {
+            errorType: 'Header error',
+            rowNumber: '—',
+            location: '—',
+            message: '—',
+            name: '—',
+            addressLine1: '—',
+            rejectedValue: '—',
+          },
+        ]);
+        expect(
+          fixture.debugElement.query(By.css('app-sortable-table')),
+        ).toBeTruthy();
 
-      const exportButton = fixture.debugElement.query(
-        By.css('button.govuk-button__export'),
-      );
-      expect(exportButton.nativeElement.textContent).toContain(
-        'Export the file with errors shown',
-      );
+        const exportButton = fixture.debugElement.query(
+          By.css('button.govuk-button__export'),
+        );
+        expect(exportButton.nativeElement.textContent).toContain(
+          'Export the file with errors shown',
+        );
 
-      exportButton.nativeElement.click();
-      expect(onExportErrorFilesClick).toHaveBeenCalledTimes(1);
-    });
+        exportButton.nativeElement.click();
+        expect(onExportErrorFilesClick).toHaveBeenCalledTimes(1);
+      },
+    );
 
     it.each([
       [

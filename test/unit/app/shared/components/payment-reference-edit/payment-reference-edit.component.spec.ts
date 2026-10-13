@@ -30,7 +30,9 @@ describe('PaymentReferenceEditComponent', () => {
     }).compileComponents();
   });
 
-  function createComponentWithHistoryState(state: Record<string, unknown>) {
+  function createComponentWithHistoryState(
+    state: Record<string, unknown> | null,
+  ) {
     // Ensure ngOnInit reads the state we want
     history.replaceState(state, '');
 
@@ -44,6 +46,16 @@ describe('PaymentReferenceEditComponent', () => {
       row: { rowId: 'r1', paymentReference: 'REF1' },
     });
     expect(component).toBeTruthy();
+  });
+
+  it('navigates back when a direct browser visit has no history state', () => {
+    createComponentWithHistoryState(null);
+
+    expect(component.row).toBeNull();
+    expect(routerNavigate).toHaveBeenCalledWith(['../'], {
+      relativeTo: routeStub,
+      queryParamsHandling: 'preserve',
+    });
   });
 
   it('ngOnInit navigates back when history.state.row is missing/invalid', () => {

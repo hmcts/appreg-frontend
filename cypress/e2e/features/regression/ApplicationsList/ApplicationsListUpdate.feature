@@ -44,7 +44,7 @@ Feature: Applications List Update
         When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description        | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription         | UpdatedOtherLocation   | SuccessHeading         | SuccessBody                                      |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description        | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription         | UpdatedOtherLocation   | SuccessHeading           | SuccessBody                                        |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{SCENARIO_ID} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{SCENARIO_ID} | Updated Location_21442 | Application list updated | The application list has been successfully updated |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759 @ARCPOC-801
@@ -92,7 +92,7 @@ Feature: Applications List Update
         When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
-            | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description        | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessHeading         | SuccessBody                                      |
+            | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description        | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessHeading           | SuccessBody                                        |
             | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{SCENARIO_ID} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        | Application list updated | The application list has been successfully updated |
 
     @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-852 @ARCPOC-1759 @ARCPOC-801
@@ -163,16 +163,17 @@ Feature: Applications List Update
         When User Clicks On The "Update" Button
         Then User Sees Success Banner "<SuccessHeading>" Containing "<SuccessBody>"
         Examples:
-            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description               | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                         | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation           | InvalidCJAValue | InvalidCourtValue | SuccessHeading         | SuccessBody                                      |
+            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description               | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                         | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation           | InvalidCJAValue | InvalidCourtValue | SuccessHeading           | SuccessBody                                        |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {SCENARIO_ID} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {SCENARIO_ID} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {SCENARIO_ID} | InvalidCJA      | InvalidCourt      | Application list updated | The application list has been successfully updated |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1759
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1759 @ARCPOC-1843
     Scenario Outline: Close application list with NO ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date      | time   | description   | status               | courtLocationCode | durationHours | durationMinutes |
             | <APIDate> | <Time> | <Description> | <BeforeUpdateStatus> | <Court>           |               |                 |
         Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
@@ -198,11 +199,18 @@ Feature: Applications List Update
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Application list closed successfully" Containing "If you believe this was in error, please contact support."
+        # ARCPOC-1843: Verify After Close List, Actions Menu is not available
+        Given User Navigates To The URL "/applications-list/:listId"
+        Then User Clicks On The Tab "List details"
+        Then User See "This application list is view-only. Closed lists cannot be changed." On The Page
+        Then User Should Not See The Link "Create application"
+        Then User Should Not See The Button "Actions" In The Page Header
+        Then User Should Not See The Button "Update"
         Examples:
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description        | Status     | BeforeUpdateStatus | durationHours | durationMinutes |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {SCENARIO_ID} | Close list | OPEN               | 3             | 3               |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567 @ARCPOC-1759
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567 @ARCPOC-1759 @ARCPOC-1843 @ARCPOC-1769
     Scenario Outline: Close application list with One ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -391,13 +399,28 @@ Feature: Applications List Update
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Application list closed successfully" Containing "If you believe this was in error, please contact support."
+        # ARCPOC-1843: Verify After Close List, Actions Menu is not available
+        Given User Navigates To The URL "/applications-list/:listId"
+        Then User See "This application list is view-only. Closed lists cannot be changed." On The Page
+        Then User Should Not See The Link "Create application"
+        Then User Clicks On The Tab "List details"
+        Then User Should Not See The Button "Actions" In The Page Header
+        Then User Should Not See The Button "Update"
+        Then User Clicks On The Tab "Applications"
+        Then User Should See The Button "Actions" Is Disabled
+        When User Checks The Select All Checkbox In Table "Entries"
+        Then User Should See The Button "Actions" Is Enabled
+        When User Clicks On The "Actions" Button
+        Then User Should See The Button "Print continuous"
+        Then User Should See The Button "Print page"
         # ARCPOC-1437 Verify Closed ALE cannot be opened
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         When User Searches Applications With:
             | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |
-        Then User Should See Table "Application list entries" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+        Then User Should See Table "Application list entries" Header "Date" Is Not Sortable
+        Then User Should See Table "Application list entries" Has Sortable Headers "Applicant, Respondent, Application title, Fee, Resulted, Status"
         Then User Verify "Open" Button Is Not Present In Row Of Table "Application list entries" With:
             | Date          | Applicant                  | Respondent                | Application title                                        | Fee | Resulted | Status |
             | <DisplayDate> | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | Application for order re public health measures (person) | Yes | Yes      | CLOSED |

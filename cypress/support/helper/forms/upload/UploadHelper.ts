@@ -10,6 +10,7 @@ export class UploadHelper {
       pageText.includes('Bulk upload failed') ||
       pageText.includes('Bulk upload complete') ||
       pageText.includes('All records were uploaded successfully') ||
+      /\d+ applications? imported successfully\./.test(pageText) ||
       pageText.includes('Error table')
     );
   }
