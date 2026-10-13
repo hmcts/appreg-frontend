@@ -1,5 +1,10 @@
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
-import { LOCALE_ID, PLATFORM_ID, type WritableSignal } from '@angular/core';
+import {
+  LOCALE_ID,
+  PLATFORM_ID,
+  type WritableSignal,
+  signal,
+} from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
@@ -102,13 +107,15 @@ describe('ApplicationsComponent', () => {
   let fixture: ComponentFixture<Applications>;
   let searchFormService: ApplicationsSearchFormService;
   let searchStateService: ApplicationsSearchStateService;
+  const applicationCodeTitles = signal<string[]>([]);
 
   const referenceDataFacadeStub: Pick<
     ReferenceDataFacade,
-    'cja$' | 'courtLocations$'
+    'cja$' | 'courtLocations$' | 'applicationCodeTitles'
   > = {
     cja$: of([]),
     courtLocations$: of([]),
+    applicationCodeTitles,
   };
 
   const getEntriesMock: jest.MockedFunction<
@@ -148,6 +155,7 @@ describe('ApplicationsComponent', () => {
     printApplicationListsMock.mockReset();
     pdfServiceStub.generatePagedApplicationListPdf.mockReset();
     pdfServiceStub.generateContinuousApplicationListsPdf.mockReset();
+    applicationCodeTitles.set([]);
 
     // default: empty page response
     getEntriesMock.mockReturnValue(
@@ -258,6 +266,141 @@ describe('ApplicationsComponent', () => {
 
   it('renders application title as a search criterion', () => {
     expect(fixture.nativeElement.textContent).toContain('Application title');
+  });
+
+  describe('application title suggestions', () => {
+    it('filters titles case-insensitively, removes duplicates, and limits results to 20', () => {
+      const titles = [
+        'Private Prosecution',
+        'Private Prosecution',
+        ...Array.from(
+          { length: 21 },
+          (_, index) => `Private application ${index}`,
+        ),
+      ];
+      applicationCodeTitles.set(titles);
+
+      component.onApplicationTitleInputChange('  PRIVATE  ');
+
+      expect(component.filteredApplicationTitles()).toHaveLength(20);
+      expect(component.filteredApplicationTitles()[0]).toEqual({
+        kind: 'app-code-title',
+        label: 'Private Prosecution',
+        value: 'Private Prosecution',
+      });
+      expect(
+        component
+          .filteredApplicationTitles()
+          .filter(
+            (suggestion) =>
+              suggestion.label.toLowerCase() === 'private prosecution',
+          ),
+      ).toHaveLength(1);
+    });
+
+    it('returns no suggestions for an empty query', () => {
+      applicationCodeTitles.set(['Private Prosecution']);
+
+      expect(component.filteredApplicationTitles()).toEqual([]);
+    });
+
+    it('selects a rendered suggestion and submits the selected title with its original casing', () => {
+      applicationCodeTitles.set([
+        'Private Prosecution',
+        'Private Applications Act',
+      ]);
+      fixture.detectChanges();
+
+      const input = fixture.nativeElement.querySelector(
+        '#applicationTitle',
+      ) as HTMLInputElement;
+      input.focus();
+      input.value = 'private prosecution';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      fixture.detectChanges();
+
+      const options = fixture.nativeElement.querySelectorAll(
+        '#applicationTitle-listbox [role="option"]',
+      ) as NodeListOf<HTMLElement>;
+      expect(options).toHaveLength(1);
+      expect(options[0].textContent?.trim()).toBe('Private Prosecution');
+      options[0].click();
+      fixture.detectChanges();
+
+      expect(input.value).toBe('Private Prosecution');
+      expect(component.form.controls.applicationTitle.value).toBe(
+        'Private Prosecution',
+      );
+
+      component.onSubmit({
+        preventDefault: jest.fn(),
+      } as unknown as SubmitEvent);
+
+      expect(getEntriesMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filter: { applicationTitle: 'Private Prosecution' },
+        }),
+        undefined,
+        undefined,
+        expect.any(Object),
+      );
+    });
+
+    it('keeps unmatched free text as the application title search filter', () => {
+      applicationCodeTitles.set(['Private Prosecution']);
+      fixture.detectChanges();
+
+      const input = fixture.nativeElement.querySelector(
+        '#applicationTitle',
+      ) as HTMLInputElement;
+      input.value = 'Other title';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      fixture.detectChanges();
+
+      expect(component.form.controls.applicationTitle.value).toBe(
+        'Other title',
+      );
+      expect(component.filteredApplicationTitles()).toEqual([]);
+
+      component.onSubmit({
+        preventDefault: jest.fn(),
+      } as unknown as SubmitEvent);
+
+      expect(getEntriesMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filter: { applicationTitle: 'Other title' },
+        }),
+        undefined,
+        undefined,
+        expect.any(Object),
+      );
+    });
+
+    it('restores the title into the input and clears it with the search', () => {
+      searchFormService.patchState({ applicationTitle: 'Private Prosecution' });
+
+      const restoredFixture = TestBed.createComponent(Applications);
+      restoredFixture.detectChanges();
+
+      expect(
+        (
+          restoredFixture.nativeElement.querySelector(
+            '#applicationTitle',
+          ) as HTMLInputElement
+        ).value,
+      ).toBe('Private Prosecution');
+
+      restoredFixture.componentInstance.clearSearch();
+      restoredFixture.detectChanges();
+
+      expect(
+        (
+          restoredFixture.nativeElement.querySelector(
+            '#applicationTitle',
+          ) as HTMLInputElement
+        ).value,
+      ).toBe('');
+    });
   });
 
   it('configures the results table for server-side sorting', () => {
