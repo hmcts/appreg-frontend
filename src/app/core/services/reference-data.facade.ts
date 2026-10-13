@@ -260,8 +260,8 @@ export class ReferenceDataFacade {
               pageSize: this.pageSize,
             }),
       ),
-      map((page) => page.content.map((code) => code.title) ?? []),
-      reduce((all, content) => all.concat(content), [] as string[]),
+      map((page) => page.content.map((code) => code.title)),
+      reduce((all, content) => all.concat(content)),
     );
   }
 }
