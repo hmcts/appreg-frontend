@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { Observable, Subject, of } from 'rxjs';
 
@@ -10,6 +11,7 @@ import {
   compactStrings,
   toOptionalTrimmed,
 } from '@components/applications-list-entry-create/util/helpers';
+import { CivilFeeSectionComponent } from '@components/civil-fee-section/civil-fee-section.component';
 import {
   ApplicationCodeGetDetailDto,
   ApplicationCodeGetDetailDtoFeeAmountCurrencyEnum,
@@ -1069,7 +1071,16 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
         },
       ],
     })
-      .overrideTemplate(ApplicationsListEntryCreate, '')
+      .overrideTemplate(
+        ApplicationsListEntryCreate,
+        `
+        <app-civil-fee-section #civilFeeSection
+          [civilFeeColumns]="civilFeeColumns" [feeStatusOptions]="feeStatusOptions"
+          [feeForm]="civilFeeForm" [feeRequired]="vm().isFeeRequired"
+          [parentSubmitted]="vm().submitted" (addFeeDetails)="onAddFeeDetails($event)"
+          (civilFeeErrors)="onChildErrors('civilFee', $event)" />
+      `,
+      )
       .compileComponents();
 
     // Spy on the real service so createForms()
@@ -1090,12 +1101,18 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     resetSectionsSpy.mockRestore();
   });
 
-  it('onCodeSelected clears fee rows, inputs and errors for a non-fee code', () => {
+  it('clears draft fees and validation for a non-fee code, then accepts fresh fees', () => {
     const service = TestBed.inject(ApplicationListEntryFormService);
     getApplicationCodeByCodeAndDateMock.mockReturnValue(
       of(applicationCodeDetail({ isFeeDue: true })),
     );
     component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
+    fixture.detectChanges();
+    const feeSection: CivilFeeSectionComponent = fixture.debugElement.query(
+      By.directive(CivilFeeSectionComponent),
+    ).componentInstance;
+    feeSection.onAddFeeDetailsClick();
+    expect(feeSection.submitted()).toBe(true);
     component.form.patchValue({
       feeStatuses: [{ paymentStatus: 'PAID', statusDate: '2026-02-01' }],
       feeStatus: 'PAID',
@@ -1103,14 +1120,12 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
       paymentRef: 'TEST-REF',
       hasOffsiteFee: true,
     });
-    component.onChildErrors('civilFee', [
-      { id: 'feeStatus', text: 'Select a fee status' },
-    ]);
     getApplicationCodeByCodeAndDateMock.mockReturnValue(
       of(applicationCodeDetail({ applicationCode: 'FREE' })),
     );
 
     component.onCodeSelected({ code: 'FREE', date: '2026-02-01' });
+    fixture.detectChanges();
 
     expect(component.civilFeeForm.getRawValue()).toEqual({
       feeStatuses: null,
@@ -1122,6 +1137,45 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     expect(component.vm().isFeeRequired).toBe(false);
     expect(component.vm().summaryErrors).toEqual([]);
     expect(service.buildCreateDto(component.forms).feeStatuses).toBeUndefined();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('#civil-fee-section')?.textContent).toContain(
+      'No fee required',
+    );
+    expect(host.querySelector('#civil-fee-table')?.textContent).toContain(
+      'No fees exist.',
+    );
+    expect(component.form.controls.feeStatus.disabled).toBe(true);
+    expect(component.buildChangePaymentReferenceState()).toEqual({
+      entryCreateSnapshot: expect.objectContaining({
+        form: component.form.getRawValue(),
+        isFeeRequired: false,
+      }),
+    });
+
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(
+      of(applicationCodeDetail({ isFeeDue: true })),
+    );
+    component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
+    fixture.detectChanges();
+    expect(component.form.controls.feeStatus.enabled).toBe(true);
+    expect(feeSection.showErrors()).toBe(false);
+    component.form.patchValue({
+      feeStatus: 'PAID',
+      feeStatusDate: '2026-02-02',
+      paymentRef: 'FRESH-REF',
+    });
+    feeSection.onAddFeeDetailsClick();
+    fixture.detectChanges();
+    expect(service.buildCreateDto(component.forms).feeStatuses).toEqual([
+      {
+        paymentStatus: 'PAID',
+        statusDate: '2026-02-02',
+        paymentReference: 'FRESH-REF',
+      },
+    ]);
+    expect(host.querySelector('#civil-fee-table')?.textContent).toContain(
+      'FRESH-REF',
+    );
   });
 
   it('onCodeSelected sets bulkApplicationsAllowed from API detail.bulkRespondentAllowed', () => {
