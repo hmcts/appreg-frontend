@@ -448,6 +448,62 @@ describe('SuggestionsComponent', () => {
     expect(component.visibleSuggestions).toEqual([suggestion('B1', 'Beta')]);
   });
 
+  it('reuses filtered suggestions across reads and unrelated changes', () => {
+    setInput('showAllValues', true);
+    setInput('suggestions', [
+      suggestion('A1', 'Alpha'),
+      suggestion('B1', 'Beta'),
+    ]);
+    component.onInput('  ALP ');
+
+    const visible = component.visibleSuggestions;
+    expect(visible).toEqual([suggestion('A1', 'Alpha')]);
+    expect(component.visibleSuggestions).toBe(visible);
+
+    setInput('hint', 'Updated hint');
+    expect(component.visibleSuggestions).toBe(visible);
+  });
+
+  it('refreshes filtered suggestions when search or suggestions change', () => {
+    setInput('showAllValues', true);
+    setInput('suggestions', [
+      suggestion('A1', 'Alpha'),
+      suggestion('B1', 'Beta'),
+    ]);
+    component.onInput('alp');
+    const visible = component.visibleSuggestions;
+
+    component.onInput('bet');
+    expect(component.visibleSuggestions).not.toBe(visible);
+    expect(component.visibleSuggestions).toEqual([suggestion('B1', 'Beta')]);
+
+    setInput('suggestions', [suggestion('B2', 'Beta Two')]);
+    expect(component.visibleSuggestions).toEqual([
+      suggestion('B2', 'Beta Two'),
+    ]);
+
+    component.onInput('no match');
+    expect(component.visibleSuggestions).toEqual([]);
+
+    component.onInput('');
+    expect(component.visibleSuggestions).toBe(component.suggestions());
+  });
+
+  it('switches between filtered and unfiltered suggestions when showAllValues changes', () => {
+    setInput('suggestions', [
+      suggestion('A1', 'Alpha'),
+      suggestion('B1', 'Beta'),
+    ]);
+    component.onInput('alp');
+    expect(component.visibleSuggestions).toBe(component.suggestions());
+
+    setInput('showAllValues', true);
+    expect(component.visibleSuggestions).toEqual([suggestion('A1', 'Alpha')]);
+
+    setInput('showAllValues', false);
+    expect(component.visibleSuggestions).toBe(component.suggestions());
+  });
+
   it('open is false when suggestions is empty', () => {
     setInput('disabled', false);
     component.onInput('abc');

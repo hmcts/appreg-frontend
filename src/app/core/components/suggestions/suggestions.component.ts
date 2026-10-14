@@ -387,7 +387,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
     );
   }
 
-  get visibleSuggestions(): SuggestionsItem[] {
+  private readonly visibleSuggestionsState = computed(() => {
     const suggestions = this.suggestions();
 
     if (!this.showAllValues()) {
@@ -403,5 +403,9 @@ export class SuggestionsComponent implements ControlValueAccessor {
     return suggestions.filter((item) =>
       trimStringToLowerCase(this.labelFor(item)).includes(query),
     );
+  });
+
+  get visibleSuggestions(): SuggestionsItem[] {
+    return this.visibleSuggestionsState();
   }
 }
