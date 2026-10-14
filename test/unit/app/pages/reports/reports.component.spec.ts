@@ -19,6 +19,7 @@ import {
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
   JobAcknowledgement,
+  JobType,
   RecentReport,
   ReportsApi,
 } from '@openapi';
@@ -209,7 +210,7 @@ describe('ReportsComponent', () => {
 
   const recentReport: RecentReport = {
     id: 'recent-job',
-    type: 'FEES_REPORT',
+    type: JobType.FEES_REPORT,
     completedAt: '2026-10-07T12:30:00Z',
   };
 
@@ -349,15 +350,22 @@ describe('ReportsComponent', () => {
     expect(component.vm().reportFeedback?.kind).toBe('error');
   });
 
-  it('identifies all report types independently of the selected form', () => {
-    for (const option of component.reportOptions) {
-      const report = {
-        ...recentReport,
-        type: `${option.id.replaceAll('-', '_').toUpperCase()}_REPORT` as RecentReport['type'],
-      };
-      expect(component.recentReportLabel(report)).toBe(option.label);
-    }
-  });
+  it.each([
+    [JobType.ACTIVITY_AUDIT_REPORT, 'Activity audit'],
+    [JobType.FEES_REPORT, 'Fees'],
+    [JobType.LIST_MAINTENANCE_REPORT, 'List maintenance'],
+    [JobType.SEARCH_WARRANTS_REPORT, 'Search warrants'],
+    [JobType.WORKLOAD_REPORT, 'Workload'],
+    [JobType.DURATION_REPORT, 'Duration'],
+    [JobType.PRIVATE_PROSECUTORS_INDEX_REPORT, 'Private prosecutors index'],
+  ])(
+    'identifies %s independently of the selected form',
+    (type, expectedLabel) => {
+      expect(component.recentReportLabel({ ...recentReport, type })).toBe(
+        expectedLabel,
+      );
+    },
+  );
 
   it('should create', () => {
     expect(component).toBeTruthy();
