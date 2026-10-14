@@ -41,6 +41,15 @@ export class BannerElement {
       .contains(linkText);
   }
 
+  static findSuccessAlertWithoutLink(
+    heading: string,
+    linkText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .contains(this.successAlertSelector, heading, { timeout: 10000 })
+      .should('not.contain.text', linkText);
+  }
+
   static getErrorSummary(): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy.get(this.errorSummarySelector);
   }

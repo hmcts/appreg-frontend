@@ -292,3 +292,68 @@ Feature: Applications List Entry Update
         When User Verifies In The Respondent Details
             | Select type           | Bulk Application |
             | Number of respondents | 5                |
+
+    @regression @applicationListEntry @ARCPOC-1851
+    Scenario: Verify Apply Wording Button Appears When Application Code Has Changed Via Selecting Text And Entering New Application Code.
+        Given User Authenticates Via API As "user1"
+        # Create Application List
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date     | time  | status | description                                  | courtLocationCode |
+            | todayiso | 10:20 | OPEN   | Applications to review at Test_{SCENARIO_ID} | LCCC065           |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        # Create Application List Entry - Organisation applicant + Organisation respondent, Application Code with Fee Required = Y and Respondent Required = Y
+        When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
+            | standardApplicantCode                               | null                                       |
+            | applicationCode                                     | EF99020                                    |
+            | applicant.organisation.name                         | Test Organisation {SCENARIO_ID}            |
+            | applicant.organisation.contactDetails.addressLine1  | {SCENARIO_ID} King Street                  |
+            | applicant.organisation.contactDetails.addressLine2  | Westminster                                |
+            | applicant.organisation.contactDetails.addressLine3  | London                                     |
+            | applicant.organisation.contactDetails.addressLine4  | Greater London                             |
+            | applicant.organisation.contactDetails.addressLine5  | United Kingdom                             |
+            | applicant.organisation.contactDetails.postcode      | SW1A 1AA                                   |
+            | applicant.organisation.contactDetails.phone         | 01632960001                                |
+            | applicant.organisation.contactDetails.mobile        | 07700900001                                |
+            | applicant.organisation.contactDetails.email         |                                            |
+            | respondent.organisation.name                        | Test Respondent Organisation {SCENARIO_ID} |
+            | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Market Road                  |
+            | respondent.organisation.contactDetails.addressLine2 | Bristol                                    |
+            | respondent.organisation.contactDetails.addressLine3 | Avon                                       |
+            | respondent.organisation.contactDetails.addressLine4 | South West                                 |
+            | respondent.organisation.contactDetails.addressLine5 | United Kingdom                             |
+            | respondent.organisation.contactDetails.postcode     | BS15 5AA                                   |
+            | respondent.organisation.contactDetails.phone        | 01632960001                                |
+            | respondent.organisation.contactDetails.mobile       | 07700900001                                |
+            | respondent.organisation.contactDetails.email        |                                            |
+            | notes                                               | Apply wording list bug test                |
+            | lodgementDate                                       | todayiso                                   |
+            | caseReference                                       | CASEE1{RANDOM}                             |
+            | accountNumber                                       | ACCSE1{RANDOM}                             |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "entryId1"
+        When User Signs In With Microsoft SSO As "user1"
+        When User Searches Application List With:
+            | Date  | Time | List description                             | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+            | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date         | Time  | Location                          | Description                                  | Entries | Status |
+            | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   |
+        # Search and Open Created Application List Entry
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+            | Sequence number | Account number | Applicant                       | Respondent                                 | Postcode | Title                                                  | Fee | Resulted |
+            | 1               | ACCSE1{RANDOM} | Test Organisation {SCENARIO_ID} | Test Respondent Organisation {SCENARIO_ID} | BS15 5AA | Order for the disposal of uncollected controlled goods | No  |          |
+        # Update application code by highlighting and replacing code
+        When User Toggles The Accordion "Application codes"
+        Then User Highlights And Replaces The Text In Text Input "Application code" With "MX99002"
+        Then User Clears The "Application title" Textbox
+        When User Clicks On The "Search" Button In The Accordion "Application codes"
+        Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
+        Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
+            | Code    | Title          | Bulk | Fee required |
+            | MX99002 | Change of name | No   | Yes          |
+        Then User Should See The Accordion "Wording" Expanded
+        Then User Should See The Accordion "Civil fee" Expanded
+        Then User Should See The Text "Attends to make a statutory declaration that henceforth the applicant will be known as " In The Accordion "Wording"
+        Then User Should See The Text "Fee Reference: CO7.2 " In The Accordion "Civil fee"
+        Then User Should See The Button "Apply wording"

@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  computed,
   effect,
   inject,
   input,
@@ -68,10 +67,6 @@ export class WordingParserComponent {
 
   tokens: Token[] = [];
 
-  isSaveDisabled = computed(() =>
-    this.tokens.some((token) => token.type === 'input'),
-  );
-
   form = this.fb.group({});
 
   constructor() {
@@ -105,6 +100,10 @@ export class WordingParserComponent {
 
       this.submitWordingFields();
     });
+  }
+
+  hasWordingInput(): boolean {
+    return this.tokens.some((token) => token.type === 'input');
   }
 
   getInputWidthClass(key: string): string {

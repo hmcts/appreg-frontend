@@ -561,12 +561,11 @@ export class ApplicationsListEntryDetail implements OnInit {
             };
 
             if (hasSelectionChanged) {
+              this.wordingSubmitAttempt.set(0);
               this.formSvc.resetSectionsOnApplicationCodeChange(
                 this.forms,
                 true,
               );
-
-              this.wordingSubmitAttempt.set(0);
               this.wordingAppliedBannerVisible.set(false);
               this.entryDetail!.wording = undefined;
             }
