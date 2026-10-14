@@ -1,5 +1,5 @@
 import { HttpResponse } from '@angular/common/http';
-import { LOCALE_ID, PLATFORM_ID } from '@angular/core';
+import { LOCALE_ID, PLATFORM_ID, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import {
@@ -72,10 +72,13 @@ const cjaApiMock = {
 
 class ReferenceDataFacadeStub implements Pick<
   ReferenceDataFacade,
-  'courtLocations$' | 'cja$'
+  'courtLocations$' | 'cja$' | 'hasPlaceLoadError' | 'hasLoadError' | 'refresh'
 > {
   courtLocations$ = of([] as CourtLocationGetSummaryDto[]);
   cja$ = of([] as CriminalJusticeAreaGetDto[]);
+  hasLoadError = signal(false);
+  hasPlaceLoadError = signal(false);
+  refresh = jest.fn();
 }
 
 class PdfServiceStub implements Pick<
@@ -155,6 +158,8 @@ const flushSignalEffects = async (
 function createInstance(
   platformId: 'browser' | 'server' = 'browser',
   rows: ApplicationListRow[] = [],
+  placeLoadError = false,
+  allResourceLoadError = false,
 ) {
   const api: { printApplicationLists: jest.Mock } = {
     printApplicationLists: jest.fn(),
@@ -162,6 +167,8 @@ function createInstance(
 
   const pdf = new PdfServiceStub();
   const refFacade = new ReferenceDataFacadeStub();
+  refFacade.hasPlaceLoadError.set(placeLoadError);
+  refFacade.hasLoadError.set(allResourceLoadError);
 
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
@@ -196,7 +203,16 @@ function createInstance(
     'patch',
   );
 
-  return { comp, api, pdf, patchSpy, storedPatchSpy, showInlineSpy, fixture };
+  return {
+    comp,
+    api,
+    pdf,
+    patchSpy,
+    storedPatchSpy,
+    showInlineSpy,
+    fixture,
+    refFacade,
+  };
 }
 
 function createInstanceWithQuery(
@@ -255,6 +271,28 @@ function submitEvent(value: string | null = 'search'): {
 }
 
 describe('ApplicationsList - delete flash query param', () => {
+  it('shows a reference data error summary and refreshes after rendering', async () => {
+    const { fixture, refFacade } = createInstance('browser', [], true);
+    await fixture.whenStable();
+
+    expect(refFacade.refresh).toHaveBeenCalledTimes(1);
+
+    expect(fixture.nativeElement.textContent).toContain('There is a problem');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Failed to load reference data',
+    );
+  });
+
+  it('ignores an application-title-only reference error', async () => {
+    const { fixture, refFacade } = createInstance('browser', [], false, true);
+    await fixture.whenStable();
+
+    expect(refFacade.refresh).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Failed to load reference data',
+    );
+  });
+
   it('delete=success -> sets deleteDone and clears params', async () => {
     const { fixture, comp, routeStub, navigateSpy } = createInstanceWithQuery({
       delete: 'success',

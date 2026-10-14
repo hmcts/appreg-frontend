@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { PLATFORM_ID } from '@angular/core';
+import { PLATFORM_ID, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   ActivatedRoute,
@@ -87,13 +87,19 @@ describe('ApplicationsListEntryMoveComponent', () => {
       getApplicationListsMock as unknown as ApplicationListsApi['getApplicationLists'],
   };
 
-  const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
+  const referenceDataLoadError = signal(false);
+  const refFacadeStub: Pick<
+    ReferenceDataFacade,
+    'courtLocations$' | 'cja$' | 'hasPlaceLoadError' | 'refresh'
+  > = {
     courtLocations$: of<CourtLocationGetSummaryDto[]>([
       { locationCode: 'A1', name: 'Alpha Court' },
     ]),
     cja$: of<CriminalJusticeAreaGetDto[]>([
       { code: 'C1', description: 'Area One' },
     ]),
+    hasPlaceLoadError: referenceDataLoadError,
+    refresh: jest.fn(),
   };
 
   const flushSignalEffects = async (): Promise<void> => {
@@ -157,6 +163,8 @@ describe('ApplicationsListEntryMoveComponent', () => {
   };
 
   beforeEach(async () => {
+    referenceDataLoadError.set(false);
+    jest.mocked(refFacadeStub.refresh).mockClear();
     getApplicationListsMock.mockReset();
     getApplicationListsMock.mockReturnValue(of(applicationListPage));
 
@@ -171,6 +179,19 @@ describe('ApplicationsListEntryMoveComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows a reference data error summary and refreshes after rendering', async () => {
+    fixture.destroy();
+    referenceDataLoadError.set(true);
+    await createComponent();
+
+    expect(refFacadeStub.refresh).toHaveBeenCalledTimes(1);
+
+    expect(fixture.nativeElement.textContent).toContain('There is a problem');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Failed to load reference data',
+    );
   });
 
   it('creates with move state from the route and browser history', () => {

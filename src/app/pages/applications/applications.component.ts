@@ -28,6 +28,7 @@ import {
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
+  afterNextRender,
   computed,
   inject,
   signal,
@@ -200,6 +201,16 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       .map(toAppcodeSuggestionsItem);
   });
 
+  readonly summaryItems = computed(() => {
+    const { errorSummary, searchErrors } = this.vm();
+    return [
+      ...(errorSummary.length ? errorSummary : searchErrors),
+      ...(this.refFacade.hasLoadError()
+        ? [{ text: 'Failed to load reference data' }]
+        : []),
+    ];
+  });
+
   private readonly printRequest = signal<BulkPrintRequest | null>(null);
 
   readonly submitAttempt = signal(0);
@@ -286,6 +297,15 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     if (this.vm().isSearch) {
       this.loadApplications(this.vm().getFilters);
     }
+  }
+
+  constructor() {
+    super();
+    afterNextRender(() => {
+      if (this.refFacade.hasLoadError()) {
+        this.refFacade.refresh();
+      }
+    });
   }
 
   private restoreSearchState(): void {
@@ -378,6 +398,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   onSubmit(e: SubmitEvent): void {
     e.preventDefault();
     this.submitAttempt.update((attempt) => attempt + 1);
+
+    if (this.refFacade.hasLoadError()) {
+      this.refFacade.refresh();
+    }
 
     this.patchApp({
       ...clearNotificationsPatch(),

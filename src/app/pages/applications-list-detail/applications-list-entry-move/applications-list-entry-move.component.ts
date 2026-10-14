@@ -30,6 +30,7 @@ import {
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
+  afterNextRender,
   computed,
   inject,
   signal,
@@ -130,6 +131,10 @@ export class ApplicationsListEntryMoveComponent
 
   private readonly storedRecordsState = inject(ApplicationListRecordsService);
   readonly storedRecordsVm = this.storedRecordsState.vm;
+  readonly searchSummaryItems = computed(() => [
+    ...(this.storedRecordsVm().submitted ? this.vm().searchErrors : []),
+    ...this.referenceDataErrorItems(),
+  ]);
 
   private readonly loadRequest =
     signal<GetApplicationListsRequestParams | null>(null);
@@ -230,6 +235,15 @@ export class ApplicationsListEntryMoveComponent
       totalPages: 0,
       currentPage: 0,
       submitted: false,
+    });
+  }
+
+  constructor() {
+    super();
+    afterNextRender(() => {
+      if (this.referenceDataErrorItems().length) {
+        this.refField.refresh();
+      }
     });
   }
 

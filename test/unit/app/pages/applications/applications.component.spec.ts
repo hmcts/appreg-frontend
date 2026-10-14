@@ -108,14 +108,24 @@ describe('ApplicationsComponent', () => {
   let searchFormService: ApplicationsSearchFormService;
   let searchStateService: ApplicationsSearchStateService;
   const applicationCodeTitles = signal<string[]>([]);
+  const referenceDataLoadError = signal(false);
+  const placeReferenceDataLoadError = signal(false);
 
   const referenceDataFacadeStub: Pick<
     ReferenceDataFacade,
-    'cja$' | 'courtLocations$' | 'applicationCodeTitles'
+    | 'cja$'
+    | 'courtLocations$'
+    | 'applicationCodeTitles'
+    | 'hasLoadError'
+    | 'hasPlaceLoadError'
+    | 'refresh'
   > = {
     cja$: of([]),
     courtLocations$: of([]),
     applicationCodeTitles,
+    hasLoadError: referenceDataLoadError,
+    hasPlaceLoadError: placeReferenceDataLoadError,
+    refresh: jest.fn(),
   };
 
   const getEntriesMock: jest.MockedFunction<
@@ -156,6 +166,9 @@ describe('ApplicationsComponent', () => {
     pdfServiceStub.generatePagedApplicationListPdf.mockReset();
     pdfServiceStub.generateContinuousApplicationListsPdf.mockReset();
     applicationCodeTitles.set([]);
+    referenceDataLoadError.set(false);
+    placeReferenceDataLoadError.set(false);
+    jest.mocked(referenceDataFacadeStub.refresh).mockClear();
 
     // default: empty page response
     getEntriesMock.mockReturnValue(
@@ -240,6 +253,34 @@ describe('ApplicationsComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows and clears an application-title-only reference error summary', () => {
+    expect(placeReferenceDataLoadError()).toBe(false);
+    referenceDataLoadError.set(true);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('There is a problem');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Failed to load reference data',
+    );
+
+    referenceDataLoadError.set(false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Failed to load reference data',
+    );
+  });
+
+  it('refreshes an application-title error after rendering', async () => {
+    fixture.destroy();
+    referenceDataLoadError.set(true);
+    fixture = TestBed.createComponent(Applications);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(referenceDataFacadeStub.refresh).toHaveBeenCalledTimes(1);
   });
 
   it('synchronises Advanced search after an error reveal and supports immediate collapse/reopen', () => {

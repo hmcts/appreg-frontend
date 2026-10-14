@@ -64,11 +64,16 @@ export class ReferenceDataFacade {
   );
   private readonly state = this.signalState.state;
 
+  // for Applications page only
   readonly hasLoadError = computed(
     () =>
       this.state().cjaLoadError ||
       this.state().courtsLoadError ||
       this.state().appCodeLoadError,
+  );
+
+  readonly hasPlaceLoadError = computed(
+    () => this.state().cjaLoadError || this.state().courtsLoadError,
   );
 
   readonly cja = computed(() => this.state().cja);

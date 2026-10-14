@@ -243,6 +243,10 @@ describe('ReferenceDataFacade', () => {
             ? []
             : ['Application title'],
         );
+        expect(facade.hasLoadError()).toBe(true);
+        expect(facade.hasPlaceLoadError()).toBe(
+          failedResource !== 'application code titles',
+        );
       },
     ),
   );
@@ -271,6 +275,30 @@ describe('ReferenceDataFacade', () => {
       [{ pageNumber: 1, pageSize: 100 }],
     ]);
     expect(facade.applicationCodeTitles()).toEqual([]);
+    expect(facade.hasLoadError()).toBe(true);
+    expect(facade.hasPlaceLoadError()).toBe(false);
+  }));
+
+  it('clears the load error after a successful refresh', fakeAsync(() => {
+    getCourtLocations.mockReturnValueOnce(
+      throwError(() => new Error('Court locations failed')),
+    );
+    setup();
+    const facade = TestBed.inject(ReferenceDataFacade);
+    tick();
+
+    expect(facade.hasLoadError()).toBe(true);
+    expect(facade.hasPlaceLoadError()).toBe(true);
+    expect(facade.courtLocations()).toEqual([]);
+
+    facade.refresh();
+    tick();
+
+    expect(facade.hasLoadError()).toBe(false);
+    expect(facade.hasPlaceLoadError()).toBe(false);
+    expect(facade.courtLocations()).toEqual([
+      { locationCode: 'A1', name: 'Alpha Court' },
+    ]);
   }));
 
   it('reloads all three resources when refreshed', fakeAsync(() => {
@@ -301,5 +329,6 @@ describe('ReferenceDataFacade', () => {
     expect(facade.cja()).toEqual([]);
     expect(facade.courtLocations()).toEqual([]);
     expect(facade.applicationCodeTitles()).toEqual([]);
+    expect(facade.hasLoadError()).toBe(false);
   }));
 });

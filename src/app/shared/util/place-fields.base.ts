@@ -77,7 +77,7 @@ export abstract class PlaceFieldsBase {
 
   readonly placeState = (): PlaceFieldsState => this.state();
   readonly referenceDataErrorItems = computed<ErrorItem[]>(() =>
-    this.referenceDataFacade.hasLoadError()
+    this.referenceDataFacade.hasPlaceLoadError()
       ? [{ text: 'Failed to load reference data' }]
       : [],
   );

@@ -1,16 +1,8 @@
-@if (vm().errorSummary.length) {
+@if (summaryItems().length) {
   <app-error-summary
-    [title]="'There is a problem'"
-    [items]="vm().errorSummary"
+    title="There is a problem"
+    [items]="summaryItems()"
     [focusKey]="submitAttempt()"
-    targetId="search"
-  />
-} @else if (vm().searchErrors.length) {
-  <app-error-summary
-    [title]="'There is a problem'"
-    [items]="vm().searchErrors"
-    [focusKey]="submitAttempt()"
-    targetId="search"
   />
 } @else {
   @if (vm().isSearch && !vm().isLoading && !vm().rows.length) {

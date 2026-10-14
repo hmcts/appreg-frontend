@@ -3,6 +3,7 @@ import {
   HttpHeaders,
   HttpResponse,
 } from '@angular/common/http';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
@@ -26,13 +27,19 @@ import {
 } from '@services/jobs/job-polling.facade';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 
-const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
+const referenceDataLoadError = signal(false);
+const refFacadeStub: Pick<
+  ReferenceDataFacade,
+  'courtLocations$' | 'cja$' | 'hasPlaceLoadError' | 'refresh'
+> = {
   courtLocations$: of<CourtLocationGetSummaryDto[]>([
     { name: 'Alpha Court', locationCode: 'A1' },
   ]),
   cja$: of<CriminalJusticeAreaGetDto[]>([
     { code: 'C1', description: 'Area One' },
   ]),
+  hasPlaceLoadError: referenceDataLoadError,
+  refresh: jest.fn(),
 };
 
 const reportsApiMock = {
@@ -83,6 +90,8 @@ describe('ReportsComponent', () => {
   let createObjectUrlSpy: jest.Mock;
 
   beforeEach(async () => {
+    referenceDataLoadError.set(false);
+    jest.mocked(refFacadeStub.refresh).mockClear();
     createObjectUrlSpy = jest.fn(() => 'blob:report-csv');
     Object.defineProperty(URL, 'createObjectURL', {
       configurable: true,
@@ -115,6 +124,22 @@ describe('ReportsComponent', () => {
     anchorClickSpy.mockRestore();
     jest.clearAllMocks();
     jest.useRealTimers();
+  });
+
+  it('shows a reference data error before a report is selected and refreshes after rendering', async () => {
+    fixture.destroy();
+    referenceDataLoadError.set(true);
+    fixture = TestBed.createComponent(Reports);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(refFacadeStub.refresh).toHaveBeenCalledTimes(1);
+
+    expect(fixture.nativeElement.textContent).toContain('There is a problem');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Failed to load reference data',
+    );
   });
 
   it('allows leaving without a warning when no report is active', () => {
