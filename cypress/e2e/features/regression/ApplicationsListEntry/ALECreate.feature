@@ -77,8 +77,8 @@ Feature: Applications List Entry Create
             Then User Verifies The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee" Is Unchecked
             Then User Checks The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee"
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £29.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £313.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Total Fee Amount: £322.00" In The Accordion "Civil fee"
             Then User Should See The Text "Update fee status" In The Accordion "Civil fee"
             Then User Selects "Undertaken" From The Dropdown "Fee status" In The Accordion "Civil fee"
             Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
