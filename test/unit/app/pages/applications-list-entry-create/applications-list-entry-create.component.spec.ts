@@ -1348,3 +1348,81 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     s.complete();
   });
 });
+
+describe('ApplicationsListEntryCreate error summary focus (real template)', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+    document.body.innerHTML = '';
+  });
+
+  it('keeps focus in first name when the last error clears and returns during editing', async () => {
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    document.body.appendChild(fixture.nativeElement);
+    component['appListEntryCreatePatch']({
+      appCodeDetail: { requiresRespondent: true, wording: { template: '' } },
+    });
+    component.form.patchValue({
+      applicationCode: 'A001',
+      lodgementDate: '2026-02-01',
+    });
+    const details = {
+      firstName: 'Example',
+      surname: 'Example',
+      addressLine1: 'Example',
+    };
+    component.personForm.patchValue({ ...details, firstName: '' });
+    component.forms.respondentPersonForm.patchValue(details);
+    jest.useFakeTimers();
+    component.onSubmit(new Event('submit'));
+    fixture.detectChanges();
+    jest.runOnlyPendingTimers();
+    expect(component.vm().summaryErrors).toHaveLength(1);
+    const summary = fixture.nativeElement.querySelector('app-error-summary');
+    const scroll = jest.spyOn(
+      summary.querySelector('.govuk-error-summary'),
+      'scrollIntoView',
+    );
+    const field = fixture.nativeElement.querySelector(
+      '#applicant-person-first-name',
+    ) as HTMLInputElement;
+    field.focus();
+    scroll.mockClear();
+
+    for (const value of ['Example', '', 'Replacement']) {
+      field.value = value;
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      fixture.detectChanges();
+      jest.runOnlyPendingTimers();
+      expect(fixture.nativeElement.querySelector('app-error-summary')).toBe(
+        summary,
+      );
+      expect(summary.hidden).toBe(value !== '');
+      expect(component.vm().summaryErrors).toHaveLength(value === '' ? 1 : 0);
+      expect(document.activeElement).toBe(field);
+      expect(scroll).not.toHaveBeenCalled();
+    }
+
+    field.value = '';
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    component.onSubmit(new Event('submit'));
+    fixture.detectChanges();
+    jest.runOnlyPendingTimers();
+    expect(document.activeElement).toBe(
+      summary.querySelector('.govuk-error-summary'),
+    );
+  });
+});

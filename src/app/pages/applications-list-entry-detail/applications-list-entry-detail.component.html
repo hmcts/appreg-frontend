@@ -1,12 +1,12 @@
 <app-breadcrumbs [items]="breadcrumbs()" />
 
-@if (vm().errorFound) {
-  <app-error-summary
-    [title]="vm().errorHint || 'There is a problem'"
-    [items]="vm().summaryErrors"
-    [focusKey]="submitAttempt()"
-  />
-} @else if (vm().successBanner; as successBanner) {
+<app-error-summary
+  [hidden]="!vm().errorFound"
+  [title]="vm().errorHint || 'There is a problem'"
+  [items]="vm().summaryErrors"
+  [focusKey]="submitAttempt()"
+/>
+@if (!vm().errorFound && vm().successBanner; as successBanner) {
   <app-success-banner
     [heading]="successBanner.heading"
     [body]="successBanner.body"
