@@ -31,7 +31,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { map, merge } from 'rxjs';
+import { map } from 'rxjs';
 
 import {
   ApplicationsListEntryDetailState,
@@ -340,7 +340,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // Watch applicantType changes
     this.bindApplicantTypeChanges();
-    this.bindRespondentValidationChanges();
+    this.bindPartyValidationChanges();
 
     if (!isPlatformBrowser(this.platformId)) {
       return;
@@ -1216,17 +1216,12 @@ export class ApplicationsListEntryDetail implements OnInit {
       });
   }
 
-  private bindRespondentValidationChanges(): void {
-    const hasBeenSubmmitted = this.vm().formSubmitted;
-    merge(
-      this.form.controls.respondentEntryType.valueChanges,
-      this.form.controls.numberOfRespondents.valueChanges,
-      this.forms.respondentPersonForm.valueChanges,
-      this.forms.respondentOrganisationForm.valueChanges,
-    )
+  private bindPartyValidationChanges(): void {
+    this.formSvc
+      .partyValidationChanges(this.forms)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        if (!hasBeenSubmmitted) {
+        if (!this.vm().formSubmitted) {
           return;
         }
 

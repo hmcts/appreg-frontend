@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { FormGroup, NonNullableFormBuilder } from '@angular/forms';
+import { Observable, merge } from 'rxjs';
 
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
 import {
@@ -62,6 +63,19 @@ export class ApplicationListEntryFormService {
       ) as RespondentPersonForm,
       respondentOrganisationForm: buildOrganisationForm(this.fb),
     };
+  }
+
+  partyValidationChanges(
+    forms: ApplicationListEntryForms,
+  ): Observable<unknown> {
+    return merge(
+      forms.personForm.valueChanges,
+      forms.organisationForm.valueChanges,
+      forms.form.controls.respondentEntryType.valueChanges,
+      forms.form.controls.numberOfRespondents.valueChanges,
+      forms.respondentPersonForm.valueChanges,
+      forms.respondentOrganisationForm.valueChanges,
+    );
   }
 
   createCivilFeeForm(forms: ApplicationListEntryForms): CivilFeeForm {
