@@ -182,7 +182,7 @@ Feature: Applications List Entry Create
             Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
             Then User Should See The Text "Amount: £292.00" In The Accordion "Civil fee"
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £29.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
             Then User Should See The Text "Total Fee Amount: £313.00" In The Accordion "Civil fee"
             Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
                   | Fee Status | Status Date  | Payment Ref       |
