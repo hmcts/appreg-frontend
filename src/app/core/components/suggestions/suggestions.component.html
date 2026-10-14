@@ -46,6 +46,7 @@
           open && activeIndex() >= 0 ? optionId(activeIndex()) : null
         "
         autocomplete="off"
+        [attr.maxlength]="charLimit() || null"
       />
 
       @if (open) {
