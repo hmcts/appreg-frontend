@@ -337,12 +337,17 @@ describe('CivilFeeSectionComponent', () => {
   });
 
   it('when fee is not required, keeps inputs visible but disabled and disables add button', () => {
+    const savedFees: FeeStatus[] = [
+      { paymentStatus: PaymentStatus.PAID, statusDate: '2026-02-01' },
+    ];
+    component.feeForm().controls.feeStatuses.setValue(savedFees);
     fixture.componentRef.setInput('feeRequired', false);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
 
     expect(host.querySelector('#offSiteFee')).toBeNull();
+    expect(component.feeForm().controls.feeStatuses.value).toEqual(savedFees);
     expect(host.querySelector('app-select-input')).not.toBeNull();
     expect(host.querySelector('app-date-input')).not.toBeNull();
     expect(host.querySelector('app-text-input')).not.toBeNull();

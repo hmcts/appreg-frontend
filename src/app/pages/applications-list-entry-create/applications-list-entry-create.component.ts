@@ -596,6 +596,21 @@ export class ApplicationsListEntryCreate implements OnInit {
             this.appListEntryCreatePatch({
               isFeeRequired,
             });
+            if (prevCode !== newCode && !isFeeRequired) {
+              const f = this.form.controls;
+              [
+                f.feeStatuses,
+                f.feeStatus,
+                f.feeStatusDate,
+                f.paymentRef,
+                f.hasOffsiteFee,
+              ].forEach((control) => {
+                control.reset(null, { emitEvent: false });
+                control.setErrors(null);
+              });
+              this.civilFeeSection?.submitted.set(false);
+              this.onChildErrors('civilFee', []);
+            }
             this.feeMeta = {
               feeReference: appCodeDetail.feeReference ?? null,
               feeDescription: appCodeDetail.feeDescription ?? null,
