@@ -488,6 +488,35 @@ describe('ApplicationsListEntryMoveComponent', () => {
     });
   });
 
+  it('caches target-list columns and refreshes them when applied filters change', () => {
+    patchMoveState({ appliedFilters: { date: '2026-10-02' } });
+    const columns = component.columnsLists;
+    expect(component.columnsLists).toBe(columns);
+
+    component.form.controls.court.setValue('A1');
+    expect(component.columnsLists).toBe(columns);
+
+    patchMoveState({ isLoading: true });
+    expect(component.columnsLists).toBe(columns);
+    patchMoveState({ isLoading: false });
+    expect(component.columnsLists).toBe(columns);
+
+    patchMoveState({ appliedFilters: {} });
+    expect(component.columnsLists).not.toBe(columns);
+    expect(
+      component.columnsLists.find((column) => column.field === 'date'),
+    ).not.toEqual(expect.objectContaining({ sortable: false }));
+    expect(
+      component.columnsLists.find((column) => column.field === 'status'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+
+    patchMoveState({ appliedFilters: { courtLocationCode: 'A1' } });
+    expect(
+      component.columnsLists.find((column) => column.field === 'location'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+    expect(component.columnsLists).toBe(component.columnsLists);
+  });
+
   it('disables status sorting for target lists because only open lists are shown', () => {
     expect(
       component.columnsLists.find((column) => column.field === 'status'),
@@ -503,7 +532,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
       },
     });
 
-    expect(component.disabledListSortColumns()).toEqual([
+    expect(component.disabledSortColumns()).toEqual([
       'status',
       'date',
       'time',
@@ -529,7 +558,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
       court: 'A1',
     });
 
-    expect(component.disabledListSortColumns()).toEqual(['status']);
+    expect(component.disabledSortColumns()).toEqual(['status']);
     expect(
       component.columnsLists.find((column) => column.field === 'date'),
     ).not.toEqual(expect.objectContaining({ sortable: false }));

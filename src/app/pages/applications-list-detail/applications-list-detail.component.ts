@@ -255,11 +255,14 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   override form = this.appListFormService.createUpdateForm();
 
   statusOptions = appListDetailStatusOptions;
+  private readonly appliedFilters = computed(() => this.vm().getFilters);
+
+  private readonly columnsState = computed(() =>
+    withDisabledColumnSort(appListDetailColumns, this.disabledSortColumns()),
+  );
+
   get columns(): TableColumn[] {
-    return withDisabledColumnSort(
-      appListDetailColumns,
-      this.disabledSortColumns(),
-    );
+    return this.columnsState();
   }
   readonly disabledSortColumns = computed<readonly string[]>(() => {
     const disabled: string[] = [];
@@ -1332,11 +1335,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private hasSequenceNumberFilter(): boolean {
-    return this.vm().getFilters.sequenceNumber !== undefined;
+    return this.appliedFilters().sequenceNumber !== undefined;
   }
 
   private hasFeeRequiredFilter(): boolean {
-    return this.vm().getFilters.feeRequired !== undefined;
+    return this.appliedFilters().feeRequired !== undefined;
   }
 
   onSearchResult(result: ApplicationsListDetailSearchResult): void {

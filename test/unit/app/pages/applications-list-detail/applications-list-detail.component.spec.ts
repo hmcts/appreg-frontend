@@ -1830,6 +1830,38 @@ describe('ApplicationsListDetail', () => {
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('caches columns and refreshes them when exact filters change', () => {
+    patchDetailState({
+      getFilters: { sequenceNumber: 7, feeRequired: false },
+    });
+    const columns = component.columns;
+    expect(component.columns).toBe(columns);
+
+    component.submitAttempt.update((attempt) => attempt + 1);
+    expect(component.columns).toBe(columns);
+
+    patchDetailState({ currentPage: 2 });
+    expect(component.columns).toBe(columns);
+    patchDetailState({ isLoading: false });
+    expect(component.columns).toBe(columns);
+    patchDetailState({ isLoading: true });
+    expect(component.columns).toBe(columns);
+
+    patchDetailState({ getFilters: {} });
+    expect(component.columns).not.toBe(columns);
+    for (const field of ['sequenceNumber', 'feeReq']) {
+      expect(
+        component.columns.find((column) => column.field === field),
+      ).not.toEqual(expect.objectContaining({ sortable: false }));
+    }
+
+    patchDetailState({ getFilters: { feeRequired: true } });
+    expect(
+      component.columns.find((column) => column.field === 'feeReq'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+    expect(component.columns).toBe(component.columns);
+  });
+
   it('disables exact-filter sorting and keeps partial resulted sorting enabled', () => {
     patchDetailState({
       getFilters: {

@@ -599,6 +599,36 @@ describe('ApplicationsList – search', () => {
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('caches columns and refreshes them when applied sort restrictions change', () => {
+    patchUIState(component, {
+      appliedFilters: { status: ApplicationListStatus.OPEN },
+    });
+    const columns = component.columns;
+    expect(component.columns).toBe(columns);
+
+    component.form.controls.court.setValue('123');
+    expect(component.columns).toBe(columns);
+
+    patchUIState(component, { isLoading: true });
+    expect(component.columns).toBe(columns);
+    patchRecordsState(component, { currentPage: 2 });
+    expect(component.columns).toBe(columns);
+    patchUIState(component, { isLoading: false });
+    expect(component.columns).toBe(columns);
+
+    patchUIState(component, { appliedFilters: {} });
+    expect(component.columns).not.toBe(columns);
+    expect(
+      component.columns.find((column) => column.field === 'status'),
+    ).not.toEqual(expect.objectContaining({ sortable: false }));
+
+    patchUIState(component, { appliedFilters: { courtLocationCode: '123' } });
+    expect(
+      component.columns.find((column) => column.field === 'location'),
+    ).toEqual(expect.objectContaining({ sortable: false }));
+    expect(component.columns).toBe(component.columns);
+  });
+
   it('disables status sorting when a status filter is selected', () => {
     patchUIState(component, {
       appliedFilters: { status: ApplicationListStatus.OPEN },
