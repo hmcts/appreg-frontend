@@ -99,8 +99,8 @@ describe('Recent reports in a browser', () => {
       buttons.map((b) => b.textContent),
     );
     expect(names[0]).toContain('Fees');
-    expect(names[0]).toContain('13:30');
-    expect(names[1]).toContain('11:30:00');
+    expect(names[0]).toContain('7 Oct 2026 at 13:30');
+    expect(names[1]).toContain('7 Oct 2026 at 12:30');
     await page.focus(button);
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
