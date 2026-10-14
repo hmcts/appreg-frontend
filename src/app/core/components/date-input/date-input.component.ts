@@ -97,6 +97,17 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     }
 
     const valueDate = new Date(y, m - 1, d);
+
+    // this line is to set the full year correctly, as short years will default to 1901
+    valueDate.setFullYear(y);
+
+    if (
+      valueDate < new Date(1900, 0, 1) ||
+      valueDate > new Date(3000, 11, 31)
+    ) {
+      return this.dateError('Date must be between 1900 and 3000');
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

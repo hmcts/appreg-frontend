@@ -169,7 +169,7 @@ describe('ApplicationCodeSearchComponent', () => {
     );
 
     component.form.patchValue({
-      lodgementDate: '1000-01-01',
+      lodgementDate: '1901-01-01',
       code: null,
       title: null,
     });
