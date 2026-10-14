@@ -19178,7 +19178,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"winston@npm:^2.4.5":
+"winston@npm:2.4.7":
   version: 2.4.7
   resolution: "winston@npm:2.4.7"
   dependencies:
@@ -19189,6 +19189,20 @@ __metadata:
     isstream: "npm:0.1.x"
     stack-trace: "npm:0.0.x"
   checksum: 10/44665f99bb1b1f290fc48879cd3bf635d0821ad70e90cdec0911a79b4ffd4f62ae4afa4764b27766e6a4ff60e911611047fd3f10b21d395eb0e3da33086d6c73
+  languageName: node
+  linkType: hard
+
+"winston@patch:winston@npm%3A2.4.7#~/.yarn/patches/winston-npm-2.4.7-f6df5db564.patch":
+  version: 2.4.7
+  resolution: "winston@patch:winston@npm%3A2.4.7#~/.yarn/patches/winston-npm-2.4.7-f6df5db564.patch::version=2.4.7&hash=3d8b04"
+  dependencies:
+    async: "npm:^2.6.4"
+    colors: "npm:1.0.x"
+    cycle: "npm:1.0.x"
+    eyes: "npm:0.1.x"
+    isstream: "npm:0.1.x"
+    stack-trace: "npm:0.0.x"
+  checksum: 10/d46006cb39f691ae44c5a93aa4a64a49d74d421a8f8084cf3559da97921ff0877adbd050ec5afda1c005ed402ea2317bd631ee0f126b4a0298a6f836785cd1b5
   languageName: node
   linkType: hard
 
