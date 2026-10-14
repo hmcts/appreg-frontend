@@ -12,8 +12,8 @@ import {
   signal,
 } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { EMPTY, Observable, of } from 'rxjs';
-import { catchError, expand, map, reduce } from 'rxjs/operators';
+import { EMPTY, Observable } from 'rxjs';
+import { expand, map, reduce } from 'rxjs/operators';
 
 import {
   ApplicationCodesApi,
@@ -63,6 +63,13 @@ export class ReferenceDataFacade {
     initialReferenceDataState,
   );
   private readonly state = this.signalState.state;
+
+  readonly hasLoadError = computed(
+    () =>
+      this.state().cjaLoadError ||
+      this.state().courtsLoadError ||
+      this.state().appCodeLoadError,
+  );
 
   readonly cja = computed(() => this.state().cja);
   readonly courtLocations = computed(() => this.state().courtLocations);
@@ -120,10 +127,7 @@ export class ReferenceDataFacade {
     setupLoadEffect(
       {
         request: () => this.loadCjaRequest(),
-        load: () =>
-          this.loadAllCja().pipe(
-            catchError(() => of([] as CriminalJusticeAreaGetDto[])),
-          ),
+        load: () => this.loadAllCja(),
         onSuccess: (items) => {
           this.signalState.patch({
             cja: items,
@@ -147,10 +151,7 @@ export class ReferenceDataFacade {
     setupLoadEffect(
       {
         request: () => this.loadCourtsRequest(),
-        load: () =>
-          this.loadAllCourts().pipe(
-            catchError(() => of([] as CourtLocationGetSummaryDto[])),
-          ),
+        load: () => this.loadAllCourts(),
         onSuccess: (items) => {
           this.signalState.patch({
             courtLocations: items,
@@ -174,10 +175,7 @@ export class ReferenceDataFacade {
     setupLoadEffect(
       {
         request: () => this.loadAllAppCodeTitlesRequest(),
-        load: () =>
-          this.loadAllAppCodeTitles().pipe(
-            catchError(() => of([] as string[])),
-          ),
+        load: () => this.loadAllAppCodeTitles(),
         onSuccess: (items) => {
           this.signalState.patch({
             applicationCodeTitles: items,

@@ -8,7 +8,7 @@
  * applications.ts
  */
 
-import { DestroyRef, Directive, inject } from '@angular/core';
+import { DestroyRef, Directive, computed, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -22,6 +22,7 @@ import {
 } from './location-suggestion-helpers';
 import { createSignalState } from './signal-state-helpers';
 
+import { ErrorItem } from '@components/error-summary/error-summary.component';
 import {
   CjaSuggestionItem,
   CourtSuggestionItem,
@@ -33,6 +34,7 @@ import {
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
 } from '@openapi';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 interface PlaceRefFacade {
   courtLocations$: Observable<CourtLocationGetSummaryDto[]>;
@@ -60,6 +62,7 @@ const initialPlaceFieldsState: PlaceFieldsState = {
 @Directive()
 export abstract class PlaceFieldsBase {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly referenceDataFacade = inject(ReferenceDataFacade);
 
   protected form!: FormGroup;
   private placeForm!: FormGroup;
@@ -73,6 +76,11 @@ export abstract class PlaceFieldsBase {
   protected readonly state = this.signalState.state;
 
   readonly placeState = (): PlaceFieldsState => this.state();
+  readonly referenceDataErrorItems = computed<ErrorItem[]>(() =>
+    this.referenceDataFacade.hasLoadError()
+      ? [{ text: 'Failed to load reference data' }]
+      : [],
+  );
 
   protected patch(patch: Partial<PlaceFieldsState>): void {
     this.signalState.patch(patch);
