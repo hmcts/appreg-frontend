@@ -178,4 +178,21 @@ describe('DateInputComponent', () => {
     expect(month.classList.contains('govuk-input--error')).toBe(true);
     expect(year.classList.contains('govuk-input--error')).toBe(true);
   });
+
+  it('shows an error for dates outside the allowed range', () => {
+    component.dateForm.setValue({ day: '1', month: '1', year: '1899' });
+    fixture.componentRef.setInput('submitted', true);
+    fixture.detectChanges();
+
+    const error = fixture.nativeElement.querySelector(
+      '#date-error',
+    ) as HTMLElement;
+
+    expect(error.textContent).toContain('Date must be between 1900 and 3000');
+
+    component.dateForm.setValue({ day: '1', month: '1', year: '3001' });
+    fixture.detectChanges();
+
+    expect(error.textContent).toContain('Date must be between 1900 and 3000');
+  });
 });
