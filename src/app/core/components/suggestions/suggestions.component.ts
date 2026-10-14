@@ -40,6 +40,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
   errorText = input('This field is required');
   suggestions = input.required<SuggestionsItem[]>();
   showAllValues = input(false);
+  charLimit = input(200);
 
   search = input('');
   searchChange = output<string>();
