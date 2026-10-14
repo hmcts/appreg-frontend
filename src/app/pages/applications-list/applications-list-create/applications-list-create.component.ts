@@ -16,6 +16,7 @@ import {
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
+  afterNextRender,
   inject,
   signal,
 } from '@angular/core';
@@ -144,6 +145,15 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
         ]);
       }
     }
+  }
+
+  constructor() {
+    super();
+    afterNextRender(() => {
+      if (this.referenceDataErrorItems().length) {
+        this.refField.refresh();
+      }
+    });
   }
 
   // Signal driven requests

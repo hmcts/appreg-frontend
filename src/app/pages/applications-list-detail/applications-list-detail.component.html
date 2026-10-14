@@ -17,9 +17,9 @@
   />
 }
 
-@if (vm().errorSummary.length || vm().updateInvalid) {
+@if (summaryItems().length || vm().updateInvalid) {
   <app-error-summary
-    [title]="vm().errorHint || 'There is a problem'"
+    title="There is a problem"
     [items]="summaryItems()"
     [focusKey]="submitAttempt()"
   />

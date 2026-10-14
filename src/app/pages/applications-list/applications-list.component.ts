@@ -26,6 +26,8 @@ import {
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
+  afterNextRender,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -135,6 +137,10 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   readonly vm = this.appListSignalState.vm;
   private readonly storedRecordsState = inject(ApplicationListRecordsService);
   readonly storedRecordsVm = this.storedRecordsState.vm;
+  readonly searchSummaryItems = computed(() => [
+    ...(this.storedRecordsVm().submitted ? this.vm().searchErrors : []),
+    ...this.referenceDataErrorItems(),
+  ]);
 
   readonly searchFormState = this.searchForm.state;
 
@@ -202,6 +208,15 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       this.appListSignalState.patch({ appliedFilters: restoredFilters });
       this.loadApplicationsLists(restoredFilters);
     }
+  }
+
+  constructor() {
+    super();
+    afterNextRender(() => {
+      if (this.referenceDataErrorItems().length) {
+        this.refFacade.refresh();
+      }
+    });
   }
 
   restoreFormValues(): void {

@@ -4,6 +4,7 @@ import {
   NO_ERRORS_SCHEMA,
   PLATFORM_ID,
   TransferState,
+  signal,
 } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -33,7 +34,11 @@ beforeAll(() => {
 });
 afterAll(() => warnSpy.mockRestore());
 
-const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
+const referenceDataLoadError = signal(false);
+const refFacadeStub: Pick<
+  ReferenceDataFacade,
+  'courtLocations$' | 'cja$' | 'hasPlaceLoadError' | 'refresh'
+> = {
   courtLocations$: of<CourtLocationGetSummaryDto[]>([
     { name: 'Alpha Court', locationCode: 'A1' },
     { name: 'Beta Court', locationCode: 'B2' },
@@ -42,6 +47,8 @@ const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
     { code: 'C1', description: 'Area One' },
     { code: 'C2', description: 'Area Two' },
   ]),
+  hasPlaceLoadError: referenceDataLoadError,
+  refresh: jest.fn(),
 };
 
 describe('ApplicationsListCreate', () => {
@@ -79,6 +86,8 @@ describe('ApplicationsListCreate', () => {
   };
 
   beforeEach(async () => {
+    referenceDataLoadError.set(false);
+    jest.mocked(refFacadeStub.refresh).mockClear();
     await TestBed.configureTestingModule({
       imports: [ApplicationsListCreate],
       providers: [
@@ -108,6 +117,19 @@ describe('ApplicationsListCreate', () => {
   afterEach(() => {
     setHistoryState();
     jest.clearAllMocks();
+  });
+
+  it('shows a reference data error summary and refreshes after rendering', async () => {
+    fixture.destroy();
+    referenceDataLoadError.set(true);
+    await createComponent();
+
+    expect(refFacadeStub.refresh).toHaveBeenCalledTimes(1);
+
+    expect(fixture.nativeElement.textContent).toContain('There is a problem');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Failed to load reference data',
+    );
   });
 
   function submit(action: string) {

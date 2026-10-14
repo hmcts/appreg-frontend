@@ -8,10 +8,10 @@
   ]"
 />
 
-@if (storedRecordsVm().submitted && vm().searchErrors.length) {
+@if (searchSummaryItems().length) {
   <app-error-summary
-    [title]="'There is a problem'"
-    [items]="vm().searchErrors"
+    title="There is a problem"
+    [items]="searchSummaryItems()"
     [focusKey]="submitAttempt()"
     targetId="search"
   />

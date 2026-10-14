@@ -1,7 +1,7 @@
-@if (vm().errorSummary.length) {
+@if (vm().errorSummary.length || referenceDataErrorItems().length) {
   <app-error-summary
-    [title]="'There is a problem'"
-    [items]="vm().errorSummary"
+    title="There is a problem"
+    [items]="vm().errorSummary.concat(referenceDataErrorItems())"
     [focusKey]="submitAttempt()"
   />
 }

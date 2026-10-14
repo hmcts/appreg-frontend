@@ -1,9 +1,13 @@
 <app-breadcrumbs [items]="breadcrumbs()" />
 
-@if (vm().errorSummary.length || vm().createInvalid) {
+@if (
+  vm().errorSummary.length ||
+  vm().createInvalid ||
+  referenceDataErrorItems().length
+) {
   <app-error-summary
-    [title]="vm().errorHint"
-    [items]="vm().errorSummary"
+    title="There is a problem"
+    [items]="vm().errorSummary.concat(referenceDataErrorItems())"
     [focusKey]="submitAttempt()"
   />
 }

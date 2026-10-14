@@ -30,11 +30,18 @@ export type ActivitySuggestionItem = {
   activity: ActivityType;
 };
 
+export type ApplicationCodeTitleSuggestionItem = {
+  kind: 'app-code-title';
+  label: string;
+  value: string;
+};
+
 export type SuggestionsItem =
   | CourtSuggestionItem
   | CjaSuggestionItem
   | ResultCodeSuggestionItem
-  | ActivitySuggestionItem;
+  | ActivitySuggestionItem
+  | ApplicationCodeTitleSuggestionItem;
 
 /**
  * Transform inputs into types for use in suggestions component
@@ -81,6 +88,14 @@ export const toActivitySuggestionItem = (
   activity,
 });
 
+export const toAppcodeSuggestionsItem = (
+  title: string,
+): ApplicationCodeTitleSuggestionItem => ({
+  kind: 'app-code-title',
+  label: title,
+  value: title,
+});
+
 /**
  * Get type of suggestion it is
  */
@@ -99,3 +114,7 @@ export const isResultCodeSuggestionItem = (
 export const isActivitySuggestionItem = (
   item: SuggestionsItem,
 ): item is ActivitySuggestionItem => item.kind === 'activity';
+
+export const isAppcodeSuggestionItem = (
+  item: SuggestionsItem,
+): item is ApplicationCodeTitleSuggestionItem => item.kind === 'app-code-title';

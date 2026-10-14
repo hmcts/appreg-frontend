@@ -23,6 +23,7 @@ RUN apk add --no-cache curl bash
 
 COPY --chown=hmcts:hmcts package.json yarn.lock .yarnrc.yml ./
 COPY --chown=hmcts:hmcts .yarn/releases .yarn/releases
+COPY --chown=hmcts:hmcts .yarn/patches .yarn/patches
 # Yarn 4 installs only runtime dependencies in this stage.
 RUN yarn workspaces focus --all --production
 

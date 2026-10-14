@@ -73,12 +73,12 @@ Feature: Applications List Entry Create
             When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
             Then User Should See The Text "Selecting this will apply the off site fee to the entry." In The Accordion "Civil fee"
             Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Amount: £284.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Amount: £292.00" In The Accordion "Civil fee"
             Then User Verifies The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee" Is Unchecked
             Then User Checks The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee"
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £29.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £313.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Total Fee Amount: £322.00" In The Accordion "Civil fee"
             Then User Should See The Text "Update fee status" In The Accordion "Civil fee"
             Then User Selects "Undertaken" From The Dropdown "Fee status" In The Accordion "Civil fee"
             Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
@@ -180,10 +180,10 @@ Feature: Applications List Entry Create
             Then User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Checked
             Then User Should See The Text "Selecting this will automatically apply the off site fee to the entry. This change is saved immediately." In The Accordion "Civil fee"
             Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Amount: £284.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Amount: £292.00" In The Accordion "Civil fee"
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £29.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £313.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Total Fee Amount: £322.00" In The Accordion "Civil fee"
             Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
                   | Fee Status | Status Date  | Payment Ref       |
                   | UNDERTAKEN | todaydisplay | New PAY-{RANDOM}  |
