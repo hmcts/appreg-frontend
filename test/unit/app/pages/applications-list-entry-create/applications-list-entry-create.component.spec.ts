@@ -333,7 +333,54 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     },
   );
 
-  it('does not rebuild respondent errors when respondent becomes populated after submit', () => {
+  it.each([
+    ['personForm', 'person', 'firstName', '#applicant-person-first-name'],
+    ['organisationForm', 'org', 'name', '#applicant-org-name'],
+    [
+      'respondentPersonForm',
+      'person',
+      'firstName',
+      '#respondent-person-first-name',
+    ],
+    ['respondentOrganisationForm', 'org', 'name', '#respondent-org-name'],
+  ] as const)(
+    'refreshes %s field errors after a failed save without submitting again',
+    (formName, applicantType, field, href) => {
+      component.form.patchValue({
+        applicantType,
+        respondentEntryType:
+          formName === 'respondentPersonForm' ? 'person' : 'organisation',
+      });
+      component['appListEntryCreatePatch']({
+        appCodeDetail: { requiresRespondent: true },
+      });
+      const group = component.forms[formName];
+      group.reset();
+      group.get(field)!.setValue('   ');
+      expect(component.vm().summaryErrors).toEqual([]);
+
+      component.onSubmit(new Event('submit'));
+      const error = expect.objectContaining({ href });
+      expect(component.vm().summaryErrors).toContainEqual(error);
+      const submitAttempt = component.submitAttempt();
+      group.get(field)!.setValue('  ');
+      expect(component.vm().summaryErrors).toContainEqual(error);
+
+      group.get(field)!.setValue('Example');
+      const errors = formName.startsWith('respondent')
+        ? component.respondentErrorItems
+        : component.applicantErrorItems;
+      expect(errors).not.toContainEqual(error);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(component.vm().summaryErrors).not.toContainEqual(error);
+      group.get(field)!.setValue('   ');
+      expect(component.vm().summaryErrors).toContainEqual(error);
+      expect(component.submitAttempt()).toBe(submitAttempt);
+      expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it('rebuilds optional respondent errors immediately when populated after submit', () => {
     (
       component as unknown as {
         appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
@@ -356,59 +403,18 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     component.forms.respondentPersonForm.patchValue({ firstName: 'Jane' });
 
     expect(component.respondentSubmittedAndRequired).toBe(true);
-    expect(component.respondentErrorItems).toEqual([]);
+    expect(component.respondentErrorItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ href: '#respondent-person-surname' }),
+      ]),
+    );
     expect(
       component
         .vm()
         .summaryErrors.some(
           ({ text }) => text === 'Enter respondent last name',
         ),
-    ).toBe(false);
-  });
-
-  it('rebuilds respondent errors on the next submission after respondent becomes populated', () => {
-    (
-      component as unknown as {
-        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
-      }
-    ).appListEntryCreatePatch({
-      appCodeDetail: { requiresRespondent: false },
-    });
-
-    component.form.patchValue({
-      applicationCode: '   ',
-      respondentEntryType: 'person',
-      numberOfRespondents: null,
-    });
-    component.forms.respondentPersonForm.reset();
-    component.forms.respondentOrganisationForm.reset();
-
-    component.onSubmit(new Event('submit'));
-    component.forms.respondentPersonForm.patchValue({ firstName: 'Jane' });
-
-    expect(component.respondentErrorItems).toEqual([]);
-
-    component.onSubmit(new Event('submit'));
-
-    expect(component.respondentErrorItems).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          text: 'Enter respondent last name',
-          href: '#respondent-person-surname',
-        }),
-        expect.objectContaining({
-          text: 'Enter respondent address line 1',
-          href: '#respondent-person-address-line-1',
-        }),
-      ]),
-    );
-    expect(component.vm().summaryErrors).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          text: 'Enter respondent last name',
-        }),
-      ]),
-    );
+    ).toBe(true);
   });
 
   it('includes relayed standard applicant search errors in the parent summary', () => {
@@ -1430,5 +1436,83 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
 
     s.next({ bulkRespondentAllowed: false });
     s.complete();
+  });
+});
+
+describe('ApplicationsListEntryCreate error summary focus (real template)', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+    document.body.innerHTML = '';
+  });
+
+  it('keeps focus in first name when the last error clears and returns during editing', async () => {
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    document.body.appendChild(fixture.nativeElement);
+    component['appListEntryCreatePatch']({
+      appCodeDetail: { requiresRespondent: true, wording: { template: '' } },
+    });
+    component.form.patchValue({
+      applicationCode: 'A001',
+      lodgementDate: '2026-02-01',
+    });
+    const details = {
+      firstName: 'Example',
+      surname: 'Example',
+      addressLine1: 'Example',
+    };
+    component.personForm.patchValue({ ...details, firstName: '' });
+    component.forms.respondentPersonForm.patchValue(details);
+    jest.useFakeTimers();
+    component.onSubmit(new Event('submit'));
+    fixture.detectChanges();
+    jest.runOnlyPendingTimers();
+    expect(component.vm().summaryErrors).toHaveLength(1);
+    const summary = fixture.nativeElement.querySelector('app-error-summary');
+    const scroll = jest.spyOn(
+      summary.querySelector('.govuk-error-summary'),
+      'scrollIntoView',
+    );
+    const field = fixture.nativeElement.querySelector(
+      '#applicant-person-first-name',
+    ) as HTMLInputElement;
+    field.focus();
+    scroll.mockClear();
+
+    for (const value of ['Example', '', 'Replacement']) {
+      field.value = value;
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      fixture.detectChanges();
+      jest.runOnlyPendingTimers();
+      expect(fixture.nativeElement.querySelector('app-error-summary')).toBe(
+        summary,
+      );
+      expect(summary.hidden).toBe(value !== '');
+      expect(component.vm().summaryErrors).toHaveLength(value === '' ? 1 : 0);
+      expect(document.activeElement).toBe(field);
+      expect(scroll).not.toHaveBeenCalled();
+    }
+
+    field.value = '';
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    component.onSubmit(new Event('submit'));
+    fixture.detectChanges();
+    jest.runOnlyPendingTimers();
+    expect(document.activeElement).toBe(
+      summary.querySelector('.govuk-error-summary'),
+    );
   });
 });

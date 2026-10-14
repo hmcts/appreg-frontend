@@ -8,13 +8,12 @@
   ]"
 />
 
-@if (vm().errorFound) {
-  <app-error-summary
-    [title]="'There is a problem'"
-    [items]="vm().summaryErrors"
-    [focusKey]="submitAttempt()"
-  />
-}
+<app-error-summary
+  [hidden]="!vm().errorFound"
+  [title]="'There is a problem'"
+  [items]="vm().summaryErrors"
+  [focusKey]="submitAttempt()"
+/>
 
 <h1 class="govuk-heading-xl">Create new entry</h1>
 

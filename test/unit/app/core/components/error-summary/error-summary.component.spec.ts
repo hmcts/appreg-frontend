@@ -63,6 +63,7 @@ describe('ErrorSummaryComponent (external template)', () => {
     jest.runAllTimers();
     expect(focus).toHaveBeenCalledTimes(2);
 
+    fixture.componentRef.setInput('focusKey', undefined);
     fixture.componentRef.setInput('items', [{ text: 'Changed error' }]);
     fixture.detectChanges();
     jest.runAllTimers();
@@ -74,6 +75,39 @@ describe('ErrorSummaryComponent (external template)', () => {
     fixture.detectChanges();
     jest.runAllTimers();
     expect(focus).toHaveBeenCalledTimes(4);
+  });
+
+  it('keeps field focus and scroll position when errors change within a submit cycle', () => {
+    jest.useFakeTimers();
+    const surnameError = { text: 'Enter surname', id: 'surname' };
+    fixture.componentRef.setInput('focusKey', 1);
+    fixture.componentRef.setInput('items', [
+      { text: 'Enter first name' },
+      surnameError,
+    ]);
+    fixture.detectChanges();
+    document.body.appendChild(fixture.nativeElement);
+    const summary = fixture.nativeElement.querySelector('.govuk-error-summary');
+    const scroll = jest.spyOn(summary, 'scrollIntoView');
+    jest.runAllTimers();
+    const field = document.createElement('input');
+    document.body.appendChild(field);
+    field.focus();
+    scroll.mockClear();
+
+    for (const items of [[surnameError], [], [surnameError]]) {
+      fixture.componentRef.setInput('items', items);
+      fixture.detectChanges();
+      jest.runAllTimers();
+      expect(document.activeElement).toBe(field);
+      expect(scroll).not.toHaveBeenCalled();
+    }
+
+    fixture.componentRef.setInput('focusKey', 2);
+    fixture.detectChanges();
+    jest.runAllTimers();
+    expect(document.activeElement).toBe(summary);
+    expect(scroll).toHaveBeenCalledTimes(1);
   });
 
   it('focuses when errors arrive after initial render', () => {

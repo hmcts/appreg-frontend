@@ -30,8 +30,8 @@ export class ErrorSummaryComponent {
   targetId = input<string>();
   /** Auto-focus the summary on render (recommended for a11y) */
   autoFocus = input(true);
-  /** Optional submit/error cycle key to refocus even when items have not changed */
-  focusKey = input<number>(0);
+  /** When provided, refocus only on a new submit/error cycle, not changed items. */
+  focusKey = input<number>();
   /** If you want to run custom logic (e.g. focus a form field), listen to this */
   itemSelect = output<ErrorItem>();
 
@@ -49,7 +49,9 @@ export class ErrorSummaryComponent {
 
       if (!items.length) {
         this.lastFocusedItemsKey = '';
-        this.lastFocusedCycleKey = '';
+        if (focusKey === undefined) {
+          this.lastFocusedCycleKey = '';
+        }
         return;
       }
 
@@ -68,7 +70,7 @@ export class ErrorSummaryComponent {
         focusKey === undefined || focusKey === null ? '' : String(focusKey);
 
       if (
-        itemsKey === this.lastFocusedItemsKey &&
+        (focusKey !== undefined || itemsKey === this.lastFocusedItemsKey) &&
         cycleKey === this.lastFocusedCycleKey
       ) {
         return;
