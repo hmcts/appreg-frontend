@@ -57,6 +57,7 @@ import {
   NgZone,
   OnInit,
   PLATFORM_ID,
+  afterNextRender,
   computed,
   inject,
   signal,
@@ -229,11 +230,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   readonly vm = this.detailSignalState.vm;
   // Keep the close-error ID in state for inline errors, not as a navigation target.
-  readonly summaryItems = computed(() =>
-    this.vm().errorSummary.map((item) =>
+  readonly summaryItems = computed(() => [
+    ...this.vm().errorSummary.map((item) =>
       item.id === 'status-close' ? { text: item.text } : item,
     ),
-  );
+    ...this.referenceDataErrorItems(),
+  ]);
 
   private readonly tableDataRequest = signal<tableDataReq | null>(null);
   private readonly listDetailRequest = signal<listDetailsReq | null>(null);
@@ -344,6 +346,15 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           queryParams: { delete: null, code: null },
           replaceUrl: true,
         });
+      }
+    });
+  }
+
+  constructor() {
+    super();
+    afterNextRender(() => {
+      if (this.referenceDataErrorItems().length) {
+        this.refField.refresh();
       }
     });
   }

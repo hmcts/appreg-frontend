@@ -5,7 +5,7 @@ import {
   provideHttpClient,
 } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { PLATFORM_ID } from '@angular/core';
+import { PLATFORM_ID, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
@@ -131,9 +131,15 @@ describe('ApplicationsListDetail', () => {
     generateContinuousApplicationListsPdf: jest.fn(),
   };
 
-  const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
+  const referenceDataLoadError = signal(false);
+  const refFacadeStub: Pick<
+    ReferenceDataFacade,
+    'courtLocations$' | 'cja$' | 'hasPlaceLoadError' | 'refresh'
+  > = {
     courtLocations$: of([]),
     cja$: of([] as CriminalJusticeAreaGetDto[]),
+    hasPlaceLoadError: referenceDataLoadError,
+    refresh: jest.fn(),
   };
 
   let historyStateSpy: jest.SpyInstance;
@@ -153,6 +159,8 @@ describe('ApplicationsListDetail', () => {
   };
 
   beforeEach(async () => {
+    referenceDataLoadError.set(false);
+    jest.mocked(refFacadeStub.refresh).mockClear();
     const row = {
       id: 'id-1',
       location: 'LOC1',
@@ -267,6 +275,22 @@ describe('ApplicationsListDetail', () => {
 
   it('creates', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows a reference data error summary and refreshes after rendering', async () => {
+    fixture.destroy();
+    referenceDataLoadError.set(true);
+    fixture = TestBed.createComponent(ApplicationsListDetail);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await flushSignalEffects(fixture);
+
+    expect(refFacadeStub.refresh).toHaveBeenCalledTimes(1);
+
+    expect(fixture.nativeElement.textContent).toContain('There is a problem');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Failed to load reference data',
+    );
   });
 
   describe('selection caption', () => {

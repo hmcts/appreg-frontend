@@ -1,16 +1,8 @@
-@if (vm().errorSummary.length) {
+@if (summaryItems().length) {
   <app-error-summary
-    [title]="'There is a problem'"
-    [items]="vm().errorSummary"
+    title="There is a problem"
+    [items]="summaryItems()"
     [focusKey]="submitAttempt()"
-    targetId="search"
-  />
-} @else if (vm().searchErrors.length) {
-  <app-error-summary
-    [title]="'There is a problem'"
-    [items]="vm().searchErrors"
-    [focusKey]="submitAttempt()"
-    targetId="search"
   />
 } @else {
   @if (vm().isSearch && !vm().isLoading && !vm().rows.length) {
@@ -221,20 +213,32 @@
 
       <div class="govuk-grid-row">
         <!-- Application title -->
-        <app-text-input
+        <app-suggestions
+          id="applicationTitle"
           formControlName="applicationTitle"
           label="Application title"
-          idPrefix="applicationTitle"
-          [error]="
+          [search]="applicationTitleSearch()"
+          (searchChange)="onApplicationTitleInputChange($event)"
+          [suggestions]="filteredApplicationTitles()"
+          (selectItem)="onApplicationTitleSuggestionSelected($event)"
+          [showError]="
+            vm().submitted &&
+            !!getControlErrorItem(
+              form.controls.applicationTitle,
+              'applicationTitle',
+              errorMap
+            )
+          "
+          [errorText]="
             getControlErrorItem(
               form.controls.applicationTitle,
               'applicationTitle',
               errorMap
-            )?.text ?? null
+            )?.text ?? ''
           "
+          [charLimit]="500"
           containerWidthClass="govuk-grid-column-one-half"
           widthClass="govuk-!-width-two-thirds"
-          [charLimit]="500"
         />
       </div>
     </div>

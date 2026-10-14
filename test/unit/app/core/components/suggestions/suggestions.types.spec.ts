@@ -1,9 +1,11 @@
 import {
   isActivitySuggestionItem,
+  isAppcodeSuggestionItem,
   isCjaSuggestionItem,
   isCourtSuggestionItem,
   isResultCodeSuggestionItem,
   toActivitySuggestionItem,
+  toAppcodeSuggestionsItem,
   toCjaSuggestionItem,
   toCourtSuggestionItem,
   toResultCodeSuggestionItem,
@@ -85,6 +87,14 @@ describe('suggestions.types', () => {
     });
   });
 
+  it('maps an application code title without changing its casing', () => {
+    expect(toAppcodeSuggestionsItem('Private Prosecution')).toEqual({
+      kind: 'app-code-title',
+      label: 'Private Prosecution',
+      value: 'Private Prosecution',
+    });
+  });
+
   it('identifies a court suggestion item', () => {
     const item = toCourtSuggestionItem({
       locationCode: 'A1',
@@ -131,5 +141,12 @@ describe('suggestions.types', () => {
     expect(isCjaSuggestionItem(item)).toBe(false);
     expect(isResultCodeSuggestionItem(item)).toBe(false);
     expect(isActivitySuggestionItem(item)).toBe(true);
+  });
+
+  it('identifies an application code title suggestion item', () => {
+    const item = toAppcodeSuggestionsItem('Private Prosecution');
+
+    expect(isAppcodeSuggestionItem(item)).toBe(true);
+    expect(isActivitySuggestionItem(item)).toBe(false);
   });
 });

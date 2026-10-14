@@ -30,6 +30,7 @@ import {
   EnvironmentInjector,
   OnInit,
   PLATFORM_ID,
+  afterNextRender,
   inject,
   signal,
   viewChild,
@@ -355,6 +356,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     });
 
     this.setupEffects();
+  }
+
+  constructor() {
+    super();
+    afterNextRender(() => {
+      if (this.referenceDataErrorItems().length) {
+        this.refFacade.refresh();
+      }
+    });
   }
 
   onDownload(): void {
