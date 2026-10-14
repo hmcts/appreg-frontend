@@ -238,6 +238,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
       const autocomplete = (event?.target as HTMLElement | null)?.parentElement;
 
       if (!nextFocusedElement || !autocomplete?.contains(nextFocusedElement)) {
+        this.focused = false;
         this.closePopup();
       }
       this.onTouched();
@@ -250,6 +251,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
 
     // Close only when leaving the whole autocomplete.
     if (!nextFocusedElement || !autocomplete.contains(nextFocusedElement)) {
+      this.focused = false;
       this.closePopup();
     }
   }
@@ -332,7 +334,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
   }
 
   private closePopup(): void {
-    this.focused = false;
+    // Escape dismisses suggestions without moving focus away from the input.
     this.popupDismissed = true;
     this.allValuesVisible = false;
     this.activeIndex.set(-1);

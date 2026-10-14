@@ -628,6 +628,33 @@ describe('SuggestionsComponent', () => {
     expect(component.searchState()).toBe('keep this text');
   });
 
+  it('reopens suggestions when typing after Escape and the parent echoes the search', () => {
+    setInput('showAllValues', true);
+    setInput('suggestions', [
+      suggestion('B1', 'Bristol'),
+      suggestion('B2', 'Birmingham'),
+    ]);
+    component.onFocus();
+    component.onInput('B');
+    setInput('search', 'B');
+    expect(component.visibleSuggestions).toHaveLength(2);
+    expect(component.popupVisible).toBe(true);
+
+    component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(component.popupVisible).toBe(false);
+
+    component.onInput('Br');
+    setInput('search', 'Br');
+    expect(component.visibleSuggestions).toEqual([suggestion('B1', 'Bristol')]);
+    expect(component.isCommittedText).toBe(false);
+    expect(component.popupVisible).toBe(true);
+
+    component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+    component.onInput('no match');
+    setInput('search', 'no match');
+    expect(component.noResultsVisible).toBe(true);
+  });
+
   it('noResultsVisible is true when focused + hasQuery + suggestions empty + not committed + not justSelected + not disabled', () => {
     setInput('disabled', false);
     setInput('suggestions', []);
