@@ -148,13 +148,21 @@ export class ApplicationsListEntryMoveComponent
   onCreateErrorClick = onCreateErrorClickFn;
 
   columnsEntries = APPLICATION_ENTRIES_MOVE_COLUMNS;
-  get columnsLists(): TableColumn[] {
-    return withDisabledColumnSort(
+  private readonly appliedFilters = computed(
+    () => this.moveEntryState().appliedFilters,
+  );
+
+  private readonly columnsState = computed(() =>
+    withDisabledColumnSort(
       APPLICATIONS_LIST_COLUMNS_ACTION,
-      this.disabledListSortColumns(),
-    );
+      this.disabledSortColumns(),
+    ),
+  );
+
+  get columnsLists(): TableColumn[] {
+    return this.columnsState();
   }
-  readonly disabledListSortColumns = computed<readonly string[]>(() =>
+  readonly disabledSortColumns = computed<readonly string[]>(() =>
     this.filteredSortColumns(),
   );
 
@@ -374,7 +382,7 @@ export class ApplicationsListEntryMoveComponent
   }
 
   private filteredSortColumns(): readonly string[] {
-    const filters = this.moveEntryState().appliedFilters;
+    const filters = this.appliedFilters();
     const disabled = ['status'];
 
     if (filters.date) {

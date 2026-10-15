@@ -165,11 +165,19 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
   disableSearchButton = signal(false);
 
-  get columns(): TableColumn[] {
-    return withDisabledColumnSort(
+  private readonly appliedFilters = computed(
+    () => this.appListState().appliedFilters,
+  );
+
+  private readonly columnsState = computed(() =>
+    withDisabledColumnSort(
       APPLICATIONS_LIST_COLUMNS_ACTION,
       this.disabledSortColumns,
-    );
+    ),
+  );
+
+  get columns(): TableColumn[] {
+    return this.columnsState();
   }
   get disabledSortColumns(): readonly string[] {
     return this.filteredSortColumns();
@@ -507,7 +515,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   private filteredSortColumns(): readonly string[] {
-    const filters = this.appListState().appliedFilters;
+    const filters = this.appliedFilters();
     const disabled: string[] = [];
 
     if (filters.date) {

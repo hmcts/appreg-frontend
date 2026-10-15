@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { FeeUpdateConfirmComponent } from '@components/applications-list-detail/applications-list-detail-bulk-update-fees/fee-update-confirm/fee-update-confirm.component';
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { ApplicationListEntriesApi, FeeStatus } from '@openapi';
 
 describe('FeeUpdateConfirmComponent', () => {
@@ -48,6 +49,61 @@ describe('FeeUpdateConfirmComponent', () => {
   afterEach(() => {
     routerNavigate.mockClear();
     bulkUpdateApplicationListEntryFees.mockClear();
+  });
+
+  it('formats navigation fee data once and reuses rows across table updates', () => {
+    const fees: FeeStatus[] = [
+      {
+        paymentStatus: 'PAID',
+        statusDate: '2026-01-01',
+        paymentReference: 'REF-1',
+      },
+      {
+        paymentStatus: 'PAID',
+        statusDate: '2026-01-02',
+      },
+    ];
+    jest.spyOn(TestBed.inject(Location), 'getState').mockReturnValue({
+      feeTable: fees,
+    });
+    const transform = jest
+      .spyOn(TestBed.inject(DateTimePipe), 'transform')
+      .mockReturnValueOnce('1 Jan 2026')
+      .mockReturnValueOnce(null);
+
+    fixture.destroy();
+    fixture = TestBed.createComponent(FeeUpdateConfirmComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const rows = component.feeTableRows;
+    expect(rows).toEqual([
+      {
+        paymentStatus: 'PAID',
+        statusDate: '1 Jan 2026',
+        paymentReference: 'REF-1',
+      },
+      {
+        paymentStatus: 'PAID',
+        statusDate: '2026-01-02',
+        paymentReference: '',
+      },
+    ]);
+    expect(transform).toHaveBeenCalledTimes(2);
+    expect(transform).toHaveBeenNthCalledWith(1, '2026-01-01', 'mediumDate');
+    expect(transform).toHaveBeenNthCalledWith(2, '2026-01-02', 'mediumDate');
+
+    component.currentPage.set(1);
+    component.feeSort.set({ key: 'title', direction: 'asc' });
+    fixture.detectChanges();
+    expect(component.feeTableRows).toBe(rows);
+    expect(transform).toHaveBeenCalledTimes(2);
+    expect(component.feeStatuses).toBe(fees);
+    transform.mockRestore();
+  });
+
+  it('has no display rows when navigation state contains no fees', () => {
+    expect(component.feeTableRows).toEqual([]);
   });
 
   it('builds a bulk fee payload with deduped entry ids and one feeDetails object', () => {
@@ -196,23 +252,27 @@ describe('FeeUpdateConfirmComponent', () => {
   });
 
   it('renders the civil fee table as read-only content', () => {
-    component.selectedEntries = [
-      {
-        id: 'entry-1',
-        applicant: 'Applicant',
-        respondent: 'Respondent',
-        title: 'Title',
-      },
-    ] as never;
-    component.feeStatuses = [
-      {
-        paymentStatus: 'PAID',
-        statusDate: '2026-01-01',
-        paymentReference: 'REF-1',
-      } as FeeStatus,
-    ];
-    component.isOffSiteFee = true;
-
+    jest.spyOn(TestBed.inject(Location), 'getState').mockReturnValue({
+      selectedEntries: [
+        {
+          id: 'entry-1',
+          applicant: 'Applicant',
+          respondent: 'Respondent',
+          title: 'Title',
+        },
+      ],
+      feeTable: [
+        {
+          paymentStatus: 'PAID',
+          statusDate: '2026-01-01',
+          paymentReference: 'REF-1',
+        },
+      ],
+      isOffSiteFee: true,
+    });
+    fixture.destroy();
+    fixture = TestBed.createComponent(FeeUpdateConfirmComponent);
+    component = fixture.componentInstance;
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;

@@ -113,15 +113,14 @@ export class FeeUpdateConfirmComponent implements OnInit {
     return this.sortedRows().slice(start, start + this.pageSize);
   });
 
-  get feeTableRows(): FeeTableRow[] {
-    return this.feeStatuses.map((feeStatus) => ({
-      paymentStatus: feeStatus.paymentStatus,
-      statusDate:
-        this.dateTimePipe.transform(feeStatus.statusDate, 'mediumDate') ??
-        feeStatus.statusDate,
-      paymentReference: feeStatus.paymentReference ?? '',
-    }));
-  }
+  // Confirmation data is loaded once from navigation state.
+  readonly feeTableRows: FeeTableRow[] = this.feeStatuses.map((feeStatus) => ({
+    paymentStatus: feeStatus.paymentStatus,
+    statusDate:
+      this.dateTimePipe.transform(feeStatus.statusDate, 'mediumDate') ??
+      feeStatus.statusDate,
+    paymentReference: feeStatus.paymentReference ?? '',
+  }));
 
   ngOnInit(): void {
     if (!this.listId || !this.selectedEntries.length) {
