@@ -299,6 +299,14 @@ export class ApplicationsListBulkUpload implements OnInit {
           body: this.formatErrorDescriptionFromError(job.message),
         } as const;
 
+      case 'timed_out':
+        return {
+          kind: 'error',
+          title: 'Error',
+          heading: 'Bulk upload timed out',
+          body: job.message ?? 'Please try again later.',
+        } as const;
+
       default:
         return UPLOAD_IN_PROGRESS_FEEDBACK;
     }

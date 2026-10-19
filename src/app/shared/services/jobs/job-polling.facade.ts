@@ -7,11 +7,15 @@ while the job-status contract is still settling.
 
 import { HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, exhaustMap, map, takeWhile, timer } from 'rxjs';
+import { Observable, exhaustMap, map, merge, takeWhile, timer } from 'rxjs';
 
 import { JobAcknowledgement, JobStatus, JobsApi } from '@openapi';
 
-export type PolledJobState = 'in_progress' | 'succeeded' | 'failed';
+export type PolledJobState =
+  | 'in_progress'
+  | 'succeeded'
+  | 'failed'
+  | 'timed_out';
 
 export interface PolledJobStatus {
   id: string;
@@ -26,6 +30,7 @@ export interface PolledJobStatus {
 }
 
 const DEFAULT_INTERVAL_MS = 2_000;
+const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
 
 const TERMINAL_SUCCESS_STATUSES = new Set<string>([
   'SUCCEEDED',
@@ -42,22 +47,39 @@ export class JobPollingFacade {
   watchJob(
     jobId: string,
     intervalMs = DEFAULT_INTERVAL_MS,
+    timeout = DEFAULT_TIMEOUT_MS,
   ): Observable<PolledJobStatus> {
-    return timer(0, intervalMs).pipe(
-      exhaustMap(() =>
-        this.jobsApi.getJobStatusById({ jobId }, 'response', false, {
-          transferCache: false,
+    return merge(
+      timer(0, intervalMs).pipe(
+        exhaustMap(() =>
+          this.jobsApi.getJobStatusById({ jobId }, 'response', false, {
+            transferCache: false,
+          }),
+        ),
+        map((response: HttpResponse<JobAcknowledgement>) => {
+          if (!response.body) {
+            throw new Error('No upload status returned.');
+          }
+
+          return normaliseJobStatus(response.body, jobId);
         }),
       ),
-      map((response: HttpResponse<JobAcknowledgement>) => {
-        if (!response.body) {
-          throw new Error('No upload status returned.');
-        }
-
-        return normaliseJobStatus(response.body, jobId);
-      }),
-      takeWhile((job) => !job.isTerminal, true),
-    );
+      timer(timeout).pipe(
+        map(
+          (): PolledJobStatus => ({
+            id: jobId,
+            rawStatus: 'TIMED_OUT',
+            state: 'timed_out',
+            isTerminal: true,
+            createdCount: null,
+            errorCount: null,
+            totalCount: null,
+            message: 'Job polling has exceeded 5 minutes.',
+            raw: {},
+          }),
+        ),
+      ),
+    ).pipe(takeWhile((job) => !job.isTerminal, true));
   }
 }
 

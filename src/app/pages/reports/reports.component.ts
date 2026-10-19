@@ -1002,6 +1002,11 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    if (job.state === 'timed_out') {
+      this.showReportError(job.message ?? 'Please try again later.');
+      return;
+    }
+
     this.showReportError(
       job.message ?? 'The report could not be generated. Try again.',
     );
@@ -1072,12 +1077,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     return reportOptions.find((option) => option.id === reportId) ?? null;
   }
 
-  private showReportError(text: string): void {
+  private showReportError(
+    text: string,
+    title = 'Report generation failed',
+  ): void {
     this.stopReportPolling();
     this.reportStatePatch({
       reportFeedback: {
         kind: 'error',
-        title: 'Report generation failed',
+        title,
         items: [{ text }],
       },
     });
