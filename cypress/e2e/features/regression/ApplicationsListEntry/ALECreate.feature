@@ -431,8 +431,8 @@ Feature: Applications List Entry Create
             Then User Checks The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee"
             # Bug ARCPOC-1241 is raised
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £29.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £29.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Total Fee Amount: £30.00" In The Accordion "Civil fee"
             Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
             Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
             Then User Enters "PAY-{RANDOM}" Into The Textbox "Payment reference" In The Accordion "Civil fee"
@@ -479,8 +479,8 @@ Feature: Applications List Entry Create
             Then User Should See The Text "Fee Reference: —" In The Accordion "Civil fee"
             Then User Should See The Text "Amount: £0.00" In The Accordion "Civil fee"
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £29.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £29.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Total Fee Amount: £30.00" In The Accordion "Civil fee"
             Then User Verifies "Change" Link Is Visible In Row Of Table In The Accordion "Civil fee" With:
                   | Fee Status | Status Date  | Payment Ref  |
                   | PAID       | todaydisplay | PAY-{RANDOM} |
@@ -511,16 +511,28 @@ Feature: Applications List Entry Create
             Then User Should See The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
             Then User Should See The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
 
-      @applicationListEntry @regression @ARCPOC-1297
+      @applicationListEntry @regression @ARCPOC-1297 @ARCPOC-1841
       Scenario Outline: Verify Application Codes sorting behaviour
             Given User Authenticates Via API As "<User>"
-            # Create Application List
+            # Create Application List with invalid date
+            When User Makes POST API Request To "/application-lists" With Body:
+                  | date              | time   | status   | description   | durationHours | durationMinutes | courtLocationCode |
+                  | <ExceededAPIDate> | <Time> | <Status> | <Description> |               |                 | <CourtCode>       |
+            Then User Verify Response Status Code Should Be "400"
+            Then User Verify Response Body Should Have:
+                  | errors.date | Invalid date, date is out of range (1900-01-01 to 3000-12-31) |
+            # Create Application List with valid date
             When User Makes POST API Request To "/application-lists" With Body:
                   | date      | time   | status   | description   | durationHours | durationMinutes | courtLocationCode |
                   | <APIDate> | <Time> | <Status> | <Description> |               |                 | <CourtCode>       |
             Then User Verify Response Status Code Should Be "201"
             Then User Stores Response Body Property "id" As "listId"
+            # Search Created Application List
             When User Signs In With Microsoft SSO As "<User>"
+            When User Searches Application List With:
+                  | Date                 | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+                  | <ExceededSearchDate> |      | <Description>    |             |       | <Status>           |                            |                       |           |
+            Then User Sees Validation Error Banner "There is a problem Enter a valid date"
             When User Searches Application List With:
                   | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
                   | <SearchDate> |      | <Description>    |             |       | <Status>           |                            |                       |           |
@@ -553,8 +565,8 @@ Feature: Applications List Entry Create
             Then User Should See Table "Codes" Header "Fee required" Has Sort Order "descending"
 
             Examples:
-                  | User  | TableName | SelectButtonText | ButtonName | SearchDate | DisplayDate  | APIDate    | Time  | Court                     | CourtCode | Description  | Entries | Status |
-                  | user1 | Lists     | Select           | Open       | 12/09/3036 | 12 Sept 3036 | 3036-09-12 | 12:12 | Bristol Crown Court Set 3 | BCC026    | Wave Delta12 | 0       | OPEN   |
+                  | User  | TableName | SelectButtonText | ButtonName | SearchDate | ExceededSearchDate | DisplayDate  | APIDate    | ExceededAPIDate | Time  | Court                     | CourtCode | Description  | Entries | Status |
+                  | user1 | Lists     | Select           | Open       | 12/09/2026 | 01/09/3036         | 12 Sept 2026 | 2026-09-01 | 3036-09-01      | 12:12 | Bristol Crown Court Set 3 | BCC026    | Wave Delta12 | 0       | OPEN   |
 
       @applicationListEntry @regression @ARCPOC-1707
       Scenario: Create Application List Entry, Add application code, expect wording and fee accordion to be expanded

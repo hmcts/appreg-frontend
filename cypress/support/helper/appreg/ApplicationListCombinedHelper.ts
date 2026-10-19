@@ -95,15 +95,23 @@ export class ApplicationListCombinedHelper {
 
     ButtonHelper.clickButton('Search');
 
-    // Wait for the API response to ensure fresh results are rendered
-    cy.wait('@searchApplicationLists', { timeout: 20000 });
+    // Client-side validation prevents a search request, so only wait for the
+    // results request when the submitted form has no validation errors.
+    cy.get('body').then(($body) => {
+      const hasValidationError = $body.find('.govuk-error-summary').length > 0;
 
-    // Then wait for either the table or the "No lists found" banner to appear
+      if (!hasValidationError) {
+        cy.wait('@searchApplicationLists', { timeout: 20000 });
+      }
+    });
+
+    // Then wait for search results or a validation error to appear.
     cy.get('body', { timeout: 10000 }).should(($body) => {
       const hasTable = $body.find('caption:contains("Lists")').length > 0;
       const hasNoResultsBanner = $body.text().includes('No lists found');
+      const hasValidationError = $body.find('.govuk-error-summary').length > 0;
 
-      if (!hasTable && !hasNoResultsBanner) {
+      if (!hasTable && !hasNoResultsBanner && !hasValidationError) {
         throw new Error('Search results not loaded yet - waiting...');
       }
     });
