@@ -163,7 +163,7 @@ export class ApplicationsListBulkUpload implements OnInit {
   readonly submitAttempt = signal(0);
   readonly pendingJobId = signal<string | null>(null);
   readonly replacementFileSelected = signal(false);
-  private isJobPolling = false;
+  isJobPolling = false;
 
   columns = BulkUploadErrorTableColumns;
 
@@ -478,6 +478,7 @@ export class ApplicationsListBulkUpload implements OnInit {
   onSubmit(): void {
     if (
       this.vm().isUploadInProgress ||
+      this.isJobPolling ||
       (this.pendingJobId() && !this.replacementFileSelected())
     ) {
       return;

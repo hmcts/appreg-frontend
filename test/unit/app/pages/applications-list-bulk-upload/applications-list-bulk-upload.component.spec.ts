@@ -361,6 +361,30 @@ describe('ApplicationsListBulkUpload', () => {
   });
 
   describe('onSubmit', () => {
+    it('blocks another upload while an existing job is being polled', async () => {
+      startBulkUploadPolling();
+      component.onFileSelected({
+        target: { files: [file] },
+      } as unknown as Event);
+      await flushSignalEffects(fixture);
+
+      expect(component.vm().isUploadInProgress).toBe(false);
+      expect(component.replacementFileSelected()).toBe(true);
+      expect(
+        fixture.debugElement.query(By.css('button[type="submit"]'))
+          .nativeElement.disabled,
+      ).toBe(true);
+
+      component.onSubmit();
+      await flushSignalEffects(fixture);
+
+      expect(
+        actionsApiMock.bulkUploadApplicationListEntries,
+      ).not.toHaveBeenCalled();
+      expect(component.pendingJobId()).toBe('job-1');
+      expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledTimes(1);
+    });
+
     it('calls the upload API and starts polling when the job is accepted', async () => {
       const ack: JobAcknowledgement = {
         id: 'job-1',

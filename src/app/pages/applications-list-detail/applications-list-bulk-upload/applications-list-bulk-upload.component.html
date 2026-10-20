@@ -120,6 +120,7 @@
           [disabled]="
             !vm().isValidCSV ||
             vm().isUploadInProgress ||
+            isJobPolling ||
             (!!pendingJobId() && !replacementFileSelected())
           "
           data-module="govuk-button"
