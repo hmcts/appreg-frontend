@@ -560,35 +560,49 @@ describe('ApplicationsListBulkUpload', () => {
       });
     });
 
-    it('shows a failure error summary with the backend message', async () => {
-      const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
-      jobPollingFacadeMock.watchJob.mockReturnValue(
-        of(
-          terminalJob({
-            rawStatus: 'FAILED',
-            state: 'failed',
-            createdCount: null,
-            errorCount: null,
-            totalCount: null,
-            message: 'The uploaded file could not be processed.',
-          }),
-        ),
-      );
-
-      startBulkUploadPolling();
-      await flushSignalEffects(fixture);
-
-      const summary = fixture.debugElement.query(
-        By.css('.govuk-error-summary'),
-      );
-      expect(summary).toBeTruthy();
-      expect(summary.nativeElement.textContent).toContain('Bulk upload failed');
-      expect(summary.nativeElement.textContent).toContain(
+    it.each<[string, PolledJobStatus['state'], string, string]>([
+      [
+        'FAILED',
+        'failed',
+        'Bulk upload failed',
         'The uploaded file could not be processed.',
-      );
-      expect(getState(component).uploadSuccessful).toBe(false);
-      expect(navigateSpy).not.toHaveBeenCalled();
-    });
+      ],
+      [
+        'TIMED_OUT',
+        'timed_out',
+        'Bulk upload timed out',
+        'Job polling has exceeded 5 minutes.',
+      ],
+    ])(
+      'shows an error summary for %s',
+      async (rawStatus, state, heading, message) => {
+        const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
+        jobPollingFacadeMock.watchJob.mockReturnValue(
+          of(
+            terminalJob({
+              rawStatus,
+              state,
+              createdCount: null,
+              errorCount: null,
+              totalCount: null,
+              message,
+            }),
+          ),
+        );
+
+        startBulkUploadPolling();
+        await flushSignalEffects(fixture);
+
+        const summary = fixture.debugElement.query(
+          By.css('.govuk-error-summary'),
+        );
+        expect(summary).toBeTruthy();
+        expect(summary.nativeElement.textContent).toContain(heading);
+        expect(summary.nativeElement.textContent).toContain(message);
+        expect(getState(component).uploadSuccessful).toBe(false);
+        expect(navigateSpy).not.toHaveBeenCalled();
+      },
+    );
 
     it.each([-1, null])(
       'maps structured backend errors with header row %s and renders the export action',

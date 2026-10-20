@@ -1806,39 +1806,53 @@ describe('ReportsComponent', () => {
     });
   });
 
-  it('shows the backend message when workload polling fails', () => {
-    reportsApiMock.createWorkloadReport.mockReturnValue(
-      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
-    );
-    jobPollingFacadeMock.watchJob.mockReturnValue(
-      of({
-        ...completedJob,
-        rawStatus: 'FAILED',
-        state: 'failed',
-        message: 'Backend failed the workload report',
-      } satisfies PolledJobStatus),
-    );
-
-    component.form.controls.report.setValue('workload');
-    component.workloadGroup.patchValue({
-      dateFrom: '2026-01-01',
-      dateTo: '2026-01-31',
-    });
-    fixture.detectChanges();
-
-    component.onDownload();
-    fixture.detectChanges();
-
-    expect(component.vm().reportFeedback).toEqual({
-      kind: 'error',
-      title: 'Report generation failed',
-      items: [{ text: 'Backend failed the workload report' }],
-    });
-    expect(fixture.nativeElement.textContent).toContain(
+  it.each<[string, PolledJobStatus['state'], string, string]>([
+    [
+      'FAILED',
+      'failed',
+      'Report generation failed',
       'Backend failed the workload report',
-    );
-    expect(reportsApiMock.downloadReport).not.toHaveBeenCalled();
-  });
+    ],
+    [
+      'TIMED_OUT',
+      'timed_out',
+      'Report generation failed',
+      'Job polling has exceeded 5 minutes.',
+    ],
+  ])(
+    'shows the %s workload polling message',
+    (rawStatus, state, title, message) => {
+      reportsApiMock.createWorkloadReport.mockReturnValue(
+        of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+      );
+      jobPollingFacadeMock.watchJob.mockReturnValue(
+        of({
+          ...completedJob,
+          rawStatus,
+          state,
+          message,
+        } satisfies PolledJobStatus),
+      );
+
+      component.form.controls.report.setValue('workload');
+      component.workloadGroup.patchValue({
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+      });
+      fixture.detectChanges();
+
+      component.onDownload();
+      fixture.detectChanges();
+
+      expect(component.vm().reportFeedback).toEqual({
+        kind: 'error',
+        title,
+        items: [{ text: message }],
+      });
+      expect(fixture.nativeElement.textContent).toContain(message);
+      expect(reportsApiMock.downloadReport).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([
     [401, 'You need to sign in to download this report.'],
