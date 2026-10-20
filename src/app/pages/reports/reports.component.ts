@@ -1077,15 +1077,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     return reportOptions.find((option) => option.id === reportId) ?? null;
   }
 
-  private showReportError(
-    text: string,
-    title = 'Report generation failed',
-  ): void {
+  private showReportError(text: string): void {
     this.stopReportPolling();
     this.reportStatePatch({
       reportFeedback: {
         kind: 'error',
-        title,
+        title: 'Report generation failed',
         items: [{ text }],
       },
     });

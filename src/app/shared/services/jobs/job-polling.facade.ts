@@ -30,7 +30,7 @@ export interface PolledJobStatus {
 }
 
 const DEFAULT_INTERVAL_MS = 2_000;
-const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
+const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000; // 5 mins
 
 const TERMINAL_SUCCESS_STATUSES = new Set<string>([
   'SUCCEEDED',
