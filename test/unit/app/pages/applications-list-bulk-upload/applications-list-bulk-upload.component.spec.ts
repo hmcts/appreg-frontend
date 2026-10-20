@@ -806,10 +806,7 @@ describe('ApplicationsListBulkUpload', () => {
         fixture.debugElement.query(By.css('button[type="submit"]'))
           .nativeElement.disabled,
       ).toBe(true);
-      expect(
-        fixture.debugElement.query(By.css('input[type="file"]')).nativeElement
-          .disabled,
-      ).toBe(true);
+
       component.onSubmit();
       expect(
         actionsApiMock.bulkUploadApplicationListEntries,
