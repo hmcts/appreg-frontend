@@ -458,7 +458,6 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
   onDownload(): void {
     this.submitAttempt.update((attempt) => attempt + 1);
-    this.pendingReportJobId.set(null);
 
     if (this.isReportInProgress()) {
       return;
@@ -482,6 +481,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       this.reportStatePatch({ errorSummary: validationErrors });
       return;
     }
+
+    this.pendingReportJobId.set(null);
 
     if (this.form.controls.report.value === 'list-maintenance') {
       this.createListMaintenanceReport();
