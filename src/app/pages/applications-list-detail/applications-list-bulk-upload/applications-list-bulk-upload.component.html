@@ -118,9 +118,7 @@
         <button
           type="submit"
           class="govuk-button govuk-!-margin-top-5"
-          [disabled]="
-            !vm().isValidCSV || vm().isUploadInProgress || !!pendingJobId()
-          "
+          [disabled]="!vm().isValidCSV || vm().isUploadInProgress"
           data-module="govuk-button"
         >
           Upload file
