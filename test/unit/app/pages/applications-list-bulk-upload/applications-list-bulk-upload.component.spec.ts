@@ -788,12 +788,37 @@ describe('ApplicationsListBulkUpload', () => {
       );
       expect(summary).toBeTruthy();
       expect(summary.nativeElement.textContent).toContain(
-        'Bulk upload status unknown',
+        'Unable to load upload status',
       );
       expect(summary.nativeElement.textContent).toContain(
-        'The upload may still be running.',
+        'Please try again later.',
       );
     });
+
+    it.each([
+      [401, 'You need to sign in to check the bulk upload status.'],
+      [403, 'You do not have permission to check the bulk upload status.'],
+    ])(
+      'shows the authorization message when polling returns HTTP %i',
+      async (status, message) => {
+        jobPollingFacadeMock.watchJob.mockReturnValue(
+          throwError(() => new HttpErrorResponse({ status })),
+        );
+
+        startBulkUploadPolling();
+        await flushSignalEffects(fixture);
+
+        const summary = fixture.debugElement.query(
+          By.css('.govuk-error-summary'),
+        );
+        expect(summary.nativeElement.textContent).toContain(message);
+        expect(component.pendingJobId()).toBe('job-1');
+        expect(
+          fixture.debugElement.query(By.css('button[type="submit"]'))
+            .nativeElement.disabled,
+        ).toBe(true);
+      },
+    );
 
     it('checks the existing job again without submitting the file after an unknown outcome', async () => {
       jobPollingFacadeMock.watchJob

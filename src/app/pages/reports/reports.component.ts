@@ -978,6 +978,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
         error: (err) => {
           const status = getHttpStatus(err);
           if (status === 401 || status === 403) {
+            this.pendingReportJobId.set(null);
             this.showReportError(this.toReportRequestError(err));
           } else {
             this.showReportStatusUnknown(

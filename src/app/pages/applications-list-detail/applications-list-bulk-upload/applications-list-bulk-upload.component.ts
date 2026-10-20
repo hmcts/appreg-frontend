@@ -55,7 +55,7 @@ import {
   JobPollingFacade,
   PolledJobStatus,
 } from '@services/jobs/job-polling.facade';
-import { getProblemText } from '@util/http-error-to-text';
+import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { saveCsv as saveCsvFile } from '@util/save-csv';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { getDateStamp, trimToUndefined } from '@util/string-helpers';
@@ -246,14 +246,20 @@ export class ApplicationsListBulkUpload implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (job) => this.handleBulkUploadStatus(job),
-        error: () => {
+        error: (err) => {
           this.isJobPolling = false;
+          const status = getHttpStatus(err);
           this.bulkUploadPatch({
             bulkUploadFeedback: {
               kind: 'error',
               title: 'Error',
-              heading: 'Bulk upload status unknown',
-              body: 'The upload may still be running. Check its status again later.',
+              heading: 'Unable to load upload status',
+              body:
+                status === 401
+                  ? 'You need to sign in to check the bulk upload status.'
+                  : status === 403
+                    ? 'You do not have permission to check the bulk upload status.'
+                    : 'Please try again later.',
             },
             isUploadInProgress: false,
           });

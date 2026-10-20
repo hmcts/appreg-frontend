@@ -1956,7 +1956,7 @@ describe('ReportsComponent', () => {
         title: 'Report generation failed',
         items: [{ text: message }],
       });
-      expect(component.pendingReportJobId()).toBe('job-1');
+      expect(component.pendingReportJobId()).toBeNull();
       expect(
         fixture.debugElement.query(By.css('a[href="#retry-report-status"]')),
       ).toBeNull();
