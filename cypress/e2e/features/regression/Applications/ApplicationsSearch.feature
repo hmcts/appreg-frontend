@@ -43,7 +43,7 @@ Feature: Applications Search
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                                  | durationHours | durationMinutes | courtLocationCode |
-            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | LCCC065           |
+            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | LCCC0035           |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
@@ -115,7 +115,7 @@ Feature: Applications Search
         And User Should See Table "<TableName>" Header "Date" Is Not Sortable
         Examples:
             | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                       | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                          | Respondent                          | ApplicationTitle      | Fee | Resulted | Status |
-            | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {SCENARIO_ID} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {SCENARIO_ID} | Respondent Industries {SCENARIO_ID} | Appeal to Crown Court | No  | No       | OPEN   |
+            | user1 | today      | LCCC0035     | Leeds Combined Court Centre Set 4 | Applicant Industries {SCENARIO_ID} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {SCENARIO_ID} | Respondent Industries {SCENARIO_ID} | Appeal to Crown Court | No  | No       | OPEN   |
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1343 @ARCPOC-1437 @ARCPOC-1445 @ARCPOC-1771 @ARCPOC-1769
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Other Location and CJA, Applicant Person and Respondent Person
