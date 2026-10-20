@@ -869,5 +869,72 @@ describe('ApplicationsListBulkUpload', () => {
       ).not.toHaveBeenCalled();
       expect(component.pendingJobId()).toBeNull();
     });
+
+    it('keeps the unknown status visible until a replacement file is uploaded', async () => {
+      const replacementFile = new File(['replacement'], 'replacement.csv', {
+        type: 'text/csv',
+      });
+      const uploadResponse = new Subject<HttpResponse<JobAcknowledgement>>();
+      actionsApiMock.bulkUploadApplicationListEntries.mockReturnValue(
+        uploadResponse.asObservable(),
+      );
+      jobPollingFacadeMock.watchJob.mockReturnValue(
+        of(
+          terminalJob({
+            rawStatus: 'UNKNOWN',
+            state: 'unknown',
+            message: 'Status unknown',
+          }),
+        ),
+      );
+      patchState(component, { listId: 'list-123', file, isValidCSV: true });
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+      patchState(component, {
+        fileUploadStatus: 'error',
+        errorSummary: [{ text: 'Previous upload error' }],
+      });
+
+      component.onFileSelected({
+        target: { files: [replacementFile] },
+      } as unknown as Event);
+      await flushSignalEffects(fixture);
+
+      expect(component.pendingJobId()).toBe('job-1');
+      expect(component.vm().errorSummary).toEqual([
+        { text: 'Previous upload error' },
+      ]);
+      expect(component.vm().bulkUploadFeedback).toMatchObject({
+        kind: 'error',
+        body: 'Status unknown',
+      });
+      expect(
+        fixture.debugElement.query(By.css('a[href="#retry-upload-status"]')),
+      ).toBeTruthy();
+      const uploadButton = fixture.debugElement.query(
+        By.css('button[type="submit"]'),
+      ).nativeElement as HTMLButtonElement;
+      expect(uploadButton.disabled).toBe(false);
+      expect(
+        actionsApiMock.bulkUploadApplicationListEntries,
+      ).not.toHaveBeenCalled();
+
+      uploadButton.click();
+      await flushSignalEffects(fixture);
+
+      expect(component.pendingJobId()).toBeNull();
+      expect(component.vm().fileUploadStatus).toBeNull();
+      expect(component.vm().bulkUploadFeedback).toBeNull();
+      expect(component.vm().errorSummary).toEqual([]);
+      expect(
+        actionsApiMock.bulkUploadApplicationListEntries,
+      ).toHaveBeenCalledWith(
+        { listId: 'list-123', file: replacementFile },
+        'response',
+        false,
+        { transferCache: false },
+      );
+    });
   });
 });

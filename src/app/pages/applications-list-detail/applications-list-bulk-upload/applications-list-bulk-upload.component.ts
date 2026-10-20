@@ -162,6 +162,7 @@ export class ApplicationsListBulkUpload implements OnInit {
     signal<BulkUploadApplicationListEntriesRequestParams | null>(null);
   readonly submitAttempt = signal(0);
   readonly pendingJobId = signal<string | null>(null);
+  readonly replacementFileSelected = signal(false);
   private isJobPolling = false;
 
   columns = BulkUploadErrorTableColumns;
@@ -433,7 +434,13 @@ export class ApplicationsListBulkUpload implements OnInit {
   }
 
   onFileSelected(event: Event): void {
-    this.bulkUploadPatch({ fileUploadStatus: null, bulkUploadFeedback: null });
+    if (!this.pendingJobId()) {
+      this.bulkUploadPatch({
+        fileUploadStatus: null,
+        bulkUploadFeedback: null,
+      });
+    }
+    this.replacementFileSelected.set(false);
     const input = event.target as HTMLInputElement;
 
     if (!input.files || input.files.length === 0) {
@@ -464,11 +471,15 @@ export class ApplicationsListBulkUpload implements OnInit {
 
     if (file) {
       this.bulkUploadPatch({ file });
+      this.replacementFileSelected.set(true);
     }
   }
 
   onSubmit(): void {
-    if (this.pendingJobId() || this.vm().isUploadInProgress) {
+    if (
+      this.vm().isUploadInProgress ||
+      (this.pendingJobId() && !this.replacementFileSelected())
+    ) {
       return;
     }
     this.submitAttempt.update((attempt) => attempt + 1);
@@ -485,6 +496,10 @@ export class ApplicationsListBulkUpload implements OnInit {
       this.bulkUploadPatch({ isUploadInProgress: false });
       return;
     }
+
+    this.pendingJobId.set(null);
+    this.replacementFileSelected.set(false);
+    this.bulkUploadPatch({ fileUploadStatus: null, errorSummary: [] });
 
     const params: BulkUploadApplicationListEntriesRequestParams = {
       listId: this.bulkUploadState().listId,
