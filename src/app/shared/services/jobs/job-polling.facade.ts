@@ -17,11 +17,12 @@ import {
   of,
   retry,
   takeWhile,
+  throwError,
   timer,
 } from 'rxjs';
 
 import { JobAcknowledgement, JobStatus, JobsApi } from '@openapi';
-import { getProblemText } from '@util/http-error-to-text';
+import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 
 export type PolledJobState = 'in_progress' | 'succeeded' | 'failed' | 'unknown';
 
@@ -73,19 +74,27 @@ export class JobPollingFacade {
               }
               return normaliseJobStatus(response.body, jobId);
             }),
-            retry({ count: maxAttempts - 1, delay: intervalMs }),
-            catchError((err) =>
-              of({
-                id: jobId,
-                rawStatus: 'UNKNOWN',
-                state: 'unknown',
-                isTerminal: true,
-                createdCount: null,
-                errorCount: null,
-                totalCount: null,
-                message: `Job polling status unknown: ${getProblemText(err)}`,
-                raw: {},
-              } satisfies PolledJobStatus),
+            retry({
+              count: maxAttempts - 1,
+              delay: (err: unknown) =>
+                isAuthorizationError(err)
+                  ? throwError(() => err)
+                  : timer(intervalMs),
+            }),
+            catchError((err: unknown) =>
+              isAuthorizationError(err)
+                ? throwError(() => err)
+                : of({
+                    id: jobId,
+                    rawStatus: 'UNKNOWN',
+                    state: 'unknown',
+                    isTerminal: true,
+                    createdCount: null,
+                    errorCount: null,
+                    totalCount: null,
+                    message: `Job polling status unknown: ${getProblemText(err)}`,
+                    raw: {},
+                  } satisfies PolledJobStatus),
             ),
           ),
         ),
@@ -108,6 +117,11 @@ export class JobPollingFacade {
       ),
     ).pipe(takeWhile((job) => !job.isTerminal, true));
   }
+}
+
+function isAuthorizationError(err: unknown): boolean {
+  const status = getHttpStatus(err);
+  return status === 401 || status === 403;
 }
 
 function normaliseJobStatus(

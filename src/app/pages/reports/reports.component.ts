@@ -350,9 +350,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   suggestionsFacade = buildSuggestionsFacade(this);
 
   canLeave(): boolean | Observable<boolean> {
-    return (
-      this.navigationWarning()?.canLeave(this.isReportInProgress()) ?? true
-    );
+    return this.navigationWarning()?.canLeave(this.hasPendingReport()) ?? true;
   }
 
   ngOnInit(): void {
@@ -816,6 +814,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     return this.vm().reportFeedback?.kind === 'progress';
   }
 
+  hasPendingReport(): boolean {
+    return this.isReportInProgress() || !!this.pendingReportJobId();
+  }
+
   private preserveDateRange(
     previousReportId: ReportId | null,
     nextReportId: ReportId | null,
@@ -973,10 +975,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       .pipe(takeUntilDestroyed(this.componentDestroyRef))
       .subscribe({
         next: (job) => this.handleReportJobStatus(job),
-        error: () => {
-          this.showReportStatusUnknown(
-            'The report status could not be confirmed. Check its status again later.',
-          );
+        error: (err) => {
+          const status = getHttpStatus(err);
+          if (status === 401 || status === 403) {
+            this.showReportError(this.toReportRequestError(err));
+          } else {
+            this.showReportStatusUnknown(
+              'The report status could not be confirmed. Check its status again later.',
+            );
+          }
         },
       });
   }

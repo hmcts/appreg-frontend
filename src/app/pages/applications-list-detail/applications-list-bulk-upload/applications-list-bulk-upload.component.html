@@ -117,7 +117,9 @@
         <button
           type="submit"
           class="govuk-button govuk-!-margin-top-5"
-          [disabled]="!vm().isValidCSV || vm().isUploadInProgress"
+          [disabled]="
+            !vm().isValidCSV || vm().isUploadInProgress || !!pendingJobId()
+          "
           data-module="govuk-button"
         >
           Upload file
@@ -161,7 +163,7 @@
 }
 
 <app-navigation-warning
-  [active]="vm().isUploadInProgress"
+  [active]="hasPendingUpload()"
   heading="Leave the bulk upload page?"
   message="Your bulk upload is still being processed. If you leave this page, you will not receive the outcome."
 />

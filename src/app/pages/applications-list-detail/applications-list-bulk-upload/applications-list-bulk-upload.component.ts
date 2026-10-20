@@ -419,15 +419,14 @@ export class ApplicationsListBulkUpload implements OnInit {
   }
 
   canLeave(): boolean | Observable<boolean> {
-    return (
-      this.navigationWarning()?.canLeave(this.vm().isUploadInProgress) ?? true
-    );
+    return this.navigationWarning()?.canLeave(this.hasPendingUpload()) ?? true;
+  }
+
+  hasPendingUpload(): boolean {
+    return this.vm().isUploadInProgress || !!this.pendingJobId();
   }
 
   onFileSelected(event: Event): void {
-    if (this.pendingJobId()) {
-      return;
-    }
     this.bulkUploadPatch({ fileUploadStatus: null, bulkUploadFeedback: null });
     const input = event.target as HTMLInputElement;
 

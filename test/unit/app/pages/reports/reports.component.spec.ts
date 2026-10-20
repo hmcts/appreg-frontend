@@ -171,6 +171,24 @@ describe('ReportsComponent', () => {
     },
   );
 
+  it('warns before leaving while a report job ID remains pending', () => {
+    component.pendingReportJobId.set('job-1');
+    fixture.detectChanges();
+    const dialog = fixture.debugElement.query(
+      By.directive(ConfirmationDialogComponent),
+    ).componentInstance as ConfirmationDialogComponent;
+    const confirm = jest.spyOn(dialog, 'confirm').mockReturnValue(of(false));
+    const decision = jest.fn();
+
+    (component.canLeave() as Observable<boolean>).subscribe(decision);
+
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(decision).toHaveBeenCalledWith(false);
+    expect(
+      window.dispatchEvent(new Event('beforeunload', { cancelable: true })),
+    ).toBe(false);
+  });
+
   it('warns on unload only during progress and removes the listener on destruction', () => {
     const unload = (): boolean =>
       window.dispatchEvent(new Event('beforeunload', { cancelable: true }));
@@ -1910,6 +1928,40 @@ describe('ReportsComponent', () => {
       items: [{ text: 'Report failed' }],
     });
   });
+
+  it.each([
+    [401, 'You need to sign in to download this report.'],
+    [403, 'You do not have permission to download this report.'],
+  ])(
+    'shows the authorization message when job polling returns HTTP %i',
+    (status, message) => {
+      reportsApiMock.createWorkloadReport.mockReturnValue(
+        of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+      );
+      jobPollingFacadeMock.watchJob.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status })),
+      );
+      component.form.controls.report.setValue('workload');
+      component.workloadGroup.patchValue({
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+      });
+      fixture.detectChanges();
+
+      component.onDownload();
+      fixture.detectChanges();
+
+      expect(component.vm().reportFeedback).toEqual({
+        kind: 'error',
+        title: 'Report generation failed',
+        items: [{ text: message }],
+      });
+      expect(component.pendingReportJobId()).toBe('job-1');
+      expect(
+        fixture.debugElement.query(By.css('a[href="#retry-report-status"]')),
+      ).toBeNull();
+    },
+  );
 
   it('starts a new report when Download CSV is selected after an unknown status', () => {
     reportsApiMock.createWorkloadReport

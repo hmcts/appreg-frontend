@@ -300,6 +300,24 @@ describe('ApplicationsListBulkUpload', () => {
       },
     );
 
+    it('warns before leaving while an upload job ID remains pending', () => {
+      component.pendingJobId.set('job-1');
+      fixture.detectChanges();
+      const dialog = fixture.debugElement.query(
+        By.directive(ConfirmationDialogComponent),
+      ).componentInstance as ConfirmationDialogComponent;
+      const confirm = jest.spyOn(dialog, 'confirm').mockReturnValue(of(false));
+      const decision = jest.fn();
+
+      (component.canLeave() as Observable<boolean>).subscribe(decision);
+
+      expect(confirm).toHaveBeenCalledTimes(1);
+      expect(decision).toHaveBeenCalledWith(false);
+      expect(
+        window.dispatchEvent(new Event('beforeunload', { cancelable: true })),
+      ).toBe(false);
+    });
+
     it('warns on unload only while an upload is in progress', () => {
       const unload = (): boolean =>
         window.dispatchEvent(new Event('beforeunload', { cancelable: true }));

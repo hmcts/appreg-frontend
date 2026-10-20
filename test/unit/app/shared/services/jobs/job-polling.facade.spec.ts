@@ -1,4 +1,4 @@
-import { HttpResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
@@ -190,4 +190,23 @@ describe('JobPollingFacade', () => {
       }),
     ]);
   });
+
+  it.each([401, 403])(
+    'passes through HTTP %i without retrying or reporting an unknown job',
+    async (status) => {
+      const authorizationError = new HttpErrorResponse({ status });
+      jobsApiMock.getJobStatusById.mockReturnValue(
+        throwError(() => authorizationError),
+      );
+      const next = jest.fn();
+      const error = jest.fn();
+
+      facade.watchJob('job-1', 1_000).subscribe({ next, error });
+      await flushTimers(0);
+
+      expect(jobsApiMock.getJobStatusById).toHaveBeenCalledTimes(1);
+      expect(next).not.toHaveBeenCalled();
+      expect(error).toHaveBeenCalledWith(authorizationError);
+    },
+  );
 });
