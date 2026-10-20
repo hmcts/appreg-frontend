@@ -93,6 +93,7 @@ describe('ReportsComponent', () => {
   let createObjectUrlSpy: jest.Mock;
 
   beforeEach(async () => {
+    jobPollingFacadeMock.watchJob.mockReset();
     reportsApiMock.getRecentReports.mockReturnValue(of([]));
     referenceDataLoadError.set(false);
     jest.mocked(refFacadeStub.refresh).mockClear();
@@ -1813,12 +1814,6 @@ describe('ReportsComponent', () => {
       'Report generation failed',
       'Backend failed the workload report',
     ],
-    [
-      'TIMED_OUT',
-      'timed_out',
-      'Report generation failed',
-      'Job polling has exceeded 5 minutes.',
-    ],
   ])(
     'shows the %s workload polling message',
     (rawStatus, state, title, message) => {
@@ -1853,6 +1848,125 @@ describe('ReportsComponent', () => {
       expect(reportsApiMock.downloadReport).not.toHaveBeenCalled();
     },
   );
+
+  it('checks the existing report job again without creating another report', () => {
+    reportsApiMock.createWorkloadReport.mockReturnValue(
+      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+    );
+    jobPollingFacadeMock.watchJob
+      .mockReturnValueOnce(
+        of({
+          ...completedJob,
+          rawStatus: 'UNKNOWN',
+          state: 'unknown',
+          message: 'Status unknown',
+        } satisfies PolledJobStatus),
+      )
+      .mockReturnValueOnce(
+        of({
+          ...completedJob,
+          rawStatus: 'FAILED',
+          state: 'failed',
+          message: 'Report failed',
+        } satisfies PolledJobStatus),
+      );
+
+    component.form.controls.report.setValue('workload');
+    component.workloadGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'error',
+      title: 'Report status unknown',
+      items: [
+        { text: 'Status unknown' },
+        { text: 'Check report status again', href: '#retry-report-status' },
+      ],
+    });
+    expect(component.pendingReportJobId()).toBe('job-1');
+
+    fixture.debugElement
+      .query(By.css('a[href="#retry-report-status"]'))
+      .nativeElement.dispatchEvent(
+        new MouseEvent('click', { bubbles: true, cancelable: true }),
+      );
+    fixture.detectChanges();
+
+    expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledTimes(2);
+    expect(jobPollingFacadeMock.watchJob).toHaveBeenLastCalledWith(
+      'job-1',
+      2_000,
+    );
+    expect(reportsApiMock.createWorkloadReport).toHaveBeenCalledTimes(1);
+    expect(component.pendingReportJobId()).toBeNull();
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'error',
+      title: 'Report generation failed',
+      items: [{ text: 'Report failed' }],
+    });
+  });
+
+  it('starts a new report when Download CSV is selected after an unknown status', () => {
+    reportsApiMock.createWorkloadReport
+      .mockReturnValueOnce(
+        of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+      )
+      .mockReturnValueOnce(
+        of(
+          new HttpResponse({
+            body: { ...jobAcknowledgement, id: 'job-2' },
+            status: 202,
+          }),
+        ),
+      );
+    jobPollingFacadeMock.watchJob
+      .mockReturnValueOnce(
+        of({
+          ...completedJob,
+          rawStatus: 'UNKNOWN',
+          state: 'unknown',
+          message: 'Status unknown',
+        } satisfies PolledJobStatus),
+      )
+      .mockReturnValueOnce(
+        of({
+          ...completedJob,
+          id: 'job-2',
+          rawStatus: 'FAILED',
+          state: 'failed',
+          message: 'Second report failed',
+        } satisfies PolledJobStatus),
+      );
+
+    component.form.controls.report.setValue('workload');
+    component.workloadGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.pendingReportJobId()).toBe('job-1');
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(reportsApiMock.createWorkloadReport).toHaveBeenCalledTimes(2);
+    expect(jobPollingFacadeMock.watchJob).toHaveBeenLastCalledWith(
+      'job-2',
+      2_000,
+    );
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'error',
+      title: 'Report generation failed',
+      items: [{ text: 'Second report failed' }],
+    });
+  });
 
   it.each([
     [401, 'You need to sign in to download this report.'],

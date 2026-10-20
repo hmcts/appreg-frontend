@@ -1,6 +1,6 @@
 import { HttpResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { JobsApi } from '@openapi';
 import {
@@ -121,13 +121,14 @@ describe('JobPollingFacade', () => {
     await flushTimers(1);
     expect(emissions[1]).toEqual({
       id: 'job-1',
-      rawStatus: 'TIMED_OUT',
-      state: 'timed_out',
+      rawStatus: 'UNKNOWN',
+      state: 'unknown',
       isTerminal: true,
       createdCount: null,
       errorCount: null,
       totalCount: null,
-      message: 'Job polling has exceeded 5 minutes.',
+      message:
+        'The job is still being processed or its status could not be confirmed.',
       raw: {},
     });
     expect(error).not.toHaveBeenCalled();
@@ -156,15 +157,37 @@ describe('JobPollingFacade', () => {
     await flushTimers(1);
     expect(emissions[3]).toEqual(
       expect.objectContaining({
-        rawStatus: 'TIMED_OUT',
-        state: 'timed_out',
+        rawStatus: 'UNKNOWN',
+        state: 'unknown',
         isTerminal: true,
-        message: 'Job polling has exceeded 5 minutes.',
+        message:
+          'The job is still being processed or its status could not be confirmed.',
       }),
     );
     expect(error).not.toHaveBeenCalled();
 
     await flushTimers(1_000);
     expect(jobsApiMock.getJobStatusById).toHaveBeenCalledTimes(3);
+  });
+
+  it('retries status reads and reports unknown when they all fail', async () => {
+    jobsApiMock.getJobStatusById.mockReturnValue(
+      throwError(() => new Error('status unavailable')),
+    );
+
+    const emissions: PolledJobStatus[] = [];
+    facade
+      .watchJob('job-1', 1_000, 10_000, 3)
+      .subscribe((job) => emissions.push(job));
+
+    await flushTimers(3_000);
+    expect(jobsApiMock.getJobStatusById).toHaveBeenCalledTimes(3);
+    expect(emissions).toEqual([
+      expect.objectContaining({
+        id: 'job-1',
+        state: 'unknown',
+        isTerminal: true,
+      }),
+    ]);
   });
 });

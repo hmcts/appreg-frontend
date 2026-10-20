@@ -13,6 +13,10 @@
         [title]="feedback.title"
         [items]="feedback.items"
         [focusKey]="submitAttempt()"
+        (itemSelect)="
+          $event.href === '#retry-report-status' && onRetryReportStatus()
+        "
+        id="retry-report-status"
       />
     }
     @case ('progress') {

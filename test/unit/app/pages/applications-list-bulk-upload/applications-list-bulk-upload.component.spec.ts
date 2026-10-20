@@ -567,12 +567,6 @@ describe('ApplicationsListBulkUpload', () => {
         'Bulk upload failed',
         'The uploaded file could not be processed.',
       ],
-      [
-        'TIMED_OUT',
-        'timed_out',
-        'Bulk upload timed out',
-        'Job polling has exceeded 5 minutes.',
-      ],
     ])(
       'shows an error summary for %s',
       async (rawStatus, state, heading, message) => {
@@ -776,11 +770,64 @@ describe('ApplicationsListBulkUpload', () => {
       );
       expect(summary).toBeTruthy();
       expect(summary.nativeElement.textContent).toContain(
-        'Unable to load upload status',
+        'Bulk upload status unknown',
       );
       expect(summary.nativeElement.textContent).toContain(
-        'Please try again later.',
+        'The upload may still be running.',
       );
+    });
+
+    it('checks the existing job again without submitting the file after an unknown outcome', async () => {
+      jobPollingFacadeMock.watchJob
+        .mockReturnValueOnce(
+          of(
+            terminalJob({
+              rawStatus: 'UNKNOWN',
+              state: 'unknown',
+              message: 'Status unknown',
+            }),
+          ),
+        )
+        .mockReturnValueOnce(
+          of(
+            terminalJob({
+              rawStatus: 'FAILED',
+              state: 'failed',
+              message: 'Upload failed',
+            }),
+          ),
+        );
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      expect(component.pendingJobId()).toBe('job-1');
+      expect(
+        fixture.debugElement.query(By.css('button[type="submit"]'))
+          .nativeElement.disabled,
+      ).toBe(true);
+      expect(
+        fixture.debugElement.query(By.css('input[type="file"]')).nativeElement
+          .disabled,
+      ).toBe(true);
+      component.onSubmit();
+      expect(
+        actionsApiMock.bulkUploadApplicationListEntries,
+      ).not.toHaveBeenCalled();
+
+      const retry = fixture.debugElement.query(
+        By.css('a[href="#retry-upload-status"]'),
+      );
+      expect(retry).toBeTruthy();
+      retry.nativeElement.click();
+      await flushSignalEffects(fixture);
+
+      expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledTimes(2);
+      expect(jobPollingFacadeMock.watchJob).toHaveBeenLastCalledWith('job-1');
+      expect(
+        actionsApiMock.bulkUploadApplicationListEntries,
+      ).not.toHaveBeenCalled();
+      expect(component.pendingJobId()).toBeNull();
     });
   });
 });

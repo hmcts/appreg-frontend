@@ -7,15 +7,23 @@ while the job-status contract is still settling.
 
 import { HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, exhaustMap, map, merge, takeWhile, timer } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  defer,
+  exhaustMap,
+  map,
+  merge,
+  of,
+  retry,
+  takeWhile,
+  timer,
+} from 'rxjs';
 
 import { JobAcknowledgement, JobStatus, JobsApi } from '@openapi';
+import { getProblemText } from '@util/http-error-to-text';
 
-export type PolledJobState =
-  | 'in_progress'
-  | 'succeeded'
-  | 'failed'
-  | 'timed_out';
+export type PolledJobState = 'in_progress' | 'succeeded' | 'failed' | 'unknown';
 
 export interface PolledJobStatus {
   id: string;
@@ -31,6 +39,7 @@ export interface PolledJobStatus {
 
 const DEFAULT_INTERVAL_MS = 2_000;
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000; // 5 mins
+const RETRY_POLL_COUNT = 5;
 
 const TERMINAL_SUCCESS_STATUSES = new Set<string>([
   'SUCCEEDED',
@@ -46,35 +55,53 @@ export class JobPollingFacade {
 
   watchJob(
     jobId: string,
-    intervalMs = DEFAULT_INTERVAL_MS,
-    timeout = DEFAULT_TIMEOUT_MS,
+    intervalMs: number = DEFAULT_INTERVAL_MS,
+    timeout: number = DEFAULT_TIMEOUT_MS,
+    maxAttempts: number = RETRY_POLL_COUNT,
   ): Observable<PolledJobStatus> {
     return merge(
       timer(0, intervalMs).pipe(
         exhaustMap(() =>
-          this.jobsApi.getJobStatusById({ jobId }, 'response', false, {
-            transferCache: false,
-          }),
+          defer(() =>
+            this.jobsApi.getJobStatusById({ jobId }, 'response', false, {
+              transferCache: false,
+            }),
+          ).pipe(
+            map((response: HttpResponse<JobAcknowledgement>) => {
+              if (!response.body) {
+                throw new Error('No upload status returned.');
+              }
+              return normaliseJobStatus(response.body, jobId);
+            }),
+            retry({ count: maxAttempts - 1, delay: intervalMs }),
+            catchError((err) =>
+              of({
+                id: jobId,
+                rawStatus: 'UNKNOWN',
+                state: 'unknown',
+                isTerminal: true,
+                createdCount: null,
+                errorCount: null,
+                totalCount: null,
+                message: `Job polling status unknown: ${getProblemText(err)}`,
+                raw: {},
+              } satisfies PolledJobStatus),
+            ),
+          ),
         ),
-        map((response: HttpResponse<JobAcknowledgement>) => {
-          if (!response.body) {
-            throw new Error('No upload status returned.');
-          }
-
-          return normaliseJobStatus(response.body, jobId);
-        }),
       ),
       timer(timeout).pipe(
         map(
           (): PolledJobStatus => ({
             id: jobId,
-            rawStatus: 'TIMED_OUT',
-            state: 'timed_out',
+            rawStatus: 'UNKNOWN',
+            state: 'unknown',
             isTerminal: true,
             createdCount: null,
             errorCount: null,
             totalCount: null,
-            message: 'Job polling has exceeded 5 minutes.',
+            message:
+              'The job is still being processed or its status could not be confirmed.',
             raw: {},
           }),
         ),

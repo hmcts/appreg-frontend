@@ -161,6 +161,8 @@ export class ApplicationsListBulkUpload implements OnInit {
   private readonly bulkUploadRequest =
     signal<BulkUploadApplicationListEntriesRequestParams | null>(null);
   readonly submitAttempt = signal(0);
+  readonly pendingJobId = signal<string | null>(null);
+  private isJobPolling = false;
 
   columns = BulkUploadErrorTableColumns;
 
@@ -230,6 +232,11 @@ export class ApplicationsListBulkUpload implements OnInit {
   }
 
   private startBulkUploadPolling(jobId: string): void {
+    if (this.isJobPolling) {
+      return;
+    }
+    this.isJobPolling = true;
+    this.pendingJobId.set(jobId);
     this.bulkUploadPatch({
       bulkUploadFeedback: UPLOAD_IN_PROGRESS_FEEDBACK,
     });
@@ -240,12 +247,13 @@ export class ApplicationsListBulkUpload implements OnInit {
       .subscribe({
         next: (job) => this.handleBulkUploadStatus(job),
         error: () => {
+          this.isJobPolling = false;
           this.bulkUploadPatch({
             bulkUploadFeedback: {
               kind: 'error',
               title: 'Error',
-              heading: 'Unable to load upload status',
-              body: 'Please try again later.',
+              heading: 'Bulk upload status unknown',
+              body: 'The upload may still be running. Check its status again later.',
             },
             isUploadInProgress: false,
           });
@@ -264,6 +272,10 @@ export class ApplicationsListBulkUpload implements OnInit {
     }
 
     this.jobId = job.id;
+    this.isJobPolling = false;
+    if (job.state !== 'unknown') {
+      this.pendingJobId.set(null);
+    }
     // Clear progress before successful navigation so this page does not block itself.
     this.bulkUploadPatch({ isUploadInProgress: false });
     this.bulkUploadPatch({
@@ -299,16 +311,23 @@ export class ApplicationsListBulkUpload implements OnInit {
           body: this.formatErrorDescriptionFromError(job.message),
         } as const;
 
-      case 'timed_out':
+      case 'unknown':
         return {
           kind: 'error',
           title: 'Error',
-          heading: 'Bulk upload timed out',
-          body: job.message ?? 'Please try again later.',
+          heading: 'Bulk upload status unknown',
+          body: job.message ?? 'Please check again later.',
         } as const;
 
       default:
         return UPLOAD_IN_PROGRESS_FEEDBACK;
+    }
+  }
+
+  onRetryUploadStatus(): void {
+    const jobId = this.pendingJobId();
+    if (jobId && !this.isJobPolling) {
+      this.startBulkUploadPolling(jobId);
     }
   }
 
@@ -406,6 +425,9 @@ export class ApplicationsListBulkUpload implements OnInit {
   }
 
   onFileSelected(event: Event): void {
+    if (this.pendingJobId()) {
+      return;
+    }
     this.bulkUploadPatch({ fileUploadStatus: null, bulkUploadFeedback: null });
     const input = event.target as HTMLInputElement;
 
@@ -441,6 +463,9 @@ export class ApplicationsListBulkUpload implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.pendingJobId() || this.vm().isUploadInProgress) {
+      return;
+    }
     this.submitAttempt.update((attempt) => attempt + 1);
     this.errorRows.set([]);
     this.bulkUploadPatch({
