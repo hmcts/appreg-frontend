@@ -9,7 +9,7 @@ import { PLATFORM_ID, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
-import { Subject, of, throwError } from 'rxjs';
+import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
 import { ApplicationsListUpdateComponent } from '@components/applications-list-detail/applications-list-update/applications-list-update.component';
@@ -33,6 +33,7 @@ import {
   BulkActionPreviewResponseDto,
   BulkActionSelectionType,
   BulkActionType,
+  CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
   EntryGetSummaryDto,
   EntryPage,
@@ -131,12 +132,13 @@ describe('ApplicationsListDetail', () => {
     generateContinuousApplicationListsPdf: jest.fn(),
   };
 
+  const courts$ = new BehaviorSubject<CourtLocationGetSummaryDto[]>([]);
   const referenceDataLoadError = signal(false);
   const refFacadeStub: Pick<
     ReferenceDataFacade,
     'courtLocations$' | 'cja$' | 'hasPlaceLoadError' | 'refresh'
   > = {
-    courtLocations$: of([]),
+    courtLocations$: courts$,
     cja$: of([] as CriminalJusticeAreaGetDto[]),
     hasPlaceLoadError: referenceDataLoadError,
     refresh: jest.fn(),
@@ -159,6 +161,7 @@ describe('ApplicationsListDetail', () => {
   };
 
   beforeEach(async () => {
+    courts$.next([]);
     referenceDataLoadError.set(false);
     jest.mocked(refFacadeStub.refresh).mockClear();
     const row = {
@@ -272,6 +275,71 @@ describe('ApplicationsListDetail', () => {
     historyStateSpy?.mockRestore();
     jest.clearAllMocks();
   });
+
+  it.each([true, false])(
+    'retains the saved court when reference data loads first: %s',
+    async (referenceFirst) => {
+      const active = { locationCode: 'ACTIVE', name: 'Active court' };
+      const dto = {
+        id: 'id-1',
+        date: '2026-03-01',
+        time: '09:30:00',
+        description: 'Morning list',
+        status: ApplicationListStatus.OPEN,
+        courtCode: 'ENDED',
+        courtName: 'Saved court',
+        version: 1,
+      } as ApplicationListGetDetailDto;
+      if (referenceFirst) {
+        courts$.next([active]);
+      }
+      component['prefillFromApi'](dto);
+      if (!referenceFirst) {
+        courts$.next([active]);
+      }
+      courts$.next([active]); // A later refresh must preserve the saved court too.
+      expect(
+        component.placeState().courtLocations.map((c) => c.locationCode),
+      ).toEqual(['ACTIVE', 'ENDED']);
+      expect(component.placeState().courthouseSearch).toBe(
+        'ENDED - Saved court',
+      );
+      component.setCourthouseSearch('Saved');
+      component.onCourthouseInputChange();
+      component.selectCourthouse(component.placeState().filteredCourthouses[0]);
+      component.form.patchValue({ description: 'Updated description' });
+      await flushSignalEffects(fixture);
+      const update = fixture.debugElement.query(
+        By.directive(ApplicationsListUpdateComponent),
+      ).componentInstance as ApplicationsListUpdateComponent;
+      update.onUpdate();
+      expect(component['updateRequest']()?.payload).toMatchObject({
+        courtLocationCode: 'ENDED',
+        description: 'Updated description',
+      });
+      expect(component.form.controls.court.errors).toBeNull();
+
+      component.selectCourthouse({
+        locationCode: 'UNKNOWN',
+        name: 'Unknown court',
+      });
+      component.form.updateValueAndValidity();
+      expect(component.form.controls.court.hasError('courtNotFound')).toBe(
+        true,
+      );
+      component.selectCourthouse(active);
+      component.form.updateValueAndValidity();
+      expect(component.form.controls.court.errors).toBeNull();
+      component['prefillFromApi']({
+        ...dto,
+        courtCode: 'ACTIVE',
+        courtName: active.name,
+      });
+      expect(component.placeState().courtLocations).toEqual([active]);
+      courts$.next([]);
+      expect(component.placeState().courtLocations).toEqual([active]);
+    },
+  );
 
   it('creates', () => {
     expect(component).toBeTruthy();
