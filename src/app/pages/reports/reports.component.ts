@@ -180,6 +180,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
   private previousReportId: ReportId | null = null;
   private reportPollingSub: Subscription | null = null;
+  readonly pendingReportJobId = signal<string | null>(null);
 
   private readonly createDurationReportRequest =
     signal<CreateDurationReportRequestParams | null>(null);
@@ -349,9 +350,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   suggestionsFacade = buildSuggestionsFacade(this);
 
   canLeave(): boolean | Observable<boolean> {
-    return (
-      this.navigationWarning()?.canLeave(this.isReportInProgress()) ?? true
-    );
+    return this.navigationWarning()?.canLeave(this.hasPendingReport()) ?? true;
   }
 
   ngOnInit(): void {
@@ -483,6 +482,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    this.pendingReportJobId.set(null);
+
     if (this.form.controls.report.value === 'list-maintenance') {
       this.createListMaintenanceReport();
     }
@@ -542,6 +543,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       errorSummary: [],
       reportFeedback: null,
     });
+    this.pendingReportJobId.set(null);
   }
 
   /** Handy getter for the child binding */
@@ -813,6 +815,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     return this.vm().reportFeedback?.kind === 'progress';
   }
 
+  hasPendingReport(): boolean {
+    return this.isReportInProgress() || !!this.pendingReportJobId();
+  }
+
   private preserveDateRange(
     previousReportId: ReportId | null,
     nextReportId: ReportId | null,
@@ -850,6 +856,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     });
     this.reportGroupFor(reportId)?.markAsPristine();
     this.reportGroupFor(reportId)?.markAsUntouched();
+    this.pendingReportJobId.set(null);
   }
 
   private emptyReportFormValue(reportId: ReportId): Record<string, unknown> {
@@ -961,6 +968,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
   private startReportPolling(jobId: string): void {
     this.stopReportPolling();
+    this.pendingReportJobId.set(jobId);
+    this.showReportProgress();
 
     this.reportPollingSub = this.jobPollingFacade
       .watchJob(jobId, REPORT_POLL_INTERVAL_MS)
@@ -968,9 +977,24 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       .subscribe({
         next: (job) => this.handleReportJobStatus(job),
         error: (err) => {
-          this.showReportError(this.toReportRequestError(err));
+          const status = getHttpStatus(err);
+          if (status === 401 || status === 403) {
+            this.pendingReportJobId.set(null);
+            this.showReportError(this.toReportRequestError(err));
+          } else {
+            this.showReportStatusUnknown(
+              'The report status could not be confirmed. Check its status again later.',
+            );
+          }
         },
       });
+  }
+
+  onRetryReportStatus(): void {
+    const jobId = this.pendingReportJobId();
+    if (jobId && !this.isReportInProgress()) {
+      this.startReportPolling(jobId);
+    }
   }
 
   private stopReportPolling(): void {
@@ -996,12 +1020,22 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.stopReportPolling();
 
     if (job.state === 'succeeded') {
+      this.pendingReportJobId.set(null);
       // Refresh before downloading so a failed automatic download can still be retried.
       this.loadRecentReports();
       this.downloadReport(job.id);
       return;
     }
 
+    if (job.state === 'unknown') {
+      this.showReportStatusUnknown(
+        job.message ??
+          'The report may still be running. Check its status again later.',
+      );
+      return;
+    }
+
+    this.pendingReportJobId.set(null);
     this.showReportError(
       job.message ?? 'The report could not be generated. Try again.',
     );
@@ -1072,13 +1106,30 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     return reportOptions.find((option) => option.id === reportId) ?? null;
   }
 
-  private showReportError(text: string): void {
+  private showReportError(
+    text: string,
+    title: string = 'Report generation failed',
+  ): void {
     this.stopReportPolling();
     this.reportStatePatch({
       reportFeedback: {
         kind: 'error',
-        title: 'Report generation failed',
+        title,
         items: [{ text }],
+      },
+    });
+  }
+
+  private showReportStatusUnknown(text: string): void {
+    this.stopReportPolling();
+    this.reportStatePatch({
+      reportFeedback: {
+        kind: 'error',
+        title: 'Report status unknown',
+        items: [
+          { text },
+          { text: 'Check report status again', href: '#retry-report-status' },
+        ],
       },
     });
   }

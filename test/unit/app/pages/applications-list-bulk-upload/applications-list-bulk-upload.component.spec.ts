@@ -300,6 +300,24 @@ describe('ApplicationsListBulkUpload', () => {
       },
     );
 
+    it('warns before leaving while an upload job ID remains pending', () => {
+      component.pendingJobId.set('job-1');
+      fixture.detectChanges();
+      const dialog = fixture.debugElement.query(
+        By.directive(ConfirmationDialogComponent),
+      ).componentInstance as ConfirmationDialogComponent;
+      const confirm = jest.spyOn(dialog, 'confirm').mockReturnValue(of(false));
+      const decision = jest.fn();
+
+      (component.canLeave() as Observable<boolean>).subscribe(decision);
+
+      expect(confirm).toHaveBeenCalledTimes(1);
+      expect(decision).toHaveBeenCalledWith(false);
+      expect(
+        window.dispatchEvent(new Event('beforeunload', { cancelable: true })),
+      ).toBe(false);
+    });
+
     it('warns on unload only while an upload is in progress', () => {
       const unload = (): boolean =>
         window.dispatchEvent(new Event('beforeunload', { cancelable: true }));
@@ -343,6 +361,30 @@ describe('ApplicationsListBulkUpload', () => {
   });
 
   describe('onSubmit', () => {
+    it('blocks another upload while an existing job is being polled', async () => {
+      startBulkUploadPolling();
+      component.onFileSelected({
+        target: { files: [file] },
+      } as unknown as Event);
+      await flushSignalEffects(fixture);
+
+      expect(component.vm().isUploadInProgress).toBe(false);
+      expect(component.replacementFileSelected()).toBe(true);
+      expect(
+        fixture.debugElement.query(By.css('button[type="submit"]'))
+          .nativeElement.disabled,
+      ).toBe(true);
+
+      component.onSubmit();
+      await flushSignalEffects(fixture);
+
+      expect(
+        actionsApiMock.bulkUploadApplicationListEntries,
+      ).not.toHaveBeenCalled();
+      expect(component.pendingJobId()).toBe('job-1');
+      expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledTimes(1);
+    });
+
     it('calls the upload API and starts polling when the job is accepted', async () => {
       const ack: JobAcknowledgement = {
         id: 'job-1',
@@ -560,35 +602,43 @@ describe('ApplicationsListBulkUpload', () => {
       });
     });
 
-    it('shows a failure error summary with the backend message', async () => {
-      const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
-      jobPollingFacadeMock.watchJob.mockReturnValue(
-        of(
-          terminalJob({
-            rawStatus: 'FAILED',
-            state: 'failed',
-            createdCount: null,
-            errorCount: null,
-            totalCount: null,
-            message: 'The uploaded file could not be processed.',
-          }),
-        ),
-      );
-
-      startBulkUploadPolling();
-      await flushSignalEffects(fixture);
-
-      const summary = fixture.debugElement.query(
-        By.css('.govuk-error-summary'),
-      );
-      expect(summary).toBeTruthy();
-      expect(summary.nativeElement.textContent).toContain('Bulk upload failed');
-      expect(summary.nativeElement.textContent).toContain(
+    it.each<[string, PolledJobStatus['state'], string, string]>([
+      [
+        'FAILED',
+        'failed',
+        'Bulk upload failed',
         'The uploaded file could not be processed.',
-      );
-      expect(getState(component).uploadSuccessful).toBe(false);
-      expect(navigateSpy).not.toHaveBeenCalled();
-    });
+      ],
+    ])(
+      'shows an error summary for %s',
+      async (rawStatus, state, heading, message) => {
+        const navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate');
+        jobPollingFacadeMock.watchJob.mockReturnValue(
+          of(
+            terminalJob({
+              rawStatus,
+              state,
+              createdCount: null,
+              errorCount: null,
+              totalCount: null,
+              message,
+            }),
+          ),
+        );
+
+        startBulkUploadPolling();
+        await flushSignalEffects(fixture);
+
+        const summary = fixture.debugElement.query(
+          By.css('.govuk-error-summary'),
+        );
+        expect(summary).toBeTruthy();
+        expect(summary.nativeElement.textContent).toContain(heading);
+        expect(summary.nativeElement.textContent).toContain(message);
+        expect(getState(component).uploadSuccessful).toBe(false);
+        expect(navigateSpy).not.toHaveBeenCalled();
+      },
+    );
 
     it.each([-1, null])(
       'maps structured backend errors with header row %s and renders the export action',
@@ -766,6 +816,148 @@ describe('ApplicationsListBulkUpload', () => {
       );
       expect(summary.nativeElement.textContent).toContain(
         'Please try again later.',
+      );
+    });
+
+    it.each([
+      [401, 'You need to sign in to check the bulk upload status.'],
+      [403, 'You do not have permission to check the bulk upload status.'],
+    ])(
+      'shows the authorization message when polling returns HTTP %i',
+      async (status, message) => {
+        jobPollingFacadeMock.watchJob.mockReturnValue(
+          throwError(() => new HttpErrorResponse({ status })),
+        );
+
+        startBulkUploadPolling();
+        await flushSignalEffects(fixture);
+
+        const summary = fixture.debugElement.query(
+          By.css('.govuk-error-summary'),
+        );
+        expect(summary.nativeElement.textContent).toContain(message);
+        expect(component.pendingJobId()).toBe('job-1');
+        expect(
+          fixture.debugElement.query(By.css('button[type="submit"]'))
+            .nativeElement.disabled,
+        ).toBe(true);
+      },
+    );
+
+    it('checks the existing job again without submitting the file after an unknown outcome', async () => {
+      jobPollingFacadeMock.watchJob
+        .mockReturnValueOnce(
+          of(
+            terminalJob({
+              rawStatus: 'UNKNOWN',
+              state: 'unknown',
+              message: 'Status unknown',
+            }),
+          ),
+        )
+        .mockReturnValueOnce(
+          of(
+            terminalJob({
+              rawStatus: 'FAILED',
+              state: 'failed',
+              message: 'Upload failed',
+            }),
+          ),
+        );
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      expect(component.pendingJobId()).toBe('job-1');
+      expect(
+        fixture.debugElement.query(By.css('button[type="submit"]'))
+          .nativeElement.disabled,
+      ).toBe(true);
+
+      component.onSubmit();
+      expect(
+        actionsApiMock.bulkUploadApplicationListEntries,
+      ).not.toHaveBeenCalled();
+
+      const retry = fixture.debugElement.query(
+        By.css('a[href="#retry-upload-status"]'),
+      );
+      expect(retry).toBeTruthy();
+      retry.nativeElement.click();
+      await flushSignalEffects(fixture);
+
+      expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledTimes(2);
+      expect(jobPollingFacadeMock.watchJob).toHaveBeenLastCalledWith('job-1');
+      expect(
+        actionsApiMock.bulkUploadApplicationListEntries,
+      ).not.toHaveBeenCalled();
+      expect(component.pendingJobId()).toBeNull();
+    });
+
+    it('keeps the unknown status visible until a replacement file is uploaded', async () => {
+      const replacementFile = new File(['replacement'], 'replacement.csv', {
+        type: 'text/csv',
+      });
+      const uploadResponse = new Subject<HttpResponse<JobAcknowledgement>>();
+      actionsApiMock.bulkUploadApplicationListEntries.mockReturnValue(
+        uploadResponse.asObservable(),
+      );
+      jobPollingFacadeMock.watchJob.mockReturnValue(
+        of(
+          terminalJob({
+            rawStatus: 'UNKNOWN',
+            state: 'unknown',
+            message: 'Status unknown',
+          }),
+        ),
+      );
+      patchState(component, { listId: 'list-123', file, isValidCSV: true });
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+      patchState(component, {
+        fileUploadStatus: 'error',
+        errorSummary: [{ text: 'Previous upload error' }],
+      });
+
+      component.onFileSelected({
+        target: { files: [replacementFile] },
+      } as unknown as Event);
+      await flushSignalEffects(fixture);
+
+      expect(component.pendingJobId()).toBe('job-1');
+      expect(component.vm().errorSummary).toEqual([
+        { text: 'Previous upload error' },
+      ]);
+      expect(component.vm().bulkUploadFeedback).toMatchObject({
+        kind: 'error',
+        body: 'Status unknown',
+      });
+      expect(
+        fixture.debugElement.query(By.css('a[href="#retry-upload-status"]')),
+      ).toBeTruthy();
+      const uploadButton = fixture.debugElement.query(
+        By.css('button[type="submit"]'),
+      ).nativeElement as HTMLButtonElement;
+      expect(uploadButton.disabled).toBe(false);
+      expect(
+        actionsApiMock.bulkUploadApplicationListEntries,
+      ).not.toHaveBeenCalled();
+
+      uploadButton.click();
+      await flushSignalEffects(fixture);
+
+      expect(component.pendingJobId()).toBeNull();
+      expect(component.vm().fileUploadStatus).toBeNull();
+      expect(component.vm().bulkUploadFeedback).toBeNull();
+      expect(component.vm().errorSummary).toEqual([]);
+      expect(
+        actionsApiMock.bulkUploadApplicationListEntries,
+      ).toHaveBeenCalledWith(
+        { listId: 'list-123', file: replacementFile },
+        'response',
+        false,
+        { transferCache: false },
       );
     });
   });

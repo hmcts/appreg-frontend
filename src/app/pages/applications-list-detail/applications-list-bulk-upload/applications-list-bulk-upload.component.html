@@ -45,13 +45,28 @@
 @if (vm().bulkUploadFeedback?.kind === 'error') {
   <app-error-summary
     [title]="vm().bulkUploadFeedback?.heading ?? 'There is a problem'"
-    [items]="[
-      {
-        text: vm().bulkUploadFeedback?.body ?? '',
-        href: errorRows().length > 0 ? '#error-table' : undefined,
-      },
-    ]"
+    [items]="
+      [
+        {
+          text: vm().bulkUploadFeedback?.body ?? '',
+          href: errorRows().length > 0 ? '#error-table' : undefined,
+        },
+      ].concat(
+        pendingJobId()
+          ? [
+              {
+                text: 'Click here to check status',
+                href: '#retry-upload-status',
+              },
+            ]
+          : []
+      )
+    "
     [focusKey]="submitAttempt()"
+    (itemSelect)="
+      $event.href === '#retry-upload-status' && onRetryUploadStatus()
+    "
+    id="retry-upload-status"
   />
 }
 
@@ -102,7 +117,12 @@
         <button
           type="submit"
           class="govuk-button govuk-!-margin-top-5"
-          [disabled]="!vm().isValidCSV || vm().isUploadInProgress"
+          [disabled]="
+            !vm().isValidCSV ||
+            vm().isUploadInProgress ||
+            isJobPolling ||
+            (!!pendingJobId() && !replacementFileSelected())
+          "
           data-module="govuk-button"
         >
           Upload file
@@ -146,7 +166,7 @@
 }
 
 <app-navigation-warning
-  [active]="vm().isUploadInProgress"
+  [active]="hasPendingUpload()"
   heading="Leave the bulk upload page?"
   message="Your bulk upload is still being processed. If you leave this page, you will not receive the outcome."
 />

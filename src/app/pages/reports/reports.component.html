@@ -13,6 +13,10 @@
         [title]="feedback.title"
         [items]="feedback.items"
         [focusKey]="submitAttempt()"
+        (itemSelect)="
+          $event.href === '#retry-report-status' && onRetryReportStatus()
+        "
+        id="retry-report-status"
       />
     }
     @case ('progress') {
@@ -235,7 +239,7 @@
 </section>
 
 <app-navigation-warning
-  [active]="isReportInProgress()"
+  [active]="hasPendingReport()"
   heading="Leave the reports page?"
   message="Your report is still being generated and downloaded. If you leave this page, you will not receive it."
 />

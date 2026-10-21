@@ -55,7 +55,7 @@ import {
   JobPollingFacade,
   PolledJobStatus,
 } from '@services/jobs/job-polling.facade';
-import { getProblemText } from '@util/http-error-to-text';
+import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { saveCsv as saveCsvFile } from '@util/save-csv';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { getDateStamp, trimToUndefined } from '@util/string-helpers';
@@ -161,6 +161,9 @@ export class ApplicationsListBulkUpload implements OnInit {
   private readonly bulkUploadRequest =
     signal<BulkUploadApplicationListEntriesRequestParams | null>(null);
   readonly submitAttempt = signal(0);
+  readonly pendingJobId = signal<string | null>(null);
+  readonly replacementFileSelected = signal(false);
+  isJobPolling = false;
 
   columns = BulkUploadErrorTableColumns;
 
@@ -230,6 +233,11 @@ export class ApplicationsListBulkUpload implements OnInit {
   }
 
   private startBulkUploadPolling(jobId: string): void {
+    if (this.isJobPolling) {
+      return;
+    }
+    this.isJobPolling = true;
+    this.pendingJobId.set(jobId);
     this.bulkUploadPatch({
       bulkUploadFeedback: UPLOAD_IN_PROGRESS_FEEDBACK,
     });
@@ -239,13 +247,20 @@ export class ApplicationsListBulkUpload implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (job) => this.handleBulkUploadStatus(job),
-        error: () => {
+        error: (err) => {
+          this.isJobPolling = false;
+          const status = getHttpStatus(err);
           this.bulkUploadPatch({
             bulkUploadFeedback: {
               kind: 'error',
               title: 'Error',
               heading: 'Unable to load upload status',
-              body: 'Please try again later.',
+              body:
+                status === 401
+                  ? 'You need to sign in to check the bulk upload status.'
+                  : status === 403
+                    ? 'You do not have permission to check the bulk upload status.'
+                    : 'Please try again later.',
             },
             isUploadInProgress: false,
           });
@@ -264,6 +279,10 @@ export class ApplicationsListBulkUpload implements OnInit {
     }
 
     this.jobId = job.id;
+    this.isJobPolling = false;
+    if (job.state !== 'unknown') {
+      this.pendingJobId.set(null);
+    }
     // Clear progress before successful navigation so this page does not block itself.
     this.bulkUploadPatch({ isUploadInProgress: false });
     this.bulkUploadPatch({
@@ -299,8 +318,23 @@ export class ApplicationsListBulkUpload implements OnInit {
           body: this.formatErrorDescriptionFromError(job.message),
         } as const;
 
+      case 'unknown':
+        return {
+          kind: 'error',
+          title: 'Error',
+          heading: 'Bulk upload status unknown',
+          body: job.message ?? 'Please check again later.',
+        } as const;
+
       default:
         return UPLOAD_IN_PROGRESS_FEEDBACK;
+    }
+  }
+
+  onRetryUploadStatus(): void {
+    const jobId = this.pendingJobId();
+    if (jobId && !this.isJobPolling) {
+      this.startBulkUploadPolling(jobId);
     }
   }
 
@@ -392,13 +426,21 @@ export class ApplicationsListBulkUpload implements OnInit {
   }
 
   canLeave(): boolean | Observable<boolean> {
-    return (
-      this.navigationWarning()?.canLeave(this.vm().isUploadInProgress) ?? true
-    );
+    return this.navigationWarning()?.canLeave(this.hasPendingUpload()) ?? true;
+  }
+
+  hasPendingUpload(): boolean {
+    return this.vm().isUploadInProgress || !!this.pendingJobId();
   }
 
   onFileSelected(event: Event): void {
-    this.bulkUploadPatch({ fileUploadStatus: null, bulkUploadFeedback: null });
+    if (!this.pendingJobId()) {
+      this.bulkUploadPatch({
+        fileUploadStatus: null,
+        bulkUploadFeedback: null,
+      });
+    }
+    this.replacementFileSelected.set(false);
     const input = event.target as HTMLInputElement;
 
     if (!input.files || input.files.length === 0) {
@@ -429,10 +471,18 @@ export class ApplicationsListBulkUpload implements OnInit {
 
     if (file) {
       this.bulkUploadPatch({ file });
+      this.replacementFileSelected.set(true);
     }
   }
 
   onSubmit(): void {
+    if (
+      this.vm().isUploadInProgress ||
+      this.isJobPolling ||
+      (this.pendingJobId() && !this.replacementFileSelected())
+    ) {
+      return;
+    }
     this.submitAttempt.update((attempt) => attempt + 1);
     this.errorRows.set([]);
     this.bulkUploadPatch({
@@ -447,6 +497,10 @@ export class ApplicationsListBulkUpload implements OnInit {
       this.bulkUploadPatch({ isUploadInProgress: false });
       return;
     }
+
+    this.pendingJobId.set(null);
+    this.replacementFileSelected.set(false);
+    this.bulkUploadPatch({ fileUploadStatus: null, errorSummary: [] });
 
     const params: BulkUploadApplicationListEntriesRequestParams = {
       listId: this.bulkUploadState().listId,
