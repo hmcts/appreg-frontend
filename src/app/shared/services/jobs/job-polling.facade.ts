@@ -7,11 +7,25 @@ while the job-status contract is still settling.
 
 import { HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, exhaustMap, map, takeWhile, timer } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  defer,
+  exhaustMap,
+  map,
+  merge,
+  of,
+  retry,
+  takeWhile,
+  throwError,
+  timeout,
+  timer,
+} from 'rxjs';
 
 import { JobAcknowledgement, JobStatus, JobsApi } from '@openapi';
+import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 
-export type PolledJobState = 'in_progress' | 'succeeded' | 'failed';
+export type PolledJobState = 'in_progress' | 'succeeded' | 'failed' | 'unknown';
 
 export interface PolledJobStatus {
   id: string;
@@ -26,6 +40,9 @@ export interface PolledJobStatus {
 }
 
 const DEFAULT_INTERVAL_MS = 2_000;
+const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000; // 5 mins
+const POLLING_TIMEOUT_MS = 10 * 60 * 1000; // 10 mins
+const RETRY_POLL_COUNT = 5;
 
 const TERMINAL_SUCCESS_STATUSES = new Set<string>([
   'SUCCEEDED',
@@ -39,26 +56,77 @@ const FAILED_STATUS = String(JobStatus.FAILED);
 export class JobPollingFacade {
   private readonly jobsApi = inject(JobsApi);
 
+  // Retry RETRY_POLL_COUNT times and each request timeout = DEFAULT_TIMEOUT_MS
+  // Overall polling timeout = POLLING_TIMEOUT_MS
   watchJob(
     jobId: string,
-    intervalMs = DEFAULT_INTERVAL_MS,
+    intervalMs: number = DEFAULT_INTERVAL_MS,
+    timeoutRequest: number = DEFAULT_TIMEOUT_MS,
+    maxAttempts: number = RETRY_POLL_COUNT,
   ): Observable<PolledJobStatus> {
-    return timer(0, intervalMs).pipe(
-      exhaustMap(() =>
-        this.jobsApi.getJobStatusById({ jobId }, 'response', false, {
-          transferCache: false,
-        }),
+    return merge(
+      timer(0, intervalMs).pipe(
+        exhaustMap(() =>
+          defer(() =>
+            this.jobsApi.getJobStatusById({ jobId }, 'response', false, {
+              transferCache: false,
+            }),
+          ).pipe(
+            timeout(timeoutRequest),
+            map((response: HttpResponse<JobAcknowledgement>) => {
+              if (!response.body) {
+                throw new Error('No upload status returned.');
+              }
+              return normaliseJobStatus(response.body, jobId);
+            }),
+            retry({
+              count: maxAttempts - 1,
+              delay: (err: unknown) =>
+                isAuthorizationError(err)
+                  ? throwError(() => err)
+                  : timer(intervalMs),
+            }),
+            catchError((err: unknown) =>
+              isAuthorizationError(err)
+                ? throwError(() => err)
+                : of({
+                    id: jobId,
+                    rawStatus: 'UNKNOWN',
+                    state: 'unknown',
+                    isTerminal: true,
+                    createdCount: null,
+                    errorCount: null,
+                    totalCount: null,
+                    message: `Job polling status unknown: ${getProblemText(err)}`,
+                    raw: {},
+                  } satisfies PolledJobStatus),
+            ),
+          ),
+        ),
       ),
-      map((response: HttpResponse<JobAcknowledgement>) => {
-        if (!response.body) {
-          throw new Error('No upload status returned.');
-        }
-
-        return normaliseJobStatus(response.body, jobId);
-      }),
-      takeWhile((job) => !job.isTerminal, true),
-    );
+      timer(POLLING_TIMEOUT_MS).pipe(
+        map(
+          (): PolledJobStatus => ({
+            id: jobId,
+            rawStatus: 'UNKNOWN',
+            state: 'unknown',
+            isTerminal: true,
+            createdCount: null,
+            errorCount: null,
+            totalCount: null,
+            message:
+              'The job is still being processed or its status could not be confirmed.',
+            raw: {},
+          }),
+        ),
+      ),
+    ).pipe(takeWhile((job) => !job.isTerminal, true));
   }
+}
+
+function isAuthorizationError(err: unknown): boolean {
+  const status = getHttpStatus(err);
+  return status === 401 || status === 403;
 }
 
 function normaliseJobStatus(
