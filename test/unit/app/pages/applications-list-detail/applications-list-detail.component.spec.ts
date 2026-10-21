@@ -21,6 +21,7 @@ import {
 } from '@components/applications-list-detail/util/map-entry-summary-rows';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
+import { IF_MATCH } from '@context/concurrency-context';
 import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
 import {
@@ -312,11 +313,33 @@ describe('ApplicationsListDetail', () => {
       const update = fixture.debugElement.query(
         By.directive(ApplicationsListUpdateComponent),
       ).componentInstance as ApplicationsListUpdateComponent;
+      component.id = dto.id;
+      apiStub.updateApplicationList.mockReturnValueOnce(
+        of(
+          new HttpResponse({
+            body: { ...dto, description: 'Updated description' },
+          }),
+        ),
+      );
       update.onUpdate();
-      expect(component['updateRequest']()?.payload).toMatchObject({
-        courtLocationCode: 'ENDED',
-        description: 'Updated description',
-      });
+      await flushSignalEffects(fixture);
+      expect(apiStub.updateApplicationList).toHaveBeenCalledWith(
+        {
+          listId: dto.id,
+          applicationListUpdateDto: expect.objectContaining({
+            courtLocationCode: 'ENDED',
+            description: 'Updated description',
+          }),
+        },
+        'response',
+        false,
+        expect.any(Object),
+      );
+      expect(
+        apiStub.updateApplicationList.mock.calls[0][3]?.context?.get(IF_MATCH),
+      ).toBe('"etag-v1"');
+      expect(component.originalListDetail?.court).toBe('ENDED');
+      expect(vm().updateDone).toBe(true);
       expect(component.form.controls.court.errors).toBeNull();
 
       component.selectCourthouse({
@@ -327,14 +350,18 @@ describe('ApplicationsListDetail', () => {
       expect(component.form.controls.court.hasError('courtNotFound')).toBe(
         true,
       );
+      update.onUpdate();
+      await flushSignalEffects(fixture);
+      expect(apiStub.updateApplicationList).toHaveBeenCalledTimes(1);
       component.selectCourthouse(active);
       component.form.updateValueAndValidity();
       expect(component.form.controls.court.errors).toBeNull();
-      component['prefillFromApi']({
-        ...dto,
-        courtCode: 'ACTIVE',
-        courtName: active.name,
-      });
+      apiStub.updateApplicationList.mockReturnValueOnce(
+        of(new HttpResponse<ApplicationListGetDetailDto>({ status: 204 })),
+      );
+      update.onUpdate();
+      await flushSignalEffects(fixture);
+      expect(component.originalListDetail?.court).toBe('ACTIVE');
       expect(component.placeState().courtLocations).toEqual([active]);
       courts$.next([]);
       expect(component.placeState().courtLocations).toEqual([active]);
