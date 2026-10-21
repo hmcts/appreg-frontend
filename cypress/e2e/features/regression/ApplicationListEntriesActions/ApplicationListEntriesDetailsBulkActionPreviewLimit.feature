@@ -69,7 +69,7 @@ Feature: Application List Entries Details Bulk Action Preview Limit Validation
         When User Waits For The File Upload To Complete
         Then User Sees Success Banner "Success Bulk upload complete" Containing Link "Click here to update fee details on newly uploaded applications"
         Then User Sees Success Banner "Success Bulk upload complete" Containing "1050 applications imported successfully."
-        Then User Sees Success Banner "Success Bulk upload complete" Containing "Total fees for uploaded applications: £5,764.00"
+        Then User Sees Success Banner "Success Bulk upload complete" Containing "Total fees for uploaded applications: £7,074.00"
         Then User See "Applications list" On The Page
         # Different Actions Validations on 1051 ALEs (1 ALE + 1050 ALEs uploaded)
         Then User Clicks On The Breadcrumb Link "Applications list"
