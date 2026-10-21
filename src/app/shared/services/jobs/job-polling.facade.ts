@@ -18,6 +18,7 @@ import {
   retry,
   takeWhile,
   throwError,
+  timeout,
   timer,
 } from 'rxjs';
 
@@ -40,6 +41,7 @@ export interface PolledJobStatus {
 
 const DEFAULT_INTERVAL_MS = 2_000;
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000; // 5 mins
+const POLLING_TIMEOUT_MS = 10 * 60 * 1000; // 10 mins
 const RETRY_POLL_COUNT = 5;
 
 const TERMINAL_SUCCESS_STATUSES = new Set<string>([
@@ -54,10 +56,12 @@ const FAILED_STATUS = String(JobStatus.FAILED);
 export class JobPollingFacade {
   private readonly jobsApi = inject(JobsApi);
 
+  // Retry RETRY_POLL_COUNT times and each request timeout = DEFAULT_TIMEOUT_MS
+  // Overall polling timeout = POLLING_TIMEOUT_MS
   watchJob(
     jobId: string,
     intervalMs: number = DEFAULT_INTERVAL_MS,
-    timeout: number = DEFAULT_TIMEOUT_MS,
+    timeoutRequest: number = DEFAULT_TIMEOUT_MS,
     maxAttempts: number = RETRY_POLL_COUNT,
   ): Observable<PolledJobStatus> {
     return merge(
@@ -68,6 +72,7 @@ export class JobPollingFacade {
               transferCache: false,
             }),
           ).pipe(
+            timeout(timeoutRequest),
             map((response: HttpResponse<JobAcknowledgement>) => {
               if (!response.body) {
                 throw new Error('No upload status returned.');
@@ -99,7 +104,7 @@ export class JobPollingFacade {
           ),
         ),
       ),
-      timer(timeout).pipe(
+      timer(POLLING_TIMEOUT_MS).pipe(
         map(
           (): PolledJobStatus => ({
             id: jobId,
