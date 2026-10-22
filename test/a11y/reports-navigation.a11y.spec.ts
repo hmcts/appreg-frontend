@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import type { Server } from 'node:http';
 
 import { Browser, HTTPRequest, Page, launch } from 'puppeteer';
@@ -44,15 +43,7 @@ describe('Report navigation confirmation in a browser', () => {
     await page.setRequestInterception(true);
     const handleRequest = async (request: HTTPRequest): Promise<void> => {
       const path = new URL(request.url()).pathname;
-      if (request.resourceType() === 'document') {
-        await request.respond({
-          contentType: 'text/html',
-          body: readFileSync(
-            'dist/appreg-frontend/browser/index.csr.html',
-            'utf8',
-          ),
-        });
-      } else if (path === '/reports/duration/jobs') {
+      if (path === '/reports/duration/jobs') {
         await request.respond({
           status: 202,
           contentType: 'application/json',

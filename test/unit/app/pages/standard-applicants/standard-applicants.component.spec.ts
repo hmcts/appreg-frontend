@@ -345,7 +345,8 @@ describe('StandardApplicantsComponent', () => {
     ).toBeTruthy();
     expect(fixture.debugElement.query(By.css('app-pagination'))).toBeTruthy();
     expect(
-      fixture.nativeElement.querySelector('#no-data-message')?.textContent,
+      fixture.nativeElement.querySelector('.app-sortable-table__empty')
+        ?.textContent,
     ).toContain('No results found.');
   });
 
@@ -937,7 +938,9 @@ describe('StandardApplicantsComponent', () => {
       fixture.debugElement.query(By.css('app-error-summary')),
     ).toBeTruthy();
     expect(fixture.debugElement.query(By.css('app-sortable-table'))).toBeNull();
-    expect(fixture.nativeElement.querySelector('#no-data-message')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.app-sortable-table__empty'),
+    ).toBeNull();
     expect(
       fixture.debugElement.query(By.css('app-notification-banner')),
     ).toBeNull();

@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import type { Server } from 'node:http';
 
 import { Browser, HTTPRequest, Page, launch } from 'puppeteer';
@@ -46,15 +45,7 @@ describe('Recent reports in a browser', () => {
       if (request.method() === 'POST' && path.startsWith('/reports/')) {
         generationRequests++;
       }
-      if (request.resourceType() === 'document') {
-        await request.respond({
-          contentType: 'text/html',
-          body: readFileSync(
-            'dist/appreg-frontend/browser/index.csr.html',
-            'utf8',
-          ),
-        });
-      } else if (path === '/reports/jobs') {
+      if (path === '/reports/jobs') {
         listRequests++;
         await request.respond({
           contentType: 'application/json',
