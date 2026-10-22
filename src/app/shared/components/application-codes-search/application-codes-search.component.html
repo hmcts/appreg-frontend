@@ -22,7 +22,7 @@
   <legend class="govuk-fieldset__legend govuk-visually-hidden">
     Find an application code
   </legend>
-  <div [formGroup]="form">
+  <div [formGroup]="form" (keydown.enter)="onSearchEnter($event)">
     <div class="govuk-grid-row">
       <app-text-input
         widthClass="govuk-input--width-10"
