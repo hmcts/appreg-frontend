@@ -1,4 +1,4 @@
-import { access } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import type { Server } from 'node:http';
 import path from 'node:path';
 
@@ -11,7 +11,8 @@ export async function startStaticSpaServer(distDir = DIST_DIR): Promise<{
   baseUrl: string;
 }> {
   const index = path.join(distDir, 'index.csr.html');
-  await access(index).catch(() => {
+  // Read the SPA once before listening, rather than reading it in the fallback.
+  const html = await readFile(index, 'utf8').catch(() => {
     throw new Error('Accessibility build missing: run yarn build:ssr first');
   });
   const app = express();
@@ -23,7 +24,7 @@ export async function startStaticSpaServer(distDir = DIST_DIR): Promise<{
       req.headers.accept?.includes('text/html') &&
       !path.extname(req.path)
     ) {
-      res.sendFile(index);
+      res.type('html').send(html);
       return;
     }
     next();

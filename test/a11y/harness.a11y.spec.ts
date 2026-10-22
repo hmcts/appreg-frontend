@@ -1,4 +1,7 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import type { Server } from 'node:http';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 
 import { type Browser, launch } from 'puppeteer';
 
@@ -31,6 +34,36 @@ test('requires a built CSR document', async () => {
   await expect(startStaticSpaServer('/nonexistent-a11y-build')).rejects.toThrow(
     'run yarn build:ssr',
   );
+});
+test('serves the startup HTML snapshot across navigations without rereading the file', async () => {
+  const distDir = await mkdtemp(path.join(tmpdir(), 'a11y-server-'));
+  let snapshotServer: Server | undefined;
+  try {
+    const index = path.join(distDir, 'index.csr.html');
+    const original =
+      '<!doctype html><html><body><app-root>Original</app-root></body></html>';
+    await writeFile(index, original);
+    const started = await startStaticSpaServer(distDir);
+    snapshotServer = started.server;
+    await writeFile(index, '<!doctype html><html><body>Changed</body></html>');
+    for (const route of ['/reports', '/applications-list/create']) {
+      const response = await fetch(`${started.baseUrl}${route}`, {
+        headers: { accept: 'text/html' },
+      });
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-type')).toContain('text/html');
+      expect(await response.text()).toBe(original);
+    }
+  } finally {
+    if (snapshotServer) {
+      const closingServer = snapshotServer;
+      await new Promise<void>((resolve) => {
+        closingServer.close(() => resolve());
+        closingServer.closeAllConnections();
+      });
+    }
+    await rm(distDir, { recursive: true, force: true });
+  }
 });
 test('serves deep links but never rewrites missing assets or JSON requests', async () => {
   const document = await fetch(`${baseUrl}/applications-list/create`, {
