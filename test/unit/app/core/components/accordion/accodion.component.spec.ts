@@ -1,3 +1,4 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
@@ -212,5 +213,32 @@ describe('AccordionComponent', () => {
       block: 'start',
     });
     expect(secondScrollIntoView).not.toHaveBeenCalled();
+  });
+});
+
+@Component({
+  imports: [AccordionComponent],
+  template: '<app-accordion id="entry-sections" [items]="items" />',
+})
+class AccordionHost {
+  items = [
+    { heading: 'Entry details', content: 'Synthetic content', expanded: true },
+  ];
+}
+
+describe('AccordionComponent in a template', () => {
+  it('assigns its root ID once and connects controls to unique panels', async () => {
+    await TestBed.configureTestingModule({
+      imports: [AccordionHost],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(AccordionHost);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelectorAll('[id="entry-sections"]')).toHaveLength(1);
+    const panelId = element
+      .querySelector('[aria-controls]')
+      ?.getAttribute('aria-controls');
+    expect(panelId).toBeTruthy();
+    expect(element.querySelectorAll(`[id="${panelId}"]`)).toHaveLength(1);
   });
 });

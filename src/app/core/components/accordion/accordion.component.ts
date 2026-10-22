@@ -29,6 +29,8 @@ export interface AccordionItem {
 
 @Component({
   selector: 'app-accordion',
+  // The ID belongs to the inner element, not the component host.
+  host: { '[attr.id]': 'null' },
   standalone: true,
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.Eager,

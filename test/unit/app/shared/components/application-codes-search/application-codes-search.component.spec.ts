@@ -64,6 +64,17 @@ describe('ApplicationCodeSearchComponent', () => {
     jest.clearAllMocks();
   });
 
+  it('provides a named field group and searches without nesting a form in the entry form', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    expect(
+      element.querySelector('fieldset > legend')?.textContent?.trim(),
+    ).toBe('Find an application code');
+    expect(element.querySelector('form')).toBeNull();
+    const search = jest.spyOn(component, 'search').mockImplementation();
+    element.querySelector<HTMLButtonElement>('button.govuk-button')?.click();
+    expect(search).toHaveBeenCalledTimes(1);
+  });
+
   it('should create and initialize listId', () => {
     expect(component).toBeTruthy();
     expect(component.listId).toBe('123');

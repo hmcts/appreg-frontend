@@ -1,73 +1,57 @@
-import { jest } from '@jest/globals';
-import pa11y from 'pa11y';
+import type { Server } from 'node:http';
 
+import pa11y from 'pa11y';
+import { type Browser, launch } from 'puppeteer';
+
+import {
+  assertNoBrowserFailures,
+  openScenario,
+  preparePage,
+} from './a11y.browser';
+import { scenarios } from './a11y.scenarios';
 import { startStaticSpaServer } from './a11y.server';
 
-const hide = '.govuk-footer__licence-logo, .govuk-header__logotype-crown';
-
 let baseUrl: string;
-let server: import('node:http').Server;
-
-jest.setTimeout(120000);
+let server: Server;
+let browser: Browser;
 
 beforeAll(async () => {
-  const started = await startStaticSpaServer();
-  baseUrl = started.baseUrl;
-  server = started.server;
+  ({ server, baseUrl } = await startStaticSpaServer());
+  browser = await launch({ headless: true });
 });
-
 afterAll(async () => {
-  await new Promise<void>((resolve, reject) =>
-    server.close((err) => (err ? reject(err) : resolve())),
-  );
-});
-
-function runPa11y(p: string) {
-  return pa11y(`${baseUrl}${p}`, {
-    hideElements: hide,
-    timeout: 60000,
-    wait: 500,
-  });
-}
-
-function assertNoErrors(issues: Awaited<ReturnType<typeof pa11y>>['issues']) {
-  const errors = issues.filter((i) => i.type === 'error');
-  if (errors.length) {
-    throw new Error(
-      `Accessibility errors:\n${JSON.stringify(errors, null, 2)}`,
-    );
-  }
-}
-
-function testAccessibility(p: string): void {
-  describe(`Page ${p}`, () => {
-    test('has no accessibility errors', async () => {
-      const result = await runPa11y(p);
-      expect(Array.isArray(result.issues)).toBe(true);
-      assertNoErrors(result.issues);
+  await browser?.close();
+  if (server) {
+    await new Promise<void>((resolve) => {
+      server.close(() => resolve());
+      server.closeAllConnections();
     });
-  });
-}
+  }
+});
 
 describe('Accessibility', () => {
-  const routes = [
-    '/login',
-    '/forbidden',
-    '/internal-error',
-    '/page-not-found',
-    '/applications-list',
-    '/applications-list/1',
-    '/applications-list/1/create-entry',
-    '/applications-list/1/update',
-    '/applications-list/1/delete',
-    '/applications-list/1/update/change-payment-reference',
-    '/applications-list/1/create/change-payment-reference',
-    '/applications-list/1/bulk-upload',
-    '/applications-list/1/result-selected',
-    '/applications-list/create',
-  ];
-
-  routes.forEach((route) => {
-    testAccessibility(route);
+  test.each(scenarios)('$name', async (scenario) => {
+    const context = await browser.createBrowserContext();
+    const page = await context.newPage();
+    page.setDefaultTimeout(10_000);
+    try {
+      const failures = await preparePage(page, scenario);
+      await openScenario(page, baseUrl, scenario);
+      assertNoBrowserFailures(failures);
+      const result = await pa11y(page.url(), {
+        browser,
+        page,
+        ignoreUrl: true,
+        hideElements:
+          '.govuk-footer__licence-logo, .govuk-header__logotype-crown',
+        timeout: 20_000,
+      });
+      expect(result.issues.filter((issue) => issue.type === 'error')).toEqual(
+        [],
+      );
+      assertNoBrowserFailures(failures);
+    } finally {
+      await context.close();
+    }
   });
 });

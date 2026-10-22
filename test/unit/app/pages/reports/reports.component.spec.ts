@@ -125,6 +125,18 @@ describe('ReportsComponent', () => {
     fixture.detectChanges();
   });
 
+  it('selects a report without presenting an incomplete submission form', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('form')).toBeNull();
+    const duration =
+      element.querySelector<HTMLInputElement>('#report-duration');
+    expect(duration).not.toBeNull();
+    duration?.click();
+    fixture.detectChanges();
+    expect(component.form.controls.report.value).toBe('duration');
+    expect(element.querySelector('#list-date-from-day')).not.toBeNull();
+  });
+
   afterEach(() => {
     anchorClickSpy.mockRestore();
     jest.clearAllMocks();

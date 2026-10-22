@@ -1,3 +1,4 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl } from '@angular/forms';
 
@@ -162,4 +163,33 @@ describe('GovukTextareaComponent', () => {
       expect(component.charLimitText).toBe(expected);
     },
   );
+});
+
+@Component({
+  imports: [GovukTextareaComponent],
+  template: `<app-govuk-textarea
+    id="description"
+    name="description"
+    ariaDescribedBy="description-hint"
+    label="List description"
+    [control]="control"
+  />`,
+})
+class TextareaHost {
+  control = new FormControl<string | null>('');
+}
+
+describe('GovukTextareaComponent in a template', () => {
+  it('assigns the ID only to the native control targeted by the label', async () => {
+    await TestBed.configureTestingModule({
+      imports: [TextareaHost],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(TextareaHost);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelectorAll('[id="description"]')).toHaveLength(1);
+    expect(element.querySelector('label')?.control).toBe(
+      element.querySelector('textarea'),
+    );
+  });
 });
