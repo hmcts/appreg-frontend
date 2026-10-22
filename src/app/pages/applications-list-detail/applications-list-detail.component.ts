@@ -63,7 +63,13 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { firstValueFrom, take } from 'rxjs';
+import {
+  BehaviorSubject,
+  combineLatest,
+  firstValueFrom,
+  map,
+  take,
+} from 'rxjs';
 
 import { statusSummary } from '../applications-list/util/delete-status';
 
@@ -124,6 +130,7 @@ import {
   BulkActionPreviewResponseDto,
   BulkActionSelectionType,
   BulkActionType,
+  CourtLocationGetSummaryDto,
   EntryPage,
   PrintApplicationListsRequestParams,
 } from '@openapi';
@@ -213,6 +220,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly ngZone = inject(NgZone);
   private readonly menus = inject(MojButtonMenu);
 
+  // Only the court already persisted on this list may supplement current choices.
+  private readonly retainedCourt$ =
+    new BehaviorSubject<CourtLocationGetSummaryDto | null>(null);
+
   id!: string;
   listRow: ApplicationListRow | undefined = undefined;
   originalListDetail: Readonly<DetailFormValue> | null = null;
@@ -300,7 +311,20 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   });
 
   ngOnInit(): void {
-    this.initPlaceFields(this.form, this.refField);
+    this.initPlaceFields(this.form, {
+      cja$: this.refField.cja$,
+      courtLocations$: combineLatest([
+        this.refField.courtLocations$,
+        this.retainedCourt$,
+      ]).pipe(
+        map(([courts, retained]) =>
+          retained &&
+          !courts.some((c) => c.locationCode === retained.locationCode)
+            ? [...courts, retained]
+            : courts,
+        ),
+      ),
+    });
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
     this.setSuccessBanner();
     this.setCloseErrorFromNavigation();
@@ -1602,7 +1626,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     this.entryCount = dto.entriesCount ?? this.entryCount;
 
-    this.syncFormAndOriginalListDetail(listDetails);
+    this.syncFormAndOriginalListDetail(listDetails, dto.courtName);
 
     if (dto.courtCode) {
       this.selectCourthouse(
@@ -1635,8 +1659,19 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   private syncFormAndOriginalListDetail(
     listDetails: DetailFormValue = this.form.getRawValue(),
+    courtName?: string,
   ): void {
     this.form.patchValue(listDetails);
     this.originalListDetail = this.form.getRawValue();
+    const code = listDetails.court;
+    const existing = this.state().courtLocations.find(
+      (c) => c.locationCode === code,
+    );
+    this.retainedCourt$.next(
+      code
+        ? { locationCode: code, name: courtName ?? existing?.name ?? '' }
+        : null,
+    );
+    this.form.updateValueAndValidity({ emitEvent: false });
   }
 }
