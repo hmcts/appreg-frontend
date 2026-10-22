@@ -161,6 +161,23 @@ export class ApplicationCodeSearchComponent implements OnInit {
       });
   }
 
+  onSearchEnter(event: Event): void {
+    if (
+      !(event instanceof KeyboardEvent) ||
+      event.isComposing ||
+      !(event.target instanceof HTMLInputElement)
+    ) {
+      return;
+    }
+
+    // These inputs belong to the entry form: Enter must search, not activate its submit button.
+    event.preventDefault();
+    event.stopPropagation();
+    if (!event.repeat) {
+      this.search();
+    }
+  }
+
   search(): void {
     this.submitted.set(true);
     this.errored.set(false);
