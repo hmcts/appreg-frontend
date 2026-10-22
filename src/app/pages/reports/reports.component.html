@@ -57,7 +57,7 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-<form class="govuk-form-group" [formGroup]="form">
+<div class="govuk-form-group" [formGroup]="form">
   <app-report-selector
     [options]="reportOptions"
     [selectorDisabled]="isReportInProgress()"
@@ -65,7 +65,7 @@
     formControlName="report"
   >
   </app-report-selector>
-</form>
+</div>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"

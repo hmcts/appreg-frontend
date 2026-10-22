@@ -19,7 +19,10 @@
 </app-help-details>
 
 <fieldset class="govuk-fieldset">
-  <form [formGroup]="form">
+  <legend class="govuk-fieldset__legend govuk-visually-hidden">
+    Find an application code
+  </legend>
+  <div [formGroup]="form">
     <div class="govuk-grid-row">
       <app-text-input
         widthClass="govuk-input--width-10"
@@ -58,7 +61,7 @@
         [disallowFutureDates]="true"
       />
     </div>
-  </form>
+  </div>
 
   <div class="govuk-button-group">
     <button class="govuk-button" type="button" (click)="search()">
