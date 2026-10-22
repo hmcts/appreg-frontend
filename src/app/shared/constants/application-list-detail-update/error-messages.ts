@@ -12,7 +12,7 @@ export const DETAIL_FIELD_MESSAGES = {
   },
   description: {
     required: 'Enter a description',
-    maxlength: 'Description must be 200 characters or fewer',
+    maxlength: 'Description must be 200 characters or fewe',
   },
   status: {
     required: 'Select a status',
