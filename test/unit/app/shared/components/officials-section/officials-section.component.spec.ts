@@ -35,6 +35,23 @@ describe('OfficialsSectionComponent', () => {
     fixture.detectChanges();
   });
 
+  it('names each group of official fields with a legend', () => {
+    const fieldsets = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('fieldset'),
+    );
+    expect(fieldsets).toHaveLength(4);
+    expect(
+      fieldsets.map((fieldset) =>
+        fieldset.querySelector('legend')?.textContent?.trim(),
+      ),
+    ).toEqual([
+      'Magistrate 1',
+      'Magistrate 2',
+      'Magistrate 3',
+      'Court official',
+    ]);
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
