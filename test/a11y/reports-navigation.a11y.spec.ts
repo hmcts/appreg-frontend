@@ -160,31 +160,66 @@ describe('Report navigation confirmation in a browser', () => {
   });
 
   it('protects browser Back within the application history', async () => {
-    // URL changes do not trigger DOM mutations, and animation frames can be
-    // throttled in CI. Poll the history state on a timer instead.
     await page.waitForFunction(
       () =>
         location.pathname === '/reports' &&
         typeof history.state?.navigationId === 'number',
       { polling: 100 },
     );
-    const reportsNavigationId = await page.evaluate(
-      () => history.state.navigationId as number,
-    );
+    const reportsEntry = await page.evaluate(() => ({
+      navigationId: history.state.navigationId as number,
+      routerPageId: history.state?.ɵrouterPageId ?? null,
+      historyLength: history.length,
+    }));
+    await page.evaluate(() => {
+      type PopstateEvent = {
+        path: string;
+        navigationId: number | null;
+        routerPageId: number | null;
+      };
+      const trace: PopstateEvent[] = [];
+      const historyWindow = window as Window & {
+        appregPopstates: PopstateEvent[];
+      };
+      historyWindow.appregPopstates = trace;
+      window.addEventListener('popstate', () => {
+        trace.push({
+          path: location.pathname,
+          navigationId: history.state?.navigationId ?? null,
+          routerPageId: history.state?.ɵrouterPageId ?? null,
+        });
+      });
+    });
 
     await page.evaluate(() => history.back());
     await page.waitForSelector('dialog[open]');
-    await Promise.all([
-      // Cancelling Back must restore the original history entry, not just its URL.
-      page.waitForFunction(
-        (navigationId) =>
-          location.pathname === '/reports' &&
-          history.state?.navigationId === navigationId,
-        { polling: 100, timeout: 20_000 },
-        reportsNavigationId,
-      ),
-      page.click('dialog button.govuk-button'),
-    ]);
+    try {
+      await Promise.all([
+        // Cancelling Back must restore the original history entry, not just its URL.
+        page.waitForFunction(
+          (navigationId) =>
+            location.pathname === '/reports' &&
+            history.state?.navigationId === navigationId,
+          { polling: 100, timeout: 20_000 },
+          reportsEntry.navigationId,
+        ),
+        page.click('dialog button.govuk-button'),
+      ]);
+    } catch (error) {
+      const state = await page.evaluate(() => ({
+        path: location.pathname,
+        navigationId: history.state?.navigationId ?? null,
+        routerPageId: history.state?.ɵrouterPageId ?? null,
+        historyLength: history.length,
+        dialogOpen: !!document.querySelector('dialog[open]'),
+        popstates: (window as Window & { appregPopstates: unknown[] })
+          .appregPopstates,
+      }));
+      throw new Error(
+        `History restoration failed: ${JSON.stringify({ reportsEntry, ...state })}`,
+        { cause: error },
+      );
+    }
     await page.evaluate(() => history.back());
     await page.waitForSelector('dialog[open]');
     await page.click('dialog button.govuk-button--secondary');
