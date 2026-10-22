@@ -280,8 +280,8 @@ Feature: Applications Print
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         When User Searches Applications With:
-            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            |      |             |       |                        |                   |                         |                    | Open                      |                      |           |                       |                            |                         |                   |
+            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title |
+            |      |             |       |                        |                   |                         |                    | Open                      |                      |           |                       |                            |                         |                   |                   |
         When User Checks The Select All Checkbox In Table "Application list entries"
         When User Clicks "Actions" Then "Print continuous" From Caption Menu In Table "Application list entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 2000. Please reduce the number of rows selected"
@@ -289,8 +289,8 @@ Feature: Applications Print
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 2000. Please reduce the number of rows selected"
         # UI: Search and Print
         When User Searches Applications With:
-            | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |
+            | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title |
+            | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |                   |
         Then User Should See Row In Table "Application list entries" With Values:
             | Date         | Applicant                                | Respondent                          | Application title                                                   | Fee | Resulted | Status |
             | todaydisplay | British Gas Trading Limited              | John Smith {SCENARIO_ID}            | Appeal by Case Stated (Civil)                                       | Yes | Yes      | OPEN   |

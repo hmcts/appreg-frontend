@@ -168,15 +168,15 @@ Feature: Applications Bulk Result Selected
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         When User Searches Applications With:
-            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            |      |             |       |                        |                   |                         |                    | OPEN                      |                      |           |                       |                            |                         |                   |
+            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title |
+            |      |             |       |                        |                   |                         |                    | OPEN                      |                      |           |                       |                            |                         |                   |                   |
         When User Checks The Select All Checkbox In Table "Application list entries"
         When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Application list entries"
         Then User Sees Validation Error Banner "There is a problem Affected rows exceeds 2000. Please reduce the number of rows selected"
         # UI: Search and Bulk Result Selected
         When User Searches Applications With:
-            | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |
+            | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title |
+            | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |                   |
         Then User Should See Row In Table "Application list entries" With Values:
             | Date         | Applicant                         | Respondent                     | Application title                                                                                                 | Fee | Resulted | Status |
             | todaydisplay | British Gas Trading Limited       | John Smith {SCENARIO_ID}       | Copy documents                                                                                                    | Yes | No       | OPEN   |
@@ -323,8 +323,8 @@ Feature: Applications Bulk Result Selected
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId4"
         When User Searches Applications With:
-            | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |
+            | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title |
+            | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |                   |
         Then User Should See Row In Table "Application list entries" With Values:
             | Date         | Applicant                         | Respondent                     | Application title                                                                                                 | Fee | Resulted | Status |
             | todaydisplay | British Gas Trading Limited       | John Smith {SCENARIO_ID}       | Copy documents                                                                                                    | Yes | Yes      | OPEN   |
@@ -375,15 +375,14 @@ Feature: Applications Bulk Result Selected
             | User  |
             | user1 |
 
-    @ignore @applicationListEntry @ARCPOC-222 @ARCPOC-1335 @ARCPOC-1567 @ARCPOC-1769
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-1335 @ARCPOC-1567 @ARCPOC-1769
     Scenario Outline: Verify Validation Error Message For Closed Applications Bulk Result Selected
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
-        When User Toggles The Accordion "Advanced search"
         When User Searches Applications With:
-            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            |      |             |       |                        |                   |                         |                    | Closed                    |                      |           |                       |                            |                         |                   |
+            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title |
+            |      |             |       |                        |                   |                         |                    | Closed                    |                      |           |                       |                            |                         |                   |                   |
         Then User Should See Table "<TableName>" Header "Status" Is Not Sortable
         Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted"
         And User Should See Table "<TableName>" Header "Actions" Is Not Sortable
