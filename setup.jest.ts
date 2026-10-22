@@ -51,6 +51,18 @@ const mojFrontendCtor = jest.fn(() => new MojComponentMock());
 jest.mock(
   '@ministryofjustice/frontend',
   () => ({
+    DatePicker: class {
+      config = {};
+      closeDialog = jest.fn();
+      setMinAndMaxDatesOnCalendar = jest.fn();
+
+      constructor(root: HTMLElement) {
+        root.insertAdjacentHTML(
+          'beforeend',
+          '<button type="button" class="moj-js-datepicker-toggle"></button>',
+        );
+      }
+    },
     SortableTable: mojFrontendCtor,
     default: { SortableTable: mojFrontendCtor },
   }),

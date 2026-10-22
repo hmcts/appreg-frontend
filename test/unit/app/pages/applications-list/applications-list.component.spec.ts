@@ -270,6 +270,46 @@ function submitEvent(value: string | null = 'search'): {
   return { e, preventDefault };
 }
 
+describe('ApplicationsList - open list scroll position', () => {
+  it('scrolls to the top only after opening a search result successfully', async () => {
+    const { comp, navigateSpy } = createInstanceWithQuery({});
+    const row = makeApplicationListRow();
+    const scroll = jest
+      .spyOn(window, 'scrollTo')
+      .mockImplementation(() => undefined);
+    const navigation = comp.onOpenList(row);
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/applications-list', row.id], {
+      state: { row },
+    });
+    expect(scroll).not.toHaveBeenCalled();
+    await navigation;
+    expect(scroll).toHaveBeenCalledWith(0, 0);
+    scroll.mockRestore();
+  });
+
+  it('does not scroll if navigation is cancelled', async () => {
+    const { comp, navigateSpy } = createInstanceWithQuery({});
+    navigateSpy.mockResolvedValue(false);
+    const scroll = jest
+      .spyOn(window, 'scrollTo')
+      .mockImplementation(() => undefined);
+    await comp.onOpenList(makeApplicationListRow());
+    expect(scroll).not.toHaveBeenCalled();
+    scroll.mockRestore();
+  });
+
+  it('does not access browser scrolling during server rendering', async () => {
+    const { comp } = createInstanceWithQuery({}, 'server');
+    const scroll = jest
+      .spyOn(window, 'scrollTo')
+      .mockImplementation(() => undefined);
+    await comp.onOpenList(makeApplicationListRow());
+    expect(scroll).not.toHaveBeenCalled();
+    scroll.mockRestore();
+  });
+});
+
 describe('ApplicationsList - delete flash query param', () => {
   it('shows a reference data error summary and refreshes after rendering', async () => {
     const { fixture, refFacade } = createInstance('browser', [], true);

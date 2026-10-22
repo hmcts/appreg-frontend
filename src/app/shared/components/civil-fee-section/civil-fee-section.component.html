@@ -74,7 +74,7 @@
     @if (feeRequired()) {
       <h2 class="govuk-heading-s">Update fee status</h2>
     }
-    <div class="govuk-grid-row">
+    <div class="fee-update-fields">
       <!-- Fee status -->
       <app-select-input
         formControlName="feeStatus"
@@ -91,6 +91,7 @@
         label="Status date"
         hint="For example, 15 5 2025"
         id="feeStatusDate"
+        idPrefix="fee-status-date"
         [submitted]="showErrors()"
         [disallowFutureDates]="true"
         containerWidthClass="govuk-grid-column-one-quarter"

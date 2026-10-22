@@ -153,8 +153,7 @@
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              [routerLink]="['/applications-list', row.id]"
-              [state]="{ row }"
+              (click)="onOpenList(row)"
             >
               Open
             </button>

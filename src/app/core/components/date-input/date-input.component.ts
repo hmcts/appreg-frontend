@@ -2,9 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
+  ErrorHandler,
+  afterNextRender,
   forwardRef,
   inject,
   input,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -66,6 +70,11 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
 
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly errorHandler = inject(ErrorHandler);
+  private readonly calendar =
+    viewChild.required<ElementRef<HTMLElement>>('calendar');
+  private calendarButton?: HTMLButtonElement;
+  private closeCalendar?: () => void;
 
   private onTouched: () => void = () => {};
   private onChange: (value: string | null) => void = () => {};
@@ -158,6 +167,12 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   }
 
   constructor() {
+    afterNextRender(() => {
+      void this.initCalendar().catch((error: unknown) => {
+        // Manual entry remains available if the calendar cannot be loaded.
+        this.errorHandler.handleError(error);
+      });
+    });
     this.dateForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
@@ -171,6 +186,93 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
         this.onChange(value);
         this.onValidatorChange();
       });
+  }
+
+  private async initCalendar(): Promise<void> {
+    // Import only in the browser, after Angular has rendered the manual inputs.
+    const { DatePicker } = await import('@ministryofjustice/frontend');
+    if (this.destroyRef.destroyed) {
+      return;
+    }
+    const root = this.calendar().nativeElement;
+    const bridge = root.querySelector('input')!;
+    // The MOJ widget expects one input. This hidden bridge keeps the existing
+    // three-field form as the only editable date value.
+    const listeners: Parameters<HTMLElement['addEventListener']>[] = [];
+    const body = root.ownerDocument.body;
+    const original = Object.getOwnPropertyDescriptor(body, 'addEventListener');
+    const addListener = body.addEventListener.bind(body);
+    // MOJ 6 has no destroy API and installs a body mouseup listener. Capture
+    // its synchronous registration so route changes can remove that listener.
+    body.addEventListener = (
+      ...args: Parameters<HTMLElement['addEventListener']>
+    ) => {
+      listeners.push(args);
+      addListener(...args);
+    };
+    let picker: InstanceType<typeof DatePicker>;
+    try {
+      picker = new DatePicker(root, {
+        minDate: '01/01/1900',
+        maxDate: '31/12/3000',
+      });
+    } finally {
+      if (original) {
+        Object.defineProperty(body, 'addEventListener', original);
+      } else {
+        Reflect.deleteProperty(body, 'addEventListener');
+      }
+      this.destroyRef.onDestroy(() => {
+        for (const args of listeners) {
+          body.removeEventListener(...args);
+        }
+      });
+    }
+    this.calendarButton = root.querySelector<HTMLButtonElement>(
+      '.moj-js-datepicker-toggle',
+    )!;
+    this.calendarButton.disabled = this.disabled;
+    this.calendarButton.setAttribute(
+      'aria-label',
+      `Choose ${this.label().toLowerCase()}`,
+    );
+    const closeDialog = picker.closeDialog.bind(picker);
+    // MOJ normally restores focus to its text input; ours is a hidden bridge.
+    picker.closeDialog = () => {
+      closeDialog();
+      this.calendarButton?.focus();
+    };
+    this.closeCalendar = () => picker.closeDialog();
+    const prepareCalendar = () => {
+      const { day, month, year } = this.dateForm.getRawValue();
+      bridge.value =
+        this.dateForm.valid && this.hasAny() ? `${day}/${month}/${year}` : '';
+      const max = new Date();
+      if (this.pastDatesOnly()) {
+        max.setDate(max.getDate() - 1);
+      }
+      picker.config.maxDate =
+        this.pastDatesOnly() || this.disallowFutureDates()
+          ? `${max.getDate()}/${max.getMonth() + 1}/${max.getFullYear()}`
+          : '31/12/3000';
+      picker.setMinAndMaxDatesOnCalendar();
+    };
+    const selectDate = () => {
+      if (this.disabled) {
+        return;
+      }
+      const [day, month, year] = bridge.value.split('/');
+      this.dateForm.setValue({ day, month, year });
+      this.dateForm.markAsDirty();
+      this.onTouched();
+    };
+    // Capture runs before the widget opens, including keyboard-triggered clicks.
+    this.calendarButton.addEventListener('click', prepareCalendar, true);
+    bridge.addEventListener('change', selectDate);
+    this.destroyRef.onDestroy(() => {
+      this.calendarButton?.removeEventListener('click', prepareCalendar, true);
+      bridge.removeEventListener('change', selectDate);
+    });
   }
 
   groupError(submitted: boolean): boolean {
@@ -262,7 +364,13 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   }
 
   setDisabledState(isDisabled: boolean): void {
+    if (isDisabled) {
+      this.closeCalendar?.();
+    }
     this.disabled = isDisabled;
+    if (this.calendarButton) {
+      this.calendarButton.disabled = isDisabled;
+    }
     if (isDisabled) {
       this.dateForm.disable({ emitEvent: false });
     } else {

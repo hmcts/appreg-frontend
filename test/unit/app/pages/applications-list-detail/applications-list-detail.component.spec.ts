@@ -421,6 +421,9 @@ describe('ApplicationsListDetail', () => {
       const navigate = jest
         .spyOn(TestBed.inject(Router), 'navigate')
         .mockResolvedValue(true);
+      const scroll = jest
+        .spyOn(window, 'scrollTo')
+        .mockImplementation(() => undefined);
       await component.openUpdate({ id: 'abc' });
       expect(navigate).toHaveBeenCalledWith([
         '/applications-list',
@@ -428,6 +431,8 @@ describe('ApplicationsListDetail', () => {
         'update-notes',
         'abc',
       ]);
+      expect(scroll).toHaveBeenCalledWith(0, 0);
+      scroll.mockRestore();
     });
 
     it('does not call previews, updates or delete navigation from closed-list mutation handlers', async () => {
@@ -2424,15 +2429,22 @@ describe('ApplicationsListDetail', () => {
   it('openUpdate: navigates with state & queryParams', async () => {
     const router = TestBed.inject(Router);
     const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    const scroll = jest
+      .spyOn(window, 'scrollTo')
+      .mockImplementation(() => undefined);
 
     component.id = 'list-9';
 
-    await component.openUpdate({
+    const navigation = component.openUpdate({
       id: 'entry-123',
       applicant: 'Alice',
       respondent: 'Bob',
       title: 'Case XYZ',
     });
+    expect(scroll).not.toHaveBeenCalled();
+    await navigation;
+    expect(scroll).toHaveBeenCalledWith(0, 0);
+    scroll.mockRestore();
 
     expect(navSpy).toHaveBeenCalledWith(
       ['/applications-list', 'list-9', 'update-entry', 'entry-123'],
@@ -2447,6 +2459,16 @@ describe('ApplicationsListDetail', () => {
         },
       },
     );
+  });
+
+  it('openUpdate: leaves scrolling unchanged when navigation is cancelled', async () => {
+    jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(false);
+    const scroll = jest
+      .spyOn(window, 'scrollTo')
+      .mockImplementation(() => undefined);
+    await component.openUpdate({ id: 'entry-123' });
+    expect(scroll).not.toHaveBeenCalled();
+    scroll.mockRestore();
   });
 
   it('onSelectedRowsChange: patches selectedRows in state', () => {
