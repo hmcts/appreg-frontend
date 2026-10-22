@@ -76,6 +76,15 @@ describe('Report navigation confirmation in a browser', () => {
     });
     await page.goto(`${baseUrl}/applications`);
     await page.waitForSelector('a[routerlink="/reports"]', { visible: true });
+    // The link can render before the initial navigation writes its history state.
+    // Back restoration needs that state on the /applications entry.
+    await page.waitForFunction(
+      () =>
+        location.pathname === '/applications' &&
+        typeof history.state?.navigationId === 'number' &&
+        typeof history.state?.ɵrouterPageId === 'number',
+      { polling: 100 },
+    );
     await page.click('a[routerlink="/reports"]');
     await page.waitForSelector('#report-duration');
     await page.click('#report-duration');
