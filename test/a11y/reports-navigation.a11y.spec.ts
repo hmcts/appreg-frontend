@@ -159,22 +159,38 @@ describe('Report navigation confirmation in a browser', () => {
     expect(new URL(page.url()).pathname).toBe('/reports');
   });
 
-  // Temporarily skipped: PR-1468 Jenkins runs still intermittently time out restoring /reports after cancelling Back.
-  // Re-enable after diagnosing the history-restoration failure; increasing the wait to 20 seconds did not resolve it.
   it('protects browser Back within the application history', async () => {
+    // URL changes do not trigger DOM mutations, and animation frames can be
+    // throttled in CI. Poll the history state on a timer instead.
+    await page.waitForFunction(
+      () =>
+        location.pathname === '/reports' &&
+        typeof history.state?.navigationId === 'number',
+      { polling: 100 },
+    );
+    const reportsNavigationId = await page.evaluate(
+      () => history.state.navigationId as number,
+    );
+
     await page.evaluate(() => history.back());
     await page.waitForSelector('dialog[open]');
     await Promise.all([
-      // Cancelling Back requires Angular to perform a compensating history traversal.
-      page.waitForFunction(() => location.pathname === '/reports', {
-        timeout: 20_000,
-      }),
+      // Cancelling Back must restore the original history entry, not just its URL.
+      page.waitForFunction(
+        (navigationId) =>
+          location.pathname === '/reports' &&
+          history.state?.navigationId === navigationId,
+        { polling: 100, timeout: 20_000 },
+        reportsNavigationId,
+      ),
       page.click('dialog button.govuk-button'),
     ]);
     await page.evaluate(() => history.back());
     await page.waitForSelector('dialog[open]');
     await page.click('dialog button.govuk-button--secondary');
-    await page.waitForFunction(() => location.pathname === '/applications');
+    await page.waitForFunction(() => location.pathname === '/applications', {
+      polling: 100,
+    });
   });
 
   it('stays on reports and dismisses stale confirmation when the job finishes', async () => {
