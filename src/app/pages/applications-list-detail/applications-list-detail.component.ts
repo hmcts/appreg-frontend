@@ -1390,18 +1390,21 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   async openUpdate(row: Partial<selectedRow>): Promise<void> {
     if (this.listStatus() === ApplicationListStatus.CLOSED) {
-      await this.router.navigate([
+      const navigated = await this.router.navigate([
         '/applications-list',
         this.id,
         'update-notes',
         row.id,
       ]);
+      if (navigated && isPlatformBrowser(this.platformId)) {
+        window.scrollTo(0, 0);
+      }
       return;
     }
     if (!this.canModifyList()) {
       return;
     }
-    await this.router.navigate(
+    const navigated = await this.router.navigate(
       ['/applications-list', this.id, 'update-entry', row.id],
       {
         state: {
@@ -1414,6 +1417,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         },
       },
     );
+    if (navigated && isPlatformBrowser(this.platformId)) {
+      window.scrollTo(0, 0);
+    }
   }
 
   async onDeleteButtonClick(row: Partial<selectedRow>): Promise<void> {

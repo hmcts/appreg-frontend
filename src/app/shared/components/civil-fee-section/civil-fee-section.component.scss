@@ -1,20 +1,29 @@
-@media (max-width: 100em) {
+@media (width <= 100em) {
   :host {
     display: contents;
   }
-
-  .govuk-grid-row {
-    display: flex;
-    flex-wrap: wrap;
-  }
-
-  :host ::ng-deep .govuk-grid-column-one-quarter {
-    width: 50%;
-  }
 }
 
-@media (max-width: 40em) {
-  :host ::ng-deep .govuk-grid-column-one-quarter {
-    width: 100%;
-  }
+.fee-update-fields {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) max-content minmax(200px, 1fr);
+  gap: 30px;
+}
+
+// These shared inputs contain their own grid columns. Let this row own the
+// spacing so the calendar's width is included rather than overflowing a column.
+:host ::ng-deep .fee-update-fields .govuk-grid-column-one-quarter {
+  float: none;
+  width: auto;
+  padding: 0;
+}
+
+:host ::ng-deep .fee-update-fields .govuk-select {
+  width: 100%;
+}
+
+// The date's sublabels add 30px, but its hint has 5px less bottom spacing.
+:host ::ng-deep .fee-update-fields app-select-input .govuk-select,
+:host ::ng-deep .fee-update-fields app-text-input .govuk-input {
+  margin-top: 25px;
 }

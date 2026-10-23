@@ -1,12 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { axe } from 'jest-axe';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
+
+jest.unmock('@ministryofjustice/frontend');
+jest.unmock('govuk-frontend');
 
 describe('DateInputComponent', () => {
   let fixture: ComponentFixture<DateInputComponent>;
   let component: DateInputComponent;
 
   beforeEach(async () => {
+    document.body.classList.add('govuk-frontend-supported');
     await TestBed.configureTestingModule({
       imports: [DateInputComponent], // standalone
     }).compileComponents();
@@ -16,10 +21,181 @@ describe('DateInputComponent', () => {
     fixture.detectChanges();
   });
 
+  afterEach(() => {
+    document.body.classList.remove('govuk-frontend-supported');
+  });
+
+  const element = <T extends HTMLElement>(selector: string): T =>
+    fixture.nativeElement.querySelector(selector) as T;
+  const openCalendar = async () => {
+    await fixture.whenStable();
+    element<HTMLButtonElement>('.moj-js-datepicker-toggle').click();
+  };
+
   it('should create with empty, enabled form', () => {
     expect(component).toBeTruthy();
     expect(component.dateForm.disabled).toBe(false); // was toBeFalse()
     expect(component.dateForm.value).toEqual({ day: '', month: '', year: '' });
+  });
+
+  it('adds a calendar without replacing the manual fields', async () => {
+    await fixture.whenStable();
+    expect(
+      fixture.nativeElement.querySelectorAll('input[type="text"]'),
+    ).toHaveLength(3);
+    expect(
+      fixture.nativeElement.querySelector('.moj-js-datepicker-toggle'),
+    ).not.toBeNull();
+  });
+
+  it('has no automated accessibility violations with the calendar open or closed', async () => {
+    await fixture.whenStable();
+    expect((await axe(fixture.nativeElement)).violations).toEqual([]);
+    await openCalendar();
+    expect((await axe(fixture.nativeElement)).violations).toEqual([]);
+  });
+
+  it('populates the manual fields and emits ISO dates from the real MOJ calendar', async () => {
+    const onChange = jest.fn();
+    component.registerOnChange(onChange);
+    const touched = jest.fn();
+    component.registerOnTouched(touched);
+    component.writeValue('2024-02-29');
+    await openCalendar();
+    expect(element('.moj-js-datepicker-month-year').textContent).toBe(
+      'February 2024',
+    );
+    element<HTMLButtonElement>('.moj-js-datepicker-ok').click();
+    fixture.detectChanges();
+    expect(component.dateForm.getRawValue()).toEqual({
+      day: '29',
+      month: '2',
+      year: '2024',
+    });
+    expect(element<HTMLInputElement>('#date-day').value).toBe('29');
+    expect(element<HTMLInputElement>('#date-month').value).toBe('2');
+    expect(element<HTMLInputElement>('#date-year').value).toBe('2024');
+    expect(onChange).toHaveBeenCalledWith('2024-02-29');
+    expect(touched).toHaveBeenCalled();
+    expect(component.dateForm.dirty).toBe(true);
+    expect(document.activeElement).toBe(element('.moj-js-datepicker-toggle'));
+  });
+
+  it('uses manual edits on reopening and preserves them on Escape or cancel', async () => {
+    component.dateForm.setValue({ day: '15', month: '6', year: '2025' });
+    await openCalendar();
+    const dialog = element('.moj-datepicker__dialog');
+    expect(element('.moj-js-datepicker-month-year').textContent).toBe(
+      'June 2025',
+    );
+    dialog.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+    );
+    expect(dialog.classList.contains('moj-datepicker__dialog--open')).toBe(
+      false,
+    );
+    expect(document.activeElement).toBe(element('.moj-js-datepicker-toggle'));
+    component.dateForm.setValue({ day: '10', month: '3', year: '2026' });
+    await openCalendar();
+    expect(element('.moj-js-datepicker-month-year').textContent).toBe(
+      'March 2026',
+    );
+    element<HTMLButtonElement>('.moj-js-datepicker-cancel').click();
+    expect(component.dateForm.getRawValue()).toEqual({
+      day: '10',
+      month: '3',
+      year: '2026',
+    });
+  });
+
+  it('does not replace partial, invalid or cleared manual entries when opening', async () => {
+    for (const value of [
+      { day: '31', month: '2', year: '2025' },
+      { day: '1', month: '', year: '' },
+      { day: '', month: '', year: '' },
+    ]) {
+      component.dateForm.setValue(value);
+      await openCalendar();
+      expect(element<HTMLInputElement>('input[type="hidden"]').value).toBe('');
+      element<HTMLButtonElement>('.moj-js-datepicker-cancel').click();
+      expect(component.dateForm.getRawValue()).toEqual(value);
+    }
+  });
+
+  it.each(['disallowFutureDates', 'pastDatesOnly'] as const)(
+    'applies %s to both the calendar and manual entry',
+    async (restriction) => {
+      fixture.componentRef.setInput(restriction, true);
+      const today = new Date();
+      component.writeValue(
+        `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`,
+      );
+      await openCalendar();
+      const todayButton = element<HTMLButtonElement>(
+        `.moj-datepicker__button[data-testid="${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}"]`,
+      );
+      expect(todayButton.getAttribute('aria-disabled')).toBe(
+        restriction === 'pastDatesOnly' ? 'true' : null,
+      );
+      const max = new Date();
+      if (restriction === 'pastDatesOnly') {
+        max.setDate(max.getDate() - 1);
+      }
+      const buttons: NodeListOf<HTMLButtonElement> =
+        fixture.nativeElement.querySelectorAll(
+          '.moj-datepicker__button[data-testid]',
+        );
+      for (const button of buttons) {
+        const [day, month, year] =
+          button.dataset['testid']!.split('/').map(Number);
+        if (new Date(year, month - 1, day) > max) {
+          expect(button.getAttribute('aria-disabled')).toBe('true');
+        }
+      }
+    },
+  );
+
+  it('disables the trigger before and after initialisation and closes any open calendar', async () => {
+    component.setDisabledState(true);
+    await fixture.whenStable();
+    const trigger = element<HTMLButtonElement>('.moj-js-datepicker-toggle');
+    expect(trigger.disabled).toBe(true);
+    component.setDisabledState(false);
+    trigger.click();
+    expect(element('.moj-datepicker__dialog--open')).not.toBeNull();
+    component.setDisabledState(true);
+    expect(trigger.disabled).toBe(true);
+    expect(element('.moj-datepicker__dialog--open')).toBeNull();
+    const bridge = element<HTMLInputElement>('input[type="hidden"]');
+    bridge.value = '1/1/2025';
+    bridge.dispatchEvent(new Event('change'));
+    expect(component.dateForm.getRawValue()).toEqual({
+      day: '',
+      month: '',
+      year: '',
+    });
+  });
+
+  it('removes the MOJ body listener and bridge listener when destroyed', async () => {
+    const onChange = jest.fn();
+    fixture.destroy();
+    const add = jest.spyOn(document.body, 'addEventListener');
+    const remove = jest.spyOn(document.body, 'removeEventListener');
+    fixture = TestBed.createComponent(DateInputComponent);
+    component = fixture.componentInstance;
+    component.registerOnChange(onChange);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const bridge = element<HTMLInputElement>('input[type="hidden"]');
+    const registration = add.mock.calls.find(([type]) => type === 'mouseup')!;
+    expect(registration).toBeDefined();
+    fixture.destroy();
+    expect(remove).toHaveBeenCalledWith(...registration);
+    bridge.value = '1/1/2025';
+    bridge.dispatchEvent(new Event('change'));
+    expect(onChange).not.toHaveBeenCalled();
+    add.mockRestore();
+    remove.mockRestore();
   });
 
   it('emits a YYYY-MM-DD value when valid (with padding)', () => {

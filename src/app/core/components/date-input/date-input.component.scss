@@ -5,3 +5,53 @@
 .govuk-date-input__input.govuk-input--width-4 {
   min-width: 5.5rem;
 }
+
+.app-date-controls {
+  position: relative;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 8px 0;
+}
+
+.govuk-date-input,
+.app-date-calendar {
+  flex-shrink: 0;
+}
+
+// MOJ creates this wrapper outside Angular's style encapsulation. Anchor the
+// dialog below the calendar button rather than its hidden bridge input.
+.app-date-calendar,
+:host ::ng-deep .app-date-calendar .moj-datepicker__wrapper {
+  position: relative;
+}
+
+:host ::ng-deep .app-date-calendar .moj-datepicker__dialog {
+  top: 100% !important;
+  left: 0;
+}
+
+:host ::ng-deep .app-date-calendar .moj-datepicker__toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+// MOJ's fixed 44px day buttons overflow a 320px viewport. Keep its calendar
+// layout but let each day fit its column on narrow screens.
+@media (width <= 360px) {
+  :host ::ng-deep .app-date-calendar .moj-datepicker__dialog {
+    box-sizing: border-box;
+    width: calc(100vw - 30px);
+    min-width: 0;
+    padding: 10px;
+  }
+
+  :host ::ng-deep .app-date-calendar .moj-datepicker__calendar {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  :host ::ng-deep .app-date-calendar .moj-datepicker__calendar-day {
+    width: 100%;
+  }
+}

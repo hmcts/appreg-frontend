@@ -419,6 +419,19 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.onCjaInputChange();
   }
 
+  async onOpenList(row: ApplicationListRow): Promise<void> {
+    const navigated = await this.router.navigate(
+      ['/applications-list', row.id],
+      {
+        state: { row },
+      },
+    );
+    // Only this search-result action resets scrolling, after navigation succeeds.
+    if (navigated && isPlatformBrowser(this.platformId)) {
+      window.scrollTo(0, 0);
+    }
+  }
+
   onPrintPage(row: ApplicationListRow): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
