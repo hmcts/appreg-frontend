@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import type { Server } from 'node:http';
 
 import { Browser, HTTPRequest, Page, launch } from 'puppeteer';
@@ -44,15 +43,7 @@ describe('Report navigation confirmation in a browser', () => {
     await page.setRequestInterception(true);
     const handleRequest = async (request: HTTPRequest): Promise<void> => {
       const path = new URL(request.url()).pathname;
-      if (request.resourceType() === 'document') {
-        await request.respond({
-          contentType: 'text/html',
-          body: readFileSync(
-            'dist/appreg-frontend/browser/index.csr.html',
-            'utf8',
-          ),
-        });
-      } else if (path === '/reports/duration/jobs') {
+      if (path === '/reports/duration/jobs') {
         await request.respond({
           status: 202,
           contentType: 'application/json',
@@ -85,6 +76,15 @@ describe('Report navigation confirmation in a browser', () => {
     });
     await page.goto(`${baseUrl}/applications`);
     await page.waitForSelector('a[routerlink="/reports"]', { visible: true });
+    // The link can render before the initial navigation writes its history state.
+    // Back restoration needs that state on the /applications entry.
+    await page.waitForFunction(
+      () =>
+        location.pathname === '/applications' &&
+        typeof history.state?.navigationId === 'number' &&
+        typeof history.state?.ɵrouterPageId === 'number',
+      { polling: 100 },
+    );
     await page.click('a[routerlink="/reports"]');
     await page.waitForSelector('#report-duration');
     await page.click('#report-duration');
@@ -168,22 +168,77 @@ describe('Report navigation confirmation in a browser', () => {
     expect(new URL(page.url()).pathname).toBe('/reports');
   });
 
-  // Temporarily skipped: PR-1468 Jenkins runs still intermittently time out restoring /reports after cancelling Back.
-  // Re-enable after diagnosing the history-restoration failure; increasing the wait to 20 seconds did not resolve it.
-  it.skip('protects browser Back within the application history', async () => {
+  it('protects browser Back within the application history', async () => {
+    await page.waitForFunction(
+      () =>
+        location.pathname === '/reports' &&
+        typeof history.state?.navigationId === 'number',
+      { polling: 100 },
+    );
+    const reportsNavigationId = await page.evaluate(
+      () => history.state.navigationId as number,
+    );
+    // diagnostic, record each popstate's path and Angular history IDs
+    // Uncomment this block together with the timeout diagnostics below
+    /*
+    await page.evaluate(() => {
+      type PopstateEvent = {
+        path: string;
+        navigationId: number | null;
+        routerPageId: number | null;
+      };
+      const trace: PopstateEvent[] = [];
+      const historyWindow = window as Window & {
+        appregPopstates: PopstateEvent[];
+      };
+      historyWindow.appregPopstates = trace;
+      window.addEventListener('popstate', () => {
+        trace.push({
+          path: location.pathname,
+          navigationId: history.state?.navigationId ?? null,
+          routerPageId: history.state?.ɵrouterPageId ?? null,
+        });
+      });
+    });
+    */
+
     await page.evaluate(() => history.back());
     await page.waitForSelector('dialog[open]');
+    // Cancelling Back must restore the original history entry, not just its URL.
+    // diagnostic, on timeout, report the URL, history IDs and length,
+    // dialog state, and recorded popstates. Uncomment this wrapper and recorder above.
+    // try {
     await Promise.all([
-      // Cancelling Back requires Angular to perform a compensating history traversal.
-      page.waitForFunction(() => location.pathname === '/reports', {
-        timeout: 20_000,
-      }),
+      page.waitForFunction(
+        (navigationId) =>
+          location.pathname === '/reports' &&
+          history.state?.navigationId === navigationId,
+        { polling: 100, timeout: 20_000 },
+        reportsNavigationId,
+      ),
       page.click('dialog button.govuk-button'),
     ]);
+    // } catch (error) {
+    //   const state = await page.evaluate(() => ({
+    //     path: location.pathname,
+    //     navigationId: history.state?.navigationId ?? null,
+    //     routerPageId: history.state?.ɵrouterPageId ?? null,
+    //     historyLength: history.length,
+    //     dialogOpen: !!document.querySelector('dialog[open]'),
+    //     popstates: (window as Window & { appregPopstates: unknown[] })
+    //       .appregPopstates,
+    //   }));
+    //   throw new Error(
+    //     `History restoration failed: ${JSON.stringify({ reportsNavigationId, ...state })}`,
+    //     { cause: error },
+    //   );
+    // }
     await page.evaluate(() => history.back());
     await page.waitForSelector('dialog[open]');
     await page.click('dialog button.govuk-button--secondary');
-    await page.waitForFunction(() => location.pathname === '/applications');
+    await page.waitForFunction(() => location.pathname === '/applications', {
+      polling: 100,
+    });
   });
 
   it('stays on reports and dismisses stale confirmation when the job finishes', async () => {

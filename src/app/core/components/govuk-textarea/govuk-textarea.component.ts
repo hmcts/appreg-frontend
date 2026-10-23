@@ -9,6 +9,8 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-govuk-textarea',
+  // The ID belongs to the inner element, not the component host.
+  host: { '[attr.id]': 'null' },
   imports: [ReactiveFormsModule],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './govuk-textarea.component.html',

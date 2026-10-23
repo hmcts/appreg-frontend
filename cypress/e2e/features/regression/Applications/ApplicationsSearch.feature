@@ -30,8 +30,8 @@ Feature: Applications Search
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         When User Searches Applications With:
-            | Date         | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            | <SearchDate> |             |       |                        |                   |                         |                    |                           |                      |                       |                            |                         |                   |
+            | Date         | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title |
+            | <SearchDate> |             |       |                        |                   |                         |                    |                           |                      |                       |                            |                         |                   |                   |
         Then User Sees Notification Banner "<NotificationMessage>"
         Then User See "No results found." On The Page
         Examples:
@@ -43,7 +43,7 @@ Feature: Applications Search
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                                  | durationHours | durationMinutes | courtLocationCode |
-            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | LCCC0035           |
+            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | LCCC0035          |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
@@ -96,8 +96,8 @@ Feature: Applications Search
         Then User Clicks On The Link Using Exact Text Match "Applications"
         And User Verify The Page URL Contains "/applications"
         When User Searches Applications With:
-            | Date         | CourtSearch   | Court   | Applicant organisation | Applicant surname  | Respondent organisation | Respondent surname  | Select application status | Respondent post code | CJASearch   | Criminal justice area | Other location description | Standard applicant code | Account reference  |
-            | <SearchDate> | <CourtSearch> | <Court> | <ApplicantOrg>         | <ApplicantSurname> | <RespondentOrg>         | <RespondentSurname> | <SelectStatus>            | <RespondentPostcode> | <CJASearch> | <CJA>                 | <OtherLocation>            | <ApplicantCode>         | <AccountReference> |
+            | Date         | CourtSearch   | Court   | Applicant organisation | Applicant surname  | Respondent organisation | Respondent surname  | Select application status | Respondent post code | CJASearch   | Criminal justice area | Other location description | Standard applicant code | Account reference  | Application title |
+            | <SearchDate> | <CourtSearch> | <Court> | <ApplicantOrg>         | <ApplicantSurname> | <RespondentOrg>         | <RespondentSurname> | <SelectStatus>            | <RespondentPostcode> | <CJASearch> | <CJA>                 | <OtherLocation>            | <ApplicantCode>         | <AccountReference> |                   |
 
         Then User Should See Table "<TableName>" Has Sortable Headers "Applicant, Respondent, Application title, Fee, Resulted, Status"
         And User Should See Table "<TableName>" Header "Date" Is Not Sortable
@@ -115,7 +115,7 @@ Feature: Applications Search
         And User Should See Table "<TableName>" Header "Date" Is Not Sortable
         Examples:
             | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                       | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                          | Respondent                          | ApplicationTitle      | Fee | Resulted | Status |
-            | user1 | today      | LCCC0035     | Leeds Combined Court Centre Set 4 | Applicant Industries {SCENARIO_ID} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {SCENARIO_ID} | Respondent Industries {SCENARIO_ID} | Appeal to Crown Court | No  | No       | OPEN   |
+            | user1 | today      | LCCC0035    | Leeds Combined Court Centre Set 4 | Applicant Industries {SCENARIO_ID} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {SCENARIO_ID} | Respondent Industries {SCENARIO_ID} | Appeal to Crown Court | No  | No       | OPEN   |
 
     @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1343 @ARCPOC-1437 @ARCPOC-1445 @ARCPOC-1771 @ARCPOC-1769
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Other Location and CJA, Applicant Person and Respondent Person
@@ -182,8 +182,8 @@ Feature: Applications Search
         Then User Clicks On The Link Using Exact Text Match "Applications"
         And User Verify The Page URL Contains "/applications"
         When User Searches Applications With:
-            | Date         | CourtSearch   | Court   | Applicant organisation | Applicant surname  | Respondent organisation | Respondent surname  | Select application status | Respondent post code | CJASearch   | Criminal justice area | Other location description | Standard applicant code | Account reference  |
-            | <SearchDate> | <CourtSearch> | <Court> | <ApplicantOrg>         | <ApplicantSurname> | <RespondentOrg>         | <RespondentSurname> | <SelectStatus>            | <RespondentPostcode> | <CJASearch> | <CJA>                 | <OtherLocation>            | <ApplicantCode>         | <AccountReference> |
+            | Date         | CourtSearch   | Court   | Applicant organisation | Applicant surname  | Respondent organisation | Respondent surname  | Select application status | Respondent post code | CJASearch   | Criminal justice area | Other location description | Standard applicant code | Account reference  | Application title |
+            | <SearchDate> | <CourtSearch> | <Court> | <ApplicantOrg>         | <ApplicantSurname> | <RespondentOrg>         | <RespondentSurname> | <SelectStatus>            | <RespondentPostcode> | <CJASearch> | <CJA>                 | <OtherLocation>            | <ApplicantCode>         | <AccountReference> |                   |
         Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted"
         And User Should See Table "<TableName>" Header "Status" Is Not Sortable
         And User Should See Table "<TableName>" Header "Actions" Is Not Sortable
@@ -210,8 +210,8 @@ Feature: Applications Search
         When User Clicks On The "Search" Button
         Then User Sees Validation Error Banner "There is a problem Invalid search criteria. At least one field must be entered."
         When User Searches Applications With:
-            | Date          | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            | <InvalidDate> |             |       | ACME                   |                   |                         |                    |                           |                      |           |                       |                            |                         |                   |
+            | Date          | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title |
+            | <InvalidDate> |             |       | ACME                   |                   |                         |                    |                           |                      |           |                       |                            |                         |                   |                   |
         Then User Sees Validation Error Banner "There is a problem Enter a valid date"
         When User Clicks On The "Clear search" Button
         Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<InvalidCourt>"
@@ -226,15 +226,15 @@ Feature: Applications Search
         Then User Sees Validation Error Banner "There is a problem Criminal justice area not found"
         When User Clicks On The "Clear search" Button
         When User Searches Applications With:
-            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            |      |             |       |                        |                   |                         |                    |                           | <InvalidPostcode>    |           |                       |                            |                         |                   |
+            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title |
+            |      |             |       |                        |                   |                         |                    |                           | <InvalidPostcode>    |           |                       |                            |                         |                   |                   |
 
         Then User Sees Notification Banner "Important No application list entries found Try different filters"
         Then User See "No results found." On The Page
         When User Clicks On The "Clear search" Button
         When User Searches Applications With:
-            | Date        | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            | <ValidDate> |             |       | ACME                   |                   |                         | Taylor             | Open                      | <ValidPostcode>      |           |                       |                            |                         |                   |
+            | Date        | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title |
+            | <ValidDate> |             |       | ACME                   |                   |                         | Taylor             | Open                      | <ValidPostcode>      |           |                       |                            |                         |                   |                   |
         Then User Sees Notification Banner "Important No application list entries found Try different filters"
         Then User See "No results found." On The Page
         Examples:
@@ -293,22 +293,29 @@ Feature: Applications Search
         # Status is fixed by the applied filter
         Then User Should See Table "Application list entries" Header "Status" Is Not Sortable
 
-    @regression @applicationListEntry @ARCPOC-1811
+    @regression @applicationListEntry @ARCPOC-1811 @ARCPOC-1868
     Scenario: Search By Application Title, results found
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
-        When User Searches Applications With:
-            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title               |
-            |      |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         |                   | Extract from the Court Register |
+        When User Toggles The Accordion "Advanced search"
+        Then User Selects "<OptionTextApplicationTitle>" From The Textbox "Application title" Autocomplete By Typing "<SearchTextApptitle>"
+        When User Clicks On The "Search" Button
         Then User Should See Table "Application list entries" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+        Examples:
+            | OptionTextApplicationTitle | SearchTextApptitle              |
+            | Extract                    | Extract from the Court Register |
 
-    @regression @applicationListEntry @ARCPOC-1811
+    @regression @applicationListEntry @ARCPOC-1811 @ARCPOC-1868
     Scenario: Search By Application Title, no results found
         When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
-        When User Searches Applications With:
-            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title                     |
-            |      |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         |                   | Extract from the Court Registerssssss |
+        When User Toggles The Accordion "Advanced search"
+        Then User Selects "<OptionTextApplicationTitle>" From The Textbox "Application title" Autocomplete By Typing "<SearchTextAppTitle>"
+        Then User Verifies "<Validation>" Is Visible Under The "Application title" Textbox
+        When User Clicks On The "Search" Button
         Then User See "No results found." On The Page
+        Examples:
+            | OptionTextApplicationTitle | SearchTextAppTitle | Validation       |
+            |                            | Extracts           | No results found |

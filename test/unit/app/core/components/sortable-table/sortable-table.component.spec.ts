@@ -105,10 +105,12 @@ describe('SortableTableComponent', () => {
 
     expect(fixture.debugElement.query(By.css('table.govuk-table'))).toBeNull();
     expect(fixture.debugElement.query(By.css('thead'))).toBeNull();
-    expect(fixture.debugElement.query(By.css('#no-data-message'))).toBeTruthy();
     expect(
-      fixture.debugElement.query(By.css('#no-data-message')).nativeElement
-        .textContent,
+      fixture.debugElement.query(By.css('.app-sortable-table__empty')),
+    ).toBeTruthy();
+    expect(
+      fixture.debugElement.query(By.css('.app-sortable-table__empty'))
+        .nativeElement.textContent,
     ).toContain('No results found.');
   });
 
@@ -345,5 +347,28 @@ describe('SortableTableComponent', () => {
       expect(fixture.debugElement.query(By.css('table'))).toBeNull();
       expect(SortableTableMock).not.toHaveBeenCalled();
     });
+  });
+});
+
+@Component({
+  imports: [SortableTableComponent],
+  template: `<app-sortable-table [data]="[]" [columns]="[]" />
+    <app-sortable-table [data]="[]" [columns]="[]" />`,
+})
+class EmptyTablesHost {}
+
+describe('Multiple empty sortable tables', () => {
+  it('renders each empty message without duplicate IDs', async () => {
+    await TestBed.configureTestingModule({
+      imports: [EmptyTablesHost],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(EmptyTablesHost);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelectorAll('.app-sortable-table__empty')).toHaveLength(
+      2,
+    );
+    const ids = Array.from(element.querySelectorAll('[id]'), (node) => node.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });

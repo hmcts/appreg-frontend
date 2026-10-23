@@ -64,6 +64,106 @@ describe('ApplicationCodeSearchComponent', () => {
     jest.clearAllMocks();
   });
 
+  it('provides a named field group and searches without nesting a form in the entry form', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    expect(
+      element.querySelector('fieldset > legend')?.textContent?.trim(),
+    ).toBe('Find an application code');
+    expect(element.querySelector('form')).toBeNull();
+    const search = jest.spyOn(component, 'search').mockImplementation();
+    element.querySelector<HTMLButtonElement>('button.govuk-button')?.click();
+    expect(search).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    'applicationCode',
+    'app-code-title',
+    'lodgement-date-day',
+    'lodgement-date-month',
+    'lodgement-date-year',
+  ])('Enter in %s searches and cancels implicit parent submission', (id) => {
+    const search = jest.spyOn(component, 'search').mockImplementation();
+    const input = (
+      fixture.nativeElement as HTMLElement
+    ).querySelector<HTMLInputElement>(`#${id}`)!;
+    const event = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      bubbles: true,
+      cancelable: true,
+    });
+    input.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(search).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not search or cancel Enter while composing text', () => {
+    const search = jest.spyOn(component, 'search').mockImplementation();
+    const input = (fixture.nativeElement as HTMLElement).querySelector(
+      '#applicationCode',
+    )!;
+    const event = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      bubbles: true,
+      cancelable: true,
+      isComposing: true,
+    });
+    input.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    expect(search).not.toHaveBeenCalled();
+  });
+
+  it('prevents held Enter from submitting the parent or issuing repeated searches', () => {
+    const search = jest.spyOn(component, 'search').mockImplementation();
+    const input = (fixture.nativeElement as HTMLElement).querySelector(
+      '#applicationCode',
+    )!;
+    const event = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      bubbles: true,
+      cancelable: true,
+      repeat: true,
+    });
+    input.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(search).not.toHaveBeenCalled();
+  });
+
+  it.each(['Tab', 'Escape', 'a'])(
+    'leaves %s in a search field unchanged',
+    (key) => {
+      const search = jest.spyOn(component, 'search').mockImplementation();
+      const input = (fixture.nativeElement as HTMLElement).querySelector(
+        '#applicationCode',
+      )!;
+      const event = new KeyboardEvent('keydown', {
+        key,
+        bubbles: true,
+        cancelable: true,
+      });
+      input.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(false);
+      expect(search).not.toHaveBeenCalled();
+    },
+  );
+
+  it('leaves Enter on Search and Clear available for native button activation', () => {
+    const search = jest.spyOn(component, 'search').mockImplementation();
+    const buttons = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      'fieldset > .govuk-button-group button',
+    );
+    expect(buttons).toHaveLength(2);
+    for (const button of buttons) {
+      const event = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+        cancelable: true,
+      });
+      button.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(false);
+    }
+    expect(search).not.toHaveBeenCalled();
+  });
+
   it('should create and initialize listId', () => {
     expect(component).toBeTruthy();
     expect(component.listId).toBe('123');

@@ -74,8 +74,8 @@ Feature: Applications Update Notes
     Then User Clicks On The Link Using Exact Text Match "Applications"
     Then User Verify The Page URL Contains "/applications"
     When User Searches Applications With:
-      | Date  | CourtSearch | Court | Applicant organisation | Applicant surname    | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-      | today |             |       |                        | Taylor {SCENARIO_ID} |                         |                    |                           |                      |           |                       |                            |                         |                   |
+      | Date  | CourtSearch | Court | Applicant organisation | Applicant surname    | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference | Application title |
+      | today |             |       |                        | Taylor {SCENARIO_ID} |                         |                    |                           |                      |           |                       |                            |                         |                   |                   |
     Then User Should See Row In Table "Application list entries" With Values:
       | Date         | Applicant                  | Respondent                | Application title                                        | Fee | Resulted | Status |
       | todaydisplay | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | Application for order re public health measures (person) | Yes | Yes      | CLOSED |
