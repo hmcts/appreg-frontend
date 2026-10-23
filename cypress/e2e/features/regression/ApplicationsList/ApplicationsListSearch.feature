@@ -202,9 +202,10 @@ Feature: Applications List Search
       | User  | SearchDate | Status | NotificationMessage                                                  | LinkText          | CreatePageText               |
       | user1 | 01/01/2099 | Closed | Important No lists found Try different filters, or create a new list | create a new list | Create new applications list |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-691
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-691 @courtReferenceData
   Scenario Outline: Verify Court field validation with valid input
     When User Signs In With Microsoft SSO As "<User>"
+    Then User Waits For Court Reference Data
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Not Visible Under The "Court" Textbox
