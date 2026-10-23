@@ -140,7 +140,9 @@ test.each(['Create entry', 'Edit entry'])(
       await response;
       await page.waitForNetworkIdle();
       expect(searches).toBe(fields.length + 1);
-      await page.focus(`${searchRoot} button.govuk-button--secondary`);
+      await page.focus(
+        `${searchRoot} > fieldset > .govuk-button-group button.govuk-button--secondary`,
+      );
       await page.keyboard.press('Enter');
       await page.waitForFunction(
         () =>
