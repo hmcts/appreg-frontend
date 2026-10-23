@@ -13,7 +13,7 @@ properties([
   ])
 ])
 
-@Library('Infrastructure@2.13.2')
+@Library('Infrastructure@2.13.4')
 
 def type = 'angular'
 def product = 'appreg'
@@ -120,7 +120,6 @@ def configurePrBackend() {
 def yarnBuilder = new uk.gov.hmcts.contino.YarnBuilder(this)
 
 withPipeline(type, product, component) {
-  disableBuildCache()
   overrideVaultEnvironments(vaultOverrides)
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
