@@ -872,6 +872,18 @@ async function main() {
       await safeWriteJson(file, successMapping);
     }
   }
+  // Keep explicitly maintained local scenarios reproducible across mock:sync runs.
+  const customDir = path.resolve('wiremock/custom-mappings');
+  if (await fileExists(customDir)) {
+    for (const file of await fsp.readdir(customDir)) {
+      if (file.endsWith('.json')) {
+        const mapping = JSON.parse(
+          await fsp.readFile(path.join(customDir, file), 'utf8'),
+        );
+        await safeWriteJson(path.join(MAPPINGS_DIR, 'custom', file), mapping);
+      }
+    }
+  }
 }
 
 main().catch(() => {

@@ -1,0 +1,29 @@
+{
+  "applicationCode": "SW99032",
+  "title": "Production Order under Proceeds of Crime Act 2002 without a power of entry",
+  "wording": {
+    "template": "Application {{Applicant Name}} for a production order covering {{No. of accounts}} account(s), by requiring the respondent to either produce or allow access to material that is in their possession or control for the purpose of a relevant investigation under the act without a power of entry.",
+    "substitution-key-constraints": [
+      {
+        "key": "Applicant Name",
+        "value": "Example Applicant",
+        "constraint": {
+          "type": "TEXT",
+          "length": 100
+        }
+      },
+      {
+        "key": "No. of accounts",
+        "value": "1",
+        "constraint": {
+          "type": "TEXT",
+          "length": 2
+        }
+      }
+    ]
+  },
+  "isFeeDue": false,
+  "requiresRespondent": true,
+  "bulkRespondentAllowed": false,
+  "startDate": "2020-01-01"
+}

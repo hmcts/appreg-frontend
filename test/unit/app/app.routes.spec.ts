@@ -3,6 +3,14 @@ import { Observable, of } from 'rxjs';
 import { routes } from '../../../src/app/app.routes';
 
 describe('app.routes', () => {
+  it('loads the isolated organisation prototype without a session', async () => {
+    const prototype = routes.find(
+      (route) => route.path === 'prototypes/organisations',
+    );
+    expect(prototype?.canActivate).toBeUndefined();
+    expect(typeof (await prototype?.loadComponent?.())).toBe('function');
+  });
+
   it.each([true, false])(
     'delegates report navigation to the component: %s',
     (leave) => {

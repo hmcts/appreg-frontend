@@ -1,0 +1,22 @@
+{
+  "name": "Local prototype: production-order-code",
+  "priority": 4,
+  "request": {
+    "method": "GET",
+    "urlPath": "/application-codes/SW99032",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json"
+    },
+    "bodyFileName": "fixtures/prototypes/production-order-code.json"
+  },
+  "scenarioName": "getApplicationCodeByCodeAndDate",
+  "requiredScenarioState": "Started"
+}

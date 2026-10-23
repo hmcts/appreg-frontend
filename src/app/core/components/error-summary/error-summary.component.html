@@ -1,17 +1,17 @@
 <div
   class="govuk-error-summary"
   [attr.aria-label]="title() || 'There is a problem'"
-  aria-describedby="error-summary-body"
+  [attr.aria-describedby]="idPrefix() + '-body'"
   data-module="govuk-error-summary"
   data-disable-auto-focus="true"
   data-component="error-summary"
   tabindex="-1"
   #summaryEl
 >
-  <h2 class="govuk-error-summary__title" id="error-summary-title">
+  <h2 class="govuk-error-summary__title" [id]="idPrefix() + '-title'">
     {{ title() || 'There is a problem' }}
   </h2>
-  <div class="govuk-error-summary__body" id="error-summary-body">
+  <div class="govuk-error-summary__body" [id]="idPrefix() + '-body'">
     <ul class="govuk-list govuk-error-summary__list">
       @for (err of items(); track $index) {
         <li>

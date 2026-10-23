@@ -29,6 +29,8 @@ export class WordingSectionComponent {
   wordingSubmitAttempt = input.required<number>();
   showAppliedBanner = input(false);
 
+  accountCountOverride = input<string | null>(null);
+  accountCountChange = output<TemplateSubstitution | null>();
   wordingFieldErrors = output<ErrorItem[]>();
   wordingFieldsDTO = output<{ wordingFields: TemplateSubstitution[] }>();
   appliedBannerDismissed = output<void>();

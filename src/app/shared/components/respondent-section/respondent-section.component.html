@@ -1,43 +1,51 @@
-<div class="govuk-grid-row" [formGroup]="form()">
-  <app-select-input
-    formControlName="respondentEntryType"
-    label="Select type"
-    hint="The type of respondent for this application"
-    idPrefix="respondent-entry-type"
-    [options]="selectOptions()"
+@if (multiple()?.active()) {
+  <app-multiple-respondents
+    [state]="multiple()!"
+    [submitted]="submitted()"
+    [errors]="errorItems()"
   />
-</div>
-
-<hr
-  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
-/>
-
-@switch (form().controls.respondentEntryType.value) {
-  @case ('person') {
-    <app-person-section
-      scopeId="respondent"
-      [isRespondent]="true"
-      [group]="personGroup()"
-      [titleOptions]="personTitleOptions()"
-      [submitted]="submitted()"
-      [errors]="errorItems()"
+} @else {
+  <div class="govuk-grid-row" [formGroup]="form()">
+    <app-select-input
+      formControlName="respondentEntryType"
+      label="Select type"
+      hint="The type of respondent for this application"
+      idPrefix="respondent-entry-type"
+      [options]="selectOptions()"
     />
-  }
-  @case ('organisation') {
-    <app-organisation-section
-      scopeId="respondent"
-      [group]="organisationGroup()"
-      [submitted]="submitted()"
-      [errors]="errorItems()"
-    />
-  }
-  @case ('bulk') {
-    @if (bulkAllowed()) {
-      <app-respondent-bulk-application
-        [form]="form()"
+  </div>
+
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+
+  @switch (form().controls.respondentEntryType.value) {
+    @case ('person') {
+      <app-person-section
+        scopeId="respondent"
+        [isRespondent]="true"
+        [group]="personGroup()"
+        [titleOptions]="personTitleOptions()"
         [submitted]="submitted()"
         [errors]="errorItems()"
       />
+    }
+    @case ('organisation') {
+      <app-organisation-section
+        scopeId="respondent"
+        [group]="organisationGroup()"
+        [submitted]="submitted()"
+        [errors]="errorItems()"
+      />
+    }
+    @case ('bulk') {
+      @if (bulkAllowed()) {
+        <app-respondent-bulk-application
+          [form]="form()"
+          [submitted]="submitted()"
+          [errors]="errorItems()"
+        />
+      }
     }
   }
 }

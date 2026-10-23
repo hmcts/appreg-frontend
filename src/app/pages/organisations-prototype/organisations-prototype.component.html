@@ -1,0 +1,353 @@
+<div class="govuk-phase-banner">
+  <p class="govuk-phase-banner__content">
+    <strong class="govuk-tag govuk-phase-banner__content__tag"
+      >Prototype</strong
+    >
+    <span class="govuk-phase-banner__text"
+      >For feedback only. Use made-up details. Nothing is saved.</span
+    >
+  </p>
+</div>
+<p class="govuk-visually-hidden" role="status">{{ announcement() }}</p>
+
+<div class="govuk-grid-row govuk-!-margin-top-6">
+  <div
+    [class]="
+      embedded() ? 'govuk-grid-column-full' : 'govuk-grid-column-two-thirds'
+    "
+  >
+    @if (pendingRemoval().length) {
+      @if (embedded()) {
+        <h2 class="govuk-heading-l" id="remove-heading" tabindex="-1">
+          Remove respondent sections?
+        </h2>
+      } @else {
+        <h1 class="govuk-heading-l" id="remove-heading" tabindex="-1">
+          Remove respondent sections?
+        </h1>
+      }
+      <p class="govuk-body">
+        These respondents and their address and contact details will be removed:
+      </p>
+      <ul class="govuk-list govuk-list--bullet">
+        @for (row of organisations(); track row.id; let index = $index) {
+          @if (pendingRemoval().includes(row.id)) {
+            <li>
+              Respondent {{ index + 1 }}:
+              {{
+                row.form.controls.name.value || 'No organisation name entered'
+              }}
+            </li>
+          }
+        }
+      </ul>
+      <p class="govuk-body">
+        The number of accounts in Wording will match the remaining respondent
+        sections.
+      </p>
+      <div class="govuk-button-group">
+        <button
+          class="govuk-button govuk-button--warning"
+          type="button"
+          (click)="confirmRemoval()"
+        >
+          Remove respondents
+        </button>
+        <button
+          class="govuk-button govuk-button--secondary"
+          type="button"
+          (click)="cancelRemoval()"
+        >
+          Keep respondents
+        </button>
+      </div>
+    } @else if (stage() === 'edit') {
+      @if (errors.length) {
+        <app-error-summary
+          idPrefix="prototype-error-summary"
+          [items]="errors"
+          [focusKey]="submitCycle()"
+        />
+      }
+      @if (embedded()) {
+        <h2 class="govuk-heading-l" id="prototype-heading" tabindex="-1">
+          Application respondents
+        </h2>
+      } @else {
+        <h1 class="govuk-heading-l" id="prototype-heading" tabindex="-1">
+          Application respondents
+        </h1>
+      }
+      <p class="govuk-body">
+        Add a separate organisation for each production order in this
+        application.
+      </p>
+      <form (submit)="$event.preventDefault(); review()" novalidate>
+        <ng-template #wordingFields>
+          <div class="govuk-form-group">
+            <label class="govuk-label" for="applicant-name"
+              >Applicant name (optional)</label
+            >
+            <input
+              class="govuk-input"
+              id="applicant-name"
+              [formControl]="applicant"
+              type="text"
+              autocomplete="off"
+            />
+          </div>
+          <div
+            class="govuk-form-group"
+            [class.govuk-form-group--error]="countError"
+          >
+            <label class="govuk-label govuk-label--s" for="account-count"
+              >Number of accounts</label
+            >
+            <p class="govuk-hint" id="account-count-hint">
+              This creates one respondent section for each account. Enter a
+              number from 1 to 20 for this prototype.
+            </p>
+            @if (countError) {
+              <p class="govuk-error-message" id="account-count-error">
+                <span class="govuk-visually-hidden">Error:</span>
+                {{ countError }}
+              </p>
+            }
+            <input
+              class="govuk-input govuk-input--width-3"
+              [class.govuk-input--error]="countError"
+              id="account-count"
+              [formControl]="accountCount"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              [attr.aria-describedby]="
+                countError
+                  ? 'account-count-hint account-count-error'
+                  : 'account-count-hint'
+              "
+              [attr.aria-invalid]="countError ? 'true' : null"
+            />
+          </div>
+          <button
+            class="govuk-button govuk-button--secondary"
+            type="button"
+            (click)="updateRespondents()"
+          >
+            Update respondents
+          </button>
+          <p class="govuk-body">
+            Application {{ applicant.value || '[Applicant name]' }} for a
+            production order covering
+            {{ accountCount.value || '[number of]' }} account(s), by requiring
+            the respondent to either produce or allow access to material that is
+            in their possession or control for the purpose of a relevant
+            investigation under the act without a power of entry.
+          </p>
+        </ng-template>
+        <ng-template #respondentFields>
+          <hr
+            class="govuk-section-break govuk-section-break--l govuk-section-break--visible"
+          />
+          <h2 class="govuk-heading-m" id="respondents-heading" tabindex="-1">
+            Respondents ({{ organisations().length }})
+          </h2>
+          <p class="govuk-body">
+            Enter an organisation name for each respondent. Address and contact
+            details are optional.
+          </p>
+          @for (row of organisations(); track row.id; let index = $index) {
+            <section [attr.aria-labelledby]="'respondent-heading-' + row.id">
+              <h3 class="govuk-heading-m" [id]="'respondent-heading-' + row.id">
+                Respondent {{ index + 1 }}
+              </h3>
+              <p class="govuk-body">Respondent type: Organisation</p>
+              <app-organisation-section
+                [group]="row.form"
+                [scopeId]="'respondent-' + row.id"
+                [errors]="errors"
+              />
+              @if (organisations().length > 1) {
+                <button
+                  class="govuk-button govuk-button--secondary"
+                  type="button"
+                  (click)="remove(row.id)"
+                >
+                  Remove<span class="govuk-visually-hidden">
+                    respondent {{ index + 1 }}</span
+                  >
+                </button>
+              }
+              <hr
+                class="govuk-section-break govuk-section-break--l govuk-section-break--visible"
+              />
+            </section>
+          }
+          <p class="govuk-hint">
+            Adding or removing a respondent also updates the number of accounts
+            in Wording.
+          </p>
+          @if (organisations().length < maximumRespondents) {
+            <div class="govuk-button-group">
+              <button
+                class="govuk-button govuk-button--secondary"
+                type="button"
+                (click)="add()"
+              >
+                Add another respondent
+              </button>
+            </div>
+          }
+        </ng-template>
+        @if (embedded()) {
+          <app-accordion
+            id="prototype-entry-accordion"
+            [rememberExpanded]="false"
+            (expandedChange)="onExpandedChange($event)"
+            [items]="[
+              {
+                heading: 'Wording',
+                tpl: wordingFields,
+                expanded: wordingOpen(),
+              },
+              {
+                heading: 'Respondent',
+                tpl: respondentFields,
+                expanded: respondentsOpen(),
+              },
+            ]"
+          />
+        } @else {
+          <h2 class="govuk-heading-m">Wording</h2>
+          <ng-container [ngTemplateOutlet]="wordingFields" />
+          <ng-container [ngTemplateOutlet]="respondentFields" />
+        }
+        <button class="govuk-button" type="submit">Continue</button>
+      </form>
+    } @else if (stage() === 'review') {
+      @if (embedded()) {
+        <h2 class="govuk-heading-l" id="prototype-heading" tabindex="-1">
+          Check application respondents
+        </h2>
+      } @else {
+        <h1 class="govuk-heading-l" id="prototype-heading" tabindex="-1">
+          Check application respondents
+        </h1>
+      }
+      <p class="govuk-body">Number of accounts: {{ organisations().length }}</p>
+      <p class="govuk-body">
+        Applicant: {{ applicant.value || 'Not provided' }}
+      </p>
+      @for (row of organisations(); track row.id; let index = $index) {
+        <h2 class="govuk-heading-m">Respondent {{ index + 1 }}</h2>
+        <dl class="govuk-summary-list">
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Organisation name</dt>
+            <dd class="govuk-summary-list__value">
+              {{ row.form.controls.name.value }}
+            </dd>
+            <dd class="govuk-summary-list__actions">
+              <a
+                class="govuk-link"
+                [href]="'#respondent-' + row.id + '-org-name'"
+                (click)="$event.preventDefault(); edit(row.id)"
+                >Change<span class="govuk-visually-hidden">
+                  respondent {{ index + 1 }} details</span
+                ></a
+              >
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Address</dt>
+            <dd class="govuk-summary-list__value">
+              @for (
+                field of [
+                  'addressLine1',
+                  'addressLine2',
+                  'addressLine3',
+                  'addressLine4',
+                  'addressLine5',
+                  'postcode',
+                ];
+                track field
+              ) {
+                @if (row.form.get(field)?.value) {
+                  {{ row.form.get(field)?.value }}<br />
+                }
+              }
+              @if (
+                !row.form.controls.addressLine1.value &&
+                !row.form.controls.addressLine2.value &&
+                !row.form.controls.addressLine3.value &&
+                !row.form.controls.addressLine4.value &&
+                !row.form.controls.addressLine5.value &&
+                !row.form.controls.postcode.value
+              ) {
+                Not provided
+              }
+            </dd>
+          </div>
+          @for (
+            field of [
+              { key: 'phoneNumber', label: 'Phone number' },
+              { key: 'mobileNumber', label: 'Mobile number' },
+              { key: 'emailAddress', label: 'Email address' },
+            ];
+            track field.key
+          ) {
+            <div class="govuk-summary-list__row">
+              <dt class="govuk-summary-list__key">{{ field.label }}</dt>
+              <dd class="govuk-summary-list__value">
+                {{ row.form.get(field.key)?.value || 'Not provided' }}
+              </dd>
+            </div>
+          }
+        </dl>
+      }
+      <p class="govuk-body">
+        <a
+          class="govuk-link"
+          href="#account-count"
+          (click)="$event.preventDefault(); edit()"
+          >Change wording or respondents</a
+        >
+      </p>
+      <button class="govuk-button" type="button" (click)="finish()">
+        Finish prototype
+      </button>
+    } @else {
+      @if (embedded()) {
+        <h2 class="govuk-heading-l" id="prototype-heading" tabindex="-1">
+          Prototype complete
+        </h2>
+      } @else {
+        <h1 class="govuk-heading-l" id="prototype-heading" tabindex="-1">
+          Prototype complete
+        </h1>
+      }
+      <p class="govuk-body">Your entries have not been saved to App Reg.</p>
+      <h2 class="govuk-heading-m">Share your feedback with the team</h2>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>
+          Does the number of accounts always equal the number of respondents?
+        </li>
+        <li>Is it clear how Wording controls the respondent sections?</li>
+        <li>
+          Can you easily edit details and understand what will be removed?
+        </li>
+      </ul>
+      <div class="govuk-button-group">
+        <button class="govuk-button" type="button" (click)="restart()">
+          Start again
+        </button>
+        <button
+          class="govuk-button govuk-button--secondary"
+          type="button"
+          (click)="edit()"
+        >
+          Return to respondents
+        </button>
+      </div>
+    }
+  </div>
+</div>

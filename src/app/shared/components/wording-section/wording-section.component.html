@@ -10,6 +10,8 @@
 
 <app-wording-parser
   [wordingObject]="wordingObject()"
+  [accountCountOverride]="accountCountOverride()"
+  (accountCountChange)="accountCountChange.emit($event)"
   [wordingObjectValues]="wordingObjectValues()"
   [wordingSubmitAttempt]="wordingSubmitAttempt()"
   (wordingFieldsDTO)="onWordingFieldsDTO($event)"

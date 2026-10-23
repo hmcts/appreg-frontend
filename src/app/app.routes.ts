@@ -8,6 +8,14 @@ import { sessionGuard } from '@guards/session.guard';
 
 export const routes: Routes = [
   {
+    path: 'prototypes/organisations',
+    title: 'Multiple organisations prototype – App Reg',
+    loadComponent: () =>
+      import('./pages/organisations-prototype/organisations-prototype.component').then(
+        (m) => m.OrganisationsPrototypeComponent,
+      ),
+  },
+  {
     path: '',
     pathMatch: 'full',
     component: HomeComponent,

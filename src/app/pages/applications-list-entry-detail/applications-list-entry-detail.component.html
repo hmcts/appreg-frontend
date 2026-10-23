@@ -22,6 +22,12 @@
 
 <h1 class="govuk-heading-xl">Applications list entry update</h1>
 
+@if (multipleRespondents.saveBlocked()) {
+  <div class="govuk-inset-text" role="status">
+    {{ multipleRespondents.saveMessage }}
+  </div>
+}
+
 <h2 class="govuk-heading-l">Summary of application list entry</h2>
 
 <form [formGroup]="form">
@@ -70,6 +76,8 @@
       <app-wording-section
         #wordingSection
         [wordingObject]="appCodeDetail.wording"
+        [accountCountOverride]="multipleRespondents.count()"
+        (accountCountChange)="onAccountCountChange($event)"
         [wordingObjectValues]="getWordingObjectValues(appCodeDetail.wording)"
         [wordingSubmitAttempt]="wordingSubmitAttempt()"
         [showAppliedBanner]="wordingAppliedBannerVisible()"
@@ -84,6 +92,7 @@
 
   <ng-template #respondentTpl>
     <app-respondent-section
+      [multiple]="multipleRespondents"
       [form]="form"
       [personGroup]="forms.respondentPersonForm"
       [organisationGroup]="forms.respondentOrganisationForm"
@@ -195,7 +204,9 @@
       type="submit"
       class="govuk-button"
       (click)="onUpdateApplication()"
-      [disabled]="disableSaveCompleteAppBtn()"
+      [disabled]="
+        disableSaveCompleteAppBtn() || multipleRespondents.saveBlocked()
+      "
     >
       Save complete application
     </button>

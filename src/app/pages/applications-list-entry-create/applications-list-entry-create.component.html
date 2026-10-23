@@ -17,6 +17,12 @@
 
 <h1 class="govuk-heading-xl">Create new entry</h1>
 
+@if (multipleRespondents.saveBlocked()) {
+  <div class="govuk-inset-text" role="status">
+    {{ multipleRespondents.saveMessage }}
+  </div>
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
@@ -63,6 +69,8 @@
       <app-wording-section
         #wordingSection
         [wordingObject]="appCodeDetail.wording"
+        [accountCountOverride]="multipleRespondents.count()"
+        (accountCountChange)="onAccountCountChange($event)"
         [wordingObjectValues]="getWordingObjectValues(appCodeDetail.wording)"
         [wordingSubmitAttempt]="wordingSubmitAttempt()"
         [showAppliedBanner]="wordingAppliedBannerVisible()"
@@ -77,6 +85,7 @@
 
   <ng-template #respondentTpl>
     <app-respondent-section
+      [multiple]="multipleRespondents"
       [form]="form"
       [personGroup]="forms.respondentPersonForm"
       [organisationGroup]="forms.respondentOrganisationForm"
@@ -128,7 +137,11 @@
         expanded: openApplicationCode(),
       },
       { heading: 'Wording', tpl: wordingTpl, expanded: openWording() },
-      { heading: 'Respondent', tpl: respondentTpl, expanded: openRespondent() },
+      {
+        heading: 'Respondent',
+        tpl: respondentTpl,
+        expanded: openRespondent(),
+      },
       { heading: 'Civil fee', tpl: civilFeeTpl, expanded: openCivilFee() },
       { heading: 'Notes', tpl: notesTpl, expanded: openNotes() },
     ]"
@@ -139,7 +152,7 @@
       type="submit"
       class="govuk-button"
       (click)="onSubmit($event)"
-      [disabled]="disableSubmissionBtn()"
+      [disabled]="disableSubmissionBtn() || multipleRespondents.saveBlocked()"
     >
       Create entry
     </button>

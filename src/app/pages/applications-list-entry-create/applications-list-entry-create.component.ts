@@ -103,6 +103,7 @@ import {
   TemplateSubstitution,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
+import { MultipleRespondentsState } from '@services/multiple-respondents.state';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
   AddFeeDetailsPayload,
@@ -133,6 +134,7 @@ const ENTRY_CREATE_ERROR_HREFS = {
 @Component({
   selector: 'app-applications-list-entry-create',
   standalone: true,
+  providers: [MultipleRespondentsState],
   imports: [
     ReactiveFormsModule,
     RouterModule,
@@ -192,6 +194,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
   readonly submitAttempt = signal(0);
+  readonly multipleRespondents = inject(MultipleRespondentsState);
 
   respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
   personTitleOptions = PERSON_TITLE_OPTIONS;
@@ -267,6 +270,9 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   onSubmit(e: Event): void {
     e.preventDefault();
+    if (this.multipleRespondents.saveBlocked()) {
+      return;
+    }
     this.submitAttempt.update((attempt) => attempt + 1);
 
     this.resetFlags();
@@ -330,6 +336,17 @@ export class ApplicationsListEntryCreate implements OnInit {
       this.appListEntryCreateState().submitted &&
       this.shouldValidateRespondent()
     );
+  }
+
+  onAccountCountChange(field: TemplateSubstitution | null): void {
+    this.multipleRespondents.sync(
+      field,
+      this.forms.respondentOrganisationForm,
+      this.form,
+    );
+    if (field) {
+      this.openRespondent.set(true);
+    }
   }
 
   onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {

@@ -262,6 +262,58 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
   });
 
+  it('adds respondent fields directly to the entry form from the wording count', () => {
+    const element: HTMLElement = fixture.nativeElement;
+    expect(
+      element.querySelector('button[aria-controls="entry-prototype"]'),
+    ).toBeNull();
+    const original = component.forms.respondentOrganisationForm;
+    original.controls.name.setValue('Example Organisation A');
+    component.onAccountCountChange({ key: 'No. of accounts', value: '2' });
+    fixture.detectChanges();
+    expect(
+      element.querySelectorAll(
+        'app-multiple-respondents app-organisation-section',
+      ),
+    ).toHaveLength(2);
+    expect(component.multipleRespondents.rows()[0].form).toBe(original);
+    expect(
+      component.multipleRespondents.rows()[0].form.controls.name.value,
+    ).toBe('Example Organisation A');
+    expect(
+      element.querySelector('app-multiple-respondents')?.closest('form'),
+    ).toBeTruthy();
+    expect(component.multipleRespondents.saveBlocked()).toBe(true);
+    component.multipleRespondents
+      .rows()[1]
+      .form.controls.name.setValue('Example Organisation B');
+    component.multipleRespondents.remove(1);
+    fixture.detectChanges();
+    expect(element.textContent).toContain('Example Organisation B');
+    component.multipleRespondents.cancelRemoval();
+    component.onAccountCountChange({ key: 'No. of accounts', value: '1' });
+    fixture.detectChanges();
+    expect(component.multipleRespondents.rows()).toHaveLength(2);
+    component.multipleRespondents.confirmRemoval();
+    fixture.detectChanges();
+    expect(component.multipleRespondents.rows()).toHaveLength(1);
+    expect(original.controls.name.value).toBe('Example Organisation A');
+  });
+
+  it.each([
+    'onUpdateApplication',
+    'onUpdateApplicant',
+    'onSaveOfficials',
+  ] as const)(
+    '%s does not silently save only the first of multiple respondents',
+    (method) => {
+      component.onAccountCountChange({ key: 'No. of accounts', value: '2' });
+      component[method]();
+      expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+      expect(component.multipleRespondents.rows()).toHaveLength(2);
+    },
+  );
+
   it('renders untargeted API errors as text and keeps explicit field links', () => {
     component['appListEntryDetailPatch']({
       errorFound: true,

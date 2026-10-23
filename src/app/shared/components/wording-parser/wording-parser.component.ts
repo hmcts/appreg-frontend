@@ -8,6 +8,7 @@ import {
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -21,6 +22,7 @@ import {
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { TemplateDetail, TemplateSubstitution } from '@openapi';
+import { isAccountCountKey } from '@services/multiple-respondents.state';
 
 export type Token =
   | { type: 'text'; value: string }
@@ -57,6 +59,8 @@ export class WordingParserComponent {
 
   wordingObjectValues = input<TemplateDetail>();
 
+  accountCountOverride = input<string | null>(null);
+  accountCountChange = output<TemplateSubstitution | null>();
   wordingFieldErrors = output<ErrorItem[]>();
   wordingFieldsDTO = output<{ wordingFields: TemplateSubstitution[] }>();
 
@@ -70,6 +74,25 @@ export class WordingParserComponent {
   form = this.fb.group({});
 
   constructor() {
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.emitAccountCount());
+    effect(() => {
+      const value = this.accountCountOverride();
+      untracked(() => {
+        const token = this.tokens.find(
+          (candidate) =>
+            candidate.type === 'input' && isAccountCountKey(candidate.key),
+        );
+        if (value !== null && token?.type === 'input') {
+          const control = this.form.get(this.normaliseKey(token.key));
+          if (control && control.value !== value) {
+            control.setValue(value);
+            control.markAsDirty();
+          }
+        }
+      });
+    });
     // Ensures we display the correct wording field on subsequent app code changes
     effect(() => this.tokeniseAndPatchWordingField());
 
@@ -100,6 +123,17 @@ export class WordingParserComponent {
 
       this.submitWordingFields();
     });
+  }
+
+  private emitAccountCount(): void {
+    const field = this.toWordingFields(this.form).wordingFields.find(
+      (candidate) => isAccountCountKey(candidate.key),
+    );
+    untracked(() => this.accountCountChange.emit(field ?? null));
+  }
+
+  isAccountCount(key: string): boolean {
+    return isAccountCountKey(key);
   }
 
   hasWordingInput(): boolean {
@@ -158,6 +192,17 @@ export class WordingParserComponent {
                 control.value?.trim() ? null : { required: true },
               (control: AbstractControl) =>
                 Validators.maxLength(maxLength)(control),
+              (control: AbstractControl<string | null>) => {
+                if (!isAccountCountKey(token.key) || !control.value?.trim()) {
+                  return null;
+                }
+                const value = Number(control.value);
+                return /^\d+$/.test(control.value.trim()) &&
+                  value >= 1 &&
+                  value <= 20
+                  ? null
+                  : { accountCount: true };
+              },
             ],
           }),
         );
@@ -296,6 +341,13 @@ export class WordingParserComponent {
         });
       }
 
+      if (e['accountCount'] && !e['maxlength']) {
+        errors.push({
+          text: 'Enter a whole number of accounts between 1 and 20 in Wording',
+          href: `#${formKey}`,
+        });
+      }
+
       if (e['maxlength']) {
         const max = (
           control.getError('maxlength') as { requiredLength: number } | null
@@ -324,6 +376,7 @@ export class WordingParserComponent {
 
     this.createFormControls();
     this.patchFormControls();
+    this.emitAccountCount();
 
     if (!this.showSaveButton()) {
       this.form.valueChanges

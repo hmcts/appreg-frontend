@@ -92,6 +92,13 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.vm().summaryErrors.length).toBeGreaterThan(0);
   });
 
+  it('does not silently send only the first of multiple respondents to the API', () => {
+    component.onAccountCountChange({ key: 'No. of accounts', value: '2' });
+    component.onSubmit(new Event('submit'));
+    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+    expect(component.multipleRespondents.rows()).toHaveLength(2);
+  });
+
   it('onSubmit: blocks create call when EF application code has no account reference', () => {
     component.form.patchValue({
       applicationCode: 'EF123',
@@ -1443,6 +1450,73 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
   afterEach(() => {
     jest.useRealTimers();
     document.body.innerHTML = '';
+  });
+
+  it('adds respondent fields directly to the entry form from the wording count', async () => {
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+    expect(
+      element.querySelector('button[aria-controls="entry-prototype"]'),
+    ).toBeNull();
+    const original = fixture.componentInstance.forms.respondentOrganisationForm;
+    original.controls.name.setValue('Example Organisation A');
+    fixture.componentInstance.onAccountCountChange({
+      key: 'No. of accounts',
+      value: '2',
+    });
+    fixture.detectChanges();
+    expect(
+      element.querySelectorAll(
+        'app-multiple-respondents app-organisation-section',
+      ),
+    ).toHaveLength(2);
+    expect(fixture.componentInstance.multipleRespondents.rows()[0].form).toBe(
+      original,
+    );
+    expect(
+      fixture.componentInstance.multipleRespondents.rows()[0].form.controls.name
+        .value,
+    ).toBe('Example Organisation A');
+    expect(
+      element.querySelector('app-multiple-respondents')?.closest('form'),
+    ).toBeTruthy();
+    expect(fixture.componentInstance.multipleRespondents.saveBlocked()).toBe(
+      true,
+    );
+    fixture.componentInstance.multipleRespondents
+      .rows()[1]
+      .form.controls.name.setValue('Example Organisation B');
+    fixture.componentInstance.multipleRespondents.remove(1);
+    fixture.detectChanges();
+    expect(element.textContent).toContain('Example Organisation B');
+    fixture.componentInstance.multipleRespondents.cancelRemoval();
+    fixture.componentInstance.onAccountCountChange({
+      key: 'No. of accounts',
+      value: '1',
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.multipleRespondents.rows()).toHaveLength(
+      2,
+    );
+    fixture.componentInstance.multipleRespondents.confirmRemoval();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.multipleRespondents.rows()).toHaveLength(
+      1,
+    );
+    expect(original.controls.name.value).toBe('Example Organisation A');
   });
 
   it('keeps focus in first name when the last error clears and returns during editing', async () => {

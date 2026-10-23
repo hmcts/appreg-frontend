@@ -1,0 +1,28 @@
+{
+  "name": "Local prototype: production-order-search",
+  "priority": 4,
+  "request": {
+    "method": "GET",
+    "urlPath": "/application-codes",
+    "queryParameters": {
+      "code": {
+        "equalTo": "SW99032",
+        "caseInsensitive": true
+      }
+    },
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json"
+    },
+    "bodyFileName": "fixtures/prototypes/production-order-search.json"
+  },
+  "scenarioName": "getApplicationCodes",
+  "requiredScenarioState": "Started"
+}

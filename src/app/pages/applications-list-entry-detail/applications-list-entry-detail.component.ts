@@ -113,6 +113,7 @@ import {
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
+import { MultipleRespondentsState } from '@services/multiple-respondents.state';
 import {
   ApplicantType,
   ApplicationListEntryForms,
@@ -169,7 +170,7 @@ export const ERROR_HREFS = {
 @Component({
   selector: 'app-applications-list-entry-detail',
   standalone: true,
-  providers: [ApplicationListEntryResultsFacade],
+  providers: [ApplicationListEntryResultsFacade, MultipleRespondentsState],
   imports: [
     ReactiveFormsModule,
     RouterModule,
@@ -266,6 +267,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
   readonly submitAttempt = signal(0);
+  readonly multipleRespondents = inject(MultipleRespondentsState);
 
   resultAppliedBannerVisible = signal(false);
 
@@ -381,6 +383,17 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.organisationForm = this.forms.organisationForm;
 
     this.civilFeeForm = this.formSvc.createCivilFeeForm(this.forms);
+  }
+
+  onAccountCountChange(field: TemplateSubstitution | null): void {
+    this.multipleRespondents.sync(
+      field,
+      this.forms.respondentOrganisationForm,
+      this.form,
+    );
+    if (field) {
+      this.openRespondentSection.set(true);
+    }
   }
 
   onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
@@ -808,6 +821,11 @@ export class ApplicationsListEntryDetail implements OnInit {
     successBanner: SuccessBanner,
     onComplete?: () => void,
   ): void {
+    if (this.multipleRespondents.saveBlocked()) {
+      onComplete?.();
+      this.setEntrySaveButtonsDisabled(false);
+      return;
+    }
     const entryId = getEntryId(this.route);
     this.submitAttempt.update((attempt) => attempt + 1);
     if (!entryId || !this.entryDetail) {
@@ -894,6 +912,9 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private runWordingValidationForPartialSave(): boolean {
+    if (this.multipleRespondents.saveBlocked()) {
+      return true;
+    }
     this.childErrors.wording =
       this.wordingSection?.validateForSubmit({
         enforceSavedWording: false,
@@ -904,6 +925,9 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onUpdateApplicant(): void {
+    if (this.multipleRespondents.saveBlocked()) {
+      return;
+    }
     if (this.isEntrySaveInProgress()) {
       return;
     }
@@ -926,6 +950,9 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onUpdateApplication(): void {
+    if (this.multipleRespondents.saveBlocked()) {
+      return;
+    }
     if (this.isEntrySaveInProgress()) {
       return;
     }
@@ -975,6 +1002,9 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onSaveOfficials(): void {
+    if (this.multipleRespondents.saveBlocked()) {
+      return;
+    }
     if (this.isEntrySaveInProgress()) {
       return;
     }

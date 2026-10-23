@@ -24,6 +24,8 @@ export type ErrorItem = { text: string; href?: string; id?: string };
 export class ErrorSummaryComponent {
   /** Heading text (defaults to GOV.UK copy) */
   title = input('There is a problem');
+  /** Unique namespace when multiple summaries are mounted on the same page. */
+  idPrefix = input('error-summary');
   /** List of error items; if an item has no href and targetId is provided, a hash link is used */
   items = input<ErrorItem[]>([]);
   /** Optional element ID to scroll to/focus when any link is clicked (e.g. 'sortable-table') */

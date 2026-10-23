@@ -57,6 +57,46 @@ describe('WordingParserComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('emits live account changes without applying or saving other wording', () => {
+    fixture.componentRef.setInput('wordingObject', {
+      template: 'Production order covering {{No. of accounts}} accounts',
+      'substitution-key-constraints': [
+        { key: 'No. of accounts', constraint: { length: 2 } },
+      ],
+    });
+    fixture.detectChanges();
+    const account = jest.spyOn(component.accountCountChange, 'emit');
+    const apply = jest.spyOn(component.wordingFieldsDTO, 'emit');
+    component.form.get('No-of-accounts')?.setValue('2');
+    expect(account).toHaveBeenLastCalledWith({
+      key: 'No. of accounts',
+      value: '2',
+    });
+    expect(apply).not.toHaveBeenCalled();
+    fixture.componentRef.setInput('accountCountOverride', '3');
+    fixture.detectChanges();
+    expect(component.form.get('No-of-accounts')?.value).toBe('3');
+    expect(component.form.dirty).toBe(true);
+    expect(apply).not.toHaveBeenCalled();
+  });
+
+  it('validates the account count using the existing Wording validation path', () => {
+    fixture.componentRef.setInput('wordingObject', {
+      template: 'Covering {{No. of accounts}} accounts',
+      'substitution-key-constraints': [
+        { key: 'No. of accounts', constraint: { length: 2 } },
+      ],
+    });
+    fixture.detectChanges();
+    component.form.get('No-of-accounts')?.setValue('0');
+    expect(
+      component.validateForSubmit({ enforceSavedWording: false }),
+    ).toContainEqual({
+      text: 'Enter a whole number of accounts between 1 and 20 in Wording',
+      href: '#No-of-accounts',
+    });
+  });
+
   describe('lifecycle', () => {
     it('should call tokeniseAndPatchWordingField in constructor', () => {
       fixture = TestBed.createComponent(WordingParserComponent);

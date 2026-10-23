@@ -24,6 +24,26 @@ describe('ErrorSummaryComponent (external template)', () => {
     document.body.innerHTML = '';
   });
 
+  it('keeps descriptions distinct when a prototype and application summary coexist', () => {
+    const prototype = TestBed.createComponent(ErrorSummaryComponent);
+    fixture.detectChanges();
+    prototype.componentRef.setInput('idPrefix', 'prototype-error-summary');
+    prototype.detectChanges();
+    const originalBody = fixture.nativeElement.querySelector(
+      '.govuk-error-summary__body',
+    );
+    const prototypeBody = prototype.nativeElement.querySelector(
+      '.govuk-error-summary__body',
+    );
+    expect(originalBody.id).toBe('error-summary-body');
+    expect(prototypeBody.id).toBe('prototype-error-summary-body');
+    expect(
+      prototype.nativeElement
+        .querySelector('.govuk-error-summary')
+        .getAttribute('aria-describedby'),
+    ).toBe(prototypeBody.id);
+  });
+
   it('renders external hrefs and local targetId fallback links', () => {
     fixture.componentRef.setInput('items', [
       { text: 'External', href: '/somewhere' },

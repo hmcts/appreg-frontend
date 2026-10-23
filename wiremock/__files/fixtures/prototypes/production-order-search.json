@@ -1,0 +1,18 @@
+{
+  "pageNumber": 0,
+  "pageSize": 10,
+  "totalElements": 1,
+  "totalPages": 1,
+  "first": true,
+  "last": true,
+  "elementsOnPage": 1,
+  "content": [
+    {
+      "applicationCode": "SW99032",
+      "title": "Production Order under Proceeds of Crime Act 2002 without a power of entry",
+      "requiresRespondent": true,
+      "isFeeDue": false,
+      "bulkRespondentAllowed": false
+    }
+  ]
+}

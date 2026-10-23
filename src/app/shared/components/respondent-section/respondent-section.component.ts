@@ -40,10 +40,12 @@ import {
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { MultipleRespondentsComponent } from '@components/multiple-respondents/multiple-respondents.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '@components/person-section/person-section.component';
 import { RespondentBulkApplicationComponent } from '@components/respondent-bulk-application/respondent-bulk-application.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
+import { MultipleRespondentsState } from '@services/multiple-respondents.state';
 import type {
   ApplicationsListEntryForm,
   OrganisationForm,
@@ -61,12 +63,14 @@ type Option<T extends string> = { value: T; label: string };
     SelectInputComponent,
     PersonSectionComponent,
     OrganisationSectionComponent,
+    MultipleRespondentsComponent,
     RespondentBulkApplicationComponent,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './respondent-section.component.html',
 })
 export class RespondentSectionComponent {
+  readonly multiple = input<MultipleRespondentsState>();
   readonly form = input.required<ApplicationsListEntryForm>();
   readonly personGroup = input.required<RespondentPersonForm>();
   readonly organisationGroup = input.required<OrganisationForm>();
