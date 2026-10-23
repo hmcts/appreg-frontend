@@ -175,11 +175,12 @@ describe('Report navigation confirmation in a browser', () => {
         typeof history.state?.navigationId === 'number',
       { polling: 100 },
     );
-    const reportsEntry = await page.evaluate(() => ({
-      navigationId: history.state.navigationId as number,
-      routerPageId: history.state?.ɵrouterPageId ?? null,
-      historyLength: history.length,
-    }));
+    const reportsNavigationId = await page.evaluate(
+      () => history.state.navigationId as number,
+    );
+    // diagnostic, record each popstate's path and Angular history IDs
+    // Uncomment this block together with the timeout diagnostics below
+    /*
     await page.evaluate(() => {
       type PopstateEvent = {
         path: string;
@@ -199,36 +200,39 @@ describe('Report navigation confirmation in a browser', () => {
         });
       });
     });
+    */
 
     await page.evaluate(() => history.back());
     await page.waitForSelector('dialog[open]');
-    try {
-      await Promise.all([
-        // Cancelling Back must restore the original history entry, not just its URL.
-        page.waitForFunction(
-          (navigationId) =>
-            location.pathname === '/reports' &&
-            history.state?.navigationId === navigationId,
-          { polling: 100, timeout: 20_000 },
-          reportsEntry.navigationId,
-        ),
-        page.click('dialog button.govuk-button'),
-      ]);
-    } catch (error) {
-      const state = await page.evaluate(() => ({
-        path: location.pathname,
-        navigationId: history.state?.navigationId ?? null,
-        routerPageId: history.state?.ɵrouterPageId ?? null,
-        historyLength: history.length,
-        dialogOpen: !!document.querySelector('dialog[open]'),
-        popstates: (window as Window & { appregPopstates: unknown[] })
-          .appregPopstates,
-      }));
-      throw new Error(
-        `History restoration failed: ${JSON.stringify({ reportsEntry, ...state })}`,
-        { cause: error },
-      );
-    }
+    // Cancelling Back must restore the original history entry, not just its URL.
+    // diagnostic, on timeout, report the URL, history IDs and length,
+    // dialog state, and recorded popstates. Uncomment this wrapper and recorder above.
+    // try {
+    await Promise.all([
+      page.waitForFunction(
+        (navigationId) =>
+          location.pathname === '/reports' &&
+          history.state?.navigationId === navigationId,
+        { polling: 100, timeout: 20_000 },
+        reportsNavigationId,
+      ),
+      page.click('dialog button.govuk-button'),
+    ]);
+    // } catch (error) {
+    //   const state = await page.evaluate(() => ({
+    //     path: location.pathname,
+    //     navigationId: history.state?.navigationId ?? null,
+    //     routerPageId: history.state?.ɵrouterPageId ?? null,
+    //     historyLength: history.length,
+    //     dialogOpen: !!document.querySelector('dialog[open]'),
+    //     popstates: (window as Window & { appregPopstates: unknown[] })
+    //       .appregPopstates,
+    //   }));
+    //   throw new Error(
+    //     `History restoration failed: ${JSON.stringify({ reportsNavigationId, ...state })}`,
+    //     { cause: error },
+    //   );
+    // }
     await page.evaluate(() => history.back());
     await page.waitForSelector('dialog[open]');
     await page.click('dialog button.govuk-button--secondary');
