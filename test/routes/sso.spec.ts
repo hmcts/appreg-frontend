@@ -1,3 +1,5 @@
+import { brotliCompressSync } from 'node:zlib';
+
 import cookieParser from 'cookie-parser';
 import type { Express, Request, Response } from 'express';
 import express, { NextFunction } from 'express';
@@ -790,6 +792,21 @@ describe('POST /sso/logout', () => {
       destroySpyRef,
       TEST_POST_HEADERS,
     );
+  });
+
+  test('logout: rejects Brotli-compressed forms without destroying the session', async () => {
+    const { app, destroySpyRef } = await prepare();
+
+    const res = await request(app)
+      .post('/sso/logout')
+      .set(TEST_POST_HEADERS)
+      .set('Content-Type', 'application/x-www-form-urlencoded')
+      .set('Content-Encoding', 'br')
+      .send(brotliCompressSync(Buffer.from(`_csrf=${TEST_XSRF_TOKEN}`)));
+
+    expect(res.status).toBe(415);
+    expect(destroySpyRef()).toBeDefined();
+    expect(destroySpyRef()?.mock.calls.length).toBe(0);
   });
 
   test('logout: rejects cross-origin POST requests', async () => {

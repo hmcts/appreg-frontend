@@ -263,7 +263,7 @@ export function setupSsoRoutes(
   // POST /sso/logout -> clear session and call Entra logout
   router.post(
     '/sso/logout',
-    express.urlencoded({ extended: false }),
+    express.urlencoded({ extended: false, inflate: false }),
     (req, res) => {
       const cookies = (req.cookies ?? {}) as Record<string, string | undefined>;
       const cookieToken = cookies['XSRF-TOKEN'];
