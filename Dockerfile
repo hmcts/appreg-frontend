@@ -1,4 +1,5 @@
 # OpenAPI generation and Angular SSR compilation need development dependencies.
+# Rebuild to pick up the patched Node base image.
 FROM hmctsprod.azurecr.io/base/node:24-alpine AS build
 
 WORKDIR /app
