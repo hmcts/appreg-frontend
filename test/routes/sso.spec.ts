@@ -328,6 +328,7 @@ async function createAppWithRealSession(opts?: {
   if (opts?.presetAuthState) {
     app.use((req: Request, _res: Response, next) => {
       req.session.authState = opts.presetAuthState;
+      req.session.nonce = 'nonce-456';
       next();
     });
   }
@@ -415,6 +416,7 @@ describe('GET /sso/login-callback', () => {
     mode: 'ok' | 'noAccount' | 'throw' = 'ok',
     presetAuthState?: string,
     sessionErrors?: { regenerateError?: unknown; saveError?: unknown },
+    presetNonce: string | null = 'nonce-456',
   ) => {
     jest.resetModules();
 
@@ -456,6 +458,7 @@ describe('GET /sso/login-callback', () => {
     if (presetAuthState) {
       app.use((req: Request, _res: Response, next) => {
         req.session.authState = presetAuthState;
+        req.session.nonce = presetNonce ?? undefined;
         next();
       });
     }
@@ -527,6 +530,22 @@ describe('GET /sso/login-callback', () => {
       .set(TEST_HEADERS);
     expect(r2.status).toBe(400);
     expect(r2.text).toMatch(/Invalid auth response/i);
+  });
+
+  test('400 when the callback session has no nonce', async () => {
+    const { app, acquireTokenByCode } = await prepare(
+      'ok',
+      'state-123',
+      undefined,
+      null,
+    );
+
+    const res = await request(app)
+      .get('/sso/login-callback?code=abc&state=state-123')
+      .set(TEST_HEADERS);
+
+    expect(res.status).toBe(400);
+    expect(acquireTokenByCode).not.toHaveBeenCalled();
   });
 
   test('regenerates the login session before storing callback token data', async () => {
@@ -604,6 +623,9 @@ describe('GET /sso/login-callback', () => {
       tokenCache: 'SERIALIZED_CACHE',
     });
     expect(acquireTokenByCode).toHaveBeenCalledTimes(1);
+    expect(acquireTokenByCode).toHaveBeenCalledWith(
+      expect.objectContaining({ nonce: 'nonce-456' }),
+    );
     expect(serialize).toHaveBeenCalledTimes(1);
   });
 
@@ -618,6 +640,7 @@ describe('GET /sso/login-callback', () => {
     expect(acquireTokenByCode).toHaveBeenCalledWith(
       expect.objectContaining({
         code: 'abc',
+        nonce: 'nonce-456',
         redirectUri: `https://${TEST_HOST}/sso/login-callback`,
       }),
     );
@@ -644,6 +667,7 @@ describe('GET /sso/login-callback', () => {
     expect(acquireTokenByCode).toHaveBeenCalledWith(
       expect.objectContaining({
         code: 'abc123',
+        nonce: 'nonce-456',
         redirectUri: `https://${TEST_HOST}/sso/login-callback`,
       }),
     );
