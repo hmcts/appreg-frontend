@@ -224,7 +224,8 @@
     "@grpc/grpc-js": "^1.14.5",
     "http-cache-semantics": "^4.3.0",
     "winston@npm:^2.4.5": "patch:winston@npm%3A2.4.7#~/.yarn/patches/winston-npm-2.4.7-f6df5db564.patch",
-    "zod": "^4.6.6"
+    "zod": "^4.6.6",
+    "@azure/msal-node": "^7.1.0"
   },
   "packageManager": "yarn@4.10.3"
 }
