@@ -126,7 +126,7 @@ describe('WordingParserComponent', () => {
     expect(apply).not.toHaveBeenCalled();
   });
 
-  it('does not resize respondents or prompt for removal while typing 12 over 2', () => {
+  it('does not resize respondents when typing, blurring or applying account counts', () => {
     const state = TestBed.inject(MultipleRespondentsState);
     const forms = TestBed.inject(ApplicationListEntryFormService).createForms();
     forms.respondentOrganisationForm.patchValue({
@@ -147,7 +147,8 @@ describe('WordingParserComponent', () => {
     fixture.componentRef.setInput('wordingObject', wording);
     fixture.componentRef.setInput('wordingObjectValues', wording);
     fixture.detectChanges();
-    expect(state.rows()).toHaveLength(2);
+    expect(state.rows()).toHaveLength(1);
+    state.add();
     const input: HTMLInputElement =
       fixture.nativeElement.querySelector('#No-of-accounts');
     for (const value of ['1', '12']) {
@@ -160,7 +161,7 @@ describe('WordingParserComponent', () => {
     }
     input.dispatchEvent(new Event('blur'));
     fixture.detectChanges();
-    expect(state.rows()).toHaveLength(12);
+    expect(state.rows()).toHaveLength(2);
     expect(state.pending()).toEqual([]);
     expect(state.rows()[0].form.controls.name.value).toBe('Example Bank');
     input.value = '2';
@@ -168,8 +169,11 @@ describe('WordingParserComponent', () => {
     expect(state.pending()).toEqual([]);
     input.dispatchEvent(new Event('blur'));
     fixture.detectChanges();
-    expect(state.pending()).toHaveLength(10);
-    expect(state.rows()).toHaveLength(12);
+    expect(state.pending()).toEqual([]);
+    component.submitWordingFields();
+    fixture.detectChanges();
+    expect(state.pending()).toEqual([]);
+    expect(state.rows()).toHaveLength(2);
   });
 
   it('commits the final count when wording is applied without first blurring the field', () => {

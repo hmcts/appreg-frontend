@@ -35,8 +35,9 @@ describe('MultipleRespondentsState', () => {
       addressLine1: 'Example address',
     });
     sync('2');
+    state.add();
     state.rows()[1].form.controls.name.setValue('Example Network');
-    sync('3');
+    state.add();
     expect(state.rows()).toHaveLength(3);
     expect(state.rows()[0].form).toBe(forms.respondentOrganisationForm);
     expect(state.rows()[0].form.controls.addressLine1.value).toBe(
@@ -53,6 +54,7 @@ describe('MultipleRespondentsState', () => {
     (value) => {
       const { state, sync } = setup();
       sync('2');
+      state.add();
       state.rows()[1].form.controls.name.setValue('Example Network');
       sync(value);
       expect(state.countError()).toBeTruthy();
@@ -62,36 +64,42 @@ describe('MultipleRespondentsState', () => {
     },
   );
 
-  it('confirms or cancels reducing the count without silently discarding details', () => {
+  it('keeps respondent sections unchanged when loading, increasing or decreasing the account count', () => {
     const { state, sync } = setup();
-    sync('3');
-    state.rows()[2].form.controls.name.setValue('Example Network');
-    sync('1');
-    expect(state.pending()).toHaveLength(2);
-    expect(state.rows()).toHaveLength(3);
-    state.cancelRemoval();
-    expect(state.count()).toBe('3');
-    expect(state.rows()[2].form.controls.name.value).toBe('Example Network');
-    sync('1');
-    state.confirmRemoval();
+    sync('12');
     expect(state.rows()).toHaveLength(1);
-    expect(state.saveBlocked()).toBe(false);
+    state.add();
+    state.rows()[1].form.controls.name.setValue('Example Network');
+    const rows = state.rows();
+    for (const value of ['1', '3', '12']) {
+      sync(value);
+      expect(state.rows()).toBe(rows);
+      expect(state.pending()).toEqual([]);
+      expect(state.count()).toBe(value);
+      expect(state.rows()[1].form.controls.name.value).toBe('Example Network');
+    }
   });
 
-  it('does not leave a stale removal confirmation after an invalid count is entered', () => {
+  it('requires explicit removal and lets the user keep respondents', () => {
     const { state, sync } = setup();
-    sync('3');
     sync('1');
-    expect(state.pending()).toHaveLength(2);
-    sync('0');
-    expect(state.pending()).toHaveLength(0);
-    expect(state.rows()).toHaveLength(3);
-    expect(state.countError()).toBeTruthy();
+    state.add();
+    state.rows()[1].form.controls.name.setValue('Example Network');
+    state.remove(1);
+    state.cancelRemoval();
+    expect(state.rows()).toHaveLength(2);
+    expect(state.rows()[1].form.controls.name.value).toBe('Example Network');
+    state.remove(1);
+    state.confirmRemoval();
+    expect(state.rows()).toHaveLength(1);
+    expect(state.count()).toBe('1');
+    expect(state.saveBlocked()).toBe(false);
   });
 
   it('removes the chosen first respondent while keeping the real form group connected', () => {
     const { state, forms, sync } = setup();
     sync('2');
+    state.add();
     state.rows()[1].form.patchValue({
       name: 'Example Network',
       addressLine1: 'Example address',
@@ -122,6 +130,7 @@ describe('MultipleRespondentsState', () => {
   it('keeps trial respondents and blocks saving if a new code has no matching token', () => {
     const { state, forms, sync } = setup();
     sync('2');
+    state.add();
     state.sync(null, forms.respondentOrganisationForm, forms.form);
     expect(state.rows()).toHaveLength(2);
     expect(state.active()).toBe(true);

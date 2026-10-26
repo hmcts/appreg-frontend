@@ -22,6 +22,8 @@ describe('MultipleRespondentsComponent', () => {
         forms.respondentOrganisationForm,
         forms.form,
       );
+      state.add();
+      state.add();
       const fixture = TestBed.createComponent(MultipleRespondentsComponent);
       fixture.componentRef.setInput('state', state);
       fixture.detectChanges();
@@ -35,10 +37,27 @@ describe('MultipleRespondentsComponent', () => {
         });
       });
       fixture.detectChanges();
+      expect(sections[index].textContent).toContain('Cancel adding respondent');
       sections[index]
         .querySelector<HTMLButtonElement>('button.govuk-button--secondary')!
         .click();
       fixture.detectChanges();
+      expect(
+        element.querySelector('[aria-label="Confirm respondent removal"]')
+          ?.textContent,
+      ).toContain('Their name, address and contact details will be removed.');
+      expect(
+        element
+          .querySelector('button.govuk-button--warning')
+          ?.textContent?.trim(),
+      ).toBe('Remove respondent');
+      expect(
+        element
+          .querySelector(
+            '[aria-label="Confirm respondent removal"] button.govuk-button--secondary',
+          )
+          ?.textContent?.trim(),
+      ).toBe('Keep respondent');
       element
         .querySelector<HTMLButtonElement>('button.govuk-button--warning')!
         .click();
@@ -88,6 +107,7 @@ describe('MultipleRespondentsComponent', () => {
       forms.respondentOrganisationForm,
       forms.form,
     );
+    state.add();
     const fixture = TestBed.createComponent(MultipleRespondentsComponent);
     fixture.componentRef.setInput('state', state);
     fixture.detectChanges();
@@ -131,6 +151,11 @@ describe('MultipleRespondentsComponent', () => {
       1,
     );
     expect(element.querySelectorAll('.govuk-summary-card')).toHaveLength(1);
+    const editSection = element.querySelector('section')!;
+    expect(editSection.textContent).toContain('Save respondent details');
+    expect(editSection.textContent).toContain('Cancel changes');
+    expect(editSection.textContent).not.toContain('Cancel adding respondent');
+    expect(editSection.textContent).not.toContain('Remove');
     expect(
       element.querySelector<HTMLInputElement>('#respondent-org-name')?.value,
     ).toBe('Example Bank');
@@ -208,6 +233,7 @@ describe('MultipleRespondentsComponent', () => {
       forms.respondentOrganisationForm,
       forms.form,
     );
+    state.add();
     const fixture = TestBed.createComponent(MultipleRespondentsComponent);
     fixture.componentRef.setInput('state', state);
     fixture.detectChanges();

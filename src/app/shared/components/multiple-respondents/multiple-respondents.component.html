@@ -24,7 +24,7 @@
       }
     </ul>
     <p class="govuk-body">
-      Their names, addresses and contact details will be removed.
+      Their name, address and contact details will be removed.
     </p>
     <div class="govuk-button-group">
       <button
@@ -32,14 +32,14 @@
         type="button"
         (click)="confirmRemoval()"
       >
-        Remove respondents
+        Remove respondent
       </button>
       <button
         class="govuk-button govuk-button--secondary"
         type="button"
         (click)="cancelRemoval()"
       >
-        Keep respondents
+        Keep respondent
       </button>
     </div>
   </div>
@@ -102,14 +102,14 @@
             ></a
           >
         }
-        @if (state().rows().length > 1) {
+        @if (!row.savedValue && state().rows().length > 1) {
           <button
             class="govuk-button govuk-button--secondary"
             type="button"
             (click)="remove(row.id)"
           >
-            Remove<span class="govuk-visually-hidden">
-              respondent {{ i + 1 }}</span
+            Cancel adding respondent<span class="govuk-visually-hidden">
+              {{ i + 1 }}</span
             >
           </button>
         }

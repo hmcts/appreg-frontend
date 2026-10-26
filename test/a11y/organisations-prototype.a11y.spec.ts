@@ -184,6 +184,11 @@ describe('Organisation prototype keyboard journey', () => {
       await page.$eval('#No-of-accounts', (input) => input.select());
       await page.keyboard.type('2');
       await page.keyboard.press('Tab');
+      await openPanel(accordion, 4);
+      expect(
+        await page.$$('app-multiple-respondents app-organisation-section'),
+      ).toHaveLength(1);
+      await activate('Add another organisation');
       await page.waitForFunction(
         () =>
           document.querySelectorAll(
@@ -213,6 +218,13 @@ describe('Organisation prototype keyboard journey', () => {
       await page.focus('#respondent-card-1 .govuk-summary-card__actions a');
       await page.keyboard.press('Enter');
       await expectFocus('#respondent-extra-1-org-name');
+      const editActions = await page.$eval(
+        'app-multiple-respondents section .govuk-button-group',
+        (actions) => actions.textContent,
+      );
+      expect(editActions).toContain('Cancel changes');
+      expect(editActions).not.toContain('Remove');
+      expect(editActions).not.toContain('Cancel adding respondent');
       await page.keyboard.type(' updated');
       await page.focus('app-multiple-respondents section button');
       await page.keyboard.press('Enter');
@@ -247,8 +259,20 @@ describe('Organisation prototype keyboard journey', () => {
       await page.keyboard.type('1');
       await page.keyboard.press('Tab');
       await openPanel(accordion, 4);
-      await page.waitForSelector('[aria-label="Confirm respondent removal"]');
-      await activate('Keep respondents');
+      expect(
+        await page.$('[aria-label="Confirm respondent removal"]'),
+      ).toBeNull();
+      expect(
+        await page.$$('app-multiple-respondents .govuk-summary-card'),
+      ).toHaveLength(2);
+      expect(
+        await page.$$('app-multiple-respondents app-organisation-section'),
+      ).toHaveLength(1);
+      await page.click(
+        '#respondent-card-0 .govuk-summary-card__actions li:last-child a',
+      );
+      await expectFocus('#remove-respondents-heading');
+      await activate('Keep respondent');
       await expectFocus('#respondent-card-0');
       expect(await page.$eval('#No-of-accounts', (input) => input.value)).toBe(
         '3',
@@ -262,7 +286,7 @@ describe('Organisation prototype keyboard journey', () => {
       await remove?.focus();
       await page.keyboard.press('Enter');
       await expectFocus('#remove-respondents-heading');
-      await activate('Remove respondents');
+      await activate('Remove respondent');
       await expectFocus('#respondent-card-1');
       expect(await page.$('#respondent-card-0')).toBeNull();
       expect(
@@ -272,6 +296,12 @@ describe('Organisation prototype keyboard journey', () => {
         '2',
       );
       // Remove a middle editing section while keeping both surrounding respondents.
+      expect(
+        await page.$eval(
+          '[aria-labelledby="multiple-respondent-2"]',
+          (section) => section.textContent,
+        ),
+      ).toContain('Cancel adding respondent');
       await page.type(
         '#respondent-extra-2-org-name',
         'Example middle organisation',
@@ -283,7 +313,7 @@ describe('Organisation prototype keyboard journey', () => {
         '[aria-labelledby="multiple-respondent-2"] button.govuk-button--secondary',
       );
       await expectFocus('#remove-respondents-heading');
-      await activate('Remove respondents');
+      await activate('Remove respondent');
       await expectFocus('#respondent-card-1');
       expect(
         await page.$('[aria-labelledby="multiple-respondent-2"]'),
@@ -300,7 +330,7 @@ describe('Organisation prototype keyboard journey', () => {
       expect(await page.$eval('#No-of-accounts', (input) => input.value)).toBe(
         '2',
       );
-      // Resizing waits until the user finishes entering a multi-digit count.
+      // Typing, leaving and applying Wording never resize respondent sections.
       await openPanel(accordion, 3);
       await page.focus('#No-of-accounts');
       await page.$eval('#No-of-accounts', (input) => input.select());
@@ -323,11 +353,20 @@ describe('Organisation prototype keyboard journey', () => {
         () =>
           document.querySelectorAll(
             'app-multiple-respondents section, app-multiple-respondents .govuk-summary-card',
-          ).length === 12,
+          ).length === 2,
       );
       expect(
         await page.$('[aria-label="Confirm respondent removal"]'),
       ).toBeNull();
+      await activate('Apply wording');
+      expect(
+        await page.$$(
+          'app-multiple-respondents section, app-multiple-respondents .govuk-summary-card',
+        ),
+      ).toHaveLength(2);
+      expect(await page.$eval('#No-of-accounts', (input) => input.value)).toBe(
+        '12',
+      );
       await page.setViewport({ width: 375, height: 812 });
       expect(
         await page.evaluate(

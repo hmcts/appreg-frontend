@@ -26,8 +26,9 @@ refreshing, navigating away or restarting clears them. They are not persisted.
    select **Add code**. The local mocks include this production-order example.
    On Edit, choose this code if the entry currently uses a different one.
 3. In the existing **Wording** section, enter an applicant name and **2** in
-   **No. of accounts**. Two organisation sections appear in **Respondent** when
-   you leave the count field. There is no extra Update respondents button.
+   **No. of accounts**. The Respondent section remains unchanged when you type,
+   leave the field or select **Apply wording**. Select **Add another organisation**
+   to create a second respondent.
 4. Enter “Example Bank” and “Example Network” separately, with different made-up
    addresses or contact details. Select **Save respondent details** for each.
    Valid details collapse into compact summary cards. Pre-populated valid
@@ -35,13 +36,16 @@ refreshing, navigating away or restarting clears them. They are not persisted.
 5. Use **Change** in a card header to reopen only that respondent; the other cards
    stay visible. Save the updated details or select **Cancel changes** to restore
    the previous details. Header **Remove** uses the existing removal confirmation.
+   Saved respondents offer **Save respondent details** and **Cancel changes**
+   while editing; **Remove** stays in the card header. Unsaved respondents offer
+   **Cancel adding respondent** when another respondent remains.
    Details are held locally; this action does not save the application.
 6. Select **Add another organisation**. A third section appears and the Wording
    count changes to **3**. Existing details remain.
-7. Change the Wording count to **1**. Check the proposed removals, then select
-   **Keep respondents**. All details remain and the count returns to **3**.
-8. Repeat and confirm removal. Alternatively, remove a specific respondent.
-   The Wording count always matches the remaining sections after confirmation.
+7. Change the Wording count to **1**. All three respondent sections and their
+   details remain, with no removal prompt.
+8. Select **Remove** on a specific respondent and confirm removal. The selected
+   section disappears and the Wording count updates to the remaining sections.
 9. Try zero, fractional, blank or excessive counts. The prototype supports 1–20.
 10. Check that other application fields remain on the same form, then repeat on
     both Create and Edit using a keyboard and a narrow viewport.
@@ -65,9 +69,11 @@ The first organisation uses the existing respondent form group. Additional group
 use the same form builder, validators and organisation component. Leaving the
 count field commits its final value without applying or saving other wording.
 Selecting **Apply wording** also commits the final count, including when activated
-from the keyboard without first leaving the field. Initial loaded counts and
-Add/Remove actions still update immediately. Templates without an account-count token retain their
-existing respondent behavior. The recognised keys are **No. of accounts** and
+from the keyboard without first leaving the field. Loading or editing the count
+does not resize respondent sections or request removal. Use **Add another
+organisation** and each respondent’s **Remove** action to manage sections; these
+actions still update the Wording count. Templates without an account-count token
+retain their existing respondent behavior. The recognised keys are **No. of accounts** and
 **Number of accounts**, with punctuation/case variations.
 
 The standalone [prototype](http://localhost:4200/prototypes/organisations) remains
@@ -85,9 +91,9 @@ need restarting after regeneration to load the added mappings.
 
 ## Team review
 
-Review whether one account always equals one respondent, how to handle multiple
-accounts at one organisation, whether the last sections should be removed when
-reducing the count, and which production limits should apply. Record feedback
+Review how to handle multiple accounts at one organisation, whether respondent
+actions should continue updating the Wording count, and which production limits
+should apply. Record feedback
 against [ARCPOC-1290](https://hmcts.atlassian.net/browse/ARCPOC-1290).
 A team review and stakeholder feedback still need to take place.
 

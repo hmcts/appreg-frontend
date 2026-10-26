@@ -262,7 +262,7 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
   });
 
-  it('adds respondent fields directly to the entry form from the wording count', () => {
+  it('adds respondent fields explicitly without resizing them from the wording count', () => {
     const element: HTMLElement = fixture.nativeElement;
     expect(
       element.querySelector('button[aria-controls="entry-prototype"]'),
@@ -270,6 +270,8 @@ describe('ApplicationsListEntryDetail', () => {
     const original = component.forms.respondentOrganisationForm;
     original.controls.name.setValue('Example Organisation A');
     component.onAccountCountChange({ key: 'No. of accounts', value: '2' });
+    expect(component.multipleRespondents.rows()).toHaveLength(1);
+    component.multipleRespondents.add();
     fixture.detectChanges();
     expect(
       element.querySelectorAll(
@@ -294,6 +296,8 @@ describe('ApplicationsListEntryDetail', () => {
     component.onAccountCountChange({ key: 'No. of accounts', value: '1' });
     fixture.detectChanges();
     expect(component.multipleRespondents.rows()).toHaveLength(2);
+    expect(component.multipleRespondents.pending()).toEqual([]);
+    component.multipleRespondents.remove(1);
     component.multipleRespondents.confirmRemoval();
     fixture.detectChanges();
     expect(component.multipleRespondents.rows()).toHaveLength(1);
@@ -308,6 +312,8 @@ describe('ApplicationsListEntryDetail', () => {
     '%s does not silently save only the first of multiple respondents',
     (method) => {
       component.onAccountCountChange({ key: 'No. of accounts', value: '2' });
+      expect(component.multipleRespondents.rows()).toHaveLength(1);
+      component.multipleRespondents.add();
       component[method]();
       expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
       expect(component.multipleRespondents.rows()).toHaveLength(2);
