@@ -3,6 +3,8 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { WordingParserComponent } from '@components/wording-parser/wording-parser.component';
 import { TemplateConstraintTypeEnum, TemplateDetail } from '@openapi';
+import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
+import { MultipleRespondentsState } from '@services/multiple-respondents.state';
 
 describe('WordingParserComponent', () => {
   let component: WordingParserComponent;
@@ -38,6 +40,7 @@ describe('WordingParserComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [WordingParserComponent, ReactiveFormsModule],
+      providers: [MultipleRespondentsState],
     }).compileComponents();
 
     fixture = TestBed.createComponent(WordingParserComponent);
@@ -57,17 +60,60 @@ describe('WordingParserComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('emits live account changes without applying or saving other wording', () => {
-    fixture.componentRef.setInput('wordingObject', {
+  it('binds the displayed accounts input to the new control after switching wording templates', () => {
+    const original = makeWordingObject();
+    fixture.componentRef.setInput('wordingObject', original);
+    fixture.componentRef.setInput('wordingObjectValues', original);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#date').value).toBe(
+      '31/12/2026',
+    );
+
+    const productionOrder = makeWordingObject({
+      template:
+        'Application {{Applicant Name}} covering {{No. of accounts}} accounts.',
+      'substitution-key-constraints': [
+        {
+          key: 'Applicant Name',
+          value: 'Example Applicant',
+          constraint: { length: 50 },
+        },
+        { key: 'No. of accounts', value: '2', constraint: { length: 2 } },
+      ],
+    });
+    fixture.componentRef.setInput('wordingObject', productionOrder);
+    fixture.componentRef.setInput('wordingObjectValues', productionOrder);
+    fixture.detectChanges();
+
+    const input: HTMLInputElement =
+      fixture.nativeElement.querySelector('#No-of-accounts');
+    expect(input.value).toBe('2');
+    expect(component.form.contains('date')).toBe(false);
+    input.value = '3';
+    input.dispatchEvent(new Event('input'));
+    expect(component.form.get('No-of-accounts')?.value).toBe('3');
+    const account = jest.spyOn(component.accountCountChange, 'emit');
+    input.dispatchEvent(new Event('blur'));
+    expect(account).toHaveBeenLastCalledWith({
+      key: 'No. of accounts',
+      value: '3',
+    });
+  });
+
+  it('commits account changes on blur without applying or saving other wording', () => {
+    init({
       template: 'Production order covering {{No. of accounts}} accounts',
       'substitution-key-constraints': [
         { key: 'No. of accounts', constraint: { length: 2 } },
       ],
     });
-    fixture.detectChanges();
     const account = jest.spyOn(component.accountCountChange, 'emit');
     const apply = jest.spyOn(component.wordingFieldsDTO, 'emit');
     component.form.get('No-of-accounts')?.setValue('2');
+    expect(account).not.toHaveBeenCalled();
+    fixture.nativeElement
+      .querySelector('#No-of-accounts')
+      .dispatchEvent(new Event('blur'));
     expect(account).toHaveBeenLastCalledWith({
       key: 'No. of accounts',
       value: '2',
@@ -78,6 +124,70 @@ describe('WordingParserComponent', () => {
     expect(component.form.get('No-of-accounts')?.value).toBe('3');
     expect(component.form.dirty).toBe(true);
     expect(apply).not.toHaveBeenCalled();
+  });
+
+  it('does not resize respondents or prompt for removal while typing 12 over 2', () => {
+    const state = TestBed.inject(MultipleRespondentsState);
+    const forms = TestBed.inject(ApplicationListEntryFormService).createForms();
+    forms.respondentOrganisationForm.patchValue({
+      name: 'Example Bank',
+      addressLine1: 'Example address',
+    });
+    const wording = {
+      template: 'Covering {{No. of accounts}} accounts',
+      'substitution-key-constraints': [
+        { key: 'No. of accounts', value: '2', constraint: { length: 2 } },
+      ],
+    };
+    fixture = TestBed.createComponent(WordingParserComponent);
+    component = fixture.componentInstance;
+    component.accountCountChange.subscribe((field) =>
+      state.sync(field, forms.respondentOrganisationForm, forms.form),
+    );
+    fixture.componentRef.setInput('wordingObject', wording);
+    fixture.componentRef.setInput('wordingObjectValues', wording);
+    fixture.detectChanges();
+    expect(state.rows()).toHaveLength(2);
+    const input: HTMLInputElement =
+      fixture.nativeElement.querySelector('#No-of-accounts');
+    for (const value of ['1', '12']) {
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(state.rows()).toHaveLength(2);
+      expect(state.pending()).toEqual([]);
+      expect(state.count()).toBe('2');
+    }
+    input.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+    expect(state.rows()).toHaveLength(12);
+    expect(state.pending()).toEqual([]);
+    expect(state.rows()[0].form.controls.name.value).toBe('Example Bank');
+    input.value = '2';
+    input.dispatchEvent(new Event('input'));
+    expect(state.pending()).toEqual([]);
+    input.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+    expect(state.pending()).toHaveLength(10);
+    expect(state.rows()).toHaveLength(12);
+  });
+
+  it('commits the final count when wording is applied without first blurring the field', () => {
+    fixture.componentRef.setInput('wordingObject', {
+      template: 'Covering {{No. of accounts}} accounts',
+      'substitution-key-constraints': [
+        { key: 'No. of accounts', constraint: { length: 2 } },
+      ],
+    });
+    fixture.detectChanges();
+    const account = jest.spyOn(component.accountCountChange, 'emit');
+    component.form.get('No-of-accounts')?.setValue('12');
+    expect(account).not.toHaveBeenCalled();
+    component.submitWordingFields();
+    expect(account).toHaveBeenCalledWith({
+      key: 'No. of accounts',
+      value: '12',
+    });
   });
 
   it('validates the account count using the existing Wording validation path', () => {

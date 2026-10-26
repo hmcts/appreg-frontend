@@ -21,6 +21,10 @@ export class SummaryListCardActionComponent {
   actionText = input<string>('Remove');
   compact = input(true);
 
+  cardActionsTemplate = input<TemplateRef<{
+    $implicit: SummaryListCardAction;
+  }> | null>(null);
+
   cardBodyTemplate = input<TemplateRef<{
     $implicit: SummaryListCardAction;
   }> | null>(null);

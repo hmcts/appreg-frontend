@@ -99,6 +99,7 @@ describe('MultipleRespondentsState', () => {
     state.remove(0);
     state.confirmRemoval();
     expect(state.rows()).toHaveLength(1);
+    expect(state.rows()[0].id).toBe(1);
     expect(state.rows()[0].form).toBe(forms.respondentOrganisationForm);
     expect(forms.respondentOrganisationForm.controls.name.value).toBe(
       'Example Network',
@@ -107,6 +108,15 @@ describe('MultipleRespondentsState', () => {
       'Example address',
     );
     expect(state.count()).toBe('1');
+    state.add();
+    state.rows()[1].form.controls.name.setValue('Example third organisation');
+    state.remove(1);
+    state.confirmRemoval();
+    expect(state.rows()[0].id).toBe(2);
+    expect(state.rows()[0].form).toBe(forms.respondentOrganisationForm);
+    expect(forms.respondentOrganisationForm.controls.name.value).toBe(
+      'Example third organisation',
+    );
   });
 
   it('keeps trial respondents and blocks saving if a new code has no matching token', () => {

@@ -38,7 +38,66 @@ class HostWithCardBodyTemplateComponent {
   lastClicked: SummaryListCardAction | null = null;
 }
 
+@Component({
+  imports: [SummaryListCardActionComponent],
+  template: `
+    <ng-template #actions let-card>
+      <li class="govuk-summary-card__action">
+        <a href="#change" (click)="$event.preventDefault(); selected = card.id"
+          >Change<span class="govuk-visually-hidden"> {{ card.title }}</span></a
+        >
+      </li>
+      <li class="govuk-summary-card__action">
+        <a href="#remove" (click)="$event.preventDefault(); removed = card.id"
+          >Remove<span class="govuk-visually-hidden"> {{ card.title }}</span></a
+        >
+      </li>
+    </ng-template>
+    <app-summary-list-card-action
+      [summaryLists]="cards"
+      [cardActionsTemplate]="actions"
+    />
+  `,
+})
+class HostWithHeaderActions {
+  cards = [
+    makeSummaryList({
+      content: [
+        { key: 'Name', value: 'Example organisation' },
+        { key: 'Address', value: 'Example address' },
+      ],
+    }),
+  ];
+  selected: string | null = null;
+  removed: string | null = null;
+}
+
 describe('SummaryListCardActionComponent', () => {
+  it('supports multiple header actions and groups the card rows into a single summary list', async () => {
+    await TestBed.configureTestingModule({
+      imports: [HostWithHeaderActions],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(HostWithHeaderActions);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+    const links = element.querySelectorAll<HTMLAnchorElement>(
+      '.govuk-summary-card__title-wrapper a',
+    );
+    expect(links).toHaveLength(2);
+    expect(links[0].textContent).toContain('Change');
+    expect(links[0].textContent).toContain('Test row');
+    links[0].click();
+    links[1].click();
+    expect(fixture.componentInstance.selected).toBe('row-1');
+    expect(fixture.componentInstance.removed).toBe('row-1');
+    expect(
+      element.querySelectorAll('.govuk-summary-card__content dl'),
+    ).toHaveLength(1);
+    expect(element.querySelectorAll('.govuk-summary-list__row')).toHaveLength(
+      2,
+    );
+  });
+
   describe('component behavior', () => {
     let component: SummaryListCardActionComponent;
     let fixture: ComponentFixture<SummaryListCardActionComponent>;

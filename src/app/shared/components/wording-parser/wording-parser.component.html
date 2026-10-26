@@ -1,6 +1,9 @@
 <form [formGroup]="form">
   <p class="govuk-body wording-parser-text">
-    @for (t of tokens; track $index) {
+    @for (
+      t of tokens;
+      track t.type === 'input' ? $index + ':' + t.key : $index
+    ) {
       @if (t.type == 'text') {
         {{ t.value }}&nbsp;
       } @else if (t.type == 'input') {
@@ -13,6 +16,7 @@
             form.get(normaliseKey(t.key))?.invalid && submitted()
           "
           [formControlName]="normaliseKey(t.key)"
+          (blur)="onFieldBlur(t.key)"
           type="text"
           [attr.inputmode]="isAccountCount(t.key) ? 'numeric' : null"
           [placeholder]="'Enter a ' + t.key"

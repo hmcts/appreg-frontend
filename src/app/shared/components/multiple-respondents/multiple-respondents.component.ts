@@ -4,122 +4,142 @@ import {
   Component,
   Injector,
   afterNextRender,
+  effect,
   inject,
   input,
+  signal,
+  untracked,
 } from '@angular/core';
 
-import { ErrorItem } from '@components/error-summary/error-summary.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '@components/error-summary/error-summary.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
-import { MultipleRespondentsState } from '@services/multiple-respondents.state';
+import { SummaryListCardActionComponent } from '@components/summary-list-card-action/summary-list-card-action.component';
+import { RESPONDENT_ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
+import { RESPONDENT_ORG_ERROR_HREFS } from '@constants/application-list-entry/respondent/error-hrefs';
+import { SummaryListCardAction } from '@core-types/summary-list-card-action/summary-list-card.type';
+import {
+  MultipleRespondentsState,
+  RespondentRow,
+} from '@services/multiple-respondents.state';
+import { buildFormErrorSummary } from '@util/error-summary';
 
 @Component({
   selector: 'app-multiple-respondents',
-  imports: [OrganisationSectionComponent],
+  imports: [
+    OrganisationSectionComponent,
+    ErrorSummaryComponent,
+    SummaryListCardActionComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.Eager,
-  template: `
-    <p class="govuk-visually-hidden" role="status">
-      {{ state().announcement() }}
-    </p>
-    @if (state().countError()) {
-      <p class="govuk-error-message">{{ state().countError() }}</p>
-    }
-    @if (state().pending().length) {
-      <div
-        class="govuk-inset-text"
-        role="region"
-        aria-label="Confirm respondent removal"
-      >
-        <h3
-          class="govuk-heading-m"
-          id="remove-respondents-heading"
-          tabindex="-1"
-        >
-          Remove these respondents?
-        </h3>
-        <ul class="govuk-list govuk-list--bullet">
-          @for (row of state().rows(); track row.id; let i = $index) {
-            @if (state().pending().includes(row.id)) {
-              <li>
-                Respondent {{ i + 1 }}:
-                {{
-                  row.form.controls.name.value || 'No organisation name entered'
-                }}
-              </li>
-            }
-          }
-        </ul>
-        <p class="govuk-body">
-          Their names, addresses and contact details will be removed.
-        </p>
-        <div class="govuk-button-group">
-          <button
-            class="govuk-button govuk-button--warning"
-            type="button"
-            (click)="confirmRemoval()"
-          >
-            Remove respondents
-          </button>
-          <button
-            class="govuk-button govuk-button--secondary"
-            type="button"
-            (click)="cancelRemoval()"
-          >
-            Keep respondents
-          </button>
-        </div>
-      </div>
-    }
-    @for (row of state().rows(); track row.id; let i = $index) {
-      <section [attr.aria-labelledby]="'multiple-respondent-' + row.id">
-        <h3 class="govuk-heading-m" [id]="'multiple-respondent-' + row.id">
-          Respondent {{ i + 1 }}
-        </h3>
-        <p class="govuk-body">Organisation</p>
-        <app-organisation-section
-          [group]="row.form"
-          [scopeId]="row.id === 0 ? 'respondent' : 'respondent-extra-' + row.id"
-          [submitted]="submitted()"
-          [errors]="row.id === 0 ? errors() : []"
-        />
-        @if (state().rows().length > 1) {
-          <button
-            class="govuk-button govuk-button--secondary"
-            type="button"
-            (click)="remove(row.id)"
-          >
-            Remove<span class="govuk-visually-hidden">
-              respondent {{ i + 1 }}</span
-            >
-          </button>
-        }
-      </section>
-      <hr
-        class="govuk-section-break govuk-section-break--l govuk-section-break--visible"
-      />
-    }
-    @if (state().rows().length < 20) {
-      <button
-        class="govuk-button govuk-button--secondary"
-        type="button"
-        (click)="add()"
-      >
-        Add another organisation
-      </button>
-    }
-    <p class="govuk-hint">
-      Adding or removing an organisation also updates the number of accounts in
-      Wording. This local prototype supports up to 20 respondents.
-    </p>
-  `,
+  templateUrl: './multiple-respondents.component.html',
 })
 export class MultipleRespondentsComponent {
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);
 
+  constructor() {
+    effect(() => {
+      if (this.errors().length) {
+        untracked(() => {
+          const first = this.state().rows()[0];
+          if (first) {
+            this.state().edit(first.id);
+          }
+        });
+      }
+    });
+  }
+
+  readonly attempted = signal<number[]>([]);
+  readonly attempt = signal(0);
+
+  nameId(id: number): string {
+    return this.isFirst(id)
+      ? 'respondent-org-name'
+      : `respondent-extra-${id}-org-name`;
+  }
+
+  isFirst(id: number): boolean {
+    return this.state().rows()[0]?.id === id;
+  }
+
   private focusName(id: number): void {
-    this.focus(
-      id === 0 ? 'respondent-org-name' : `respondent-extra-${id}-org-name`,
+    this.focus(this.nameId(id));
+  }
+
+  validationErrors(row: RespondentRow): ErrorItem[] {
+    if (!this.attempted().includes(row.id)) {
+      return [];
+    }
+    const hrefs = Object.fromEntries(
+      Object.entries(RESPONDENT_ORG_ERROR_HREFS).map(([key, href]) => [
+        key,
+        this.isFirst(row.id)
+          ? href
+          : href.replace('#respondent-', `#respondent-extra-${row.id}-`),
+      ]),
     );
+    return buildFormErrorSummary(row.form, RESPONDENT_ENTRY_ERROR_MESSAGES, {
+      hrefs,
+    });
+  }
+
+  fieldErrors(row: RespondentRow): readonly ErrorItem[] {
+    return [
+      ...(this.isFirst(row.id) ? this.errors() : []),
+      ...this.validationErrors(row),
+    ];
+  }
+
+  summary(row: RespondentRow, index: number): SummaryListCardAction {
+    const value = row.form.getRawValue();
+    const address = [
+      value.addressLine1,
+      value.addressLine2,
+      value.addressLine3,
+      value.addressLine4,
+      value.addressLine5,
+      value.postcode,
+    ]
+      .filter((part) => part?.trim())
+      .join(', ');
+    const contact = [
+      { key: 'Phone number', value: value.phoneNumber ?? '' },
+      { key: 'Mobile number', value: value.mobileNumber ?? '' },
+      { key: 'Email address', value: value.emailAddress ?? '' },
+    ].filter((item) => item.value.trim());
+    return {
+      id: String(row.id),
+      title: `Respondent ${index + 1}`,
+      content: [
+        { key: 'Organisation name', value: value.name },
+        { key: 'Address', value: address || 'Not provided' },
+        ...contact,
+      ],
+    };
+  }
+
+  complete(id: number): void {
+    this.attempted.update((ids) => (ids.includes(id) ? ids : [...ids, id]));
+    this.attempt.update((value) => value + 1);
+    if (this.state().complete(id)) {
+      this.attempted.update((ids) => ids.filter((item) => item !== id));
+      this.focus(`respondent-card-${id}`);
+    }
+  }
+
+  edit(id: number): void {
+    this.state().edit(id);
+    this.focusName(id);
+  }
+
+  cancelEdit(id: number): void {
+    this.state().cancelEdit(id);
+    this.attempted.update((ids) => ids.filter((item) => item !== id));
+    this.focus(`respondent-card-${id}`);
   }
 
   private focus(id: string): void {
@@ -141,12 +161,18 @@ export class MultipleRespondentsComponent {
 
   confirmRemoval(): void {
     this.state().confirmRemoval();
-    this.focusName(0);
+    const first = this.state().rows()[0];
+    this.focus(
+      first.editing ? this.nameId(first.id) : `respondent-card-${first.id}`,
+    );
   }
 
   cancelRemoval(): void {
     this.state().cancelRemoval();
-    this.focusName(0);
+    const first = this.state().rows()[0];
+    this.focus(
+      first.editing ? this.nameId(first.id) : `respondent-card-${first.id}`,
+    );
   }
 
   readonly state = input.required<MultipleRespondentsState>();

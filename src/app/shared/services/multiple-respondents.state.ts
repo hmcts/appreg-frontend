@@ -6,6 +6,7 @@ import { TemplateSubstitution } from '@openapi';
 import {
   ApplicationsListEntryForm,
   OrganisationForm,
+  OrganisationFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 export function isAccountCountKey(key: string): boolean {
@@ -14,6 +15,13 @@ export function isAccountCountKey(key: string): boolean {
   );
 }
 
+export type RespondentRow = {
+  id: number;
+  form: OrganisationForm;
+  editing: boolean;
+  savedValue?: OrganisationFormValue;
+};
+
 /** Per-entry, local prototype state. The API still accepts only one respondent. */
 @Injectable()
 export class MultipleRespondentsState {
@@ -21,7 +29,7 @@ export class MultipleRespondentsState {
   private nextId = 1;
   readonly active = signal(false);
   readonly count = signal<string | null>(null);
-  readonly rows = signal<{ id: number; form: OrganisationForm }[]>([]);
+  readonly rows = signal<RespondentRow[]>([]);
   readonly pending = signal<number[]>([]);
   readonly announcement = signal('');
   readonly countError = signal<string | null>(null);
@@ -52,7 +60,14 @@ export class MultipleRespondentsState {
       return;
     }
     if (!this.rows().length) {
-      this.rows.set([{ id: 0, form: first }]);
+      this.rows.set([
+        {
+          id: 0,
+          form: first,
+          editing: !first.valid,
+          savedValue: first.valid ? first.getRawValue() : undefined,
+        },
+      ]);
     }
     this.active.set(true);
     this.count.set(field.value);
@@ -89,6 +104,7 @@ export class MultipleRespondentsState {
         ...Array.from({ length: count - rows.length }, () => ({
           id: this.nextId++,
           form: buildOrganisationForm(this.fb),
+          editing: true,
         })),
       ]);
       this.announcement.set(
@@ -105,6 +121,44 @@ export class MultipleRespondentsState {
     this.resize(this.count()!);
   }
 
+  edit(id: number): void {
+    this.rows.update((rows) =>
+      rows.map((row) => (row.id === id ? { ...row, editing: true } : row)),
+    );
+  }
+
+  complete(id: number): boolean {
+    const row = this.rows().find((item) => item.id === id);
+    if (!row) {
+      return false;
+    }
+    row.form.markAllAsTouched();
+    row.form.updateValueAndValidity();
+    if (row.form.invalid) {
+      return false;
+    }
+    this.rows.update((rows) =>
+      rows.map((item) =>
+        item.id === id
+          ? { ...item, editing: false, savedValue: item.form.getRawValue() }
+          : item,
+      ),
+    );
+    this.announcement.set('Respondent details updated on this page.');
+    return true;
+  }
+
+  cancelEdit(id: number): void {
+    const row = this.rows().find((item) => item.id === id);
+    if (!row?.savedValue) {
+      return;
+    }
+    row.form.patchValue(row.savedValue);
+    this.rows.update((rows) =>
+      rows.map((item) => (item.id === id ? { ...item, editing: false } : item)),
+    );
+  }
+
   remove(id: number): void {
     if (this.rows().length > 1) {
       this.pending.set([id]);
@@ -118,9 +172,9 @@ export class MultipleRespondentsState {
       return;
     }
     // Keep the real form's first organisation group attached to existing save/validation paths.
-    if (retained[0].id !== 0) {
+    if (retained[0] !== rows[0]) {
       rows[0].form.patchValue(retained[0].form.getRawValue());
-      retained[0] = rows[0];
+      retained[0] = { ...retained[0], form: rows[0].form };
     }
     this.rows.set(retained);
     this.count.set(String(retained.length));

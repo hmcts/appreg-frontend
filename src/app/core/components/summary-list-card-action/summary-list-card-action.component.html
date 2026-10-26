@@ -11,39 +11,43 @@
               {{ list.title }}
             </h2>
             <ul class="govuk-summary-card__actions">
-              <li class="govuk-summary-card__action">
-                @if (getStatusTag(list.status)) {
-                  <strong
-                    class="govuk-tag govuk-!-margin-right-2"
-                    [ngClass]="
-                      $safeNavigationMigration(
-                        getStatusTag(list.status)?.className
-                      )
-                    "
+              @if (cardActionsTemplate(); as actions) {
+                <ng-container
+                  *ngTemplateOutlet="actions; context: { $implicit: list }"
+                />
+              } @else {
+                <li class="govuk-summary-card__action">
+                  @if (getStatusTag(list.status)) {
+                    <strong
+                      class="govuk-tag govuk-!-margin-right-2"
+                      [ngClass]="
+                        $safeNavigationMigration(
+                          getStatusTag(list.status)?.className
+                        )
+                      "
+                    >
+                      {{ getStatusTag(list.status)?.text }}
+                    </strong>
+                  }
+                  <a
+                    class="govuk-link"
+                    href="javascript:void(0)"
+                    (click)="onActionClick(list)"
                   >
-                    {{ getStatusTag(list.status)?.text }}
-                  </strong>
-                }
-                <a
-                  class="govuk-link"
-                  href="javascript:void(0)"
-                  (click)="onActionClick(list)"
-                >
-                  {{ actionText() }}
-                  <span class="govuk-visually-hidden">
-                    {{ list.title }}</span
-                  ></a
-                >
-              </li>
+                    {{ actionText() }}
+                    <span class="govuk-visually-hidden">
+                      {{ list.title }}</span
+                    ></a
+                  >
+                </li>
+              }
             </ul>
           </div>
-          @for (entry of list.content; track entry.key) {
-            <div class="govuk-summary-card__content">
-              <dl class="govuk-summary-list">
+          <div class="govuk-summary-card__content">
+            <dl class="govuk-summary-list">
+              @for (entry of list.content; track entry.key) {
                 <div class="govuk-summary-list__row">
-                  <dt class="govuk-summary-list__key">
-                    {{ entry.key }}
-                  </dt>
+                  <dt class="govuk-summary-list__key">{{ entry.key }}</dt>
                   <dd class="govuk-summary-list__value">
                     @if (list.showValue !== false) {
                       {{ entry.value }}
@@ -58,9 +62,9 @@
                     }
                   </dd>
                 </div>
-              </dl>
-            </div>
-          }
+              }
+            </dl>
+          </div>
           @if (list.footer) {
             <div class="govuk-summary-card__content">
               <p class="govuk-body-s govuk-!-margin-bottom-0">

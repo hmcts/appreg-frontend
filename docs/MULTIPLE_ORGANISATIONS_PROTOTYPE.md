@@ -26,19 +26,25 @@ refreshing, navigating away or restarting clears them. They are not persisted.
    select **Add code**. The local mocks include this production-order example.
    On Edit, choose this code if the entry currently uses a different one.
 3. In the existing **Wording** section, enter an applicant name and **2** in
-   **No. of accounts**. Two organisation sections appear in **Respondent** as
-   soon as the count changes. There is no extra Update respondents button.
+   **No. of accounts**. Two organisation sections appear in **Respondent** when
+   you leave the count field. There is no extra Update respondents button.
 4. Enter “Example Bank” and “Example Network” separately, with different made-up
-   addresses or contact details. Edit either organisation directly in the form.
-5. Select **Add another organisation**. A third section appears and the Wording
+   addresses or contact details. Select **Save respondent details** for each.
+   Valid details collapse into compact summary cards. Pre-populated valid
+   respondents also start as cards.
+5. Use **Change** in a card header to reopen only that respondent; the other cards
+   stay visible. Save the updated details or select **Cancel changes** to restore
+   the previous details. Header **Remove** uses the existing removal confirmation.
+   Details are held locally; this action does not save the application.
+6. Select **Add another organisation**. A third section appears and the Wording
    count changes to **3**. Existing details remain.
-6. Change the Wording count to **1**. Check the proposed removals, then select
+7. Change the Wording count to **1**. Check the proposed removals, then select
    **Keep respondents**. All details remain and the count returns to **3**.
-7. Repeat and confirm removal. Alternatively, remove a specific respondent.
+8. Repeat and confirm removal. Alternatively, remove a specific respondent.
    The Wording count always matches the remaining sections after confirmation.
-8. Try zero, fractional, blank or excessive counts. The prototype supports 1–20.
-9. Check that other application fields remain on the same form, then repeat on
-   both Create and Edit using a keyboard and a narrow viewport.
+9. Try zero, fractional, blank or excessive counts. The prototype supports 1–20.
+10. Check that other application fields remain on the same form, then repeat on
+    both Create and Edit using a keyboard and a narrow viewport.
 
 ## Saving limitation
 
@@ -49,10 +55,18 @@ The form explains this limitation. Returning to one respondent restores the
 existing save path; the normal field validation and **Apply wording** requirement
 still apply. These changes do not imply that multi-respondent saving is supported.
 
+The cards reuse `SummaryListCardActionComponent`, extended with an optional
+header-actions template. Existing single-action consumers keep their behavior;
+summary rows share one definition list to reduce spacing. Only entered optional
+contact details are shown. Local completion uses the same organisation validators
+as the entry form, with error-summary links and focus handling.
+
 The first organisation uses the existing respondent form group. Additional groups
-use the same form builder, validators and organisation component. Live account
-changes are separate from **Apply wording**, so editing the count does not silently
-apply or save other wording. Templates without an account-count token retain their
+use the same form builder, validators and organisation component. Leaving the
+count field commits its final value without applying or saving other wording.
+Selecting **Apply wording** also commits the final count, including when activated
+from the keyboard without first leaving the field. Initial loaded counts and
+Add/Remove actions still update immediately. Templates without an account-count token retain their
 existing respondent behavior. The recognised keys are **No. of accounts** and
 **Number of accounts**, with punctuation/case variations.
 

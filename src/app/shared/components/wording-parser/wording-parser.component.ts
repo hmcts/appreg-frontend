@@ -74,9 +74,6 @@ export class WordingParserComponent {
   form = this.fb.group({});
 
   constructor() {
-    this.form.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.emitAccountCount());
     effect(() => {
       const value = this.accountCountOverride();
       untracked(() => {
@@ -134,6 +131,12 @@ export class WordingParserComponent {
 
   isAccountCount(key: string): boolean {
     return isAccountCountKey(key);
+  }
+
+  onFieldBlur(key: string): void {
+    if (isAccountCountKey(key)) {
+      this.emitAccountCount();
+    }
   }
 
   hasWordingInput(): boolean {
@@ -256,6 +259,7 @@ export class WordingParserComponent {
   }
 
   submitWordingFields(): void {
+    this.emitAccountCount();
     const errors = this.validateForSubmit({ enforceSavedWording: false });
 
     if (errors.length === 0) {

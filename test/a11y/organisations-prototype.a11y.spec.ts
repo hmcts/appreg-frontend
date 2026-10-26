@@ -183,6 +183,7 @@ describe('Organisation prototype keyboard journey', () => {
       await expectFocus('#No-of-accounts');
       await page.$eval('#No-of-accounts', (input) => input.select());
       await page.keyboard.type('2');
+      await page.keyboard.press('Tab');
       await page.waitForFunction(
         () =>
           document.querySelectorAll(
@@ -192,10 +193,36 @@ describe('Organisation prototype keyboard journey', () => {
       await openPanel(accordion, 4);
       await page.focus('#respondent-org-name');
       await page.keyboard.type('Example Bank');
+      await page.focus('#respondent-org-address-line-1');
+      await page.keyboard.type('Example bank address');
+      await page.focus('app-multiple-respondents section button');
+      await page.keyboard.press('Enter');
+      await expectFocus('#respondent-card-0');
       await page.focus('#respondent-extra-1-org-name');
       await page.keyboard.type('Example Network');
       await page.focus('#respondent-extra-1-org-address-line-1');
       await page.keyboard.type('Example address');
+      await page.focus('app-multiple-respondents section button');
+      await page.keyboard.press('Enter');
+      await expectFocus('#respondent-card-1');
+      expect(
+        await page.$$('app-multiple-respondents .govuk-summary-card'),
+      ).toHaveLength(2);
+      expect(await page.$$('app-multiple-respondents input')).toHaveLength(0);
+      // Change one respondent while the other respondent remains visible as a card.
+      await page.focus('#respondent-card-1 .govuk-summary-card__actions a');
+      await page.keyboard.press('Enter');
+      await expectFocus('#respondent-extra-1-org-name');
+      await page.keyboard.type(' updated');
+      await page.focus('app-multiple-respondents section button');
+      await page.keyboard.press('Enter');
+      await expectFocus('#respondent-card-1');
+      expect(
+        await page.$eval('#respondent-card-0', (card) => card.textContent),
+      ).toContain('Example Bank');
+      expect(
+        await page.$eval('#respondent-card-1', (card) => card.textContent),
+      ).toContain('Example Network updated');
       const save =
         route === 'create-entry' ? 'Create entry' : 'Save complete application';
       expect(
@@ -218,31 +245,89 @@ describe('Organisation prototype keyboard journey', () => {
       await expectFocus('#No-of-accounts');
       await page.$eval('#No-of-accounts', (input) => input.select());
       await page.keyboard.type('1');
+      await page.keyboard.press('Tab');
       await openPanel(accordion, 4);
       await page.waitForSelector('[aria-label="Confirm respondent removal"]');
       await activate('Keep respondents');
-      await expectFocus('#respondent-org-name');
+      await expectFocus('#respondent-card-0');
       expect(await page.$eval('#No-of-accounts', (input) => input.value)).toBe(
         '3',
       );
       expect(
-        await page.$eval(
-          '#respondent-extra-1-org-address-line-1',
-          (input) => input.value,
-        ),
-      ).toBe('Example address');
-      const remove = await page.$('app-multiple-respondents section button');
+        await page.$eval('#respondent-card-1', (card) => card.textContent),
+      ).toContain('Example address');
+      const remove = await page.$(
+        '#respondent-card-0 .govuk-summary-card__actions li:last-child a',
+      );
       await remove?.focus();
       await page.keyboard.press('Enter');
       await expectFocus('#remove-respondents-heading');
       await activate('Remove respondents');
-      await expectFocus('#respondent-org-name');
+      await expectFocus('#respondent-card-1');
+      expect(await page.$('#respondent-card-0')).toBeNull();
       expect(
-        await page.$eval('#respondent-org-name', (input) => input.value),
-      ).toBe('Example Network');
+        await page.$eval('#respondent-card-1', (card) => card.textContent),
+      ).toContain('Example Network updated');
       expect(await page.$eval('#No-of-accounts', (input) => input.value)).toBe(
         '2',
       );
+      // Remove a middle editing section while keeping both surrounding respondents.
+      await page.type(
+        '#respondent-extra-2-org-name',
+        'Example middle organisation',
+      );
+      await activate('Add another organisation');
+      await expectFocus('#respondent-extra-3-org-name');
+      await page.keyboard.type('Example final organisation');
+      await page.click(
+        '[aria-labelledby="multiple-respondent-2"] button.govuk-button--secondary',
+      );
+      await expectFocus('#remove-respondents-heading');
+      await activate('Remove respondents');
+      await expectFocus('#respondent-card-1');
+      expect(
+        await page.$('[aria-labelledby="multiple-respondent-2"]'),
+      ).toBeNull();
+      expect(
+        await page.$eval(
+          '#respondent-extra-3-org-name',
+          (input) => input.value,
+        ),
+      ).toBe('Example final organisation');
+      expect(
+        await page.$eval('#respondent-card-1', (card) => card.textContent),
+      ).toContain('Example Network updated');
+      expect(await page.$eval('#No-of-accounts', (input) => input.value)).toBe(
+        '2',
+      );
+      // Resizing waits until the user finishes entering a multi-digit count.
+      await openPanel(accordion, 3);
+      await page.focus('#No-of-accounts');
+      await page.$eval('#No-of-accounts', (input) => input.select());
+      await page.keyboard.type('1');
+      expect(
+        await page.$('[aria-label="Confirm respondent removal"]'),
+      ).toBeNull();
+      await page.keyboard.type('2');
+      expect(
+        await page.$('[aria-label="Confirm respondent removal"]'),
+      ).toBeNull();
+      expect(
+        await page.$$eval(
+          'app-multiple-respondents section, app-multiple-respondents .govuk-summary-card',
+          (rows) => rows.length,
+        ),
+      ).toBe(2);
+      await page.keyboard.press('Tab');
+      await page.waitForFunction(
+        () =>
+          document.querySelectorAll(
+            'app-multiple-respondents section, app-multiple-respondents .govuk-summary-card',
+          ).length === 12,
+      );
+      expect(
+        await page.$('[aria-label="Confirm respondent removal"]'),
+      ).toBeNull();
       await page.setViewport({ width: 375, height: 812 });
       expect(
         await page.evaluate(
