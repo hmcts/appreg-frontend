@@ -19,9 +19,11 @@ export const buildAuthCodeUrlRequest = (
 
 export const buildAuthCodeRequest = (
   code: string,
+  nonce: string,
   redirectUri: string,
 ): AuthorizationCodeRequest => ({
   code,
+  nonce,
   scopes: config.get<string[]>('auth.scopes'),
   redirectUri,
 });
