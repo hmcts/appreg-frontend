@@ -1,8 +1,36 @@
-import { DataTable, When } from '@badeball/cypress-cucumber-preprocessor';
+import {
+  Before,
+  DataTable,
+  Then,
+  When,
+} from '@badeball/cypress-cucumber-preprocessor';
 
 import { ApplicationListCombinedHelper } from '../../../support/helper/appreg/ApplicationListCombinedHelper';
 import { ButtonHelper } from '../../../support/helper/forms/button/ButtonHelper';
 import { resolveAliases } from '../../../support/utils/AliasResolver';
+
+Before({ tags: '@courtReferenceData' }, () => {
+  cy.intercept('GET', '**/court-locations?*').as('courtReferenceData');
+});
+
+Then('User Waits For Court Reference Data', () => {
+  // Suggestions use the complete reference list, not just the first API page.
+  function waitForPage(): void {
+    cy.wait('@courtReferenceData').then(({ response }) => {
+      // Navigation from the home page can cancel an in-flight reference request.
+      if (!response) {
+        waitForPage();
+        return;
+      }
+      expect(response.statusCode).to.eq(200);
+      expect(response.body).to.have.property('last');
+      if (!response.body.last) {
+        waitForPage();
+      }
+    });
+  }
+  waitForPage();
+});
 
 When('User Searches Application List With:', (dataTable: DataTable) => {
   const rawCriteria = dataTable.hashes()[0];

@@ -117,12 +117,13 @@ export class TableElement {
   static getNextPaginationButton(
     $body: JQuery<HTMLElement>,
   ): JQuery<HTMLElement> {
-    let $nextButton = $body.find('a[rel="next"]');
+    const $pagination = this.getPaginationContainer($body);
+    let $nextButton = $pagination.find('a[rel="next"]');
     if ($nextButton.length === 0) {
-      $nextButton = $body.find('a:contains("Next")');
+      $nextButton = $pagination.find('a:contains("Next")');
     }
     if ($nextButton.length === 0) {
-      $nextButton = $body.find('button:contains("Next")');
+      $nextButton = $pagination.find('button:contains("Next")');
     }
     return $nextButton;
   }
