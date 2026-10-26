@@ -831,10 +831,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/msal-common@npm:15.17.0":
-  version: 15.17.0
-  resolution: "@azure/msal-common@npm:15.17.0"
-  checksum: 10/ca0c040a236744f0d648ab1444b0eed6406b41311b4271feaefb7f845a198d3fc8d182b0c5297790ba8ce1341a9928f8832d2f05c86a37e85cb444e5d66dee5e
+"@azure/msal-common@npm:16.14.3":
+  version: 16.14.3
+  resolution: "@azure/msal-common@npm:16.14.3"
+  checksum: 10/be6df5c62dee049588494e605e9288f2cd601f3949de1e1165dd99822ea70c73a270e3e9c12190c9ed39a215d4de2910053506846450199e3d6634179b82f478
   languageName: node
   linkType: hard
 
@@ -845,24 +845,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/msal-node@npm:^3.5.0, @azure/msal-node@npm:^3.8.4":
-  version: 3.8.10
-  resolution: "@azure/msal-node@npm:3.8.10"
+"@azure/msal-node@npm:^7.1.0":
+  version: 7.1.1
+  resolution: "@azure/msal-node@npm:7.1.1"
   dependencies:
-    "@azure/msal-common": "npm:15.17.0"
+    "@azure/msal-common": "npm:16.14.3"
     jsonwebtoken: "npm:^9.0.0"
-    uuid: "npm:^8.3.0"
-  checksum: 10/bdd9746c25f288af5eca8ff2703ebd7265607b26d6e7605f64c45e58e5cdef61a095d706403cb8e651f83fcb0326d345fff0968081f4b802f70350d4cf7f939e
-  languageName: node
-  linkType: hard
-
-"@azure/msal-node@npm:^5.1.0":
-  version: 5.2.4
-  resolution: "@azure/msal-node@npm:5.2.4"
-  dependencies:
-    "@azure/msal-common": "npm:16.8.0"
-    jsonwebtoken: "npm:^9.0.0"
-  checksum: 10/785c072ab2a18f713b4ddf5a397dfb5332f644152ab2a96c57a3cad9d472885b9215a1a2b715c20da301ad64dde01dffdd23db513d5058c294dddd33218082fe
+  checksum: 10/a27627213db1feb1c90322e4620cb5379ed8f3a9463a74718d58612c4597a43bed1140df93a7429575c7e238f2461348b1e134319a5976bebd1c6147cd64fcf3
   languageName: node
   linkType: hard
 
@@ -7303,7 +7292,7 @@ __metadata:
     "@angular/ssr": "npm:^22.1.3"
     "@apidevtools/json-schema-ref-parser": "npm:^15.1.2"
     "@azure/monitor-opentelemetry": "npm:^1.20.1"
-    "@azure/msal-node": "npm:^3.8.4"
+    "@azure/msal-node": "npm:^7.1.0"
     "@badeball/cypress-cucumber-preprocessor": "npm:^24.0.0"
     "@bahmutov/cypress-esbuild-preprocessor": "npm:^2.2.5"
     "@eslint/compat": "npm:^1.3.2"
@@ -7869,20 +7858,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"body-parser@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "body-parser@npm:2.3.0"
+"body-parser@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "body-parser@npm:2.4.0"
   dependencies:
     bytes: "npm:^3.1.2"
-    content-type: "npm:^2.0.0"
+    content-type: "npm:^2.1.0"
     debug: "npm:^4.4.3"
     http-errors: "npm:^2.0.1"
-    iconv-lite: "npm:^0.7.2"
+    iconv-lite: "npm:^0.7.3"
     on-finished: "npm:^2.4.1"
-    qs: "npm:^6.15.2"
+    qs: "npm:^6.16.1"
     raw-body: "npm:^3.0.2"
     type-is: "npm:^2.1.0"
-  checksum: 10/94f741ff525358dd0d47f0a042936dc61b9d2e348ff1228c5ffd79f1902c673a317bbb9495b3f7d1db4483befe6ffed1c42bc4cdd8da8f41690530810cfe4dad
+  checksum: 10/e34971abf7051529d4fae37d3714382e7fa8198bc969f1ec4932af48aef53bba71523545c034ce04fa808d3b15e0d63849e6e93b4f1131d65227e1f414437f68
   languageName: node
   linkType: hard
 
@@ -8631,6 +8620,13 @@ __metadata:
   version: 2.0.0
   resolution: "content-type@npm:2.0.0"
   checksum: 10/0bbb276b790ba7e86c479c7d69fae1861b2e908ff3ce2cb01975b516f93eede2216d242902ed6c5b15cd554014611ce9dfdcf51cd35b16569e45a979e50d0cef
+  languageName: node
+  linkType: hard
+
+"content-type@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "content-type@npm:2.1.0"
+  checksum: 10/8aac907922538f430d8bfab1d8fe2fbdc1eb890a0fa7a619f712db4bfefe24be951ba464f972007df64840c775bf2db284ca8223547ac5317ad9ab2ee8e6501b
   languageName: node
   linkType: hard
 
@@ -11652,6 +11648,15 @@ __metadata:
   dependencies:
     safer-buffer: "npm:>= 2.1.2 < 3.0.0"
   checksum: 10/24c937b532f868e938386b62410b303b7c767ce3d08dc2829cbe59464d5a26ef86ae5ad1af6b34eec43ddfea39e7d101638644b0178d67262fa87015d59f983a
+  languageName: node
+  linkType: hard
+
+"iconv-lite@npm:^0.7.3":
+  version: 0.7.3
+  resolution: "iconv-lite@npm:0.7.3"
+  dependencies:
+    safer-buffer: "npm:>= 2.1.2 < 3.0.0"
+  checksum: 10/b88a3f4527795c96854743bcdcdd03e0083ff5f1c072cb13d3e27c67cd276efd9a2a364922cb836538e976456f82323d645f7ea91d5bc8da1f000dc16742a0aa
   languageName: node
   linkType: hard
 
@@ -19360,31 +19365,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:4.6.6":
-  version: 4.6.6
-  resolution: "zod@npm:4.6.6"
-  checksum: 10/ce628fb33400b531f48b63ad1bd9b5ab95ec3ac60d4e8025892d90af9ca5d03b168aaaf74071928345ad1b1bcd735a7d5cf33230ece7de885240bb0f2b7bb492
-  languageName: node
-  linkType: hard
-
-"zod@npm:^3.24.1":
-  version: 3.25.76
-  resolution: "zod@npm:3.25.76"
-  checksum: 10/f0c963ec40cd96858451d1690404d603d36507c1fc9682f2dae59ab38b578687d542708a7fdbf645f77926f78c9ed558f57c3d3aa226c285f798df0c4da16995
-  languageName: node
-  linkType: hard
-
-"zod@npm:^4.0.10":
-  version: 4.4.3
-  resolution: "zod@npm:4.4.3"
-  checksum: 10/804b9a42aa8f35f2b3c5a8dff906291cb749115f83ee2afe3576d70b5b5c53c965365c7f4967690647a9c54af9838ff232a85ff9577a0a36c44b68bc6cdefe36
-  languageName: node
-  linkType: hard
-
-"zod@npm:^4.2.0":
-  version: 4.6.5
-  resolution: "zod@npm:4.6.5"
-  checksum: 10/db004952e4dc6eab38b70f0cdef9251a65da84f5d08c5a0ef85e2590cfa9c477544ce734161ff5c05f89a15f0967137607a7feb16716195e04965f030db47213
+"zod@npm:^4.6.6":
+  version: 4.6.7
+  resolution: "zod@npm:4.6.7"
+  checksum: 10/3ca8b8d6bb401538e59504c543db629ea7beaa775e504c3f22269b406fdffbf1431c856d59a597bf66d8487e4d2be12b03a55d76fc2c63d9f046eae1ca173bca
   languageName: node
   linkType: hard
 

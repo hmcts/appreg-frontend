@@ -206,12 +206,14 @@ export function setupSsoRoutes(
         typeof req.query['code'] === 'string' ? req.query['code'] : undefined;
       const state =
         typeof req.query['state'] === 'string' ? req.query['state'] : undefined;
-      if (!code || !state || state !== req.session.authState) {
+      const nonce = req.session.nonce;
+      if (!code || !state || state !== req.session.authState || !nonce) {
         logger.warn(
           `[sso] invalid auth response codePresent=${Boolean(code)} ` +
             `statePresent=${Boolean(state)} ` +
             `sessionAuthStatePresent=${Boolean(req.session.authState)} ` +
-            `stateMatches=${state === req.session.authState}`,
+            `stateMatches=${state === req.session.authState} ` +
+            `sessionNoncePresent=${Boolean(nonce)}`,
         );
         res.status(400).send('Invalid auth response.');
         return;
@@ -231,7 +233,7 @@ export function setupSsoRoutes(
       const redirectUri = `${publicBase(req)}/sso/login-callback`;
       const cca = createCca();
       const tokenResponse = await cca.acquireTokenByCode(
-        buildAuthCodeRequest(code, redirectUri),
+        buildAuthCodeRequest(code, nonce, redirectUri),
       );
 
       if (!tokenResponse?.account) {
