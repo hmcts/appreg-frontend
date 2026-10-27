@@ -65,10 +65,18 @@ export class ReportsSharedFormComponent {
     this.submitted() ? (this.getControlError(id)?.text ?? '') : '';
 
   getControlError(id: string): ErrorItem | undefined {
-    return (
-      getControlErrorItem(this.group().get(id), id, this.errorMap()) ??
-      this.externalErrors().find((item) => item.id === id)
+    const currentError = getControlErrorItem(
+      this.group().get(id),
+      id,
+      this.errorMap(),
     );
+
+    // Date fields must not redisplay errors from a previous submission.
+    if (id === 'dateFrom' || id === 'dateTo') {
+      return currentError;
+    }
+
+    return currentError ?? this.externalErrors().find((item) => item.id === id);
   }
 
   onAdvancedClick(e: Event): void {
