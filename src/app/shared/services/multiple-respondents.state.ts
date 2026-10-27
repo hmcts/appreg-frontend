@@ -74,10 +74,10 @@ export class MultipleRespondentsState {
     form.controls.respondentEntryType.setValue('organisation', {
       emitEvent: false,
     });
-    this.resize(field.value);
+    this.validateCount(field.value);
   }
 
-  private resize(value: string): void {
+  private validateCount(value: string): void {
     const count = Number(value);
     if (
       !/^\d+$/.test(value.trim()) ||
@@ -85,40 +85,31 @@ export class MultipleRespondentsState {
       count < 1 ||
       count > 20
     ) {
-      this.pending.set([]);
       this.countError.set(
         'Enter a whole number of accounts between 1 and 20 in Wording',
       );
       return;
     }
     this.countError.set(null);
-    const rows = this.rows();
-    if (count < rows.length) {
-      this.pending.set(rows.slice(count).map((row) => row.id));
-      return;
-    }
-    this.pending.set([]);
-    if (count > rows.length) {
-      this.rows.set([
-        ...rows,
-        ...Array.from({ length: count - rows.length }, () => ({
-          id: this.nextId++,
-          form: buildOrganisationForm(this.fb),
-          editing: true,
-        })),
-      ]);
-      this.announcement.set(
-        `${count} respondent sections. Existing details have been kept.`,
-      );
-    }
   }
 
   add(): void {
     if (this.rows().length >= 20) {
       return;
     }
-    this.count.set(String(this.rows().length + 1));
-    this.resize(this.count()!);
+    this.rows.update((rows) => [
+      ...rows,
+      {
+        id: this.nextId++,
+        form: buildOrganisationForm(this.fb),
+        editing: true,
+      },
+    ]);
+    this.count.set(String(this.rows().length));
+    this.countError.set(null);
+    this.announcement.set(
+      `${this.rows().length} respondent sections. Existing details have been kept.`,
+    );
   }
 
   edit(id: number): void {
@@ -157,6 +148,19 @@ export class MultipleRespondentsState {
     this.rows.update((rows) =>
       rows.map((item) => (item.id === id ? { ...item, editing: false } : item)),
     );
+  }
+
+  cancelAdding(id: number): boolean {
+    const row = this.rows().find((item) => item.id === id);
+    if (!row || row.savedValue || this.rows().length <= 1) {
+      return false;
+    }
+    this.remove(id);
+    this.confirmRemoval();
+    this.announcement.set(
+      `Respondent addition cancelled. ${this.rows().length} respondent sections remaining.`,
+    );
+    return true;
   }
 
   remove(id: number): void {

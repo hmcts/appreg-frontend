@@ -126,7 +126,7 @@ describe('WordingParserComponent', () => {
     expect(apply).not.toHaveBeenCalled();
   });
 
-  it('does not resize respondents or prompt for removal while typing 12 over 2', () => {
+  it('preserves respondents when changing the count, blurring or applying wording', () => {
     const state = TestBed.inject(MultipleRespondentsState);
     const forms = TestBed.inject(ApplicationListEntryFormService).createForms();
     forms.respondentOrganisationForm.patchValue({
@@ -147,7 +147,9 @@ describe('WordingParserComponent', () => {
     fixture.componentRef.setInput('wordingObject', wording);
     fixture.componentRef.setInput('wordingObjectValues', wording);
     fixture.detectChanges();
-    expect(state.rows()).toHaveLength(2);
+    expect(state.rows()).toHaveLength(1);
+    state.add();
+    const rows = state.rows();
     const input: HTMLInputElement =
       fixture.nativeElement.querySelector('#No-of-accounts');
     for (const value of ['1', '12']) {
@@ -160,7 +162,7 @@ describe('WordingParserComponent', () => {
     }
     input.dispatchEvent(new Event('blur'));
     fixture.detectChanges();
-    expect(state.rows()).toHaveLength(12);
+    expect(state.rows()).toBe(rows);
     expect(state.pending()).toEqual([]);
     expect(state.rows()[0].form.controls.name.value).toBe('Example Bank');
     input.value = '2';
@@ -168,8 +170,18 @@ describe('WordingParserComponent', () => {
     expect(state.pending()).toEqual([]);
     input.dispatchEvent(new Event('blur'));
     fixture.detectChanges();
-    expect(state.pending()).toHaveLength(10);
-    expect(state.rows()).toHaveLength(12);
+    expect(state.pending()).toEqual([]);
+    expect(state.rows()).toBe(rows);
+    for (const value of ['1', '12']) {
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+      component.submitWordingFields();
+      fixture.detectChanges();
+      expect(state.rows()).toBe(rows);
+      expect(state.pending()).toEqual([]);
+      expect(state.rows()[0].form.controls.name.value).toBe('Example Bank');
+      expect(state.count()).toBe(value);
+    }
   });
 
   it('commits the final count when wording is applied without first blurring the field', () => {

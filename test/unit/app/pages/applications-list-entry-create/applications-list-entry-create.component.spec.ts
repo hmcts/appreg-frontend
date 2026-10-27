@@ -94,6 +94,8 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
 
   it('does not silently send only the first of multiple respondents to the API', () => {
     component.onAccountCountChange({ key: 'No. of accounts', value: '2' });
+    expect(component.multipleRespondents.rows()).toHaveLength(1);
+    component.multipleRespondents.add();
     component.onSubmit(new Event('submit'));
     expect(createApplicationListEntryMock).not.toHaveBeenCalled();
     expect(component.multipleRespondents.rows()).toHaveLength(2);
@@ -1452,7 +1454,7 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
     document.body.innerHTML = '';
   });
 
-  it('adds respondent fields directly to the entry form from the wording count', async () => {
+  it('adds and removes respondents explicitly while wording counts preserve existing details', async () => {
     await TestBed.configureTestingModule({
       imports: [ApplicationsListEntryCreate],
       providers: [
@@ -1477,6 +1479,10 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
       key: 'No. of accounts',
       value: '2',
     });
+    expect(fixture.componentInstance.multipleRespondents.rows()).toHaveLength(
+      1,
+    );
+    fixture.componentInstance.multipleRespondents.add();
     fixture.detectChanges();
     expect(
       element.querySelectorAll(
@@ -1511,6 +1517,8 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
     expect(fixture.componentInstance.multipleRespondents.rows()).toHaveLength(
       2,
     );
+    expect(fixture.componentInstance.multipleRespondents.pending()).toEqual([]);
+    fixture.componentInstance.multipleRespondents.remove(1);
     fixture.componentInstance.multipleRespondents.confirmRemoval();
     fixture.detectChanges();
     expect(fixture.componentInstance.multipleRespondents.rows()).toHaveLength(

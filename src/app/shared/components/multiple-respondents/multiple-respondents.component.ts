@@ -4,6 +4,7 @@ import {
   Component,
   Injector,
   afterNextRender,
+  computed,
   effect,
   inject,
   input,
@@ -35,6 +36,7 @@ import { buildFormErrorSummary } from '@util/error-summary';
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './multiple-respondents.component.html',
+  styleUrl: './multiple-respondents.component.scss',
 })
 export class MultipleRespondentsComponent {
   private readonly document = inject(DOCUMENT);
@@ -46,11 +48,50 @@ export class MultipleRespondentsComponent {
         untracked(() => {
           const first = this.state().rows()[0];
           if (first) {
+            this.selectedId.set(first.id);
             this.state().edit(first.id);
           }
         });
       }
     });
+  }
+
+  private readonly selectedId = signal<number | null>(null);
+  readonly activeId = computed(() => {
+    const rows = this.state().rows();
+    return rows.find((row) => row.id === this.selectedId())?.id ?? rows[0]?.id;
+  });
+
+  select(id: number): void {
+    this.selectedId.set(id);
+  }
+
+  tabLabel(row: RespondentRow, index: number): string {
+    return row.savedValue?.name || `Organisation ${index + 1}`;
+  }
+
+  onTabKeydown(event: KeyboardEvent, index: number): void {
+    const rows = this.state().rows();
+    let next: number;
+    switch (event.key) {
+      case 'ArrowRight':
+        next = (index + 1) % rows.length;
+        break;
+      case 'ArrowLeft':
+        next = (index + rows.length - 1) % rows.length;
+        break;
+      case 'Home':
+        next = 0;
+        break;
+      case 'End':
+        next = rows.length - 1;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    this.select(rows[next].id);
+    this.focus(`respondent-tab-${rows[next].id}`);
   }
 
   readonly attempted = signal<number[]>([]);
@@ -123,6 +164,7 @@ export class MultipleRespondentsComponent {
   }
 
   complete(id: number): void {
+    this.select(id);
     this.attempted.update((ids) => (ids.includes(id) ? ids : [...ids, id]));
     this.attempt.update((value) => value + 1);
     if (this.state().complete(id)) {
@@ -132,11 +174,13 @@ export class MultipleRespondentsComponent {
   }
 
   edit(id: number): void {
+    this.select(id);
     this.state().edit(id);
     this.focusName(id);
   }
 
   cancelEdit(id: number): void {
+    this.select(id);
     this.state().cancelEdit(id);
     this.attempted.update((ids) => ids.filter((item) => item !== id));
     this.focus(`respondent-card-${id}`);
@@ -151,7 +195,15 @@ export class MultipleRespondentsComponent {
   add(): void {
     this.state().add();
     const rows = this.state().rows();
+    this.select(rows[rows.length - 1].id);
     this.focusName(rows[rows.length - 1].id);
+  }
+
+  cancelAdding(id: number): void {
+    if (this.state().cancelAdding(id)) {
+      this.attempted.update((ids) => ids.filter((item) => item !== id));
+      this.focusFirstRespondent();
+    }
   }
 
   remove(id: number): void {
@@ -161,15 +213,17 @@ export class MultipleRespondentsComponent {
 
   confirmRemoval(): void {
     this.state().confirmRemoval();
-    const first = this.state().rows()[0];
-    this.focus(
-      first.editing ? this.nameId(first.id) : `respondent-card-${first.id}`,
-    );
+    this.focusFirstRespondent();
   }
 
   cancelRemoval(): void {
     this.state().cancelRemoval();
+    this.focusFirstRespondent();
+  }
+
+  private focusFirstRespondent(): void {
     const first = this.state().rows()[0];
+    this.select(first.id);
     this.focus(
       first.editing ? this.nameId(first.id) : `respondent-card-${first.id}`,
     );

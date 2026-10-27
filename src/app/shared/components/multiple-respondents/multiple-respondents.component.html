@@ -24,7 +24,7 @@
       }
     </ul>
     <p class="govuk-body">
-      Their names, addresses and contact details will be removed.
+      Their name, address and contact details will be removed.
     </p>
     <div class="govuk-button-group">
       <button
@@ -32,14 +32,14 @@
         type="button"
         (click)="confirmRemoval()"
       >
-        Remove respondents
+        Remove respondent
       </button>
       <button
         class="govuk-button govuk-button--secondary"
         type="button"
         (click)="cancelRemoval()"
       >
-        Keep respondents
+        Keep respondent
       </button>
     </div>
   </div>
@@ -64,69 +64,105 @@
     </li>
   }
 </ng-template>
-@for (row of state().rows(); track row.id; let i = $index) {
-  @if (row.editing) {
-    <section [attr.aria-labelledby]="'multiple-respondent-' + row.id">
+<div class="govuk-tabs organisation-tabs">
+  <ul class="govuk-tabs__list" role="tablist" aria-label="Organisations">
+    @for (row of state().rows(); track row.id; let i = $index) {
+      <li
+        class="govuk-tabs__list-item"
+        role="presentation"
+        [class.govuk-tabs__list-item--selected]="activeId() === row.id"
+      >
+        <a
+          class="govuk-tabs__tab"
+          role="tab"
+          [id]="'respondent-tab-' + row.id"
+          [href]="'#respondent-panel-' + row.id"
+          [attr.aria-controls]="'respondent-panel-' + row.id"
+          [attr.aria-selected]="activeId() === row.id"
+          [attr.tabindex]="activeId() === row.id ? 0 : -1"
+          (click)="$event.preventDefault(); select(row.id)"
+          (keydown)="onTabKeydown($event, i)"
+          >{{ tabLabel(row, i) }}</a
+        >
+      </li>
+    }
+  </ul>
+  @for (row of state().rows(); track row.id; let i = $index) {
+    <div
+      class="govuk-tabs__panel"
+      [id]="'respondent-panel-' + row.id"
+      role="tabpanel"
+      [attr.aria-labelledby]="'respondent-tab-' + row.id"
+      [hidden]="activeId() !== row.id"
+    >
       <h3 class="govuk-heading-m" [id]="'multiple-respondent-' + row.id">
-        Respondent {{ i + 1 }}
+        {{ tabLabel(row, i) }}
       </h3>
-      @if (validationErrors(row).length) {
-        <app-error-summary
-          [items]="validationErrors(row)"
-          [idPrefix]="'respondent-' + row.id + '-summary'"
-          [focusKey]="attempt()"
-        />
-      }
-      <p class="govuk-body">Organisation</p>
-      <app-organisation-section
-        [group]="row.form"
-        [scopeId]="
-          isFirst(row.id) ? 'respondent' : 'respondent-extra-' + row.id
-        "
-        [submitted]="submitted() || attempted().includes(row.id)"
-        [errors]="fieldErrors(row)"
-      />
-      <div class="govuk-button-group">
-        <button class="govuk-button" type="button" (click)="complete(row.id)">
-          Save respondent details<span class="govuk-visually-hidden">
-            for respondent {{ i + 1 }}</span
-          >
-        </button>
-        @if (row.savedValue) {
-          <a
-            class="govuk-link"
-            [href]="'#respondent-card-' + row.id"
-            (click)="$event.preventDefault(); cancelEdit(row.id)"
-            >Cancel changes<span class="govuk-visually-hidden">
-              to respondent {{ i + 1 }}</span
-            ></a
-          >
-        }
-        @if (state().rows().length > 1) {
-          <button
-            class="govuk-button govuk-button--secondary"
-            type="button"
-            (click)="remove(row.id)"
-          >
-            Remove<span class="govuk-visually-hidden">
-              respondent {{ i + 1 }}</span
+      @if (row.editing) {
+        <section [attr.aria-labelledby]="'multiple-respondent-' + row.id">
+          @if (validationErrors(row).length) {
+            <app-error-summary
+              [items]="validationErrors(row)"
+              [idPrefix]="'respondent-' + row.id + '-summary'"
+              [focusKey]="attempt()"
+              [autoFocus]="activeId() === row.id"
+            />
+          }
+          <p class="govuk-body">Organisation</p>
+          <app-organisation-section
+            [group]="row.form"
+            [scopeId]="
+              isFirst(row.id) ? 'respondent' : 'respondent-extra-' + row.id
+            "
+            [submitted]="submitted() || attempted().includes(row.id)"
+            [errors]="fieldErrors(row)"
+          />
+          <div class="govuk-button-group">
+            <button
+              class="govuk-button"
+              type="button"
+              (click)="complete(row.id)"
             >
-          </button>
-        }
-      </div>
-    </section>
-    <hr
-      class="govuk-section-break govuk-section-break--l govuk-section-break--visible"
-    />
-  } @else {
-    <div [id]="'respondent-card-' + row.id" tabindex="-1">
-      <app-summary-list-card-action
-        [summaryLists]="[summary(row, i)]"
-        [cardActionsTemplate]="headerActions"
-      />
+              Save respondent details<span class="govuk-visually-hidden">
+                for respondent {{ i + 1 }}</span
+              >
+            </button>
+            @if (row.savedValue) {
+              <a
+                class="govuk-link"
+                [href]="'#respondent-card-' + row.id"
+                (click)="$event.preventDefault(); cancelEdit(row.id)"
+                >Cancel changes<span class="govuk-visually-hidden">
+                  to respondent {{ i + 1 }}</span
+                ></a
+              >
+            } @else if (state().rows().length > 1) {
+              <button
+                class="govuk-button govuk-button--secondary"
+                type="button"
+                (click)="cancelAdding(row.id)"
+              >
+                Cancel adding respondent<span class="govuk-visually-hidden">
+                  {{ i + 1 }}</span
+                >
+              </button>
+            }
+          </div>
+        </section>
+        <hr
+          class="govuk-section-break govuk-section-break--l govuk-section-break--visible"
+        />
+      } @else {
+        <div [id]="'respondent-card-' + row.id" tabindex="-1">
+          <app-summary-list-card-action
+            [summaryLists]="[summary(row, i)]"
+            [cardActionsTemplate]="headerActions"
+          />
+        </div>
+      }
     </div>
   }
-}
+</div>
 @if (state().rows().length < 20) {
   <button
     class="govuk-button govuk-button--secondary"

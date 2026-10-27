@@ -35,8 +35,12 @@ describe('MultipleRespondentsState', () => {
       addressLine1: 'Example address',
     });
     sync('2');
+    state.add();
     state.rows()[1].form.controls.name.setValue('Example Network');
     sync('3');
+    expect(state.rows()).toHaveLength(2);
+    expect(state.pending()).toEqual([]);
+    state.add();
     expect(state.rows()).toHaveLength(3);
     expect(state.rows()[0].form).toBe(forms.respondentOrganisationForm);
     expect(state.rows()[0].form.controls.addressLine1.value).toBe(
@@ -53,6 +57,7 @@ describe('MultipleRespondentsState', () => {
     (value) => {
       const { state, sync } = setup();
       sync('2');
+      state.add();
       state.rows()[1].form.controls.name.setValue('Example Network');
       sync(value);
       expect(state.countError()).toBeTruthy();
@@ -62,36 +67,96 @@ describe('MultipleRespondentsState', () => {
     },
   );
 
-  it('confirms or cancels reducing the count without silently discarding details', () => {
+  it.each(['1', '2', '12', '20'])(
+    'preserves all respondents when the wording count changes to %s',
+    (value) => {
+      const { state, sync } = setup();
+      sync('3');
+      expect(state.rows()).toHaveLength(1);
+      state.add();
+      state.add();
+      state.rows()[2].form.controls.name.setValue('Example Network');
+      const rows = state.rows();
+      sync(value);
+      expect(state.rows()).toBe(rows);
+      expect(state.rows()[2].form.controls.name.value).toBe('Example Network');
+      expect(state.pending()).toEqual([]);
+      expect(state.count()).toBe(value);
+      expect(state.countError()).toBeNull();
+    },
+  );
+
+  it('only confirms or cancels removals requested explicitly', () => {
     const { state, sync } = setup();
-    sync('3');
+    sync('1');
+    state.add();
+    state.add();
     state.rows()[2].form.controls.name.setValue('Example Network');
+    state.remove(2);
     sync('1');
-    expect(state.pending()).toHaveLength(2);
-    expect(state.rows()).toHaveLength(3);
+    expect(state.pending()).toEqual([2]);
     state.cancelRemoval();
-    expect(state.count()).toBe('3');
+    expect(state.rows()).toHaveLength(3);
     expect(state.rows()[2].form.controls.name.value).toBe('Example Network');
-    sync('1');
+    state.remove(2);
+    sync('0');
+    expect(state.pending()).toEqual([2]);
     state.confirmRemoval();
-    expect(state.rows()).toHaveLength(1);
-    expect(state.saveBlocked()).toBe(false);
+    expect(state.rows()).toHaveLength(2);
+    expect(state.rows().some((row) => row.id === 2)).toBe(false);
   });
 
-  it('does not leave a stale removal confirmation after an invalid count is entered', () => {
-    const { state, sync } = setup();
-    sync('3');
+  it('discards an invalid unsaved addition without validating it or changing the saved respondent', () => {
+    const { state, forms, sync } = setup();
+    forms.respondentOrganisationForm.patchValue({
+      name: 'Example Bank',
+      addressLine1: 'Example address',
+    });
     sync('1');
-    expect(state.pending()).toHaveLength(2);
-    sync('0');
-    expect(state.pending()).toHaveLength(0);
-    expect(state.rows()).toHaveLength(3);
-    expect(state.countError()).toBeTruthy();
+    state.add();
+    const saved = state.rows()[0];
+    const added = state.rows()[1];
+    expect(state.complete(added.id)).toBe(false);
+    expect(state.cancelAdding(added.id)).toBe(true);
+    expect(state.rows()).toEqual([saved]);
+    expect(state.rows()[0].form.getRawValue()).toEqual(saved.savedValue);
+    expect(state.pending()).toEqual([]);
+    expect(state.count()).toBe('1');
+    expect(state.saveBlocked()).toBe(false);
+    expect(state.announcement()).toContain('Respondent addition cancelled');
+  });
+
+  it('does not discard saved respondents, unknown IDs or the only respondent through cancel adding', () => {
+    const { state, sync } = setup();
+    sync('1');
+    expect(state.cancelAdding(0)).toBe(false);
+    state.rows()[0].form.patchValue({
+      name: 'Example Bank',
+      addressLine1: 'Example address',
+    });
+    state.complete(0);
+    state.add();
+    state.edit(0);
+    const rows = state.rows();
+    expect(state.cancelAdding(0)).toBe(false);
+    expect(state.cancelAdding(999)).toBe(false);
+    expect(state.rows()).toBe(rows);
+    expect(state.pending()).toEqual([]);
+  });
+
+  it('limits explicit additions to 20 respondents', () => {
+    const { state, sync } = setup();
+    sync('1');
+    for (let i = 0; i < 25; i++) {
+      state.add();
+    }
+    expect(state.rows()).toHaveLength(20);
   });
 
   it('removes the chosen first respondent while keeping the real form group connected', () => {
     const { state, forms, sync } = setup();
     sync('2');
+    state.add();
     state.rows()[1].form.patchValue({
       name: 'Example Network',
       addressLine1: 'Example address',
@@ -122,6 +187,7 @@ describe('MultipleRespondentsState', () => {
   it('keeps trial respondents and blocks saving if a new code has no matching token', () => {
     const { state, forms, sync } = setup();
     sync('2');
+    state.add();
     state.sync(null, forms.respondentOrganisationForm, forms.form);
     expect(state.rows()).toHaveLength(2);
     expect(state.active()).toBe(true);
