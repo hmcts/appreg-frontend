@@ -21,6 +21,23 @@ Feature: Workload Report
     Then User Should See The Textbox "Criminal justice area"
     Then User Should See The Textbox "Other location description"
 
+  @regression @reports @ARCPOC-1803
+  Scenario Outline: Workload report accepts dates selected from both calendars
+    When User Signs In With Microsoft SSO As "user1"
+    Then User Clicks On The Link Using Exact Text Match "Reports"
+    When User Selects The Radio Button "Workload"
+    When User Selects Date Field "Date from" From The Calendar As "<from>"
+    When User Selects Date Field "Date to" From The Calendar As "<to>"
+    Then User Verifies The Date field "Date from" Has Value "<from>"
+    Then User Verifies The Date field "Date to" Has Value "<to>"
+    When User Clicks On The "Download CSV" Button
+    Then User Waits For The Report Download To Complete
+    Then User Verifies CSV "<CSVFileName>" Is Downloaded
+    Then User Sees Success Banner "Report downloaded" Containing "The workload report has downloaded."
+    Examples:
+      | from       | to         | CSVFileName              |
+      | today      | today      | workload-report-todayiso |
+
   @regression @reports @ARCPOC-248
   Scenario: Workload Report - Validate required dates and location exclusivity
     When User Signs In With Microsoft SSO As "user1"

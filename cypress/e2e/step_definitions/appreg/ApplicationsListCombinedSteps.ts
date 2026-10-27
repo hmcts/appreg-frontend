@@ -9,27 +9,12 @@ import { ApplicationListCombinedHelper } from '../../../support/helper/appreg/Ap
 import { ButtonHelper } from '../../../support/helper/forms/button/ButtonHelper';
 import { resolveAliases } from '../../../support/utils/AliasResolver';
 
-Before({ tags: '@courtReferenceData' }, () => {
+Before(() => {
   cy.intercept('GET', '**/court-locations?*').as('courtReferenceData');
 });
 
 Then('User Waits For Court Reference Data', () => {
-  // Suggestions use the complete reference list, not just the first API page.
-  function waitForPage(): void {
-    cy.wait('@courtReferenceData').then(({ response }) => {
-      // Navigation from the home page can cancel an in-flight reference request.
-      if (!response) {
-        waitForPage();
-        return;
-      }
-      expect(response.statusCode).to.eq(200);
-      expect(response.body).to.have.property('last');
-      if (!response.body.last) {
-        waitForPage();
-      }
-    });
-  }
-  waitForPage();
+  ApplicationListCombinedHelper.waitForCourtReferenceData();
 });
 
 When('User Searches Application List With:', (dataTable: DataTable) => {
