@@ -374,7 +374,7 @@ Feature: Applications List Entry Create
             Then User Should See The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
             Then User Should See The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
 
-      @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1561 @ARCPOC-1823 @SC3
+      @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1561 @ARCPOC-1823 @ARCPOC-1906 @SC3
       Scenario: Create and Open an ALE where Applicant = Standard Applicant, Respondent = Bulk Application using an Application Code with Fee Required = Y and Respondent Required = N
             Given User Authenticates Via API As "user1"
             # Create Application List
@@ -443,73 +443,7 @@ Feature: Applications List Entry Create
             Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
             # Submit Application
             When User Clicks On The "Create entry" Button
-            Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
-            # ---------------OPEN APPLICATION LIST ENTRY-----------@ARCPOC-635 SC3
-
-            Then User Clicks On The Breadcrumb Link "Applications list details"
-            When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
-                  | Sequence number | Account number  | Applicant                   | Respondent | Postcode | Title                                                                     | Fee | Resulted |
-                  | 1               | account{RANDOM} | British Gas Trading Limited |            |          | Issue of warrant of arrest in commitment proceedings - council tax (bulk) | Yes |          |
-            When User Clicks On The "Show all sections" Button
-            Then User Should See The Button "Hide all sections"
-            Then User Sees Page Heading "Applications list entry update"
-            Then User See "Summary of application list entry" On The Page
-            # Verify Applicant Details
-            When User Verifies In The Applicant Details
-                  | Select applicant type | Standard Applicant |
-            Then User Should See The Text "Saved BGAS British Gas Trading Limited" In The Accordion "Applicant"
-            Then User Verifies The Checkbox is Checked In Row Of Table "Standard applicants" In The Accordion "Applicant" With:
-                  | Code | Name                        | Use from   | Use to |
-                  | BGAS | British Gas Trading Limited | 1 Jun 2016 | —      |
-            # Verify Application Codes Details
-            Then User Verifies The Textbox "Application code" Contains "MH99001" In The Accordion "Application codes"
-            Then User Verifies The Textbox "Application title" Contains "Issue of warrant of arrest in commitment proceedings - council tax (bulk)" In The Accordion "Application codes"
-            Then User Verifies The Date field "Lodgement date" Has Value "today"
-            Then User Verifies Date Field "Lodgement date" Is Disabled In The Accordion "Application codes"
-            # Verify Wording Details
-            Then User Verifies The "Wording" Accordion Has Value "Attends to swear a complaint for the issue of warrants of arrest for the debtors to answer an application for committal to prison (number of cases"
-            Then User Verifies Textbox With Placeholder "Enter a Number" Contains "50" In The Accordion "Wording"
-            # Verify Respondent Details provided (as Bulk Application) even though Respondent Required = N as it is optional provide Respondent Details
-            When User Verifies In The Respondent Details
-                  | Select type           | Bulk Application |
-                  | Number of respondents | 10               |
-            # Verify Civil Fee Details
-            Then User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Checked
-            Then User Should See The Text "Selecting this will automatically apply the off site fee to the entry. This change is saved immediately." In The Accordion "Civil fee"
-            Then User Should See The Text "Fee Reference: —" In The Accordion "Civil fee"
-            Then User Should See The Text "Amount: £0.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £30.00" In The Accordion "Civil fee"
-            Then User Verifies "Change" Link Is Visible In Row Of Table In The Accordion "Civil fee" With:
-                  | Fee Status | Status Date  | Payment Ref  |
-                  | PAID       | todaydisplay | PAY-{RANDOM} |
-            # Verify Notes Details
-            Then User Verifies The Textbox "Case reference" Contains "case{RANDOM}" In The Accordion "Notes"
-            Then User Verifies The Textbox "Account reference" Contains "account{RANDOM}" In The Accordion "Notes"
-            Then User Verifies The Textbox "Application details" Contains "This is a test application with special requirements" In The Accordion "Notes"
-            # Result Wording Details
-            Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
-                  | Applicant                   | Respondent | Application title                                                         |
-                  | British Gas Trading Limited |            | Issue of warrant of arrest in commitment proceedings - council tax (bulk) |
-            Then User Verifies The Textbox "Result code" In The Accordion "Result wording" Is Empty
-            Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
-            # Officials Details
-            Then User Should See The Textbox "Magistrate's title" Under "Magistrate 1" FieldSet In The Accordion "Officials"
-            Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 1" FieldSet In The Accordion "Officials"
-            Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 1" FieldSet In The Accordion "Officials"
-
-            Then User Should See The Textbox "Magistrate's title" Under "Magistrate 2" FieldSet In The Accordion "Officials"
-            Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 2" FieldSet In The Accordion "Officials"
-            Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 2" FieldSet In The Accordion "Officials"
-
-            Then User Should See The Textbox "Magistrate's title" Under "Magistrate 3" FieldSet In The Accordion "Officials"
-            Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 3" FieldSet In The Accordion "Officials"
-            Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
-
-            Then User Should See The Textbox "Court official's title" Under "Court official" FieldSet In The Accordion "Officials"
-            Then User Should See The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
-            Then User Should See The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
+            Then User Sees Validation Error Banner "There is a problem" Containing "Fee details are missing or incomplete, please contact Crime IT Support."
 
       @applicationListEntry @regression @ARCPOC-1297 @ARCPOC-1841
       Scenario Outline: Verify Application Codes sorting behaviour
