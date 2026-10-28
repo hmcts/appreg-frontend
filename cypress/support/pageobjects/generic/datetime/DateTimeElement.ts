@@ -155,4 +155,97 @@ export class DateTimeElement {
       this.findDurationMinuteInput(fieldLabel),
     ];
   }
+
+  private static findDateField(fieldLabel: string): Cypress.Chainable {
+    return cy
+      .contains('legend', fieldLabel, { matchCase: false })
+      .closest('fieldset')
+      .should('exist');
+  }
+
+  static selectDateFromCalendar(fieldLabel: string, dateValue: Date): void {
+    const day = dateValue.getDate();
+    const month = dateValue.getMonth();
+    const year = dateValue.getFullYear();
+    const dataTestId = `${day}/${month + 1}/${year}`;
+
+    this.findDateField(fieldLabel)
+      .find('button.moj-js-datepicker-toggle')
+      .should('be.visible')
+      .should('be.enabled')
+      .click();
+
+    this.findDateField(fieldLabel)
+      .find('.moj-datepicker__dialog')
+      .should('have.class', 'moj-datepicker__dialog--open')
+      .then(($dialog) => this.navigateCalendarTo($dialog, month, year))
+      .find(`button.moj-datepicker__calendar-day[data-testid="${dataTestId}"]`)
+      .should('be.visible')
+      .should('not.have.attr', 'aria-disabled', 'true')
+      .click();
+
+    this.findDateField(fieldLabel)
+      .find('.moj-datepicker__dialog')
+      .should('not.have.class', 'moj-datepicker__dialog--open');
+  }
+
+  private static navigateCalendarTo(
+    $dialog: JQuery<HTMLElement>,
+    targetMonth: number,
+    targetYear: number,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .wrap($dialog)
+      .find('.moj-js-datepicker-month-year')
+      .should('be.visible')
+      .invoke('text')
+      .then((title) => {
+        const [monthName, yearText] = title.trim().split(/\s+/);
+        const currentMonth = [
+          'January',
+          'February',
+          'March',
+          'April',
+          'May',
+          'June',
+          'July',
+          'August',
+          'September',
+          'October',
+          'November',
+          'December',
+        ].indexOf(monthName);
+        const currentYear = Number(yearText);
+
+        if (currentMonth === -1 || !Number.isInteger(currentYear)) {
+          throw new Error(
+            `Unable to read date-picker month and year: ${title}`,
+          );
+        }
+
+        if (currentYear !== targetYear) {
+          const direction = currentYear < targetYear ? 'next' : 'prev';
+          return cy
+            .wrap($dialog)
+            .find(`.moj-js-datepicker-${direction}-year`)
+            .click()
+            .then(() =>
+              this.navigateCalendarTo($dialog, targetMonth, targetYear),
+            );
+        }
+
+        if (currentMonth !== targetMonth) {
+          const direction = currentMonth < targetMonth ? 'next' : 'prev';
+          return cy
+            .wrap($dialog)
+            .find(`.moj-js-datepicker-${direction}-month`)
+            .click()
+            .then(() =>
+              this.navigateCalendarTo($dialog, targetMonth, targetYear),
+            );
+        }
+
+        return cy.wrap($dialog);
+      });
+  }
 }

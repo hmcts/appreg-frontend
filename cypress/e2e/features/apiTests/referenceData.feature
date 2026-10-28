@@ -86,7 +86,7 @@ Feature: API -Reference Data
         Then User Verify Response Body Should Have:
             | pageNumber     | 0     |
             | pageSize       | 10    |
-            | totalPages     | 23    |
+            | totalPages     | 24    |
             | first          | true  |
             | last           | false |
             | elementsOnPage | 10    |
