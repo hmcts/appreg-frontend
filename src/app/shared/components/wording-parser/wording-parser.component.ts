@@ -106,6 +106,18 @@ export class WordingParserComponent {
     return this.tokens.some((token) => token.type === 'input');
   }
 
+  onWordingEnter(event: Event): void {
+    if (!(event instanceof KeyboardEvent) || event.isComposing) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    if (!event.repeat && this.showSaveButton()) {
+      this.submitWordingFields();
+    }
+  }
+
   getInputWidthClass(key: string): string {
     return key.length > 15 ? 'govuk-input--width-20' : 'govuk-input--width-10';
   }
