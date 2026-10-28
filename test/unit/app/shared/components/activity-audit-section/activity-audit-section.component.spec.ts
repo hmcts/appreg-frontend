@@ -8,10 +8,12 @@ import {
 import { By } from '@angular/platform-browser';
 
 import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
+import { DateInputComponent } from '@components/date-input/date-input.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { ActivitySuggestionItem } from '@components/suggestions/suggestions.types';
 import { REPORTS_FORM_ERROR_MESSAGES } from '@constants/reports/report-err';
 import { ActivityType } from '@openapi';
+import { dateToOnOrAfterDateFromValidator } from '@validators/date-range.validator';
 
 describe('ActivityAuditSectionComponent (with template)', () => {
   let component: ActivityAuditSectionComponent;
@@ -37,6 +39,73 @@ describe('ActivityAuditSectionComponent (with template)', () => {
     fixture.componentRef.setInput('errorMap', REPORTS_FORM_ERROR_MESSAGES);
 
     fixture.detectChanges();
+  });
+
+  it.each(['dateFrom', 'dateTo'])(
+    'clears the inline %s year error after correction despite a stale summary',
+    (field) => {
+      const dateInput = fixture.debugElement.query(
+        By.css(`app-date-input[formControlName="${field}"]`),
+      ).componentInstance as DateInputComponent;
+      dateInput.dateForm.setValue({ day: '01', month: '01', year: '1899' });
+      fixture.componentRef.setInput('submitted', true);
+      fixture.componentRef.setInput('externalErrors', [
+        { id: field, text: 'Date must be between 1900 and 3000' },
+      ]);
+      fixture.detectChanges();
+
+      const fieldElement = fixture.debugElement.query(
+        By.css(`app-date-input[formControlName="${field}"]`),
+      ).nativeElement as HTMLElement;
+      expect(
+        fieldElement.querySelector('.govuk-error-message')?.textContent,
+      ).toContain('Date must be between 1900 and 3000');
+
+      dateInput.dateForm.controls.year.setValue('2001');
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+
+      expect(group.get(field)?.valid).toBe(true);
+      expect(fieldElement.querySelector('.govuk-error-message')).toBeNull();
+      expect(fieldElement.querySelector('.govuk-form-group--error')).toBeNull();
+      expect(fieldElement.querySelector('.govuk-input--error')).toBeNull();
+    },
+  );
+
+  it.each([
+    ['dateFrom', '2001-01-01'],
+    ['dateTo', '2001-01-15'],
+  ])('clears the date-range error when %s is corrected', (field, value) => {
+    group.addValidators(dateToOnOrAfterDateFromValidator());
+    group.patchValue({ dateFrom: '2001-01-10', dateTo: '2001-01-05' });
+    const message = 'Date to must be on or after Date from';
+    fixture.componentRef.setInput('externalErrors', [
+      { id: 'dateTo', text: message },
+    ]);
+    fixture.detectChanges();
+
+    const dateToElement = fixture.debugElement.query(
+      By.css('app-date-input[formControlName="dateTo"]'),
+    ).nativeElement as HTMLElement;
+    expect(dateToElement.querySelector('.govuk-error-message')).toBeNull();
+
+    fixture.componentRef.setInput('submitted', true);
+    fixture.detectChanges();
+    expect(group.get('dateTo')?.hasError('dateRange')).toBe(true);
+    expect(
+      dateToElement.querySelector('.govuk-error-message')?.textContent,
+    ).toContain(message);
+    expect(dateToElement.querySelectorAll('.govuk-input--error')).toHaveLength(
+      3,
+    );
+
+    group.get(field)?.setValue(value);
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges();
+
+    expect(group.get('dateTo')?.hasError('dateRange')).toBe(false);
+    expect(dateToElement.querySelector('.govuk-error-message')).toBeNull();
+    expect(dateToElement.querySelector('.govuk-input--error')).toBeNull();
   });
 
   it('should create', () => {

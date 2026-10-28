@@ -126,12 +126,18 @@ export class ActivityAuditSectionComponent {
   }
 
   getControlError(id: string): ErrorItem | undefined {
-    const control = this.group().get(id);
-
-    return (
-      getControlErrorItem(control, id, this.errorMap()) ??
-      this.externalErrors().find((item) => item.id === id)
+    const currentError = getControlErrorItem(
+      this.group().get(id),
+      id,
+      this.errorMap(),
     );
+
+    // Date fields must not redisplay errors from a previous submission.
+    if (id === 'dateFrom' || id === 'dateTo') {
+      return currentError;
+    }
+
+    return currentError ?? this.externalErrors().find((item) => item.id === id);
   }
 
   private setSelectedActivities(activities: ActivityType[]): void {

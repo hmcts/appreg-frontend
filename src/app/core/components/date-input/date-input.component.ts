@@ -114,7 +114,10 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
       valueDate < new Date(1900, 0, 1) ||
       valueDate > new Date(3000, 11, 31)
     ) {
-      return this.dateError('Date must be between 1900 and 3000');
+      return {
+        dateInvalid: true,
+        dateErrorText: 'Date must be between 1900 and 3000',
+      };
     }
 
     const today = new Date();
