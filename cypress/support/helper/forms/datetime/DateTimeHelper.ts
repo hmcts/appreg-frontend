@@ -8,6 +8,26 @@ export class DateTimeHelper {
    * @param fieldLabel The label/name of the date field group (used for error reporting)
    * @param dateValue The date value - supports static dates ("22/7/2024"), ISO dates with _iso suffix ("2025-07-24_iso"), and dynamic expressions ("today+7d", "yesterday", etc.)
    */
+  static setDateValueFromCalendar(fieldLabel: string, dateValue: string): void {
+    const resolvedDate = DateTimeUtil.parseDateValue(dateValue);
+    const [day, month, year] = resolvedDate.split('/').map(Number);
+
+    if (
+      !Number.isInteger(day) ||
+      !Number.isInteger(month) ||
+      !Number.isInteger(year)
+    ) {
+      throw new Error(
+        `Invalid date format: ${resolvedDate}. Expected DD/MM/YYYY format.`,
+      );
+    }
+
+    DateTimeElement.selectDateFromCalendar(
+      fieldLabel,
+      new Date(year, month - 1, day),
+    );
+  }
+
   static setDateValue(fieldLabel: string, dateValue: string): void {
     try {
       const parsedDate = TestDataGenerator.parseValue(dateValue);

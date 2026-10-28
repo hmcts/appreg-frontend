@@ -53,3 +53,12 @@ When(
     DateTimeHelper.setDurationFieldValuesByLabel(fieldLabel, hours, minutes);
   },
 );
+
+When(
+  'User Selects Date Field {string} From The Calendar As {string}',
+  (fieldLabel: string, dateValue: string) => {
+    if (dateValue && dateValue.trim() !== '' && dateValue !== '*SKIP*') {
+      DateTimeHelper.setDateValueFromCalendar(fieldLabel, dateValue);
+    }
+  },
+);

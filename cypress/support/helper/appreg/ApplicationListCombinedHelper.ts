@@ -7,6 +7,27 @@ import { RadioHelper } from '../forms/radio/RadioHelper';
 import { TextboxHelper } from '../forms/textbox/TextboxHelper';
 
 export class ApplicationListCombinedHelper {
+  static waitForCourtReferenceData(): void {
+    // Suggestions use the complete reference list, not just the first API page.
+    const waitForPage = (): void => {
+      cy.wait('@courtReferenceData').then(({ response }) => {
+        // Navigation from the home page can cancel an in-flight reference request.
+        if (!response) {
+          waitForPage();
+          return;
+        }
+
+        expect(response.statusCode).to.eq(200);
+        expect(response.body).to.have.property('last');
+        if (!response.body.last) {
+          waitForPage();
+        }
+      });
+    };
+
+    waitForPage();
+  }
+
   /**
    * Performs a comprehensive search on the Applications List page
    * Treats datatable first row as field selectors and second row as values
@@ -18,6 +39,16 @@ export class ApplicationListCombinedHelper {
     const processedCriteria = processDatatableRow(criteria);
 
     cy.log('Searching Application List with criteria:', processedCriteria);
+
+    // Queue the complete reference-data wait before any input interaction.
+    // Waiting within the CourtSearch branch can allow earlier queued commands
+    // to type before every paginated response has been observed.
+    const requiresCourtReferenceData = Boolean(
+      processedCriteria.CourtSearch?.trim() || processedCriteria.Court?.trim(),
+    );
+    if (requiresCourtReferenceData) {
+      this.waitForCourtReferenceData();
+    }
 
     for (const [fieldLabel, value] of Object.entries(processedCriteria)) {
       // Skip empty values

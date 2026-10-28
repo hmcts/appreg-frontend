@@ -51,12 +51,13 @@ Feature: Applications List Search
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "entryId"
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-452
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-1803
   Scenario: Verify components on applications list search page
     When User Signs In With Microsoft SSO As "user1"
     Then User Sees Page Heading "Applications list"
     Then User Should See The Date Field "Date"
     Then User Sees Text "For example, 27 3 2007" In "Date" Field
+    Then User Should See The Button "Choose date"
     Then User Should See The Time Field "Time"
     Then User Sees Text "For example, 17:30" In "Time" Field
     Then User Should See The Dropdown "Select list status"
@@ -68,6 +69,16 @@ Feature: Applications List Search
     Then User Should See The Textbox "Other location description"
     Then User Should See The Button "Search"
     Then User Should See The Button "Clear search"
+
+  @regression @applicationsList @ARCPOC-1803
+  Scenario: Search application lists using the date picker
+    When User Signs In With Microsoft SSO As "user1"
+    When User Selects Date Field "Date" From The Calendar As "today"
+    Then User Verifies The Date field "Date" Has Value "today"
+    When User Submits The Application List Search
+    Then User Should See Row In Table "Lists" With Values:
+      | Date        | Entries | Status |
+      | todaydisplay | 1       | OPEN   |
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452
   Scenario: Verify mutual exclusivity of Court and CJA fields
