@@ -1,4 +1,4 @@
-<form [formGroup]="form">
+<div [formGroup]="form">
   <p class="govuk-body wording-parser-text">
     @for (t of tokens; track $index) {
       @if (t.type == 'text') {
@@ -21,6 +21,7 @@
   </p>
   @if (hasWordingInput() && showSaveButton()) {
     <button
+      type="button"
       id="save-wording-button"
       class="govuk-button"
       data-module="govuk-button"
@@ -29,4 +30,4 @@
       Apply wording
     </button>
   }
-</form>
+</div>

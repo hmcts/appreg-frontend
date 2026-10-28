@@ -134,6 +134,7 @@ import {
   updateFeeStatusesControl,
   updatePaymentReferenceInFeeStatusesControl,
 } from '@util/civil-fee-utils';
+import { hasStringProp, isRecord } from '@util/data-utils';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
@@ -266,6 +267,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
   readonly submitAttempt = signal(0);
+  readonly savedApplicationCodeLoaded = signal(false);
 
   resultAppliedBannerVisible = signal(false);
 
@@ -414,6 +416,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
     this.resetErrors();
     const previousFeeStatuses = [
       ...(this.form.controls.feeStatuses.value ?? []),
@@ -462,6 +468,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     feeStatuses: FeeStatus[],
     bannerText: SuccessBanner,
   ): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
     const entryId = getEntryId(this.route);
     if (!entryId || !this.entryDetail) {
       return;
@@ -532,6 +541,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       applicationCode: codeAndLodgementDate.code,
       lodgementDate,
     });
+    this.appListEntryDetailPatch({ appCodeDetail: null });
+    this.feeMeta = null;
     // Call API to retrieve data associated with the App code
     if (this.form.value.applicationCode && this.form.value.lodgementDate) {
       this.applicationCodesApi
@@ -808,6 +819,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     successBanner: SuccessBanner,
     onComplete?: () => void,
   ): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
     const entryId = getEntryId(this.route);
     this.submitAttempt.update((attempt) => attempt + 1);
     if (!entryId || !this.entryDetail) {
@@ -904,6 +918,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onUpdateApplicant(): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
     if (this.isEntrySaveInProgress()) {
       return;
     }
@@ -926,6 +944,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onUpdateApplication(): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
     if (this.isEntrySaveInProgress()) {
       return;
     }
@@ -975,6 +997,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onSaveOfficials(): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
     if (this.isEntrySaveInProgress()) {
       return;
     }
@@ -1031,6 +1057,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onOffsiteFeeChanged(nextValue: boolean): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
     const prev = this.persistedHasOffsiteFee;
 
     if (prev === nextValue) {
@@ -1149,48 +1179,103 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
   }
 
-  private loadCodesSectionFromEntry(entry: EntryGetDetailDto): void {
+  get applicationCodeSaveDisabled(): boolean {
+    return (
+      !this.savedApplicationCodeLoaded() ||
+      (!!this.form.controls.applicationCode.value && !this.vm().appCodeDetail)
+    );
+  }
+
+  private blockSaveWithoutApplicationCode(): boolean {
+    if (
+      this.savedApplicationCodeLoaded() &&
+      !this.form.controls.applicationCode.value
+    ) {
+      this.submitAttempt.update((attempt) => attempt + 1);
+      this.appListEntryDetailPatch({ formSubmitted: true });
+      this.runFullSubmitValidation();
+      return true;
+    }
+    if (this.savedApplicationCodeLoaded() && this.vm().appCodeDetail) {
+      return false;
+    }
+    this.showApplicationCodeLoadError();
+    return true;
+  }
+
+  private showApplicationCodeLoadError(): void {
+    this.appListEntryDetailPatch({
+      errorFound: true,
+      errorHint: 'There is a problem',
+      summaryErrors: [
+        {
+          text: 'Application code details could not be loaded. You cannot save this application until the details are available.',
+        },
+      ],
+    });
+  }
+
+  private loadCodesSectionFromEntry(
+    entry: EntryGetDetailDto,
+    onLoaded?: () => void,
+  ): void {
     const lodgementDate = entry.lodgementDate.slice(0, 10);
     const applicationCode = entry.applicationCode;
 
     this.form.patchValue({ lodgementDate, applicationCode });
 
-    if (applicationCode && lodgementDate) {
-      this.applicationCodesApi
-        .getApplicationCodeByCodeAndDate(
-          { code: applicationCode, date: lodgementDate },
-          'body',
-          false,
-          { transferCache: true },
-        )
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (codeDto) => {
-            this.form.patchValue({ applicationTitle: codeDto.title });
-            this.handleResultWordingContext(this.navState);
-            this.feeMeta = {
-              feeReference: codeDto.feeReference ?? null,
-              feeDescription: codeDto.feeDescription ?? null,
-              feeAmount: codeDto.feeAmount ?? null,
-              offsiteFeeReference: codeDto.offsiteFeeReference ?? null,
-              offsiteFeeDescription: codeDto.offsiteFeeDescription ?? null,
-              offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
-            };
-
-            this.appListEntryDetailPatch({
-              appCodeDetail: codeDto,
-              isFeeRequired: codeDto.isFeeDue,
-              bulkApplicationsAllowed: codeDto.bulkRespondentAllowed,
-              formReady: true,
-            });
-          },
-          error: () => {
-            this.form.patchValue({ applicationTitle: '' });
-            this.handleResultWordingContext(this.navState);
-            this.appListEntryDetailPatch({ formReady: true });
-          },
-        });
+    this.savedApplicationCodeLoaded.set(false);
+    this.feeMeta = null;
+    this.form.patchValue({ applicationTitle: '' });
+    this.appListEntryDetailPatch({
+      appCodeDetail: null,
+      formReady: false,
+      isFeeRequired: false,
+      bulkApplicationsAllowed: false,
+    });
+    if (
+      entry.applicationCodeId === null ||
+      entry.applicationCodeId === undefined
+    ) {
+      this.appListEntryDetailPatch({ formReady: true });
+      this.showApplicationCodeLoadError();
+      return;
     }
+
+    this.applicationCodesApi
+      .getApplicationCodeById({ id: entry.applicationCodeId }, 'body', false, {
+        transferCache: true,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (codeDto) => {
+          this.form.patchValue({ applicationTitle: codeDto.title });
+          this.handleResultWordingContext(this.navState);
+          this.feeMeta = {
+            feeReference: codeDto.feeReference ?? null,
+            feeDescription: codeDto.feeDescription ?? null,
+            feeAmount: codeDto.feeAmount ?? null,
+            offsiteFeeReference: codeDto.offsiteFeeReference ?? null,
+            offsiteFeeDescription: codeDto.offsiteFeeDescription ?? null,
+            offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
+          };
+
+          this.savedApplicationCodeLoaded.set(true);
+          this.appListEntryDetailPatch({
+            appCodeDetail: codeDto,
+            isFeeRequired: codeDto.isFeeDue,
+            bulkApplicationsAllowed: codeDto.bulkRespondentAllowed,
+            formReady: true,
+          });
+          onLoaded?.();
+        },
+        error: () => {
+          this.form.patchValue({ applicationTitle: '' });
+          this.handleResultWordingContext(this.navState);
+          this.appListEntryDetailPatch({ formReady: true });
+          this.showApplicationCodeLoadError();
+        },
+      });
   }
 
   private bindApplicantTypeChanges(): void {
@@ -1247,6 +1332,9 @@ export class ApplicationsListEntryDetail implements OnInit {
       wording: [],
       resultWording: [],
     };
+    if (this.vm().formReady && !this.savedApplicationCodeLoaded()) {
+      this.showApplicationCodeLoadError();
+    }
   }
 
   // ——— Data loading & mapping ———
@@ -1286,22 +1374,27 @@ export class ApplicationsListEntryDetail implements OnInit {
           this.applyEntryDetailSnapshot(state?.entryDetailSnapshot);
           this.handleResultWordingContext(state);
 
-          if (paymentRefReturn) {
-            this.applyPaymentRefReturn(
-              paymentRefReturn.updatedRowId,
-              paymentRefReturn.newPaymentReference,
-            );
-          }
-
           this.resultsFacade.loadEntryResults(listId, entryId);
 
-          if (state?.entryDetailSnapshot) {
-            this.appListEntryDetailPatch({
-              formReady: true,
-            });
-          } else {
-            this.loadCodesSectionFromEntry(entry);
-          }
+          this.loadCodesSectionFromEntry(entry, () => {
+            const snapshot = state?.entryDetailSnapshot;
+            // Preserve a deliberately staged replacement when returning from payment editing.
+            // For the saved code, use the freshly fetched exact record's metadata.
+            if (
+              isRecord(snapshot?.form) &&
+              hasStringProp(snapshot.form, 'applicationCode') &&
+              snapshot.form.applicationCode &&
+              snapshot.form.applicationCode !== entry.applicationCode
+            ) {
+              this.applyEntryDetailSnapshot(snapshot);
+            }
+            if (paymentRefReturn) {
+              this.applyPaymentRefReturn(
+                paymentRefReturn.updatedRowId,
+                paymentRefReturn.newPaymentReference,
+              );
+            }
+          });
         },
         error: (err) => this.handleFatalLoadError(err),
       });
@@ -1567,6 +1660,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onRemoveResult(resultId: string): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
     const entryId = getEntryId(this.route);
     const listId = this.appListEntryDetailState().appListId;
 

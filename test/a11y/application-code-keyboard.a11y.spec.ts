@@ -7,7 +7,6 @@ import {
   openScenario,
   preparePage,
 } from './a11y.browser';
-import { entry, entryId, listId } from './a11y.fixtures';
 import { scenarios } from './a11y.scenarios';
 import { startStaticSpaServer } from './a11y.server';
 
@@ -36,24 +35,7 @@ test.each(['Create entry', 'Edit entry'])(
     const context = await browser.createBrowserContext();
     const page = await context.newPage();
     page.setDefaultTimeout(10_000);
-    const scenario = {
-      ...scenarios.find((item) => item.name === name)!,
-      responses: {
-        // Contact details are required to hydrate the edit form and render its code search.
-        [`/application-lists/${listId}/entries/${entryId}`]: {
-          status: 200,
-          body: {
-            ...entry,
-            applicant: {
-              organisation: {
-                ...entry.applicant.organisation,
-                contactDetails: { addressLine1: 'Synthetic test address' },
-              },
-            },
-          },
-        },
-      },
-    };
+    const scenario = scenarios.find((item) => item.name === name)!;
     try {
       const failures = await preparePage(page, scenario);
       await openScenario(page, baseUrl, scenario);

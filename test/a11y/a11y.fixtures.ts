@@ -14,11 +14,17 @@ export const list = {
   entriesCount: 1,
 };
 export const entry = {
+  applicationCodeId: 100,
   id: entryId,
   listId,
   applicationCode: 'TEST',
   numberOfRespondents: 1,
-  applicant: { organisation: { name: 'Synthetic applicant organisation' } },
+  applicant: {
+    organisation: {
+      name: 'Synthetic applicant organisation',
+      contactDetails: { addressLine1: 'Synthetic test address' },
+    },
+  },
   lodgementDate: '2026-01-01',
   feeStatuses: [],
   officials: [],
@@ -55,6 +61,7 @@ export const fixtures: Record<string, unknown> = {
   '/standard-applicants': paged([]),
   '/application-codes': paged([code]),
   '/application-codes/TEST': code,
+  '/application-codes/by-id/100': code,
   '/result-codes': paged([]),
   '/application-lists': paged([list]),
   [`/application-lists/${listId}`]: list,

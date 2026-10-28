@@ -57,6 +57,26 @@ describe('WordingParserComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('renders static wording without an empty nested form', () => {
+    init({ template: 'Static wording' });
+
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    expect(fixture.nativeElement.querySelector('button')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Static wording');
+  });
+
+  it('applies wording without submitting the containing entry form', () => {
+    const submit = jest.spyOn(component, 'submitWordingFields');
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '#save-wording-button',
+    );
+
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    expect(button.type).toBe('button');
+    button.click();
+    expect(submit).toHaveBeenCalledTimes(1);
+  });
+
   describe('lifecycle', () => {
     it('should call tokeniseAndPatchWordingField in constructor', () => {
       fixture = TestBed.createComponent(WordingParserComponent);

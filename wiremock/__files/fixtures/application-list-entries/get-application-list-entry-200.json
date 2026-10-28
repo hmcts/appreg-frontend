@@ -1,4 +1,5 @@
 {
+  "applicationCodeId": 100,
   "id": "{{request.pathSegments.[3]}}",
   "listId": "{{request.pathSegments.[1]}}",
   "standardApplicantCode": "SA002",
