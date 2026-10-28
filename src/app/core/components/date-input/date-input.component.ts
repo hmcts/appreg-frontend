@@ -279,7 +279,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   }
 
   groupError(submitted: boolean): boolean {
-    if (submitted === false) {
+    if (!submitted) {
       return false;
     }
     const miss =
