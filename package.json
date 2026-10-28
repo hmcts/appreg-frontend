@@ -218,7 +218,7 @@
     "browserslist": "^4.28.7",
     "postcss-selector-parser": "^7.1.5",
     "fflate": "^0.8.3",
-    "qs": "^6.16.0",
+    "qs": "^6.17.0",
     "ip-address": "^10.7.4",
     "moment": "^2.31.0",
     "@grpc/grpc-js": "^1.14.5",
