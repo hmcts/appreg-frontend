@@ -36,7 +36,12 @@ describe('Accessibility', () => {
     page.setDefaultTimeout(10_000);
     try {
       const failures = await preparePage(page, scenario);
-      await openScenario(page, baseUrl, scenario);
+      try {
+        await openScenario(page, baseUrl, scenario);
+      } catch (error) {
+        assertNoBrowserFailures(failures);
+        throw error;
+      }
       assertNoBrowserFailures(failures);
       const result = await pa11y(page.url(), {
         browser,
