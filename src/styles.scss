@@ -13,10 +13,6 @@
 
 @include global-container-widths();
 
-.govuk-frontend-supported app-accordion .govuk-accordion__section-button {
-  border-top-width: 3px;
-}
-
 .govuk-notification-banner__content > * {
   max-width: none;
 }
