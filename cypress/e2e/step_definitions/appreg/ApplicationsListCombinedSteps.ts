@@ -10,6 +10,7 @@ import { ButtonHelper } from '../../../support/helper/forms/button/ButtonHelper'
 import { resolveAliases } from '../../../support/utils/AliasResolver';
 
 Before(() => {
+  ApplicationListCombinedHelper.resetCourtReferenceData();
   cy.intercept('GET', '**/court-locations?*').as('courtReferenceData');
 });
 

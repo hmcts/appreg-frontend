@@ -51,7 +51,10 @@ const FIXTURE_OVERRIDES = Object.freeze({
 });
 
 // Disable response-template for specific success mappings (opId:status)
-const DISABLE_TEMPLATE_FOR = new Set(['getApplicationCodeByCodeAndDate:200']);
+const DISABLE_TEMPLATE_FOR = new Set([
+  'getApplicationCodeByCodeAndDate:200',
+  'getApplicationCodeById:200',
+]);
 
 // Map status ➜ shared error body file under __files/errors
 const ERROR_FILE_BY_STATUS = Object.freeze({

@@ -7,7 +7,7 @@ import {
   openScenario,
   preparePage,
 } from './a11y.browser';
-import { entry, entryId, listId } from './a11y.fixtures';
+import { fixtures } from './a11y.fixtures';
 import { scenarios } from './a11y.scenarios';
 import { startStaticSpaServer } from './a11y.server';
 
@@ -36,24 +36,7 @@ test.each(['Create entry', 'Edit entry'])(
     const context = await browser.createBrowserContext();
     const page = await context.newPage();
     page.setDefaultTimeout(10_000);
-    const scenario = {
-      ...scenarios.find((item) => item.name === name)!,
-      responses: {
-        // Contact details are required to hydrate the edit form and render its code search.
-        [`/application-lists/${listId}/entries/${entryId}`]: {
-          status: 200,
-          body: {
-            ...entry,
-            applicant: {
-              organisation: {
-                ...entry.applicant.organisation,
-                contactDetails: { addressLine1: 'Synthetic test address' },
-              },
-            },
-          },
-        },
-      },
-    };
+    const scenario = scenarios.find((item) => item.name === name)!;
     try {
       const failures = await preparePage(page, scenario);
       await openScenario(page, baseUrl, scenario);
@@ -172,3 +155,70 @@ test.each(['Create entry', 'Edit entry'])(
     }
   },
 );
+
+test('Edit entry: Enter applies wording without submitting the entry', async () => {
+  const context = await browser.createBrowserContext();
+  const page = await context.newPage();
+  page.setDefaultTimeout(10_000);
+  const scenario = {
+    ...scenarios.find((item) => item.name === 'Edit entry')!,
+    responses: {
+      '/application-codes/by-id/100': {
+        status: 200,
+        body: {
+          ...(fixtures['/application-codes/by-id/100'] as Record<
+            string,
+            unknown
+          >),
+          wording: {
+            template: 'Test {{KeyboardValue}}',
+            'substitution-key-constraints': [
+              { key: 'KeyboardValue', value: '', constraint: { length: 50 } },
+            ],
+          },
+        },
+      },
+    },
+  };
+  try {
+    const failures = await preparePage(page, scenario);
+    await openScenario(page, baseUrl, scenario);
+    await page.evaluate(() => {
+      const toggle = Array.from(
+        document.querySelectorAll<HTMLButtonElement>(
+          '.govuk-accordion__section-button',
+        ),
+      ).find((button) => button.textContent?.includes('Wording'));
+      if (toggle?.getAttribute('aria-expanded') === 'false') {
+        toggle.click();
+      }
+    });
+    await page.waitForSelector('#KeyboardValue', { visible: true });
+    const submissions = await page.evaluateHandle(() => {
+      const form = document.querySelector(
+        'app-applications-list-entry-detail > form',
+      );
+      const button = form?.querySelector(
+        ':scope > .govuk-button-group button[type="submit"]',
+      );
+      if (!form || !button) {
+        throw new Error('Expected the entry form and save button');
+      }
+      const counts = { submits: 0, primaryClicks: 0 };
+      form.addEventListener('submit', () => counts.submits++);
+      button.addEventListener('click', () => counts.primaryClicks++);
+      return counts;
+    });
+    await page.type('#KeyboardValue', 'Test value');
+    await page.keyboard.press('Enter');
+    await page.waitForSelector('#wording-local-banner', { visible: true });
+    expect(await submissions.jsonValue()).toEqual({
+      submits: 0,
+      primaryClicks: 0,
+    });
+    expect(new URL(page.url()).pathname).toBe(scenario.path);
+    assertNoBrowserFailures(failures);
+  } finally {
+    await context.close();
+  }
+});

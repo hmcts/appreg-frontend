@@ -97,6 +97,12 @@ export class TableHelper {
       .and('have.length.greaterThan', 0);
   }
 
+  static isTableNotVisible(caption: string): void {
+    cy.contains('caption', caption, { matchCase: false, timeout: 0 }).should(
+      'not.exist',
+    );
+  }
+
   static clickLinkInRowOfTable(
     linkText: string,
     tableName: string,

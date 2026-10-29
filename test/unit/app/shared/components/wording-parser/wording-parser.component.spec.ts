@@ -57,6 +57,71 @@ describe('WordingParserComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('renders static wording without an empty nested form', () => {
+    init({ template: 'Static wording' });
+
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    expect(fixture.nativeElement.querySelector('button')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Static wording');
+  });
+
+  it('applies wording without submitting the containing entry form', () => {
+    const submit = jest.spyOn(component, 'submitWordingFields');
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '#save-wording-button',
+    );
+
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    expect(button.type).toBe('button');
+    button.click();
+    expect(submit).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([true, false])(
+    'prevents implicit parent submission on Enter when showSaveButton is %s',
+    (showSaveButton) => {
+      fixture.componentRef.setInput('showSaveButton', showSaveButton);
+      fixture.detectChanges();
+      const submit = jest.spyOn(component, 'submitWordingFields');
+      const event = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+        cancelable: true,
+      });
+
+      fixture.nativeElement.querySelector('input').dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(submit).toHaveBeenCalledTimes(showSaveButton ? 1 : 0);
+    },
+  );
+
+  it('prevents repeated Enter from submitting the parent or applying wording again', () => {
+    const submit = jest.spyOn(component, 'submitWordingFields');
+    const event = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      repeat: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    fixture.nativeElement.querySelector('input').dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(submit).not.toHaveBeenCalled();
+  });
+
+  it('leaves composition Enter to the input method', () => {
+    const submit = jest.spyOn(component, 'submitWordingFields');
+    const event = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      isComposing: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    fixture.nativeElement.querySelector('input').dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    expect(submit).not.toHaveBeenCalled();
+  });
+
   describe('lifecycle', () => {
     it('should call tokeniseAndPatchWordingField in constructor', () => {
       fixture = TestBed.createComponent(WordingParserComponent);

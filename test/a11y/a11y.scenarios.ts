@@ -136,6 +136,25 @@ for (const [name, button] of [
     ...scenario,
     name: `${name}: validation errors`,
     exercise: async (page) => {
+      await page.waitForSelector(`${button}:not(:disabled)`, { visible: true });
+      if (name === 'Edit entry') {
+        await page.waitForSelector('#applicant-org-name', { visible: true });
+        await page.$eval('#applicant-org-name', (element) => {
+          const input = element as HTMLInputElement;
+          input.focus();
+          input.select();
+        });
+        await page.keyboard.press('Backspace');
+        await page.waitForFunction(() => {
+          const input = document.querySelector<HTMLInputElement>(
+            '#applicant-org-name',
+          );
+          return (
+            input?.value === '' &&
+            input.closest('app-text-input')?.classList.contains('ng-invalid')
+          );
+        });
+      }
       await page.click(button);
     },
     error: '.govuk-error-summary',

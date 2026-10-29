@@ -13,6 +13,13 @@ Then('User Should See The Table {string}', (tableCaption: string) => {
 });
 
 /**
+ * Verifies that a table with the given caption is NOT visible
+ */
+Then('User Should Not See The Table {string}', (tableCaption: string) => {
+  TableHelper.isTableNotVisible(tableCaption);
+});
+
+/**
  * Verifies that the table has at least one row
  */
 Then('User Should See Table {string} Has Rows', (tableCaption: string) => {
@@ -52,6 +59,29 @@ Then(
         ),
       cy.wrap(null),
     );
+  },
+);
+
+/**
+ * Verifies that the first row on the current table page has the specified column values.
+ */
+Then(
+  'User Should See Row 1 In Table {string} With Values:',
+  (tableCaption: string, dataTable: DataTable) => {
+    const rows = dataTable.hashes();
+
+    if (rows.length !== 1) {
+      throw new Error('DataTable must contain exactly one row of data');
+    }
+
+    TableVerification.verifyFirstRow(rows[0], tableCaption);
+  },
+);
+
+Then(
+  'User Should See Table {string} Header {string}',
+  (tableCaption: string, headerText: string) => {
+    TableVerification.verifyHeaderIsVisible(tableCaption, headerText);
   },
 );
 

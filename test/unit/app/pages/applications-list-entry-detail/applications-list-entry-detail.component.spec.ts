@@ -129,6 +129,7 @@ describe('ApplicationsListEntryDetail', () => {
     getState: jest.fn(),
   } as unknown as Location;
 
+  let mockGetApplicationCodeById: jest.Mock;
   let mockGetApplicationCodes: jest.MockedFunction<GetCodesFn>;
   let mockGetApplicationCodeByCodeAndDate: jest.MockedFunction<GetCodeDetailFn>;
   let mockGetStandardApplicants: jest.MockedFunction<GetStandardApplicantsFn>;
@@ -168,6 +169,7 @@ describe('ApplicationsListEntryDetail', () => {
       appListId: 'AL-1',
     });
 
+    mockGetApplicationCodeById = jest.fn();
     mockGetApplicationCodes = jest.fn();
     mockGetApplicationCodeByCodeAndDate = jest.fn();
     mockGetStandardApplicants = jest.fn();
@@ -178,6 +180,7 @@ describe('ApplicationsListEntryDetail', () => {
     mockGetApplicationListEntry.mockReturnValue(
       of({
         lodgementDate: '2025-11-01',
+        applicationCodeId: 100,
         applicationCode: 'APP-100',
         standardApplicantCode: null,
         wording: {
@@ -200,6 +203,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     mockGetApplicationCodeByCodeAndDate.mockReturnValue(
       of({
+        applicationCodeId: 100,
         applicationCode: 'APP-100',
         title: 'Loaded title',
         wording: { template: '' },
@@ -211,6 +215,14 @@ describe('ApplicationsListEntryDetail', () => {
         endDate: null,
       } as ApplicationCodeGetDetailDto),
     );
+
+    mockGetApplicationCodeById.mockReturnValue(
+      mockGetApplicationCodeByCodeAndDate({
+        code: 'APP-100',
+        date: '2025-11-01',
+      }),
+    );
+    mockGetApplicationCodeByCodeAndDate.mockClear();
 
     mockGetStandardApplicants.mockReturnValue(
       of({
@@ -226,6 +238,7 @@ describe('ApplicationsListEntryDetail', () => {
     mockUpdateApplicationListEntry.mockReturnValue(of({}));
 
     const codesApiMock = {
+      getApplicationCodeById: mockGetApplicationCodeById,
       getApplicationCodes: mockGetApplicationCodes,
       getApplicationCodeByCodeAndDate: mockGetApplicationCodeByCodeAndDate,
     } as unknown as ApplicationCodesApi;
@@ -337,11 +350,199 @@ describe('ApplicationsListEntryDetail', () => {
       expect.objectContaining({ transferCache: true }),
     );
 
-    expect(mockGetApplicationCodeByCodeAndDate).toHaveBeenCalledWith(
-      { code: 'APP-100', date: '2025-11-01' },
+    expect(mockGetApplicationCodeById).toHaveBeenCalledWith(
+      { id: 100 },
       'body',
       false,
       expect.objectContaining({ transferCache: true }),
+    );
+  });
+
+  it('uses the linked historical record even when code/date resolves a newer duplicate', () => {
+    const linked = {
+      applicationCode: 'APP-100',
+      title: 'Historical linked title',
+      startDate: '2025-01-01',
+      endDate: '2025-02-01',
+      wording: { template: 'Historical wording' },
+      isFeeDue: true,
+      requiresRespondent: true,
+      bulkRespondentAllowed: true,
+      feeReference: 'HIST',
+      feeDescription: 'Historical fee',
+      feeAmount: '12.00',
+      offsiteFeeReference: 'OFF',
+      offsiteFeeDescription: 'Historical offsite fee',
+      offsiteFeeAmount: '3.00',
+    } as ApplicationCodeGetDetailDto;
+    mockGetApplicationCodeById.mockReturnValue(of(linked));
+    mockGetApplicationCodeByCodeAndDate.mockReturnValue(
+      of({
+        ...linked,
+        title: 'New duplicate title',
+        endDate: null,
+        isFeeDue: false,
+      }),
+    );
+    mockGetApplicationCodeByCodeAndDate.mockClear();
+    component['loadCodesSectionFromEntry'](component['entryDetail']!);
+
+    expect(mockGetApplicationCodeById).toHaveBeenLastCalledWith(
+      { id: 100 },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+    expect(mockGetApplicationCodeByCodeAndDate).not.toHaveBeenCalled();
+    expect(component['form'].controls.applicationTitle.value).toBe(
+      linked.title,
+    );
+    expect(component.vm().appCodeDetail).toEqual(linked);
+    expect(component.vm().isFeeRequired).toBe(true);
+    expect(component.vm().bulkApplicationsAllowed).toBe(true);
+    expect(component.feeMeta).toEqual({
+      feeReference: 'HIST',
+      feeDescription: 'Historical fee',
+      feeAmount: '12.00',
+      offsiteFeeReference: 'OFF',
+      offsiteFeeDescription: 'Historical offsite fee',
+      offsiteFeeAmount: '3.00',
+    });
+  });
+
+  it.each([404, 500])(
+    'blocks all saves and clears stale metadata after exact-ID retrieval fails (%s)',
+    (status) => {
+      mockGetApplicationCodeById.mockReturnValue(
+        throwError(() => ({ status })),
+      );
+      mockGetApplicationCodeByCodeAndDate.mockClear();
+      component['loadCodesSectionFromEntry'](component['entryDetail']!);
+
+      expect(component.vm().errorFound).toBe(true);
+      expect(component.vm().summaryErrors[0].text).toContain(
+        'Application code details could not be loaded',
+      );
+      expect(component.vm().appCodeDetail).toBeNull();
+      expect(component.feeMeta).toBeNull();
+      expect(component['form'].controls.applicationTitle.value).toBe('');
+      expect(mockGetApplicationCodeByCodeAndDate).not.toHaveBeenCalled();
+      component.onUpdateApplication();
+      component.onUpdateApplicant();
+      component.onSaveOfficials();
+      component.onOffsiteFeeChanged(true);
+      component.onAddFeeDetails({
+        paymentStatus: 'Paid',
+      } as unknown as AddFeeDetailsPayload);
+      expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+      expect(component.savedApplicationCodeLoaded()).toBe(false);
+      expect(component.applicationCodeSaveDisabled).toBe(true);
+    },
+  );
+
+  it('reports a missing saved ID without falling back to code/date', () => {
+    mockGetApplicationCodeById.mockClear();
+    mockGetApplicationCodeByCodeAndDate.mockClear();
+    const entry = { ...component['entryDetail']! };
+    Reflect.deleteProperty(entry, 'applicationCodeId');
+    component['loadCodesSectionFromEntry'](entry);
+    expect(mockGetApplicationCodeById).not.toHaveBeenCalled();
+    expect(mockGetApplicationCodeByCodeAndDate).not.toHaveBeenCalled();
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.savedApplicationCodeLoaded()).toBe(false);
+    expect(component.applicationCodeSaveDisabled).toBe(true);
+    component.onUpdateApplication();
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+  });
+
+  it('allows validation after clearing the code without saving an empty selection', () => {
+    component.onCodeSelected({ code: '', date: '2025-11-01' });
+    expect(component.applicationCodeSaveDisabled).toBe(false);
+
+    component.onUpdateApplication();
+
+    expect(component.vm().formSubmitted).toBe(true);
+    expect(component.vm().errorFound).toBe(true);
+    expect(
+      component['form'].controls.applicationCode.hasError('required'),
+    ).toBe(true);
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+  });
+
+  it('blocks saving while the linked record is loading', () => {
+    const response = new Subject<ApplicationCodeGetDetailDto>();
+    mockGetApplicationCodeById.mockReturnValue(response);
+    component['loadCodesSectionFromEntry'](component['entryDetail']!);
+    component.onUpdateApplication();
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+    expect(component.savedApplicationCodeLoaded()).toBe(false);
+    expect(component.applicationCodeSaveDisabled).toBe(true);
+  });
+
+  it('preserves the saved association when updating unrelated entry details', () => {
+    const originalId = component['entryDetail']!.applicationCodeId;
+    const dto = component['buildEntryUpdateDto']();
+    component['submitEntryUpdate'](dto, ENTRY_SUCCESS_MESSAGES.listUpdated);
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entryUpdateDto: expect.objectContaining({ applicationCode: 'APP-100' }),
+      }),
+      'body',
+      false,
+      expect.anything(),
+    );
+    expect(component['entryDetail']!.applicationCodeId).toBe(originalId);
+    mockGetApplicationCodeById.mockClear();
+    component['loadCodesSectionFromEntry'](component['entryDetail']!);
+    expect(mockGetApplicationCodeById).toHaveBeenCalledWith(
+      { id: originalId },
+      'body',
+      false,
+      expect.anything(),
+    );
+  });
+
+  it('waits for exact-ID retrieval before saving a returned payment reference', () => {
+    const response = new Subject<ApplicationCodeGetDetailDto>();
+    mockGetApplicationCodeById.mockReturnValue(response);
+    const freshComponent = component;
+    const applyReturn = jest.spyOn(
+      freshComponent as unknown as {
+        applyPaymentRefReturn: (rowId: string, reference: string) => void;
+      },
+      'applyPaymentRefReturn',
+    );
+    freshComponent['loadEntryAndPatchForm'](
+      'AL-1',
+      'EN-1',
+      { updatedRowId: 'ROW-1', newPaymentReference: 'UPDATED' },
+      {
+        entryDetailSnapshot:
+          component.buildChangePaymentReferenceState()['entryDetailSnapshot'],
+      } as routingStateUtil.EntryDetailNavState,
+    );
+    expect(applyReturn).not.toHaveBeenCalled();
+    response.error({ status: 404 });
+    expect(applyReturn).not.toHaveBeenCalled();
+    expect(freshComponent.vm().errorFound).toBe(true);
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+  });
+
+  it('refreshes saved-code metadata instead of restoring stale navigation metadata', () => {
+    const snapshot = component.buildChangePaymentReferenceState()[
+      'entryDetailSnapshot'
+    ] as routingStateUtil.EntryDetailSnapshot;
+    const freshDetail = {
+      ...component.vm().appCodeDetail!,
+      title: 'Exact linked title',
+    };
+    mockGetApplicationCodeById.mockReturnValue(of(freshDetail));
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, {
+      entryDetailSnapshot: snapshot,
+    });
+    expect(component.vm().appCodeDetail).toEqual(freshDetail);
+    expect(component['form'].controls.applicationTitle.value).toBe(
+      'Exact linked title',
     );
   });
 
@@ -381,8 +582,8 @@ describe('ApplicationsListEntryDetail', () => {
       expect.objectContaining({ transferCache: true }),
     );
 
-    expect(mockGetApplicationCodeByCodeAndDate).toHaveBeenCalledWith(
-      { code: 'APP-100', date: '2025-11-01' },
+    expect(mockGetApplicationCodeById).toHaveBeenCalledWith(
+      { id: 100 },
       'body',
       false,
       expect.objectContaining({ transferCache: true }),
@@ -400,6 +601,7 @@ describe('ApplicationsListEntryDetail', () => {
     mockGetApplicationListEntry.mockReturnValueOnce(
       of({
         lodgementDate: '2025-11-01T12:34:56Z',
+        applicationCodeId: 100,
         applicationCode: 'APP-100',
         standardApplicantCode: 'SA-123',
         standardApplicantId: 123,
@@ -420,8 +622,8 @@ describe('ApplicationsListEntryDetail', () => {
     freshFixture.detectChanges();
 
     expect(mockGetStandardApplicantById).toHaveBeenCalledWith({ id: 123 });
-    expect(mockGetApplicationCodeByCodeAndDate).toHaveBeenCalledWith(
-      { code: 'APP-100', date: '2025-11-01' },
+    expect(mockGetApplicationCodeById).toHaveBeenCalledWith(
+      { id: 100 },
       'body',
       false,
       expect.objectContaining({ transferCache: true }),
@@ -438,6 +640,7 @@ describe('ApplicationsListEntryDetail', () => {
     mockGetApplicationListEntry.mockReturnValueOnce(
       of({
         lodgementDate: '2025-11-01T12:34:56Z',
+        applicationCodeId: 100,
         applicationCode: 'APP-100',
         standardApplicantCode: 'SA-123',
         standardApplicantId: 123,
@@ -473,6 +676,7 @@ describe('ApplicationsListEntryDetail', () => {
     mockGetApplicationListEntry.mockReturnValueOnce(
       of({
         lodgementDate: '2025-11-01',
+        applicationCodeId: 100,
         applicationCode: 'APP-100',
         standardApplicantCode: 'SA-123',
         standardApplicantId: 123,
