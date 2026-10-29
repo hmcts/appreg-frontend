@@ -870,6 +870,45 @@ describe('ReportsComponent', () => {
     ).toBe(true);
   });
 
+  it('keeps one active location binding after repeated switches between reports with location fields', () => {
+    for (let i = 0; i < 3; i++) {
+      component.form.controls.report.setValue('duration');
+      component.form.controls.report.setValue('fees');
+    }
+    component.form.controls.report.setValue('duration');
+
+    const inactive = component.feesGroup;
+    inactive.controls.court.setValue('A1');
+    expect(inactive.controls.otherLocation.enabled).toBe(true);
+
+    const active = component.durationGroup;
+    const disable = jest.spyOn(active.controls.otherLocation, 'disable');
+    active.controls.court.setValue('A1');
+    expect(active.controls.otherLocation.disabled).toBe(true);
+    expect(disable).toHaveBeenCalledTimes(1);
+
+    active.controls.court.setValue('');
+    expect(active.controls.otherLocation.enabled).toBe(true);
+    active.controls.cja.setValue('C1');
+    expect(active.controls.court.disabled).toBe(true);
+  });
+
+  it.each(['activity-audit', null] as const)(
+    'disposes location bindings when switching to %s and rebinds on return',
+    (report) => {
+      component.form.controls.report.setValue('duration');
+      const group = component.durationGroup;
+      component.form.controls.report.setValue(report);
+      group.controls.court.setValue('A1');
+      expect(group.controls.otherLocation.enabled).toBe(true);
+
+      component.form.controls.report.setValue('duration');
+      expect(group.controls.otherLocation.disabled).toBe(true);
+      group.controls.court.setValue('');
+      expect(group.controls.otherLocation.enabled).toBe(true);
+    },
+  );
+
   it('preserves date from and date to when switching to list maintenance', () => {
     component.form.controls.report.setValue('activity-audit');
     component.activityAuditGroup.patchValue({

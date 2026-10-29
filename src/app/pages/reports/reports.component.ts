@@ -1271,6 +1271,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
     if (!group || this.form.controls.report.value === 'activity-audit') {
       // Activity audit is the only form without location fields
+      this.disposePlaceFields();
       return;
     }
 
