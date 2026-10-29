@@ -77,11 +77,15 @@ export class TableElement {
       .find('td')
       .last()
       .find('button')
-      .filter(
-        (_, el) =>
-          StringUtils.normalizeText(Cypress.$(el).text()) ===
-          StringUtils.normalizeText(buttonText),
-      )
+      .filter((_, el) => {
+        const actualText = StringUtils.normalizeText(Cypress.$(el).text());
+        const expectedText = StringUtils.normalizeText(buttonText);
+
+        return (
+          actualText === expectedText ||
+          actualText.startsWith(`${expectedText} `)
+        );
+      })
       .first();
   }
 
