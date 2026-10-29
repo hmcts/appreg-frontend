@@ -1,6 +1,6 @@
 /**
  * Shared base for place/location form fields.
- * Uses signal-backed state and auto-cleanup via DestroyRef/takeUntilDestroyed.
+ * Uses signal-backed state and binding cleanup via DestroyRef.
  *
  * Uses reference-data.facade.ts to GET ALL CJA and Court locations
  *
@@ -9,9 +9,8 @@
  */
 
 import { DestroyRef, Directive, computed, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 import {
   attachLocationDisabler,
@@ -67,7 +66,7 @@ export abstract class PlaceFieldsBase {
   protected form!: FormGroup;
   private placeForm!: FormGroup;
   protected ref!: PlaceRefFacade;
-  protected locationDisabler?: { unsubscribe: () => void };
+  private placeBindings?: Subscription;
 
   // Signals
   protected readonly signalState = createSignalState<PlaceFieldsState>(
@@ -82,6 +81,10 @@ export abstract class PlaceFieldsBase {
       : [],
   );
 
+  constructor() {
+    this.destroyRef.onDestroy(() => this.disposePlaceFields());
+  }
+
   protected patch(patch: Partial<PlaceFieldsState>): void {
     this.signalState.patch(patch);
   }
@@ -94,7 +97,15 @@ export abstract class PlaceFieldsBase {
     this.patch({ cjaSearch: value ?? '' });
   }
 
+  protected disposePlaceFields(): void {
+    this.placeBindings?.unsubscribe();
+    this.placeBindings = undefined;
+  }
+
   protected initPlaceFields(form: FormGroup, ref: PlaceRefFacade): void {
+    this.disposePlaceFields();
+    const bindings = new Subscription();
+    this.placeBindings = bindings;
     this.placeForm = form;
     if (!this.form) {
       this.form = form;
@@ -103,12 +114,9 @@ export abstract class PlaceFieldsBase {
 
     this.patch({ courthouseSearch: '', cjaSearch: '' });
 
-    this.ref.courtLocations$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((items) => {
-        const code = String(
-          this.placeForm.controls['court'].value ?? '',
-        ).trim();
+    bindings.add(
+      ref.courtLocations$.subscribe((items) => {
+        const code = String(form.controls['court'].value ?? '').trim();
         const match = code
           ? items.find((x) => x.locationCode === code)
           : undefined;
@@ -119,12 +127,12 @@ export abstract class PlaceFieldsBase {
             ? { courthouseSearch: `${match.locationCode} - ${match.name}` }
             : {}),
         });
-      });
+      }),
+    );
 
-    this.ref.cja$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((items) => {
-        const code = String(this.placeForm.controls['cja'].value ?? '').trim();
+    bindings.add(
+      ref.cja$.subscribe((items) => {
+        const code = String(form.controls['cja'].value ?? '').trim();
         const match = code ? items.find((x) => x.code === code) : undefined;
 
         this.patch({
@@ -133,17 +141,16 @@ export abstract class PlaceFieldsBase {
             ? { cjaSearch: `${match.code} - ${match.description}` }
             : {}),
         });
-      });
+      }),
+    );
 
-    this.locationDisabler = attachLocationDisabler({
-      court: this.placeForm.controls['court'],
-      location: this.locationControl,
-      cja: this.placeForm.controls['cja'],
-    });
-
-    if (this.locationDisabler) {
-      this.destroyRef.onDestroy(() => this.locationDisabler?.unsubscribe());
-    }
+    bindings.add(
+      attachLocationDisabler({
+        court: form.controls['court'],
+        location: this.locationControl,
+        cja: form.controls['cja'],
+      }),
+    );
   }
 
   onCourthouseInputChange(): void {

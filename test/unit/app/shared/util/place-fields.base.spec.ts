@@ -41,8 +41,8 @@ class PlaceFieldsHostComponent extends PlaceFieldsBase {
     cja$: new BehaviorSubject<CriminalJusticeAreaGetDto[]>([]),
   };
 
-  init(): void {
-    this.initPlaceFields(this.form, {
+  init(form: FormGroup = this.form): void {
+    this.initPlaceFields(form, {
       courtLocations$: this.refStub.courtLocations$.asObservable(),
       cja$: this.refStub.cja$.asObservable(),
     });
@@ -54,6 +54,10 @@ class PlaceFieldsHostComponent extends PlaceFieldsBase {
 
   emitCja(items: CriminalJusticeAreaGetDto[]): void {
     this.refStub.cja$.next(items);
+  }
+
+  override patch(patch: Partial<PlaceFieldsState>): void {
+    super.patch(patch);
   }
 
   setPlaceState(patch: Partial<PlaceFieldsState>): void {
@@ -104,6 +108,44 @@ describe('PlaceFieldsBase', () => {
 
     fixture = TestBed.createComponent(PlaceFieldsHostComponent);
     component = fixture.componentInstance;
+  });
+
+  it('keeps one reference-data binding after repeated initialization and none after destruction', () => {
+    for (let i = 0; i < 3; i++) {
+      component.init();
+    }
+    const patch = jest.spyOn(component, 'patch');
+    component.emitCourts(COURTS);
+    component.emitCja(CJAS);
+    expect(patch).toHaveBeenCalledTimes(2);
+
+    fixture.destroy();
+    patch.mockClear();
+    component.emitCourts([]);
+    component.emitCja([]);
+    expect(patch).not.toHaveBeenCalled();
+  });
+
+  it('disposes the previous location binding on switch and the active binding on destruction', () => {
+    component.init();
+    const previous = component.form;
+    const active = new FormGroup({
+      court: new FormControl('B2'),
+      location: new FormControl(''),
+      cja: new FormControl(''),
+    });
+    component.init(active);
+    previous.controls.court.setValue('A1');
+    expect(previous.controls.location.enabled).toBe(true);
+    component.emitCourts(COURTS);
+    expect(component.getPlaceState().courthouseSearch).toBe('B2 - Beta Court');
+    expect(active.controls.location.disabled).toBe(true);
+
+    active.controls.court.setValue('');
+    expect(active.controls.location.enabled).toBe(true);
+    fixture.destroy();
+    active.controls.court.setValue('B2');
+    expect(active.controls.location.enabled).toBe(true);
   });
 
   it('initPlaceFields loads reference data and back-fills search strings from existing form values', () => {
