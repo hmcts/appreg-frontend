@@ -227,12 +227,19 @@ function processScenario(scenario, feature, stats, testsByFeature) {
   const featureName = feature.name;
   const scenarioName = scenario.name;
 
-  // Process steps
-  const steps = scenario.steps.map(processStep);
+  // Keep hooks in the outcome calculation, but do not render their unnamed
+  // implementation details as Gherkin steps in the HTML report.
+  const allSteps = scenario.steps.map(processStep);
+  const steps = allSteps.filter(
+    (step) => step.keyword !== 'Before' && step.keyword !== 'After',
+  );
 
   // Calculate scenario status and duration
-  const scenarioStatus = calculateScenarioStatus(steps);
-  const scenarioDuration = steps.reduce((sum, step) => sum + step.duration, 0);
+  const scenarioStatus = calculateScenarioStatus(allSteps);
+  const scenarioDuration = allSteps.reduce(
+    (sum, step) => sum + step.duration,
+    0,
+  );
 
   // Extract tags from scenario
   const tags = scenario.tags ? scenario.tags.map((tag) => tag.name) : [];

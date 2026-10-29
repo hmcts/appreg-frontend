@@ -53,8 +53,8 @@ Feature: Activity Audit Report
     When User Clicks On The "Download CSV" Button
     Then User Sees Validation Error Banner "At least 1 activity is required"
 
-  @regression @reports @core @ARCPOC-383 @ARCPOC-1748 @ARCPOC-1822
-  Scenario: Activity Audit Report - Valid date fields
+  @regression @reports @core @ARCPOC-383 @ARCPOC-1748 @ARCPOC-1822 @ARCPOC-1850
+  Scenario: Activity Audit Report - Download And Re-download Recently Completed Report Successfully
     When User Signs In With Microsoft SSO As "user1"
     Then User Clears Downloaded CSVs
     Then User Clicks On The Link Using Exact Text Match "Reports"
@@ -79,6 +79,19 @@ Feature: Activity Audit Report
       | New Value    |
       | Created Date |
       | User Name    |
+    Then User Clicks On The Link Using Exact Text Match "Applications"
+    Then User Clicks On The Link Using Exact Text Match "Reports"
+    Then User Should See The Table "Recently completed reports"
+    And User Should See Table "Recently completed reports" Header "Completed"
+    Then User Should See Row 1 In Table "Recently completed reports" With Values:
+      | Report type    |
+      | Activity audit |
+    When User Starts Monitoring Report Generation Requests
+    When User Clicks "Download" Button In Row Of Table "Recently completed reports" With:
+      | Report type    |
+      | Activity audit |
+    Then User Verifies CSV "activity_audit_report-" Is Downloaded
+    And No Report Generation Request Is Made
     Then User Clears Downloaded CSVs
     Examples:
       | CSVFileName                    |
@@ -102,6 +115,17 @@ Feature: Activity Audit Report
     Then User Verifies The Date field "Date to" Is Empty
     Then User Verifies The "Username" Textbox Is Empty
     Then User Verifies The "Activity" Textbox Is Empty
+
+  @regression @reports @ARCPOC-1850
+  Scenario: User sees an empty state when no recent reports are available
+    When User Signs In With Microsoft SSO As "admin3"
+    Then User Clears Downloaded CSVs
+    Then User Clicks On The Link Using Exact Text Match "Reports"
+    Then User Verify The Page URL Contains "/reports"
+    Then User See "Reports" On The Page
+    Then User See "Recent reports" On The Page
+    And User See "You have no recent reports available for download." On The Page
+    And User Should Not See The Table "Recently completed reports"
 
   @regression @reports @ARCPOC-1831 @ARCPOC-1833
   Scenario Outline: Activity Audit Report - Verify modal dialog for Warnings When User Tries To Navigate Away While Report Is Being Generated

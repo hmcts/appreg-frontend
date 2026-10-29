@@ -7,25 +7,32 @@ import { RadioHelper } from '../forms/radio/RadioHelper';
 import { TextboxHelper } from '../forms/textbox/TextboxHelper';
 
 export class ApplicationListCombinedHelper {
-  static waitForCourtReferenceData(): void {
+  private static courtReferenceDataLoaded = false;
+
+  static resetCourtReferenceData(): void {
+    this.courtReferenceDataLoaded = false;
+  }
+
+  static waitForCourtReferenceData(): Cypress.Chainable {
     // Suggestions use the complete reference list, not just the first API page.
-    const waitForPage = (): void => {
-      cy.wait('@courtReferenceData').then(({ response }) => {
-        // Navigation from the home page can cancel an in-flight reference request.
+    const waitForPage = (): Cypress.Chainable => {
+      return cy.wait('@courtReferenceData').then(({ response }) => {
         if (!response) {
-          waitForPage();
-          return;
+          throw new Error('Court reference-data response was not received');
         }
 
         expect(response.statusCode).to.eq(200);
         expect(response.body).to.have.property('last');
-        if (!response.body.last) {
-          waitForPage();
+        if (response.body.last) {
+          this.courtReferenceDataLoaded = true;
+          return;
         }
+
+        return waitForPage();
       });
     };
 
-    waitForPage();
+    return waitForPage();
   }
 
   /**
@@ -46,8 +53,8 @@ export class ApplicationListCombinedHelper {
     const requiresCourtReferenceData = Boolean(
       processedCriteria.CourtSearch?.trim() || processedCriteria.Court?.trim(),
     );
-    if (requiresCourtReferenceData) {
-      this.waitForCourtReferenceData();
+    if (requiresCourtReferenceData && !this.courtReferenceDataLoaded) {
+      cy.then(() => this.waitForCourtReferenceData());
     }
 
     for (const [fieldLabel, value] of Object.entries(processedCriteria)) {

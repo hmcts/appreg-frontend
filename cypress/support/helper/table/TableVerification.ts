@@ -66,6 +66,45 @@ export class TableVerification {
   }
 
   /**
+   * Verifies that the first row on the current table page has the specified values.
+   */
+  static verifyFirstRow(
+    row: Record<string, string>,
+    tableCaption: string,
+  ): Cypress.Chainable<void> {
+    return TableElement.getTableHeaders(tableCaption).then(($headers) => {
+      const columnIndexMap = TableSearch.buildColumnIndexMap($headers);
+
+      return TableElement.getTableRows(tableCaption)
+        .first()
+        .should('exist')
+        .then(($firstRow) => {
+          expect(
+            TableSearch.rowMatchesValues(
+              $firstRow,
+              row,
+              columnIndexMap,
+              tableCaption,
+            ),
+            `First row in table "${tableCaption}" should match the specified values`,
+          ).to.equal(true);
+        });
+    });
+  }
+
+  /**
+   * Verifies that a table header is visible.
+   */
+  static verifyHeaderIsVisible(
+    tableCaption: string,
+    headerText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return TableElement.getTableHeaders(tableCaption)
+      .contains(headerText)
+      .should('be.visible');
+  }
+
+  /**
    * Verifies all rows in a column have a specific value on first and last pages only
    */
   static verifyFirstAndLastPageRowsHaveValue(
