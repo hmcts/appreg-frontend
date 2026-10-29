@@ -10,7 +10,7 @@ import {
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
-import { Observable, Subject, of } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
 
 import {
   ApplicationsListEntryDetail,
