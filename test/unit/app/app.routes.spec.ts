@@ -1,8 +1,18 @@
 import { Observable, of } from 'rxjs';
 
 import { routes } from '../../../src/app/app.routes';
+import { canLeavePageGuard } from '../../../src/app/guards/can-leave-page.guard';
 
 describe('app.routes', () => {
+  it.each([':id/create-entry', ':id/update-entry/:entryId'])(
+    'guards unsaved changes on %s',
+    (path) => {
+      const parent = routes.find((r) => r.path === 'applications-list');
+      expect(
+        parent?.children?.find((r) => r.path === path)?.canDeactivate,
+      ).toEqual([canLeavePageGuard]);
+    },
+  );
   it.each([true, false])(
     'delegates report navigation to the component: %s',
     (leave) => {

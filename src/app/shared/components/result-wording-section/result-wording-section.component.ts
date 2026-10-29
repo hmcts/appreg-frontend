@@ -297,6 +297,20 @@ export class ResultWordingSectionComponent {
       this.pendingVersion() !== this.appliedVersion(),
   );
 
+  hasUnchangedContent(): boolean {
+    const drafts = this.existingWordingDraftById();
+    const originals = this.existingOriginalFieldsById();
+    return (
+      this.pending().length === 0 &&
+      this.existingRows().every((row) =>
+        this.areWordingFieldsEqual(
+          drafts[row.id] ?? originals[row.id] ?? [],
+          originals[row.id] ?? [],
+        ),
+      )
+    );
+  }
+
   readonly canSubmitResults = computed(
     () => this.hasPendingChanges() || this.hasExistingEdits(),
   );

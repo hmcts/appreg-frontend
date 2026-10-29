@@ -59,6 +59,149 @@ describe('ApplicationListEntryFormService', () => {
     service = TestBed.inject(ApplicationListEntryFormService);
   });
 
+  it('compares content rather than interaction history, including nested parties', () => {
+    const forms = service.createForms();
+    const baseline = service.editableContent(forms);
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+    forms.form.controls.applicationNotes.controls.notes.setValue('x');
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+    forms.form.controls.applicationNotes.controls.notes.setValue('');
+    forms.form.markAsDirty();
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+    forms.personForm.patchValue({ firstName: 'Changed' });
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+    forms.personForm.patchValue({ firstName: '' });
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+    forms.form.controls.applicationTitle.setValue('Loaded asynchronously');
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+  });
+
+  it.each(['person', 'org', 'standard'] as const)(
+    'ignores an empty applicant type selection: %s',
+    (type) => {
+      const forms = service.createForms();
+      const baseline = service.editableContent(forms);
+      forms.form.controls.applicantType.setValue(type);
+      service.onApplicantTypeChanged(forms, type);
+      expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+      if (type === 'person') {
+        forms.personForm.controls.firstName.setValue('Jane');
+      } else if (type === 'org') {
+        forms.organisationForm.controls.name.setValue('Organisation');
+      } else {
+        forms.form.controls.standardApplicantCode.setValue('CODE');
+      }
+      expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+      service.onApplicantTypeChanged(forms, type);
+      forms.form.controls.standardApplicantCode.setValue(null);
+      expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+    },
+  );
+
+  it('detects switching away from a populated saved applicant', () => {
+    const forms = service.createForms();
+    forms.personForm.controls.firstName.setValue('Jane');
+    const baseline = service.editableContent(forms);
+    forms.form.controls.applicantType.setValue('org');
+    service.onApplicantTypeChanged(forms, 'org');
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+  });
+
+  it.each(['person', 'organisation', 'bulk'] as const)(
+    'ignores an empty respondent type selection but detects associated content: %s',
+    (type) => {
+      const forms = service.createForms();
+      const baseline = service.editableContent(forms);
+      forms.form.controls.respondentEntryType.setValue(type);
+      expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+      if (type === 'person') {
+        forms.respondentPersonForm.controls.dob.setValue('2000-01-01');
+      } else if (type === 'organisation') {
+        forms.respondentOrganisationForm.controls.name.setValue('Organisation');
+      } else {
+        forms.form.controls.numberOfRespondents.setValue(2);
+      }
+      expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+      forms.respondentPersonForm.reset();
+      forms.respondentOrganisationForm.reset();
+      forms.form.controls.numberOfRespondents.setValue(null);
+      expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+    },
+  );
+
+  it.each(['person', 'organisation', 'bulk'] as const)(
+    'detects switching away from a populated saved respondent: %s',
+    (type) => {
+      const forms = service.createForms();
+      forms.form.controls.respondentEntryType.setValue(type);
+      if (type === 'person') {
+        forms.respondentPersonForm.controls.firstName.setValue('Jane');
+      } else if (type === 'organisation') {
+        forms.respondentOrganisationForm.controls.name.setValue('Organisation');
+      } else {
+        forms.form.controls.numberOfRespondents.setValue(2);
+      }
+      const baseline = service.editableContent(forms);
+      forms.form.controls.respondentEntryType.setValue(
+        type === 'person' ? 'organisation' : 'person',
+      );
+      forms.form.controls.numberOfRespondents.setValue(null);
+      expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+    },
+  );
+
+  it('ignores cached respondent resets and equivalent empty wording after reverting a code', () => {
+    const forms = service.createForms();
+    service.hydrateFromDto(
+      makeDetail({
+        applicationCode: 'AD99001',
+        numberOfRespondents: null,
+        respondent: { organisation: makeOrganisation() },
+        wording: {
+          template: 'Copy documents',
+          'substitution-key-constraints': [],
+        },
+      }),
+      forms,
+    );
+    const baseline = service.editableContent(forms);
+    forms.form.controls.applicationCode.setValue('AD99002');
+    service.resetSectionsOnApplicationCodeChange(forms, true);
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+    forms.form.controls.applicationCode.setValue('AD99001');
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+    forms.respondentOrganisationForm.controls.name.setValue('Changed');
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+  });
+
+  it('still detects non-empty wording lost when switching codes', () => {
+    const forms = service.createForms();
+    forms.form.controls.wordingFields.setValue([
+      { key: 'Name', value: 'Original' },
+    ]);
+    const baseline = service.editableContent(forms);
+    service.resetSectionsOnApplicationCodeChange(forms, true);
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+    forms.form.controls.wordingFields.setValue([
+      { key: 'Name', value: 'Original' },
+    ]);
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+  });
+
+  it('ignores inactive parties but includes respondent and fee changes', () => {
+    const forms = service.createForms();
+    forms.form.controls.respondentEntryType.setValue('organisation');
+    const baseline = service.editableContent(forms);
+    forms.organisationForm.patchValue({ name: 'Inactive' });
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+    forms.respondentOrganisationForm.patchValue({ name: 'Changed' });
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+    forms.respondentOrganisationForm.patchValue({ name: '' });
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+    forms.form.controls.hasOffsiteFee.setValue(true);
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+  });
+
   it('creates a respondent person form with dob control without adding dob to applicant person form', () => {
     const forms = service.createForms();
 

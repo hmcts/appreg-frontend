@@ -63,6 +63,48 @@ describe('ResultWordingSectionComponent', () => {
     fixture.detectChanges();
   });
 
+  it('compares result drafts with persisted wording, not applied wording', () => {
+    fixture.componentRef.setInput('existingResults', [
+      makeExistingResult({
+        id: 'result-1',
+        resultCode: 'RC1',
+        wording: {
+          template: 'Hello {{Name}}',
+          'substitution-key-constraints': [
+            {
+              key: 'Name',
+              value: 'Original',
+              constraint: { length: 50, type: TemplateConstraintTypeEnum.TEXT },
+            },
+          ],
+        },
+      }),
+    ]);
+    fixture.detectChanges();
+    expect(component.hasUnchangedContent()).toBe(true);
+    component.onCardWordingFieldsDTO(
+      { id: 'result-1', status: 'existing' },
+      {
+        wordingFields: [{ key: 'Name', value: 'Changed' }],
+      },
+    );
+    expect(component.hasUnchangedContent()).toBe(false);
+    component['markExistingDraftsApplied']([
+      {
+        resultId: 'result-1',
+        wordingFields: [{ key: 'Name', value: 'Changed' }],
+      },
+    ]);
+    expect(component.hasUnchangedContent()).toBe(false);
+    component.onCardWordingFieldsDTO(
+      { id: 'result-1', status: 'existing' },
+      {
+        wordingFields: [{ key: 'Name', value: 'Original' }],
+      },
+    );
+    expect(component.hasUnchangedContent()).toBe(true);
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });

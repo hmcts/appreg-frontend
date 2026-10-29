@@ -84,6 +84,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/create-entry',
+        canDeactivate: [canLeavePageGuard],
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -93,6 +94,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-entry/:entryId',
+        canDeactivate: [canLeavePageGuard],
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>

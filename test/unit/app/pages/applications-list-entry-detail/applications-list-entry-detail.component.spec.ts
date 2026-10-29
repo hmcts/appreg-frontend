@@ -7,6 +7,7 @@ import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   ActivatedRoute,
+  Router,
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
@@ -274,6 +275,151 @@ describe('ApplicationsListEntryDetail', () => {
 
     fixture.detectChanges();
   });
+
+  it('warns about unsaved changes and supports staying or discarding', async () => {
+    await fixture.whenStable();
+    expect(component.canLeave()).toBe(true);
+    const dialog: HTMLDialogElement =
+      fixture.nativeElement.querySelector('dialog');
+    dialog.showModal = jest.fn(() => {
+      dialog.open = true;
+    });
+    dialog.close = jest.fn(() => {
+      dialog.open = false;
+    });
+    const notes = component.form.controls.applicationNotes.controls.notes;
+    const original = notes.value;
+    notes.setValue('Unsaved');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const unload = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(unload);
+    expect(unload.defaultPrevented).toBe(true);
+    const answers: boolean[] = [];
+    const warning = component.canLeave();
+    if (typeof warning === 'boolean') {
+      throw new Error('Expected a warning');
+    }
+    warning.subscribe((leave) => answers.push(leave));
+    expect(dialog.open).toBe(true);
+    (dialog.querySelector('button[autofocus]') as HTMLButtonElement).click();
+    expect(answers).toEqual([false]);
+    expect(notes.value).toBe('Unsaved');
+    const secondWarning = component.canLeave();
+    if (typeof secondWarning === 'boolean') {
+      throw new Error('Expected a warning');
+    }
+    secondWarning.subscribe((leave) => answers.push(leave));
+    (
+      dialog.querySelector('.govuk-button--secondary') as HTMLButtonElement
+    ).click();
+    expect(answers).toEqual([false, true]);
+    notes.setValue(original);
+    expect(component.canLeave()).toBe(true);
+  });
+
+  it('allows payment-reference editing without discarding the entry draft', () => {
+    component.form.controls.applicationNotes.controls.notes.setValue('Unsaved');
+    const { appListId } = component.vm();
+    const entryId =
+      TestBed.inject(ActivatedRoute).snapshot.paramMap.get('entryId');
+    jest.spyOn(TestBed.inject(Router), 'getCurrentNavigation').mockReturnValue({
+      extractedUrl: TestBed.inject(Router).parseUrl(
+        `/applications-list/${appListId}/update-entry/${entryId}/change-payment-reference?from=applications`,
+      ),
+    } as ReturnType<Router['getCurrentNavigation']>);
+    expect(component.canLeave()).toBe(true);
+  });
+
+  it('clears the warning after a successful save, but not a failed save', () => {
+    component.form.controls.applicationNotes.controls.notes.setValue('Edited');
+    const dto = component['buildEntryUpdateDto']();
+    mockUpdateApplicationListEntry.mockReturnValue(
+      throwError(() => new Error('Save failed')),
+    );
+    component['submitEntryUpdate'](dto, ENTRY_SUCCESS_MESSAGES.listUpdated);
+    expect(component['contentIsUnchanged']()).toBe(false);
+    mockUpdateApplicationListEntry.mockReturnValue(
+      of(component['entryDetail']),
+    );
+    component['submitEntryUpdate'](dto, ENTRY_SUCCESS_MESSAGES.listUpdated);
+    expect(component.canLeave()).toBe(true);
+  });
+
+  it('shows unchanged content after loading and after reverting an edit', async () => {
+    await fixture.whenStable();
+    expect(component.hasUnchangedContent()).toBe(true);
+    const notes = component.form.controls.applicationNotes.controls.notes;
+    const original = notes.value;
+    notes.setValue('Changed');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.hasUnchangedContent()).toBe(false);
+    fixture.detectChanges();
+    const indicator: HTMLElement = fixture.nativeElement.querySelector(
+      '.app-content-indicator',
+    );
+    expect(indicator.textContent).toContain('Changes');
+    expect(
+      indicator.classList.contains('app-content-indicator--unchanged'),
+    ).toBe(false);
+    expect(indicator.getAttribute('role')).toBe('status');
+    notes.setValue(original);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.hasUnchangedContent()).toBe(true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(
+      'hasUnchangedContent: true',
+    );
+    expect(indicator.textContent).toContain('No changes');
+    expect(
+      indicator.classList.contains('app-content-indicator--unchanged'),
+    ).toBe(true);
+  });
+
+  it.each(['person', 'org'] as const)(
+    'restores the saved standard applicant after switching to %s and back',
+    async (type) => {
+      mockGetStandardApplicantByCode.mockReturnValue(
+        of({
+          code: 'SA-123',
+          name: 'Saved applicant',
+        }),
+      );
+      mockGetApplicationListEntry.mockReturnValue(
+        of({
+          ...component['entryDetail']!,
+          standardApplicantCode: 'SA-123',
+          applicant: null,
+        }),
+      );
+      const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
+      const freshComponent = freshFixture.componentInstance;
+      freshFixture.detectChanges();
+      await freshFixture.whenStable();
+      expect(freshComponent.form.controls.applicantType.value).toBe('standard');
+      expect(freshComponent.hasUnchangedContent()).toBe(true);
+      freshComponent.form.controls.applicantType.setValue(type);
+      freshFixture.detectChanges();
+      await freshFixture.whenStable();
+      expect(freshComponent.hasUnchangedContent()).toBe(false);
+      freshComponent.form.controls.applicantType.setValue('standard');
+      freshFixture.detectChanges();
+      await freshFixture.whenStable();
+      expect(freshComponent.selectedStandardApplicantCode).toBe('SA-123');
+      expect(freshComponent.form.controls.standardApplicantCode.value).toBe(
+        'SA-123',
+      );
+      expect(freshComponent.hasUnchangedContent()).toBe(true);
+      freshComponent.onStandardApplicantCodeChanged('OTHER');
+      freshFixture.detectChanges();
+      await freshFixture.whenStable();
+      expect(freshComponent.hasUnchangedContent()).toBe(false);
+      freshFixture.destroy();
+    },
+  );
 
   it('renders untargeted API errors as text and keeps explicit field links', () => {
     component['appListEntryDetailPatch']({
