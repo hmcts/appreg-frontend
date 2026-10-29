@@ -15,6 +15,12 @@ No backend, real session or live application data is required. The script caps J
 two workers because each worker starts Chromium; this limits contention during browser
 startup and navigation.
 
+Before Jest starts, the script runs `yarn rebuild puppeteer` to rerun Puppeteer's
+browser installation. This restores the required Chrome version when CI restores
+dependencies but the separate Puppeteer browser cache is missing. The runner needs
+download access on a cache miss, and Puppeteer's install scripts and browser downloads
+must be enabled. If the rebuild fails, the tests do not start.
+
 ## Adding a scenario
 
 Add a named scenario to `a11y.scenarios.ts` with its current route, exact heading and a
