@@ -138,6 +138,7 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
+import { getProblemText } from '@util/http-error-to-text';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
 import { returnOrgName } from '@util/string-helpers';
@@ -243,6 +244,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   savedStandardApplicantDetailsUnavailable = false;
   private pendingStandardApplicantSummary: SelectedStandardApplicantSummary | null =
     null;
+  savedStandardApplicantId: number | null | undefined = null;
 
   entryDetail: EntryGetDetailDto | null = null;
 
@@ -1279,7 +1281,9 @@ export class ApplicationsListEntryDetail implements OnInit {
           this.savedStandardApplicantName = null;
           this.savedStandardApplicantDetailsUnavailable = false;
           this.pendingStandardApplicantSummary = null;
-          this.loadSavedStandardApplicantName(this.savedStandardApplicantCode);
+          this.savedStandardApplicantId =
+            entry.standardApplicantId ?? undefined;
+          this.loadSavedStandardApplicantName(this.savedStandardApplicantId);
 
           const type = this.form.controls.applicantType.value ?? 'person';
           this.formSvc.syncApplicantTypeState(this.forms, type);
@@ -1417,52 +1421,98 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.formSvc.syncApplicantTypeState(this.forms, type);
   }
 
-  private loadSavedStandardApplicantName(code: string | null): void {
-    const trimmedCode = code?.trim() || '';
-
-    if (!trimmedCode) {
+  private loadSavedStandardApplicantName(id: number | null | undefined): void {
+    if (!id) {
       this.savedStandardApplicantName = null;
       this.savedStandardApplicantDetailsUnavailable = false;
       this.pendingStandardApplicantSummary = null;
+      this.savedStandardApplicantId = null;
       return;
     }
 
     this.savedStandardApplicantDetailsUnavailable = false;
 
     this.standardApplicantsApi
-      .getStandardApplicantByCode(
-        {
-          code: trimmedCode,
-        },
-        'body',
-        false,
-        { transferCache: true },
-      )
+      .getStandardApplicantById({ id })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        // accept the legacy payload during FE-first deployment.
         next: (
           applicant: StandardApplicantGetDetailDto & { applicant?: Applicant },
         ) => {
-          this.savedStandardApplicantName =
-            applicant.name?.trim() ||
-            returnOrgName(applicant.applicant)?.trim() ||
-            null;
-          this.savedStandardApplicantDetailsUnavailable =
-            this.savedStandardApplicantName === null;
-          this.pendingStandardApplicantSummary = this.savedStandardApplicantName
-            ? {
-                code: trimmedCode,
-                name: this.savedStandardApplicantName,
-              }
-            : null;
+          this.saveStandardApplicantDetailsFromResponse(applicant);
         },
-        error: () => {
+        error: (err) => {
           this.savedStandardApplicantName = null;
           this.savedStandardApplicantDetailsUnavailable = true;
           this.pendingStandardApplicantSummary = null;
+
+          // Append standard applicant errors with existing errors
+          const allErrors = this.appListEntryDetailState().summaryErrors;
+          const summaryErrors = [
+            ...allErrors,
+            {
+              text: getProblemText(err) ?? 'Failed to load standard applicant',
+            },
+          ];
+
+          this.appListEntryDetailPatch({
+            errorFound: true,
+            summaryErrors,
+          });
         },
       });
+
+    // this.standardApplicantsApi
+    //   .getStandardApplicantByCode(
+    //     {
+    //       code: trimmedCode,
+    //     },
+    //     'body',
+    //     false,
+    //     { transferCache: true },
+    //   )
+    //   .pipe(takeUntilDestroyed(this.destroyRef))
+    //   .subscribe({
+    //     // accept the legacy payload during FE-first deployment.
+    //     next: (
+    //       applicant: StandardApplicantGetDetailDto & { applicant?: Applicant },
+    //     ) => {
+    //       this.savedStandardApplicantName =
+    //         applicant.name?.trim() ||
+    //         returnOrgName(applicant.applicant)?.trim() ||
+    //         null;
+    //       this.savedStandardApplicantDetailsUnavailable =
+    //         this.savedStandardApplicantName === null;
+    //       this.pendingStandardApplicantSummary = this.savedStandardApplicantName
+    //         ? {
+    //             code: trimmedCode,
+    //             name: this.savedStandardApplicantName,
+    //           }
+    //         : null;
+    //     },
+    //     error: () => {
+    //       this.savedStandardApplicantName = null;
+    //       this.savedStandardApplicantDetailsUnavailable = true;
+    //       this.pendingStandardApplicantSummary = null;
+    //     },
+    //   });
+  }
+
+  private saveStandardApplicantDetailsFromResponse(
+    applicant: StandardApplicantGetDetailDto & { applicant?: Applicant },
+  ): void {
+    this.savedStandardApplicantName =
+      applicant.name?.trim() ||
+      returnOrgName(applicant.applicant)?.trim() ||
+      null;
+    this.savedStandardApplicantDetailsUnavailable =
+      this.savedStandardApplicantName === null;
+    this.pendingStandardApplicantSummary = this.savedStandardApplicantName
+      ? {
+          code: applicant.code.trim(),
+          name: this.savedStandardApplicantName,
+        }
+      : null;
   }
 
   private applySavedStandardApplicantSummary(): void {

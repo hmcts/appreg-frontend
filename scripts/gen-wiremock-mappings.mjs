@@ -246,10 +246,24 @@ function staticSiblingSegmentsForPath(targetPath, allPaths) {
   );
 }
 
-function pathToUrlMatcher(p, allPaths = {}) {
+function pathToUrlMatcher(p, allPaths = {}, pathItem = {}, op = {}) {
   if (/\{[^}]+}/.test(p)) {
     const excludedSegments = staticSiblingSegmentsForPath(p, allPaths);
     const re = p.replace(/\{([^}]+)}/g, (_, name) => {
+      const parameter =
+        (op.parameters || []).find(
+          (param) => param.in === 'path' && param.name === name,
+        ) ||
+        (pathItem.parameters || []).find(
+          (param) => param.in === 'path' && param.name === name,
+        );
+      if (
+        parameter &&
+        parameter.schema &&
+        parameter.schema.type === 'integer'
+      ) {
+        return '[0-9]+';
+      }
       const n = String(name).toLowerCase();
       if (n.includes('id') || n.includes('uuid')) {
         return '[0-9a-f-]{36}';
@@ -692,7 +706,7 @@ async function main() {
       }
 
       const group = toGroup(op || {});
-      const url = pathToUrlMatcher(p, spec.paths || {});
+      const url = pathToUrlMatcher(p, spec.paths || {}, ops, op);
       const hasBody = !!op.requestBody;
       const dir = path.join(MAPPINGS_DIR, group);
       await ensureDir(dir);
