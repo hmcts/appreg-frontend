@@ -293,7 +293,7 @@ Feature: Applications List Entry Update
             | Select type           | Bulk Application |
             | Number of respondents | 5                |
 
-    @regression @applicationListEntry @ARCPOC-1851 @tp
+    @regression @applicationListEntry @ARCPOC-1851
     Scenario: Verify Apply Wording Button Appears When Application Code Has Changed Via Selecting Text And Entering New Application Code.
         Given User Authenticates Via API As "user1"
         # Create Application List
