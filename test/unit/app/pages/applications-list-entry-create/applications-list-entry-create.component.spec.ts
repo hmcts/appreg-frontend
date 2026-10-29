@@ -1469,28 +1469,15 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain(
-      'hasUnchangedContent: false',
-    );
-    const indicator: HTMLElement = fixture.nativeElement.querySelector(
-      '.app-content-indicator',
-    );
-    expect(indicator.textContent).toContain('Changes');
+    expect(component.hasUnchangedContent()).toBe(false);
     expect(
-      indicator.classList.contains('app-content-indicator--unchanged'),
-    ).toBe(false);
-    expect(indicator.getAttribute('role')).toBe('status');
+      fixture.nativeElement.querySelector('.app-content-indicator'),
+    ).toBeNull();
     notes.setValue(original);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain(
-      'hasUnchangedContent: true',
-    );
-    expect(indicator.textContent).toContain('No changes');
-    expect(
-      indicator.classList.contains('app-content-indicator--unchanged'),
-    ).toBe(true);
+    expect(component.hasUnchangedContent()).toBe(true);
     for (const type of ['org', 'standard', 'person'] as const) {
       component.form.controls.applicantType.setValue(type);
       fixture.detectChanges();

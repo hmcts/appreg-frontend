@@ -17,24 +17,6 @@
   border-top-width: 3px;
 }
 
-.app-content-indicator {
-  position: fixed;
-  top: 0.5rem;
-  left: 0.5rem;
-  z-index: 1000;
-  box-sizing: border-box;
-  max-width: calc(100vw - 1rem);
-  margin: 0;
-  padding: 0.5rem 0.75rem;
-  color: govuk.govuk-colour('white');
-  background-color: govuk.govuk-colour('red');
-  pointer-events: none;
-
-  &--unchanged {
-    background-color: govuk.govuk-colour('green');
-  }
-}
-
 .govuk-notification-banner__content > * {
   max-width: none;
 }

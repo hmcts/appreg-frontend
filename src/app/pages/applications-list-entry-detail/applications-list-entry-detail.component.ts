@@ -1091,13 +1091,19 @@ export class ApplicationsListEntryDetail implements OnInit {
     return this.formSvc.buildUpdateDto(
       this.entryDetail,
       this.forms,
-      this.selectedStandardApplicantCode,
+      this.form.controls.standardApplicantCode.value,
     );
   }
 
   onStandardApplicantCodeChanged(code: string | null): void {
     this.selectedStandardApplicantCode = code;
-    this.formSvc.setStandardApplicantCode(this.forms, code, {
+    // In Update, no selection means no replacement of the persisted applicant.
+    const effectiveCode =
+      code ??
+      (this.applicantType === 'standard'
+        ? (this.entryDetail?.standardApplicantCode ?? null)
+        : null);
+    this.formSvc.setStandardApplicantCode(this.forms, effectiveCode, {
       emitEvent: false,
     });
   }
@@ -1211,7 +1217,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     switch (this.applicantType) {
       case 'standard':
-        return !this.selectedStandardApplicantCode;
+        return !this.form.controls.standardApplicantCode.value;
       case 'person':
       case 'org':
         return false;

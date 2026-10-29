@@ -357,26 +357,14 @@ describe('ApplicationsListEntryDetail', () => {
     await fixture.whenStable();
     expect(component.hasUnchangedContent()).toBe(false);
     fixture.detectChanges();
-    const indicator: HTMLElement = fixture.nativeElement.querySelector(
-      '.app-content-indicator',
-    );
-    expect(indicator.textContent).toContain('Changes');
     expect(
-      indicator.classList.contains('app-content-indicator--unchanged'),
-    ).toBe(false);
-    expect(indicator.getAttribute('role')).toBe('status');
+      fixture.nativeElement.querySelector('.app-content-indicator'),
+    ).toBeNull();
     notes.setValue(original);
     fixture.detectChanges();
     await fixture.whenStable();
     expect(component.hasUnchangedContent()).toBe(true);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain(
-      'hasUnchangedContent: true',
-    );
-    expect(indicator.textContent).toContain('No changes');
-    expect(
-      indicator.classList.contains('app-content-indicator--unchanged'),
-    ).toBe(true);
   });
 
   it.each(['person', 'org'] as const)(
@@ -420,6 +408,77 @@ describe('ApplicationsListEntryDetail', () => {
       freshFixture.destroy();
     },
   );
+
+  it('treats deselection as no replacement and retains the saved applicant in unrelated saves', async () => {
+    mockGetStandardApplicantByCode.mockReturnValue(
+      of({ code: 'SA-123', name: 'Saved applicant' }),
+    );
+    mockGetApplicationListEntry.mockReturnValue(
+      of({
+        ...component.entryDetail!,
+        standardApplicantCode: 'SA-123',
+        applicant: null,
+      }),
+    );
+    const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+    await freshFixture.whenStable();
+
+    freshComponent.onStandardApplicantCodeChanged(null);
+    freshFixture.detectChanges();
+    await freshFixture.whenStable();
+    expect(freshComponent.selectedStandardApplicantCode).toBeNull();
+    expect(freshComponent.form.controls.standardApplicantCode.value).toBe(
+      'SA-123',
+    );
+    expect(freshComponent.isUpdateDisabled).toBe(false);
+    expect(freshComponent.hasUnchangedContent()).toBe(true);
+    expect(freshComponent.canLeave()).toBe(true);
+
+    freshComponent.onStandardApplicantCodeChanged('OTHER');
+    freshFixture.detectChanges();
+    await freshFixture.whenStable();
+    expect(freshComponent.hasUnchangedContent()).toBe(false);
+    expect(freshComponent['buildEntryUpdateDto']().standardApplicantCode).toBe(
+      'OTHER',
+    );
+    freshComponent.onStandardApplicantCodeChanged(null);
+    freshFixture.detectChanges();
+    await freshFixture.whenStable();
+    expect(freshComponent.hasUnchangedContent()).toBe(true);
+
+    freshComponent.form.controls.applicationNotes.controls.notes.setValue(
+      'Other edit',
+    );
+    freshFixture.detectChanges();
+    await freshFixture.whenStable();
+    expect(freshComponent.hasUnchangedContent()).toBe(false);
+    const dto = freshComponent['buildEntryUpdateDto']();
+    expect(dto.standardApplicantCode).toBe('SA-123');
+    mockUpdateApplicationListEntry.mockReturnValue(of({}));
+    freshComponent['submitEntryUpdate'](
+      dto,
+      ENTRY_SUCCESS_MESSAGES.listUpdated,
+    );
+    expect(
+      mockUpdateApplicationListEntry.mock.calls.at(-1)[0].entryUpdateDto
+        .standardApplicantCode,
+    ).toBe('SA-123');
+    expect(freshComponent.canLeave()).toBe(true);
+
+    freshComponent.onStandardApplicantCodeChanged('OTHER');
+    freshComponent['submitEntryUpdate'](
+      freshComponent['buildEntryUpdateDto'](),
+      ENTRY_SUCCESS_MESSAGES.listUpdated,
+    );
+    freshComponent.onStandardApplicantCodeChanged(null);
+    expect(freshComponent.form.controls.standardApplicantCode.value).toBe(
+      'OTHER',
+    );
+    expect(freshComponent.canLeave()).toBe(true);
+    freshFixture.destroy();
+  });
 
   it('renders untargeted API errors as text and keeps explicit field links', () => {
     component['appListEntryDetailPatch']({
