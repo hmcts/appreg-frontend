@@ -1461,41 +1461,6 @@ export class ApplicationsListEntryDetail implements OnInit {
           });
         },
       });
-
-    // this.standardApplicantsApi
-    //   .getStandardApplicantByCode(
-    //     {
-    //       code: trimmedCode,
-    //     },
-    //     'body',
-    //     false,
-    //     { transferCache: true },
-    //   )
-    //   .pipe(takeUntilDestroyed(this.destroyRef))
-    //   .subscribe({
-    //     // accept the legacy payload during FE-first deployment.
-    //     next: (
-    //       applicant: StandardApplicantGetDetailDto & { applicant?: Applicant },
-    //     ) => {
-    //       this.savedStandardApplicantName =
-    //         applicant.name?.trim() ||
-    //         returnOrgName(applicant.applicant)?.trim() ||
-    //         null;
-    //       this.savedStandardApplicantDetailsUnavailable =
-    //         this.savedStandardApplicantName === null;
-    //       this.pendingStandardApplicantSummary = this.savedStandardApplicantName
-    //         ? {
-    //             code: trimmedCode,
-    //             name: this.savedStandardApplicantName,
-    //           }
-    //         : null;
-    //     },
-    //     error: () => {
-    //       this.savedStandardApplicantName = null;
-    //       this.savedStandardApplicantDetailsUnavailable = true;
-    //       this.pendingStandardApplicantSummary = null;
-    //     },
-    //   });
   }
 
   private saveStandardApplicantDetailsFromResponse(
