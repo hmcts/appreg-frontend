@@ -41,7 +41,7 @@ Feature: Application List Bulk Upload
             | User  | APIDate  | Time           | Status | Description          | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                         |
             | user1 | todayiso | timenowhhmm-2h | OPEN   | BulkUp_{SCENARIO_ID} | RCJ001            | today      | todaydisplay | 0       | Royal Courts of Justice Set 1 |
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1493 @ARCPOC-1506 @ARCPOC-1848 @tp
+    @regression @applicationsList @applicationListEntry @ARCPOC-632 @ARCPOC-821 @ARCPOC-1500 @ARCPOC-1493 @ARCPOC-1506 @ARCPOC-1848
     Scenario Outline: Application List - Bulk Upload Entries Via CSV File With Application Codes Fee Required = 'Y'
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:

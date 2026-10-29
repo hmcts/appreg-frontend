@@ -132,7 +132,7 @@ export class TableSearch {
   /**
    * Checks if a row matches the expected column values
    */
-  private static rowMatchesValues(
+  static rowMatchesValues(
     $row: JQuery<HTMLElement>,
     columnValues: Record<string, string>,
     columnIndexMap: Record<string, number>,
