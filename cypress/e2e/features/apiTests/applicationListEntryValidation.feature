@@ -3,152 +3,69 @@ Feature: API - Application List Entry Validation
   Background:
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Object Builder:
-      | date              | todayiso                          |
-      | time              | timenowhhmm-2h                    |
-      | status            | OPEN                              |
+      | date              | todayiso                               |
+      | time              | timenowhhmm-2h                         |
+      | status            | OPEN                                   |
       | description       | ALE validation test list {SCENARIO_ID} |
-      | courtLocationCode | RCJ001                            |
-      | durationHours     | 2                                 |
-      | durationMinutes   | 22                                |
+      | courtLocationCode | RCJ001                                 |
+      | durationHours     | 2                                      |
+      | durationMinutes   | 22                                     |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
 
   @api @applicationListEntry @regression @ARCPOC-934
   Scenario: Create application list entry with optional respondent for a non-respondent application code
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                         | null                           |
-      | applicationCode                               | AP99001                        |
-      | applicant.person.name.title                   | Mr                             |
-      | applicant.person.name.firstName               | John                           |
+      | standardApplicantCode                         | null                                |
+      | applicationCode                               | AP99001                             |
+      | applicant.person.name.title                   | Mr                                  |
+      | applicant.person.name.firstName               | John                                |
       | applicant.person.name.lastName                | Optional{SCENARIO_ID}               |
       | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} High Street           |
-      | applicant.person.contactDetails.addressLine2  | Westminster                    |
-      | applicant.person.contactDetails.addressLine3  | London                         |
-      | applicant.person.contactDetails.addressLine4  | Greater London                 |
-      | applicant.person.contactDetails.addressLine5  | United Kingdom                 |
-      | applicant.person.contactDetails.postcode      | SW1A 2AA                       |
-      | applicant.person.contactDetails.phone         | 0207{RANDOM}                   |
-      | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
+      | applicant.person.contactDetails.addressLine2  | Westminster                         |
+      | applicant.person.contactDetails.addressLine3  | London                              |
+      | applicant.person.contactDetails.addressLine4  | Greater London                      |
+      | applicant.person.contactDetails.addressLine5  | United Kingdom                      |
+      | applicant.person.contactDetails.postcode      | SW1A 2AA                            |
+      | applicant.person.contactDetails.phone         | 0207{RANDOM}                        |
+      | applicant.person.contactDetails.mobile        | 07123{RANDOM}                       |
       | applicant.person.contactDetails.email         | optional{SCENARIO_ID}@example.com   |
-      | respondent.person.name.title                  | Ms                             |
-      | respondent.person.name.firstName              | Rachel                         |
+      | respondent.person.name.title                  | Ms                                  |
+      | respondent.person.name.firstName              | Rachel                              |
       | respondent.person.name.lastName               | Optional{SCENARIO_ID}               |
       | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street         |
-      | respondent.person.contactDetails.addressLine2 | Bristol                        |
-      | respondent.person.contactDetails.addressLine3 | Avon                           |
-      | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-      | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-      | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
-      | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
+      | respondent.person.contactDetails.addressLine2 | Bristol                             |
+      | respondent.person.contactDetails.addressLine3 | Avon                                |
+      | respondent.person.contactDetails.addressLine4 | United Kingdom                      |
+      | respondent.person.contactDetails.postcode     | BS15 5AA                            |
+      | respondent.person.contactDetails.phone        | 0117{RANDOM}                        |
+      | respondent.person.contactDetails.mobile       | 07984{RANDOM}                       |
       | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-      | wordingFields.0.key                           | Date of Hearing                |
-      | wordingFields.0.value                         | 5                              |
-      | hasOffsiteFee                                 | false                          |
-      | caseReference                                 | CASE-{RANDOM}                  |
-      | notes                                         | Optional respondent validation |
-      | lodgementDate                                 | todayiso                       |
-      | officials.0.title                             | Mr                             |
+      | wordingFields.0.key                           | Date of Hearing                     |
+      | wordingFields.0.value                         | 5                                   |
+      | hasOffsiteFee                                 | false                               |
+      | caseReference                                 | CASE-{RANDOM}                       |
+      | notes                                         | Optional respondent validation      |
+      | lodgementDate                                 | todayiso                            |
+      | officials.0.title                             | Mr                                  |
       | officials.0.surname                           | Clerk{SCENARIO_ID}                  |
-      | officials.0.forename                          | John                           |
-      | officials.0.type                              | MAGISTRATE                     |
+      | officials.0.forename                          | John                                |
+      | officials.0.type                              | MAGISTRATE                          |
     Then User Verify Response Status Code Should Be "201"
     Then User Verify Response Body Should Have:
-      | applicationCode                  | AP99001          |
-      | respondent.person.name.firstName | Rachel           |
+      | applicationCode                  | AP99001               |
+      | respondent.person.name.firstName | Rachel                |
       | respondent.person.name.lastName  | Optional{SCENARIO_ID} |
 
-  @api @applicationListEntry @regression @ARCPOC-935
+  @api @applicationListEntry @regression @ARCPOC-935 @ARCPOC-1906
   Scenario: Create application list entry with bulk respondent details when application code allows bulk respondents
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                        | null                       |
-      | applicationCode                              | MH99001                    |
-      | applicant.person.name.title                  | Mr                         |
-      | applicant.person.name.firstName              | John                       |
-      | applicant.person.name.lastName               | Bulk{SCENARIO_ID}               |
-      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street       |
-      | applicant.person.contactDetails.addressLine2 | Westminster                |
-      | applicant.person.contactDetails.addressLine3 | London                     |
-      | applicant.person.contactDetails.addressLine4 | Greater London             |
-      | applicant.person.contactDetails.addressLine5 | United Kingdom             |
-      | applicant.person.contactDetails.postcode     | SW1A 2AA                   |
-      | applicant.person.contactDetails.phone        | 0207{RANDOM}               |
-      | applicant.person.contactDetails.mobile       | 07123{RANDOM}              |
-      | applicant.person.contactDetails.email        | bulk{SCENARIO_ID}@example.com   |
-      | numberOfRespondents                          | 5                          |
-      | wordingFields.0.key                          | Number                     |
-      | wordingFields.0.value                        | 5                          |
-      | hasOffsiteFee                                | false                      |
-      | feeStatuses.0.paymentReference               | PAY-{RANDOM}               |
-      | feeStatuses.0.paymentStatus                  | PAID                       |
-      | feeStatuses.0.statusDate                     | todayiso                   |
-      | caseReference                                | CASE-{RANDOM}              |
-      | notes                                        | Bulk respondent validation |
-      | lodgementDate                                | todayiso                   |
-      | officials.0.title                            | Mr                         |
-      | officials.0.surname                          | Clerk{SCENARIO_ID}              |
-      | officials.0.forename                         | John                       |
-      | officials.0.type                             | MAGISTRATE                 |
-    Then User Verify Response Status Code Should Be "201"
-    Then User Verify Response Body Should Have:
-      | applicationCode     | MH99001 |
-      | numberOfRespondents | 5       |
-
-  @api @applicationListEntry @regression @ARCPOC-935
-  Scenario: Reject bulk respondent payloads when both respondent details and respondent count are provided
-    When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                         | null                           |
-      | applicationCode                               | MH99001                        |
-      | applicant.person.name.title                   | Mr                             |
-      | applicant.person.name.firstName               | John                           |
-      | applicant.person.name.lastName                | Both{SCENARIO_ID}                   |
-      | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} High Street           |
-      | applicant.person.contactDetails.addressLine2  | Westminster                    |
-      | applicant.person.contactDetails.addressLine3  | London                         |
-      | applicant.person.contactDetails.addressLine4  | Greater London                 |
-      | applicant.person.contactDetails.addressLine5  | United Kingdom                 |
-      | applicant.person.contactDetails.postcode      | SW1A 2AA                       |
-      | applicant.person.contactDetails.phone         | 0207{RANDOM}                   |
-      | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
-      | applicant.person.contactDetails.email         | both{SCENARIO_ID}@example.com       |
-      | respondent.person.name.title                  | Ms                             |
-      | respondent.person.name.firstName              | Rachel                         |
-      | respondent.person.name.lastName               | Both{SCENARIO_ID}                   |
-      | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street         |
-      | respondent.person.contactDetails.addressLine2 | Bristol                        |
-      | respondent.person.contactDetails.addressLine3 | Avon                           |
-      | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-      | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-      | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
-      | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
-      | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-      | numberOfRespondents                           | 10                             |
-      | wordingFields.0.key                           | Number                         |
-      | wordingFields.0.value                         | 5                              |
-      | hasOffsiteFee                                 | false                          |
-      | feeStatuses.0.paymentReference                | PAY-{RANDOM}                   |
-      | feeStatuses.0.paymentStatus                   | PAID                           |
-      | feeStatuses.0.statusDate                      | todayiso                       |
-      | caseReference                                 | CASE-{RANDOM}                  |
-      | notes                                         | Mutually exclusive validation  |
-      | lodgementDate                                 | todayiso                       |
-      | officials.0.title                             | Mr                             |
-      | officials.0.surname                           | Clerk{SCENARIO_ID}                  |
-      | officials.0.forename                          | John                           |
-      | officials.0.type                              | MAGISTRATE                     |
-    Then User Verify Response Status Code Should Be "400"
-    Then User Verify Response Body Should Have:
-      | type   | ALE-21 |
-      | status | 400    |
-
-  @api @applicationListEntry @regression @ARCPOC-935 @ARCPOC-1562
-  Scenario: Accept bulk respondent payloads when neither respondent details nor respondent count are provided
-    When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                        | null                          |
-      | applicationCode                              | AP99001                       |
+      | applicationCode                              | MH99001                       |
       | applicant.person.name.title                  | Mr                            |
       | applicant.person.name.firstName              | John                          |
-      | applicant.person.name.lastName               | Missing{SCENARIO_ID}               |
-      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street          |
+      | applicant.person.name.lastName               | Bulk{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street     |
       | applicant.person.contactDetails.addressLine2 | Westminster                   |
       | applicant.person.contactDetails.addressLine3 | London                        |
       | applicant.person.contactDetails.addressLine4 | Greater London                |
@@ -156,17 +73,99 @@ Feature: API - Application List Entry Validation
       | applicant.person.contactDetails.postcode     | SW1A 2AA                      |
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                  |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                 |
-      | applicant.person.contactDetails.email        | missing{SCENARIO_ID}@example.com   |
-      | wordingFields.0.key                          | Date of Hearing               |
+      | applicant.person.contactDetails.email        | bulk{SCENARIO_ID}@example.com |
+      | numberOfRespondents                          | 5                             |
+      | wordingFields.0.key                          | Number                        |
       | wordingFields.0.value                        | 5                             |
       | hasOffsiteFee                                | false                         |
+      | feeStatuses.0.paymentReference               | PAY-{RANDOM}                  |
+      | feeStatuses.0.paymentStatus                  | PAID                          |
+      | feeStatuses.0.statusDate                     | todayiso                      |
       | caseReference                                | CASE-{RANDOM}                 |
-      | notes                                        | Missing respondent validation |
+      | notes                                        | Bulk respondent validation    |
       | lodgementDate                                | todayiso                      |
       | officials.0.title                            | Mr                            |
-      | officials.0.surname                          | Clerk{SCENARIO_ID}                 |
+      | officials.0.surname                          | Clerk{SCENARIO_ID}            |
       | officials.0.forename                         | John                          |
       | officials.0.type                             | MAGISTRATE                    |
+    Then User Verify Response Status Code Should Be "400"
+    Then User Verify Response Body Should Have:
+      | detail | Fee details are missing or incomplete, please contact Crime IT Support. |
+
+  @api @applicationListEntry @regression @ARCPOC-935
+  Scenario: Reject bulk respondent payloads when both respondent details and respondent count are provided
+    When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
+      | standardApplicantCode                         | null                                |
+      | applicationCode                               | MH99001                             |
+      | applicant.person.name.title                   | Mr                                  |
+      | applicant.person.name.firstName               | John                                |
+      | applicant.person.name.lastName                | Both{SCENARIO_ID}                   |
+      | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} High Street           |
+      | applicant.person.contactDetails.addressLine2  | Westminster                         |
+      | applicant.person.contactDetails.addressLine3  | London                              |
+      | applicant.person.contactDetails.addressLine4  | Greater London                      |
+      | applicant.person.contactDetails.addressLine5  | United Kingdom                      |
+      | applicant.person.contactDetails.postcode      | SW1A 2AA                            |
+      | applicant.person.contactDetails.phone         | 0207{RANDOM}                        |
+      | applicant.person.contactDetails.mobile        | 07123{RANDOM}                       |
+      | applicant.person.contactDetails.email         | both{SCENARIO_ID}@example.com       |
+      | respondent.person.name.title                  | Ms                                  |
+      | respondent.person.name.firstName              | Rachel                              |
+      | respondent.person.name.lastName               | Both{SCENARIO_ID}                   |
+      | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street         |
+      | respondent.person.contactDetails.addressLine2 | Bristol                             |
+      | respondent.person.contactDetails.addressLine3 | Avon                                |
+      | respondent.person.contactDetails.addressLine4 | United Kingdom                      |
+      | respondent.person.contactDetails.postcode     | BS15 5AA                            |
+      | respondent.person.contactDetails.phone        | 0117{RANDOM}                        |
+      | respondent.person.contactDetails.mobile       | 07984{RANDOM}                       |
+      | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
+      | numberOfRespondents                           | 10                                  |
+      | wordingFields.0.key                           | Number                              |
+      | wordingFields.0.value                         | 5                                   |
+      | hasOffsiteFee                                 | false                               |
+      | feeStatuses.0.paymentReference                | PAY-{RANDOM}                        |
+      | feeStatuses.0.paymentStatus                   | PAID                                |
+      | feeStatuses.0.statusDate                      | todayiso                            |
+      | caseReference                                 | CASE-{RANDOM}                       |
+      | notes                                         | Mutually exclusive validation       |
+      | lodgementDate                                 | todayiso                            |
+      | officials.0.title                             | Mr                                  |
+      | officials.0.surname                           | Clerk{SCENARIO_ID}                  |
+      | officials.0.forename                          | John                                |
+      | officials.0.type                              | MAGISTRATE                          |
+    Then User Verify Response Status Code Should Be "400"
+    Then User Verify Response Body Should Have:
+      | type   | ALE-55 |
+      | status | 400    |
+
+  @api @applicationListEntry @regression @ARCPOC-935 @ARCPOC-1562
+  Scenario: Accept bulk respondent payloads when neither respondent details nor respondent count are provided
+    When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
+      | standardApplicantCode                        | null                             |
+      | applicationCode                              | AP99001                          |
+      | applicant.person.name.title                  | Mr                               |
+      | applicant.person.name.firstName              | John                             |
+      | applicant.person.name.lastName               | Missing{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street        |
+      | applicant.person.contactDetails.addressLine2 | Westminster                      |
+      | applicant.person.contactDetails.addressLine3 | London                           |
+      | applicant.person.contactDetails.addressLine4 | Greater London                   |
+      | applicant.person.contactDetails.addressLine5 | United Kingdom                   |
+      | applicant.person.contactDetails.postcode     | SW1A 2AA                         |
+      | applicant.person.contactDetails.phone        | 0207{RANDOM}                     |
+      | applicant.person.contactDetails.mobile       | 07123{RANDOM}                    |
+      | applicant.person.contactDetails.email        | missing{SCENARIO_ID}@example.com |
+      | wordingFields.0.key                          | Date of Hearing                  |
+      | wordingFields.0.value                        | 5                                |
+      | hasOffsiteFee                                | false                            |
+      | caseReference                                | CASE-{RANDOM}                    |
+      | notes                                        | Missing respondent validation    |
+      | lodgementDate                                | todayiso                         |
+      | officials.0.title                            | Mr                               |
+      | officials.0.surname                          | Clerk{SCENARIO_ID}               |
+      | officials.0.forename                         | John                             |
+      | officials.0.type                             | MAGISTRATE                       |
     Then User Verify Response Status Code Should Be "201"
     Then User Verify Response Body Should Have:
       | applicationCode     | AP99001 |
@@ -177,43 +176,43 @@ Feature: API - Application List Entry Validation
   @api @applicationListEntry @regression @ARCPOC-1027
   Scenario: Reject EF application code entries without an account number
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                         | null                           |
-      | applicationCode                               | EF1213                         |
-      | applicant.person.name.title                   | Mr                             |
-      | applicant.person.name.firstName               | John                           |
+      | standardApplicantCode                         | null                                |
+      | applicationCode                               | EF1213                              |
+      | applicant.person.name.title                   | Mr                                  |
+      | applicant.person.name.firstName               | John                                |
       | applicant.person.name.lastName                | Fine{SCENARIO_ID}                   |
       | applicant.person.contactDetails.addressLine1  | {SCENARIO_ID} High Street           |
-      | applicant.person.contactDetails.addressLine2  | Westminster                    |
-      | applicant.person.contactDetails.addressLine3  | London                         |
-      | applicant.person.contactDetails.addressLine4  | Greater London                 |
-      | applicant.person.contactDetails.addressLine5  | United Kingdom                 |
-      | applicant.person.contactDetails.postcode      | SW1A 2AA                       |
-      | applicant.person.contactDetails.phone         | 0207{RANDOM}                   |
-      | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
+      | applicant.person.contactDetails.addressLine2  | Westminster                         |
+      | applicant.person.contactDetails.addressLine3  | London                              |
+      | applicant.person.contactDetails.addressLine4  | Greater London                      |
+      | applicant.person.contactDetails.addressLine5  | United Kingdom                      |
+      | applicant.person.contactDetails.postcode      | SW1A 2AA                            |
+      | applicant.person.contactDetails.phone         | 0207{RANDOM}                        |
+      | applicant.person.contactDetails.mobile        | 07123{RANDOM}                       |
       | applicant.person.contactDetails.email         | fine{SCENARIO_ID}@example.com       |
-      | respondent.person.name.title                  | Ms                             |
-      | respondent.person.name.firstName              | Rachel                         |
+      | respondent.person.name.title                  | Ms                                  |
+      | respondent.person.name.firstName              | Rachel                              |
       | respondent.person.name.lastName               | Fine{SCENARIO_ID}                   |
       | respondent.person.contactDetails.addressLine1 | {SCENARIO_ID} Market Street         |
-      | respondent.person.contactDetails.addressLine2 | Bristol                        |
-      | respondent.person.contactDetails.addressLine3 | Avon                           |
-      | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-      | respondent.person.contactDetails.postcode     | BS15 5AA                       |
-      | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
-      | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
+      | respondent.person.contactDetails.addressLine2 | Bristol                             |
+      | respondent.person.contactDetails.addressLine3 | Avon                                |
+      | respondent.person.contactDetails.addressLine4 | United Kingdom                      |
+      | respondent.person.contactDetails.postcode     | BS15 5AA                            |
+      | respondent.person.contactDetails.phone        | 0117{RANDOM}                        |
+      | respondent.person.contactDetails.mobile       | 07984{RANDOM}                       |
       | respondent.person.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-      | wordingFields                                 | __empty_array__                |
-      | feeStatuses.0.paymentReference                | PAY-{RANDOM}                   |
-      | feeStatuses.0.paymentStatus                   | PAID                           |
-      | feeStatuses.0.statusDate                      | todayiso                       |
-      | hasOffsiteFee                                 | false                          |
-      | caseReference                                 | CASE-{RANDOM}                  |
-      | notes                                         | EF account number validation   |
-      | lodgementDate                                 | todayiso                       |
-      | officials.0.title                             | Mr                             |
+      | wordingFields                                 | __empty_array__                     |
+      | feeStatuses.0.paymentReference                | PAY-{RANDOM}                        |
+      | feeStatuses.0.paymentStatus                   | PAID                                |
+      | feeStatuses.0.statusDate                      | todayiso                            |
+      | hasOffsiteFee                                 | false                               |
+      | caseReference                                 | CASE-{RANDOM}                       |
+      | notes                                         | EF account number validation        |
+      | lodgementDate                                 | todayiso                            |
+      | officials.0.title                             | Mr                                  |
       | officials.0.surname                           | Clerk{SCENARIO_ID}                  |
-      | officials.0.forename                          | John                           |
-      | officials.0.type                              | MAGISTRATE                     |
+      | officials.0.forename                          | John                                |
+      | officials.0.type                              | MAGISTRATE                          |
     Then User Verify Response Status Code Should Be "400"
     Then User Verify Response Body Should Have:
       | type   | ALE-20 |
@@ -222,28 +221,28 @@ Feature: API - Application List Entry Validation
   @api @applicationListEntry @regression @ARCPOC-1028
   Scenario: Reject disallowed characters in applicant fields
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                              | null                          |
-      | applicationCode                                    | AP99001                       |
-      | applicant.organisation.name                        | Applicant	Industries          |
+      | standardApplicantCode                              | null                               |
+      | applicationCode                                    | AP99001                            |
+      | applicant.organisation.name                        | Applicant	Industries               |
       | applicant.organisation.contactDetails.addressLine1 | {SCENARIO_ID} High Street          |
-      | applicant.organisation.contactDetails.addressLine2 | Westminster                   |
-      | applicant.organisation.contactDetails.addressLine3 | London                        |
-      | applicant.organisation.contactDetails.addressLine4 | Greater London                |
-      | applicant.organisation.contactDetails.addressLine5 | United Kingdom                |
-      | applicant.organisation.contactDetails.postcode     | SW1A 2AA                      |
-      | applicant.organisation.contactDetails.phone        | 0207{RANDOM}                  |
-      | applicant.organisation.contactDetails.mobile       | 07123{RANDOM}                 |
+      | applicant.organisation.contactDetails.addressLine2 | Westminster                        |
+      | applicant.organisation.contactDetails.addressLine3 | London                             |
+      | applicant.organisation.contactDetails.addressLine4 | Greater London                     |
+      | applicant.organisation.contactDetails.addressLine5 | United Kingdom                     |
+      | applicant.organisation.contactDetails.postcode     | SW1A 2AA                           |
+      | applicant.organisation.contactDetails.phone        | 0207{RANDOM}                       |
+      | applicant.organisation.contactDetails.mobile       | 07123{RANDOM}                      |
       | applicant.organisation.contactDetails.email        | applicant{SCENARIO_ID}@example.com |
-      | wordingFields.0.key                                | Date of Hearing               |
-      | wordingFields.0.value                              | 5                             |
-      | hasOffsiteFee                                      | false                         |
-      | caseReference                                      | CASE-{RANDOM}                 |
-      | notes                                              | Applicant validation          |
-      | lodgementDate                                      | todayiso                      |
-      | officials.0.title                                  | Mr                            |
+      | wordingFields.0.key                                | Date of Hearing                    |
+      | wordingFields.0.value                              | 5                                  |
+      | hasOffsiteFee                                      | false                              |
+      | caseReference                                      | CASE-{RANDOM}                      |
+      | notes                                              | Applicant validation               |
+      | lodgementDate                                      | todayiso                           |
+      | officials.0.title                                  | Mr                                 |
       | officials.0.surname                                | Clerk{SCENARIO_ID}                 |
-      | officials.0.forename                               | John                          |
-      | officials.0.type                                   | MAGISTRATE                    |
+      | officials.0.forename                               | John                               |
+      | officials.0.type                                   | MAGISTRATE                         |
     Then User Verify Response Status Code Should Be "400"
     Then User Verify Response Body Should Have:
       | type   | COMMON-11                     |
@@ -253,39 +252,39 @@ Feature: API - Application List Entry Validation
   @api @applicationListEntry @regression @ARCPOC-1029
   Scenario: Reject disallowed characters in respondent fields
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                               | null                           |
-      | applicationCode                                     | AP99001                        |
-      | applicant.person.name.title                         | Mr                             |
-      | applicant.person.name.firstName                     | John                           |
+      | standardApplicantCode                               | null                                |
+      | applicationCode                                     | AP99001                             |
+      | applicant.person.name.title                         | Mr                                  |
+      | applicant.person.name.firstName                     | John                                |
       | applicant.person.name.lastName                      | Respondent{SCENARIO_ID}             |
       | applicant.person.contactDetails.addressLine1        | {SCENARIO_ID} High Street           |
-      | applicant.person.contactDetails.addressLine2        | Westminster                    |
-      | applicant.person.contactDetails.addressLine3        | London                         |
-      | applicant.person.contactDetails.addressLine4        | Greater London                 |
-      | applicant.person.contactDetails.addressLine5        | United Kingdom                 |
-      | applicant.person.contactDetails.postcode            | SW1A 2AA                       |
-      | applicant.person.contactDetails.phone               | 0207{RANDOM}                   |
-      | applicant.person.contactDetails.mobile              | 07123{RANDOM}                  |
+      | applicant.person.contactDetails.addressLine2        | Westminster                         |
+      | applicant.person.contactDetails.addressLine3        | London                              |
+      | applicant.person.contactDetails.addressLine4        | Greater London                      |
+      | applicant.person.contactDetails.addressLine5        | United Kingdom                      |
+      | applicant.person.contactDetails.postcode            | SW1A 2AA                            |
+      | applicant.person.contactDetails.phone               | 0207{RANDOM}                        |
+      | applicant.person.contactDetails.mobile              | 07123{RANDOM}                       |
       | applicant.person.contactDetails.email               | applicant{SCENARIO_ID}@example.com  |
-      | respondent.organisation.name                        | Respondent	Industries          |
+      | respondent.organisation.name                        | Respondent	Industries               |
       | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Market Street         |
-      | respondent.organisation.contactDetails.addressLine2 | Bristol                        |
-      | respondent.organisation.contactDetails.addressLine3 | Avon                           |
-      | respondent.organisation.contactDetails.addressLine4 | United Kingdom                 |
-      | respondent.organisation.contactDetails.postcode     | BS15 5AA                       |
-      | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                   |
-      | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                  |
+      | respondent.organisation.contactDetails.addressLine2 | Bristol                             |
+      | respondent.organisation.contactDetails.addressLine3 | Avon                                |
+      | respondent.organisation.contactDetails.addressLine4 | United Kingdom                      |
+      | respondent.organisation.contactDetails.postcode     | BS15 5AA                            |
+      | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                        |
+      | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                       |
       | respondent.organisation.contactDetails.email        | respondent{SCENARIO_ID}@example.com |
-      | wordingFields.0.key                                 | Date of Hearing                |
-      | wordingFields.0.value                               | 5                              |
-      | hasOffsiteFee                                       | false                          |
-      | caseReference                                       | CASE-{RANDOM}                  |
-      | notes                                               | Respondent validation          |
-      | lodgementDate                                       | todayiso                       |
-      | officials.0.title                                   | Mr                             |
+      | wordingFields.0.key                                 | Date of Hearing                     |
+      | wordingFields.0.value                               | 5                                   |
+      | hasOffsiteFee                                       | false                               |
+      | caseReference                                       | CASE-{RANDOM}                       |
+      | notes                                               | Respondent validation               |
+      | lodgementDate                                       | todayiso                            |
+      | officials.0.title                                   | Mr                                  |
       | officials.0.surname                                 | Clerk{SCENARIO_ID}                  |
-      | officials.0.forename                                | John                           |
-      | officials.0.type                                    | MAGISTRATE                     |
+      | officials.0.forename                                | John                                |
+      | officials.0.type                                    | MAGISTRATE                          |
     Then User Verify Response Status Code Should Be "400"
     Then User Verify Response Body Should Have:
       | type   | COMMON-11                     |
@@ -295,51 +294,51 @@ Feature: API - Application List Entry Validation
   @api @applicationListEntry @regression @ARCPOC-1032
   Scenario: Reject organisation respondent payloads that include date of birth
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                               | null                               |
-      | applicationCode                                     | AP99001                            |
-      | applicant.person.name.title                         | Mr                                 |
-      | applicant.person.name.firstName                     | John                               |
-      | applicant.person.name.lastName                      | Organisation{SCENARIO_ID}               |
-      | applicant.person.contactDetails.addressLine1        | {SCENARIO_ID} High Street               |
-      | applicant.person.contactDetails.addressLine2        | Westminster                        |
-      | applicant.person.contactDetails.addressLine3        | London                             |
-      | applicant.person.contactDetails.addressLine4        | Greater London                     |
-      | applicant.person.contactDetails.addressLine5        | United Kingdom                     |
-      | applicant.person.contactDetails.postcode            | SW1A 2AA                           |
-      | applicant.person.contactDetails.phone               | 0207{RANDOM}                       |
-      | applicant.person.contactDetails.mobile              | 07123{RANDOM}                      |
-      | applicant.person.contactDetails.email               | applicant{SCENARIO_ID}@example.com      |
-      | respondent.person.name.title                        | Ms                                 |
-      | respondent.person.name.firstName                    | Rachel                             |
-      | respondent.person.name.lastName                     | Person{SCENARIO_ID}                     |
-      | respondent.person.contactDetails.addressLine1       | {SCENARIO_ID} Market Street             |
-      | respondent.person.contactDetails.addressLine2       | Bristol                            |
-      | respondent.person.contactDetails.addressLine3       | Avon                               |
-      | respondent.person.contactDetails.addressLine4       | United Kingdom                     |
-      | respondent.person.contactDetails.postcode           | BS15 5AA                           |
-      | respondent.person.contactDetails.phone              | 0117{RANDOM}                       |
-      | respondent.person.contactDetails.mobile             | 07984{RANDOM}                      |
-      | respondent.person.contactDetails.email              | person{SCENARIO_ID}@example.com         |
-      | respondent.person.dateOfBirth                       | todayiso-25y                       |
-      | respondent.organisation.name                        | Organisation {SCENARIO_ID}              |
-      | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Market Road               |
-      | respondent.organisation.contactDetails.addressLine2 | Bristol                            |
-      | respondent.organisation.contactDetails.addressLine3 | Avon                               |
-      | respondent.organisation.contactDetails.addressLine4 | United Kingdom                     |
-      | respondent.organisation.contactDetails.postcode     | BS15 5AA                           |
-      | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                       |
-      | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                      |
-      | respondent.organisation.contactDetails.email        | organisation{SCENARIO_ID}@example.com   |
-      | wordingFields.0.key                                 | Date of Hearing                    |
-      | wordingFields.0.value                               | 5                                  |
-      | hasOffsiteFee                                       | false                              |
-      | caseReference                                       | CASE-{RANDOM}                      |
-      | notes                                               | Organisation respondent validation |
-      | lodgementDate                                       | todayiso                           |
-      | officials.0.title                                   | Mr                                 |
-      | officials.0.surname                                 | Clerk{SCENARIO_ID}                      |
-      | officials.0.forename                                | John                               |
-      | officials.0.type                                    | MAGISTRATE                         |
+      | standardApplicantCode                               | null                                  |
+      | applicationCode                                     | AP99001                               |
+      | applicant.person.name.title                         | Mr                                    |
+      | applicant.person.name.firstName                     | John                                  |
+      | applicant.person.name.lastName                      | Organisation{SCENARIO_ID}             |
+      | applicant.person.contactDetails.addressLine1        | {SCENARIO_ID} High Street             |
+      | applicant.person.contactDetails.addressLine2        | Westminster                           |
+      | applicant.person.contactDetails.addressLine3        | London                                |
+      | applicant.person.contactDetails.addressLine4        | Greater London                        |
+      | applicant.person.contactDetails.addressLine5        | United Kingdom                        |
+      | applicant.person.contactDetails.postcode            | SW1A 2AA                              |
+      | applicant.person.contactDetails.phone               | 0207{RANDOM}                          |
+      | applicant.person.contactDetails.mobile              | 07123{RANDOM}                         |
+      | applicant.person.contactDetails.email               | applicant{SCENARIO_ID}@example.com    |
+      | respondent.person.name.title                        | Ms                                    |
+      | respondent.person.name.firstName                    | Rachel                                |
+      | respondent.person.name.lastName                     | Person{SCENARIO_ID}                   |
+      | respondent.person.contactDetails.addressLine1       | {SCENARIO_ID} Market Street           |
+      | respondent.person.contactDetails.addressLine2       | Bristol                               |
+      | respondent.person.contactDetails.addressLine3       | Avon                                  |
+      | respondent.person.contactDetails.addressLine4       | United Kingdom                        |
+      | respondent.person.contactDetails.postcode           | BS15 5AA                              |
+      | respondent.person.contactDetails.phone              | 0117{RANDOM}                          |
+      | respondent.person.contactDetails.mobile             | 07984{RANDOM}                         |
+      | respondent.person.contactDetails.email              | person{SCENARIO_ID}@example.com       |
+      | respondent.person.dateOfBirth                       | todayiso-25y                          |
+      | respondent.organisation.name                        | Organisation {SCENARIO_ID}            |
+      | respondent.organisation.contactDetails.addressLine1 | {SCENARIO_ID} Market Road             |
+      | respondent.organisation.contactDetails.addressLine2 | Bristol                               |
+      | respondent.organisation.contactDetails.addressLine3 | Avon                                  |
+      | respondent.organisation.contactDetails.addressLine4 | United Kingdom                        |
+      | respondent.organisation.contactDetails.postcode     | BS15 5AA                              |
+      | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                          |
+      | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                         |
+      | respondent.organisation.contactDetails.email        | organisation{SCENARIO_ID}@example.com |
+      | wordingFields.0.key                                 | Date of Hearing                       |
+      | wordingFields.0.value                               | 5                                     |
+      | hasOffsiteFee                                       | false                                 |
+      | caseReference                                       | CASE-{RANDOM}                         |
+      | notes                                               | Organisation respondent validation    |
+      | lodgementDate                                       | todayiso                              |
+      | officials.0.title                                   | Mr                                    |
+      | officials.0.surname                                 | Clerk{SCENARIO_ID}                    |
+      | officials.0.forename                                | John                                  |
+      | officials.0.type                                    | MAGISTRATE                            |
     Then User Verify Response Status Code Should Be "400"
     Then User Verify Response Body Should Have:
       | type   | ALE-1 |
@@ -348,27 +347,27 @@ Feature: API - Application List Entry Validation
   @api @applicationListEntry @regression @ARCPOC-1271
   Scenario: Create application list entry with a valid offsite fee selection
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
-      | standardApplicantCode                        | null                        |
-      | applicationCode                              | AD99001                     |
-      | applicant.person.name.title                  | Mr                          |
-      | applicant.person.name.firstName              | John                        |
+      | standardApplicantCode                        | null                             |
+      | applicationCode                              | AD99001                          |
+      | applicant.person.name.title                  | Mr                               |
+      | applicant.person.name.firstName              | John                             |
       | applicant.person.name.lastName               | Offsite{SCENARIO_ID}             |
       | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street        |
-      | applicant.person.contactDetails.postcode     | AA1 1AA                     |
-      | applicant.person.contactDetails.phone        | 0207{RANDOM}                |
+      | applicant.person.contactDetails.postcode     | AA1 1AA                          |
+      | applicant.person.contactDetails.phone        | 0207{RANDOM}                     |
       | applicant.person.contactDetails.email        | offsite{SCENARIO_ID}@example.com |
-      | wordingFields                                | __empty_array__             |
-      | feeStatuses.0.paymentReference               | PAY-{RANDOM}                |
-      | feeStatuses.0.paymentStatus                  | PAID                        |
-      | feeStatuses.0.statusDate                     | todayiso                    |
-      | hasOffsiteFee                                | true                        |
-      | caseReference                                | CASE-{RANDOM}               |
-      | notes                                        | Offsite fee validation      |
-      | lodgementDate                                | todayiso                    |
-      | officials.0.title                            | Mr                          |
+      | wordingFields                                | __empty_array__                  |
+      | feeStatuses.0.paymentReference               | PAY-{RANDOM}                     |
+      | feeStatuses.0.paymentStatus                  | PAID                             |
+      | feeStatuses.0.statusDate                     | todayiso                         |
+      | hasOffsiteFee                                | true                             |
+      | caseReference                                | CASE-{RANDOM}                    |
+      | notes                                        | Offsite fee validation           |
+      | lodgementDate                                | todayiso                         |
+      | officials.0.title                            | Mr                               |
       | officials.0.surname                          | Clerk{SCENARIO_ID}               |
-      | officials.0.forename                         | John                        |
-      | officials.0.type                             | MAGISTRATE                  |
+      | officials.0.forename                         | John                             |
+      | officials.0.type                             | MAGISTRATE                       |
     Then User Verify Response Status Code Should Be "201"
     Then User Verify Response Body Should Have:
       | applicationCode | AD99001 |
