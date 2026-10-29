@@ -297,7 +297,7 @@ export class ResultWordingSectionComponent {
       this.pendingVersion() !== this.appliedVersion(),
   );
 
-  hasUnchangedContent(): boolean {
+  readonly hasUnchangedContent = computed(() => {
     const drafts = this.existingWordingDraftById();
     const originals = this.existingOriginalFieldsById();
     return (
@@ -309,7 +309,7 @@ export class ResultWordingSectionComponent {
         ),
       )
     );
-  }
+  });
 
   readonly canSubmitResults = computed(
     () => this.hasPendingChanges() || this.hasExistingEdits(),

@@ -11,6 +11,7 @@ import {
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
+import { cloneDeep } from 'lodash';
 import { Observable, Subject, of, throwError } from 'rxjs';
 
 import {
@@ -22,6 +23,8 @@ import {
   officialsToFormPatch,
 } from '@components/applications-list-entry-detail/util/entry-detail.form';
 import * as routingStateUtil from '@components/applications-list-entry-detail/util/routing-state-util';
+import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
+import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import {
   ApplicationCodeGetDetailDto,
@@ -332,6 +335,50 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component.canLeave()).toBe(true);
   });
 
+  it.each(['wording', 'results'])(
+    'warns before payment-reference editing discards %s drafts',
+    (section) => {
+      const unchanged = jest.fn(() => false);
+      if (section === 'wording') {
+        component['wordingSection'] = {
+          hasUnchangedContent: unchanged,
+        } as WordingSectionComponent;
+      } else {
+        component['resultWordingSection'] = {
+          hasUnchangedContent: unchanged,
+        } as ResultWordingSectionComponent;
+      }
+      const router = TestBed.inject(Router);
+      const entryId =
+        TestBed.inject(ActivatedRoute).snapshot.paramMap.get('entryId');
+      jest.spyOn(router, 'getCurrentNavigation').mockReturnValue({
+        extractedUrl: router.parseUrl(
+          `/applications-list/${component.vm().appListId}/update-entry/${entryId}/change-payment-reference?from=applications`,
+        ),
+      } as ReturnType<Router['getCurrentNavigation']>);
+      const dialog: HTMLDialogElement =
+        fixture.nativeElement.querySelector('dialog');
+      const showModal = jest.fn();
+      dialog.showModal = showModal;
+      dialog.close = jest.fn();
+      const answers: boolean[] = [];
+      for (const button of ['button[autofocus]', '.govuk-button--secondary']) {
+        const warning = component.canLeave();
+        if (typeof warning === 'boolean') {
+          throw new Error(
+            'Expected a warning for a draft not preserved in the snapshot',
+          );
+        }
+        warning.subscribe((leave) => answers.push(leave));
+        (dialog.querySelector(button) as HTMLButtonElement).click();
+      }
+      expect(answers).toEqual([false, true]);
+      expect(showModal).toHaveBeenCalledTimes(2);
+      unchanged.mockReturnValue(true);
+      expect(component.canLeave()).toBe(true);
+    },
+  );
+
   it('clears the warning after a successful save, but not a failed save', () => {
     component.form.controls.applicationNotes.controls.notes.setValue('Edited');
     const dto = component['buildEntryUpdateDto']();
@@ -343,6 +390,90 @@ describe('ApplicationsListEntryDetail', () => {
     mockUpdateApplicationListEntry.mockReturnValue(
       of(component['entryDetail']),
     );
+    component['submitEntryUpdate'](dto, ENTRY_SUCCESS_MESSAGES.listUpdated);
+    expect(component.canLeave()).toBe(true);
+  });
+
+  it.each([
+    { existingFees: [] },
+    {
+      existingFees: [
+        { paymentStatus: PaymentStatus.DUE, statusDate: '2026-03-09' },
+      ],
+    },
+  ])(
+    'keeps an unadded fee draft unsaved when the fee table is %j',
+    ({ existingFees }: { existingFees: FeeStatus[] }) => {
+      component.form.controls.feeStatuses.setValue(existingFees);
+      component.appListEntryDetailPatch({ isFeeRequired: true });
+      fixture.detectChanges();
+      const draft = {
+        feeStatus: PaymentStatus.PAID,
+        feeStatusDate: '2026-03-10',
+        paymentRef: 'UNADDED-FEE',
+      };
+      component.form.patchValue({
+        ...draft,
+        applicationNotes: { notes: 'Saved note' },
+      });
+      expect(component['civilFeeSection']?.validateForSubmit()).toEqual([]);
+
+      for (let save = 0; save < 2; save++) {
+        const dto = component['buildEntryUpdateDto']();
+        expect(dto.feeStatuses).toEqual(existingFees);
+        component['submitEntryUpdate'](dto, ENTRY_SUCCESS_MESSAGES.listUpdated);
+        expect(component['entryDetail']?.notes).toBe('Saved note');
+        expect(component['contentIsUnchanged']()).toBe(false);
+      }
+
+      const warning = jest
+        .spyOn(component['navigationWarning']!, 'canLeave')
+        .mockReturnValue(false);
+      expect(component.canLeave()).toBe(false);
+      expect(warning).toHaveBeenCalledWith(true);
+      warning.mockRestore();
+      expect(component.form.getRawValue()).toMatchObject(draft);
+
+      const response = new Subject<EntryGetDetailDto>();
+      mockUpdateApplicationListEntry.mockReturnValue(response.asObservable());
+      component['civilFeeSection']!.onAddFeeDetailsClick();
+      expect(
+        mockUpdateApplicationListEntry.mock.calls.at(-1)?.[0].entryUpdateDto
+          .feeStatuses,
+      ).toContainEqual({
+        paymentStatus: PaymentStatus.PAID,
+        statusDate: draft.feeStatusDate,
+        paymentReference: draft.paymentRef,
+      });
+      expect(component['contentIsUnchanged']()).toBe(false);
+      // jsdom lacks structuredClone; these fee rows only need a deep copy.
+      const originalClone = globalThis.structuredClone;
+      globalThis.structuredClone ??= cloneDeep;
+      try {
+        response.next({} as EntryGetDetailDto);
+      } finally {
+        globalThis.structuredClone = originalClone;
+      }
+      response.complete();
+      expect(component.canLeave()).toBe(true);
+    },
+  );
+
+  it('refreshes the fee draft baseline when the first fee is included in the save', () => {
+    component.form.patchValue({
+      feeStatus: PaymentStatus.PAID,
+      feeStatusDate: '2026-03-10',
+      paymentRef: 'FIRST-FEE',
+    });
+    expect(component.form.controls.feeStatuses.value).toBeNull();
+    const dto = component['buildEntryUpdateDto']();
+    expect(dto.feeStatuses).toEqual([
+      {
+        paymentStatus: PaymentStatus.PAID,
+        statusDate: '2026-03-10',
+        paymentReference: 'FIRST-FEE',
+      },
+    ]);
     component['submitEntryUpdate'](dto, ENTRY_SUCCESS_MESSAGES.listUpdated);
     expect(component.canLeave()).toBe(true);
   });

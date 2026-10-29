@@ -251,10 +251,12 @@ export class ApplicationsListEntryDetail implements OnInit {
       .split(/[?#]/, 1)[0];
     const { appListId } = this.vm();
     const entryId = getEntryId(this.route);
-    // Payment-reference editing carries the draft forward rather than discarding it.
+    // The snapshot preserves form values, but not unapplied wording or result drafts.
     if (
       destination ===
-      `/applications-list/${appListId}/update-entry/${entryId}/change-payment-reference`
+        `/applications-list/${appListId}/update-entry/${entryId}/change-payment-reference` &&
+      (this.wordingSection?.hasUnchangedContent() ?? true) &&
+      (this.resultWordingSection?.hasUnchangedContent() ?? true)
     ) {
       return true;
     }
@@ -870,6 +872,16 @@ export class ApplicationsListEntryDetail implements OnInit {
     onComplete?: () => void,
   ): void {
     const submittedContent = this.formSvc.editableContent(this.forms);
+    if (Array.isArray(submittedContent.form.feeStatuses)) {
+      // The mapper sends table rows instead of the unadded fee-entry fields.
+      for (const field of [
+        'feeStatus',
+        'feeStatusDate',
+        'paymentRef',
+      ] as const) {
+        submittedContent.form[field] = this.savedContent?.form[field] ?? null;
+      }
+    }
     if (this.blockSaveWithoutApplicationCode()) {
       return;
     }

@@ -12,6 +12,7 @@ import {
   toOptionalTrimmed,
 } from '@components/applications-list-entry-create/util/helpers';
 import { CivilFeeSectionComponent } from '@components/civil-fee-section/civil-fee-section.component';
+import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import {
   ApplicationCodeGetDetailDto,
   ApplicationCodeGetDetailDtoFeeAmountCurrencyEnum,
@@ -1554,6 +1555,23 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
           `/applications-list/${component.vm().id}/create-entry/change-payment-reference?from=applications`,
         ),
       } as ReturnType<Router['getCurrentNavigation']>);
+    expect(component.canLeave()).toBe(true);
+    const wordingUnchanged = jest.fn(() => false);
+    component['wordingSection'] = {
+      hasUnchangedContent: wordingUnchanged,
+    } as WordingSectionComponent;
+    const paymentAnswers: boolean[] = [];
+    for (const button of ['button[autofocus]', '.govuk-button--secondary']) {
+      const warning = component.canLeave();
+      if (typeof warning === 'boolean') {
+        throw new Error('Expected a warning for unapplied wording');
+      }
+      warning.subscribe((leave) => paymentAnswers.push(leave));
+      (dialog.querySelector(button) as HTMLButtonElement).click();
+    }
+    expect(paymentAnswers).toEqual([false, true]);
+    expect(notes.value).toBe('Unsaved draft');
+    wordingUnchanged.mockReturnValue(true);
     expect(component.canLeave()).toBe(true);
     navigation.mockReturnValue(null);
     component.appListEntryCreatePatch({ createDone: true });

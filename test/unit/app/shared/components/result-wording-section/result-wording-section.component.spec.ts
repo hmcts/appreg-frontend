@@ -1,3 +1,4 @@
+import { isSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ApplicantContext } from '@components/applications-list-entry-detail/util/routing-state-util';
@@ -64,6 +65,7 @@ describe('ResultWordingSectionComponent', () => {
   });
 
   it('compares result drafts with persisted wording, not applied wording', () => {
+    expect(isSignal(component.hasUnchangedContent)).toBe(true);
     fixture.componentRef.setInput('existingResults', [
       makeExistingResult({
         id: 'result-1',
@@ -546,8 +548,10 @@ describe('ResultWordingSectionComponent', () => {
 
   it('onRemoveClicked removes pending by tempId and emits pendingChange', () => {
     const pendingEmitSpy = jest.spyOn(component.pendingChange, 'emit');
+    expect(component.hasUnchangedContent()).toBe(true);
 
     component.selectResultCode(codes[0]);
+    expect(component.hasUnchangedContent()).toBe(false);
 
     const pendingRow = component
       .tableRows()
@@ -559,6 +563,7 @@ describe('ResultWordingSectionComponent', () => {
 
     component.onRemoveClicked(pendingRow!);
 
+    expect(component.hasUnchangedContent()).toBe(true);
     expect(component.canSubmitResults()).toBe(false);
 
     const lastArg = pendingEmitSpy.mock.calls.at(-1)![0];

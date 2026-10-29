@@ -214,10 +214,11 @@ export class ApplicationsListEntryCreate implements OnInit {
       .getCurrentNavigation()
       ?.extractedUrl.toString()
       .split(/[?#]/, 1)[0];
-    // Payment-reference editing carries the draft forward rather than discarding it.
+    // The payment-reference snapshot preserves form values, but not unapplied wording.
     if (
       destination ===
-      `/applications-list/${this.vm().id}/create-entry/change-payment-reference`
+        `/applications-list/${this.vm().id}/create-entry/change-payment-reference` &&
+      (this.wordingSection?.hasUnchangedContent() ?? true)
     ) {
       return true;
     }
