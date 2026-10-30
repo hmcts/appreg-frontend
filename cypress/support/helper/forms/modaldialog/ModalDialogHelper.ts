@@ -7,7 +7,7 @@ export class ModalDialogHelper {
   }
 
   static verifyModalDialogNotVisible(): void {
-    cy.get('dialog').should('not.be.visible');
+    cy.get('dialog').should('not.exist');
   }
 
   static clickModalDialogCloseLink(): void {
