@@ -3,6 +3,7 @@
   "id": "{{request.pathSegments.[3]}}",
   "listId": "{{request.pathSegments.[1]}}",
   "standardApplicantCode": "SA002",
+  "standardApplicantId": 2,
   "applicationCode": "APP99001",
   "applicant": {
     "organisation": {
