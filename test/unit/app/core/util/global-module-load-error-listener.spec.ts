@@ -1,6 +1,7 @@
 import {
   ModuleLoadRecoveryEvent,
   installGlobalModuleLoadErrorListener,
+  recoverFromModuleLoadError,
   resetGlobalModuleLoadErrorListenerForTesting,
 } from '@util/global-module-load-error-listener';
 
@@ -134,6 +135,46 @@ describe('installGlobalModuleLoadErrorListener', () => {
         reloadAttempted: true,
       }),
     );
+  });
+
+  it('uses the same reload limit for a caught import error and a window error', () => {
+    installListener();
+
+    recoverFromModuleLoadError(
+      new TypeError('Failed to fetch dynamically imported module: /chunk.js'),
+    );
+    expect(reload).toHaveBeenCalledTimes(1);
+
+    simulatePageReload();
+    currentTime += 1_000;
+    installListener();
+    emit('error', { message: 'ChunkLoadError: another stale chunk' });
+    expect(reload).toHaveBeenCalledTimes(2);
+
+    simulatePageReload();
+    currentTime += 1_000;
+    installListener();
+    recoverFromModuleLoadError(
+      new TypeError('Failed to fetch dynamically imported module: /chunk.js'),
+    );
+
+    expect(reload).toHaveBeenCalledTimes(2);
+    expect(logRecovery).toHaveBeenLastCalledWith({
+      attemptsInWindow: 2,
+      errorType: 'Dynamic import fetch failed',
+      maxAttempts: 2,
+      reloadAttempted: false,
+      windowMs: 60_000,
+    });
+  });
+
+  it('does not reload for a caught non-module error', () => {
+    installListener();
+
+    recoverFromModuleLoadError(new Error('Something else failed'));
+
+    expect(reload).not.toHaveBeenCalled();
+    expect(logRecovery).not.toHaveBeenCalled();
   });
 
   it('does not reload for non-matching errors', () => {
