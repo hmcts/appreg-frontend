@@ -8,6 +8,35 @@ import { DropdownHelper } from '../forms/dropdown/DropdownHelper';
 import { TextboxHelper } from '../forms/textbox/TextboxHelper';
 
 export class ApplicationListEntriesCombinedHelper {
+  private static courtReferenceDataLoaded = false;
+
+  static resetCourtReferenceData(): void {
+    this.courtReferenceDataLoaded = false;
+  }
+
+  private static waitForCourtReferenceData(): Cypress.Chainable {
+    const waitForPage = (): Cypress.Chainable => {
+      return cy
+        .wait('@applicationEntriesCourtReferenceData')
+        .then(({ response }) => {
+          if (!response) {
+            throw new Error('Court reference-data response was not received');
+          }
+
+          expect(response.statusCode).to.eq(200);
+          expect(response.body).to.have.property('last');
+          if (response.body.last) {
+            this.courtReferenceDataLoaded = true;
+            return;
+          }
+
+          return waitForPage();
+        });
+    };
+
+    return waitForPage();
+  }
+
   private static waitForTypeSpecificFields(type: string): void {
     const normalisedType = type.trim().toLowerCase();
 
@@ -46,6 +75,13 @@ export class ApplicationListEntriesCombinedHelper {
       'Searching Application List Entry with criteria:',
       processedCriteria,
     );
+
+    const requiresCourtReferenceData = Boolean(
+      processedCriteria.CourtSearch?.trim() || processedCriteria.Court?.trim(),
+    );
+    if (requiresCourtReferenceData && !this.courtReferenceDataLoaded) {
+      cy.then(() => this.waitForCourtReferenceData());
+    }
 
     for (const [fieldLabel, value] of Object.entries(processedCriteria)) {
       if (!value || value.trim() === '') {
