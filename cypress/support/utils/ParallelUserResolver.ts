@@ -1,4 +1,5 @@
 const PARALLEL_USER_KEYS = ['user1', 'user2', 'user3', 'admin1', 'admin2'];
+const DEDICATED_USER_KEYS = ['admin3'];
 
 /** Selects a dedicated configured account for each Cypress-parallel worker. */
 export function resolveParallelUserKey(
@@ -6,6 +7,10 @@ export function resolveParallelUserKey(
   configuredUsers: Record<string, unknown>,
   workerValue: unknown = Cypress.env('CYPRESS_THREAD'),
 ): string {
+  if (DEDICATED_USER_KEYS.includes(requestedUserKey)) {
+    return requestedUserKey;
+  }
+
   const workerNumber = Number(workerValue);
 
   if (
