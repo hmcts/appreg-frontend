@@ -37,6 +37,7 @@ import {
   OnInit,
   PLATFORM_ID,
   ViewChild,
+  afterEveryRender,
   inject,
   signal,
 } from '@angular/core';
@@ -47,7 +48,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { map } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import {
   ApplicationsListEntryCreateState,
@@ -80,6 +81,7 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { ApplicationWordingHelpComponent } from '@components/help-details/application-wording-help.component';
 import { CivilFeeHelpComponent } from '@components/help-details/civil-fee-help.component';
+import { NavigationWarningComponent } from '@components/navigation-warning/navigation-warning.component';
 import { NotesSectionComponent } from '@components/notes-section/notes-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
@@ -137,6 +139,7 @@ const ENTRY_CREATE_ERROR_HREFS = {
     ReactiveFormsModule,
     RouterModule,
     BreadcrumbsComponent,
+    NavigationWarningComponent,
     AccordionComponent,
     ErrorSummaryComponent,
     ApplicationCodeSearchComponent,
@@ -202,6 +205,44 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   forms = this.formSvc.createForms();
   form = this.forms.form;
+  private savedContent: unknown;
+  @ViewChild(NavigationWarningComponent)
+  private navigationWarning?: NavigationWarningComponent;
+
+  canLeave(): boolean | Observable<boolean> {
+    const destination = this.router
+      .getCurrentNavigation()
+      ?.extractedUrl.toString()
+      .split(/[?#]/, 1)[0];
+    // The payment-reference snapshot preserves form values, but not unapplied wording.
+    if (
+      destination ===
+        `/applications-list/${this.vm().id}/create-entry/change-payment-reference` &&
+      (this.wordingSection?.hasUnchangedContent() ?? true)
+    ) {
+      return true;
+    }
+    const changed = !this.vm().createDone && !this.contentIsUnchanged();
+    return this.navigationWarning?.canLeave(changed) ?? !changed;
+  }
+
+  private contentIsUnchanged(): boolean {
+    return (
+      this.savedContent === undefined ||
+      (this.formSvc.hasUnchangedContent(this.forms, this.savedContent) &&
+        (this.wordingSection?.hasUnchangedContent() ?? true))
+    );
+  }
+
+  readonly hasUnchangedContent = signal(true);
+
+  constructor() {
+    // Child sections initialise their controls during rendering; compare afterwards.
+    afterEveryRender(() => {
+      this.savedContent ??= this.formSvc.editableContent(this.forms);
+      this.hasUnchangedContent.set(this.contentIsUnchanged());
+    });
+  }
   personForm = this.forms.personForm;
   organisationForm = this.forms.organisationForm;
 
@@ -548,7 +589,10 @@ export class ApplicationsListEntryCreate implements OnInit {
   onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
     this.form.patchValue({
       applicationCode: codeAndLodgementDate.code,
-      lodgementDate: codeAndLodgementDate.date,
+      // Clearing the code leaves the search date visible, so retain that date.
+      lodgementDate: codeAndLodgementDate.code
+        ? codeAndLodgementDate.date
+        : this.form.controls.lodgementDate.value,
     });
     // Call API to retrieve data associated with the App code
     if (this.form.value.applicationCode && this.form.value.lodgementDate) {
@@ -759,6 +803,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   private buildEntryCreateSnapshot(): EntryCreateSnapshot {
     return {
+      savedContent: this.savedContent,
       expandedSections: {
         applicant: this.openApplicant(),
         applicationCode: this.openApplicationCode(),
@@ -792,6 +837,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     }
 
     const draft = state as Partial<EntryCreateSnapshot>;
+    this.savedContent = draft.savedContent;
 
     this.openApplicant.set(
       draft.expandedSections?.applicant ?? this.openApplicant(),

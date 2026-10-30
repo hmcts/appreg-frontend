@@ -74,6 +74,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   private readonly envInjector = inject(EnvironmentInjector);
 
   selectedCode = input<string | null>(null);
+  readonly initialCodeFilter = input<string | null>(null);
   readonly selectedCodeChange = output<string | null>();
   readonly selectedApplicantSummaryChange =
     output<SelectedStandardApplicantSummary | null>();
@@ -113,6 +114,11 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   selectedIds: Set<string> = new Set<string>();
 
   ngOnInit(): void {
+    const code = this.initialCodeFilter()?.trim();
+    if (code) {
+      this.form.controls.code.setValue(code);
+      this.appliedFilters = { code };
+    }
     this.syncSelectedIdsFromCode();
     this.setupEffects();
     this.saSignalState.patch({ hasSearched: true });

@@ -57,6 +57,27 @@ describe('WordingParserComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('compares wording with its initial values even after applying or reverting', () => {
+    fixture.componentRef.setInput('wordingObject', {
+      template: 'Hello {{Name}}',
+      'substitution-key-constraints': [
+        { key: 'Name', constraint: { length: 50 } },
+      ],
+    });
+    fixture.componentRef.setInput('wordingObjectValues', {
+      template: 'Hello {{Name}}',
+      'substitution-key-constraints': [{ key: 'Name', value: 'Original' }],
+    });
+    fixture.detectChanges();
+    expect(component.hasUnchangedContent()).toBe(true);
+    component.form.get('Name')!.setValue('Changed');
+    expect(component.hasUnchangedContent()).toBe(false);
+    component.submitWordingFields();
+    expect(component.hasUnchangedContent()).toBe(false);
+    component.form.get('Name')!.setValue('Original');
+    expect(component.hasUnchangedContent()).toBe(true);
+  });
+
   it('renders static wording without an empty nested form', () => {
     init({ template: 'Static wording' });
 

@@ -25,13 +25,14 @@ import {
   OnInit,
   PLATFORM_ID,
   ViewChild,
+  afterEveryRender,
   inject,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { map } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import {
   ApplicationsListEntryDetailState,
@@ -72,6 +73,7 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { ApplicationWordingHelpComponent } from '@components/help-details/application-wording-help.component';
 import { CivilFeeHelpComponent } from '@components/help-details/civil-fee-help.component';
+import { NavigationWarningComponent } from '@components/navigation-warning/navigation-warning.component';
 import {
   ApplicationNotesForm,
   NotesSectionComponent,
@@ -176,6 +178,7 @@ export const ERROR_HREFS = {
     ReactiveFormsModule,
     RouterModule,
     BreadcrumbsComponent,
+    NavigationWarningComponent,
     AccordionComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
@@ -234,6 +237,49 @@ export class ApplicationsListEntryDetail implements OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
   forms!: ApplicationListEntryForms;
+  private savedContent?: ReturnType<
+    ApplicationListEntryFormService['editableContent']
+  >;
+
+  readonly hasUnchangedContent = signal(true);
+  @ViewChild(NavigationWarningComponent)
+  private navigationWarning?: NavigationWarningComponent;
+
+  canLeave(): boolean | Observable<boolean> {
+    const destination = this.router
+      .getCurrentNavigation()
+      ?.extractedUrl.toString()
+      .split(/[?#]/, 1)[0];
+    const { appListId } = this.vm();
+    const entryId = getEntryId(this.route);
+    // The snapshot preserves form values, but not unapplied wording or result drafts.
+    if (
+      destination ===
+        `/applications-list/${appListId}/update-entry/${entryId}/change-payment-reference` &&
+      (this.wordingSection?.hasUnchangedContent() ?? true) &&
+      (this.resultWordingSection?.hasUnchangedContent() ?? true)
+    ) {
+      return true;
+    }
+    const changed = !this.contentIsUnchanged();
+    return this.navigationWarning?.canLeave(changed) ?? !changed;
+  }
+
+  private contentIsUnchanged(): boolean {
+    return (
+      this.savedContent === undefined ||
+      (this.formSvc.hasUnchangedContent(this.forms, this.savedContent) &&
+        (this.wordingSection?.hasUnchangedContent() ?? true) &&
+        (this.resultWordingSection?.hasUnchangedContent() ?? true))
+    );
+  }
+
+  constructor() {
+    // Child sections initialise their controls during rendering; compare afterwards.
+    afterEveryRender(() => {
+      this.hasUnchangedContent.set(this.contentIsUnchanged());
+    });
+  }
   form!: ApplicationsListEntryForm;
 
   personForm!: PersonForm;
@@ -509,6 +555,12 @@ export class ApplicationsListEntryDetail implements OnInit {
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
 
           this.form.controls.feeStatuses.markAsPristine();
+
+          if (this.savedContent) {
+            this.savedContent.form.feeStatuses = structuredClone(
+              this.form.controls.feeStatuses.getRawValue(),
+            );
+          }
 
           this.appListEntryDetailPatch({
             successBanner: bannerText,
@@ -821,6 +873,17 @@ export class ApplicationsListEntryDetail implements OnInit {
     successBanner: SuccessBanner,
     onComplete?: () => void,
   ): void {
+    const submittedContent = this.formSvc.editableContent(this.forms);
+    if (Array.isArray(submittedContent.form.feeStatuses)) {
+      // The mapper sends table rows instead of the unadded fee-entry fields.
+      for (const field of [
+        'feeStatus',
+        'feeStatusDate',
+        'paymentRef',
+      ] as const) {
+        submittedContent.form[field] = this.savedContent?.form[field] ?? null;
+      }
+    }
     if (this.blockSaveWithoutApplicationCode()) {
       return;
     }
@@ -857,6 +920,7 @@ export class ApplicationsListEntryDetail implements OnInit {
             errorFound: false,
           });
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
+          this.savedContent = submittedContent;
           this.applySavedStandardApplicantSummary();
           this.appListEntryDetailPatch({ successBanner });
 
@@ -1041,13 +1105,19 @@ export class ApplicationsListEntryDetail implements OnInit {
     return this.formSvc.buildUpdateDto(
       this.entryDetail,
       this.forms,
-      this.selectedStandardApplicantCode,
+      this.form.controls.standardApplicantCode.value,
     );
   }
 
   onStandardApplicantCodeChanged(code: string | null): void {
     this.selectedStandardApplicantCode = code;
-    this.formSvc.setStandardApplicantCode(this.forms, code, {
+    // In Update, no selection means no replacement of the persisted applicant.
+    const effectiveCode =
+      code ??
+      (this.applicantType === 'standard'
+        ? (this.entryDetail?.standardApplicantCode ?? null)
+        : null);
+    this.formSvc.setStandardApplicantCode(this.forms, effectiveCode, {
       emitEvent: false,
     });
   }
@@ -1113,6 +1183,9 @@ export class ApplicationsListEntryDetail implements OnInit {
         next: (res) => {
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
           this.persistedHasOffsiteFee = nextValue;
+          if (this.savedContent) {
+            this.savedContent.form.hasOffsiteFee = nextValue;
+          }
           this.form.controls.hasOffsiteFee.markAsPristine();
 
           this.appListEntryDetailPatch({
@@ -1158,7 +1231,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     switch (this.applicantType) {
       case 'standard':
-        return !this.selectedStandardApplicantCode;
+        return !this.form.controls.standardApplicantCode.value;
       case 'person':
       case 'org':
         return false;
@@ -1300,6 +1373,13 @@ export class ApplicationsListEntryDetail implements OnInit {
         // let the service reset the subforms + standard code
         this.formSvc.onApplicantTypeChanged(this.forms, t);
         this.formSvc.syncApplicantTypeState(this.forms, t);
+        if (t === 'standard') {
+          // Update restores the saved selection when returning to its section.
+          this.onStandardApplicantCodeChanged(
+            this.selectedStandardApplicantCode ??
+              this.savedStandardApplicantCode,
+          );
+        }
       });
   }
 
@@ -1375,6 +1455,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
           const type = this.form.controls.applicantType.value ?? 'person';
           this.formSvc.syncApplicantTypeState(this.forms, type);
+          this.savedContent = this.formSvc.editableContent(this.forms);
           this.applyEntryDetailSnapshot(state?.entryDetailSnapshot);
           this.handleResultWordingContext(state);
 
