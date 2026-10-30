@@ -77,8 +77,8 @@ Feature: Applications List Entry Create
             Then User Verifies The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee" Is Unchecked
             Then User Checks The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee"
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £322.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Off Site Fee Amount: £25.50" In The Accordion "Civil fee"
+            Then User Should See The Text "Total Fee Amount: £317.50" In The Accordion "Civil fee"
             Then User Should See The Text "Update fee status" In The Accordion "Civil fee"
             Then User Selects "Undertaken" From The Dropdown "Fee status" In The Accordion "Civil fee"
             Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
@@ -182,8 +182,8 @@ Feature: Applications List Entry Create
             Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
             Then User Should See The Text "Amount: £292.00" In The Accordion "Civil fee"
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £322.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Off Site Fee Amount: £25.50" In The Accordion "Civil fee"
+            Then User Should See The Text "Total Fee Amount: £317.50" In The Accordion "Civil fee"
             Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
                   | Fee Status | Status Date  | Payment Ref       |
                   | UNDERTAKEN | todaydisplay | New PAY-{RANDOM}  |
