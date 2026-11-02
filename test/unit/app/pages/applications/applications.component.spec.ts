@@ -101,6 +101,8 @@ const flushSignalEffects = async (
 const RESTORED_APPLICANT_ORG = 'Persisted Applicant Organisation';
 const RESTORED_ENTRY_ID = 'persisted-entry';
 const RESTORED_LIST_ID = 'persisted-list';
+const SYNTHETIC_APPLICANT_NAME = 'Synthetic Applicant Ltd';
+const SYNTHETIC_RESPONDENT_NAME = 'Synthetic Respondent';
 
 describe('ApplicationsComponent', () => {
   let component: Applications;
@@ -938,6 +940,205 @@ describe('ApplicationsComponent', () => {
       component.form.reset({ date: '   ' });
       const emptyFilter = (component as unknown as HasLoadQuery).loadQuery();
       expect(emptyFilter.date).toBeUndefined();
+    });
+
+    it('maps and trims applicant and respondent names', () => {
+      component.form.patchValue({
+        applicantName: `  ${SYNTHETIC_APPLICANT_NAME} `,
+        respondentName: ` ${SYNTHETIC_RESPONDENT_NAME}  `,
+      });
+
+      const filter = (component as unknown as HasLoadQuery).loadQuery();
+
+      expect(filter).toEqual({
+        applicantName: SYNTHETIC_APPLICANT_NAME,
+        respondentName: SYNTHETIC_RESPONDENT_NAME,
+      });
+    });
+
+    it.each([
+      ['empty', ''],
+      ['whitespace-only', '   '],
+      ['null', null],
+    ])('leaves out %s applicant and respondent names', (_caseName, value) => {
+      component.form.patchValue({
+        applicantName: value,
+        respondentName: value,
+        applicantOrg: 'Synthetic Org',
+      });
+
+      const filter = (component as unknown as HasLoadQuery).loadQuery();
+
+      expect(filter).toEqual({ applicantOrganisation: 'Synthetic Org' });
+      expect(filter).not.toHaveProperty('applicantName');
+      expect(filter).not.toHaveProperty('respondentName');
+    });
+
+    it('saves applicant and respondent names to the form service on submit', () => {
+      component.form.patchValue({
+        applicantName: SYNTHETIC_APPLICANT_NAME,
+        respondentName: SYNTHETIC_RESPONDENT_NAME,
+      });
+
+      component.onSubmit({
+        preventDefault: jest.fn(),
+      } as unknown as SubmitEvent);
+
+      expect(searchFormService.state()).toEqual(
+        expect.objectContaining({
+          applicantName: SYNTHETIC_APPLICANT_NAME,
+          respondentName: SYNTHETIC_RESPONDENT_NAME,
+        }),
+      );
+    });
+
+    it('restores applicant and respondent names from the form service', () => {
+      searchFormService.patchState({
+        applicantName: SYNTHETIC_APPLICANT_NAME,
+        respondentName: SYNTHETIC_RESPONDENT_NAME,
+      });
+
+      const restoredFixture = TestBed.createComponent(Applications);
+      const restored = restoredFixture.componentInstance;
+      restoredFixture.detectChanges();
+
+      expect(restored.form.controls.applicantName.value).toBe(
+        SYNTHETIC_APPLICANT_NAME,
+      );
+      expect(restored.form.controls.respondentName.value).toBe(
+        SYNTHETIC_RESPONDENT_NAME,
+      );
+      expect(
+        (
+          restoredFixture.nativeElement.querySelector(
+            '#applicantName',
+          ) as HTMLInputElement
+        ).value,
+      ).toBe(SYNTHETIC_APPLICANT_NAME);
+      expect(
+        (
+          restoredFixture.nativeElement.querySelector(
+            '#respondentName',
+          ) as HTMLInputElement
+        ).value,
+      ).toBe(SYNTHETIC_RESPONDENT_NAME);
+      expect((restored as unknown as HasLoadQuery).loadQuery()).toEqual({
+        applicantName: SYNTHETIC_APPLICANT_NAME,
+        respondentName: SYNTHETIC_RESPONDENT_NAME,
+      });
+    });
+
+    it('empties applicant and respondent names when the search is cleared', () => {
+      component.form.patchValue({
+        applicantName: SYNTHETIC_APPLICANT_NAME,
+        respondentName: SYNTHETIC_RESPONDENT_NAME,
+      });
+      component.onSubmit({
+        preventDefault: jest.fn(),
+      } as unknown as SubmitEvent);
+      fixture.detectChanges();
+
+      component.clearSearch();
+      fixture.detectChanges();
+
+      expect(component.form.controls.applicantName.value).toBe('');
+      expect(component.form.controls.respondentName.value).toBe('');
+      expect(searchFormService.state().applicantName).toBe('');
+      expect(searchFormService.state().respondentName).toBe('');
+      expect(
+        (
+          fixture.nativeElement.querySelector(
+            '#applicantName',
+          ) as HTMLInputElement
+        ).value,
+      ).toBe('');
+      expect(
+        (
+          fixture.nativeElement.querySelector(
+            '#respondentName',
+          ) as HTMLInputElement
+        ).value,
+      ).toBe('');
+      expect((component as unknown as HasLoadQuery).loadQuery()).toEqual({});
+    });
+  });
+
+  describe('applicant and respondent name fields', () => {
+    it.each([
+      ['applicantName', 'Applicant name'],
+      ['respondentName', 'Respondent name'],
+    ])(
+      'renders %s with its label, hint and a 300 character limit',
+      (id, label) => {
+        const root = fixture.nativeElement as HTMLElement;
+        const input = root.querySelector(`#${id}`) as HTMLInputElement;
+
+        expect(root.querySelector(`label[for="${id}"]`)?.textContent).toContain(
+          label,
+        );
+        expect(root.querySelector(`#${id}-hint`)?.textContent?.trim()).toBe(
+          "Part of an organisation name, or a person's first and last name",
+        );
+        expect(input.getAttribute('aria-describedby')).toBe(`${id}-hint`);
+        expect(input.getAttribute('maxlength')).toBe('300');
+      },
+    );
+
+    it('searches by applicant name alone', () => {
+      getEntriesMock.mockClear();
+      component.form.patchValue({ applicantName: SYNTHETIC_APPLICANT_NAME });
+
+      component.onSubmit({
+        preventDefault: jest.fn(),
+      } as unknown as SubmitEvent);
+
+      expect(getEntriesMock).toHaveBeenCalledTimes(1);
+      expect(getEntriesMock.mock.calls[0][0]?.filter).toEqual({
+        applicantName: SYNTHETIC_APPLICANT_NAME,
+      });
+      expect(component.vm().searchErrors).toEqual([]);
+    });
+
+    it.each([
+      [
+        'applicantName',
+        'Applicant name must be 300 characters or fewer',
+      ] as const,
+      [
+        'respondentName',
+        'Respondent name must be 300 characters or fewer',
+      ] as const,
+    ])(
+      'blocks the search and links the summary to #%s when the name is longer than 300 characters',
+      (controlName, errorText) => {
+        getEntriesMock.mockClear();
+        component.form.patchValue({ [controlName]: 'A'.repeat(301) });
+
+        component.onSubmit({
+          preventDefault: jest.fn(),
+        } as unknown as SubmitEvent);
+        fixture.detectChanges();
+
+        expect(getEntriesMock).not.toHaveBeenCalled();
+        expect(component.vm().searchErrors).toEqual([
+          { id: controlName, href: `#${controlName}`, text: errorText },
+        ]);
+        expect(
+          (fixture.nativeElement as HTMLElement)
+            .querySelector(`#${controlName}-error`)
+            ?.textContent?.trim(),
+        ).toContain(errorText);
+      },
+    );
+
+    it('accepts names of exactly 300 characters', () => {
+      component.form.patchValue({
+        applicantName: 'A'.repeat(300),
+        respondentName: 'B'.repeat(300),
+      });
+
+      expect(component.form.controls.applicantName.valid).toBe(true);
+      expect(component.form.controls.respondentName.valid).toBe(true);
     });
   });
 
