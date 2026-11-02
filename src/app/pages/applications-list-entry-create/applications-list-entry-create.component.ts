@@ -211,7 +211,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   canLeave(): boolean | Observable<boolean> {
     const destination = this.router
-      .getCurrentNavigation()
+      .currentNavigation()
       ?.extractedUrl.toString()
       .split(/[?#]/, 1)[0];
     // The payment-reference snapshot preserves form values, but not unapplied wording.
@@ -731,6 +731,10 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   buildChangePaymentReferenceState = (): Record<string, unknown> => ({
     entryCreateSnapshot: this.buildEntryCreateSnapshot(),
+    aleDraftProtection: {
+      active: !this.contentIsUnchanged(),
+      returnUrl: this.router.url.split(/[?#]/, 1)[0],
+    },
   });
 
   private bindApplicantTypeChanges(): void {

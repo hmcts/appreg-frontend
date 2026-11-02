@@ -115,6 +115,7 @@ export const routes: Routes = [
         path: ':id/create-entry/change-payment-reference',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
+        canDeactivate: [canLeavePageGuard],
         loadComponent: () =>
           import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
             (m) => m.PaymentReferenceEditComponent,
@@ -124,6 +125,7 @@ export const routes: Routes = [
         path: ':id/update-entry/:entryId/change-payment-reference',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
+        canDeactivate: [canLeavePageGuard],
         loadComponent: () =>
           import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
             (m) => m.PaymentReferenceEditComponent,

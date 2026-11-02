@@ -1153,6 +1153,10 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     );
     expect(component.form.controls.feeStatus.disabled).toBe(true);
     expect(component.buildChangePaymentReferenceState()).toEqual({
+      aleDraftProtection: {
+        active: expect.any(Boolean),
+        returnUrl: TestBed.inject(Router).url.split(/[?#]/, 1)[0],
+      },
       entryCreateSnapshot: expect.objectContaining({
         form: component.form.getRawValue(),
         isFeeRequired: false,
@@ -1464,6 +1468,17 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
     await fixture.whenStable();
     const component = fixture.componentInstance;
     expect(component.hasUnchangedContent()).toBe(true);
+    jest
+      .spyOn(TestBed.inject(Router), 'url', 'get')
+      .mockReturnValue(
+        '/applications-list/LIST-1/create-entry?from=applications#civil-fee-section',
+      );
+    expect(
+      component.buildChangePaymentReferenceState()['aleDraftProtection'],
+    ).toEqual({
+      active: false,
+      returnUrl: '/applications-list/LIST-1/create-entry',
+    });
     const notes = component.form.controls.applicationNotes.controls.notes;
     const original = notes.value;
     notes.setValue('Changed');
@@ -1472,6 +1487,12 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
     fixture.detectChanges();
     expect(component.hasUnchangedContent()).toBe(false);
     expect(
+      component.buildChangePaymentReferenceState()['aleDraftProtection'],
+    ).toEqual({
+      active: true,
+      returnUrl: '/applications-list/LIST-1/create-entry',
+    });
+    expect(
       fixture.nativeElement.querySelector('.app-content-indicator'),
     ).toBeNull();
     notes.setValue(original);
@@ -1479,6 +1500,12 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
     await fixture.whenStable();
     fixture.detectChanges();
     expect(component.hasUnchangedContent()).toBe(true);
+    expect(
+      component.buildChangePaymentReferenceState()['aleDraftProtection'],
+    ).toEqual({
+      active: false,
+      returnUrl: '/applications-list/LIST-1/create-entry',
+    });
     for (const type of ['org', 'standard', 'person'] as const) {
       component.form.controls.applicantType.setValue(type);
       fixture.detectChanges();
@@ -1548,13 +1575,11 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
     component['applyEntryCreateSnapshot'](snapshot);
     expect(component['contentIsUnchanged']()).toBe(false);
     const router = TestBed.inject(Router);
-    const navigation = jest
-      .spyOn(router, 'getCurrentNavigation')
-      .mockReturnValue({
-        extractedUrl: router.parseUrl(
-          `/applications-list/${component.vm().id}/create-entry/change-payment-reference?from=applications`,
-        ),
-      } as ReturnType<Router['getCurrentNavigation']>);
+    const navigation = jest.spyOn(router, 'currentNavigation').mockReturnValue({
+      extractedUrl: router.parseUrl(
+        `/applications-list/${component.vm().id}/create-entry/change-payment-reference?from=applications`,
+      ),
+    } as ReturnType<Router['currentNavigation']>);
     expect(component.canLeave()).toBe(true);
     const wordingUnchanged = jest.fn(() => false);
     component['wordingSection'] = {

@@ -327,11 +327,11 @@ describe('ApplicationsListEntryDetail', () => {
     const { appListId } = component.vm();
     const entryId =
       TestBed.inject(ActivatedRoute).snapshot.paramMap.get('entryId');
-    jest.spyOn(TestBed.inject(Router), 'getCurrentNavigation').mockReturnValue({
+    jest.spyOn(TestBed.inject(Router), 'currentNavigation').mockReturnValue({
       extractedUrl: TestBed.inject(Router).parseUrl(
         `/applications-list/${appListId}/update-entry/${entryId}/change-payment-reference?from=applications`,
       ),
-    } as ReturnType<Router['getCurrentNavigation']>);
+    } as ReturnType<Router['currentNavigation']>);
     expect(component.canLeave()).toBe(true);
   });
 
@@ -351,11 +351,11 @@ describe('ApplicationsListEntryDetail', () => {
       const router = TestBed.inject(Router);
       const entryId =
         TestBed.inject(ActivatedRoute).snapshot.paramMap.get('entryId');
-      jest.spyOn(router, 'getCurrentNavigation').mockReturnValue({
+      jest.spyOn(router, 'currentNavigation').mockReturnValue({
         extractedUrl: router.parseUrl(
           `/applications-list/${component.vm().appListId}/update-entry/${entryId}/change-payment-reference?from=applications`,
         ),
-      } as ReturnType<Router['getCurrentNavigation']>);
+      } as ReturnType<Router['currentNavigation']>);
       const dialog: HTMLDialogElement =
         fixture.nativeElement.querySelector('dialog');
       const showModal = jest.fn();
@@ -481,12 +481,29 @@ describe('ApplicationsListEntryDetail', () => {
   it('shows unchanged content after loading and after reverting an edit', async () => {
     await fixture.whenStable();
     expect(component.hasUnchangedContent()).toBe(true);
+    jest
+      .spyOn(TestBed.inject(Router), 'url', 'get')
+      .mockReturnValue(
+        '/applications-list/list-1/update-entry/entry-1?from=applications#civil-fee-section',
+      );
+    expect(
+      component.buildChangePaymentReferenceState()['aleDraftProtection'],
+    ).toEqual({
+      active: false,
+      returnUrl: '/applications-list/list-1/update-entry/entry-1',
+    });
     const notes = component.form.controls.applicationNotes.controls.notes;
     const original = notes.value;
     notes.setValue('Changed');
     fixture.detectChanges();
     await fixture.whenStable();
     expect(component.hasUnchangedContent()).toBe(false);
+    expect(
+      component.buildChangePaymentReferenceState()['aleDraftProtection'],
+    ).toEqual({
+      active: true,
+      returnUrl: '/applications-list/list-1/update-entry/entry-1',
+    });
     fixture.detectChanges();
     expect(
       fixture.nativeElement.querySelector('.app-content-indicator'),
@@ -495,6 +512,12 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(component.hasUnchangedContent()).toBe(true);
+    expect(
+      component.buildChangePaymentReferenceState()['aleDraftProtection'],
+    ).toEqual({
+      active: false,
+      returnUrl: '/applications-list/list-1/update-entry/entry-1',
+    });
     fixture.detectChanges();
   });
 

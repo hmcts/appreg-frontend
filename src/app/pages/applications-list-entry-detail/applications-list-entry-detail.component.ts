@@ -247,7 +247,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   canLeave(): boolean | Observable<boolean> {
     const destination = this.router
-      .getCurrentNavigation()
+      .currentNavigation()
       ?.extractedUrl.toString()
       .split(/[?#]/, 1)[0];
     const { appListId } = this.vm();
@@ -1487,6 +1487,10 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   buildChangePaymentReferenceState = (): Record<string, unknown> => ({
     entryDetailSnapshot: this.buildEntryDetailSnapshot(),
+    aleDraftProtection: {
+      active: !this.contentIsUnchanged(),
+      returnUrl: this.router.url.split(/[?#]/, 1)[0],
+    },
   });
 
   private buildEntryDetailSnapshot(): EntryDetailSnapshot {

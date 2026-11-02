@@ -1,15 +1,19 @@
 import { formatDate } from '@angular/common';
 import { LOCALE_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
+import { Observable, of } from 'rxjs';
 
 import { PaymentReferenceEditComponent } from '@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component';
+import { ConfirmationDialogComponent } from '@components/confirmation-dialog/confirmation-dialog.component';
 
 describe('PaymentReferenceEditComponent', () => {
   let component: PaymentReferenceEditComponent;
   let fixture: ComponentFixture<PaymentReferenceEditComponent>;
 
   let routerNavigate: jest.Mock;
+  let currentNavigation: jest.Mock;
 
   const routeStub: ActivatedRoute = {
     snapshot: {
@@ -20,11 +24,15 @@ describe('PaymentReferenceEditComponent', () => {
 
   beforeEach(async () => {
     routerNavigate = jest.fn().mockResolvedValue(true);
+    currentNavigation = jest.fn().mockReturnValue(null);
 
     await TestBed.configureTestingModule({
       imports: [PaymentReferenceEditComponent],
       providers: [
-        { provide: Router, useValue: { navigate: routerNavigate } },
+        {
+          provide: Router,
+          useValue: { navigate: routerNavigate, currentNavigation },
+        },
         { provide: ActivatedRoute, useValue: routeStub },
       ],
     }).compileComponents();
@@ -194,5 +202,222 @@ describe('PaymentReferenceEditComponent', () => {
       queryParamsHandling: 'preserve',
       state: { focusId: 'civil-fee-section' },
     });
+  });
+
+  describe.each(['create', 'update'] as const)(
+    '%s ALE draft protection',
+    (mode) => {
+      const returnUrl =
+        mode === 'create'
+          ? '/applications-list/list-1/create-entry'
+          : '/applications-list/list-1/update-entry/entry-1';
+      const snapshotKey =
+        mode === 'create' ? 'entryCreateSnapshot' : 'entryDetailSnapshot';
+
+      beforeEach(() => {
+        createComponentWithHistoryState({
+          row: { rowId: 'r1', paymentReference: 'OLD' },
+          [snapshotKey]: { form: { notes: 'Unsaved ALE note' } },
+          aleDraftProtection: { active: true, returnUrl },
+        });
+      });
+
+      it.each([false, true])(
+        'honours the leave decision %s without losing the snapshot on stay',
+        (leave) => {
+          const dialog = (fixture.nativeElement as HTMLElement).querySelector(
+            'dialog',
+          )!;
+          const showModal = jest.fn();
+          dialog.showModal = showModal;
+          dialog.close = jest.fn();
+          currentNavigation.mockReturnValue({
+            extractedUrl: { toString: () => '/applications' },
+            extras: {},
+          });
+          const decision = jest.fn();
+          (component.canLeave() as Observable<boolean>).subscribe(decision);
+          expect(showModal).toHaveBeenCalled();
+          const label = leave ? 'Leave this page' : 'Stay on this page';
+          Array.from(dialog.querySelectorAll('button'))
+            .find((button) => button.textContent?.trim() === label)!
+            .click();
+          expect(decision).toHaveBeenCalledWith(leave);
+          expect(history.state[snapshotKey].form.notes).toBe(
+            'Unsaved ALE note',
+          );
+        },
+      );
+
+      it.each(['save', 'cancel'] as const)(
+        'allows %s only when returning the protected snapshot to its ALE',
+        (action) => {
+          if (action === 'save') {
+            component.paymentReference.setValue('NEW');
+          }
+          component[action]();
+          const state = routerNavigate.mock.calls.at(-1)![1].state;
+          expect(state[snapshotKey]).toEqual({
+            form: { notes: 'Unsaved ALE note' },
+          });
+          expect(state.aleDraftProtection).toEqual({ active: true, returnUrl });
+          expect(state.aleDraftReturn).toBe(
+            action === 'save' ? true : undefined,
+          );
+          currentNavigation.mockReturnValue({
+            trigger: 'imperative',
+            extractedUrl: {
+              toString: () =>
+                `${returnUrl}?from=applications#civil-fee-section`,
+            },
+            extras: { state },
+          });
+          expect(component.canLeave()).toBe(true);
+
+          const dialog = fixture.debugElement.query(
+            By.directive(ConfirmationDialogComponent),
+          ).componentInstance as ConfirmationDialogComponent;
+          jest.spyOn(dialog, 'confirm').mockReturnValue(of(false));
+          currentNavigation.mockReturnValue({
+            extractedUrl: { toString: () => '/applications' },
+            extras: { state },
+          });
+          expect(component.canLeave()).not.toBe(true);
+          currentNavigation.mockReturnValue({
+            extractedUrl: { toString: () => returnUrl },
+            extras: {},
+          });
+          if (action === 'save') {
+            expect(component.canLeave()).not.toBe(true);
+          } else {
+            expect(component.canLeave()).toBe(true);
+          }
+        },
+      );
+
+      it.each(
+        [false, true].flatMap((inherited) =>
+          [false, true].flatMap((referenceChanged) =>
+            [false, true].map((returning) => ({
+              inherited,
+              referenceChanged,
+              returning,
+            })),
+          ),
+        ),
+      )(
+        'handles Back/exit: inherited=$inherited, referenceChanged=$referenceChanged, returning=$returning',
+        ({ inherited, referenceChanged, returning }) => {
+          component.hasUnsavedEntry.set(inherited);
+          component.paymentReference.setValue(
+            referenceChanged ? 'OLDx' : 'OLD',
+          );
+          fixture.detectChanges();
+          const dialog = fixture.debugElement.query(
+            By.directive(ConfirmationDialogComponent),
+          ).componentInstance as ConfirmationDialogComponent;
+          const confirm = jest
+            .spyOn(dialog, 'confirm')
+            .mockReturnValue(of(false));
+          const navigation = {
+            trigger: 'popstate',
+            extractedUrl: {
+              toString: () => (returning ? returnUrl : '/applications'),
+            },
+            extras: {} as { state?: Record<string, unknown> },
+          };
+          currentNavigation.mockReturnValue(navigation);
+          // Browser Back has already replaced history.state with the destination's state.
+          history.replaceState({ navigationId: 1 }, '');
+          const warn = referenceChanged || (inherited && !returning);
+          const result = component.canLeave();
+          if (warn) {
+            const decision = jest.fn();
+            (result as Observable<boolean>).subscribe(decision);
+            expect(decision).toHaveBeenCalledWith(false);
+            expect(confirm).toHaveBeenCalledTimes(1);
+            expect(navigation.extras.state).toBeUndefined();
+            confirm.mockReturnValue(of(true));
+            (component.canLeave() as Observable<boolean>).subscribe();
+          } else {
+            expect(result).toBe(true);
+            expect(confirm).not.toHaveBeenCalled();
+          }
+          if (returning) {
+            expect(navigation.extras.state?.[snapshotKey]).toEqual({
+              form: { notes: 'Unsaved ALE note' },
+            });
+            expect(
+              navigation.extras.state?.['paymentRefReturn'],
+            ).toBeUndefined();
+          } else {
+            expect(navigation.extras.state).toBeUndefined();
+          }
+        },
+      );
+
+      it('warns for reference-only edits, stops after reverting, and preserves dirty validation semantics', () => {
+        component.hasUnsavedEntry.set(false);
+        const unload = (): boolean =>
+          window.dispatchEvent(new Event('beforeunload', { cancelable: true }));
+        fixture.detectChanges();
+        expect(unload()).toBe(true);
+        component.paymentReference.setValue('OLDx');
+        component.paymentReference.markAsDirty();
+        fixture.detectChanges();
+        expect(component.hasUnsavedReference()).toBe(true);
+        expect(unload()).toBe(false);
+        component.paymentReference.setValue('OLD');
+        fixture.detectChanges();
+        expect(component.paymentReference.dirty).toBe(true);
+        expect(component.hasUnsavedReference()).toBe(false);
+        expect(component.canLeave()).toBe(true);
+        expect(unload()).toBe(true);
+      });
+
+      it('warns when Cancel discards a changed reference and preserves the ALE snapshot on confirmation', () => {
+        component.paymentReference.setValue('NEW');
+        component.cancel();
+        const navigation = {
+          trigger: 'imperative',
+          extractedUrl: { toString: () => returnUrl },
+          extras: { state: routerNavigate.mock.calls.at(-1)![1].state },
+        };
+        currentNavigation.mockReturnValue(navigation);
+        const dialog = fixture.debugElement.query(
+          By.directive(ConfirmationDialogComponent),
+        ).componentInstance as ConfirmationDialogComponent;
+        jest.spyOn(dialog, 'confirm').mockReturnValue(of(true));
+        const decision = jest.fn();
+        (component.canLeave() as Observable<boolean>).subscribe(decision);
+        expect(decision).toHaveBeenCalledWith(true);
+        expect(navigation.extras.state[snapshotKey]).toEqual({
+          form: { notes: 'Unsaved ALE note' },
+        });
+        expect(navigation.extras.state.paymentRefReturn).toBeUndefined();
+      });
+
+      it('warns on reload and removes the listener when destroyed', () => {
+        const unload = (): boolean =>
+          window.dispatchEvent(new Event('beforeunload', { cancelable: true }));
+        expect(unload()).toBe(false);
+        fixture.destroy();
+        expect(unload()).toBe(true);
+      });
+    },
+  );
+
+  it('does not warn for an unchanged entry or the bulk-update flow', () => {
+    createComponentWithHistoryState({
+      row: { rowId: 'r1', paymentReference: 'OLD' },
+    });
+    expect(component.canLeave()).toBe(true);
+    expect(
+      window.dispatchEvent(new Event('beforeunload', { cancelable: true })),
+    ).toBe(true);
+    component.cancel();
+    expect(
+      routerNavigate.mock.calls.at(-1)![1].state.aleDraftReturn,
+    ).toBeUndefined();
   });
 });
