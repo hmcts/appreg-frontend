@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
+import { ApplicationListCombinedHelper } from '../../../../support/helper/appreg/ApplicationListCombinedHelper';
 import { TextboxHelper } from '../../../../support/helper/forms/textbox/TextboxHelper';
 import { TestDataGenerator } from '../../../../support/utils/TestDataGenerator';
 
@@ -49,6 +50,17 @@ Then(
       TestDataGenerator.replaceRandomPlaceholders(textToType);
     const substituteOptionText =
       TestDataGenerator.replaceRandomPlaceholders(optionText);
+
+    if (field.trim().toLowerCase() === 'court') {
+      cy.location('pathname').then((pathname) => {
+        if (
+          pathname.startsWith('/applications-list') ||
+          pathname.startsWith('/reports')
+        ) {
+          return ApplicationListCombinedHelper.waitForCourtReferenceData();
+        }
+      });
+    }
 
     if (substituteOptionText && substituteOptionText.trim() !== '') {
       TextboxHelper.selectAutocompleteOption(
