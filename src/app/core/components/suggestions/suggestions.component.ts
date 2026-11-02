@@ -41,6 +41,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
   suggestions = input.required<SuggestionsItem[]>();
   showAllValues = input(false);
   charLimit = input(200);
+  noResultsText = input('No results found');
 
   search = input('');
   searchChange = output<string>();
