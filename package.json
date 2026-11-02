@@ -108,7 +108,7 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.1",
     "express-session": "^1.18.2",
-    "glob": "^13.0.1",
+    "glob": "^14.0.2",
     "govuk-frontend": "^5.12.0",
     "helmet": "^7.0.0",
     "http-proxy-middleware": "^4.2.0",
@@ -203,7 +203,7 @@
   "resolutions": {
     "brace-expansion": "^5.0.9",
     "uuid": "^14.0.0",
-    "glob": "^13.0.1",
+    "glob": "^14.0.2",
     "diff": "^8.0.3",
     "js-yaml": "^5.4.1",
     "@opentelemetry/core": "2.8.0",
@@ -225,7 +225,8 @@
     "http-cache-semantics": "^4.3.0",
     "winston@npm:^2.4.5": "patch:winston@npm%3A2.4.7#~/.yarn/patches/winston-npm-2.4.7-f6df5db564.patch",
     "zod": "^4.6.6",
-    "@azure/msal-node": "^7.1.0"
+    "@azure/msal-node": "^7.1.0",
+    "minimatch": "^11.0.1"
   },
   "packageManager": "yarn@4.10.3"
 }

@@ -60,6 +60,8 @@ const MODULE_LOAD_ERROR_PATTERNS: readonly {
 ];
 
 let installed = false;
+let installedTarget: ModuleLoadErrorListenerTarget | undefined;
+let installedOptions: GlobalModuleLoadErrorListenerOptions | undefined;
 let inMemoryReloadAttempts: number[] = [];
 
 export function installGlobalModuleLoadErrorListener(
@@ -72,6 +74,8 @@ export function installGlobalModuleLoadErrorListener(
   }
 
   installed = true;
+  installedTarget = target;
+  installedOptions = options;
 
   target.addEventListener('error', (event) => {
     handleModuleLoadError(event, target, options);
@@ -83,13 +87,22 @@ export function installGlobalModuleLoadErrorListener(
   return true;
 }
 
+/** Use the same bounded recovery for module imports whose errors are caught locally. */
+export function recoverFromModuleLoadError(error: unknown): void {
+  if (installedTarget) {
+    handleModuleLoadError(error, installedTarget, installedOptions ?? {});
+  }
+}
+
 export function resetGlobalModuleLoadErrorListenerForTesting(): void {
   installed = false;
+  installedTarget = undefined;
+  installedOptions = undefined;
   inMemoryReloadAttempts = [];
 }
 
 function handleModuleLoadError(
-  event: Event,
+  event: unknown,
   target: ModuleLoadErrorListenerTarget,
   options: GlobalModuleLoadErrorListenerOptions,
 ): void {
