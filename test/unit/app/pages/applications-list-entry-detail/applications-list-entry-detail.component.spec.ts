@@ -501,7 +501,7 @@ describe('ApplicationsListEntryDetail', () => {
   it.each(['person', 'org'] as const)(
     'restores the saved standard applicant after switching to %s and back',
     async (type) => {
-      mockGetStandardApplicantByCode.mockReturnValue(
+      mockGetStandardApplicantById.mockReturnValue(
         of({
           code: 'SA-123',
           name: 'Saved applicant',
@@ -511,6 +511,7 @@ describe('ApplicationsListEntryDetail', () => {
         of({
           ...component['entryDetail']!,
           standardApplicantCode: 'SA-123',
+          standardApplicantId: 123,
           applicant: null,
         }),
       );
@@ -518,6 +519,7 @@ describe('ApplicationsListEntryDetail', () => {
       const freshComponent = freshFixture.componentInstance;
       freshFixture.detectChanges();
       await freshFixture.whenStable();
+      expect(mockGetStandardApplicantById).toHaveBeenCalledWith({ id: 123 });
       expect(freshComponent.form.controls.applicantType.value).toBe('standard');
       expect(freshComponent.hasUnchangedContent()).toBe(true);
       freshComponent.form.controls.applicantType.setValue(type);
@@ -541,13 +543,14 @@ describe('ApplicationsListEntryDetail', () => {
   );
 
   it('treats deselection as no replacement and retains the saved applicant in unrelated saves', async () => {
-    mockGetStandardApplicantByCode.mockReturnValue(
+    mockGetStandardApplicantById.mockReturnValue(
       of({ code: 'SA-123', name: 'Saved applicant' }),
     );
     mockGetApplicationListEntry.mockReturnValue(
       of({
         ...component.entryDetail!,
         standardApplicantCode: 'SA-123',
+        standardApplicantId: 123,
         applicant: null,
       }),
     );
@@ -556,6 +559,7 @@ describe('ApplicationsListEntryDetail', () => {
     freshFixture.detectChanges();
     await freshFixture.whenStable();
 
+    expect(mockGetStandardApplicantById).toHaveBeenCalledWith({ id: 123 });
     freshComponent.onStandardApplicantCodeChanged(null);
     freshFixture.detectChanges();
     await freshFixture.whenStable();
