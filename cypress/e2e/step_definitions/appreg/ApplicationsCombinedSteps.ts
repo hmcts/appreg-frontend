@@ -1,9 +1,21 @@
-import { DataTable, Then, When } from '@badeball/cypress-cucumber-preprocessor';
+import {
+  Before,
+  DataTable,
+  Then,
+  When,
+} from '@badeball/cypress-cucumber-preprocessor';
 
 import { ApiBaseHelper } from '../../../support/helper/api/apiBase/ApiBaseHelper';
 import { ApplicationListEntriesCombinedHelper } from '../../../support/helper/appreg/ApplicationsCombinedHelper';
 
 const APPLICATIONS_BULK_ACTION_PREVIEW_ALIAS = 'applicationsBulkActionPreview';
+
+Before(() => {
+  ApplicationListEntriesCombinedHelper.resetCourtReferenceData();
+  cy.intercept('GET', '**/court-locations?*').as(
+    'applicationEntriesCourtReferenceData',
+  );
+});
 
 interface PreviewRequestAssertion {
   path: string;

@@ -47,6 +47,7 @@ export class ApplicantSectionComponent {
   readonly submitted = input(false);
   readonly errorItems = input<ErrorItem[]>([]);
   readonly selectedStandardApplicantCode = input<string | null>(null);
+  readonly initialStandardApplicantCodeFilter = input<string | null>(null);
   readonly currentStandardApplicantSummary =
     input<SelectedStandardApplicantSummary | null>(null);
   readonly savedStandardApplicantCode = input<string | null>(null);

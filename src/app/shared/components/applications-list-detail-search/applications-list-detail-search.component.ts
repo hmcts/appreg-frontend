@@ -21,13 +21,24 @@ import { mapEntrySummaryRows } from '@components/applications-list-detail/util/m
 import { toOptionalTrimmed } from '@components/applications-list-entry-create/util';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
+import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import {
+  SuggestionsItem,
+  isAppcodeSuggestionItem,
+} from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { SEARCH_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
+import { ReferenceDataFacade } from '@core/services/reference-data.facade';
 import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListEntriesApi,
   EntryApplicationListGetFilterDto,
 } from '@openapi';
+import {
+  TitleSelected,
+  filterAppTitles,
+  titleInputChange,
+} from '@util/application-title-suggestions';
 import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
@@ -59,12 +70,14 @@ export type ApplicationsListDetailSearchResult = {
     ReactiveFormsModule,
     TextInputComponent,
     SelectInputComponent,
+    SuggestionsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-detail-search.component.html',
 })
 export class ApplicationsListDetailSearchComponent {
   private readonly appListEntriesApi = inject(ApplicationListEntriesApi);
+  private readonly refFacade = inject(ReferenceDataFacade);
 
   readonly listId = input.required<string>();
   readonly pageSize = input(10);
@@ -77,6 +90,11 @@ export class ApplicationsListDetailSearchComponent {
     buildErrorTextByDomId(this.localErrors()),
   );
   readonly incrementSubmitAttempt = input.required<() => void>();
+
+  readonly applicationTitleSearchValue = signal('');
+  readonly filteredApplicationTitles = computed(() => {
+    return filterAppTitles(this.applicationTitleSearchValue(), this.refFacade);
+  });
 
   disableSearchButton = signal(false);
 
@@ -198,6 +216,24 @@ export class ApplicationsListDetailSearchComponent {
         });
         return;
       }
+    }
+  }
+
+  onApplicationTitleInputChange(value: string): void {
+    titleInputChange(
+      value,
+      this.form.controls.applicationTitle,
+      this.applicationTitleSearchValue,
+    );
+  }
+
+  onApplicationTitleSuggestionSelected(item: SuggestionsItem): void {
+    if (isAppcodeSuggestionItem(item)) {
+      TitleSelected(
+        item,
+        this.applicationTitleSearchValue,
+        this.form.controls.applicationTitle,
+      );
     }
   }
 

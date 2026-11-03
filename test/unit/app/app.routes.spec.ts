@@ -1,8 +1,28 @@
 import { Observable, of } from 'rxjs';
 
 import { routes } from '../../../src/app/app.routes';
+import { canLeavePageGuard } from '../../../src/app/guards/can-leave-page.guard';
 
 describe('app.routes', () => {
+  it('does not add an ALE navigation guard to bulk payment-reference editing', () => {
+    const parent = routes.find((r) => r.path === 'applications-list');
+    const route = parent?.children?.find(
+      (r) => r.path === ':id/bulk-update-fee/change-payment-reference',
+    );
+    expect(route).toBeDefined();
+    expect(route?.canDeactivate).toBeUndefined();
+  });
+  it.each([
+    ':id/create-entry',
+    ':id/update-entry/:entryId',
+    ':id/create-entry/change-payment-reference',
+    ':id/update-entry/:entryId/change-payment-reference',
+  ])('guards unsaved changes on %s', (path) => {
+    const parent = routes.find((r) => r.path === 'applications-list');
+    expect(
+      parent?.children?.find((r) => r.path === path)?.canDeactivate,
+    ).toEqual([canLeavePageGuard]);
+  });
   it.each([true, false])(
     'delegates report navigation to the component: %s',
     (leave) => {

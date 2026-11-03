@@ -7,7 +7,11 @@ import {
   Injectable,
   OnDestroy,
   PLATFORM_ID,
+  inject,
 } from '@angular/core';
+
+import { TelemetryService } from '@services/telemetry.service';
+import { recoverFromModuleLoadError } from '@util/global-module-load-error-listener';
 
 type ButtonMenuInstance = { init?: () => void; destroy?: () => void };
 type ButtonMenuCtor = new (el: HTMLElement) => ButtonMenuInstance;
@@ -23,6 +27,9 @@ const MENU_VIEWPORT_MARGIN_PX = 8;
 @Injectable({ providedIn: 'root' })
 export class MojButtonMenu {
   private cachedCtor?: ButtonMenuCtor;
+  private readonly telemetry = inject(TelemetryService);
+  private readonly failedNodes = new WeakSet<HTMLElement>();
+  private loadFailureLogged = false;
 
   constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
 
@@ -44,8 +51,17 @@ export class MojButtonMenu {
         this.cachedCtor = candidate as ButtonMenuCtor;
         return this.cachedCtor;
       }
-    } catch {
-      /* swallow: still render without JS */
+    } catch (error) {
+      if (!this.loadFailureLogged) {
+        this.loadFailureLogged = true;
+        this.reportFailure(
+          error instanceof Error
+            ? error
+            : new Error('Failed to load MOJ button menu module'),
+          'load',
+        );
+        recoverFromModuleLoadError(error);
+      }
     }
     return undefined;
   }
@@ -62,13 +78,31 @@ export class MojButtonMenu {
     );
     for (const el of nodes) {
       const flagged = el as MojInitEl;
-      if (flagged.__mojInit) {
+      if (flagged.__mojInit || this.failedNodes.has(flagged)) {
         continue;
       }
 
-      const instance = new Ctor(flagged);
-      instance.init?.();
-      flagged.__mojInit = true;
+      try {
+        const instance = new Ctor(flagged);
+        instance.init?.();
+        flagged.__mojInit = true;
+      } catch (error) {
+        this.failedNodes.add(flagged);
+        this.reportFailure(
+          error instanceof Error
+            ? error
+            : new Error('Failed to initialise MOJ button menu'),
+          'init',
+        );
+      }
+    }
+  }
+
+  private reportFailure(error: Error, phase: 'load' | 'init'): void {
+    try {
+      this.telemetry.logException(error, { component: 'MojButtonMenu', phase });
+    } catch {
+      // Telemetry failures must not block recovery or later row menus.
     }
   }
 }
