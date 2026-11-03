@@ -54,14 +54,19 @@
     </div>
 
     <div class="govuk-grid-row">
-      <app-text-input
+      <app-suggestions
+        id="title"
         formControlName="applicationTitle"
         label="Application title"
-        idPrefix="title"
-        [error]="submitted() ? errorFor('title') : null"
+        [search]="applicationTitleSearchValue()"
+        (searchChange)="onApplicationTitleInputChange($event)"
+        [suggestions]="filteredApplicationTitles()"
+        (selectItem)="onApplicationTitleSuggestionSelected($event)"
+        [showError]="submitted() && !!errorFor('title')"
+        [errorText]="errorFor('title') ?? ''"
+        [charLimit]="500"
         containerWidthClass="govuk-grid-column-one-half"
         widthClass="govuk-!-width-two-thirds"
-        [charLimit]="500"
       />
     </div>
 

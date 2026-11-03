@@ -69,7 +69,6 @@ import { SuggestionsComponent } from '@components/suggestions/suggestions.compon
 import {
   type SuggestionsItem,
   isAppcodeSuggestionItem,
-  toAppcodeSuggestionsItem,
 } from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ApplicationsColumns } from '@constants/applications/applications.constants';
@@ -107,6 +106,11 @@ import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
 import { toStatus } from '@util/application-status-helpers';
+import {
+  TitleSelected,
+  filterAppTitles,
+  titleInputChange,
+} from '@util/application-title-suggestions';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getControlErrorItem } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
@@ -190,15 +194,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   readonly applicationTitleSearch = signal('');
   readonly filteredApplicationTitles = computed(() => {
-    const query = this.applicationTitleSearch().trim().toLowerCase();
-    if (!query) {
-      return [];
-    }
-
-    return [...new Set(this.refFacade.applicationCodeTitles())]
-      .filter((title) => title.toLowerCase().includes(query))
-      .slice(0, 20)
-      .map(toAppcodeSuggestionsItem);
+    return filterAppTitles(this.applicationTitleSearch(), this.refFacade);
   });
 
   readonly summaryItems = computed(() => {
@@ -745,14 +741,20 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   onApplicationTitleInputChange(value: string): void {
-    this.applicationTitleSearch.set(value);
-    this.form.controls.applicationTitle.setValue(value);
+    titleInputChange(
+      value,
+      this.form.controls.applicationTitle,
+      this.applicationTitleSearch,
+    );
   }
 
   onApplicationTitleSuggestionSelected(item: SuggestionsItem): void {
     if (isAppcodeSuggestionItem(item)) {
-      this.applicationTitleSearch.set(item.value);
-      this.form.controls.applicationTitle.setValue(item.value);
+      TitleSelected(
+        item,
+        this.applicationTitleSearch,
+        this.form.controls.applicationTitle,
+      );
     }
   }
 

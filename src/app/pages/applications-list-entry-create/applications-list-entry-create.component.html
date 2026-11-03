@@ -1,3 +1,8 @@
+<app-navigation-warning
+  [active]="!hasUnchangedContent() && !vm().createDone"
+  heading="Leave without saving?"
+  message="Your changes to this application list entry have not been saved. If you leave, your changes will be discarded."
+/>
 <app-breadcrumbs
   [items]="[
     { label: 'Applications list', link: '/applications-list' },

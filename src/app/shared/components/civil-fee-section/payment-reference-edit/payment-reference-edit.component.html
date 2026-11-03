@@ -51,3 +51,9 @@
     </div>
   </div>
 </div>
+
+<app-navigation-warning
+  [active]="hasUnsavedChanges()"
+  heading="Leave without saving?"
+  message="You have unsaved changes. If you leave this page, your changes will be lost."
+/>

@@ -18,6 +18,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { isEqual } from 'lodash';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { TemplateDetail, TemplateSubstitution } from '@openapi';
@@ -48,6 +49,11 @@ export type WordingValidationOptions = {
 })
 export class WordingParserComponent {
   private readonly fb = inject(FormBuilder);
+  private initialContent: Record<string, unknown> = {};
+
+  hasUnchangedContent(): boolean {
+    return isEqual(this.initialContent, this.form.getRawValue());
+  }
   private readonly destroyRef = inject(DestroyRef);
 
   wordingObject = input.required<TemplateDetail>();
@@ -336,6 +342,7 @@ export class WordingParserComponent {
 
     this.createFormControls();
     this.patchFormControls();
+    this.initialContent = this.form.getRawValue();
 
     if (!this.showSaveButton()) {
       this.form.valueChanges
