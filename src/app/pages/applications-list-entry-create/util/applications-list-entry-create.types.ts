@@ -8,6 +8,7 @@ import {
 import { CivilFeeMeta } from '@shared-types/civil-fee/civil-fee';
 
 export type EntryCreateSnapshot = {
+  savedContent?: unknown;
   expandedSections?: {
     applicant: boolean;
     applicationCode: boolean;

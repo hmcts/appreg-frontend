@@ -1,4 +1,9 @@
 <app-breadcrumbs [items]="breadcrumbs()" />
+<app-navigation-warning
+  [active]="!hasUnchangedContent()"
+  heading="Leave without saving?"
+  message="Your changes to this application list entry have not been saved. If you leave, your changes will be discarded."
+/>
 
 <app-error-summary
   [hidden]="!vm().errorFound"
@@ -34,6 +39,7 @@
       [submitted]="vm().formSubmitted"
       [errorItems]="applicantErrorItems"
       [selectedStandardApplicantCode]="selectedStandardApplicantCode"
+      [initialStandardApplicantCodeFilter]="savedStandardApplicantCode"
       [savedStandardApplicantCode]="savedStandardApplicantCode"
       [savedStandardApplicantName]="savedStandardApplicantName"
       [savedStandardApplicantDetailsUnavailable]="

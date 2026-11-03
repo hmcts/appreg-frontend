@@ -38,6 +38,7 @@ Feature: Applications List Entry Create
                   | Mobile number         | 07700900001                        |
                   | Email address         | applicant{SCENARIO_ID}@example.com |
             # Application Codes
+            When User Captures The Fees For Application Code "MX99006"
             Then User Enters "MX99006" Into The Textbox "Application code" In The Accordion "Application codes"
             When User Clicks On The "Search" Button In The Accordion "Application codes"
             Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
@@ -73,12 +74,10 @@ Feature: Applications List Entry Create
             When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
             Then User Should See The Text "Selecting this will apply the off site fee to the entry." In The Accordion "Civil fee"
             Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Amount: £292.00" In The Accordion "Civil fee"
             Then User Verifies The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee" Is Unchecked
             Then User Checks The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee"
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £322.00" In The Accordion "Civil fee"
+            Then User Verifies The Civil Fee Amounts Against The Application Code
             Then User Should See The Text "Update fee status" In The Accordion "Civil fee"
             Then User Selects "Undertaken" From The Dropdown "Fee status" In The Accordion "Civil fee"
             Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
@@ -180,10 +179,8 @@ Feature: Applications List Entry Create
             Then User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Checked
             Then User Should See The Text "Selecting this will automatically apply the off site fee to the entry. This change is saved immediately." In The Accordion "Civil fee"
             Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Amount: £292.00" In The Accordion "Civil fee"
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £322.00" In The Accordion "Civil fee"
+            Then User Verifies The Civil Fee Amounts Against The Application Code
             Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
                   | Fee Status | Status Date  | Payment Ref       |
                   | UNDERTAKEN | todaydisplay | New PAY-{RANDOM}  |
@@ -404,6 +401,7 @@ Feature: Applications List Entry Create
             Then User Checks The Checkbox With Label "Select BGAS" In The Accordion "Applicant"
             Then User Should See The Text "Currently selected BGAS British Gas Trading Limited" In The Accordion "Applicant"
             # Application Codes
+            When User Captures The Fees For Application Code "MH99001"
             Then User Enters "MH99001" Into The Textbox "Application code" In The Accordion "Application codes"
             When User Clicks On The "Search" Button In The Accordion "Application codes"
             Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
@@ -431,8 +429,7 @@ Feature: Applications List Entry Create
             Then User Checks The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee"
             # Bug ARCPOC-1241 is raised
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £30.00" In The Accordion "Civil fee"
+            Then User Verifies The Civil Fee Amounts Against The Application Code
             Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
             Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
             Then User Enters "PAY-{RANDOM}" Into The Textbox "Payment reference" In The Accordion "Civil fee"

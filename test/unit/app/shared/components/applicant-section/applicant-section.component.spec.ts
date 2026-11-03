@@ -36,6 +36,7 @@ class MockOrganisationSectionComponent {
 })
 class MockStandardApplicantSelectComponent {
   readonly selectedCode = input<string | null>(null);
+  readonly initialCodeFilter = input<string | null>(null);
   readonly selectedApplicantSummaryChange = output<unknown>();
   readonly selectedCodeChange = output<string | null>();
   readonly searchErrorsChange = output<unknown[]>();

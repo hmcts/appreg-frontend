@@ -87,6 +87,60 @@ describe('StandardApplicantSelectComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('replaces the initial search with an opt-in code filter and ticks the saved row', () => {
+    fixture.componentRef.setInput('selectedCode', 'SA-1');
+    fixture.componentRef.setInput('initialCodeFilter', 'SA-1');
+    fixture.detectChanges();
+    fixture.detectChanges();
+
+    expect(component.form.getRawValue()).toEqual({ code: 'SA-1', name: '' });
+    expect(mockGetStandardApplicants).toHaveBeenCalledTimes(1);
+    expect(mockGetStandardApplicants.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ code: 'SA-1', name: undefined, pageNumber: 0 }),
+    );
+    const checkbox = fixture.nativeElement.querySelector(
+      'input[type="checkbox"]',
+    ) as HTMLInputElement;
+    expect(checkbox.checked).toBe(true);
+
+    component.clearSearch();
+    fixture.detectChanges();
+    expect(component.form.getRawValue()).toEqual({ code: '', name: '' });
+    expect(mockGetStandardApplicants).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        code: undefined,
+        name: undefined,
+        pageNumber: 0,
+      }),
+      'body',
+      false,
+      { transferCache: true },
+    );
+    expect(component.selectedIds.has('SA-1')).toBe(true);
+  });
+
+  it('keeps other screens unfiltered even when a selected code is supplied', () => {
+    fixture.componentRef.setInput('selectedCode', 'SA-1');
+    fixture.detectChanges();
+    expect(component.form.getRawValue()).toEqual({ code: '', name: '' });
+    expect(mockGetStandardApplicants).toHaveBeenCalledTimes(1);
+    expect(mockGetStandardApplicants.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ code: undefined, name: undefined }),
+    );
+  });
+
+  it('does not reapply the initial filter when the selection changes', () => {
+    fixture.componentRef.setInput('initialCodeFilter', 'SA-1');
+    fixture.detectChanges();
+    component.clearSearch();
+    fixture.detectChanges();
+    const calls = mockGetStandardApplicants.mock.calls.length;
+    fixture.componentRef.setInput('selectedCode', 'SA-2');
+    fixture.detectChanges();
+    expect(component.form.controls.code.value).toBe('');
+    expect(mockGetStandardApplicants).toHaveBeenCalledTimes(calls);
+  });
+
   it('loads first page on init and maps rows from API', () => {
     const page = {
       content: [

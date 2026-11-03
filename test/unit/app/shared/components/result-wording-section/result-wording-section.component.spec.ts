@@ -1,3 +1,4 @@
+import { isSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ApplicantContext } from '@components/applications-list-entry-detail/util/routing-state-util';
@@ -61,6 +62,49 @@ describe('ResultWordingSectionComponent', () => {
     fixture.componentRef.setInput('clearPendingToken', 0);
 
     fixture.detectChanges();
+  });
+
+  it('compares result drafts with persisted wording, not applied wording', () => {
+    expect(isSignal(component.hasUnchangedContent)).toBe(true);
+    fixture.componentRef.setInput('existingResults', [
+      makeExistingResult({
+        id: 'result-1',
+        resultCode: 'RC1',
+        wording: {
+          template: 'Hello {{Name}}',
+          'substitution-key-constraints': [
+            {
+              key: 'Name',
+              value: 'Original',
+              constraint: { length: 50, type: TemplateConstraintTypeEnum.TEXT },
+            },
+          ],
+        },
+      }),
+    ]);
+    fixture.detectChanges();
+    expect(component.hasUnchangedContent()).toBe(true);
+    component.onCardWordingFieldsDTO(
+      { id: 'result-1', status: 'existing' },
+      {
+        wordingFields: [{ key: 'Name', value: 'Changed' }],
+      },
+    );
+    expect(component.hasUnchangedContent()).toBe(false);
+    component['markExistingDraftsApplied']([
+      {
+        resultId: 'result-1',
+        wordingFields: [{ key: 'Name', value: 'Changed' }],
+      },
+    ]);
+    expect(component.hasUnchangedContent()).toBe(false);
+    component.onCardWordingFieldsDTO(
+      { id: 'result-1', status: 'existing' },
+      {
+        wordingFields: [{ key: 'Name', value: 'Original' }],
+      },
+    );
+    expect(component.hasUnchangedContent()).toBe(true);
   });
 
   it('should create', () => {
@@ -504,8 +548,10 @@ describe('ResultWordingSectionComponent', () => {
 
   it('onRemoveClicked removes pending by tempId and emits pendingChange', () => {
     const pendingEmitSpy = jest.spyOn(component.pendingChange, 'emit');
+    expect(component.hasUnchangedContent()).toBe(true);
 
     component.selectResultCode(codes[0]);
+    expect(component.hasUnchangedContent()).toBe(false);
 
     const pendingRow = component
       .tableRows()
@@ -517,6 +563,7 @@ describe('ResultWordingSectionComponent', () => {
 
     component.onRemoveClicked(pendingRow!);
 
+    expect(component.hasUnchangedContent()).toBe(true);
     expect(component.canSubmitResults()).toBe(false);
 
     const lastArg = pendingEmitSpy.mock.calls.at(-1)![0];
