@@ -288,6 +288,7 @@ describe('ApplicationsListDetail', () => {
         description: 'Morning list',
         status: ApplicationListStatus.OPEN,
         courtCode: 'ENDED',
+        courtId: referenceFirst ? 42 : undefined,
         courtName: 'Saved court',
         version: 1,
       } as ApplicationListGetDetailDto;
@@ -302,6 +303,9 @@ describe('ApplicationsListDetail', () => {
       expect(
         component.placeState().courtLocations.map((c) => c.locationCode),
       ).toEqual(['ACTIVE', 'ENDED']);
+      expect(component.placeState().courtLocations[1].courtId).toBe(
+        dto.courtId,
+      );
       expect(component.placeState().courthouseSearch).toBe(
         'ENDED - Saved court',
       );
