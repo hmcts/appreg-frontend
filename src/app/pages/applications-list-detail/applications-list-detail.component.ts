@@ -221,8 +221,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly menus = inject(MojButtonMenu);
 
   // Only the court already persisted on this list may supplement current choices.
-  private readonly retainedCourt$ =
-    new BehaviorSubject<CourtLocationGetSummaryDto | null>(null);
+  private readonly retainedCourt$ = new BehaviorSubject<Pick<
+    CourtLocationGetSummaryDto,
+    'locationCode' | 'name'
+  > | null>(null);
 
   id!: string;
   listRow: ApplicationListRow | undefined = undefined;

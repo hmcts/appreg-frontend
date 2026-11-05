@@ -36,14 +36,16 @@ import {
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 interface PlaceRefFacade {
-  courtLocations$: Observable<CourtLocationGetSummaryDto[]>;
+  courtLocations$: Observable<
+    Pick<CourtLocationGetSummaryDto, 'locationCode' | 'name'>[]
+  >;
   cja$: Observable<CriminalJusticeAreaGetDto[]>;
 }
 
 export interface PlaceFieldsState {
   courthouseSearch: string;
   cjaSearch: string;
-  courtLocations: CourtLocationGetSummaryDto[];
+  courtLocations: Pick<CourtLocationGetSummaryDto, 'locationCode' | 'name'>[];
   cja: CriminalJusticeAreaGetDto[];
   filteredCourthouses: CourtSuggestionItem[];
   filteredCja: CjaSuggestionItem[];

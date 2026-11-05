@@ -88,6 +88,7 @@ describe('ApplicationListEntryResultsFacade', () => {
     updateApplicationListEntryResult: jest.Mock;
   };
   let resultCodesApi: {
+    getResultCodeById: jest.Mock;
     getResultCodes: jest.Mock;
     getResultCodeByCodeAndDate: jest.Mock;
   };
@@ -104,6 +105,9 @@ describe('ApplicationListEntryResultsFacade', () => {
       updateApplicationListEntryResult: jest.fn(() => of(null) as unknown),
     };
     resultCodesApi = {
+      getResultCodeById: jest.fn(({ id }: { id: number }) =>
+        of({ id, title: `Title ${id}` }),
+      ),
       getResultCodes: jest.fn(
         () => of({ content: [] } as unknown as ResultCodePage) as unknown,
       ),
@@ -136,6 +140,84 @@ describe('ApplicationListEntryResultsFacade', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe('saved reference titles', () => {
+    const saved = (id: number): ResultGetDto =>
+      ({
+        id: `result-${id}`,
+        resultCode: 'SAME',
+        resultCodeId: id,
+      }) as ResultGetDto;
+
+    it('loads exact versions across saved and newly created results, deduplicating IDs', () => {
+      facade.entryResults.set([saved(10), saved(20)]);
+      facade.addCreatedEntryResults([saved(10)]);
+      TestBed.tick();
+      expect(resultCodesApi.getResultCodeById.mock.calls).toEqual([
+        [{ id: 10 }],
+        [{ id: 20 }],
+      ]);
+      expect(facade.savedResultTitles()).toEqual({
+        10: 'Title 10',
+        20: 'Title 20',
+      });
+      expect(facade.savedResultDetailsError()).toBe('');
+      expect(resultCodesApi.getResultCodeByCodeAndDate).not.toHaveBeenCalled();
+    });
+
+    it('retains successful titles when another lookup fails, without fallback', () => {
+      resultCodesApi.getResultCodeById.mockImplementation(({ id }) =>
+        id === 10
+          ? of({ title: 'Historical title', endDate: '2001-01-01' })
+          : throwError(() => ({ status: 404 })),
+      );
+      facade.entryResults.set([saved(10), saved(20)]);
+      TestBed.tick();
+      expect(facade.savedResultTitles()).toEqual({
+        10: 'Historical title',
+        20: undefined,
+      });
+      expect(facade.savedResultDetailsError()).toContain(
+        'No alternative version',
+      );
+      expect(resultCodesApi.getResultCodeByCodeAndDate).not.toHaveBeenCalled();
+    });
+
+    it.each([undefined, 0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1])(
+      'rejects invalid reference ID %s without making a request',
+      (id) => {
+        facade.entryResults.set([saved(id as number)]);
+        TestBed.tick();
+        expect(resultCodesApi.getResultCodeById).not.toHaveBeenCalled();
+        expect(facade.savedResultDetailsError()).toBeTruthy();
+      },
+    );
+
+    it('cancels obsolete requests and clears titles and errors when results are cleared', () => {
+      const pending = new Subject<ResultCodeGetDetailDto>();
+      resultCodesApi.getResultCodeById.mockReturnValue(pending);
+      facade.entryResults.set([saved(10)]);
+      TestBed.tick();
+      expect(pending.observed).toBe(true);
+      facade.reset();
+      TestBed.tick();
+      expect(pending.observed).toBe(false);
+      pending.next(makeDetail({ title: 'Obsolete' }));
+      pending.complete();
+      expect(facade.savedResultTitles()).toEqual({});
+      expect(facade.savedResultDetailsError()).toBe('');
+    });
+
+    it('cancels outstanding requests when the facade is destroyed', () => {
+      const pending = new Subject<ResultCodeGetDetailDto>();
+      resultCodesApi.getResultCodeById.mockReturnValue(pending);
+      facade.addCreatedEntryResults([saved(20)]);
+      TestBed.tick();
+      expect(pending.observed).toBe(true);
+      TestBed.resetTestingModule();
+      expect(pending.observed).toBe(false);
+    });
   });
 
   describe('toUniqueEntryIds(), buildCreateRequests(), submitCombinedRequests()', () => {

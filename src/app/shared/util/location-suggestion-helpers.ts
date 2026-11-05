@@ -88,7 +88,7 @@ export function attachLocationDisabler({
 export function onCourthouseInputChange(
   form: FormGroup,
   courthouseSearch: string,
-  courtLocations: CourtLocationGetSummaryDto[],
+  courtLocations: Pick<CourtLocationGetSummaryDto, 'locationCode' | 'name'>[],
 ): CourtSuggestionItem[] {
   form.controls['court'].setValue(courthouseSearch || '');
   const filtered = filterSuggestions(
@@ -159,7 +159,10 @@ function filterSuggestions<T>(
 // Both location filters also match the displayed "code - name/description"
 // label so editing a selected label does not make its suggestion disappear.
 // Filtering alone does not select an entry or restore its stored code.
-const courtMatches = (c: CourtLocationGetSummaryDto, q: string): boolean =>
+const courtMatches = (
+  c: Pick<CourtLocationGetSummaryDto, 'locationCode' | 'name'>,
+  q: string,
+): boolean =>
   (c.name ?? '').toLowerCase().includes(q) ||
   (c.locationCode ?? '').toLowerCase().includes(q) ||
   toCourtSuggestionItem(c).label.toLowerCase().includes(q);
