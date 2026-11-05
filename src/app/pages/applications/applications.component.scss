@@ -9,10 +9,6 @@
   margin-bottom: 0;
 }
 
-:host ::ng-deep .app-sortable-table__frame .moj-button-menu {
-  position: relative;
-}
-
 .table-caption__actions {
   float: right;
   display: flex;
@@ -24,4 +20,8 @@
 .table-caption__actions .moj-button-menu,
 .table-caption__action-button {
   margin-bottom: 1.75rem;
+}
+
+:host ::ng-deep .app-sortable-table__frame .moj-button-menu {
+  position: relative;
 }
