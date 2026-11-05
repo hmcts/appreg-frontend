@@ -721,6 +721,128 @@ describe('ApplicationsListEntryDetail', () => {
     );
   });
 
+  it('uses entry fees on initial load, then uses code fees after a code selection', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      of({
+        ...component.entryDetail,
+        fees: [
+          {
+            offsite: true,
+            reference: 'OFF-ENTRY',
+            description: 'Entry offsite fee',
+            value: 30,
+          },
+          {
+            offsite: false,
+            reference: 'MAIN-ENTRY',
+            description: 'Entry main fee',
+            value: 11,
+          },
+        ],
+      } as EntryGetDetailDto),
+    );
+    mockGetApplicationCodeById.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        feeReference: 'MAIN-CODE',
+        feeAmount: { value: 1000, currency: 'GBP' },
+      } as ApplicationCodeGetDetailDto),
+    );
+
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    expect(component.feeMeta).toEqual({
+      feeReference: 'MAIN-ENTRY',
+      feeDescription: 'Entry main fee',
+      feeAmount: { value: 1100, currency: 'GBP' },
+      offsiteFeeReference: 'OFF-ENTRY',
+      offsiteFeeDescription: 'Entry offsite fee',
+      offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+    });
+    expect(
+      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
+    ).toContain('Total Fee Amount: £41.00');
+
+    mockGetApplicationCodeByCodeAndDate.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        feeReference: 'NEW-CODE',
+        feeDescription: 'New code fee',
+        feeAmount: { value: 4000, currency: 'GBP' },
+      } as ApplicationCodeGetDetailDto),
+    );
+    component.onCodeSelected({ code: 'APP-200', date: '2025-11-01' });
+
+    expect(component.feeMeta?.feeReference).toBe('NEW-CODE');
+    expect(component.feeMeta?.feeAmount).toEqual({
+      value: 4000,
+      currency: 'GBP',
+    });
+  });
+
+  it.each([null, undefined])(
+    'uses application-code fee metadata when entry fees are %s',
+    (fees) => {
+      mockGetApplicationListEntry.mockReturnValue(
+        of({ ...component.entryDetail, fees } as EntryGetDetailDto),
+      );
+      mockGetApplicationCodeById.mockReturnValue(
+        of({
+          ...component.vm().appCodeDetail,
+          feeReference: 'CODE-FEE',
+          feeAmount: { value: 1500, currency: 'GBP' },
+        } as ApplicationCodeGetDetailDto),
+      );
+
+      component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+      expect(component.feeMeta?.feeReference).toBe('CODE-FEE');
+      expect(component.feeMeta?.feeAmount).toEqual({
+        value: 1500,
+        currency: 'GBP',
+      });
+    },
+  );
+
+  it('falls back to application-code fees when the entry fee list is empty', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      of({ ...component.entryDetail, fees: [] } as EntryGetDetailDto),
+    );
+    mockGetApplicationCodeById.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        feeReference: 'CODE-FEE',
+      } as ApplicationCodeGetDetailDto),
+    );
+    mockGetApplicationCodeById.mockClear();
+
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    expect(mockGetApplicationCodeById).toHaveBeenCalledTimes(1);
+    expect(component.feeMeta?.feeReference).toBe('CODE-FEE');
+    expect(component.feeMeta?.offsiteFeeReference).toBeNull();
+  });
+
+  it('maps a single entry fee and leaves offsite metadata empty', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      of({
+        ...component.entryDetail,
+        fees: [{ reference: 'MAIN-ENTRY', description: 'Entry fee', value: 0 }],
+      } as EntryGetDetailDto),
+    );
+
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    expect(component.feeMeta).toEqual({
+      feeReference: 'MAIN-ENTRY',
+      feeDescription: 'Entry fee',
+      feeAmount: { value: 0, currency: 'GBP' },
+      offsiteFeeReference: null,
+      offsiteFeeDescription: null,
+      offsiteFeeAmount: null,
+    });
+  });
+
   it('uses the linked historical record even when code/date resolves a newer duplicate', () => {
     const linked = {
       applicationCode: 'APP-100',
@@ -1517,6 +1639,193 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith(true, false);
+  });
+
+  it('shows the offsite fee after enabling it on an entry loaded with only a main fee', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      of({
+        ...component.entryDetail,
+        hasOffsiteFee: false,
+        fees: [{ reference: 'MAIN', description: 'Main fee', value: 11 }],
+      } as EntryGetDetailDto),
+    );
+    mockGetApplicationCodeById.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        isFeeDue: true,
+        offsiteFeeReference: 'OFF',
+        offsiteFeeDescription: 'Offsite fee',
+        offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+      } as ApplicationCodeGetDetailDto),
+    );
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    expect(component.feeMeta?.offsiteFeeAmount).toBeNull();
+    component.form.controls.hasOffsiteFee.setValue(true);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: true }),
+    );
+
+    component.onOffsiteFeeChanged(true);
+
+    expect(component.feeMeta?.offsiteFeeReference).toBe('OFF');
+    expect(component.feeMeta?.offsiteFeeAmount).toEqual({
+      value: 3000,
+      currency: 'GBP',
+    });
+    expect(
+      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
+    ).toContain('Total Fee Amount: £41.00');
+
+    component.form.controls.hasOffsiteFee.setValue(false);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: false }),
+    );
+    component.onOffsiteFeeChanged(false);
+
+    expect(component.feeMeta?.offsiteFeeAmount).toBeNull();
+  });
+
+  it('uses the saved offsite fee details when the toggle response includes them', () => {
+    component.feeMeta = {
+      feeReference: 'MAIN',
+      feeAmount: { value: 1100, currency: 'GBP' },
+      offsiteFeeAmount: null,
+    };
+    component.form.controls.hasOffsiteFee.setValue(true);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({
+        hasOffsiteFee: true,
+        fees: [
+          { offsite: false, reference: 'MAIN', value: 11 },
+          {
+            offsite: true,
+            reference: 'OFF-SAVED',
+            description: 'Saved offsite fee',
+            value: 30,
+          },
+        ],
+      }),
+    );
+
+    component.onOffsiteFeeChanged(true);
+
+    expect(component.feeMeta?.offsiteFeeReference).toBe('OFF-SAVED');
+    expect(component.feeMeta?.offsiteFeeAmount).toEqual({
+      value: 3000,
+      currency: 'GBP',
+    });
+  });
+
+  it('restores the saved offsite fee after disabling and re-enabling it', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      of({
+        ...component.entryDetail,
+        hasOffsiteFee: true,
+        fees: [
+          { offsite: false, reference: 'MAIN', value: 11 },
+          {
+            offsite: true,
+            reference: 'OFF-SAVED',
+            description: 'Saved offsite fee',
+            value: 42,
+          },
+        ],
+      } as EntryGetDetailDto),
+    );
+    mockGetApplicationCodeById.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        isFeeDue: true,
+        offsiteFeeReference: 'OFF-CODE',
+        offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+      } as ApplicationCodeGetDetailDto),
+    );
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    component.form.controls.hasOffsiteFee.setValue(false);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: false }),
+    );
+    component.onOffsiteFeeChanged(false);
+    expect(component.feeMeta?.offsiteFeeAmount).toBeNull();
+
+    component.form.controls.hasOffsiteFee.setValue(true);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: true }),
+    );
+    component.onOffsiteFeeChanged(true);
+
+    expect(component.feeMeta?.offsiteFeeReference).toBe('OFF-SAVED');
+    expect(component.feeMeta?.offsiteFeeDescription).toBe('Saved offsite fee');
+    expect(component.feeMeta?.offsiteFeeAmount).toEqual({
+      value: 4200,
+      currency: 'GBP',
+    });
+    expect(
+      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
+    ).toContain('Total Fee Amount: £53.00');
+  });
+
+  it("does not reuse the previous code's offsite fee after selecting a replacement code", () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      of({
+        ...component.entryDetail,
+        hasOffsiteFee: false,
+        fees: [
+          { offsite: false, reference: 'OLD-MAIN', value: 11 },
+          { offsite: true, reference: 'OLD-OFF', value: 42 },
+        ],
+      } as EntryGetDetailDto),
+    );
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+    mockGetApplicationCodeByCodeAndDate.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        applicationCode: 'APP-200',
+        feeReference: 'NEW-MAIN',
+        feeAmount: { value: 2500, currency: 'GBP' },
+        offsiteFeeReference: 'NEW-OFF',
+        offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+      } as ApplicationCodeGetDetailDto),
+    );
+    component.onCodeSelected({ code: 'APP-200', date: '2025-11-01' });
+
+    component.form.controls.hasOffsiteFee.setValue(true);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: true }),
+    );
+    component.onOffsiteFeeChanged(true);
+
+    expect(
+      mockUpdateApplicationListEntry.mock.calls.at(-1)?.[0].entryUpdateDto
+        .applicationCode,
+    ).toBe('APP-200');
+    expect(component.entryDetail?.applicationCode).toBe('APP-200');
+    expect(component.entryDetail?.fees).toBeUndefined();
+    expect(component.feeMeta?.feeReference).toBe('NEW-MAIN');
+    expect(component.feeMeta?.offsiteFeeReference).toBe('NEW-OFF');
+    expect(component.feeMeta?.offsiteFeeAmount).toEqual({
+      value: 3000,
+      currency: 'GBP',
+    });
+
+    component.form.controls.hasOffsiteFee.setValue(false);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: false }),
+    );
+    component.onOffsiteFeeChanged(false);
+    component.form.controls.hasOffsiteFee.setValue(true);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: true }),
+    );
+    component.onOffsiteFeeChanged(true);
+
+    expect(component.feeMeta?.offsiteFeeReference).toBe('NEW-OFF');
+    expect(component.feeMeta?.offsiteFeeAmount).toEqual({
+      value: 3000,
+      currency: 'GBP',
+    });
   });
 
   it('onUpdateApplication returns early when validation fails (no submit called)', () => {
