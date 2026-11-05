@@ -1183,6 +1183,28 @@ export class ApplicationsListEntryDetail implements OnInit {
         next: (res) => {
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
           this.persistedHasOffsiteFee = nextValue;
+          const offsiteFee = this.entryDetail?.fees?.find(
+            (fee) => fee.offsite === true,
+          );
+          const codeDetail = this.appListEntryDetailState().appCodeDetail;
+          this.feeMeta = {
+            ...this.feeMeta,
+            offsiteFeeReference: nextValue
+              ? (offsiteFee?.reference ??
+                codeDetail?.offsiteFeeReference ??
+                null)
+              : null,
+            offsiteFeeDescription: nextValue
+              ? (offsiteFee?.description ??
+                codeDetail?.offsiteFeeDescription ??
+                null)
+              : null,
+            offsiteFeeAmount: nextValue
+              ? typeof offsiteFee?.value === 'number'
+                ? { value: offsiteFee.value * 100, currency: 'GBP' }
+                : (codeDetail?.offsiteFeeAmount ?? null)
+              : null,
+          };
           if (this.savedContent) {
             this.savedContent.form.hasOffsiteFee = nextValue;
           }
@@ -1317,6 +1339,37 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    // Check if fees is populated and use this first
+    const feesMetaExistsInResponse = (entry.fees?.length ?? 0) > 0;
+
+    if (feesMetaExistsInResponse) {
+      const feesArr = entry.fees ?? [];
+
+      if (!feesArr.length) {
+        return;
+      }
+
+      const mainFee = feesArr.find((fee) => fee.offsite !== true);
+      const offsiteFee = feesArr.find((fee) => fee.offsite === true);
+
+      const feeMeta = {
+        feeReference: mainFee?.reference ?? null,
+        feeDescription: mainFee?.description ?? null,
+        feeAmount:
+          mainFee?.value === null || mainFee?.value === undefined
+            ? null
+            : { value: mainFee.value * 100, currency: 'GBP' }, // formatGbp() assumes the returned value in pence so multiple by 100
+        offsiteFeeReference: offsiteFee?.reference ?? null,
+        offsiteFeeDescription: offsiteFee?.description ?? null,
+        offsiteFeeAmount:
+          offsiteFee?.value === null || offsiteFee?.value === undefined
+            ? null
+            : { value: offsiteFee.value * 100, currency: 'GBP' }, // formatGbp() assumes the returned value in pence so multiple by 100
+      };
+
+      this.feeMeta = feeMeta;
+    }
+
     this.applicationCodesApi
       .getApplicationCodeById({ id: entry.applicationCodeId }, 'body', false, {
         transferCache: true,
@@ -1326,14 +1379,17 @@ export class ApplicationsListEntryDetail implements OnInit {
         next: (codeDto) => {
           this.form.patchValue({ applicationTitle: codeDto.title });
           this.handleResultWordingContext(this.navState);
-          this.feeMeta = {
-            feeReference: codeDto.feeReference ?? null,
-            feeDescription: codeDto.feeDescription ?? null,
-            feeAmount: codeDto.feeAmount ?? null,
-            offsiteFeeReference: codeDto.offsiteFeeReference ?? null,
-            offsiteFeeDescription: codeDto.offsiteFeeDescription ?? null,
-            offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
-          };
+
+          if (!feesMetaExistsInResponse) {
+            this.feeMeta = {
+              feeReference: codeDto.feeReference ?? null,
+              feeDescription: codeDto.feeDescription ?? null,
+              feeAmount: codeDto.feeAmount ?? null,
+              offsiteFeeReference: codeDto.offsiteFeeReference ?? null,
+              offsiteFeeDescription: codeDto.offsiteFeeDescription ?? null,
+              offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
+            };
+          }
 
           this.savedApplicationCodeLoaded.set(true);
           this.appListEntryDetailPatch({
@@ -1706,6 +1762,15 @@ export class ApplicationsListEntryDetail implements OnInit {
       ...this.entryDetail,
       ...this.toEntryDetailPatch(entryUpdateDto),
     };
+
+    // Clear on successful app code change
+    const savedCodeChanged =
+      (res?.applicationCode ?? entryUpdateDto.applicationCode) !==
+      this.entryDetail.applicationCode;
+    if (savedCodeChanged && res?.fees === undefined) {
+      delete base.fees;
+    }
+
     const hasResponse =
       !!res && typeof res === 'object' && Object.keys(res).length > 0;
 

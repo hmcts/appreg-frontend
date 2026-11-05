@@ -2,6 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { ProblemDetails } from '@core-types/error/error.types';
 
+type ErrorResponseBodyShape = 'detail' | 'title';
+
 export function getHttpStatus(err: unknown): number {
   if (err instanceof HttpErrorResponse) {
     return err.status;
@@ -19,13 +21,22 @@ function isProblemDetails(x: unknown): x is ProblemDetails {
   return typeof x === 'object' && x !== null && ('detail' in x || 'title' in x);
 }
 
-export function getProblemText(err: unknown): string {
+export function getProblemText(
+  err: unknown,
+  textSelection: ErrorResponseBodyShape = 'detail',
+): string {
   if (err instanceof HttpErrorResponse) {
     const e: unknown = err.error;
     if (isProblemDetails(e)) {
       const detail = typeof e.detail === 'string' ? e.detail.trim() : '';
       const title = typeof e.title === 'string' ? e.title.trim() : '';
-      return detail || title || err.message || 'Request failed';
+
+      // Customisable priority
+      if (textSelection === 'detail') {
+        return detail || title || err.message || 'Request failed';
+      } else if (textSelection === 'title') {
+        return title || detail || err.message || 'Request failed';
+      }
     }
     return err.message || 'Request failed';
   }
@@ -33,7 +44,12 @@ export function getProblemText(err: unknown): string {
   if (isProblemDetails(err)) {
     const detail = typeof err.detail === 'string' ? err.detail.trim() : '';
     const title = typeof err.title === 'string' ? err.title.trim() : '';
-    return detail || title || 'Request failed';
+
+    if (textSelection === 'detail') {
+      return detail || title || 'Request failed';
+    } else if (textSelection === 'title') {
+      return title || detail || 'Request failed';
+    }
   }
 
   return 'Request failed';

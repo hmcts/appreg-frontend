@@ -108,6 +108,7 @@ import {
 } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import {
+  CourtSuggestionSource,
   toCjaSuggestionItem,
   toCourtSuggestionItem,
 } from '@components/suggestions/suggestions.types';
@@ -130,7 +131,6 @@ import {
   BulkActionPreviewResponseDto,
   BulkActionSelectionType,
   BulkActionType,
-  CourtLocationGetSummaryDto,
   EntryPage,
   PrintApplicationListsRequestParams,
 } from '@openapi';
@@ -221,10 +221,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly menus = inject(MojButtonMenu);
 
   // Only the court already persisted on this list may supplement current choices.
-  private readonly retainedCourt$ = new BehaviorSubject<Pick<
-    CourtLocationGetSummaryDto,
-    'locationCode' | 'name'
-  > | null>(null);
+  private readonly retainedCourt$ =
+    new BehaviorSubject<CourtSuggestionSource | null>(null);
 
   id!: string;
   listRow: ApplicationListRow | undefined = undefined;
@@ -1566,7 +1564,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         msg =
           'Affected rows exceeds 1050. Please reduce the number of rows selected';
       } else {
-        msg = getProblemText(err);
+        const isALE35 = this.isResponseErrorALE35(err);
+        msg = getProblemText(err, isALE35 ? 'title' : 'detail');
+        if (isALE35) {
+          msg += '. Refresh the list and select the applications again.';
+        }
       }
 
       if (showError) {
@@ -1634,13 +1636,14 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     this.entryCount = dto.entriesCount ?? this.entryCount;
 
-    this.syncFormAndOriginalListDetail(listDetails, dto.courtName);
+    this.syncFormAndOriginalListDetail(listDetails, dto.courtName, dto.courtId);
 
     if (dto.courtCode) {
       this.selectCourthouse(
         toCourtSuggestionItem({
           locationCode: dto.courtCode,
           name: dto.courtName ?? '',
+          courtId: dto.courtId,
         }),
       );
     } else if (dto.cjaCode) {
@@ -1668,6 +1671,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private syncFormAndOriginalListDetail(
     listDetails: DetailFormValue = this.form.getRawValue(),
     courtName?: string,
+    courtId?: number,
   ): void {
     this.form.patchValue(listDetails);
     this.originalListDetail = this.form.getRawValue();
@@ -1677,9 +1681,27 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     );
     this.retainedCourt$.next(
       code
-        ? { locationCode: code, name: courtName ?? existing?.name ?? '' }
+        ? {
+            locationCode: code,
+            name: courtName ?? existing?.name ?? '',
+            courtId: courtId ?? existing?.courtId,
+          }
         : null,
     );
     this.form.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private isResponseErrorALE35(err: unknown): boolean {
+    if (!(err instanceof HttpErrorResponse) || !err) {
+      return false;
+    }
+
+    const body: unknown = err.error;
+    return (
+      typeof body === 'object' &&
+      body !== null &&
+      'type' in body &&
+      body.type === 'ALE-35'
+    );
   }
 }
