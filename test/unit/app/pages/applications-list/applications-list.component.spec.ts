@@ -343,11 +343,11 @@ describe('ApplicationsList - delete navigation', () => {
     expect(comp.vm().deleteInvalid).toBe(true);
     expect(comp.vm().errorSummary).toEqual([
       {
-        text: 'Unable to open the delete confirmation. Please refresh your page try again.',
+        text: 'Unable to open the delete confirmation. Please refresh your page and try again.',
       },
     ]);
     expect(fixture.nativeElement.textContent).toContain(
-      'Unable to open the delete confirmation. Please try again.',
+      'Unable to open the delete confirmation. Please refresh your page and try again.',
     );
   });
 });

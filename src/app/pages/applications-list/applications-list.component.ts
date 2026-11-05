@@ -527,7 +527,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
       if (!navigated) {
         throw new Error(
-          'Unable to open the delete confirmation. Please refresh your page try again.',
+          'Unable to open the delete confirmation. Please refresh your page and try again.',
         );
       }
     } catch (err) {
