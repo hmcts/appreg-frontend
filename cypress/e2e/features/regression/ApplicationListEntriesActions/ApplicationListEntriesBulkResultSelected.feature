@@ -391,7 +391,9 @@ Feature: Applications List  - Bulk Result Selected
         Then User Stores Updated Date Time For Result "COST" From Bulk Result Submission As "proaUpdatedDateTimeCOST"
         Then User Verifies The Local Updated Date And Time In Summary Card "COST - Costs granted" From Alias "proaUpdatedDateTimeCOST"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
+        When User Starts Listening For Application List Entries Load
         Then User Clicks On The Breadcrumb Link "Applications list details"
+        Then User Waits For Application List Entries Load
         # Verify rows 2, 3 have RTC, PROA and COST applied; row 5 retains pre-existing RTC; rows 1, 4, 6, 7, 8 unchanged
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number  | Applicant                   | Respondent                          | Postcode | Title                                        | Fee | Resulted        |
@@ -407,7 +409,9 @@ Feature: Applications List  - Bulk Result Selected
         Then User Should See The Button "Actions" Is Enabled
         When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Entries"
         Then User Sees Validation Error Banner "There is a problem Cannot result application(s) that have already been resulted"
+        When User Starts Listening For Application List Entries Load
         When User Refreshes The Page
+        Then User Waits For Application List Entries Load
         # Select Only Unresulted Rows and attempt to result
         When User Checks The Checkbox In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant                          | Respondent                        | Postcode | Title                                                      | Fee | Resulted |
@@ -436,7 +440,9 @@ Feature: Applications List  - Bulk Result Selected
         Then User Stores Updated Date Time For Result "RTC" From Bulk Result Submission As "proaUpdatedDateTime"
         Then User Verifies The Local Updated Date And Time In Summary Card "RTC - Refer to Court" From Alias "proaUpdatedDateTime"
         # Back to Applications List Details tab
+        When User Starts Listening For Application List Entries Load
         Then User Clicks On The Breadcrumb Link "Applications list details"
+        Then User Waits For Application List Entries Load
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number  | Applicant                          | Respondent                        | Postcode | Title                                                      | Fee | Resulted |
             | 1               |                 | Test Acme Industries {SCENARIO_ID} | Test Respondent Ltd {SCENARIO_ID} | BS15 5AA | Appeal to Crown Court                                      | No  | RTC      |
