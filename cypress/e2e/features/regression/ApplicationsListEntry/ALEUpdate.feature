@@ -1,6 +1,6 @@
 Feature: Applications List Entry Update
 
-    @applicationListEntry @regression @core @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444 @ARCPOC-1558 @ARCPOC-1228 @ARCPOC-1789 @ARCPOC-1748 @ARCPCOC-1822
+    @applicationListEntry @regression @core @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444 @ARCPOC-1558 @ARCPOC-1228 @ARCPOC-1789 @ARCPOC-1748 @ARCPCOC-1822 @ARCPOC-1846
     Scenario: Update an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "user1"
         # Create Application List
@@ -53,6 +53,23 @@ Feature: Applications List Entry Update
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
             | Date         | Time  | Location                          | Description                                  | Entries | Status |
             | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   |
+        # Search and Open Created Application List Entry
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+            | Sequence number | Account number | Applicant                  | Respondent                | Postcode | Title                      | Fee | Resulted |
+            | 1               | ACCSE1{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
+        When User Clicks On The "Show all sections" Button
+        Then User Should See The Button "Hide all sections"
+        Then User Sees Page Heading "Applications list entry update"
+        Then User See "Summary of application list entry" On The Page
+        When User Fills In The Applicant Details
+            | Surname | Smith {SCENARIO_ID} UPDATED |
+        # Show unsaved changes warning
+        When User Clicks On The "Cancel" Button
+        Then User Should See The Modal Dialog With Heading "Leave without saving?"
+        Then User Should See The Text "Your changes to this application list entry have not been saved. If you leave, your changes will be discarded." In The Modal Dialog
+        Then User Should See The Modal Dialog With Button "Stay on this page"
+        Then User Should See The Modal Dialog With Button "Leave this page"
+        When User Clicks On The "Leave this page" Button
         # Search and Open Created Application List Entry
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number | Applicant                  | Respondent                | Postcode | Title                      | Fee | Resulted |
@@ -119,6 +136,13 @@ Feature: Applications List Entry Update
         When User Clicks On The "Save recording officials" Button
         Then User Sees Success Banner "Officials updated" Containing "Officials have been updated for this application list entry."
         When User Starts Listening For Result Retrieval
+        # Show unsaved changes warning
+        When User Clicks On The "Cancel" Button
+        Then User Should See The Modal Dialog With Heading "Leave without saving?"
+        Then User Should See The Text "Your changes to this application list entry have not been saved. If you leave, your changes will be discarded." In The Modal Dialog
+        Then User Should See The Modal Dialog With Button "Stay on this page"
+        Then User Should See The Modal Dialog With Button "Leave this page"
+        When User Clicks On The "Stay on this page" Button
         When User Clicks On The "Save complete application" Button
         Then User Sees Success Banner "Application list entry updated" Containing "The application list entry has been updated successfully."
         # Result Wording - Timestamp
@@ -197,7 +221,7 @@ Feature: Applications List Entry Update
         Then User Should See The Text "Attends to make a statutory declaration that henceforth the applicant will be known as " In The Accordion "Wording"
         Then User Should See The Text "Fee Reference: CO7.2 " In The Accordion "Civil fee"
 
-    @ignore @applicationListEntry @ARCPOC-222 @ARCPOC-428 @ARCPOC-1859
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-428 @ARCPOC-1859
     Scenario: Update an ALE Applicant from Organisation to SA, Respondent from Organisation to Bulk Respondnet, using an Application Code with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "user1"
         # Create Application List
