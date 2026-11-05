@@ -25,25 +25,23 @@ import { ErrorItem } from '@components/error-summary/error-summary.component';
 import {
   CjaSuggestionItem,
   CourtSuggestionItem,
+  CourtSuggestionSource,
   SuggestionsItem,
   isCjaSuggestionItem,
   isCourtSuggestionItem,
 } from '@components/suggestions/suggestions.types';
-import {
-  CourtLocationGetSummaryDto,
-  CriminalJusticeAreaGetDto,
-} from '@openapi';
+import { CriminalJusticeAreaGetDto } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 interface PlaceRefFacade {
-  courtLocations$: Observable<CourtLocationGetSummaryDto[]>;
+  courtLocations$: Observable<CourtSuggestionSource[]>;
   cja$: Observable<CriminalJusticeAreaGetDto[]>;
 }
 
 export interface PlaceFieldsState {
   courthouseSearch: string;
   cjaSearch: string;
-  courtLocations: CourtLocationGetSummaryDto[];
+  courtLocations: CourtSuggestionSource[];
   cja: CriminalJusticeAreaGetDto[];
   filteredCourthouses: CourtSuggestionItem[];
   filteredCja: CjaSuggestionItem[];
@@ -182,7 +180,7 @@ export abstract class PlaceFieldsBase {
     }
   }
 
-  selectCourthouse(c: CourtLocationGetSummaryDto | CourtSuggestionItem): void {
+  selectCourthouse(c: CourtSuggestionSource | CourtSuggestionItem): void {
     const next = selectCourthouse(this.placeForm, c);
     this.patch({
       courthouseSearch: next.courthouseSearch,

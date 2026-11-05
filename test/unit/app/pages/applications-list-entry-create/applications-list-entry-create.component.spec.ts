@@ -147,6 +147,25 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     },
   );
 
+  it('advances the focus cycle on each failed wording attempt before form submission', () => {
+    const errors = [
+      {
+        text: 'Enter a value for “Court” in the wording section',
+        href: '#Court',
+      },
+    ];
+    const initialAttempt = component.submitAttempt();
+
+    component.onChildErrors('wording', errors);
+    expect(component.vm().submitted).toBe(false);
+    expect(component.vm().summaryErrors).toEqual(errors);
+    expect(component.submitAttempt()).toBe(initialAttempt + 1);
+
+    component.onChildErrors('wording', errors);
+    expect(component.vm().summaryErrors).toEqual(errors);
+    expect(component.submitAttempt()).toBe(initialAttempt + 2);
+  });
+
   it('reopens Applicant after its manually collapsed state is reported', () => {
     markAsSubmitted();
     component.onAccordionExpandedChange({ index: 0, expanded: false });
