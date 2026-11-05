@@ -6,6 +6,7 @@
   "status": "OPEN",
 
   "courtCode": "MCJC072",
+  "courtId": 1,
   "courtName": "Manchester Civil Justice Centre Set 8",
   "cjaCode": null,
   "otherLocationDescription": null,
