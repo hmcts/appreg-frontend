@@ -88,6 +88,10 @@ export class ApplicationsListUpdateComponent {
   readonly errorMap = DETAIL_FIELD_MESSAGES;
 
   readonly originalListDetails = input<Readonly<DetailFormValue> | null>(null);
+  // Court id for original court to ensure the full replacement does not repalce the
+  // original court
+  readonly originalCourtId = input<number | undefined>(undefined);
+  readonly selectedCourtId = input<number | undefined>(undefined);
   readonly updatePending = input(false);
   readonly canModifyList = input(false);
 
@@ -129,12 +133,17 @@ export class ApplicationsListUpdateComponent {
     const durationHours = this.toNum(dur?.hours) ?? 0;
     const durationMinutes = this.toNum(dur?.minutes) ?? 0;
 
+    // Legacy lists may not have a linked ID so only populate ID if given.
+    // Undefined ID will use court code instead.
     try {
       const normalized = buildNormalizedPayload(raw);
       const payload: ApplicationListUpdateDto = {
         durationHours,
         durationMinutes,
         ...normalized,
+        ...(raw.court && this.selectedCourtId() !== undefined
+          ? { courtId: this.selectedCourtId() }
+          : {}),
       };
 
       this.setUpdateRequest()({
@@ -196,6 +205,9 @@ export class ApplicationsListUpdateComponent {
       durationHours,
       durationMinutes,
       ...buildNormalizedPayload(originalListDetails),
+      ...(originalListDetails.court && this.originalCourtId() !== undefined
+        ? { courtId: this.originalCourtId() }
+        : {}),
       status: ApplicationListStatus.CLOSED,
     };
 
