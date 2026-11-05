@@ -11,7 +11,7 @@ RUN apk add --no-cache curl bash
 
 # Install the dependencies and build the app.
 RUN yarn install
-RUN yarn build:ssr
+RUN NG_BUILD_OPTIMIZE_CHUNKS=false yarn build:ssr --named-chunks
 
 # Keep the deployed image free of build-only tooling, including the OpenAPI generator.
 FROM hmctsprod.azurecr.io/base/node:24-alpine
