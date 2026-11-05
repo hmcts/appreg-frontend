@@ -531,7 +531,10 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
         );
       }
     } catch (err) {
-      const errMsg = err as string;
+      const errMsg =
+        err instanceof Error && err.message
+          ? err.message
+          : 'Failed to delete applications list. Please contact support for guidance.';
 
       this.appListSignalState.patch({
         deleteDone: false,
