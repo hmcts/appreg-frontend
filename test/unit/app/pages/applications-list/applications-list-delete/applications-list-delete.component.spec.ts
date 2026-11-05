@@ -12,11 +12,16 @@ import {
   Router,
   convertToParamMap,
 } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
 
 import { ApplicationsListDeleteComponent } from '@components/applications-list/applications-list-delete/applications-list-delete.component';
 import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
-import { ApplicationListStatus, ApplicationListsApi } from '@openapi';
+import {
+  ApplicationListEntriesApi,
+  ApplicationListStatus,
+  ApplicationListsApi,
+  EntryPage1,
+} from '@openapi';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
 describe('ApplicationsListDeleteComponent', () => {
@@ -24,6 +29,7 @@ describe('ApplicationsListDeleteComponent', () => {
   let component: ApplicationsListDeleteComponent;
 
   let api: Pick<ApplicationListsApi, 'deleteApplicationList'>;
+  let entriesApi: Pick<ApplicationListEntriesApi, 'getApplicationListEntries'>;
   let router: Pick<Router, 'navigate'>;
   let location: Pick<Location, 'getState'>;
 
@@ -47,6 +53,8 @@ describe('ApplicationsListDeleteComponent', () => {
     platformId?: 'browser' | 'server';
     navStateRow?: ApplicationListRow | undefined;
     routeId?: string | null;
+    entriesResponse?: (pageNumber: number) => Observable<EntryPage1>;
+    realTemplate?: boolean;
   }) => {
     const platformId = opts?.platformId ?? 'browser';
     const navStateRow = opts?.navStateRow;
@@ -54,6 +62,12 @@ describe('ApplicationsListDeleteComponent', () => {
 
     api = {
       deleteApplicationList: jest.fn(),
+    };
+    entriesApi = {
+      getApplicationListEntries: jest.fn(
+        ({ pageNumber }) =>
+          opts?.entriesResponse?.(pageNumber ?? 0) ?? of(makePage()),
+      ),
     };
 
     router = {
@@ -74,15 +88,18 @@ describe('ApplicationsListDeleteComponent', () => {
 
     TestBed.resetTestingModule();
 
-    TestBed.overrideComponent(ApplicationsListDeleteComponent, {
-      set: { template: '' },
-    });
+    if (!opts?.realTemplate) {
+      TestBed.overrideComponent(ApplicationsListDeleteComponent, {
+        set: { template: '' },
+      });
+    }
 
     await TestBed.configureTestingModule({
       imports: [ApplicationsListDeleteComponent],
       providers: [
         { provide: PLATFORM_ID, useValue: platformId },
         { provide: ApplicationListsApi, useValue: api },
+        { provide: ApplicationListEntriesApi, useValue: entriesApi },
         { provide: Router, useValue: router },
         { provide: Location, useValue: location },
         { provide: ActivatedRoute, useValue: routeStub },
@@ -94,6 +111,125 @@ describe('ApplicationsListDeleteComponent', () => {
     fixture.detectChanges();
   };
 
+  const makePage = (
+    ids: string[] = [],
+    pageNumber = 0,
+    totalElements = ids.length,
+  ): EntryPage1 => ({
+    pageNumber,
+    pageSize: 1,
+    totalElements,
+    elementsOnPage: ids.length,
+    content: ids.map((id) => ({
+      id,
+      applicationTitle: 'Synthetic application',
+      isFeeRequired: false,
+      isResulted: false,
+      status: ApplicationListStatus.OPEN,
+    })),
+  });
+
+  it('loads every unfiltered page in sequence order, independent of the parent entry count', async () => {
+    await setup({
+      navStateRow: makeRow(),
+      entriesResponse: (page) => of(makePage([`entry-${page}`], page, 2)),
+    });
+
+    expect(component.childEntries().map((entry) => entry.id)).toEqual([
+      'entry-0',
+      'entry-1',
+    ]);
+    expect(component.entriesLoaded()).toBe(true);
+    expect(entriesApi.getApplicationListEntries).toHaveBeenCalledTimes(2);
+    for (const pageNumber of [0, 1]) {
+      expect(entriesApi.getApplicationListEntries).toHaveBeenNthCalledWith(
+        pageNumber + 1,
+        {
+          listId: 'abc-123',
+          pageNumber,
+          pageSize: 100,
+          sort: ['sequenceNumber,asc'],
+        },
+        'body',
+        false,
+        { transferCache: false },
+      );
+    }
+  });
+
+  it.each([0, 1])(
+    'blocks deletion after page %i fails, then allows retry of an empty list',
+    async (failingPage) => {
+      const pending = new Subject<EntryPage1>();
+      await setup({
+        navStateRow: makeRow(),
+        realTemplate: true,
+        entriesResponse: (page) =>
+          page === failingPage ? pending : of(makePage(['entry-0'], 0, 2)),
+      });
+      const confirm = () =>
+        fixture.nativeElement.querySelector(
+          'app-review-confirm .govuk-button--warning',
+        ) as HTMLButtonElement;
+      expect(confirm().disabled).toBe(true);
+      expect(fixture.nativeElement.textContent).toContain(
+        'Loading application list entries',
+      );
+      component.onDelete();
+      expect(api.deleteApplicationList).not.toHaveBeenCalled();
+
+      pending.error(new HttpErrorResponse({ status: 500 }));
+      fixture.detectChanges();
+      expect(component.childEntries()).toEqual([]);
+      expect(component.entriesLoaded()).toBe(false);
+      expect(confirm().disabled).toBe(true);
+      expect(
+        fixture.nativeElement.querySelector('.govuk-error-summary').textContent,
+      ).toContain('Could not load all');
+      component.onDelete();
+      expect(api.deleteApplicationList).not.toHaveBeenCalled();
+
+      (entriesApi.getApplicationListEntries as jest.Mock).mockReturnValue(
+        of(makePage()),
+      );
+      fixture.nativeElement.querySelector('#retry-entries').click();
+      fixture.detectChanges();
+      expect(confirm().disabled).toBe(false);
+      expect(component.entriesLoadError()).toBe(false);
+      expect(fixture.nativeElement.textContent).toContain(
+        'This application list has no entries.',
+      );
+      (api.deleteApplicationList as jest.Mock).mockReturnValue(
+        of(new HttpResponse({ status: 204 })),
+      );
+      confirm().click();
+      expect(api.deleteApplicationList).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it.each(['duplicate', 'truncated', 'changed total'])(
+    'blocks deletion for %s results',
+    async (problem) => {
+      await setup({
+        navStateRow: makeRow(),
+        entriesResponse: (page) =>
+          of(
+            makePage(
+              problem === 'truncated'
+                ? []
+                : [problem === 'duplicate' ? 'same-entry' : `entry-${page}`],
+              page,
+              problem === 'changed total' && page === 1 ? 3 : 2,
+            ),
+          ),
+      });
+      expect(component.entriesLoadError()).toBe(true);
+      expect(component.childEntries()).toEqual([]);
+      component.onDelete();
+      expect(api.deleteApplicationList).not.toHaveBeenCalled();
+    },
+  );
+
   it('should create', async () => {
     await setup({ navStateRow: makeRow() });
     expect(component).toBeTruthy();
@@ -102,6 +238,24 @@ describe('ApplicationsListDeleteComponent', () => {
   it('ngOnInit: when no listRow but id exists -> navigates back', async () => {
     await setup({ navStateRow: undefined, routeId: 'abc-123' });
     expect(router.navigate).toHaveBeenCalledWith(['/applications-list']);
+    expect(entriesApi.getApplicationListEntries).not.toHaveBeenCalled();
+  });
+
+  it('rejects navigation state for a different list', async () => {
+    await setup({ navStateRow: makeRow({ id: 'other-list' }) });
+    expect(entriesApi.getApplicationListEntries).not.toHaveBeenCalled();
+    component.onDelete();
+    expect(api.deleteApplicationList).not.toHaveBeenCalled();
+  });
+
+  it('prevents repeated deletion and reload while deleting', async () => {
+    await setup({ navStateRow: makeRow() });
+    (api.deleteApplicationList as jest.Mock).mockReturnValue(new Subject());
+    component.onDelete();
+    component.onDelete();
+    component.loadChildEntries();
+    expect(api.deleteApplicationList).toHaveBeenCalledTimes(1);
+    expect(entriesApi.getApplicationListEntries).toHaveBeenCalledTimes(1);
   });
 
   it('ngOnInit: when listRow exists -> does not navigate back', async () => {
@@ -215,5 +369,6 @@ describe('ApplicationsListDeleteComponent', () => {
     });
 
     expect(router.navigate).toHaveBeenCalledWith(['/applications-list']);
+    expect(entriesApi.getApplicationListEntries).not.toHaveBeenCalled();
   });
 });
