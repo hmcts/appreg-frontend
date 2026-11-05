@@ -47,16 +47,6 @@ export class ApplicationListCombinedHelper {
 
     cy.log('Searching Application List with criteria:', processedCriteria);
 
-    // Queue the complete reference-data wait before any input interaction.
-    // Waiting within the CourtSearch branch can allow earlier queued commands
-    // to type before every paginated response has been observed.
-    const requiresCourtReferenceData = Boolean(
-      processedCriteria.CourtSearch?.trim() || processedCriteria.Court?.trim(),
-    );
-    if (requiresCourtReferenceData && !this.courtReferenceDataLoaded) {
-      cy.then(() => this.waitForCourtReferenceData());
-    }
-
     for (const [fieldLabel, value] of Object.entries(processedCriteria)) {
       // Skip empty values
       if (!value || value.trim() === '') {
@@ -74,7 +64,15 @@ export class ApplicationListCombinedHelper {
           break;
 
         case 'CourtSearch': {
-          // CourtSearch = text to type into autocomplete, Court = option to select
+          // Date and other filters can initialise a new paginated reference-data
+          // request. Wait immediately before typing into this page's Court input.
+          cy.then(() => {
+            if (!this.courtReferenceDataLoaded) {
+              return this.waitForCourtReferenceData();
+            }
+          });
+
+          // CourtSearch = text to type into autocomplete, Court = option to select.
           const courtSelectValue = processedCriteria.Court || '';
           TextboxHelper.selectAutocompleteOption(
             'Court',
@@ -87,6 +85,11 @@ export class ApplicationListCombinedHelper {
         case 'Court':
           // Handled by CourtSearch case above; skip if CourtSearch not provided
           if (!processedCriteria.CourtSearch) {
+            cy.then(() => {
+              if (!this.courtReferenceDataLoaded) {
+                return this.waitForCourtReferenceData();
+              }
+            });
             TextboxHelper.selectAutocompleteOption('Court', value, value);
           }
           break;

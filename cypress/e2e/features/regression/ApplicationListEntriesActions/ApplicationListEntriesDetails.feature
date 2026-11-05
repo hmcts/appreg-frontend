@@ -1,11 +1,10 @@
 Feature: Application List Entries Search
 
-    @regression @applicationsList @applicationListEntry @ARCPOC-1246 @ARCPOC-1226 @ARCPOC-1769
-    Scenario Outline: Application List - Search Entries - Mixed Applicants, Respondents, Fees And Results
-        Given User Authenticates Via API As "<User>"
+    Background: Create an application list with entries for Search testing
+        Given User Authenticates Via API As "user2"
         When User Makes POST API Request To "/application-lists" With Body:
-            | date      | time   | status   | description   | courtLocationCode   |
-            | <APIDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
+            | date     | time           | status | description                                  | courtLocationCode |
+            | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{SCENARIO_ID} | BCC026            |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         # Entry 1 - Person applicant + Person respondent, no fee, resulted
@@ -167,11 +166,14 @@ Feature: Application List Entries Search
             }
             """
         Then User Verify Response Status Code Should Be "201"
+
+    @regression @applicationsList @applicationListEntry @ARCPOC-1246 @ARCPOC-1226 @ARCPOC-1769
+    Scenario Outline: Application List - Search Entries - Mixed Applicants, Respondents, Fees And Results§
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
             | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      |             | <courtLocationCode> | <Court> |        |                |     |           |
-        Then User Should See Table "List" Has Sortable Headers " Time, Description, Entries, Status"
+        Then User Should See Table "List" Has Sortable Headers "Time, Description, Entries, Status"
         And User Should See Table "List" Header "Date" Is Not Sortable
         And User Should See Table "List" Header "Location" Is Not Sortable
         When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
@@ -301,3 +303,51 @@ Feature: Application List Entries Search
         Examples:
             | User  | APIDate  | Time           | Status | Description                                  | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     |
             | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{SCENARIO_ID} | BCC026            | today      | todayDisplay | 5       | Bristol Crown Court Set 3 |
+
+    @regression @applicationListEntry @ARCPOC-1930
+    Scenario Outline: Search By Application Title On Application List Details, results found
+        When User Signs In With Microsoft SSO As "<User>"
+        When User Searches Application List With:
+            | Date         | Time | Description | CourtSearch   | Court   | Status | Other location | CJA | CJASearch |
+            | <SearchDate> |      |             | <CourtSearch> | <Court> |        |                |     |           |
+        Then User Should See Table "List" Has Sortable Headers "Time, Description, Entries, Status"
+        And User Should See Table "List" Header "Date" Is Not Sortable
+        And User Should See Table "List" Header "Location" Is Not Sortable
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+        Then User See "Applications" On The Page
+        When User Toggles The Accordion "Advanced search"
+        Then User Selects "<OptionTextApplicationTitle>" From The Textbox "Application title" Autocomplete By Typing "<SearchTextApptitle>"
+        When User Clicks On The "Search" Button
+        Then User Should See Table "Entries" Has Sortable Headers "Sequence number, Account number, Applicant, Respondent, Postcode, Title, Fee, Resulted"
+        Then User Should See Row In Table "Entries" With Values:
+            | Sequence number | Account number | Applicant                       | Respondent                         | Postcode | Title                      | Fee | Resulted |
+            | 4               | ACCSE4{RANDOM} | Fiona Morgan {SCENARIO_ID}      | Civic Respondent Ltd {SCENARIO_ID} | CF1 1AA  | Condemnation of Unfit Food | Yes |          |
+            | 5               | ACCSE5{RANDOM} | Registry Services {SCENARIO_ID} | Liam Wilson {SCENARIO_ID}          | NE1 2AA  | Condemnation of Unfit Food | Yes | AUTH     |
+
+        Examples:
+            | User  | SearchDate | DisplayDate  | Court                     | CourtSearch | Time           | Entries | Status | Description                                  | OptionTextApplicationTitle | SearchTextApptitle         |
+            | user2 | today      | todayDisplay | Bristol Crown Court Set 3 | BCC026      | timenowhhmm-3h | 5       | OPEN   | Applications to review at Test_{SCENARIO_ID} | Unfit                      | Condemnation of Unfit Food |
+
+    @regression @applicationListEntry @ARCPOC-1930
+    Scenario Outline: Search By Application Title On Application List Details, no results found
+        When User Signs In With Microsoft SSO As "user1"
+        When User Searches Application List With:
+            | Date         | Time | Description | CourtSearch   | Court   | Status | Other location | CJA | CJASearch |
+            | <SearchDate> |      |             | <CourtSearch> | <Court> |        |                |     |           |
+        Then User Should See Table "List" Has Sortable Headers "Time, Description, Entries, Status"
+        And User Should See Table "List" Header "Date" Is Not Sortable
+        And User Should See Table "List" Header "Location" Is Not Sortable
+        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+        Then User See "Applications" On The Page
+        When User Toggles The Accordion "Advanced search"
+        Then User Selects "<OptionTextApplicationTitle>" From The Textbox "Application title" Autocomplete By Typing "<SearchTextAppTitle>"
+        Then User Verifies "<Validation>" Is Visible Under The "Application title" Textbox
+        When User Clicks On The "Search" Button
+        Then User Sees Inline Notification Banner "Important No lists entries found Try again, or create a new list entry"
+        Examples:
+            | User  | OptionTextApplicationTitle | SearchTextAppTitle | Validation       | SearchDate | DisplayDate  | Court                     | CourtSearch | Time           | Entries | Status | Description                                  |
+            | user2 |                            | Unfits             | No results found | today      | todayDisplay | Bristol Crown Court Set 3 | BCC026      | timenowhhmm-3h | 5       | OPEN   | Applications to review at Test_{SCENARIO_ID} |
