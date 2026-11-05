@@ -1,9 +1,11 @@
 import {
   CjaSuggestionItem,
   CourtSuggestionItem,
-  CourtSuggestionSource,
 } from '@components/suggestions/suggestions.types';
-import { CriminalJusticeAreaGetDto } from '@openapi';
+import {
+  CourtLocationGetSummaryDto,
+  CriminalJusticeAreaGetDto,
+} from '@openapi';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 
 export type SuggestionsFacade = {
@@ -12,7 +14,7 @@ export type SuggestionsFacade = {
   setCourthouseSearch: (v: string) => void;
   filteredCourthouses: () => CourtSuggestionItem[];
   onCourthouseInputChange: () => void;
-  selectCourthouse: (item: CourtSuggestionSource | CourtSuggestionItem) => void;
+  selectCourthouse: (item: CourtLocationGetSummaryDto) => void;
 
   // CJA
   cjaSearch: () => string;
