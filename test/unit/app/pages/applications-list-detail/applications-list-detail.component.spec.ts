@@ -2714,6 +2714,108 @@ describe('ApplicationsListDetail', () => {
     ]);
   });
 
+  it.each([
+    BulkActionType.UPDATE_OFFICIALS,
+    BulkActionType.RESULT_SELECTED,
+    BulkActionType.UPDATE_FEE_DETAILS,
+    BulkActionType.MOVE_ENTRIES,
+    BulkActionType.PRINT_CONTINUOUS,
+    BulkActionType.PRINT_PAGE,
+  ])('uses the ALE-35 title for %s bulk preview errors', async (action) => {
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 403,
+            error: {
+              type: 'ALE-35',
+              title:
+                'One or more application list entries do not belong to the application list',
+              detail: 'invalid_entry_ids=[entry-1]',
+            },
+          }),
+      ),
+    );
+    patchDetailState({ selectedIds: new Set(['entry-1', 'entry-2']) });
+    component.id = 'list-123';
+
+    const preview = await (
+      component as unknown as BulkPreviewAccessor
+    ).getBulkPreview(action);
+
+    expect(preview).toBeNull();
+    expect(
+      entriesApiStub.applicationListEntryBulkActionPreview,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        applicationListEntryBulkActionPreviewRequestDto:
+          expect.objectContaining({
+            action,
+          }),
+      }),
+    );
+    expect(vm().errorSummary).toEqual([
+      {
+        text: 'One or more application list entries do not belong to the application list. Refresh the list and select the applications again.',
+      },
+    ]);
+  });
+
+  it('stops page printing when an ALE-35 preview error is returned', async () => {
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 403,
+            error: {
+              type: 'ALE-35',
+              title:
+                'One or more application list entries do not belong to the application list',
+              detail: 'invalid_entry_ids=[entry-1]',
+            },
+          }),
+      ),
+    );
+    patchDetailState({ selectedIds: new Set(['entry-1', 'entry-2']) });
+    component.id = 'list-123';
+
+    await component.onPrintPageClick();
+
+    expect(apiStub.printApplicationLists).not.toHaveBeenCalled();
+    expect(vm().pdfLoading).toBe(false);
+    expect(vm().errorSummary[0].text).toContain(
+      'Refresh the list and select the applications again.',
+    );
+  });
+
+  it('keeps detail-first text for other bulk preview errors', async () => {
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 403,
+            error: {
+              type: 'ALE-OTHER',
+              title: 'Other error title',
+              detail: 'Other error detail',
+            },
+          }),
+      ),
+    );
+    patchDetailState({ selectedIds: new Set(['entry-1']) });
+    component.id = 'list-123';
+
+    const preview = await (
+      component as unknown as BulkPreviewAccessor
+    ).getBulkPreview(BulkActionType.MOVE_ENTRIES);
+
+    expect(preview).toBeNull();
+    expect(vm().errorSummary).toEqual([{ text: 'Other error detail' }]);
+  });
+
   it('onSearchStarted clears selection', () => {
     patchDetailState({
       rows: [{ id: 'abc', title: 'Visible row' }],

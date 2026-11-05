@@ -1564,7 +1564,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         msg =
           'Affected rows exceeds 1050. Please reduce the number of rows selected';
       } else {
-        msg = getProblemText(err);
+        const isALE35 = this.isResponseErrorALE35(err);
+        msg = getProblemText(err, isALE35 ? 'title' : 'detail');
+        if (isALE35) {
+          msg += '. Refresh the list and select the applications again.';
+        }
       }
 
       if (showError) {
@@ -1685,5 +1689,19 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         : null,
     );
     this.form.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private isResponseErrorALE35(err: unknown): boolean {
+    if (!(err instanceof HttpErrorResponse) || !err) {
+      return false;
+    }
+
+    const body: unknown = err.error;
+    return (
+      typeof body === 'object' &&
+      body !== null &&
+      'type' in body &&
+      body.type === 'ALE-35'
+    );
   }
 }
