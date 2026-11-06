@@ -100,6 +100,8 @@ export class ResultWordingSectionComponent {
   appliedBannerDismissed = output<void>();
 
   private readonly pending = signal<PendingResultRow[]>([]);
+  readonly savedResultTitles = input<Record<number, string | undefined>>({});
+  readonly savedResultDetailsError = input('');
   private readonly pendingVersion = signal(0);
   private readonly appliedVersion = signal(0);
   private lastSubmittedPendingVersion = 0;
@@ -204,13 +206,17 @@ export class ResultWordingSectionComponent {
   }
 
   readonly tableRows = computed<ResultRow[]>(() => {
-    const map = this.wordingByCode();
+    const wordingByCode = this.wordingByCode();
 
     const withWording = (row: ResultRow): ResultRow => {
       const key = this.normCode(row.resultCode);
       return {
         ...row,
-        wording: map[key] ?? row.wording ?? '-',
+        // Current reference wording only applies to new selections, not saved results.
+        wording:
+          row.kind === 'existing'
+            ? row.wording
+            : (wordingByCode[key] ?? row.wording ?? '-'),
       };
     };
 
@@ -221,7 +227,7 @@ export class ResultWordingSectionComponent {
   });
 
   readonly existingRows = computed(() =>
-    toExistingRows(this.existingResults() ?? [], this.resultCodesList()),
+    toExistingRows(this.existingResults() ?? [], this.savedResultTitles()),
   );
 
   readonly existingResultSummaryLists = computed<SummaryListCardAction[]>(() =>
