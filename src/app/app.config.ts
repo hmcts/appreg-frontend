@@ -29,6 +29,7 @@ import { TelemetryErrorHandler } from './core/services/telemetry-error-handler.s
 import { TelemetryService } from './core/services/telemetry.service';
 import { installGlobalModuleLoadErrorListener } from './core/util/global-module-load-error-listener';
 
+import { concurrencyHeaderInterceptor } from '@interceptors/concurrency-header.interceptor';
 import { BASE_PATH, Configuration, provideApi } from '@openapi';
 
 export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
@@ -78,7 +79,11 @@ export const appConfig: ApplicationConfig = {
         cookieName: 'XSRF-TOKEN',
         headerName: 'X-XSRF-TOKEN',
       }),
-      withInterceptors([credentialsInterceptor, errorInterceptor]),
+      withInterceptors([
+        credentialsInterceptor,
+        concurrencyHeaderInterceptor,
+        errorInterceptor,
+      ]),
     ),
     // Override default en-US to en-GB
     { provide: LOCALE_ID, useValue: 'en-GB' },

@@ -502,7 +502,7 @@ Feature: Application List Row Actions
         When User Clicks On The "Actions" Button
         Then User Clicks On The Link "Delete list"
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
-        Then User See "Are you sure you want to delete this application list?" On The Page
+        Then User Sees Page Heading "Check the application list and entries before deleting"
         Then User Clicks On The Link "Cancel"
         Then User Verify The Page URL Contains "#list-details"
         Then User See "List details" On The Page
@@ -511,7 +511,7 @@ Feature: Application List Row Actions
         When User Clicks On The "Actions" Button
         Then User Clicks On The Link "Delete list"
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
-        Then User See "Are you sure you want to delete this application list?" On The Page
+        Then User Sees Page Heading "Check the application list and entries before deleting"
         When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Then User Should See The Link "Create new list"
@@ -596,10 +596,13 @@ Feature: Application List Row Actions
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
-        Then User See "Are you sure you want to delete this application list?" On The Page
-        Then User Should See Row In Table With Values:
-            | Date          | Time   | Location | Description   | Entries   | Status   |
-            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+        Then User Sees Page Heading "Check the application list and entries before deleting"
+        Then User Should See Summary List Row With Key "Date" And Value "<DisplayDate>"
+        Then User Should See Summary List Row With Key "Time" And Value "<Time>"
+        Then User Should See Summary List Row With Key "Location" And Value "<Court>"
+        Then User Should See Summary List Row With Key "Description" And Value "<Description>"
+        Then User Should See Summary List Row With Key "Status" And Value "<Status>"
+        Then User See "<Entries> application list" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Should See The Link "Create new list"
         Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
