@@ -16,11 +16,13 @@ describe('suggestions.types', () => {
   it('maps a court DTO to a typed suggestion item', () => {
     expect(
       toCourtSuggestionItem({
+        courtId: 1,
         locationCode: 'A1',
         name: 'Alpha Court',
       }),
     ).toEqual({
       kind: 'court',
+      courtId: 1,
       locationCode: 'A1',
       name: 'Alpha Court',
       label: 'A1 - Alpha Court',
@@ -31,11 +33,13 @@ describe('suggestions.types', () => {
   it('maps a court DTO with a blank name to a code-only label', () => {
     expect(
       toCourtSuggestionItem({
+        courtId: 1,
         name: '',
         locationCode: 'A1',
       }),
     ).toEqual({
       kind: 'court',
+      courtId: 1,
       locationCode: 'A1',
       name: '',
       label: 'A1',
@@ -97,6 +101,7 @@ describe('suggestions.types', () => {
 
   it('identifies a court suggestion item', () => {
     const item = toCourtSuggestionItem({
+      courtId: 1,
       locationCode: 'A1',
       name: 'Alpha Court',
     });

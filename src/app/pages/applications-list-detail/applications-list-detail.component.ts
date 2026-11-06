@@ -108,7 +108,6 @@ import {
 } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import {
-  CourtSuggestionSource,
   toCjaSuggestionItem,
   toCourtSuggestionItem,
 } from '@components/suggestions/suggestions.types';
@@ -131,6 +130,7 @@ import {
   BulkActionPreviewResponseDto,
   BulkActionSelectionType,
   BulkActionType,
+  CourtLocationGetSummaryDto,
   EntryPage,
   PrintApplicationListsRequestParams,
 } from '@openapi';
@@ -222,7 +222,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   // Only the court already persisted on this list may supplement current choices.
   private readonly retainedCourt$ =
-    new BehaviorSubject<CourtSuggestionSource | null>(null);
+    new BehaviorSubject<CourtLocationGetSummaryDto | null>(null);
+  private selectedCourt: CourtLocationGetSummaryDto | null = null;
+  originalCourtId: number | undefined;
+  readonly selectedCourtId = (): number | undefined =>
+    this.selectedCourt?.courtId;
 
   id!: string;
   listRow: ApplicationListRow | undefined = undefined;
@@ -288,6 +292,26 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   suggestionsFacade = buildSuggestionsFacade(this);
 
+  // set/reset local vars
+  override onCourthouseInputChange(): void {
+    this.selectedCourt = null;
+    super.onCourthouseInputChange();
+  }
+
+  override selectCourthouse(c: CourtLocationGetSummaryDto): void {
+    this.selectedCourt = c;
+    super.selectCourthouse(c);
+  }
+
+  protected override findCourtForDisplay(
+    items: CourtLocationGetSummaryDto[],
+    code: string,
+  ): CourtLocationGetSummaryDto | undefined {
+    return this.selectedCourt?.locationCode === code
+      ? this.selectedCourt
+      : super.findCourtForDisplay(items, code);
+  }
+
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
@@ -318,9 +342,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         this.retainedCourt$,
       ]).pipe(
         map(([courts, retained]) =>
-          retained &&
-          !courts.some((c) => c.locationCode === retained.locationCode)
-            ? [...courts, retained]
+          retained
+            ? [
+                retained,
+                ...courts.filter((court) => court.courtId !== retained.courtId),
+              ]
             : courts,
         ),
       ),
@@ -333,7 +359,14 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.setDeleteErrorFromNavigation();
 
     //Attach validators
-    addLocationValidatorsToForm(this.form, () => this.state());
+    addLocationValidatorsToForm(
+      this.form,
+      () => this.state(),
+      () =>
+        this.originalCourtId === undefined
+          ? this.originalListDetail?.court
+          : undefined,
+    );
     this.form.addValidators([closePermitted()]);
 
     this.setupEffects();
@@ -793,7 +826,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           if (newDetails) {
             this.prefillFromApi(newDetails);
           } else {
-            this.syncFormAndOriginalListDetail();
+            this.syncFormAndOriginalListDetail(
+              this.form.getRawValue(),
+              this.selectedCourt?.name,
+              this.selectedCourt?.courtId,
+            );
           }
         },
         onError: (err: unknown) => {
@@ -1611,6 +1648,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {
+    this.originalCourtId = dto.courtId;
     this.listStatus.set(dto.status);
     const duration =
       dto.durationHours !== null || dto.durationMinutes !== null
@@ -1638,13 +1676,17 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     this.syncFormAndOriginalListDetail(listDetails, dto.courtName, dto.courtId);
 
-    if (dto.courtCode) {
+    if (dto.courtCode && dto.courtId !== undefined) {
       this.selectCourthouse(
         toCourtSuggestionItem({
           locationCode: dto.courtCode,
-          name: dto.courtName ?? '',
+          name: dto.courtName || 'Court details unavailable',
           courtId: dto.courtId,
         }),
+      );
+    } else if (dto.courtCode) {
+      this.setCourthouseSearch(
+        `${dto.courtCode} - ${dto.courtName || 'Court details unavailable'}`,
       );
     } else if (dto.cjaCode) {
       const area =
@@ -1676,18 +1718,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.form.patchValue(listDetails);
     this.originalListDetail = this.form.getRawValue();
     const code = listDetails.court;
-    const existing = this.state().courtLocations.find(
-      (c) => c.locationCode === code,
-    );
     this.retainedCourt$.next(
-      code
+      code && courtId !== undefined
         ? {
             locationCode: code,
-            name: courtName ?? existing?.name ?? '',
-            courtId: courtId ?? existing?.courtId,
+            name: courtName || 'Court details unavailable',
+            courtId,
           }
         : null,
     );
+    this.originalCourtId = code ? courtId : undefined;
     this.form.updateValueAndValidity({ emitEvent: false });
   }
 
