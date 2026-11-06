@@ -621,6 +621,20 @@ sets `APPREG_API_BASE_URL`, because those Helm values are applied later and take
 
 Remove the `backend-pr:*` label and rebuild to return to staging. Label changes alone may not trigger a build.
 
+## PR preview sign-in callbacks
+
+A PR preview signs in through the AppReg app registration, which must list the preview's
+`/sso/login-callback` and `/sso/logout-callback` URLs. The `add-redirect-uris` job in `on-pr.yml` registers
+them and the `remove-redirect-uris` job in `close-pr.yml` removes them when the PR closes.
+`codex-preview-redirects.yml` does both for `codex/` branches.
+
+All three use `.github/scripts/sync-preview-redirect-uris.sh`. Microsoft Graph only accepts the whole list, so
+two PRs updating it at once can undo each other. To prevent that, every update also registers the callbacks of
+all the repository's open PRs and removes those of PRs closed in the last day. After an update the script keeps
+checking for about 90 seconds that its own PR's change has held, and applies it again if not. If
+`add-redirect-uris` still fails, the preview's Cypress tests time out at the Microsoft sign-in page: re-run the
+job, then the failed tests.
+
 ## Branch Retention (auto-cleanup)
 
 This repository includes an automated policy to keep old/inactive branches tidy. It runs in two stages:

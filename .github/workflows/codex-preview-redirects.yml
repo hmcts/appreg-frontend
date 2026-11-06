@@ -3,7 +3,8 @@ name: Codex preview redirect URIs
 # on-pr.yml and close-pr.yml skip codex/ branches: a pull request runs the
 # branch's own copy of those workflows, and they hold the app-registration
 # credentials. This workflow does their job for Codex PRs instead. It runs only
-# from master, on a schedule or by hand, and never checks out or runs PR code.
+# from master, on a schedule or by hand, checks out only master's
+# .github/scripts, and never checks out or runs PR code.
 
 on:
   schedule:
@@ -21,7 +22,7 @@ concurrency:
 jobs:
   reconcile:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: Find Codex PRs
@@ -55,6 +56,13 @@ jobs:
             echo "reconcile=true" >>"${GITHUB_OUTPUT}"
           fi
 
+      - name: Check out the redirect URI script
+        if: steps.prs.outputs.reconcile == 'true'
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
       - name: Azure Login
         if: steps.prs.outputs.reconcile == 'true'
         env:
@@ -79,40 +87,7 @@ jobs:
           OBJECT_ID: ${{ secrets.APPREG_OBJECT_ID }}
           OPEN_PRS: ${{ steps.prs.outputs.open }}
           CLOSED_PRS: ${{ steps.prs.outputs.closed }}
-        run: |
-          set -euo pipefail
-          test -n "${OBJECT_ID}" || { echo "Missing APPREG_OBJECT_ID"; exit 1; }
-
-          callbacks() {
-            jq -c '[.[] | "https://appreg-frontend-pr-\(.).dev.platform.hmcts.net/sso/login-callback",
-                          "https://appreg-frontend-pr-\(.).dev.platform.hmcts.net/sso/logout-callback"]' <<<"$1"
-          }
-          add="$(callbacks "${OPEN_PRS}")"
-          remove="$(callbacks "${CLOSED_PRS}")"
-
-          current="$(az rest \
-            --method GET \
-            --url "https://graph.microsoft.com/v1.0/applications/${OBJECT_ID}" \
-            --query "web.redirectUris" -o json --only-show-errors)"
-          if [ "${current}" = "null" ] || [ -z "${current}" ]; then
-            current="[]"
-          fi
-          current="$(jq -c . <<<"${current}")"
-
-          # Only ever remove the callbacks of closed Codex PRs.
-          updated="$(jq -c --argjson add "${add}" --argjson remove "${remove}" '(. - $remove) + ($add - .)' <<<"${current}")"
-
-          if [ "${updated}" = "${current}" ]; then
-            echo "Redirect URIs already match the open Codex PRs."
-            exit 0
-          fi
-
-          jq -r --argjson before "${current}" '"Adding: " + ((. - $before) | join(", ")), "Removing: " + (($before - .) | join(", "))' <<<"${updated}"
-
-          az rest \
-            --method PATCH \
-            --url "https://graph.microsoft.com/v1.0/applications/${OBJECT_ID}" \
-            --headers "Content-Type=application/json" \
-            --body "$(jq -cn --argjson uris "${updated}" '{web:{redirectUris:$uris}}')" \
-            --only-show-errors
-          echo "Redirect URIs updated."
+          # Every update also carries the other open PRs' callbacks.
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/sync-preview-redirect-uris.sh
