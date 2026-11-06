@@ -5,6 +5,7 @@
   "description": "Public applications list AM",
   "status": "OPEN",
   "courtCode": "MNC",
+  "courtId": 2,
   "courtName": "Manchester Magistrates’ Court",
   "cjaCode": "44",
   "otherLocationDescription": null,

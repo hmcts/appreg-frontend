@@ -84,7 +84,8 @@
               "rgbcolor",
               "html2canvas",
               "fflate",
-              "dompurify"
+              "dompurify",
+              "lodash"
             ]
           },
           "configurations": {

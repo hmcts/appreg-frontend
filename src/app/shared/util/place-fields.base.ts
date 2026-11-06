@@ -25,23 +25,25 @@ import { ErrorItem } from '@components/error-summary/error-summary.component';
 import {
   CjaSuggestionItem,
   CourtSuggestionItem,
-  CourtSuggestionSource,
   SuggestionsItem,
   isCjaSuggestionItem,
   isCourtSuggestionItem,
 } from '@components/suggestions/suggestions.types';
-import { CriminalJusticeAreaGetDto } from '@openapi';
+import {
+  CourtLocationGetSummaryDto,
+  CriminalJusticeAreaGetDto,
+} from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 interface PlaceRefFacade {
-  courtLocations$: Observable<CourtSuggestionSource[]>;
+  courtLocations$: Observable<CourtLocationGetSummaryDto[]>;
   cja$: Observable<CriminalJusticeAreaGetDto[]>;
 }
 
 export interface PlaceFieldsState {
   courthouseSearch: string;
   cjaSearch: string;
-  courtLocations: CourtSuggestionSource[];
+  courtLocations: CourtLocationGetSummaryDto[];
   cja: CriminalJusticeAreaGetDto[];
   filteredCourthouses: CourtSuggestionItem[];
   filteredCja: CjaSuggestionItem[];
@@ -115,9 +117,7 @@ export abstract class PlaceFieldsBase {
     bindings.add(
       ref.courtLocations$.subscribe((items) => {
         const code = String(form.controls['court'].value ?? '').trim();
-        const match = code
-          ? items.find((x) => x.locationCode === code)
-          : undefined;
+        const match = code ? this.findCourtForDisplay(items, code) : undefined;
 
         this.patch({
           courtLocations: items,
@@ -163,6 +163,13 @@ export abstract class PlaceFieldsBase {
     });
   }
 
+  protected findCourtForDisplay(
+    items: CourtLocationGetSummaryDto[],
+    code: string,
+  ): CourtLocationGetSummaryDto | undefined {
+    return items.find((court) => court.locationCode === code);
+  }
+
   onCjaInputChange(): void {
     const { cjaSearch, cja } = this.state();
     this.patch({ filteredCja: filterCja(this.placeForm, cjaSearch, cja) });
@@ -180,7 +187,7 @@ export abstract class PlaceFieldsBase {
     }
   }
 
-  selectCourthouse(c: CourtSuggestionSource | CourtSuggestionItem): void {
+  selectCourthouse(c: CourtLocationGetSummaryDto): void {
     const next = selectCourthouse(this.placeForm, c);
     this.patch({
       courthouseSearch: next.courthouseSearch,

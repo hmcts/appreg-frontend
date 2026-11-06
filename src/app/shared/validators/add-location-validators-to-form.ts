@@ -13,6 +13,7 @@ import { PlaceFieldsState } from '@util/place-fields.base';
 export function addLocationValidatorsToForm(
   form: FormGroup,
   getState: () => PlaceFieldsState,
+  getSavedCourtCode?: () => string | null | undefined,
 ): void {
   form.addValidators([
     courtLocCjaValidator({
@@ -25,7 +26,14 @@ export function addLocationValidatorsToForm(
     }),
     courtMustExistIfTypedValidator({
       getTyped: () => getState().courthouseSearch ?? '',
-      getValidCodes: () => getState().courtLocations.map((x) => x.locationCode),
+      getValidCodes: () => {
+        // Allow already saved courts
+        const savedCode = getSavedCourtCode?.();
+        return [
+          ...getState().courtLocations.map((x) => x.locationCode),
+          ...(savedCode ? [savedCode] : []),
+        ];
+      },
     }),
   ]);
 }

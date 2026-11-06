@@ -259,6 +259,8 @@ describe('ApplicationsListUpdateComponent', () => {
   });
 
   it('onCloseListClick uses saved list details, including duration, and sets the close payload status to CLOSED', () => {
+    fixture.componentRef.setInput('originalCourtId', 42);
+    fixture.componentRef.setInput('selectedCourtId', 43);
     fixture.componentRef.setInput('originalListDetails', {
       date: '2026-02-10',
       time: { hours: 10, minutes: 30 },
@@ -286,6 +288,7 @@ describe('ApplicationsListUpdateComponent', () => {
               status: ApplicationListStatus.CLOSED,
               durationHours: 1,
               durationMinutes: 0,
+              courtId: 42,
             }),
           }),
         }),
@@ -356,6 +359,50 @@ describe('ApplicationsListUpdateComponent', () => {
     expect(incrementSubmitAttempt).toHaveBeenCalledTimes(1);
     expect(setUpdateRequest).toHaveBeenCalledTimes(1);
     expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('preserves the saved court ID when other list fields change', () => {
+    setValidUpdateFormValues();
+    fixture.componentRef.setInput('selectedCourtId', 42);
+    component.onUpdate();
+
+    expect(setUpdateRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          courtLocationCode: 'ABC',
+          courtId: 42,
+        }),
+      }),
+    );
+  });
+
+  it('uses the selected replacement court ID even when the code is unchanged', () => {
+    setValidUpdateFormValues();
+    fixture.componentRef.setInput('selectedCourtId', 43);
+    component.onUpdate();
+
+    expect(setUpdateRequest.mock.calls[0][0].payload).toEqual(
+      expect.objectContaining({ courtLocationCode: 'ABC', courtId: 43 }),
+    );
+  });
+
+  it('omits court ID for an alternative location', () => {
+    setValidUpdateFormValues();
+    component
+      .form()
+      .patchValue({ court: '', location: 'Other place', cja: '01' });
+    fixture.componentRef.setInput('selectedCourtId', 42);
+    component.onUpdate();
+
+    expect(setUpdateRequest.mock.calls[0][0].payload).toEqual(
+      expect.objectContaining({
+        otherLocationDescription: 'Other place',
+        cjaCode: '01',
+      }),
+    );
+    expect(setUpdateRequest.mock.calls[0][0].payload).not.toHaveProperty(
+      'courtId',
+    );
   });
 
   it('onUpdate: patches invalid state and error summary when validation errors exist', () => {

@@ -40,8 +40,8 @@ const refFacadeStub: Pick<
   'courtLocations$' | 'cja$' | 'hasPlaceLoadError' | 'refresh'
 > = {
   courtLocations$: of<CourtLocationGetSummaryDto[]>([
-    { name: 'Alpha Court', locationCode: 'A1' },
-    { name: 'Beta Court', locationCode: 'B2' },
+    { courtId: 1, name: 'Alpha Court', locationCode: 'A1' },
+    { courtId: 2, name: 'Beta Court', locationCode: 'B2' },
   ]),
   cja$: of<CriminalJusticeAreaGetDto[]>([
     { code: 'C1', description: 'Area One' },
