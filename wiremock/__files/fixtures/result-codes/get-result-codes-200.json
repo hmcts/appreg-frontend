@@ -1,9 +1,12 @@
 {
   "pageNumber": 0,
-  "pageSize": 10,
-  "totalElements": 43,
-  "totalPages": 5,
+  "pageSize": 100,
+  "totalElements": 10,
+  "totalPages": 1,
   "sort": ["title,asc"],
+  "first": true,
+  "last": true,
+  "elementsOnPage": 10,
   "content": [
     { "resultCode": "ADJ", "title": "Adjourned" },
     { "resultCode": "HRD", "title": "Heard" },
