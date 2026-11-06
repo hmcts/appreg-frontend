@@ -181,6 +181,11 @@ describe('ApplicationsListDeleteComponent', () => {
     ).toBe('2 application list entries will be deleted.');
     const cards = root.querySelectorAll('.govuk-summary-card');
     expect(cards).toHaveLength(2);
+    expect(
+      Array.from(root.querySelectorAll('.govuk-summary-card__title'), (title) =>
+        title.textContent?.trim(),
+      ),
+    ).toEqual(['Application list entry 1', 'Application list entry 2']);
     expect(values(cards[0])).toEqual([
       '7',
       'SYNTHETIC-ACCOUNT',

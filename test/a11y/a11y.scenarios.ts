@@ -126,6 +126,61 @@ export const scenarios: Scenario[] = [
     ready: '#report-duration',
   },
 ];
+const deleteListScenario = scenarios.find(
+  (item) => item.name === 'Delete list',
+)!;
+const entriesPath = `/application-lists/${listId}/entries`;
+scenarios.push(
+  {
+    ...deleteListScenario,
+    name: 'Delete list: empty list',
+    ready: 'app-applications-list-delete .govuk-button--warning:not(:disabled)',
+    responses: {
+      [entriesPath]: {
+        status: 200,
+        body: {
+          content: [],
+          pageNumber: 0,
+          pageSize: 100,
+          totalElements: 0,
+          elementsOnPage: 0,
+        },
+      },
+    },
+    exercise: async (page) => {
+      expect(await page.$('.govuk-summary-card')).toBeNull();
+      expect(
+        await page.$eval('[role="status"]', (element) => element.textContent),
+      ).toContain('This application list has no entries.');
+    },
+  },
+  {
+    ...deleteListScenario,
+    name: 'Delete list: entries load failure',
+    ready: '#retry-entries',
+    responses: {
+      [entriesPath]: {
+        status: 500,
+        body: { detail: 'Synthetic entries load failure' },
+      },
+    },
+    error: '.govuk-error-summary',
+    exercise: async (page) => {
+      expect(await page.$('.govuk-summary-card')).toBeNull();
+      expect(
+        await page.$eval(
+          '.govuk-button--warning',
+          (element) => (element as HTMLButtonElement).disabled,
+        ),
+      ).toBe(true);
+      await page.focus('.govuk-error-summary a');
+      await page.keyboard.press('Enter');
+      expect(await page.evaluate(() => document.activeElement?.id)).toBe(
+        'retry-entries',
+      );
+    },
+  },
+);
 for (const [name, button] of [
   ['Create list', 'app-applications-list #create'],
   [
