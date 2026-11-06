@@ -129,6 +129,93 @@ describe('ApplicationsListDeleteComponent', () => {
     })),
   });
 
+  it('renders parent details and every child across pages with missing-value fallbacks', async () => {
+    await setup({
+      navStateRow: makeRow({ entries: 99 }),
+      realTemplate: true,
+      entriesResponse: (page) => {
+        const response = makePage([`entry-${page}`], page, 2);
+        if (page === 0) {
+          response.content[0] = {
+            ...response.content[0],
+            sequenceNumber: 7,
+            accountNumber: 'SYNTHETIC-ACCOUNT',
+            applicationTitle: 'Synthetic title',
+            applicant: {
+              organisation: {
+                name: 'Synthetic organisation',
+                contactDetails: { addressLine1: 'Synthetic test address' },
+              },
+            },
+            respondent: {
+              person: {
+                name: { firstName: 'Synthetic', lastName: 'Respondent' },
+                contactDetails: { addressLine1: 'Synthetic test address' },
+              },
+            },
+          };
+        }
+        return of(response);
+      },
+    });
+    const root = fixture.nativeElement as HTMLElement;
+    const values = (element: Element) =>
+      Array.from(element.querySelectorAll('dd'), (cell) =>
+        cell.textContent?.trim(),
+      );
+    expect(root.querySelector('h1')?.textContent).toContain(
+      'Check the application list and entries before deleting',
+    );
+    expect(values(root.querySelector('dl')!)).toEqual([
+      expect.any(String),
+      '09:30',
+      'X',
+      'Y',
+      'OPEN',
+    ]);
+    expect(
+      root
+        .querySelector('[role="status"]')
+        ?.textContent?.replace(/\s+/g, ' ')
+        .trim(),
+    ).toBe('2 application list entries will be deleted.');
+    const cards = root.querySelectorAll('.govuk-summary-card');
+    expect(cards).toHaveLength(2);
+    expect(values(cards[0])).toEqual([
+      '7',
+      'SYNTHETIC-ACCOUNT',
+      'Synthetic organisation',
+      'Synthetic Respondent',
+      'Synthetic title',
+    ]);
+    expect(values(cards[1])).toEqual([
+      'Not provided',
+      'Not provided',
+      'Not provided',
+      'Not provided',
+      'Synthetic application',
+    ]);
+    expect(root.querySelector('.govuk-summary-list__actions')).toBeNull();
+    expect(api.deleteApplicationList).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])(
+    'cancels the rendered review with fromListDetails=%s without deleting',
+    async (fromListDetails) => {
+      await setup({ navStateRow: makeRow(), realTemplate: true });
+      component.isFromListDetails = fromListDetails;
+      fixture.nativeElement
+        .querySelector('app-review-confirm .govuk-button-group a')
+        .click();
+      expect(router.navigate).toHaveBeenCalledWith(
+        ...(fromListDetails
+          ? [['/applications-list', 'abc-123'], { fragment: 'list-details' }]
+          : [['/applications-list']]),
+      );
+      expect(api.deleteApplicationList).not.toHaveBeenCalled();
+    },
+  );
+
   it('loads every unfiltered page in sequence order, independent of the parent entry count', async () => {
     await setup({
       navStateRow: makeRow(),
@@ -182,6 +269,9 @@ describe('ApplicationsListDeleteComponent', () => {
       fixture.detectChanges();
       expect(component.childEntries()).toEqual([]);
       expect(component.entriesLoaded()).toBe(false);
+      expect(
+        fixture.nativeElement.querySelector('.govuk-summary-card'),
+      ).toBeNull();
       expect(confirm().disabled).toBe(true);
       expect(
         fixture.nativeElement.querySelector('.govuk-error-summary').textContent,
@@ -249,9 +339,25 @@ describe('ApplicationsListDeleteComponent', () => {
   });
 
   it('prevents repeated deletion and reload while deleting', async () => {
-    await setup({ navStateRow: makeRow() });
+    await setup({
+      navStateRow: makeRow(),
+      realTemplate: true,
+      entriesResponse: () => of(makePage(['entry-0'])),
+    });
     (api.deleteApplicationList as jest.Mock).mockReturnValue(new Subject());
-    component.onDelete();
+    expect(
+      fixture.nativeElement
+        .querySelector('[role="status"]')
+        .textContent.replace(/\s+/g, ' ')
+        .trim(),
+    ).toBe('1 application list entry will be deleted.');
+    const confirm = fixture.nativeElement.querySelector(
+      '.govuk-button--warning',
+    ) as HTMLButtonElement;
+    confirm.click();
+    fixture.detectChanges();
+    expect(confirm.disabled).toBe(true);
+    confirm.click();
     component.onDelete();
     component.loadChildEntries();
     expect(api.deleteApplicationList).toHaveBeenCalledTimes(1);

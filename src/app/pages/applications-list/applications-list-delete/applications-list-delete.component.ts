@@ -20,6 +20,7 @@ import {
   DestroyRef,
   OnInit,
   PLATFORM_ID,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -27,12 +28,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EMPTY, expand, map, reduce } from 'rxjs';
 
-import { APPLICATIONS_LIST_COLUMNS } from '../../../shared/constants/applications-list/applications-list.constants';
-
 import { AlertComponent } from '@components/alert/alert.component';
 import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
-import { TableComponent } from '@components/table/table.component';
 import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
@@ -41,17 +39,12 @@ import {
   EntryGetSummaryDto,
 } from '@openapi';
 import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
+import { formatPartyName } from '@util/string-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
 @Component({
   selector: 'app-applications-list-delete',
-  imports: [
-    ReviewConfirmComponent,
-    TableComponent,
-    DateTimePipe,
-    AlertComponent,
-    ErrorSummaryComponent,
-  ],
+  imports: [ReviewConfirmComponent, AlertComponent, ErrorSummaryComponent],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-delete.component.html',
 })
@@ -63,6 +56,7 @@ export class ApplicationsListDeleteComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly dateTime = inject(DateTimePipe);
 
   listToDelete: ApplicationListRow | undefined = isPlatformBrowser(
     this.platformId,
@@ -76,13 +70,53 @@ export class ApplicationsListDeleteComponent implements OnInit {
 
   idFromUrl = this.route.snapshot.paramMap.get('id');
 
-  columns = APPLICATIONS_LIST_COLUMNS;
-
   readonly childEntries = signal<EntryGetSummaryDto[]>([]);
   readonly entriesLoading = signal(false);
   readonly entriesLoaded = signal(false);
   readonly entriesLoadError = signal(false);
   readonly deleting = signal(false);
+
+  readonly listSummary = computed(() => {
+    const row = this.listToDelete;
+    return [
+      {
+        key: 'Date',
+        value: this.dateTime.transform(row?.date) ?? 'Not provided',
+      },
+      { key: 'Time', value: row?.time || 'Not provided' },
+      { key: 'Location', value: row?.location || 'Not provided' },
+      { key: 'Description', value: row?.description || 'Not provided' },
+      { key: 'Status', value: row?.status || 'Not provided' },
+    ];
+  });
+
+  readonly childSummaries = computed(() =>
+    this.childEntries().map((entry) => ({
+      id: entry.id,
+      details: [
+        {
+          key: 'Sequence number',
+          value: entry.sequenceNumber ?? 'Not provided',
+        },
+        {
+          key: 'Account number',
+          value: entry.accountNumber?.trim() || 'Not provided',
+        },
+        {
+          key: 'Applicant',
+          value: formatPartyName(entry.applicant) || 'Not provided',
+        },
+        {
+          key: 'Respondent',
+          value: formatPartyName(entry.respondent) || 'Not provided',
+        },
+        {
+          key: 'Title',
+          value: entry.applicationTitle?.trim() || 'Not provided',
+        },
+      ],
+    })),
+  );
 
   ngOnInit(): void {
     if (

@@ -79,9 +79,15 @@ export const scenarios: Scenario[] = [
   {
     name: 'Delete list',
     path: `${root}/delete`,
-    heading: 'Are you sure you want to delete this application list?',
-    ready: 'app-review-confirm button',
-    state: { listRow: list },
+    heading: 'Check the application list and entries before deleting',
+    ready: 'app-applications-list-delete .govuk-summary-card',
+    state: {
+      listRow: {
+        ...list,
+        location: list.courtName,
+        entries: list.entriesCount,
+      },
+    },
   },
   ...['create-entry', `update-entry/${entryId}`].map((segment) => ({
     name: `Payment reference (${segment})`,
