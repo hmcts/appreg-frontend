@@ -27,8 +27,8 @@
     "dev:stg": "APPREG_API_BASE_URL=https://appreg-api.staging.platform.hmcts.net concurrently --names \"VERIFY-STG-ACCESS,NODE,ANGULAR\" -c \"bgRed.bold,bgBlue.bold,bgGreen.bold\" \"yarn verify-stg-access\" \"yarn start:dev\" \"yarn watch\"",
     "dev:demo": "APPREG_API_BASE_URL=https://appreg-api.demo.platform.hmcts.net concurrently --names \"VERIFY-STG-ACCESS,NODE,ANGULAR\" -c \"bgRed.bold,bgBlue.bold,bgGreen.bold\" \"yarn verify-stg-access\" \"yarn start:dev\" \"yarn watch\"",
     "dev:stg:ssr": "APPREG_API_BASE_URL=https://appreg-api.staging.platform.hmcts.net yarn build:ssr && NODE_ENV=development ALLOW_CONFIG_MUTATIONS=true APPREG_API_BASE_URL=https://appreg-api.staging.platform.hmcts.net yarn start",
-    "lint": "yarn api:all && stylelint **/*.scss -v -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .",
-    "lint:fix": "prettier --write . && eslint --fix . && stylelint **/*.scss -v -q --fix ",
+    "lint": "yarn api:all && stylelint \"**/*.scss\" -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .",
+    "lint:fix": "prettier --write . && eslint --fix . && stylelint \"**/*.scss\" -q --fix",
     "build": "ng build",
     "build:ssr": "ng build --configuration production",
     "verify-stg-access": "ts-node -P ./tsconfig.json scripts/verify-stg-access.ts",
@@ -76,7 +76,7 @@
   },
   "lint-staged": {
     "*.{ts,js}": "eslint --fix",
-    "*.scss": "stylelint -v -q --fix",
+    "*.scss": "stylelint -q --fix",
     "*": "prettier --write --ignore-unknown"
   },
   "private": true,

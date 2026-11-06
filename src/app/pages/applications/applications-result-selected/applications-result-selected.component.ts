@@ -69,7 +69,6 @@ type ApplicationsResultContext = Pick<
   ],
   templateUrl: './applications-result-selected.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: './applications-result-selected.component.scss',
 })
 export class ApplicationsResultSelectedComponent
   extends ResultSelectedTableBase<ApplicationsResultContext>
