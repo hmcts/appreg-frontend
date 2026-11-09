@@ -54,6 +54,7 @@ export function wordingFromDetail(d: ApplicationCodeGetDetailDto): string {
 }
 
 export type CodeRow = {
+  applicationCodeId?: number;
   code: string;
   title: string;
   bulk: string;
@@ -69,6 +70,7 @@ export type CodeRowsResult = {
 export function mapCodeRows(page: ApplicationCodePage): CodeRow[] {
   const items = page?.content ?? [];
   return items.map((i) => ({
+    applicationCodeId: i.applicationCodeId,
     code: i.applicationCode ?? '',
     title: i.title ?? '',
     bulk: i.bulkRespondentAllowed ? 'Yes' : 'No',

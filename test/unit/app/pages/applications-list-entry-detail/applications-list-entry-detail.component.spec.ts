@@ -127,6 +127,27 @@ const makeResultPayload = (
 });
 
 describe('ApplicationsListEntryDetail', () => {
+  it('restores a staged same-code record and summary after payment navigation', () => {
+    component.form.patchValue({
+      applicantType: 'standard',
+      standardApplicantCode: 'SA1',
+    });
+    component.onSelectedStandardApplicantSummaryChanged({
+      code: 'SA1',
+      name: 'Replacement',
+      standardApplicantId: 20,
+    });
+    const snapshot = component['buildEntryDetailSnapshot']();
+    component.form.controls.standardApplicantId?.setValue(10);
+    component.onSelectedStandardApplicantSummaryChanged(null);
+    component['applyEntryDetailSnapshot'](snapshot);
+    expect(component.form.controls.standardApplicantId?.value).toBe(20);
+    expect(component['pendingStandardApplicantSummary']).toEqual({
+      code: 'SA1',
+      name: 'Replacement',
+      standardApplicantId: 20,
+    });
+  });
   let fixture: ComponentFixture<ApplicationsListEntryDetail>;
   let component: ApplicationsListEntryDetail;
   const locationStub = {
@@ -2434,6 +2455,50 @@ describe('ApplicationsListEntryDetail', () => {
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
   });
 
+  it.each([100, 101])(
+    'selects exact version %s for the same code and only resets wording for a different ID',
+    (selectedId) => {
+      const wordingFields = [{ key: 'field', value: 'saved value' }];
+      component.form.patchValue({
+        applicationCode: 'APP-100',
+        applicationCodeId: 100,
+        lodgementDate: '2026-03-26',
+        wordingFields,
+      });
+      mockGetApplicationCodeById.mockReturnValue(
+        of({
+          applicationCode: 'APP-100',
+          applicationCodeId: selectedId,
+          title: 'Selected version',
+          wording: {
+            template: 'New template',
+            'substitution-key-constraints': [],
+          },
+          isFeeDue: false,
+          requiresRespondent: false,
+        }),
+      );
+      mockGetApplicationCodeById.mockClear();
+
+      component.onCodeSelected({
+        code: 'APP-100',
+        date: '2026-03-26',
+        applicationCodeId: selectedId,
+      });
+
+      expect(mockGetApplicationCodeById).toHaveBeenCalledWith(
+        { id: selectedId, date: '2026-03-26' },
+        'body',
+        false,
+        { transferCache: true },
+      );
+      expect(component.form.getRawValue().applicationCodeId).toBe(selectedId);
+      expect(component.form.controls.wordingFields.value).toEqual(
+        selectedId === 100 ? wordingFields : null,
+      );
+    },
+  );
+
   it('onCodeSelected calls codes API and patches form when date is provided', () => {
     component['form'].patchValue({ lodgementDate: '' });
 
@@ -2469,6 +2534,49 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['form'].controls.lodgementDate.value).toBe('2025-11-01');
 
     expect(component['appListEntryDetailState']().errorFound).toBe(false);
+  });
+
+  it('restores a same-code version selection after payment-reference navigation', () => {
+    const entry = { ...component.entryDetail!, applicationCodeId: 100 };
+    mockGetApplicationListEntry.mockReturnValue(of(entry));
+    const savedCodeDetail = component.vm().appCodeDetail!;
+    mockGetApplicationCodeById.mockReturnValueOnce(
+      of({
+        ...savedCodeDetail,
+        applicationCodeId: 101,
+        title: 'Selected newer version',
+      }),
+    );
+    component.onCodeSelected({
+      code: entry.applicationCode,
+      date: entry.lodgementDate,
+      applicationCodeId: 101,
+    });
+    mockGetApplicationCodeById.mockReturnValue(
+      of({
+        ...savedCodeDetail,
+        applicationCodeId: 100,
+      }),
+    );
+    const state = component.buildChangePaymentReferenceState(0);
+    const readNavStateSpy = jest
+      .spyOn(routingStateUtil, 'readNavState')
+      .mockReturnValue({
+        ...state,
+        entryDetailRowState: undefined,
+      });
+
+    const snapshotFixture = TestBed.createComponent(
+      ApplicationsListEntryDetail,
+    );
+    snapshotFixture.detectChanges();
+    const restored = snapshotFixture.componentInstance;
+
+    expect(restored.form.getRawValue().applicationCodeId).toBe(101);
+    expect(restored.vm().appCodeDetail?.applicationCodeId).toBe(101);
+    expect(restored.vm().appCodeDetail?.title).toBe('Selected newer version');
+    snapshotFixture.destroy();
+    readNavStateSpy.mockRestore();
   });
 
   it('onCodeSelected fetches code detail, sets appCodeDetail and resets sections when code changed', () => {

@@ -20,7 +20,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v5
         with:
-          node-version: 24.15.0
+          node-version: 24.22.1
       - run: corepack enable && yarn --version
       - name: Validate Codex workflow scripts
         run: ./bin/codex-local-pipeline.sh checks-only --no-fetch

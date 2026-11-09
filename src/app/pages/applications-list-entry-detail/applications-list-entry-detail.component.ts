@@ -579,13 +579,18 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   // ── UI handlers ─────────────────────────────────────────────────────────────
-  onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
+  onCodeSelected(codeAndLodgementDate: {
+    code: string;
+    date: string;
+    applicationCodeId?: number;
+  }): void {
     this.resetSuccessBanner();
     this.resetErrors();
 
     const prevSelection = {
       code: this.form.controls.applicationCode.value,
       date: this.form.controls.lodgementDate.value,
+      applicationCodeId: this.form.controls.applicationCodeId?.value,
     };
 
     const lodgementDate =
@@ -593,76 +598,87 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.form.patchValue({
       applicationCode: codeAndLodgementDate.code,
+      applicationCodeId: null,
       lodgementDate,
     });
     this.appListEntryDetailPatch({ appCodeDetail: null });
     this.feeMeta = null;
     // Call API to retrieve data associated with the App code
     if (this.form.value.applicationCode && this.form.value.lodgementDate) {
-      this.applicationCodesApi
-        .getApplicationCodeByCodeAndDate(
-          {
-            code: codeAndLodgementDate.code,
-            date: codeAndLodgementDate.date,
-          },
-          'body',
-          false,
-          { transferCache: true },
-        )
-        .subscribe({
-          next: (appCodeDetail) => {
-            const hasSelectionChanged =
-              prevSelection.code !== codeAndLodgementDate.code;
+      const detail$ =
+        typeof codeAndLodgementDate.applicationCodeId === 'number'
+          ? this.applicationCodesApi.getApplicationCodeById(
+              {
+                id: codeAndLodgementDate.applicationCodeId,
+                date: lodgementDate,
+              },
+              'body',
+              false,
+              { transferCache: true },
+            )
+          : this.applicationCodesApi.getApplicationCodeByCodeAndDate(
+              { code: codeAndLodgementDate.code, date: lodgementDate },
+              'body',
+              false,
+              { transferCache: true },
+            );
+      detail$.subscribe({
+        next: (appCodeDetail) => {
+          const hasSelectionChanged =
+            prevSelection.code !== codeAndLodgementDate.code ||
+            (typeof appCodeDetail.applicationCodeId === 'number' &&
+              typeof prevSelection.applicationCodeId === 'number' &&
+              prevSelection.applicationCodeId !==
+                appCodeDetail.applicationCodeId);
 
-            this.form.patchValue({ applicationTitle: appCodeDetail.title });
-            this.feeMeta = {
-              feeReference: appCodeDetail.feeReference ?? null,
-              feeDescription: appCodeDetail.feeDescription ?? null,
-              feeAmount: appCodeDetail.feeAmount ?? null,
-              offsiteFeeReference: appCodeDetail.offsiteFeeReference ?? null,
-              offsiteFeeDescription:
-                appCodeDetail.offsiteFeeDescription ?? null,
-              offsiteFeeAmount: appCodeDetail.offsiteFeeAmount ?? null,
-            };
+          this.form.patchValue({
+            applicationTitle: appCodeDetail.title,
+            applicationCodeId: appCodeDetail.applicationCodeId ?? null,
+          });
+          this.feeMeta = {
+            feeReference: appCodeDetail.feeReference ?? null,
+            feeDescription: appCodeDetail.feeDescription ?? null,
+            feeAmount: appCodeDetail.feeAmount ?? null,
+            offsiteFeeReference: appCodeDetail.offsiteFeeReference ?? null,
+            offsiteFeeDescription: appCodeDetail.offsiteFeeDescription ?? null,
+            offsiteFeeAmount: appCodeDetail.offsiteFeeAmount ?? null,
+          };
 
-            if (hasSelectionChanged) {
-              this.wordingSubmitAttempt.set(0);
-              this.formSvc.resetSectionsOnApplicationCodeChange(
-                this.forms,
-                true,
-              );
-              this.wordingAppliedBannerVisible.set(false);
-              this.entryDetail!.wording = undefined;
-            }
+          if (hasSelectionChanged) {
+            this.wordingSubmitAttempt.set(0);
+            this.formSvc.resetSectionsOnApplicationCodeChange(this.forms, true);
+            this.wordingAppliedBannerVisible.set(false);
+            this.entryDetail!.wording = undefined;
+          }
 
-            const wordingSubstituteExists = appCodeDetail.wording[
-              'substitution-key-constraints'
-            ]?.length
-              ? true
-              : undefined;
-            const isFeeRequired = appCodeDetail.isFeeDue;
-            const isRespondentRequired = appCodeDetail.requiresRespondent;
+          const wordingSubstituteExists = appCodeDetail.wording[
+            'substitution-key-constraints'
+          ]?.length
+            ? true
+            : undefined;
+          const isFeeRequired = appCodeDetail.isFeeDue;
+          const isRespondentRequired = appCodeDetail.requiresRespondent;
 
-            this.handleResultWordingContext(this.navState);
+          this.handleResultWordingContext(this.navState);
 
-            this.appListEntryDetailPatch({
-              isFeeRequired,
-              bulkApplicationsAllowed: appCodeDetail.bulkRespondentAllowed,
-              appCodeDetail,
-            });
+          this.appListEntryDetailPatch({
+            isFeeRequired,
+            bulkApplicationsAllowed: appCodeDetail.bulkRespondentAllowed,
+            appCodeDetail,
+          });
 
-            this.openWordingSection.set(wordingSubstituteExists ?? false);
-            this.openCivilFeeSection.set(isFeeRequired);
-            this.openRespondentSection.set(isRespondentRequired);
-            this.entryAccordion?.scrollToFirstExpandedSection([2, 3, 4]);
-          },
-          error: (err) => {
-            this.form.patchValue({ applicationTitle: '' });
-            this.feeMeta = null;
-            this.handleResultWordingContext(this.navState);
-            this.applyMappedError(err);
-          },
-        });
+          this.openWordingSection.set(wordingSubstituteExists ?? false);
+          this.openCivilFeeSection.set(isFeeRequired);
+          this.openRespondentSection.set(isRespondentRequired);
+          this.entryAccordion?.scrollToFirstExpandedSection([2, 3, 4]);
+        },
+        error: (err) => {
+          this.form.patchValue({ applicationTitle: '' });
+          this.feeMeta = null;
+          this.handleResultWordingContext(this.navState);
+          this.applyMappedError(err);
+        },
+      });
     } else {
       this.form.patchValue({ applicationTitle: '' });
       this.feeMeta = null;
@@ -1120,12 +1136,28 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.formSvc.setStandardApplicantCode(this.forms, effectiveCode, {
       emitEvent: false,
     });
+    if (
+      effectiveCode === this.entryDetail?.standardApplicantCode &&
+      !this.form.controls.standardApplicantId?.value
+    ) {
+      this.form.controls.standardApplicantId?.setValue(
+        this.entryDetail?.standardApplicantId ?? null,
+        { emitEvent: false },
+      );
+    }
   }
 
   onSelectedStandardApplicantSummaryChanged(
     summary: SelectedStandardApplicantSummary | null,
   ): void {
     this.pendingStandardApplicantSummary = summary;
+    this.form.controls.standardApplicantId?.setValue(
+      summary?.standardApplicantId ??
+        (this.form.controls.standardApplicantCode.value ===
+        this.entryDetail?.standardApplicantCode
+          ? (this.entryDetail?.standardApplicantId ?? null)
+          : null),
+    );
   }
 
   onOffsiteFeeChanged(nextValue: boolean): void {
@@ -1525,7 +1557,11 @@ export class ApplicationsListEntryDetail implements OnInit {
               isRecord(snapshot?.form) &&
               hasStringProp(snapshot.form, 'applicationCode') &&
               snapshot.form.applicationCode &&
-              snapshot.form.applicationCode !== entry.applicationCode
+              (snapshot.form.applicationCode !== entry.applicationCode ||
+                (typeof snapshot.appCodeDetail?.applicationCodeId ===
+                  'number' &&
+                  snapshot.appCodeDetail.applicationCodeId !==
+                    entry.applicationCodeId))
             ) {
               this.applyEntryDetailSnapshot(snapshot);
             }
@@ -1562,6 +1598,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         official: this.openOfficialSection(),
       },
       form: this.form.getRawValue(),
+      standardApplicantSummary: this.pendingStandardApplicantSummary,
       personForm: this.personForm.getRawValue(),
       organisationForm: this.organisationForm.getRawValue(),
       respondentPersonForm: this.forms.respondentPersonForm.getRawValue(),
@@ -1582,6 +1619,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (!state) {
       return;
     }
+    this.pendingStandardApplicantSummary =
+      state.standardApplicantSummary ?? null;
 
     this.openApplicantSection.set(
       state.expandedSections?.applicant ?? this.openApplicantSection(),
@@ -1706,15 +1745,18 @@ export class ApplicationsListEntryDetail implements OnInit {
       null;
     this.savedStandardApplicantDetailsUnavailable =
       this.savedStandardApplicantName === null;
-    this.pendingStandardApplicantSummary = this.savedStandardApplicantName
+    this.pendingStandardApplicantSummary ??= this.savedStandardApplicantName
       ? {
           code: applicant.code.trim(),
+          standardApplicantId: this.savedStandardApplicantId ?? undefined,
           name: this.savedStandardApplicantName,
         }
       : null;
   }
 
   private applySavedStandardApplicantSummary(): void {
+    this.savedStandardApplicantId =
+      this.entryDetail?.standardApplicantId ?? null;
     if (this.applicantType !== 'standard') {
       this.savedStandardApplicantCode = null;
       this.savedStandardApplicantName = null;

@@ -22,6 +22,9 @@ export function mapSaToRow(
   const name = sa.name ?? sa.applicant?.organisation?.name ?? '';
 
   return {
+    ...(typeof sa.standardApplicantId === 'number'
+      ? { standardApplicantId: sa.standardApplicantId }
+      : {}),
     code,
     name,
     useFrom: formatDate(sa.startDate),

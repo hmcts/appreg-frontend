@@ -10,6 +10,30 @@ import {
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 
 describe('ApplicationListEntryFormService', () => {
+  it('carries a same-code replacement ID and clears stale IDs on code/type changes', () => {
+    const forms = service.createForms();
+    const detail = {
+      standardApplicantCode: 'SA1',
+      standardApplicantId: 10,
+      applicationCode: 'AC1',
+    } as EntryGetDetailDto;
+    service.hydrateFromDto(detail, forms);
+    expect(forms.form.controls.standardApplicantId?.value).toBe(10);
+    forms.form.controls.standardApplicantId?.setValue(20);
+    expect(service.buildUpdateDto(detail, forms)).toMatchObject({
+      standardApplicantCode: 'SA1',
+      standardApplicantId: 20,
+    });
+    service.setStandardApplicantCode(forms, 'SA2');
+    expect(forms.form.controls.standardApplicantId?.value).toBeNull();
+    forms.form.controls.standardApplicantId?.setValue(30);
+    service.setApplicantType(forms, 'person');
+    service.onApplicantTypeChanged(forms, 'person');
+    expect(forms.form.controls.standardApplicantId?.value).toBeNull();
+    expect(service.buildUpdateDto(detail, forms)).not.toHaveProperty(
+      'standardApplicantId',
+    );
+  });
   let service: ApplicationListEntryFormService;
 
   const makeDetail = (
@@ -149,6 +173,20 @@ describe('ApplicationListEntryFormService', () => {
       expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
     },
   );
+
+  it('hydrates the stored version and treats only a different ID as a code change', () => {
+    const forms = service.createForms();
+    service.hydrateFromDto(makeDetail({ applicationCodeId: 100 }), forms);
+    expect(forms.form.getRawValue().applicationCodeId).toBe(100);
+    const baseline = service.editableContent(forms);
+
+    forms.form.patchValue({ applicationCodeId: 100 });
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+    forms.form.patchValue({ applicationCodeId: 101 });
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+    forms.form.patchValue({ applicationCodeId: 100 });
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+  });
 
   it('ignores cached respondent resets and equivalent empty wording after reverting a code', () => {
     const forms = service.createForms();

@@ -47,10 +47,12 @@ export class ApplicantSectionComponent {
   readonly submitted = input(false);
   readonly errorItems = input<ErrorItem[]>([]);
   readonly selectedStandardApplicantCode = input<string | null>(null);
+  readonly selectedStandardApplicantId = input<number | null>(null);
   readonly initialStandardApplicantCodeFilter = input<string | null>(null);
   readonly currentStandardApplicantSummary =
     input<SelectedStandardApplicantSummary | null>(null);
   readonly savedStandardApplicantCode = input<string | null>(null);
+  readonly savedStandardApplicantId = input<number | null>(null);
   readonly savedStandardApplicantName = input<string | null>(null);
   readonly savedStandardApplicantDetailsUnavailable = input(false);
   readonly isUpdateDisabled = input(false);
@@ -101,7 +103,12 @@ export class ApplicantSectionComponent {
     }
 
     const saved = this.standardApplicantSummary();
-    if (saved?.code === code && saved.name === name) {
+    if (
+      saved?.code === code &&
+      saved.name === name &&
+      (current?.standardApplicantId === undefined ||
+        current.standardApplicantId === this.savedStandardApplicantId())
+    ) {
       return null;
     }
 

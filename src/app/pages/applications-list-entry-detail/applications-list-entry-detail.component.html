@@ -39,8 +39,12 @@
       [submitted]="vm().formSubmitted"
       [errorItems]="applicantErrorItems"
       [selectedStandardApplicantCode]="selectedStandardApplicantCode"
+      [selectedStandardApplicantId]="
+        form.controls.standardApplicantId?.value ?? null
+      "
       [initialStandardApplicantCodeFilter]="savedStandardApplicantCode"
       [savedStandardApplicantCode]="savedStandardApplicantCode"
+      [savedStandardApplicantId]="savedStandardApplicantId ?? null"
       [savedStandardApplicantName]="savedStandardApplicantName"
       [savedStandardApplicantDetailsUnavailable]="
         savedStandardApplicantDetailsUnavailable

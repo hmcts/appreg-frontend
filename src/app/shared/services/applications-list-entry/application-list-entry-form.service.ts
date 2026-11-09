@@ -192,6 +192,7 @@ export class ApplicationListEntryFormService {
       {
         lodgementDate: dto.lodgementDate ?? null,
         applicationCode: dto.applicationCode ?? null,
+        applicationCodeId: dto.applicationCodeId ?? null,
         respondent: dto.respondent ?? null,
         numberOfRespondents: dto.numberOfRespondents ?? null,
         wordingFields: getEntryWordingFields(dto) ?? null,
@@ -214,6 +215,10 @@ export class ApplicationListEntryFormService {
     if (standardCode) {
       this.setApplicantType(forms, 'standard', { emitEvent });
       this.setStandardApplicantCode(forms, standardCode, { emitEvent });
+      forms.form.controls.standardApplicantId?.setValue(
+        dto.standardApplicantId ?? null,
+        { emitEvent },
+      );
 
       // reset subforms
       forms.personForm.reset();
@@ -336,6 +341,14 @@ export class ApplicationListEntryFormService {
     opts?: { emitEvent?: boolean },
   ): void {
     const trimmed = code?.trim() || null;
+    if (
+      !trimmed ||
+      forms.form.controls.standardApplicantCode.value !== trimmed
+    ) {
+      forms.form.controls.standardApplicantId?.setValue(null, {
+        emitEvent: opts?.emitEvent !== false,
+      });
+    }
     forms.form.controls.standardApplicantCode.setValue(trimmed, {
       emitEvent: opts?.emitEvent !== false,
     });

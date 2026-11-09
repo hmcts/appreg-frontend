@@ -163,6 +163,7 @@ describe('application-code-helpers', () => {
 
     it('maps content items to CodeRow[] with fallbacks', () => {
       const item1 = {
+        applicationCodeId: 42,
         applicationCode: 'A1',
         title: 'Title 1',
         bulkRespondentAllowed: true,
@@ -182,6 +183,7 @@ describe('application-code-helpers', () => {
 
       expect(mapCodeRows(page)).toEqual<CodeRow[]>([
         {
+          applicationCodeId: 42,
           code: 'A1',
           title: 'Title 1',
           bulk: 'Yes',
