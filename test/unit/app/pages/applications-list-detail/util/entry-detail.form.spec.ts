@@ -705,6 +705,29 @@ describe('applications-list entry form builders', () => {
   });
 
   describe('buildEntryUpdateDtoWithChange', () => {
+    it('retains the saved record on unrelated edits but drops its ID when changing code', () => {
+      const detail = {
+        standardApplicantCode: 'SA1',
+        standardApplicantId: 10,
+        applicationCode: 'AC1',
+      } as EntryGetDetailDto;
+      expect(
+        buildEntryUpdateDtoWithChange(detail, 'notes', 'changed')
+          .standardApplicantId,
+      ).toBe(10);
+      expect(
+        buildEntryUpdateDtoWithChange(detail, 'standardApplicantCode', 'SA2')
+          .standardApplicantId,
+      ).toBeUndefined();
+      expect(
+        buildEntryUpdateDtoForFeeChange(
+          detail,
+          buildStandardApplicationForm(fb).getRawValue(),
+          'hasOffsiteFee',
+          true,
+        ).standardApplicantId,
+      ).toBe(10);
+    });
     it('clears applicant when detail uses standardApplicantCode', () => {
       const dto = buildEntryUpdateDtoWithChange(
         {

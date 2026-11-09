@@ -127,6 +127,27 @@ const makeResultPayload = (
 });
 
 describe('ApplicationsListEntryDetail', () => {
+  it('restores a staged same-code record and summary after payment navigation', () => {
+    component.form.patchValue({
+      applicantType: 'standard',
+      standardApplicantCode: 'SA1',
+    });
+    component.onSelectedStandardApplicantSummaryChanged({
+      code: 'SA1',
+      name: 'Replacement',
+      standardApplicantId: 20,
+    });
+    const snapshot = component['buildEntryDetailSnapshot']();
+    component.form.controls.standardApplicantId?.setValue(10);
+    component.onSelectedStandardApplicantSummaryChanged(null);
+    component['applyEntryDetailSnapshot'](snapshot);
+    expect(component.form.controls.standardApplicantId?.value).toBe(20);
+    expect(component['pendingStandardApplicantSummary']).toEqual({
+      code: 'SA1',
+      name: 'Replacement',
+      standardApplicantId: 20,
+    });
+  });
   let fixture: ComponentFixture<ApplicationsListEntryDetail>;
   let component: ApplicationsListEntryDetail;
   const locationStub = {

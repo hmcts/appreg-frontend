@@ -1136,12 +1136,28 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.formSvc.setStandardApplicantCode(this.forms, effectiveCode, {
       emitEvent: false,
     });
+    if (
+      effectiveCode === this.entryDetail?.standardApplicantCode &&
+      !this.form.controls.standardApplicantId?.value
+    ) {
+      this.form.controls.standardApplicantId?.setValue(
+        this.entryDetail?.standardApplicantId ?? null,
+        { emitEvent: false },
+      );
+    }
   }
 
   onSelectedStandardApplicantSummaryChanged(
     summary: SelectedStandardApplicantSummary | null,
   ): void {
     this.pendingStandardApplicantSummary = summary;
+    this.form.controls.standardApplicantId?.setValue(
+      summary?.standardApplicantId ??
+        (this.form.controls.standardApplicantCode.value ===
+        this.entryDetail?.standardApplicantCode
+          ? (this.entryDetail?.standardApplicantId ?? null)
+          : null),
+    );
   }
 
   onOffsiteFeeChanged(nextValue: boolean): void {
@@ -1582,6 +1598,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         official: this.openOfficialSection(),
       },
       form: this.form.getRawValue(),
+      standardApplicantSummary: this.pendingStandardApplicantSummary,
       personForm: this.personForm.getRawValue(),
       organisationForm: this.organisationForm.getRawValue(),
       respondentPersonForm: this.forms.respondentPersonForm.getRawValue(),
@@ -1602,6 +1619,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (!state) {
       return;
     }
+    this.pendingStandardApplicantSummary =
+      state.standardApplicantSummary ?? null;
 
     this.openApplicantSection.set(
       state.expandedSections?.applicant ?? this.openApplicantSection(),
@@ -1726,15 +1745,18 @@ export class ApplicationsListEntryDetail implements OnInit {
       null;
     this.savedStandardApplicantDetailsUnavailable =
       this.savedStandardApplicantName === null;
-    this.pendingStandardApplicantSummary = this.savedStandardApplicantName
+    this.pendingStandardApplicantSummary ??= this.savedStandardApplicantName
       ? {
           code: applicant.code.trim(),
+          standardApplicantId: this.savedStandardApplicantId ?? undefined,
           name: this.savedStandardApplicantName,
         }
       : null;
   }
 
   private applySavedStandardApplicantSummary(): void {
+    this.savedStandardApplicantId =
+      this.entryDetail?.standardApplicantId ?? null;
     if (this.applicantType !== 'standard') {
       this.savedStandardApplicantCode = null;
       this.savedStandardApplicantName = null;

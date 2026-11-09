@@ -153,6 +153,7 @@ export function buildStandardApplicationForm(
       applicationTitle: fb.control<string | null>(null),
       applicantType: fb.control<ApplicantType>('person'),
       applicant: fb.control<Applicant | null>(null),
+      standardApplicantId: fb.control<number | null>(null),
       standardApplicantCode: fb.control<string | null>(null, [
         Validators.pattern(STANDARD_APPLICANT_CODE_REGEX),
         standardApplicantCodeConditionalRequired,
@@ -398,6 +399,7 @@ export function buildEntryUpdateDtoFromForm(
 
   if (formValue.applicantType === 'standard') {
     dto.standardApplicantCode = (formValue.standardApplicantCode ?? '').trim();
+    dto.standardApplicantId = formValue.standardApplicantId ?? undefined;
     normalizeApplicantSelection(dto, 'standard');
     return dto as EntryUpdateDto;
   }
@@ -544,6 +546,10 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
 
   const base: EntryUpdateDto = {
     standardApplicantCode: detail.standardApplicantCode,
+    standardApplicantId:
+      key === 'standardApplicantCode' && value !== detail.standardApplicantCode
+        ? undefined
+        : (detail.standardApplicantId ?? undefined),
     applicationCode: detail.applicationCode,
     applicationCodeId:
       key === 'applicationCode' && value !== detail.applicationCode
@@ -611,6 +617,7 @@ function normalizeApplicantSelection(
   dto: {
     applicant?: Applicant;
     standardApplicantCode?: string | null;
+    standardApplicantId?: number;
   },
   mode: 'standard' | 'applicant',
 ): void {
@@ -620,6 +627,7 @@ function normalizeApplicantSelection(
   }
 
   delete dto.standardApplicantCode;
+  delete dto.standardApplicantId;
 }
 
 //  TODO: temp backend/mock shape whilst type is not finalised
