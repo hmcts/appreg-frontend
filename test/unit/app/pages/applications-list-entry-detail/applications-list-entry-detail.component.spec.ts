@@ -5,6 +5,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AbstractControl } from '@angular/forms';
 import {
   ActivatedRoute,
   Router,
@@ -339,15 +340,18 @@ describe('ApplicationsListEntryDetail', () => {
     'warns before payment-reference editing discards %s drafts',
     (section) => {
       const unchanged = jest.fn(() => false);
-      if (section === 'wording') {
-        component['wordingSection'] = {
-          hasUnchangedContent: unchanged,
-        } as WordingSectionComponent;
-      } else {
-        component['resultWordingSection'] = {
-          hasUnchangedContent: unchanged,
-        } as ResultWordingSectionComponent;
-      }
+      const child =
+        section === 'wording'
+          ? (fixture.debugElement.query(
+              (node) =>
+                node.componentInstance instanceof WordingSectionComponent,
+            )?.componentInstance as WordingSectionComponent)
+          : (fixture.debugElement.query(
+              (node) =>
+                node.componentInstance instanceof ResultWordingSectionComponent,
+            )?.componentInstance as ResultWordingSectionComponent);
+      expect(child).toBeDefined();
+      jest.spyOn(child, 'hasUnchangedContent').mockImplementation(unchanged);
       const router = TestBed.inject(Router);
       const entryId =
         TestBed.inject(ActivatedRoute).snapshot.paramMap.get('entryId');
@@ -405,7 +409,7 @@ describe('ApplicationsListEntryDetail', () => {
     'keeps an unadded fee draft unsaved when the fee table is %j',
     ({ existingFees }: { existingFees: FeeStatus[] }) => {
       component.form.controls.feeStatuses.setValue(existingFees);
-      component.appListEntryDetailPatch({ isFeeRequired: true });
+      component['appListEntryDetailPatch']({ isFeeRequired: true });
       fixture.detectChanges();
       const draft = {
         feeStatus: PaymentStatus.PAID,
@@ -528,6 +532,8 @@ describe('ApplicationsListEntryDetail', () => {
         of({
           code: 'SA-123',
           name: 'Saved applicant',
+          startDate: '2025-01-01',
+          endDate: null,
         }),
       );
       mockGetApplicationListEntry.mockReturnValue(
@@ -535,7 +541,7 @@ describe('ApplicationsListEntryDetail', () => {
           ...component['entryDetail']!,
           standardApplicantCode: 'SA-123',
           standardApplicantId: 123,
-          applicant: null,
+          applicant: undefined,
         }),
       );
       const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
@@ -567,14 +573,19 @@ describe('ApplicationsListEntryDetail', () => {
 
   it('treats deselection as no replacement and retains the saved applicant in unrelated saves', async () => {
     mockGetStandardApplicantById.mockReturnValue(
-      of({ code: 'SA-123', name: 'Saved applicant' }),
+      of({
+        code: 'SA-123',
+        name: 'Saved applicant',
+        startDate: '2025-01-01',
+        endDate: null,
+      }),
     );
     mockGetApplicationListEntry.mockReturnValue(
       of({
         ...component.entryDetail!,
         standardApplicantCode: 'SA-123',
         standardApplicantId: 123,
-        applicant: null,
+        applicant: undefined,
       }),
     );
     const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
@@ -620,7 +631,7 @@ describe('ApplicationsListEntryDetail', () => {
       ENTRY_SUCCESS_MESSAGES.listUpdated,
     );
     expect(
-      mockUpdateApplicationListEntry.mock.calls.at(-1)[0].entryUpdateDto
+      mockUpdateApplicationListEntry.mock.calls.at(-1)?.[0].entryUpdateDto
         .standardApplicantCode,
     ).toBe('SA-123');
     expect(freshComponent.canLeave()).toBe(true);
@@ -843,6 +854,56 @@ describe('ApplicationsListEntryDetail', () => {
     });
   });
 
+  it.each([
+    { offsiteAmount: 300, persisted: false, expected: true },
+    { offsiteAmount: 300, persisted: true, expected: true },
+    { offsiteAmount: 0, persisted: false, expected: false },
+  ])(
+    'aligns the offsite fee control with amount $offsiteAmount and persisted value $persisted',
+    ({ offsiteAmount, persisted, expected }) => {
+      component['persistedHasOffsiteFee'] = persisted;
+      component.entryDetail!.hasOffsiteFee = false;
+      const control = component.civilFeeForm.controls.hasOffsiteFee;
+      control.setValue(false);
+      control.markAsTouched();
+      mockGetApplicationCodeById.mockReturnValue(
+        of({
+          ...component.vm().appCodeDetail,
+          offsiteFeeAmount: { value: offsiteAmount, currency: 'GBP' },
+        } as ApplicationCodeGetDetailDto),
+      );
+
+      component['loadCodesSectionFromEntry'](component['entryDetail']!);
+
+      expect(control.value).toBe(expected);
+      expect(control.touched).toBe(!expected);
+      expect(component.entryDetail?.hasOffsiteFee).toBe(expected);
+    },
+  );
+
+  it('does not treat offsite fee alignment during loading as an unsaved edit', async () => {
+    mockGetApplicationCodeById.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        offsiteFeeAmount: { value: 300, currency: 'GBP' },
+      } as ApplicationCodeGetDetailDto),
+    );
+
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.civilFeeForm.controls.hasOffsiteFee.value).toBe(true);
+    expect(component.hasUnchangedContent()).toBe(true);
+    expect(component.canLeave()).toBe(true);
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+
+    component.civilFeeForm.controls.hasOffsiteFee.setValue(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.hasUnchangedContent()).toBe(false);
+  });
+
   it('uses the linked historical record even when code/date resolves a newer duplicate', () => {
     const linked = {
       applicationCode: 'APP-100',
@@ -855,10 +916,10 @@ describe('ApplicationsListEntryDetail', () => {
       bulkRespondentAllowed: true,
       feeReference: 'HIST',
       feeDescription: 'Historical fee',
-      feeAmount: '12.00',
+      feeAmount: { value: 1200, currency: 'GBP' },
       offsiteFeeReference: 'OFF',
       offsiteFeeDescription: 'Historical offsite fee',
-      offsiteFeeAmount: '3.00',
+      offsiteFeeAmount: { value: 300, currency: 'GBP' },
     } as ApplicationCodeGetDetailDto;
     mockGetApplicationCodeById.mockReturnValue(of(linked));
     mockGetApplicationCodeByCodeAndDate.mockReturnValue(
@@ -879,7 +940,7 @@ describe('ApplicationsListEntryDetail', () => {
       expect.objectContaining({ transferCache: true }),
     );
     expect(mockGetApplicationCodeByCodeAndDate).not.toHaveBeenCalled();
-    expect(component['form'].controls.applicationTitle.value).toBe(
+    expect(component['form'].controls.applicationTitle?.value).toBe(
       linked.title,
     );
     expect(component.vm().appCodeDetail).toEqual(linked);
@@ -888,10 +949,10 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component.feeMeta).toEqual({
       feeReference: 'HIST',
       feeDescription: 'Historical fee',
-      feeAmount: '12.00',
+      feeAmount: { value: 1200, currency: 'GBP' },
       offsiteFeeReference: 'OFF',
       offsiteFeeDescription: 'Historical offsite fee',
-      offsiteFeeAmount: '3.00',
+      offsiteFeeAmount: { value: 300, currency: 'GBP' },
     });
   });
 
@@ -905,12 +966,12 @@ describe('ApplicationsListEntryDetail', () => {
       component['loadCodesSectionFromEntry'](component['entryDetail']!);
 
       expect(component.vm().errorFound).toBe(true);
-      expect(component.vm().summaryErrors[0].text).toContain(
+      expect(component.vm().summaryErrors[0]?.text).toContain(
         'Application code details could not be loaded',
       );
       expect(component.vm().appCodeDetail).toBeNull();
       expect(component.feeMeta).toBeNull();
-      expect(component['form'].controls.applicationTitle.value).toBe('');
+      expect(component['form'].controls.applicationTitle?.value).toBe('');
       expect(mockGetApplicationCodeByCodeAndDate).not.toHaveBeenCalled();
       component.onUpdateApplication();
       component.onUpdateApplicant();
@@ -1026,7 +1087,7 @@ describe('ApplicationsListEntryDetail', () => {
       entryDetailSnapshot: snapshot,
     });
     expect(component.vm().appCodeDetail).toEqual(freshDetail);
-    expect(component['form'].controls.applicationTitle.value).toBe(
+    expect(component['form'].controls.applicationTitle?.value).toBe(
       'Exact linked title',
     );
   });
@@ -1034,7 +1095,7 @@ describe('ApplicationsListEntryDetail', () => {
   it('does not load entry data during server-side rendering', () => {
     const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
     const freshComponent = freshFixture.componentInstance;
-    (freshComponent as unknown as { platformId: object }).platformId = 'server';
+    (freshComponent as unknown as { platformId: string }).platformId = 'server';
     mockGetApplicationListEntry.mockClear();
     mockGetApplicationCodeByCodeAndDate.mockClear();
 
@@ -1137,7 +1198,7 @@ describe('ApplicationsListEntryDetail', () => {
         applicant: {
           organisation: {
             name: 'Fallback Organisation Name',
-            contactDetails: {},
+            contactDetails: { addressLine1: '1 Example Street' },
           },
         },
         startDate: '2025-01-01',
@@ -1209,7 +1270,7 @@ describe('ApplicationsListEntryDetail', () => {
       applicant: {
         organisation: {
           name: 'Fallback Organisation Name',
-          contactDetails: {},
+          contactDetails: { addressLine1: '1 Example Street' },
         },
       },
       startDate: '2025-01-01',
@@ -1385,6 +1446,7 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      applicationCodeId: 100,
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
@@ -1432,6 +1494,7 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      applicationCodeId: 100,
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
@@ -1457,6 +1520,7 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      applicationCodeId: 100,
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
@@ -1526,6 +1590,7 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      applicationCodeId: 100,
       notes: 'persisted note',
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
@@ -1791,6 +1856,12 @@ describe('ApplicationsListEntryDetail', () => {
     );
     component.onCodeSelected({ code: 'APP-200', date: '2025-11-01' });
 
+    component.form.controls.hasOffsiteFee.setValue(false);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: false }),
+    );
+    component.onOffsiteFeeChanged(false);
+
     component.form.controls.hasOffsiteFee.setValue(true);
     mockUpdateApplicationListEntry.mockReturnValueOnce(
       of({ hasOffsiteFee: true }),
@@ -1875,6 +1946,7 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'EF123',
+      applicationCodeId: 100,
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
@@ -1945,6 +2017,7 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      applicationCodeId: 100,
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
@@ -1997,6 +2070,7 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      applicationCodeId: 100,
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
@@ -2054,6 +2128,7 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      applicationCodeId: 100,
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
@@ -2079,6 +2154,7 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      applicationCodeId: 100,
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
@@ -2155,6 +2231,7 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      applicationCodeId: 100,
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
@@ -2195,6 +2272,7 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      applicationCodeId: 100,
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
@@ -2798,24 +2876,26 @@ describe('ApplicationsListEntryDetail', () => {
       });
       const group = component['forms'][formName];
       group.reset();
-      group.get(field)!.setValue('   ');
+      const control = (group as AbstractControl).get(field);
+      expect(control).not.toBeNull();
+      control!.setValue('   ');
       expect(component.vm().summaryErrors).toEqual([]);
 
       component.onUpdateApplication();
       const error = expect.objectContaining({ href });
       expect(component.vm().summaryErrors).toContainEqual(error);
       const submitAttempt = component.submitAttempt();
-      group.get(field)!.setValue('  ');
+      control!.setValue('  ');
       expect(component.vm().summaryErrors).toContainEqual(error);
 
-      group.get(field)!.setValue('Example');
+      control!.setValue('Example');
       const errors = formName.startsWith('respondent')
         ? component.respondentErrorItems
         : component.applicantErrorItems;
       expect(errors).not.toContainEqual(error);
       expect(errors.length).toBeGreaterThan(0);
       expect(component.vm().summaryErrors).not.toContainEqual(error);
-      group.get(field)!.setValue('   ');
+      control!.setValue('   ');
       expect(component.vm().summaryErrors).toContainEqual(error);
       expect(component.submitAttempt()).toBe(submitAttempt);
       expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
@@ -3084,6 +3164,7 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      applicationCodeId: 100,
       notes: 'persisted note',
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
