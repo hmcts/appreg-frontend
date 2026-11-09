@@ -243,7 +243,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   readonly hasUnchangedContent = signal(true);
   @ViewChild(NavigationWarningComponent)
-  private navigationWarning?: NavigationWarningComponent;
+  private readonly navigationWarning?: NavigationWarningComponent;
 
   canLeave(): boolean | Observable<boolean> {
     const destination = this.router
@@ -1398,6 +1398,27 @@ export class ApplicationsListEntryDetail implements OnInit {
             bulkApplicationsAllowed: codeDto.bulkRespondentAllowed,
             formReady: true,
           });
+
+          // ARCPOC-1945: ensure offsite fee form is aligned with fetched values.
+          if (
+            (this.feeMeta?.offsiteFeeAmount?.value ?? 0) > 0 &&
+            !this.civilFeeForm.controls.hasOffsiteFee.value
+          ) {
+            this.civilFeeForm.controls.hasOffsiteFee.setValue(true);
+            this.civilFeeForm.controls.hasOffsiteFee.markAsUntouched();
+            this.civilFeeForm.controls.hasOffsiteFee.markAsPristine();
+
+            if (this.savedContent) {
+              this.savedContent.form.hasOffsiteFee = true;
+            }
+
+            // Ensure that flag is also true for consistent updates
+            this.persistedHasOffsiteFee = true;
+
+            if (this.entryDetail) {
+              this.entryDetail.hasOffsiteFee = true;
+            }
+          }
           onLoaded?.();
         },
         error: () => {
