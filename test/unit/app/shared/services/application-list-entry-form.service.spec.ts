@@ -150,6 +150,20 @@ describe('ApplicationListEntryFormService', () => {
     },
   );
 
+  it('hydrates the stored version and treats only a different ID as a code change', () => {
+    const forms = service.createForms();
+    service.hydrateFromDto(makeDetail({ applicationCodeId: 100 }), forms);
+    expect(forms.form.getRawValue().applicationCodeId).toBe(100);
+    const baseline = service.editableContent(forms);
+
+    forms.form.patchValue({ applicationCodeId: 100 });
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+    forms.form.patchValue({ applicationCodeId: 101 });
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(false);
+    forms.form.patchValue({ applicationCodeId: 100 });
+    expect(service.hasUnchangedContent(forms, baseline)).toBe(true);
+  });
+
   it('ignores cached respondent resets and equivalent empty wording after reverting a code', () => {
     const forms = service.createForms();
     service.hydrateFromDto(

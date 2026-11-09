@@ -192,6 +192,7 @@ export class ApplicationListEntryFormService {
       {
         lodgementDate: dto.lodgementDate ?? null,
         applicationCode: dto.applicationCode ?? null,
+        applicationCodeId: dto.applicationCodeId ?? null,
         respondent: dto.respondent ?? null,
         numberOfRespondents: dto.numberOfRespondents ?? null,
         wordingFields: getEntryWordingFields(dto) ?? null,

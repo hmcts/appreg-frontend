@@ -160,6 +160,7 @@ export function buildStandardApplicationForm(
       applicationCode: fb.control<string | null>(null, {
         validators: [REQUIRED, Validators.pattern(APPLICATION_CODE_REGEX)],
       }),
+      applicationCodeId: fb.control<number | null>(null),
       respondentEntryType: fb.control<RespondentEntryType | null>('person'),
       respondent: fb.control<Respondent | null>(null),
       numberOfRespondents: fb.control<number | null>(null, {
@@ -366,6 +367,11 @@ export function buildEntryUpdateDtoFromForm(
   const dto: EntryUpdateDtoWithClears = {
     ...base,
     ...patch,
+    applicationCodeId:
+      formValue.applicationCodeId ??
+      (patch.applicationCode === detail.applicationCode
+        ? detail.applicationCodeId
+        : undefined),
   };
 
   dto.caseReference = trimToNull(formValue.applicationNotes.caseReference);
@@ -539,6 +545,10 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
   const base: EntryUpdateDto = {
     standardApplicantCode: detail.standardApplicantCode,
     applicationCode: detail.applicationCode,
+    applicationCodeId:
+      key === 'applicationCode' && value !== detail.applicationCode
+        ? undefined
+        : detail.applicationCodeId,
     applicant: detail.applicant,
     respondent: detail.respondent,
     numberOfRespondents: detail.numberOfRespondents ?? undefined,
@@ -584,6 +594,11 @@ export function buildEntryUpdateDtoForFeeChange<K extends keyof EntryUpdateDto>(
   if (applicationCode) {
     dto.applicationCode = applicationCode;
   }
+  dto.applicationCodeId =
+    formValue.applicationCodeId ??
+    (dto.applicationCode === detail?.applicationCode
+      ? detail?.applicationCodeId
+      : undefined);
 
   if (stagedWordingFields?.length) {
     dto.wordingFields = stagedWordingFields;
