@@ -1,6 +1,6 @@
 Feature: Applications List Entry Create
 
-      @applicationListEntry @regression @core @ARCPOC-222 @ARCPOC-427 @ARCPOC-635 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1748 @ARCPOC-1822 @SC1
+      @applicationListEntry @regression @core @ARCPOC-222 @ARCPOC-427 @ARCPOC-635 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1748 @ARCPOC-1822 @ARCPOC-1846 @SC1
       Scenario: Create and Open an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
             Given User Authenticates Via API As "user1"
             # Create Application List
@@ -17,7 +17,21 @@ Feature: Applications List Entry Create
             When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
                   | Date         | Time  | Location                          | Description                                  | Entries | Status |
                   | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   |
-            ## Create Application under Application List
+            # Create Application under Application List
+            Then User Clicks On The Link "Create application"
+            When User Clicks On The "Show all sections" Button
+            Then User Should See The Button "Hide all sections"
+            # Applicant Details
+            When User Fills In The Applicant Details
+                  | First name | John |
+            # Show unsaved changes warning
+            When User Clicks On The "Cancel" Button
+            Then User Should See The Modal Dialog With Heading "Leave without saving?"
+            Then User Should See The Text "Your changes to this application list entry have not been saved. If you leave, your changes will be discarded." In The Modal Dialog
+            Then User Should See The Modal Dialog With Button "Stay on this page"
+            Then User Should See The Modal Dialog With Button "Leave this page"
+            When User Clicks On The "Leave this page" Button
+            # Create Application under Application List
             Then User Clicks On The Link "Create application"
             When User Clicks On The "Show all sections" Button
             Then User Should See The Button "Hide all sections"
@@ -38,6 +52,7 @@ Feature: Applications List Entry Create
                   | Mobile number         | 07700900001                        |
                   | Email address         | applicant{SCENARIO_ID}@example.com |
             # Application Codes
+            When User Captures The Fees For Application Code "MX99006"
             Then User Enters "MX99006" Into The Textbox "Application code" In The Accordion "Application codes"
             When User Clicks On The "Search" Button In The Accordion "Application codes"
             Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
@@ -73,12 +88,10 @@ Feature: Applications List Entry Create
             When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
             Then User Should See The Text "Selecting this will apply the off site fee to the entry." In The Accordion "Civil fee"
             Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Amount: £292.00" In The Accordion "Civil fee"
             Then User Verifies The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee" Is Unchecked
             Then User Checks The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee"
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £322.00" In The Accordion "Civil fee"
+            Then User Verifies The Civil Fee Amounts Against The Application Code
             Then User Should See The Text "Update fee status" In The Accordion "Civil fee"
             Then User Selects "Undertaken" From The Dropdown "Fee status" In The Accordion "Civil fee"
             Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
@@ -120,6 +133,13 @@ Feature: Applications List Entry Create
             Then User Verifies Textbox With Placeholder "Enter a Describe Seized Food" Contains "Test Sample Wording" In The Accordion "Wording"
             Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Describe Seized Food" and Enters "Test Sample Wording"
             When User Clicks On The "Apply wording" Button In The Accordion "Wording"
+            # Show unsaved changes warning
+            When User Clicks On The "Cancel" Button
+            Then User Should See The Modal Dialog With Heading "Leave without saving?"
+            Then User Should See The Text "Your changes to this application list entry have not been saved. If you leave, your changes will be discarded." In The Modal Dialog
+            Then User Should See The Modal Dialog With Button "Stay on this page"
+            Then User Should See The Modal Dialog With Button "Leave this page"
+            When User Clicks On The "Stay on this page" Button
             Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
             When User Clicks On The "Create entry" Button
             Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
@@ -180,10 +200,8 @@ Feature: Applications List Entry Create
             Then User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Checked
             Then User Should See The Text "Selecting this will automatically apply the off site fee to the entry. This change is saved immediately." In The Accordion "Civil fee"
             Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Amount: £292.00" In The Accordion "Civil fee"
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £322.00" In The Accordion "Civil fee"
+            Then User Verifies The Civil Fee Amounts Against The Application Code
             Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
                   | Fee Status | Status Date  | Payment Ref       |
                   | UNDERTAKEN | todaydisplay | New PAY-{RANDOM}  |
@@ -404,6 +422,7 @@ Feature: Applications List Entry Create
             Then User Checks The Checkbox With Label "Select BGAS" In The Accordion "Applicant"
             Then User Should See The Text "Currently selected BGAS British Gas Trading Limited" In The Accordion "Applicant"
             # Application Codes
+            When User Captures The Fees For Application Code "MH99001"
             Then User Enters "MH99001" Into The Textbox "Application code" In The Accordion "Application codes"
             When User Clicks On The "Search" Button In The Accordion "Application codes"
             Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
@@ -431,8 +450,7 @@ Feature: Applications List Entry Create
             Then User Checks The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee"
             # Bug ARCPOC-1241 is raised
             Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
-            Then User Should See The Text "Total Fee Amount: £30.00" In The Accordion "Civil fee"
+            Then User Verifies The Civil Fee Amounts Against The Application Code
             Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
             Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
             Then User Enters "PAY-{RANDOM}" Into The Textbox "Payment reference" In The Accordion "Civil fee"

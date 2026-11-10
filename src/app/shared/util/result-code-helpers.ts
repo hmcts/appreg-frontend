@@ -74,7 +74,7 @@ export type ResultRow = ExistingResultRow | PendingResultRow;
 
 export function toExistingRows(
   results: ResultGetDto[],
-  codes: ResultCodeGetSummaryDto[],
+  titlesByReferenceId: Record<number, string | undefined>,
 ): ExistingResultRow[] {
   return results.map((r) => {
     const resolvedFields =
@@ -85,7 +85,9 @@ export function toExistingRows(
       kind: 'existing',
       id: r.id,
       resultCode: r.resultCode,
-      display: formatResultCodeLabel(r.resultCode, codes),
+      display: titlesByReferenceId[r.resultCodeId]
+        ? `${r.resultCode} - ${titlesByReferenceId[r.resultCodeId]}`
+        : r.resultCode,
       updatedDateTime: r.updatedDateTime,
       wordingFields: resolvedFields,
       wording: wordingFromFields(resolvedFields),

@@ -1,4 +1,9 @@
 <app-breadcrumbs [items]="breadcrumbs()" />
+<app-navigation-warning
+  [active]="!hasUnchangedContent()"
+  heading="Leave without saving?"
+  message="Your changes to this application list entry have not been saved. If you leave, your changes will be discarded."
+/>
 
 <app-error-summary
   [hidden]="!vm().errorFound"
@@ -34,7 +39,12 @@
       [submitted]="vm().formSubmitted"
       [errorItems]="applicantErrorItems"
       [selectedStandardApplicantCode]="selectedStandardApplicantCode"
+      [selectedStandardApplicantId]="
+        form.controls.standardApplicantId?.value ?? null
+      "
+      [initialStandardApplicantCodeFilter]="savedStandardApplicantCode"
       [savedStandardApplicantCode]="savedStandardApplicantCode"
+      [savedStandardApplicantId]="savedStandardApplicantId ?? null"
       [savedStandardApplicantName]="savedStandardApplicantName"
       [savedStandardApplicantDetailsUnavailable]="
         savedStandardApplicantDetailsUnavailable
@@ -127,6 +137,8 @@
       [resultApplicantContext]="resultApplicantContext"
       [resultCodesList]="resultsFacade.resultCodesSignal()"
       [existingResults]="resultsFacade.entryResults()"
+      [savedResultTitles]="resultsFacade.savedResultTitles()"
+      [savedResultDetailsError]="resultsFacade.savedResultDetailsError()"
       [clearPendingToken]="resultsFacade.clearPendingToken()"
       [wordingByCode]="resultsFacade.resultCodeWordingByCode()"
       [resultCodeTemplateByCode]="resultsFacade.resultCodeTemplateByCode()"

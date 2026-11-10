@@ -153,6 +153,7 @@ export function buildStandardApplicationForm(
       applicationTitle: fb.control<string | null>(null),
       applicantType: fb.control<ApplicantType>('person'),
       applicant: fb.control<Applicant | null>(null),
+      standardApplicantId: fb.control<number | null>(null),
       standardApplicantCode: fb.control<string | null>(null, [
         Validators.pattern(STANDARD_APPLICANT_CODE_REGEX),
         standardApplicantCodeConditionalRequired,
@@ -160,6 +161,7 @@ export function buildStandardApplicationForm(
       applicationCode: fb.control<string | null>(null, {
         validators: [REQUIRED, Validators.pattern(APPLICATION_CODE_REGEX)],
       }),
+      applicationCodeId: fb.control<number | null>(null),
       respondentEntryType: fb.control<RespondentEntryType | null>('person'),
       respondent: fb.control<Respondent | null>(null),
       numberOfRespondents: fb.control<number | null>(null, {
@@ -366,6 +368,11 @@ export function buildEntryUpdateDtoFromForm(
   const dto: EntryUpdateDtoWithClears = {
     ...base,
     ...patch,
+    applicationCodeId:
+      formValue.applicationCodeId ??
+      (patch.applicationCode === detail.applicationCode
+        ? detail.applicationCodeId
+        : undefined),
   };
 
   dto.caseReference = trimToNull(formValue.applicationNotes.caseReference);
@@ -392,6 +399,7 @@ export function buildEntryUpdateDtoFromForm(
 
   if (formValue.applicantType === 'standard') {
     dto.standardApplicantCode = (formValue.standardApplicantCode ?? '').trim();
+    dto.standardApplicantId = formValue.standardApplicantId ?? undefined;
     normalizeApplicantSelection(dto, 'standard');
     return dto as EntryUpdateDto;
   }
@@ -538,7 +546,15 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
 
   const base: EntryUpdateDto = {
     standardApplicantCode: detail.standardApplicantCode,
+    standardApplicantId:
+      key === 'standardApplicantCode' && value !== detail.standardApplicantCode
+        ? undefined
+        : (detail.standardApplicantId ?? undefined),
     applicationCode: detail.applicationCode,
+    applicationCodeId:
+      key === 'applicationCode' && value !== detail.applicationCode
+        ? undefined
+        : detail.applicationCodeId,
     applicant: detail.applicant,
     respondent: detail.respondent,
     numberOfRespondents: detail.numberOfRespondents ?? undefined,
@@ -584,6 +600,11 @@ export function buildEntryUpdateDtoForFeeChange<K extends keyof EntryUpdateDto>(
   if (applicationCode) {
     dto.applicationCode = applicationCode;
   }
+  dto.applicationCodeId =
+    formValue.applicationCodeId ??
+    (dto.applicationCode === detail?.applicationCode
+      ? detail?.applicationCodeId
+      : undefined);
 
   if (stagedWordingFields?.length) {
     dto.wordingFields = stagedWordingFields;
@@ -596,6 +617,7 @@ function normalizeApplicantSelection(
   dto: {
     applicant?: Applicant;
     standardApplicantCode?: string | null;
+    standardApplicantId?: number;
   },
   mode: 'standard' | 'applicant',
 ): void {
@@ -605,6 +627,7 @@ function normalizeApplicantSelection(
   }
 
   delete dto.standardApplicantCode;
+  delete dto.standardApplicantId;
 }
 
 //  TODO: temp backend/mock shape whilst type is not finalised

@@ -32,7 +32,7 @@ import {
   signal,
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { take } from 'rxjs/operators';
 
 import {
@@ -102,7 +102,6 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterLink,
     PaginationComponent,
     SortableTableComponent,
     SuccessBannerComponent,
@@ -510,6 +509,39 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       body: params,
       mode: 'continuous',
     });
+  }
+
+  async onDeleteClick(row: ApplicationListRow): Promise<void> {
+    if (!row) {
+      return;
+    }
+    this.submitAttempt.update((attempt) => attempt + 1);
+
+    try {
+      const navigated = await this.router.navigate(
+        ['/applications-list', row.id, 'delete'],
+        {
+          state: { listRow: row },
+        },
+      );
+
+      if (!navigated) {
+        throw new Error(
+          'Unable to open the delete confirmation. Please refresh your page and try again.',
+        );
+      }
+    } catch (err) {
+      const errMsg =
+        err instanceof Error && err.message
+          ? err.message
+          : 'Failed to delete applications list. Please contact support for guidance.';
+
+      this.appListSignalState.patch({
+        deleteDone: false,
+        deleteInvalid: true,
+        errorSummary: [{ text: errMsg }],
+      });
+    }
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {

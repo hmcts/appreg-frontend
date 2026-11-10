@@ -35,7 +35,9 @@ class MockOrganisationSectionComponent {
   template: '',
 })
 class MockStandardApplicantSelectComponent {
+  readonly selectedId = input<number | null>(null);
   readonly selectedCode = input<string | null>(null);
+  readonly initialCodeFilter = input<string | null>(null);
   readonly selectedApplicantSummaryChange = output<unknown>();
   readonly selectedCodeChange = output<string | null>();
   readonly searchErrorsChange = output<unknown[]>();
@@ -130,6 +132,27 @@ describe('ApplicantSectionComponent', () => {
     expect(
       fixture.debugElement.query(By.css('app-organisation-section')),
     ).toBeNull();
+  });
+
+  it('passes the saved record ID to the selector without changing the saved heading', () => {
+    fixture.componentRef.setInput('applicantType', 'standard');
+    fixture.componentRef.setInput('selectedStandardApplicantCode', 'SA-123');
+    fixture.componentRef.setInput('selectedStandardApplicantId', 10);
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
+    fixture.componentRef.setInput(
+      'savedStandardApplicantName',
+      'Historical organisation',
+    );
+    fixture.detectChanges();
+
+    const selector = fixture.debugElement.query(
+      By.directive(MockStandardApplicantSelectComponent),
+    );
+    expect(selector.componentInstance.selectedId()).toBe(10);
+    expect(selector.componentInstance.selectedCode()).toBe('SA-123');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Historical organisation',
+    );
   });
 
   it('renders the saved standard applicant tag and text when saved values exist', () => {

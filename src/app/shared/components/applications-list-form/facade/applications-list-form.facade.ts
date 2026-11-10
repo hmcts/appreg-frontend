@@ -14,9 +14,7 @@ export type SuggestionsFacade = {
   setCourthouseSearch: (v: string) => void;
   filteredCourthouses: () => CourtSuggestionItem[];
   onCourthouseInputChange: () => void;
-  selectCourthouse: (
-    item: CourtLocationGetSummaryDto | CourtSuggestionItem,
-  ) => void;
+  selectCourthouse: (item: CourtLocationGetSummaryDto) => void;
 
   // CJA
   cjaSearch: () => string;

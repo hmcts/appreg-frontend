@@ -5,6 +5,23 @@ import { DropdownHelper } from '../forms/dropdown/DropdownHelper';
 import { TextboxHelper } from '../forms/textbox/TextboxHelper';
 
 export class ApplicationListEntriesSearchHelper {
+  private static readonly entriesRequestAlias = 'applicationListEntriesRequest';
+
+  static startListeningForEntriesLoad(): void {
+    cy.intercept('GET', '**/application-lists/*/entries**').as(
+      this.entriesRequestAlias,
+    );
+  }
+
+  static waitForEntriesLoad(): Cypress.Chainable {
+    return cy
+      .wait(`@${this.entriesRequestAlias}`, { timeout: 20000 })
+      .then(({ response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(response?.body).to.have.property('content');
+      });
+  }
+
   /**
    * Performs a search against the Entries table inside an opened application list.
    * @param criteria - Search criteria object (field label -> value)
@@ -18,11 +35,9 @@ export class ApplicationListEntriesSearchHelper {
 
     cy.log('Searching Entries table with criteria:', processedCriteria);
 
-    cy.intercept('GET', '**/application-lists/*/entries**').as(
-      'applicationListEntriesRequest',
-    );
+    this.startListeningForEntriesLoad();
     ButtonHelper.clickButton('Clear search');
-    cy.wait('@applicationListEntriesRequest', { timeout: 20000 });
+    this.waitForEntriesLoad();
 
     AccordionHelper.ensureAccordionExpanded('Advanced search');
 
@@ -72,7 +87,7 @@ export class ApplicationListEntriesSearchHelper {
     }
 
     ButtonHelper.clickButton('Search');
-    cy.wait('@applicationListEntriesRequest', { timeout: 20000 });
+    this.waitForEntriesLoad();
 
     const expectedSearchText = Object.values(processedCriteria).find(
       (value) => value && value.trim() !== '',

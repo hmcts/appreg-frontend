@@ -280,7 +280,11 @@ describe('ApplicationsListDetail', () => {
   it.each([true, false])(
     'retains the saved court when reference data loads first: %s',
     async (referenceFirst) => {
-      const active = { locationCode: 'ACTIVE', name: 'Active court' };
+      const active = {
+        locationCode: 'ACTIVE',
+        name: 'Active court',
+        courtId: 99,
+      };
       const dto = {
         id: 'id-1',
         date: '2026-03-01',
@@ -288,6 +292,7 @@ describe('ApplicationsListDetail', () => {
         description: 'Morning list',
         status: ApplicationListStatus.OPEN,
         courtCode: 'ENDED',
+        courtId: 42,
         courtName: 'Saved court',
         version: 1,
       } as ApplicationListGetDetailDto;
@@ -301,7 +306,10 @@ describe('ApplicationsListDetail', () => {
       courts$.next([active]); // A later refresh must preserve the saved court too.
       expect(
         component.placeState().courtLocations.map((c) => c.locationCode),
-      ).toEqual(['ACTIVE', 'ENDED']);
+      ).toEqual(['ENDED', 'ACTIVE']);
+      expect(component.placeState().courtLocations[0].courtId).toBe(
+        dto.courtId,
+      );
       expect(component.placeState().courthouseSearch).toBe(
         'ENDED - Saved court',
       );
@@ -328,6 +336,7 @@ describe('ApplicationsListDetail', () => {
           listId: dto.id,
           applicationListUpdateDto: expect.objectContaining({
             courtLocationCode: 'ENDED',
+            courtId: 42,
             description: 'Updated description',
           }),
         },
@@ -343,6 +352,7 @@ describe('ApplicationsListDetail', () => {
       expect(component.form.controls.court.errors).toBeNull();
 
       component.selectCourthouse({
+        courtId: 100,
         locationCode: 'UNKNOWN',
         name: 'Unknown court',
       });
@@ -367,6 +377,133 @@ describe('ApplicationsListDetail', () => {
       expect(component.placeState().courtLocations).toEqual([active]);
     },
   );
+
+  it('keeps saved details and ID when a current courthouse reuses the code', async () => {
+    const saved = {
+      id: 'id-1',
+      date: '2026-03-01',
+      time: '09:30:00',
+      description: 'Morning list',
+      status: ApplicationListStatus.OPEN,
+      courtCode: 'SAME',
+      courtId: 42,
+      courtName: 'Historical court',
+      version: 1,
+    } as ApplicationListGetDetailDto;
+    courts$.next([
+      { locationCode: 'SAME', courtId: 43, name: 'Current court' },
+    ]);
+    component['prefillFromApi'](saved);
+    courts$.next([
+      { locationCode: 'SAME', courtId: 43, name: 'Current court' },
+    ]);
+    expect(component.placeState().courthouseSearch).toBe(
+      'SAME - Historical court',
+    );
+    expect(
+      component.placeState().courtLocations.map((court) => court.courtId),
+    ).toEqual([42, 43]);
+
+    component.form.patchValue({ description: 'Updated description' });
+    await flushSignalEffects(fixture);
+    const update = fixture.debugElement.query(
+      By.directive(ApplicationsListUpdateComponent),
+    ).componentInstance as ApplicationsListUpdateComponent;
+    apiStub.updateApplicationList.mockReturnValue(
+      of(new HttpResponse<ApplicationListGetDetailDto>({ status: 204 })),
+    );
+    update.onUpdate();
+    await flushSignalEffects(fixture);
+    expect(
+      apiStub.updateApplicationList.mock.calls.at(-1)?.[0]
+        .applicationListUpdateDto,
+    ).toEqual(
+      expect.objectContaining({ courtLocationCode: 'SAME', courtId: 42 }),
+    );
+
+    component.selectCourthouse(component.placeState().courtLocations[1]);
+    courts$.next([
+      { locationCode: 'SAME', courtId: 43, name: 'Current court' },
+    ]);
+    expect(component.placeState().courthouseSearch).toBe(
+      'SAME - Current court',
+    );
+    expect(component.selectedCourtId()).toBe(43);
+    await flushSignalEffects(fixture);
+    update.onUpdate();
+    await flushSignalEffects(fixture);
+    expect(
+      apiStub.updateApplicationList.mock.calls.at(-1)?.[0]
+        .applicationListUpdateDto,
+    ).toEqual(
+      expect.objectContaining({ courtLocationCode: 'SAME', courtId: 43 }),
+    );
+  });
+
+  it('shows unavailable saved details without using a current code match', () => {
+    courts$.next([
+      { locationCode: 'SAME', courtId: 43, name: 'Current court' },
+    ]);
+    component['prefillFromApi']({
+      id: 'id-1',
+      date: '2026-03-01',
+      time: '09:30:00',
+      description: 'Morning list',
+      status: ApplicationListStatus.OPEN,
+      courtCode: 'SAME',
+      courtId: 42,
+      version: 1,
+    });
+
+    expect(component.placeState().courthouseSearch).toBe(
+      'SAME - Court details unavailable',
+    );
+    expect(component.placeState().courtLocations[0].courtId).toBe(42);
+  });
+
+  it('keeps a historical saved court without an ID valid for unrelated edits', async () => {
+    component['prefillFromApi']({
+      id: 'id-1',
+      date: '2026-03-01',
+      time: '09:30:00',
+      description: 'Morning list',
+      status: ApplicationListStatus.OPEN,
+      courtCode: 'ENDED',
+      courtName: 'Saved court',
+      version: 1,
+    });
+
+    expect(component.placeState().courthouseSearch).toBe('ENDED - Saved court');
+    expect(component.placeState().courtLocations).toEqual([]);
+    expect(component.selectedCourtId()).toBeUndefined();
+    component.form.patchValue({ description: 'Updated description' });
+    component.form.updateValueAndValidity();
+    expect(component.form.controls.court.errors).toBeNull();
+
+    component.id = 'id-1';
+    apiStub.updateApplicationList.mockReturnValueOnce(
+      of(new HttpResponse<ApplicationListGetDetailDto>({ status: 204 })),
+    );
+    await flushSignalEffects(fixture);
+    const update = fixture.debugElement.query(
+      By.directive(ApplicationsListUpdateComponent),
+    ).componentInstance as ApplicationsListUpdateComponent;
+    update.onUpdate();
+    await flushSignalEffects(fixture);
+    expect(
+      apiStub.updateApplicationList.mock.calls.at(-1)?.[0]
+        .applicationListUpdateDto,
+    ).toEqual(
+      expect.objectContaining({
+        courtLocationCode: 'ENDED',
+        description: 'Updated description',
+      }),
+    );
+    expect(
+      apiStub.updateApplicationList.mock.calls.at(-1)?.[0]
+        .applicationListUpdateDto,
+    ).not.toHaveProperty('courtId');
+  });
 
   it('creates', () => {
     expect(component).toBeTruthy();
@@ -2708,6 +2845,108 @@ describe('ApplicationsListDetail', () => {
         text: 'Affected rows exceeds 1050. Please reduce the number of rows selected',
       },
     ]);
+  });
+
+  it.each([
+    BulkActionType.UPDATE_OFFICIALS,
+    BulkActionType.RESULT_SELECTED,
+    BulkActionType.UPDATE_FEE_DETAILS,
+    BulkActionType.MOVE_ENTRIES,
+    BulkActionType.PRINT_CONTINUOUS,
+    BulkActionType.PRINT_PAGE,
+  ])('uses the ALE-35 title for %s bulk preview errors', async (action) => {
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 403,
+            error: {
+              type: 'ALE-35',
+              title:
+                'One or more application list entries do not belong to the application list',
+              detail: 'invalid_entry_ids=[entry-1]',
+            },
+          }),
+      ),
+    );
+    patchDetailState({ selectedIds: new Set(['entry-1', 'entry-2']) });
+    component.id = 'list-123';
+
+    const preview = await (
+      component as unknown as BulkPreviewAccessor
+    ).getBulkPreview(action);
+
+    expect(preview).toBeNull();
+    expect(
+      entriesApiStub.applicationListEntryBulkActionPreview,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        applicationListEntryBulkActionPreviewRequestDto:
+          expect.objectContaining({
+            action,
+          }),
+      }),
+    );
+    expect(vm().errorSummary).toEqual([
+      {
+        text: 'One or more application list entries do not belong to the application list. Refresh the list and select the applications again.',
+      },
+    ]);
+  });
+
+  it('stops page printing when an ALE-35 preview error is returned', async () => {
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 403,
+            error: {
+              type: 'ALE-35',
+              title:
+                'One or more application list entries do not belong to the application list',
+              detail: 'invalid_entry_ids=[entry-1]',
+            },
+          }),
+      ),
+    );
+    patchDetailState({ selectedIds: new Set(['entry-1', 'entry-2']) });
+    component.id = 'list-123';
+
+    await component.onPrintPageClick();
+
+    expect(apiStub.printApplicationLists).not.toHaveBeenCalled();
+    expect(vm().pdfLoading).toBe(false);
+    expect(vm().errorSummary[0].text).toContain(
+      'Refresh the list and select the applications again.',
+    );
+  });
+
+  it('keeps detail-first text for other bulk preview errors', async () => {
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReset();
+    entriesApiStub.applicationListEntryBulkActionPreview.mockReturnValueOnce(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 403,
+            error: {
+              type: 'ALE-OTHER',
+              title: 'Other error title',
+              detail: 'Other error detail',
+            },
+          }),
+      ),
+    );
+    patchDetailState({ selectedIds: new Set(['entry-1']) });
+    component.id = 'list-123';
+
+    const preview = await (
+      component as unknown as BulkPreviewAccessor
+    ).getBulkPreview(BulkActionType.MOVE_ENTRIES);
+
+    expect(preview).toBeNull();
+    expect(vm().errorSummary).toEqual([{ text: 'Other error detail' }]);
   });
 
   it('onSearchStarted clears selection', () => {

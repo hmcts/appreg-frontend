@@ -25,13 +25,14 @@ import {
   OnInit,
   PLATFORM_ID,
   ViewChild,
+  afterEveryRender,
   inject,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { map } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import {
   ApplicationsListEntryDetailState,
@@ -72,6 +73,7 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { ApplicationWordingHelpComponent } from '@components/help-details/application-wording-help.component';
 import { CivilFeeHelpComponent } from '@components/help-details/civil-fee-help.component';
+import { NavigationWarningComponent } from '@components/navigation-warning/navigation-warning.component';
 import {
   ApplicationNotesForm,
   NotesSectionComponent,
@@ -176,6 +178,7 @@ export const ERROR_HREFS = {
     ReactiveFormsModule,
     RouterModule,
     BreadcrumbsComponent,
+    NavigationWarningComponent,
     AccordionComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
@@ -234,6 +237,49 @@ export class ApplicationsListEntryDetail implements OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
   forms!: ApplicationListEntryForms;
+  private savedContent?: ReturnType<
+    ApplicationListEntryFormService['editableContent']
+  >;
+
+  readonly hasUnchangedContent = signal(true);
+  @ViewChild(NavigationWarningComponent)
+  private navigationWarning?: NavigationWarningComponent;
+
+  canLeave(): boolean | Observable<boolean> {
+    const destination = this.router
+      .currentNavigation()
+      ?.extractedUrl.toString()
+      .split(/[?#]/, 1)[0];
+    const { appListId } = this.vm();
+    const entryId = getEntryId(this.route);
+    // The snapshot preserves form values, but not unapplied wording or result drafts.
+    if (
+      destination ===
+        `/applications-list/${appListId}/update-entry/${entryId}/change-payment-reference` &&
+      (this.wordingSection?.hasUnchangedContent() ?? true) &&
+      (this.resultWordingSection?.hasUnchangedContent() ?? true)
+    ) {
+      return true;
+    }
+    const changed = !this.contentIsUnchanged();
+    return this.navigationWarning?.canLeave(changed) ?? !changed;
+  }
+
+  private contentIsUnchanged(): boolean {
+    return (
+      this.savedContent === undefined ||
+      (this.formSvc.hasUnchangedContent(this.forms, this.savedContent) &&
+        (this.wordingSection?.hasUnchangedContent() ?? true) &&
+        (this.resultWordingSection?.hasUnchangedContent() ?? true))
+    );
+  }
+
+  constructor() {
+    // Child sections initialise their controls during rendering; compare afterwards.
+    afterEveryRender(() => {
+      this.hasUnchangedContent.set(this.contentIsUnchanged());
+    });
+  }
   form!: ApplicationsListEntryForm;
 
   personForm!: PersonForm;
@@ -510,6 +556,12 @@ export class ApplicationsListEntryDetail implements OnInit {
 
           this.form.controls.feeStatuses.markAsPristine();
 
+          if (this.savedContent) {
+            this.savedContent.form.feeStatuses = structuredClone(
+              this.form.controls.feeStatuses.getRawValue(),
+            );
+          }
+
           this.appListEntryDetailPatch({
             successBanner: bannerText,
           });
@@ -527,13 +579,18 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   // ── UI handlers ─────────────────────────────────────────────────────────────
-  onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
+  onCodeSelected(codeAndLodgementDate: {
+    code: string;
+    date: string;
+    applicationCodeId?: number;
+  }): void {
     this.resetSuccessBanner();
     this.resetErrors();
 
     const prevSelection = {
       code: this.form.controls.applicationCode.value,
       date: this.form.controls.lodgementDate.value,
+      applicationCodeId: this.form.controls.applicationCodeId?.value,
     };
 
     const lodgementDate =
@@ -541,76 +598,87 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.form.patchValue({
       applicationCode: codeAndLodgementDate.code,
+      applicationCodeId: null,
       lodgementDate,
     });
     this.appListEntryDetailPatch({ appCodeDetail: null });
     this.feeMeta = null;
     // Call API to retrieve data associated with the App code
     if (this.form.value.applicationCode && this.form.value.lodgementDate) {
-      this.applicationCodesApi
-        .getApplicationCodeByCodeAndDate(
-          {
-            code: codeAndLodgementDate.code,
-            date: codeAndLodgementDate.date,
-          },
-          'body',
-          false,
-          { transferCache: true },
-        )
-        .subscribe({
-          next: (appCodeDetail) => {
-            const hasSelectionChanged =
-              prevSelection.code !== codeAndLodgementDate.code;
+      const detail$ =
+        typeof codeAndLodgementDate.applicationCodeId === 'number'
+          ? this.applicationCodesApi.getApplicationCodeById(
+              {
+                id: codeAndLodgementDate.applicationCodeId,
+                date: lodgementDate,
+              },
+              'body',
+              false,
+              { transferCache: true },
+            )
+          : this.applicationCodesApi.getApplicationCodeByCodeAndDate(
+              { code: codeAndLodgementDate.code, date: lodgementDate },
+              'body',
+              false,
+              { transferCache: true },
+            );
+      detail$.subscribe({
+        next: (appCodeDetail) => {
+          const hasSelectionChanged =
+            prevSelection.code !== codeAndLodgementDate.code ||
+            (typeof appCodeDetail.applicationCodeId === 'number' &&
+              typeof prevSelection.applicationCodeId === 'number' &&
+              prevSelection.applicationCodeId !==
+                appCodeDetail.applicationCodeId);
 
-            this.form.patchValue({ applicationTitle: appCodeDetail.title });
-            this.feeMeta = {
-              feeReference: appCodeDetail.feeReference ?? null,
-              feeDescription: appCodeDetail.feeDescription ?? null,
-              feeAmount: appCodeDetail.feeAmount ?? null,
-              offsiteFeeReference: appCodeDetail.offsiteFeeReference ?? null,
-              offsiteFeeDescription:
-                appCodeDetail.offsiteFeeDescription ?? null,
-              offsiteFeeAmount: appCodeDetail.offsiteFeeAmount ?? null,
-            };
+          this.form.patchValue({
+            applicationTitle: appCodeDetail.title,
+            applicationCodeId: appCodeDetail.applicationCodeId ?? null,
+          });
+          this.feeMeta = {
+            feeReference: appCodeDetail.feeReference ?? null,
+            feeDescription: appCodeDetail.feeDescription ?? null,
+            feeAmount: appCodeDetail.feeAmount ?? null,
+            offsiteFeeReference: appCodeDetail.offsiteFeeReference ?? null,
+            offsiteFeeDescription: appCodeDetail.offsiteFeeDescription ?? null,
+            offsiteFeeAmount: appCodeDetail.offsiteFeeAmount ?? null,
+          };
 
-            if (hasSelectionChanged) {
-              this.wordingSubmitAttempt.set(0);
-              this.formSvc.resetSectionsOnApplicationCodeChange(
-                this.forms,
-                true,
-              );
-              this.wordingAppliedBannerVisible.set(false);
-              this.entryDetail!.wording = undefined;
-            }
+          if (hasSelectionChanged) {
+            this.wordingSubmitAttempt.set(0);
+            this.formSvc.resetSectionsOnApplicationCodeChange(this.forms, true);
+            this.wordingAppliedBannerVisible.set(false);
+            this.entryDetail!.wording = undefined;
+          }
 
-            const wordingSubstituteExists = appCodeDetail.wording[
-              'substitution-key-constraints'
-            ]?.length
-              ? true
-              : undefined;
-            const isFeeRequired = appCodeDetail.isFeeDue;
-            const isRespondentRequired = appCodeDetail.requiresRespondent;
+          const wordingSubstituteExists = appCodeDetail.wording[
+            'substitution-key-constraints'
+          ]?.length
+            ? true
+            : undefined;
+          const isFeeRequired = appCodeDetail.isFeeDue;
+          const isRespondentRequired = appCodeDetail.requiresRespondent;
 
-            this.handleResultWordingContext(this.navState);
+          this.handleResultWordingContext(this.navState);
 
-            this.appListEntryDetailPatch({
-              isFeeRequired,
-              bulkApplicationsAllowed: appCodeDetail.bulkRespondentAllowed,
-              appCodeDetail,
-            });
+          this.appListEntryDetailPatch({
+            isFeeRequired,
+            bulkApplicationsAllowed: appCodeDetail.bulkRespondentAllowed,
+            appCodeDetail,
+          });
 
-            this.openWordingSection.set(wordingSubstituteExists ?? false);
-            this.openCivilFeeSection.set(isFeeRequired);
-            this.openRespondentSection.set(isRespondentRequired);
-            this.entryAccordion?.scrollToFirstExpandedSection([2, 3, 4]);
-          },
-          error: (err) => {
-            this.form.patchValue({ applicationTitle: '' });
-            this.feeMeta = null;
-            this.handleResultWordingContext(this.navState);
-            this.applyMappedError(err);
-          },
-        });
+          this.openWordingSection.set(wordingSubstituteExists ?? false);
+          this.openCivilFeeSection.set(isFeeRequired);
+          this.openRespondentSection.set(isRespondentRequired);
+          this.entryAccordion?.scrollToFirstExpandedSection([2, 3, 4]);
+        },
+        error: (err) => {
+          this.form.patchValue({ applicationTitle: '' });
+          this.feeMeta = null;
+          this.handleResultWordingContext(this.navState);
+          this.applyMappedError(err);
+        },
+      });
     } else {
       this.form.patchValue({ applicationTitle: '' });
       this.feeMeta = null;
@@ -821,6 +889,17 @@ export class ApplicationsListEntryDetail implements OnInit {
     successBanner: SuccessBanner,
     onComplete?: () => void,
   ): void {
+    const submittedContent = this.formSvc.editableContent(this.forms);
+    if (Array.isArray(submittedContent.form.feeStatuses)) {
+      // The mapper sends table rows instead of the unadded fee-entry fields.
+      for (const field of [
+        'feeStatus',
+        'feeStatusDate',
+        'paymentRef',
+      ] as const) {
+        submittedContent.form[field] = this.savedContent?.form[field] ?? null;
+      }
+    }
     if (this.blockSaveWithoutApplicationCode()) {
       return;
     }
@@ -857,6 +936,7 @@ export class ApplicationsListEntryDetail implements OnInit {
             errorFound: false,
           });
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
+          this.savedContent = submittedContent;
           this.applySavedStandardApplicantSummary();
           this.appListEntryDetailPatch({ successBanner });
 
@@ -1041,21 +1121,43 @@ export class ApplicationsListEntryDetail implements OnInit {
     return this.formSvc.buildUpdateDto(
       this.entryDetail,
       this.forms,
-      this.selectedStandardApplicantCode,
+      this.form.controls.standardApplicantCode.value,
     );
   }
 
   onStandardApplicantCodeChanged(code: string | null): void {
     this.selectedStandardApplicantCode = code;
-    this.formSvc.setStandardApplicantCode(this.forms, code, {
+    // In Update, no selection means no replacement of the persisted applicant.
+    const effectiveCode =
+      code ??
+      (this.applicantType === 'standard'
+        ? (this.entryDetail?.standardApplicantCode ?? null)
+        : null);
+    this.formSvc.setStandardApplicantCode(this.forms, effectiveCode, {
       emitEvent: false,
     });
+    if (
+      effectiveCode === this.entryDetail?.standardApplicantCode &&
+      !this.form.controls.standardApplicantId?.value
+    ) {
+      this.form.controls.standardApplicantId?.setValue(
+        this.entryDetail?.standardApplicantId ?? null,
+        { emitEvent: false },
+      );
+    }
   }
 
   onSelectedStandardApplicantSummaryChanged(
     summary: SelectedStandardApplicantSummary | null,
   ): void {
     this.pendingStandardApplicantSummary = summary;
+    this.form.controls.standardApplicantId?.setValue(
+      summary?.standardApplicantId ??
+        (this.form.controls.standardApplicantCode.value ===
+        this.entryDetail?.standardApplicantCode
+          ? (this.entryDetail?.standardApplicantId ?? null)
+          : null),
+    );
   }
 
   onOffsiteFeeChanged(nextValue: boolean): void {
@@ -1113,6 +1215,31 @@ export class ApplicationsListEntryDetail implements OnInit {
         next: (res) => {
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
           this.persistedHasOffsiteFee = nextValue;
+          const offsiteFee = this.entryDetail?.fees?.find(
+            (fee) => fee.offsite === true,
+          );
+          const codeDetail = this.appListEntryDetailState().appCodeDetail;
+          this.feeMeta = {
+            ...this.feeMeta,
+            offsiteFeeReference: nextValue
+              ? (offsiteFee?.reference ??
+                codeDetail?.offsiteFeeReference ??
+                null)
+              : null,
+            offsiteFeeDescription: nextValue
+              ? (offsiteFee?.description ??
+                codeDetail?.offsiteFeeDescription ??
+                null)
+              : null,
+            offsiteFeeAmount: nextValue
+              ? typeof offsiteFee?.value === 'number'
+                ? { value: offsiteFee.value * 100, currency: 'GBP' }
+                : (codeDetail?.offsiteFeeAmount ?? null)
+              : null,
+          };
+          if (this.savedContent) {
+            this.savedContent.form.hasOffsiteFee = nextValue;
+          }
           this.form.controls.hasOffsiteFee.markAsPristine();
 
           this.appListEntryDetailPatch({
@@ -1158,7 +1285,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     switch (this.applicantType) {
       case 'standard':
-        return !this.selectedStandardApplicantCode;
+        return !this.form.controls.standardApplicantCode.value;
       case 'person':
       case 'org':
         return false;
@@ -1244,6 +1371,37 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    // Check if fees is populated and use this first
+    const feesMetaExistsInResponse = (entry.fees?.length ?? 0) > 0;
+
+    if (feesMetaExistsInResponse) {
+      const feesArr = entry.fees ?? [];
+
+      if (!feesArr.length) {
+        return;
+      }
+
+      const mainFee = feesArr.find((fee) => fee.offsite !== true);
+      const offsiteFee = feesArr.find((fee) => fee.offsite === true);
+
+      const feeMeta = {
+        feeReference: mainFee?.reference ?? null,
+        feeDescription: mainFee?.description ?? null,
+        feeAmount:
+          mainFee?.value === null || mainFee?.value === undefined
+            ? null
+            : { value: mainFee.value * 100, currency: 'GBP' }, // formatGbp() assumes the returned value in pence so multiple by 100
+        offsiteFeeReference: offsiteFee?.reference ?? null,
+        offsiteFeeDescription: offsiteFee?.description ?? null,
+        offsiteFeeAmount:
+          offsiteFee?.value === null || offsiteFee?.value === undefined
+            ? null
+            : { value: offsiteFee.value * 100, currency: 'GBP' }, // formatGbp() assumes the returned value in pence so multiple by 100
+      };
+
+      this.feeMeta = feeMeta;
+    }
+
     this.applicationCodesApi
       .getApplicationCodeById({ id: entry.applicationCodeId }, 'body', false, {
         transferCache: true,
@@ -1253,14 +1411,17 @@ export class ApplicationsListEntryDetail implements OnInit {
         next: (codeDto) => {
           this.form.patchValue({ applicationTitle: codeDto.title });
           this.handleResultWordingContext(this.navState);
-          this.feeMeta = {
-            feeReference: codeDto.feeReference ?? null,
-            feeDescription: codeDto.feeDescription ?? null,
-            feeAmount: codeDto.feeAmount ?? null,
-            offsiteFeeReference: codeDto.offsiteFeeReference ?? null,
-            offsiteFeeDescription: codeDto.offsiteFeeDescription ?? null,
-            offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
-          };
+
+          if (!feesMetaExistsInResponse) {
+            this.feeMeta = {
+              feeReference: codeDto.feeReference ?? null,
+              feeDescription: codeDto.feeDescription ?? null,
+              feeAmount: codeDto.feeAmount ?? null,
+              offsiteFeeReference: codeDto.offsiteFeeReference ?? null,
+              offsiteFeeDescription: codeDto.offsiteFeeDescription ?? null,
+              offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
+            };
+          }
 
           this.savedApplicationCodeLoaded.set(true);
           this.appListEntryDetailPatch({
@@ -1300,6 +1461,13 @@ export class ApplicationsListEntryDetail implements OnInit {
         // let the service reset the subforms + standard code
         this.formSvc.onApplicantTypeChanged(this.forms, t);
         this.formSvc.syncApplicantTypeState(this.forms, t);
+        if (t === 'standard') {
+          // Update restores the saved selection when returning to its section.
+          this.onStandardApplicantCodeChanged(
+            this.selectedStandardApplicantCode ??
+              this.savedStandardApplicantCode,
+          );
+        }
       });
   }
 
@@ -1375,6 +1543,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
           const type = this.form.controls.applicantType.value ?? 'person';
           this.formSvc.syncApplicantTypeState(this.forms, type);
+          this.savedContent = this.formSvc.editableContent(this.forms);
           this.applyEntryDetailSnapshot(state?.entryDetailSnapshot);
           this.handleResultWordingContext(state);
 
@@ -1388,7 +1557,11 @@ export class ApplicationsListEntryDetail implements OnInit {
               isRecord(snapshot?.form) &&
               hasStringProp(snapshot.form, 'applicationCode') &&
               snapshot.form.applicationCode &&
-              snapshot.form.applicationCode !== entry.applicationCode
+              (snapshot.form.applicationCode !== entry.applicationCode ||
+                (typeof snapshot.appCodeDetail?.applicationCodeId ===
+                  'number' &&
+                  snapshot.appCodeDetail.applicationCodeId !==
+                    entry.applicationCodeId))
             ) {
               this.applyEntryDetailSnapshot(snapshot);
             }
@@ -1406,6 +1579,10 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   buildChangePaymentReferenceState = (): Record<string, unknown> => ({
     entryDetailSnapshot: this.buildEntryDetailSnapshot(),
+    aleDraftProtection: {
+      active: !this.contentIsUnchanged(),
+      returnUrl: this.router.url.split(/[?#]/, 1)[0],
+    },
   });
 
   private buildEntryDetailSnapshot(): EntryDetailSnapshot {
@@ -1421,6 +1598,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         official: this.openOfficialSection(),
       },
       form: this.form.getRawValue(),
+      standardApplicantSummary: this.pendingStandardApplicantSummary,
       personForm: this.personForm.getRawValue(),
       organisationForm: this.organisationForm.getRawValue(),
       respondentPersonForm: this.forms.respondentPersonForm.getRawValue(),
@@ -1441,6 +1619,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (!state) {
       return;
     }
+    this.pendingStandardApplicantSummary =
+      state.standardApplicantSummary ?? null;
 
     this.openApplicantSection.set(
       state.expandedSections?.applicant ?? this.openApplicantSection(),
@@ -1565,15 +1745,18 @@ export class ApplicationsListEntryDetail implements OnInit {
       null;
     this.savedStandardApplicantDetailsUnavailable =
       this.savedStandardApplicantName === null;
-    this.pendingStandardApplicantSummary = this.savedStandardApplicantName
+    this.pendingStandardApplicantSummary ??= this.savedStandardApplicantName
       ? {
           code: applicant.code.trim(),
+          standardApplicantId: this.savedStandardApplicantId ?? undefined,
           name: this.savedStandardApplicantName,
         }
       : null;
   }
 
   private applySavedStandardApplicantSummary(): void {
+    this.savedStandardApplicantId =
+      this.entryDetail?.standardApplicantId ?? null;
     if (this.applicantType !== 'standard') {
       this.savedStandardApplicantCode = null;
       this.savedStandardApplicantName = null;
@@ -1621,6 +1804,15 @@ export class ApplicationsListEntryDetail implements OnInit {
       ...this.entryDetail,
       ...this.toEntryDetailPatch(entryUpdateDto),
     };
+
+    // Clear on successful app code change
+    const savedCodeChanged =
+      (res?.applicationCode ?? entryUpdateDto.applicationCode) !==
+      this.entryDetail.applicationCode;
+    if (savedCodeChanged && res?.fees === undefined) {
+      delete base.fees;
+    }
+
     const hasResponse =
       !!res && typeof res === 'object' && Object.keys(res).length > 0;
 

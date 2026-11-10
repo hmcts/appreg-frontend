@@ -117,9 +117,7 @@ export abstract class PlaceFieldsBase {
     bindings.add(
       ref.courtLocations$.subscribe((items) => {
         const code = String(form.controls['court'].value ?? '').trim();
-        const match = code
-          ? items.find((x) => x.locationCode === code)
-          : undefined;
+        const match = code ? this.findCourtForDisplay(items, code) : undefined;
 
         this.patch({
           courtLocations: items,
@@ -165,6 +163,13 @@ export abstract class PlaceFieldsBase {
     });
   }
 
+  protected findCourtForDisplay(
+    items: CourtLocationGetSummaryDto[],
+    code: string,
+  ): CourtLocationGetSummaryDto | undefined {
+    return items.find((court) => court.locationCode === code);
+  }
+
   onCjaInputChange(): void {
     const { cjaSearch, cja } = this.state();
     this.patch({ filteredCja: filterCja(this.placeForm, cjaSearch, cja) });
@@ -182,7 +187,7 @@ export abstract class PlaceFieldsBase {
     }
   }
 
-  selectCourthouse(c: CourtLocationGetSummaryDto | CourtSuggestionItem): void {
+  selectCourthouse(c: CourtLocationGetSummaryDto): void {
     const next = selectCourthouse(this.placeForm, c);
     this.patch({
       courthouseSearch: next.courthouseSearch,

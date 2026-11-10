@@ -12,6 +12,7 @@ import {
   toOptionalTrimmed,
 } from '@components/applications-list-entry-create/util/helpers';
 import { CivilFeeSectionComponent } from '@components/civil-fee-section/civil-fee-section.component';
+import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import {
   ApplicationCodeGetDetailDto,
   ApplicationCodeGetDetailDtoFeeAmountCurrencyEnum,
@@ -145,6 +146,25 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
       expect(component[section]()).toBe(true);
     },
   );
+
+  it('advances the focus cycle on each failed wording attempt before form submission', () => {
+    const errors = [
+      {
+        text: 'Enter a value for “Court” in the wording section',
+        href: '#Court',
+      },
+    ];
+    const initialAttempt = component.submitAttempt();
+
+    component.onChildErrors('wording', errors);
+    expect(component.vm().submitted).toBe(false);
+    expect(component.vm().summaryErrors).toEqual(errors);
+    expect(component.submitAttempt()).toBe(initialAttempt + 1);
+
+    component.onChildErrors('wording', errors);
+    expect(component.vm().summaryErrors).toEqual(errors);
+    expect(component.submitAttempt()).toBe(initialAttempt + 2);
+  });
 
   it('reopens Applicant after its manually collapsed state is reported', () => {
     markAsSubmitted();
@@ -1152,6 +1172,10 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     );
     expect(component.form.controls.feeStatus.disabled).toBe(true);
     expect(component.buildChangePaymentReferenceState()).toEqual({
+      aleDraftProtection: {
+        active: expect.any(Boolean),
+        returnUrl: TestBed.inject(Router).url.split(/[?#]/, 1)[0],
+      },
       entryCreateSnapshot: expect.objectContaining({
         form: component.form.getRawValue(),
         isFeeRequired: false,
@@ -1444,6 +1468,222 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
     jest.useRealTimers();
     document.body.innerHTML = '';
   });
+
+  it('shows unchanged content after reverting a main-form edit', async () => {
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    expect(component.hasUnchangedContent()).toBe(true);
+    jest
+      .spyOn(TestBed.inject(Router), 'url', 'get')
+      .mockReturnValue(
+        '/applications-list/LIST-1/create-entry?from=applications#civil-fee-section',
+      );
+    expect(
+      component.buildChangePaymentReferenceState()['aleDraftProtection'],
+    ).toEqual({
+      active: false,
+      returnUrl: '/applications-list/LIST-1/create-entry',
+    });
+    const notes = component.form.controls.applicationNotes.controls.notes;
+    const original = notes.value;
+    notes.setValue('Changed');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.hasUnchangedContent()).toBe(false);
+    expect(
+      component.buildChangePaymentReferenceState()['aleDraftProtection'],
+    ).toEqual({
+      active: true,
+      returnUrl: '/applications-list/LIST-1/create-entry',
+    });
+    expect(
+      fixture.nativeElement.querySelector('.app-content-indicator'),
+    ).toBeNull();
+    notes.setValue(original);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.hasUnchangedContent()).toBe(true);
+    expect(
+      component.buildChangePaymentReferenceState()['aleDraftProtection'],
+    ).toEqual({
+      active: false,
+      returnUrl: '/applications-list/LIST-1/create-entry',
+    });
+    for (const type of ['org', 'standard', 'person'] as const) {
+      component.form.controls.applicantType.setValue(type);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(component.hasUnchangedContent()).toBe(true);
+    }
+    component.personForm.controls.firstName.setValue('Jane');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.hasUnchangedContent()).toBe(false);
+    component.personForm.controls.firstName.setValue('');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.hasUnchangedContent()).toBe(true);
+    for (const type of ['organisation', 'person'] as const) {
+      component.form.controls.respondentEntryType.setValue(type);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(component.hasUnchangedContent()).toBe(true);
+    }
+    component.forms.respondentPersonForm.controls.firstName.setValue('Jane');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.hasUnchangedContent()).toBe(false);
+    component.forms.respondentPersonForm.controls.firstName.setValue('');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.hasUnchangedContent()).toBe(true);
+    expect(component.canLeave()).toBe(true);
+    const dialog: HTMLDialogElement =
+      fixture.nativeElement.querySelector('dialog');
+    dialog.showModal = jest.fn(() => {
+      dialog.open = true;
+    });
+    dialog.close = jest.fn(() => {
+      dialog.open = false;
+    });
+    notes.setValue('Unsaved draft');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const unload = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(unload);
+    expect(unload.defaultPrevented).toBe(true);
+    const answers: boolean[] = [];
+    const warning = component.canLeave();
+    if (typeof warning === 'boolean') {
+      throw new Error('Expected a warning');
+    }
+    warning.subscribe((leave) => answers.push(leave));
+    expect(dialog.open).toBe(true);
+    (dialog.querySelector('button[autofocus]') as HTMLButtonElement).click();
+    expect(answers).toEqual([false]);
+    expect(notes.value).toBe('Unsaved draft');
+    const secondWarning = component.canLeave();
+    if (typeof secondWarning === 'boolean') {
+      throw new Error('Expected a warning');
+    }
+    secondWarning.subscribe((leave) => answers.push(leave));
+    (
+      dialog.querySelector('.govuk-button--secondary') as HTMLButtonElement
+    ).click();
+    expect(answers).toEqual([false, true]);
+
+    const snapshot = component['buildEntryCreateSnapshot']();
+    component['savedContent'] = undefined;
+    component['applyEntryCreateSnapshot'](snapshot);
+    expect(component['contentIsUnchanged']()).toBe(false);
+    const router = TestBed.inject(Router);
+    const navigation = jest.spyOn(router, 'currentNavigation').mockReturnValue({
+      extractedUrl: router.parseUrl(
+        `/applications-list/${component.vm().id}/create-entry/change-payment-reference?from=applications`,
+      ),
+    } as ReturnType<Router['currentNavigation']>);
+    expect(component.canLeave()).toBe(true);
+    const wordingUnchanged = jest.fn(() => false);
+    component['wordingSection'] = {
+      hasUnchangedContent: wordingUnchanged,
+    } as WordingSectionComponent;
+    const paymentAnswers: boolean[] = [];
+    for (const button of ['button[autofocus]', '.govuk-button--secondary']) {
+      const warning = component.canLeave();
+      if (typeof warning === 'boolean') {
+        throw new Error('Expected a warning for unapplied wording');
+      }
+      warning.subscribe((leave) => paymentAnswers.push(leave));
+      (dialog.querySelector(button) as HTMLButtonElement).click();
+    }
+    expect(paymentAnswers).toEqual([false, true]);
+    expect(notes.value).toBe('Unsaved draft');
+    wordingUnchanged.mockReturnValue(true);
+    expect(component.canLeave()).toBe(true);
+    navigation.mockReturnValue(null);
+    component.appListEntryCreatePatch({ createDone: true });
+    expect(component.canLeave()).toBe(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const savedUnload = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(savedUnload);
+    expect(savedUnload.defaultPrevented).toBe(false);
+  });
+
+  it.each([true, false])(
+    'returns to unchanged after selecting and clearing an application code (fee due: %s)',
+    async (isFeeDue) => {
+      await TestBed.configureTestingModule({
+        imports: [ApplicationsListEntryCreate],
+        providers: [
+          provideRouter([]),
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          {
+            provide: ActivatedRoute,
+            useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+          },
+        ],
+      }).compileComponents();
+      jest
+        .spyOn(
+          TestBed.inject(ApplicationCodesApi),
+          'getApplicationCodeByCodeAndDate',
+        )
+        .mockReturnValue(
+          of({
+            applicationCode: 'TEST',
+            isFeeDue,
+            requiresRespondent: true,
+            wording: {
+              template: 'Test wording',
+              'substitution-key-constraints': [],
+            },
+          }) as ReturnType<
+            ApplicationCodesApi['getApplicationCodeByCodeAndDate']
+          >,
+        );
+      const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const component = fixture.componentInstance;
+      expect(component.hasUnchangedContent()).toBe(true);
+      const originalDate = component.form.controls.lodgementDate.value ?? '';
+      component.onCodeSelected({ code: 'TEST', date: originalDate });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(component.hasUnchangedContent()).toBe(false);
+      component.onCodeSelected({ code: '', date: '' });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(component.hasUnchangedContent()).toBe(true);
+      expect(component.form.controls.lodgementDate.value).toBe(originalDate);
+      component.onCodeSelected({ code: 'TEST', date: '2000-01-01' });
+      component.onCodeSelected({ code: '', date: '' });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(component.hasUnchangedContent()).toBe(false);
+      expect(component.form.controls.lodgementDate.value).toBe('2000-01-01');
+    },
+  );
 
   it('keeps focus in first name when the last error clears and returns during editing', async () => {
     await TestBed.configureTestingModule({

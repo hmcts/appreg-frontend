@@ -25,6 +25,7 @@ function makeSummary(
 ): StandardApplicantGetSummaryDto {
   return {
     // We only fill in the required fields
+    standardApplicantId: overrides.standardApplicantId ?? 1,
     code: overrides.code ?? 'SA-1',
     startDate: overrides.startDate ?? '2025-01-01',
     endDate: overrides.endDate ?? null,
@@ -48,6 +49,19 @@ function makeSummary(
 }
 
 describe('StandardApplicantSelectComponent', () => {
+  it('emits the exact selected record even when its code is unchanged', () => {
+    fixture.componentRef.setInput('selectedCode', 'SA1');
+    component.rows = [
+      { standardApplicantId: 20, code: 'SA1', name: 'Replacement' },
+    ];
+    const emit = jest.spyOn(component.selectedApplicantSummaryChange, 'emit');
+    component.onSelectedIdsChange(new Set(['20']));
+    expect(emit).toHaveBeenCalledWith({
+      standardApplicantId: 20,
+      code: 'SA1',
+      name: 'Replacement',
+    });
+  });
   let component: StandardApplicantSelectComponent;
   let fixture: ComponentFixture<StandardApplicantSelectComponent>;
   let mockGetStandardApplicants: GetStandardApplicantsFn;
@@ -87,6 +101,185 @@ describe('StandardApplicantSelectComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('replaces the initial search with an opt-in code filter and ticks the saved row', () => {
+    fixture.componentRef.setInput('selectedId', 1);
+    fixture.componentRef.setInput('selectedCode', 'SA-1');
+    fixture.componentRef.setInput('initialCodeFilter', 'SA-1');
+    fixture.detectChanges();
+    fixture.detectChanges();
+
+    expect(component.form.getRawValue()).toEqual({ code: 'SA-1', name: '' });
+    expect(mockGetStandardApplicants).toHaveBeenCalledTimes(1);
+    expect(mockGetStandardApplicants.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ code: 'SA-1', name: undefined, pageNumber: 0 }),
+    );
+    const checkbox = fixture.nativeElement.querySelector(
+      'input[type="checkbox"]',
+    ) as HTMLInputElement;
+    expect(checkbox.checked).toBe(true);
+
+    component.clearSearch();
+    fixture.detectChanges();
+    expect(component.form.getRawValue()).toEqual({ code: '', name: '' });
+    expect(mockGetStandardApplicants).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        code: undefined,
+        name: undefined,
+        pageNumber: 0,
+      }),
+      'body',
+      false,
+      { transferCache: true },
+    );
+    expect(component.selectedIds.has('1')).toBe(true);
+  });
+
+  it.each([20, undefined])(
+    'falls back once without ticking or emitting when the result ID is %s instead of the saved ID',
+    (id) => {
+      fixture.componentRef.setInput('selectedCode', 'SA-1');
+      fixture.componentRef.setInput('selectedId', 10);
+      fixture.componentRef.setInput('initialCodeFilter', 'SA-1');
+      const row = { ...makeSummary(), standardApplicantId: id };
+      mockGetStandardApplicants.mockReturnValue(
+        of({ content: [row], pageNumber: 0, totalPages: 1 }),
+      );
+      const codeChange = jest.spyOn(component.selectedCodeChange, 'emit');
+      const summaryChange = jest.spyOn(
+        component.selectedApplicantSummaryChange,
+        'emit',
+      );
+      fixture.detectChanges();
+      fixture.detectChanges();
+      fixture.detectChanges();
+
+      expect(mockGetStandardApplicants).toHaveBeenCalledTimes(2);
+      expect(component.form.getRawValue()).toEqual({ code: '', name: '' });
+      expect(component.selectedIds.size).toBe(0);
+      expect(codeChange).not.toHaveBeenCalled();
+      expect(summaryChange).not.toHaveBeenCalled();
+      expect(
+        fixture.nativeElement.querySelector('input[type="checkbox"]').checked,
+      ).toBe(false);
+
+      component.form.patchValue({ code: 'SA-1' });
+      component.onSubmit(new SubmitEvent('submit'));
+      fixture.detectChanges();
+      fixture.detectChanges();
+      expect(mockGetStandardApplicants).toHaveBeenCalledTimes(3);
+      expect(component.form.controls.code.value).toBe('SA-1');
+    },
+  );
+
+  it('ticks only the exact saved record when rows share a code', () => {
+    fixture.componentRef.setInput('selectedCode', 'SA-1');
+    fixture.componentRef.setInput('selectedId', 10);
+    fixture.componentRef.setInput('initialCodeFilter', 'SA-1');
+    mockGetStandardApplicants.mockReturnValue(
+      of({
+        content: [
+          makeSummary({ standardApplicantId: 10 }),
+          makeSummary({ standardApplicantId: 20 }),
+        ],
+        pageNumber: 0,
+        totalPages: 1,
+      }),
+    );
+    fixture.detectChanges();
+    fixture.detectChanges();
+    const checkboxes = fixture.nativeElement.querySelectorAll(
+      'input[type="checkbox"]',
+    );
+    expect(checkboxes[0].checked).toBe(true);
+    expect(checkboxes[1].checked).toBe(false);
+    expect(mockGetStandardApplicants).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back after an empty initial result, but not after user paging or sorting', () => {
+    fixture.componentRef.setInput('selectedCode', 'SA-1');
+    fixture.componentRef.setInput('selectedId', 10);
+    fixture.componentRef.setInput('initialCodeFilter', 'SA-1');
+    mockGetStandardApplicants.mockReturnValue(
+      of({ content: [], pageNumber: 0, totalPages: 0 }),
+    );
+    fixture.detectChanges();
+    fixture.detectChanges();
+    fixture.detectChanges();
+    expect(mockGetStandardApplicants).toHaveBeenCalledTimes(2);
+    expect(component.selectedIds.size).toBe(0);
+    component.onPageChange(1);
+    fixture.detectChanges();
+    fixture.detectChanges();
+    expect(mockGetStandardApplicants).toHaveBeenCalledTimes(3);
+    component.onSortChange({ key: 'name', direction: 'desc' });
+    fixture.detectChanges();
+    fixture.detectChanges();
+    expect(mockGetStandardApplicants).toHaveBeenCalledTimes(4);
+  });
+
+  it('does not treat a failed initial lookup as an absent historical record', () => {
+    fixture.componentRef.setInput('selectedCode', 'SA-1');
+    fixture.componentRef.setInput('selectedId', 10);
+    fixture.componentRef.setInput('initialCodeFilter', 'SA-1');
+    mockGetStandardApplicants.mockReturnValue(
+      throwError(() => new Error('network')),
+    );
+    const emit = jest.spyOn(component.searchErrorsChange, 'emit');
+    fixture.detectChanges();
+    fixture.detectChanges();
+    expect(mockGetStandardApplicants).toHaveBeenCalledTimes(1);
+    expect(component.form.controls.code.value).toBe('SA-1');
+    expect(component.selectedIds.has('10')).toBe(true);
+    expect(emit).toHaveBeenCalledWith([
+      expect.objectContaining({
+        text: 'Unable to load standard applicants. Please try again.',
+      }),
+    ]);
+  });
+
+  it('keeps an explicitly selected ID across paging and the parent code echo', () => {
+    fixture.detectChanges();
+    fixture.detectChanges();
+    component.onSelectedIdsChange(new Set(['1']));
+    fixture.componentRef.setInput('selectedCode', 'SA-1');
+    fixture.detectChanges();
+    component.onPageChange(1);
+    fixture.detectChanges();
+    expect(component.selectedIds.has('1')).toBe(true);
+  });
+
+  it('ignores selection of a row with no ID rather than clearing the saved association', () => {
+    fixture.componentRef.setInput('selectedCode', 'SA-1');
+    fixture.componentRef.setInput('selectedId', 10);
+    fixture.detectChanges();
+    const emit = jest.spyOn(component.selectedCodeChange, 'emit');
+    component.onSelectedIdsChange(new Set(['undefined']));
+    expect(component.selectedIds.has('10')).toBe(true);
+    expect(emit).not.toHaveBeenCalled();
+  });
+
+  it('keeps other screens unfiltered even when a selected code is supplied', () => {
+    fixture.componentRef.setInput('selectedCode', 'SA-1');
+    fixture.detectChanges();
+    expect(component.form.getRawValue()).toEqual({ code: '', name: '' });
+    expect(mockGetStandardApplicants).toHaveBeenCalledTimes(1);
+    expect(mockGetStandardApplicants.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ code: undefined, name: undefined }),
+    );
+  });
+
+  it('does not reapply the initial filter when the selection changes', () => {
+    fixture.componentRef.setInput('initialCodeFilter', 'SA-1');
+    fixture.detectChanges();
+    component.clearSearch();
+    fixture.detectChanges();
+    const calls = mockGetStandardApplicants.mock.calls.length;
+    fixture.componentRef.setInput('selectedCode', 'SA-2');
+    fixture.detectChanges();
+    expect(component.form.controls.code.value).toBe('');
+    expect(mockGetStandardApplicants).toHaveBeenCalledTimes(calls);
+  });
+
   it('loads first page on init and maps rows from API', () => {
     const page = {
       content: [
@@ -116,6 +309,7 @@ describe('StandardApplicantSelectComponent', () => {
         }),
         makeSummary({
           code: 'SA-2',
+          standardApplicantId: 2,
           applicant: {
             organisation: {
               name: 'Example Org',
@@ -177,12 +371,16 @@ describe('StandardApplicantSelectComponent', () => {
     expect(fixture.debugElement.query(By.css('app-pagination'))).toBeTruthy();
   });
 
-  it('uses selectedCode input to initialise selectedIds and emits changes when selection changes', () => {
+  it('uses selectedId input to initialise selectedIds and emits the code when selection changes', () => {
+    fixture.componentRef.setInput('selectedId', 2);
     // Pre-set selectedCode before first change detection
     fixture.componentRef.setInput('selectedCode', 'SA-2');
 
     const page = {
-      content: [makeSummary({ code: 'SA-1' }), makeSummary({ code: 'SA-2' })],
+      content: [
+        makeSummary({ code: 'SA-1', standardApplicantId: 1 }),
+        makeSummary({ code: 'SA-2', standardApplicantId: 2 }),
+      ],
       pageNumber: 0,
       pageSize: 10,
       totalElements: 2,
@@ -196,16 +394,16 @@ describe('StandardApplicantSelectComponent', () => {
     fixture.detectChanges();
     fixture.detectChanges();
 
-    // After init, selectedIds should reflect selectedCode
-    expect(component.selectedIds.has('SA-2')).toBe(true);
+    expect(component.selectedIds.has('2')).toBe(true);
 
     // Simulate user selecting a different row
-    component.onSelectedIdsChange(new Set<string>(['SA-1']));
+    component.onSelectedIdsChange(new Set<string>(['1']));
 
     expect(emitSpy).toHaveBeenCalledWith('SA-1');
   });
 
   it('clears selection when selectedCode becomes null', () => {
+    fixture.componentRef.setInput('selectedId', 1);
     fixture.componentRef.setInput('selectedCode', 'SA-1');
     fixture.detectChanges();
     fixture.detectChanges();

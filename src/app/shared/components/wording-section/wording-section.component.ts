@@ -24,6 +24,10 @@ export class WordingSectionComponent {
   @ViewChild(WordingParserComponent)
   private readonly wordingParser?: WordingParserComponent;
 
+  hasUnchangedContent(): boolean {
+    return this.wordingParser?.hasUnchangedContent() ?? true;
+  }
+
   wordingObject = input.required<TemplateDetail>();
   wordingObjectValues = input<TemplateDetail>();
   wordingSubmitAttempt = input.required<number>();

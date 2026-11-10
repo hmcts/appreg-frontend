@@ -1,3 +1,4 @@
+import { isSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ApplicantContext } from '@components/applications-list-entry-detail/util/routing-state-util';
@@ -18,7 +19,7 @@ function makeResultCode(
 }
 
 function makeExistingResult(overrides: Partial<ResultGetDto>): ResultGetDto {
-  const base = { id: '', resultCode: '' };
+  const base = { id: '', resultCode: '', resultCodeId: 1 };
   return { ...base, ...overrides } as unknown as ResultGetDto;
 }
 
@@ -29,6 +30,73 @@ function dispatchKeydown(element: HTMLElement, key: string): void {
 }
 
 describe('ResultWordingSectionComponent', () => {
+  it('loads separate titles for saved versions sharing a code, without replacing saved wording', () => {
+    fixture.componentRef.setInput('wordingByCode', {
+      RC1: 'Current reference wording',
+    });
+    fixture.componentRef.setInput('savedResultTitles', {
+      10: 'Historical title',
+      20: 'Current title',
+    });
+    fixture.componentRef.setInput('existingResults', [
+      makeExistingResult({
+        id: 'old-result',
+        resultCode: 'RC1',
+        resultCodeId: 10,
+        wording: {
+          template: 'Saved {{Court}}',
+          'substitution-key-constraints': [
+            {
+              key: 'Court',
+              value: 'Original court',
+              constraint: { type: 'TEXT', length: 100 },
+            },
+          ],
+        },
+      }),
+      makeExistingResult({
+        id: 'new-result',
+        resultCode: 'RC1',
+        resultCodeId: 20,
+      }),
+    ]);
+    fixture.detectChanges();
+    expect(component.existingRows().map((row) => row.display)).toEqual([
+      'RC1 - Historical title',
+      'RC1 - Current title',
+    ]);
+    expect(component.existingRows()[0].wording).toBe('Original court');
+    expect(component.tableRows()[0].wording).toBe('Original court');
+    expect(component.existingRows()[0].id).toBe('old-result');
+  });
+
+  it('shows an accessible error for an unavailable saved reference instead of using the current title', () => {
+    fixture.componentRef.setInput(
+      'savedResultDetailsError',
+      'Some saved result code details could not be loaded. No alternative version has been used. Reload the page to try again.',
+    );
+    fixture.componentRef.setInput('existingResults', [
+      makeExistingResult({ id: 'E1', resultCode: 'RC1', resultCodeId: 10 }),
+    ]);
+    fixture.detectChanges();
+    expect(component.existingRows()[0].display).toBe('RC1');
+    expect(
+      fixture.nativeElement.querySelector('[role="alert"]').textContent,
+    ).toContain('No alternative version has been used');
+  });
+
+  it('does not substitute a current title when the saved reference ID is missing', () => {
+    fixture.componentRef.setInput('existingResults', [
+      makeExistingResult({
+        id: 'E1',
+        resultCode: 'RC1',
+        resultCodeId: undefined,
+      }),
+    ]);
+    fixture.detectChanges();
+    expect(component.existingRows()[0].display).toBe('RC1');
+  });
+
   let component: ResultWordingSectionComponent;
   let fixture: ComponentFixture<ResultWordingSectionComponent>;
 
@@ -61,6 +129,49 @@ describe('ResultWordingSectionComponent', () => {
     fixture.componentRef.setInput('clearPendingToken', 0);
 
     fixture.detectChanges();
+  });
+
+  it('compares result drafts with persisted wording, not applied wording', () => {
+    expect(isSignal(component.hasUnchangedContent)).toBe(true);
+    fixture.componentRef.setInput('existingResults', [
+      makeExistingResult({
+        id: 'result-1',
+        resultCode: 'RC1',
+        wording: {
+          template: 'Hello {{Name}}',
+          'substitution-key-constraints': [
+            {
+              key: 'Name',
+              value: 'Original',
+              constraint: { length: 50, type: TemplateConstraintTypeEnum.TEXT },
+            },
+          ],
+        },
+      }),
+    ]);
+    fixture.detectChanges();
+    expect(component.hasUnchangedContent()).toBe(true);
+    component.onCardWordingFieldsDTO(
+      { id: 'result-1', status: 'existing' },
+      {
+        wordingFields: [{ key: 'Name', value: 'Changed' }],
+      },
+    );
+    expect(component.hasUnchangedContent()).toBe(false);
+    component['markExistingDraftsApplied']([
+      {
+        resultId: 'result-1',
+        wordingFields: [{ key: 'Name', value: 'Changed' }],
+      },
+    ]);
+    expect(component.hasUnchangedContent()).toBe(false);
+    component.onCardWordingFieldsDTO(
+      { id: 'result-1', status: 'existing' },
+      {
+        wordingFields: [{ key: 'Name', value: 'Original' }],
+      },
+    );
+    expect(component.hasUnchangedContent()).toBe(true);
   });
 
   it('should create', () => {
@@ -473,7 +584,7 @@ describe('ResultWordingSectionComponent', () => {
     expect(submitSpy).not.toHaveBeenCalled();
   });
 
-  it('tableRows maps wordingByCode by normalized code (uppercase) for pending and existing', () => {
+  it('maps current wording for pending results but preserves saved wording', () => {
     fixture.componentRef.setInput('existingResults', [
       makeExistingResult({ id: 'E1', resultCode: 'ab9' }),
     ]);
@@ -499,13 +610,15 @@ describe('ResultWordingSectionComponent', () => {
     );
     expect(existingRow).toBeDefined();
     expect(existingRow?.resultCode.toUpperCase()).toBe('AB9');
-    expect(existingRow?.wording).toBe('Mapped wording');
+    expect(existingRow?.wording).toBe('-');
   });
 
   it('onRemoveClicked removes pending by tempId and emits pendingChange', () => {
     const pendingEmitSpy = jest.spyOn(component.pendingChange, 'emit');
+    expect(component.hasUnchangedContent()).toBe(true);
 
     component.selectResultCode(codes[0]);
+    expect(component.hasUnchangedContent()).toBe(false);
 
     const pendingRow = component
       .tableRows()
@@ -517,6 +630,7 @@ describe('ResultWordingSectionComponent', () => {
 
     component.onRemoveClicked(pendingRow!);
 
+    expect(component.hasUnchangedContent()).toBe(true);
     expect(component.canSubmitResults()).toBe(false);
 
     const lastArg = pendingEmitSpy.mock.calls.at(-1)![0];

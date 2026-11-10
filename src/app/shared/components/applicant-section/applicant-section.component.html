@@ -81,7 +81,9 @@
       }
 
       <app-standard-applicant-select
+        [initialCodeFilter]="initialStandardApplicantCodeFilter()"
         [selectedCode]="selectedStandardApplicantCode()"
+        [selectedId]="selectedStandardApplicantId()"
         (selectedCodeChange)="onStandardChanged($event)"
         (selectedApplicantSummaryChange)="
           onSelectedStandardApplicantSummaryChanged($event)

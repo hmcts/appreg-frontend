@@ -77,7 +77,11 @@ export class ApplicationCodeSearchComponent implements OnInit {
     direction: 'asc',
   });
 
-  selectCodeAndLodgementDate = output<{ code: string; date: string }>();
+  selectCodeAndLodgementDate = output<{
+    code: string;
+    date: string;
+    applicationCodeId?: number;
+  }>();
   resultsChange = output<ApplicationCodeGetSummaryDto[]>();
   resetParentErrors = output<void>();
   codeSearchErrors = output<ErrorItem[]>();
@@ -254,6 +258,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
     this.selectCodeAndLodgementDate.emit({
       code,
+      applicationCodeId: row.applicationCodeId,
       date: this.form.controls.lodgementDate.value ?? '',
     });
   }

@@ -111,7 +111,7 @@ export function onCjaInputChange(
 
 export function selectCourthouse(
   form: FormGroup,
-  c: CourtLocationGetSummaryDto | CourtSuggestionItem,
+  c: CourtLocationGetSummaryDto,
 ): {
   courthouseSearch: string;
   filteredCourthouses: CourtSuggestionItem[];

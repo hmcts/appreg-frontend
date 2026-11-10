@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { FormGroup, NonNullableFormBuilder } from '@angular/forms';
+import { cloneDeep, isEqualWith, omit } from 'lodash';
 import { Observable, merge } from 'rxjs';
 
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
@@ -51,6 +52,91 @@ export class ApplicationListEntryFormService {
   private readonly fb = inject(NonNullableFormBuilder);
 
   private readonly emptyOrganisation: Organisation = createEmptyOrganisation();
+
+  editableContent(forms: ApplicationListEntryForms): {
+    form: Omit<
+      ReturnType<ApplicationListEntryForms['form']['getRawValue']>,
+      'applicationTitle' | 'respondent'
+    >;
+    person: PersonForm['value'] | null;
+    organisation: ApplicationListEntryForms['organisationForm']['value'] | null;
+    respondentPerson: RespondentPersonForm['value'] | null;
+    respondentOrganisation:
+      | ApplicationListEntryForms['respondentOrganisationForm']['value']
+      | null;
+  } {
+    const form = omit(
+      forms.form.getRawValue(),
+      'applicationTitle',
+      'respondent',
+    );
+    const personValues = forms.personForm.getRawValue();
+    const organisationValues = forms.organisationForm.getRawValue();
+    const person =
+      form.applicantType === 'person' &&
+      Object.values(personValues).some(Boolean)
+        ? personValues
+        : null;
+    const organisation =
+      form.applicantType === 'org' &&
+      Object.values(organisationValues).some(Boolean)
+        ? organisationValues
+        : null;
+    const respondentPersonValues = forms.respondentPersonForm.getRawValue();
+    const respondentOrganisationValues =
+      forms.respondentOrganisationForm.getRawValue();
+    const respondentPerson =
+      form.respondentEntryType === 'person' &&
+      Object.values(respondentPersonValues).some(Boolean)
+        ? respondentPersonValues
+        : null;
+    const respondentOrganisation =
+      form.respondentEntryType === 'organisation' &&
+      Object.values(respondentOrganisationValues).some(Boolean)
+        ? respondentOrganisationValues
+        : null;
+    // The title is metadata; respondent content comes from the editable subforms, not its cached DTO.
+    return cloneDeep({
+      form: {
+        ...form,
+        wordingFields: form.wordingFields ?? [],
+        // Choosing an empty applicant section is UI state, not changed content.
+        applicantType:
+          person || organisation || form.standardApplicantCode
+            ? form.applicantType
+            : 'person',
+        // An empty respondent section is also UI state; a bulk count is content.
+        respondentEntryType:
+          respondentPerson ||
+          respondentOrganisation ||
+          (form.respondentEntryType === 'bulk' &&
+            form.numberOfRespondents !== null &&
+            form.numberOfRespondents !== undefined)
+            ? form.respondentEntryType
+            : 'person',
+      },
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    });
+  }
+
+  hasUnchangedContent(
+    forms: ApplicationListEntryForms,
+    baseline: unknown,
+  ): boolean {
+    return isEqualWith(
+      baseline,
+      this.editableContent(forms),
+      (left: unknown, right: unknown) =>
+        // Clearing an initially null text input produces an empty string.
+        (left === null || left === undefined || left === '') &&
+        (right === null || right === undefined || right === '')
+          ? true
+          : undefined,
+    );
+  }
 
   createForms(): ApplicationListEntryForms {
     return {
@@ -106,6 +192,7 @@ export class ApplicationListEntryFormService {
       {
         lodgementDate: dto.lodgementDate ?? null,
         applicationCode: dto.applicationCode ?? null,
+        applicationCodeId: dto.applicationCodeId ?? null,
         respondent: dto.respondent ?? null,
         numberOfRespondents: dto.numberOfRespondents ?? null,
         wordingFields: getEntryWordingFields(dto) ?? null,
@@ -128,6 +215,10 @@ export class ApplicationListEntryFormService {
     if (standardCode) {
       this.setApplicantType(forms, 'standard', { emitEvent });
       this.setStandardApplicantCode(forms, standardCode, { emitEvent });
+      forms.form.controls.standardApplicantId?.setValue(
+        dto.standardApplicantId ?? null,
+        { emitEvent },
+      );
 
       // reset subforms
       forms.personForm.reset();
@@ -250,6 +341,14 @@ export class ApplicationListEntryFormService {
     opts?: { emitEvent?: boolean },
   ): void {
     const trimmed = code?.trim() || null;
+    if (
+      !trimmed ||
+      forms.form.controls.standardApplicantCode.value !== trimmed
+    ) {
+      forms.form.controls.standardApplicantId?.setValue(null, {
+        emitEvent: opts?.emitEvent !== false,
+      });
+    }
     forms.form.controls.standardApplicantCode.setValue(trimmed, {
       emitEvent: opts?.emitEvent !== false,
     });

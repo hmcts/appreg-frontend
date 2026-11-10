@@ -303,22 +303,22 @@
         </caption>
         <!-- actions slot -->
         <ng-template #actionsTemplate let-row>
-          <div
-            class="moj-button-menu"
-            data-module="moj-button-menu"
-            data-button-text="Select"
-            data-button-classes="govuk-button"
-          >
-            <!-- Open button -->
-            <button
-              type="button"
-              class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="openUpdate(row)"
+          @if (canModifyList()) {
+            <div
+              class="moj-button-menu"
+              data-module="moj-button-menu"
+              data-button-text="Select"
+              data-button-classes="govuk-button"
             >
-              Open
-            </button>
+              <!-- Open button -->
+              <button
+                type="button"
+                class="govuk-button moj-button-menu__item govuk-button--secondary"
+                (click)="openUpdate(row)"
+              >
+                Open
+              </button>
 
-            @if (canModifyList()) {
               <!-- Delete button -->
               <button
                 type="button"
@@ -327,8 +327,17 @@
               >
                 Delete
               </button>
-            }
-          </div>
+            </div>
+          } @else {
+            <!-- Open button - cannot modify list -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="openUpdate(row)"
+            >
+              Open
+            </button>
+          }
         </ng-template>
       </app-sortable-table>
     } @else if (noEntries && !vm().isLoading) {
@@ -374,6 +383,8 @@
       [suggestionsFacade]="suggestionsFacade"
       [listRow]="listRow"
       [originalListDetails]="originalListDetail"
+      [originalCourtId]="originalCourtId"
+      [selectedCourtId]="selectedCourtId()"
     />
   </div>
 </div>

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import {
   HttpTestingController,
   provideHttpClientTesting,
@@ -9,6 +9,7 @@ import { ROUTER_CONFIGURATION } from '@angular/router';
 
 import { appConfig } from '../../../src/app/app.config';
 
+import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import { AppConfigService } from '@core/services/app-config.service';
 import { TelemetryService } from '@core/services/telemetry.service';
 import * as moduleRecovery from '@core/util/global-module-load-error-listener';
@@ -64,6 +65,21 @@ describe('appConfig', () => {
       const request = http.expectOne('/example');
       expect(request.request.withCredentials).toBe(true);
       request.flush({});
+
+      TestBed.inject(HttpClient)
+        .delete('/application-lists/synthetic-list', {
+          context: new HttpContext()
+            .set(IF_MATCH, '"synthetic-version"')
+            .set(ROW_VERSION, '1'),
+        })
+        .subscribe();
+      const deletion = http.expectOne('/application-lists/synthetic-list');
+      expect(deletion.request.headers.get('If-Match')).toBe(
+        '"synthetic-version"',
+      );
+      expect(deletion.request.headers.get('X-Row-Version')).toBe('1');
+      expect(deletion.request.withCredentials).toBe(true);
+      deletion.flush(null, { status: 204, statusText: 'No Content' });
       http.verify();
     } finally {
       install.mockRestore();

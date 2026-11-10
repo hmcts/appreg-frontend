@@ -371,6 +371,7 @@ describe('ApplicationCodeSearchComponent', () => {
     component.hasSearched.set(true);
 
     const rowWithWhitespace: CodeRow = {
+      applicationCodeId: 42,
       code: ` ${mockRows.rows[0].code} `,
       title: ` ${mockRows.rows[0].title} `,
       bulk: mockRows.rows[0].bulk,
@@ -382,6 +383,7 @@ describe('ApplicationCodeSearchComponent', () => {
 
     expect(emitSpy).toHaveBeenCalledWith({
       code: mockRows.rows[0].code,
+      applicationCodeId: 42,
       date: '2024-01-01',
     });
 

@@ -1,9 +1,10 @@
-import { DestroyRef, Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Observable,
   catchError,
   concat,
+  forkJoin,
   map,
   of,
   takeWhile,
@@ -63,6 +64,45 @@ export class ApplicationListEntryResultsFacade {
   readonly entryResultsLoading = signal(false);
 
   readonly newlyCreatedEntryResults = signal<ResultGetDto[]>([]);
+  readonly savedResultTitles = signal<Record<number, string | undefined>>({});
+  readonly savedResultDetailsError = signal('');
+
+  constructor() {
+    effect((onCleanup) => {
+      const ids = [
+        ...new Set(
+          [...this.entryResults(), ...this.newlyCreatedEntryResults()].map(
+            (result) => result.resultCodeId,
+          ),
+        ),
+      ];
+      this.savedResultTitles.set({});
+      this.savedResultDetailsError.set('');
+      if (!ids.length) {
+        return;
+      }
+
+      // Saved titles use the persisted reference ID, never a current code/date match.
+      const subscription = forkJoin(
+        ids.map((id) =>
+          Number.isSafeInteger(id) && id > 0
+            ? this.resultCodesApi.getResultCodeById({ id }).pipe(
+                map((detail) => [id, detail.title] as const),
+                catchError(() => of([id, undefined] as const)),
+              )
+            : of([id, undefined] as const),
+        ),
+      ).subscribe((titles) => {
+        this.savedResultTitles.set(Object.fromEntries(titles));
+        if (titles.some(([, title]) => title === undefined)) {
+          this.savedResultDetailsError.set(
+            'Some saved result code details could not be loaded. No alternative version has been used. Reload the page to try again.',
+          );
+        }
+      });
+      onCleanup(() => subscription.unsubscribe());
+    });
+  }
 
   readonly pendingRows = signal<PendingResultRow[]>([]);
   readonly clearPendingToken = signal(0);

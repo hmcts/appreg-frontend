@@ -35,7 +35,7 @@ const refFacadeStub: Pick<
   'courtLocations$' | 'cja$' | 'hasPlaceLoadError' | 'refresh'
 > = {
   courtLocations$: of<CourtLocationGetSummaryDto[]>([
-    { name: 'Alpha Court', locationCode: 'A1' },
+    { courtId: 1, name: 'Alpha Court', locationCode: 'A1' },
   ]),
   cja$: of<CriminalJusticeAreaGetDto[]>([
     { code: 'C1', description: 'Area One' },
@@ -1026,6 +1026,7 @@ describe('ReportsComponent', () => {
       dateTo: '2026-01-31',
     });
     component.suggestionsFacade.selectCourthouse({
+      courtId: 1,
       locationCode: 'A1',
       name: 'Alpha Court',
     });
