@@ -40,6 +40,27 @@ describe('ApplicationsSearchFormService', () => {
     expect(service.state().respondentName).toBe('');
   });
 
+  it('defaults the list date range to null', () => {
+    expect(DEFAULT_APPLICATIONS_SEARCH_FORM).toEqual(
+      expect.objectContaining({ dateFrom: null, dateTo: null }),
+    );
+    expect(service.state().dateFrom).toBeNull();
+    expect(service.state().dateTo).toBeNull();
+  });
+
+  it('resets the list date range to null', () => {
+    service.setState({
+      ...DEFAULT_APPLICATIONS_SEARCH_FORM,
+      dateFrom: '2026-05-01',
+      dateTo: '2026-05-31',
+    });
+
+    service.reset();
+
+    expect(service.state().dateFrom).toBeNull();
+    expect(service.state().dateTo).toBeNull();
+  });
+
   it('sets form state', () => {
     const next: ApplicationsSearchFormValue = {
       ...DEFAULT_APPLICATIONS_SEARCH_FORM,

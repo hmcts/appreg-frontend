@@ -103,6 +103,10 @@ const RESTORED_ENTRY_ID = 'persisted-entry';
 const RESTORED_LIST_ID = 'persisted-list';
 const SYNTHETIC_APPLICANT_NAME = 'Synthetic Applicant Ltd';
 const SYNTHETIC_RESPONDENT_NAME = 'Synthetic Respondent';
+const LIST_DATE = '2026-05-21';
+const RANGE_FROM = '2026-05-01';
+const RANGE_TO = '2026-05-31';
+const SEARCH_PROBLEM_TEXT = 'Synthetic search filter problem';
 
 describe('ApplicationsComponent', () => {
   let component: Applications;
@@ -898,6 +902,43 @@ describe('ApplicationsComponent', () => {
 
       expect(component.vm().isSelectingAll).toBe(false);
     });
+
+    it('maps a list date range into dateFrom and dateTo', () => {
+      component.form.patchValue({
+        dateFrom: RANGE_FROM,
+        dateTo: RANGE_TO,
+      });
+
+      const filter = (component as unknown as HasLoadQuery).loadQuery();
+
+      expect(filter).toEqual({ dateFrom: RANGE_FROM, dateTo: RANGE_TO });
+      expect(filter).not.toHaveProperty('date');
+    });
+
+    it('sends only the given end of an open-ended date range', () => {
+      component.form.patchValue({ dateFrom: RANGE_FROM });
+
+      const filter = (component as unknown as HasLoadQuery).loadQuery();
+
+      expect(filter).toEqual({ dateFrom: RANGE_FROM });
+      expect(filter).not.toHaveProperty('dateTo');
+    });
+
+    it.each([
+      ['empty', ''],
+      ['whitespace-only', '   '],
+      ['null', null],
+    ])('leaves out %s date range values', (_caseName, value) => {
+      component.form.patchValue({
+        dateFrom: value,
+        dateTo: value,
+        applicantOrg: 'Synthetic Org',
+      });
+
+      const filter = (component as unknown as HasLoadQuery).loadQuery();
+
+      expect(filter).toEqual({ applicantOrganisation: 'Synthetic Org' });
+    });
   });
 
   describe('loadQuery', () => {
@@ -1278,6 +1319,327 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().searchErrors[0].text).toContain(
         'There was a problem retrieving the applications',
       );
+    });
+
+    it('shows the problem text in the error summary when the search returns 400', () => {
+      component.form.patchValue({ dateFrom: RANGE_FROM, dateTo: RANGE_TO });
+      getEntriesMock.mockReturnValueOnce(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 400,
+              statusText: 'Bad Request',
+              url: '/application-list-entries',
+              error: {
+                type: 'ALE-58',
+                title: 'Bad Request',
+                status: 400,
+                detail: SEARCH_PROBLEM_TEXT,
+              },
+            }),
+        ),
+      );
+
+      component.loadApplications();
+      fixture.detectChanges();
+
+      expect(component.vm().isLoading).toBe(false);
+      expect(component.vm().searchErrors).toEqual([
+        { id: '', text: SEARCH_PROBLEM_TEXT },
+      ]);
+
+      const summary = fixture.nativeElement.querySelector(
+        '[data-component="error-summary"]',
+      ) as HTMLElement;
+      expect(summary.textContent).toContain(SEARCH_PROBLEM_TEXT);
+      expect(summary.textContent).not.toContain(
+        'There was a problem retrieving the applications',
+      );
+      expect(fixture.nativeElement.textContent).not.toContain(
+        'No results found.',
+      );
+    });
+
+    it('keeps the generic error when a 400 has no problem details', () => {
+      component.form.patchValue({ dateFrom: RANGE_FROM, dateTo: RANGE_TO });
+      getEntriesMock.mockReturnValueOnce(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 400,
+              statusText: 'Bad Request',
+              url: '/application-list-entries?filter=synthetic',
+              error: '<html>Bad Request</html>',
+            }),
+        ),
+      );
+
+      component.loadApplications();
+      fixture.detectChanges();
+
+      expect(component.vm().searchErrors).toEqual([
+        {
+          id: '',
+          text: 'There was a problem retrieving the applications. Try again.',
+        },
+      ]);
+      expect(fixture.nativeElement.textContent).not.toContain(
+        'Http failure response',
+      );
+    });
+
+    it('keeps the generic error when the search returns 500', () => {
+      component.form.patchValue({ applicantOrg: 'Synthetic Org' });
+      getEntriesMock.mockReturnValueOnce(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 500,
+              statusText: 'Internal Server Error',
+              url: '/application-list-entries',
+              error: {
+                title: 'Internal Server Error',
+                status: 500,
+                detail: SEARCH_PROBLEM_TEXT,
+              },
+            }),
+        ),
+      );
+
+      component.loadApplications();
+      fixture.detectChanges();
+
+      expect(component.vm().searchErrors).toEqual([
+        {
+          id: '',
+          text: 'There was a problem retrieving the applications. Try again.',
+        },
+      ]);
+      expect(fixture.nativeElement.textContent).not.toContain(
+        SEARCH_PROBLEM_TEXT,
+      );
+    });
+  });
+
+  describe('list date range', () => {
+    const submitSearch = () => {
+      component.onSubmit({
+        preventDefault: jest.fn(),
+      } as unknown as SubmitEvent);
+      fixture.detectChanges();
+    };
+
+    const root = () => fixture.nativeElement as HTMLElement;
+
+    const isBefore = (first: Element | null, second: Element | null) =>
+      !!first &&
+      !!second &&
+      !!(
+        first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING
+      );
+
+    it('renders List date from and List date to under Or search a date range, after List date', () => {
+      const group = root().querySelector(
+        '[role="group"][aria-labelledby="date-range-heading"]',
+      );
+      const heading = root().querySelector('#date-range-heading');
+      const legends = Array.from(root().querySelectorAll('legend')).map(
+        (legend) => legend.textContent?.trim(),
+      );
+
+      expect(heading?.textContent?.trim()).toBe('Or search a date range');
+      expect(legends).toEqual(
+        expect.arrayContaining(['List date from', 'List date to']),
+      );
+      expect(group?.querySelector('#date-from-day')).toBeTruthy();
+      expect(group?.querySelector('#date-to-day')).toBeTruthy();
+      expect(group?.querySelector('#date-day')).toBeNull();
+      expect(isBefore(root().querySelector('#date-day'), heading)).toBe(true);
+      expect(
+        isBefore(
+          root().querySelector('#date-from-day'),
+          root().querySelector('#date-to-day'),
+        ),
+      ).toBe(true);
+    });
+
+    it('searches by a date range alone', () => {
+      getEntriesMock.mockClear();
+      component.form.patchValue({ dateFrom: RANGE_FROM, dateTo: RANGE_TO });
+
+      submitSearch();
+
+      expect(getEntriesMock).toHaveBeenCalledTimes(1);
+      expect(getEntriesMock.mock.calls[0][0]?.filter).toEqual({
+        dateFrom: RANGE_FROM,
+        dateTo: RANGE_TO,
+      });
+      expect(component.vm().searchErrors).toEqual([]);
+    });
+
+    it('blocks a reversed range and links the summary to #date-to-day', () => {
+      getEntriesMock.mockClear();
+      component.form.patchValue({ dateFrom: RANGE_TO, dateTo: RANGE_FROM });
+
+      submitSearch();
+
+      expect(getEntriesMock).not.toHaveBeenCalled();
+      expect(component.vm().searchErrors).toEqual([
+        {
+          id: 'dateTo',
+          href: '#date-to-day',
+          text: 'List date to must be on or after List date from',
+        },
+      ]);
+      expect(
+        root().querySelector('#date-to-error')?.textContent?.trim(),
+      ).toContain('List date to must be on or after List date from');
+      expect(root().querySelector('#date-from-error')).toBeNull();
+    });
+
+    it('blocks a list date combined with a date range and shows the not-both message', () => {
+      getEntriesMock.mockClear();
+      component.form.patchValue({ date: LIST_DATE, dateFrom: RANGE_FROM });
+
+      submitSearch();
+
+      expect(getEntriesMock).not.toHaveBeenCalled();
+      expect(component.vm().searchErrors).toEqual([
+        {
+          id: 'date',
+          href: '#date',
+          text: 'Enter a list date or a date range, not both',
+        },
+      ]);
+      expect(root().querySelector('#date-error')?.textContent).toContain(
+        'Enter a list date or a date range, not both',
+      );
+    });
+
+    it('clears the not-both error once the list date is removed', () => {
+      component.form.patchValue({ date: LIST_DATE, dateTo: RANGE_TO });
+      expect(
+        component.form.controls.date.hasError('singleDateOrDateRange'),
+      ).toBe(true);
+
+      component.form.controls.date.setValue(null);
+
+      expect(component.form.controls.date.errors).toBeNull();
+      expect(component.form.hasError('singleDateOrDateRange')).toBe(false);
+    });
+
+    it('links an incomplete List date from to #date-from-day', () => {
+      getEntriesMock.mockClear();
+      const day = root().querySelector('#date-from-day') as HTMLInputElement;
+      day.value = '1';
+      day.dispatchEvent(new Event('input', { bubbles: true }));
+
+      submitSearch();
+
+      expect(getEntriesMock).not.toHaveBeenCalled();
+      expect(component.vm().searchErrors).toEqual([
+        {
+          id: 'dateFrom',
+          href: '#date-from-day',
+          text: 'List date from must be a valid date',
+        },
+      ]);
+    });
+
+    it('names each range field in the summary when both are incomplete', () => {
+      getEntriesMock.mockClear();
+      const typeDay = (id: string, value: string) => {
+        const input = root().querySelector(`#${id}`) as HTMLInputElement;
+        input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      typeDay('date-from-day', '1');
+      typeDay('date-to-day', '2');
+
+      submitSearch();
+
+      const errors = component.vm().searchErrors;
+      expect(getEntriesMock).not.toHaveBeenCalled();
+      expect(errors).toEqual([
+        {
+          id: 'dateFrom',
+          href: '#date-from-day',
+          text: 'List date from must be a valid date',
+        },
+        {
+          id: 'dateTo',
+          href: '#date-to-day',
+          text: 'List date to must be a valid date',
+        },
+      ]);
+      expect(new Set(errors.map((error) => error.text)).size).toBe(2);
+    });
+
+    it('keeps date sorting enabled for a date range', () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        getFilters: { dateFrom: RANGE_FROM, dateTo: RANGE_TO },
+      }));
+
+      expect(component.disabledSortColumns()).toEqual([]);
+    });
+
+    it('saves the date range to the form service on submit', () => {
+      component.form.patchValue({ dateFrom: RANGE_FROM, dateTo: RANGE_TO });
+
+      submitSearch();
+
+      expect(searchFormService.state()).toEqual(
+        expect.objectContaining({ dateFrom: RANGE_FROM, dateTo: RANGE_TO }),
+      );
+      expect(searchStateService.state().appliedFilters).toEqual({
+        dateFrom: RANGE_FROM,
+        dateTo: RANGE_TO,
+      });
+    });
+
+    it('restores the date range from the form service', () => {
+      searchFormService.patchState({ dateFrom: RANGE_FROM, dateTo: RANGE_TO });
+
+      const restoredFixture = TestBed.createComponent(Applications);
+      const restored = restoredFixture.componentInstance;
+      restoredFixture.detectChanges();
+      const restoredRoot = restoredFixture.nativeElement as HTMLElement;
+      const valueOf = (id: string) =>
+        (restoredRoot.querySelector(`#${id}`) as HTMLInputElement).value;
+
+      expect(restored.form.controls.dateFrom.value).toBe(RANGE_FROM);
+      expect(restored.form.controls.dateTo.value).toBe(RANGE_TO);
+      expect(
+        ['date-from-day', 'date-from-month', 'date-from-year'].map(valueOf),
+      ).toEqual(['01', '05', '2026']);
+      expect(
+        ['date-to-day', 'date-to-month', 'date-to-year'].map(valueOf),
+      ).toEqual(['31', '05', '2026']);
+      expect((restored as unknown as HasLoadQuery).loadQuery()).toEqual({
+        dateFrom: RANGE_FROM,
+        dateTo: RANGE_TO,
+      });
+    });
+
+    it('empties the date range when the search is cleared', () => {
+      component.form.patchValue({ dateFrom: RANGE_FROM, dateTo: RANGE_TO });
+      submitSearch();
+
+      component.clearSearch();
+      fixture.detectChanges();
+
+      expect(component.form.controls.dateFrom.value).toBeNull();
+      expect(component.form.controls.dateTo.value).toBeNull();
+      expect(searchFormService.state().dateFrom).toBeNull();
+      expect(searchFormService.state().dateTo).toBeNull();
+      expect(
+        (root().querySelector('#date-from-day') as HTMLInputElement).value,
+      ).toBe('');
+      expect(
+        (root().querySelector('#date-to-day') as HTMLInputElement).value,
+      ).toBe('');
+      expect((component as unknown as HasLoadQuery).loadQuery()).toEqual({});
     });
   });
 

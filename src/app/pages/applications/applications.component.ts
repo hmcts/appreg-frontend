@@ -9,6 +9,9 @@
  * onSubmit():
  * - GET request to Spring API which returns applications based on given params
  * - Populates query based on fields that are  !null/!undefined/!defaultValue
+ * - Searches by a single List date or a date range (List date from/to), not both
+ * - A 400 from the search, such as a rejected filter combination, shows the
+ *   API's problem text in the error summary. Other errors show a generic message
  *
  * onPrintContinuous/Page():
  * - Runs bulk preview endpoint to get selected row details
@@ -48,6 +51,7 @@ import {
   clearNotificationsPatch,
   defaultApplicationsSort,
   initialApplicationsState,
+  searchBadRequestPatch,
   searchErrorPatch,
   searchSuccessPatch,
   startSearchPatch,
@@ -113,7 +117,11 @@ import {
 } from '@util/application-title-suggestions';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getControlErrorItem } from '@util/error-summary';
-import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
+import {
+  getHttpStatus,
+  getProblemText,
+  hasProblemText,
+} from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
@@ -123,6 +131,8 @@ import { trimStringToLowerCase, trimToUndefined } from '@util/string-helpers';
 import { withDisabledColumnSort } from '@util/table-column-sort';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { atLeastOneRequiredValidator } from '@validators/at-least-one-value.validator';
+import { singleDateOrDateRangeValidator } from '@validators/date-or-date-range.validator';
+import { dateToOnOrAfterDateFromValidator } from '@validators/date-range.validator';
 
 const APPLICATIONS_SORT_MAP: Record<string, string> = {
   date: 'date',
@@ -132,6 +142,12 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
   fee: 'feeRequired',
   resulted: 'isResulted',
   status: 'status',
+};
+
+// Error summary links for controls whose first input id differs from the name
+const APPLICATIONS_ERROR_HREFS: Record<string, string> = {
+  dateFrom: '#date-from-day',
+  dateTo: '#date-to-day',
 };
 
 @Component({
@@ -216,6 +232,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   override form = new FormGroup(
     {
       date: new FormControl<string | null>(null),
+      dateFrom: new FormControl<string | null>(null),
+      dateTo: new FormControl<string | null>(null),
       applicantOrg: new FormControl<string>(''),
       respondentOrg: new FormControl<string>(''),
       applicantSurname: new FormControl<string>(''),
@@ -243,7 +261,11 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       status: new FormControl<string | null>(null),
     },
     {
-      validators: [atLeastOneRequiredValidator()],
+      validators: [
+        atLeastOneRequiredValidator(),
+        dateToOnOrAfterDateFromValidator(),
+        singleDateOrDateRangeValidator(),
+      ],
     },
   );
 
@@ -414,7 +436,9 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    const validationErrors = buildErrorSummary(this.form, this.errorMap);
+    const validationErrors = buildErrorSummary(this.form, this.errorMap, {
+      hrefs: APPLICATIONS_ERROR_HREFS,
+    });
     this.persistFormState();
 
     if (validationErrors.length) {
@@ -634,8 +658,13 @@ export class Applications extends PlaceFieldsBase implements OnInit {
           this.saveSearchState();
           this.patchApp({ isLoading: false });
         },
-        error: () => {
-          this.patchApp(searchErrorPatch());
+        error: (err: unknown) => {
+          // A 400 without a problem body (e.g. from a proxy) keeps the generic error
+          this.patchApp(
+            getHttpStatus(err) === 400 && hasProblemText(err)
+              ? searchBadRequestPatch(getProblemText(err))
+              : searchErrorPatch(),
+          );
           this.patchApp({ isLoading: false });
         },
       });
@@ -773,6 +802,14 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       filter.date = v.date.trim();
     }
 
+    if (v.dateFrom?.trim()) {
+      filter.dateFrom = v.dateFrom.trim();
+    }
+
+    if (v.dateTo?.trim()) {
+      filter.dateTo = v.dateTo.trim();
+    }
+
     if (v.court?.trim()) {
       filter.courtCode = v.court.trim();
     }
@@ -893,6 +930,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
     return {
       date: value.date ?? null,
+      dateFrom: value.dateFrom ?? null,
+      dateTo: value.dateTo ?? null,
       applicantOrg: value.applicantOrg ?? '',
       respondentOrg: value.respondentOrg ?? '',
       applicantSurname: value.applicantSurname ?? '',
