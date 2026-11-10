@@ -220,6 +220,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       respondentOrg: new FormControl<string>(''),
       applicantSurname: new FormControl<string>(''),
       respondentSurname: new FormControl<string>(''),
+      applicantName: new FormControl<string>('', {
+        validators: [Validators.maxLength(300)],
+      }),
+      respondentName: new FormControl<string>('', {
+        validators: [Validators.maxLength(300)],
+      }),
       applicationTitle: new FormControl<string>('', {
         validators: [
           Validators.maxLength(500),
@@ -795,6 +801,14 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       filter.respondentSurname = v.respondentSurname.trim();
     }
 
+    if (v.applicantName?.trim()) {
+      filter.applicantName = v.applicantName.trim();
+    }
+
+    if (v.respondentName?.trim()) {
+      filter.respondentName = v.respondentName.trim();
+    }
+
     if (v.applicationTitle?.trim()) {
       filter.applicationTitle = v.applicationTitle.trim();
     }
@@ -883,6 +897,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       respondentOrg: value.respondentOrg ?? '',
       applicantSurname: value.applicantSurname ?? '',
       respondentSurname: value.respondentSurname ?? '',
+      applicantName: value.applicantName ?? '',
+      respondentName: value.respondentName ?? '',
       applicationTitle: value.applicationTitle ?? '',
       location: value.location ?? '',
       standardApplicantCode: value.standardApplicantCode ?? '',

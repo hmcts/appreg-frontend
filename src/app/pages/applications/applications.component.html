@@ -22,6 +22,10 @@
   </p>
 
   <ul class="govuk-list govuk-list--bullet">
+    <li>
+      Applicant name and Respondent name match part of a name. For a person,
+      enter their first name before their last name.
+    </li>
     <li>Select one or more applications to use the Actions menu.</li>
     <li>Result selected applies a result to selected open applications.</li>
     <li>
@@ -99,6 +103,26 @@
   </div>
 
   <div class="govuk-grid-row">
+    <!-- Applicant name (organisation name or person's first and last name) -->
+    <app-text-input
+      formControlName="applicantName"
+      label="Applicant name"
+      hint="Part of an organisation name, or a person's first and last name"
+      idPrefix="applicantName"
+      [error]="
+        getControlErrorItem(
+          form.controls.applicantName,
+          'applicantName',
+          errorMap
+        )?.text ?? null
+      "
+      [charLimit]="300"
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
     <!-- Respondent Org -->
     <app-text-input
       formControlName="respondentOrg"
@@ -114,6 +138,26 @@
       idPrefix="respondent-surname"
       containerWidthClass="govuk-grid-column-one-quarter"
       widthClass="govuk-!-width-full"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Respondent name (organisation name or person's first and last name) -->
+    <app-text-input
+      formControlName="respondentName"
+      label="Respondent name"
+      hint="Part of an organisation name, or a person's first and last name"
+      idPrefix="respondentName"
+      [error]="
+        getControlErrorItem(
+          form.controls.respondentName,
+          'respondentName',
+          errorMap
+        )?.text ?? null
+      "
+      [charLimit]="300"
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
     />
   </div>
 
