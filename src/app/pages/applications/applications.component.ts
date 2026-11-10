@@ -10,6 +10,9 @@
  * - GET request to Spring API which returns applications based on given params
  * - Populates query based on fields that are  !null/!undefined/!defaultValue
  * - Searches by a single List date or a date range (List date from/to), not both
+ * - Application codes and Result codes (Advanced search) are lists of exact
+ *   codes, sent only when they hold at least one code. Text typed into either
+ *   but not picked from the list blocks the search with an error
  * - A 400 from the search, such as a rejected filter combination, shows the
  *   API's problem text in the error summary. Other errors show a generic message
  *
@@ -62,6 +65,7 @@ import { AsyncJobProgressComponent } from '@components/async-job-progress/async-
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
+import { MultiSuggestionsComponent } from '@components/multi-suggestions/multi-suggestions.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
@@ -73,6 +77,8 @@ import { SuggestionsComponent } from '@components/suggestions/suggestions.compon
 import {
   type SuggestionsItem,
   isAppcodeSuggestionItem,
+  toApplicationCodeSuggestionItem,
+  toResultCodeSuggestionItem,
 } from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ApplicationsColumns } from '@constants/applications/applications.constants';
@@ -102,7 +108,6 @@ import {
 import {
   ApplicationsSearchFormService,
   ApplicationsSearchFormValue,
-  DEFAULT_APPLICATIONS_SEARCH_FORM,
 } from '@services/applications/applications-search-form.service';
 import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { buildErrorSummary } from '@services/applications-list/build-applications-list-error-summary';
@@ -150,6 +155,11 @@ const APPLICATIONS_ERROR_HREFS: Record<string, string> = {
   dateTo: '#date-to-day',
 };
 
+// A list filter's codes, trimmed and without blanks or repeats
+const toCodeList = (codes: readonly string[]): string[] => [
+  ...new Set(codes.map((code) => code.trim()).filter((code) => !!code)),
+];
+
 @Component({
   selector: 'app-applications',
   standalone: true,
@@ -163,6 +173,7 @@ const APPLICATIONS_ERROR_HREFS: Record<string, string> = {
     PaginationComponent,
     SelectInputComponent,
     SuggestionsComponent,
+    MultiSuggestionsComponent,
     ErrorSummaryComponent,
     NotificationBannerComponent,
     MojButtonMenuDirective,
@@ -213,6 +224,14 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     return filterAppTitles(this.applicationTitleSearch(), this.refFacade);
   });
 
+  // app-multi-suggestions filters these by the typed text itself
+  readonly applicationCodeOptions = computed<SuggestionsItem[]>(() =>
+    this.refFacade.applicationCodes().map(toApplicationCodeSuggestionItem),
+  );
+  readonly resultCodeOptions = computed<SuggestionsItem[]>(() =>
+    this.refFacade.resultCodes().map(toResultCodeSuggestionItem),
+  );
+
   readonly summaryItems = computed(() => {
     const { errorSummary, searchErrors } = this.vm();
     return [
@@ -256,6 +275,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
         validators: [Validators.maxLength(8)],
       }),
       accountReference: new FormControl<string>(''),
+      applicationCodes: new FormControl<string[]>([], { nonNullable: true }),
+      resultCodes: new FormControl<string[]>([], { nonNullable: true }),
       court: new FormControl<string>(''),
       cja: new FormControl<string>(''),
       status: new FormControl<string | null>(null),
@@ -314,6 +335,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       this.form.controls.applicationTitle.value ?? '',
     );
     this.initPlaceFields(this.form, this.refFacade);
+    // Options for Result codes; application codes are loaded by the facade
+    this.refFacade.ensureResultCodes();
     this.setupEffects();
 
     addLocationValidatorsToForm(this.form, () => this.state());
@@ -764,7 +787,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.searchForm.reset();
     this.searchState.reset();
 
-    this.form.reset(DEFAULT_APPLICATIONS_SEARCH_FORM);
+    // A copy of the defaults, so the form never holds the default arrays
+    this.form.reset(this.searchForm.state());
     this.applicationTitleSearch.set('');
 
     this.patch({
@@ -862,6 +886,17 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       filter.accountReference = v.accountReference.trim();
     }
 
+    // New arrays, so the filter never shares one with the form
+    const applicationCodes = toCodeList(v.applicationCodes);
+    if (applicationCodes.length) {
+      filter.applicationCodes = applicationCodes;
+    }
+
+    const resultCodes = toCodeList(v.resultCodes);
+    if (resultCodes.length) {
+      filter.resultCodes = resultCodes;
+    }
+
     if (v.status) {
       filter.status = toStatus(v.status);
     }
@@ -943,6 +978,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       standardApplicantCode: value.standardApplicantCode ?? '',
       respondentPostcode: value.respondentPostcode ?? '',
       accountReference: value.accountReference ?? '',
+      applicationCodes: [...value.applicationCodes],
+      resultCodes: [...value.resultCodes],
       court: value.court ?? '',
       cja: value.cja ?? '',
       status: value.status ?? null,

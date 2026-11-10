@@ -25,6 +25,14 @@
  *
  * Writing a value to the control (a reset, a restore, or filters applied by
  * the page) also clears any typed search text and emits `searchChange('')`.
+ *
+ * It is also the control's validator. Text typed but not added from the list
+ * makes the control invalid with `notAdded`, so a search cannot silently run
+ * without it. Picking a match, clearing the text or writing a value makes it
+ * valid again. A disabled field has no errors. Changing the `disabled` input
+ * does not re-validate the control by itself (the next keystroke or write
+ * does), so a page that may disable the field while text is typed should
+ * disable the form control instead, which Angular re-validates.
  */
 
 import {
@@ -38,7 +46,13 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
+} from '@angular/forms';
 
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { SuggestionsItem } from '@components/suggestions/suggestions.types';
@@ -65,9 +79,16 @@ export const MULTI_SUGGESTIONS_MAX_MATCHES = 20;
       useExisting: forwardRef(() => MultiSuggestionsComponent),
       multi: true,
     },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => MultiSuggestionsComponent),
+      multi: true,
+    },
   ],
 })
-export class MultiSuggestionsComponent implements ControlValueAccessor {
+export class MultiSuggestionsComponent
+  implements ControlValueAccessor, Validator
+{
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly id = input('');
@@ -147,11 +168,14 @@ export class MultiSuggestionsComponent implements ControlValueAccessor {
 
   private onChange: (value: string[]) => void = () => {};
   private onTouched: () => void = () => {};
+  private onValidatorChange: () => void = () => {};
 
   writeValue(value: readonly string[] | null | undefined): void {
     this.selected.set(this.coerceValues(value));
-    // A programmatic write replaces whatever was being typed.
-    this.setSearch('');
+    // A programmatic write replaces whatever was being typed. The control
+    // validates itself straight after a write, so this does not ask it to
+    // (which would also ignore the caller's emitEvent and onlySelf options).
+    this.setSearch('', false);
   }
 
   registerOnChange(fn: (value: string[]) => void): void {
@@ -164,6 +188,22 @@ export class MultiSuggestionsComponent implements ControlValueAccessor {
 
   setDisabledState(isDisabled: boolean): void {
     this.controlDisabled.set(isDisabled);
+  }
+
+  validate(): ValidationErrors | null {
+    // Angular does not validate a disabled control, so only the input is
+    // checked here. When a control is enabled it is validated before
+    // setDisabledState(false) runs, so checking controlDisabled would wrongly
+    // pass typed text then.
+    if (this.disabled() || !this.search().trim()) {
+      return null;
+    }
+
+    return { notAdded: true };
+  }
+
+  registerOnValidatorChange(fn: () => void): void {
+    this.onValidatorChange = fn;
   }
 
   onSearchChange(value: string): void {
@@ -217,13 +257,18 @@ export class MultiSuggestionsComponent implements ControlValueAccessor {
     this.onTouched();
   }
 
-  private setSearch(value: string): void {
+  private setSearch(value: string, revalidate = true): void {
     if (value === this.search()) {
       return;
     }
 
     this.search.set(value);
     this.searchChange.emit(value);
+
+    // Typed text that has not been added makes the control invalid.
+    if (revalidate) {
+      this.onValidatorChange();
+    }
   }
 
   private commit(next: string[]): void {

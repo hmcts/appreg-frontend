@@ -327,6 +327,66 @@
           widthClass="govuk-!-width-two-thirds"
         />
       </div>
+
+      <div class="govuk-grid-row">
+        <!-- Application codes (an entry matches any of these exact codes) -->
+        <app-multi-suggestions
+          id="applicationCodes"
+          formControlName="applicationCodes"
+          label="Application codes"
+          hint="Start typing a code or title. You can add more than one."
+          selectedHeading="Selected application codes"
+          [options]="applicationCodeOptions()"
+          [maxItems]="50"
+          [showError]="
+            vm().submitted &&
+            !!getControlErrorItem(
+              form.controls.applicationCodes,
+              'applicationCodes',
+              errorMap
+            )
+          "
+          [errorText]="
+            getControlErrorItem(
+              form.controls.applicationCodes,
+              'applicationCodes',
+              errorMap
+            )?.text ?? ''
+          "
+          containerWidthClass="govuk-grid-column-one-half"
+          widthClass="govuk-!-width-two-thirds"
+        />
+      </div>
+
+      <div class="govuk-grid-row">
+        <!-- Result codes (an entry matches when any of these is recorded) -->
+        <app-multi-suggestions
+          id="resultCodes"
+          formControlName="resultCodes"
+          label="Result codes"
+          hint="Finds applications with any of these results recorded"
+          selectedHeading="Selected result codes"
+          [options]="resultCodeOptions()"
+          [maxItems]="20"
+          [showError]="
+            vm().submitted &&
+            !!getControlErrorItem(
+              form.controls.resultCodes,
+              'resultCodes',
+              errorMap
+            )
+          "
+          [errorText]="
+            getControlErrorItem(
+              form.controls.resultCodes,
+              'resultCodes',
+              errorMap
+            )?.text ?? ''
+          "
+          containerWidthClass="govuk-grid-column-one-half"
+          widthClass="govuk-!-width-two-thirds"
+        />
+      </div>
     </div>
   </details>
 
