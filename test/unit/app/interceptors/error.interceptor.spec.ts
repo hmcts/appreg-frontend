@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpRequest } from '@angular/common/http';
 import { ErrorHandler, PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { throwError } from 'rxjs';
+import { lastValueFrom, throwError } from 'rxjs';
 
 import { errorInterceptor } from '@interceptors/error.interceptor';
 import { ErrorMessageService } from '@services/error-message.service';
@@ -146,6 +146,89 @@ describe('errorInterceptor', () => {
 
         done();
       },
+    });
+  });
+
+  describe('with the real ErrorMessageService', () => {
+    let routerWithUrl: { navigate: jest.Mock; navigateByUrl: jest.Mock };
+    let realErrorMessageService: ErrorMessageService;
+
+    const aiEndpoints: [string, string][] = [
+      ['GET', '/ai/capabilities'],
+      ['POST', '/application-list-entries/search-interpretations'],
+      ['POST', '/application-codes/suggestions'],
+    ];
+
+    beforeEach(() => {
+      routerWithUrl = {
+        navigate: jest.fn().mockResolvedValue(true),
+        navigateByUrl: jest.fn().mockResolvedValue(true),
+      };
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          ErrorMessageService,
+          { provide: Router, useValue: routerWithUrl },
+          { provide: ErrorHandler, useValue: errorHandler },
+          { provide: TelemetryService, useValue: telemetryService },
+          { provide: PLATFORM_ID, useValue: 'browser' },
+        ],
+      });
+      realErrorMessageService = TestBed.inject(ErrorMessageService);
+    });
+
+    async function runWithStatus(
+      method: string,
+      path: string,
+      status: number,
+    ): Promise<void> {
+      const request = new HttpRequest(method, path, null);
+      const err = new HttpErrorResponse({
+        status,
+        statusText: 'Error',
+        url: path,
+        error: { title: 'Error', status },
+      });
+
+      await expect(
+        lastValueFrom(
+          TestBed.runInInjectionContext(() =>
+            errorInterceptor(request, () => throwError(() => err)),
+          ),
+        ),
+      ).rejects.toBe(err);
+    }
+
+    it.each(aiEndpoints)(
+      'navigates to /login on a 401 from %s %s',
+      async (method, path) => {
+        await runWithStatus(method, path, 401);
+
+        expect(routerWithUrl.navigate).toHaveBeenCalledWith(['/login']);
+        expect(routerWithUrl.navigateByUrl).not.toHaveBeenCalled();
+        expect(realErrorMessageService.errorMessage()).toBeNull();
+      },
+    );
+
+    it.each(aiEndpoints)(
+      'keeps a 503 from %s %s on the page',
+      async (method, path) => {
+        await runWithStatus(method, path, 503);
+
+        expect(routerWithUrl.navigate).not.toHaveBeenCalled();
+        expect(routerWithUrl.navigateByUrl).not.toHaveBeenCalled();
+        expect(realErrorMessageService.errorMessage()?.status).toBe(503);
+      },
+    );
+
+    it('still navigates to /internal-error on a 500 from another endpoint', async () => {
+      await runWithStatus('GET', '/application-list-entries', 500);
+
+      expect(routerWithUrl.navigate).not.toHaveBeenCalled();
+      expect(routerWithUrl.navigateByUrl).toHaveBeenCalledWith(
+        '/internal-error',
+      );
     });
   });
 
