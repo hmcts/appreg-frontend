@@ -70,14 +70,10 @@
       }
 
       @if (savedStandardApplicantFallback(); as fallback) {
-        <div class="govuk-warning-text govuk-!-margin-bottom-4">
-          <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-          <strong class="govuk-warning-text__text">
-            <span class="govuk-visually-hidden">Warning</span>
-            Only the saved Standard Applicant code is available:
-            {{ fallback.displayText }}
-          </strong>
-        </div>
+        <app-alert
+          alertType="information"
+          [message]="`The following historical saved applicants are shown here but can no longer be selected for new applications: ${fallback.displayText}`"
+        />
       }
 
       <app-standard-applicant-select

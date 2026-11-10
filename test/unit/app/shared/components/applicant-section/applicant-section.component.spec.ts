@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
@@ -62,6 +63,7 @@ describe('ApplicantSectionComponent', () => {
         set: {
           imports: [
             ReactiveFormsModule,
+            AlertComponent,
             SelectInputComponent,
             HelpDetailsComponent,
             MockPersonSectionComponent,
@@ -214,7 +216,7 @@ describe('ApplicantSectionComponent', () => {
     expect(fixture.debugElement.query(By.css('.govuk-tag'))).toBeNull();
   });
 
-  it('renders a warning with the raw saved standard applicant code when details are unavailable', () => {
+  it('renders an information alert with the saved standard applicant code when details are unavailable', () => {
     fixture.componentRef.setInput('applicantType', 'standard');
     fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
     fixture.componentRef.setInput(
@@ -223,13 +225,17 @@ describe('ApplicantSectionComponent', () => {
     );
     fixture.detectChanges();
 
-    const warning = fixture.debugElement.query(By.css('.govuk-warning-text'));
+    const alert = fixture.debugElement.query(By.directive(AlertComponent));
 
-    expect(warning).toBeTruthy();
-    expect(warning.nativeElement.textContent).toContain(
-      'Only the saved Standard Applicant code is available',
+    expect(alert).toBeTruthy();
+    expect(alert.componentInstance.alertType()).toBe('information');
+    expect(
+      alert.nativeElement.querySelector('.moj-alert--information'),
+    ).toBeTruthy();
+    expect(alert.nativeElement.textContent).toContain(
+      'The following historical saved applicants are shown here but can no longer be selected for new applications:',
     );
-    expect(warning.nativeElement.textContent).toContain('SA-123');
+    expect(alert.nativeElement.textContent).toContain('SA-123');
   });
 
   it('emits updateClicked when the update button is clicked', () => {

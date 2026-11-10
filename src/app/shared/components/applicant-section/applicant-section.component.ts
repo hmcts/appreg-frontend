@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import {
   APPLICANT_TYPE_OPTIONS,
   PERSON_TITLE_OPTIONS,
@@ -25,6 +26,7 @@ import { ApplicantType } from '@shared-types/applications-list-entry-create/appl
 @Component({
   selector: 'app-applicant-section',
   imports: [
+    AlertComponent,
     StandardApplicantSelectComponent,
     OrganisationSectionComponent,
     PersonSectionComponent,
