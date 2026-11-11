@@ -35,6 +35,7 @@
 <app-result-wording-section
   [resultApplicantContext]="paginatedRows()"
   [resultCodesList]="resultsFacade.resultCodesSignal()"
+  [resultCodesLoaded]="resultsFacade.resultCodesLoaded()"
   [existingResults]="createdEntryResults()"
   [savedResultTitles]="resultsFacade.savedResultTitles()"
   [savedResultDetailsError]="resultsFacade.savedResultDetailsError()"

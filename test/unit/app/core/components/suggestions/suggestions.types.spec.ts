@@ -65,10 +65,12 @@ describe('suggestions.types', () => {
   it('maps a result code DTO to a typed suggestion item', () => {
     expect(
       toResultCodeSuggestionItem({
+        id: 1,
         resultCode: 'RC1',
         title: 'Granted',
       }),
     ).toEqual({
+      id: 1,
       kind: 'result-code',
       resultCode: 'RC1',
       title: 'Granted',
@@ -126,6 +128,7 @@ describe('suggestions.types', () => {
 
   it('identifies a result code suggestion item', () => {
     const item = toResultCodeSuggestionItem({
+      id: 1,
       resultCode: 'RC1',
       title: 'Granted',
     });

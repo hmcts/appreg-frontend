@@ -80,6 +80,7 @@ export class ResultWordingSectionComponent {
     ApplicantContext[] | ApplicationEntriesResultContext[]
   >([]);
   resultCodesList = input<ResultCodeGetSummaryDto[]>([]);
+  resultCodesLoaded = input(false);
   existingResults = input<ResultGetDto[]>([]);
   wordingByCode = input<Record<string, string>>({});
   resultCodeTemplateByCode = input<Record<string, TemplateDetail>>({});
@@ -136,6 +137,38 @@ export class ResultWordingSectionComponent {
   pageChange = output<number>();
 
   private readonly resultCodeSearchState = signal('');
+
+  readonly historicalResultCodes = computed(() => {
+    if (!this.resultCodesLoaded()) {
+      return [];
+    }
+
+    const currentIdsByCode = new Map(
+      this.resultCodesList().map((code) => [
+        this.normCode(code.resultCode),
+        code.id,
+      ]),
+    );
+
+    // Check for dupe or undefined codes.
+    return [
+      ...new Set(
+        this.existingResults()
+          .filter((result) => {
+            const currentId = currentIdsByCode.get(
+              this.normCode(result.resultCode),
+            );
+            return currentId === undefined || currentId !== result.resultCodeId;
+          })
+          .map((result) => result.resultCode.trim()),
+      ),
+    ];
+  });
+
+  readonly historicalResultsMessage = computed(
+    () =>
+      `Historical saved results are shown here but may have been updated or removed: ${this.historicalResultCodes().join(', ')}`,
+  );
 
   get resultCodeSearch(): string {
     return this.resultCodeSearchState();
