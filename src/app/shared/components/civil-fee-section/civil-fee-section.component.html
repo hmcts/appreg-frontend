@@ -32,6 +32,13 @@
     </div>
   }
 
+  @if (newerApplicationCodeVersionExists()) {
+    <app-alert
+      alertType="information"
+      message="A newer version of this application code exists. The fee details may have changed in the newer version."
+    />
+  }
+
   <section id="civil-fee-section">
     @if (!noFeeMeta()) {
       <h2 class="govuk-heading-s">

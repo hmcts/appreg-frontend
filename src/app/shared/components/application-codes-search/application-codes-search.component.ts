@@ -86,6 +86,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
     applicationCodeId?: number;
   }>();
   resultsChange = output<ApplicationCodeGetSummaryDto[]>();
+  newerVersionExists = output<boolean>();
   resetParentErrors = output<void>();
   codeSearchErrors = output<ErrorItem[]>();
 
@@ -136,6 +137,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
       const code = this.savedApplicationCode()?.trim();
       const id = this.savedApplicationCodeId();
       this.historicalSavedCode.set(null);
+      this.newerVersionExists.emit(false);
 
       if (!code || id === null) {
         return;
@@ -175,11 +177,11 @@ export class ApplicationCodeSearchComponent implements OnInit {
                 item.applicationCode.trim().toUpperCase() ===
                 code.toUpperCase(),
             );
-            if (
-              !current ||
-              (current.applicationCodeId !== undefined &&
-                current.applicationCodeId !== id)
-            ) {
+            const newerVersionExists =
+              current?.applicationCodeId !== undefined &&
+              current.applicationCodeId !== id;
+            this.newerVersionExists.emit(newerVersionExists);
+            if (!current || newerVersionExists) {
               this.historicalSavedCode.set(code);
             }
           },

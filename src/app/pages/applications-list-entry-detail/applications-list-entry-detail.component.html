@@ -69,6 +69,7 @@
         [lodgementDateDisabled]="true"
         [savedApplicationCode]="entryDetail?.applicationCode ?? null"
         [savedApplicationCodeId]="entryDetail?.applicationCodeId ?? null"
+        (newerVersionExists)="newerApplicationCodeVersionExists.set($event)"
         (selectCodeAndLodgementDate)="onCodeSelected($event)"
         (codeSearchErrors)="onChildErrors('codes', $event)"
       />
@@ -116,6 +117,7 @@
       [feeStatusOptions]="feeStatusOptions"
       [feeForm]="civilFeeForm"
       [feeMeta]="feeMeta"
+      [newerApplicationCodeVersionExists]="newerApplicationCodeVersionExists()"
       (addFeeDetails)="onAddFeeDetails($event)"
       (civilFeeErrors)="onChildErrors('civilFee', $event)"
       (submitAttempted)="onCivilFeeSubmitAttempt()"
