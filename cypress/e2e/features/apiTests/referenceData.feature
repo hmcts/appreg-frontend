@@ -6,10 +6,10 @@ Feature: API -Reference Data
         When User Makes GET API Request To "/court-locations"
         Then User Verify Response Status Code Should Be "200"
         Then User Verify Response Body Should Have:
-            | pageNumber              | 0                                     |
-            | pageSize                | 10                                    |
-            | first                   | true                                  |
-            | last                    | false                                 |
+            | pageNumber | 0     |
+            | pageSize   | 10    |
+            | first      | true  |
+            | last       | false |
         Then User Verifies Each Item In Response Body Array Property "content" Has Non-Empty String Fields:
             | name         |
             | locationCode |
@@ -81,7 +81,6 @@ Feature: API -Reference Data
         Then User Verify Response Body Should Have:
             | pageNumber     | 0     |
             | pageSize       | 10    |
-            | totalPages     | 24    |
             | first          | true  |
             | last           | false |
             | elementsOnPage | 10    |

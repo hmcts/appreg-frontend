@@ -14,6 +14,10 @@ export class ApplicationListCombinedHelper {
   }
 
   static waitForCourtReferenceData(): Cypress.Chainable {
+    if (this.courtReferenceDataLoaded) {
+      return cy.wrap(undefined, { log: false });
+    }
+
     // Suggestions use the complete reference list, not just the first API page.
     const waitForPage = (): Cypress.Chainable => {
       return cy.wait('@courtReferenceData').then(({ response }) => {

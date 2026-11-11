@@ -607,7 +607,7 @@ Feature: Application List Row Actions
         Then User Should See The Link "Create new list"
         Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         When User Set Date Field "Date" To "<SearchDate>"
-        When User Clicks On The "Search" Button
+        When User Submits The Application List Search
         Then User Should Not See Row In Table "<TableName>" With Values:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
