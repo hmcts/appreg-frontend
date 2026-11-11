@@ -19,6 +19,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { EMPTY, expand, reduce } from 'rxjs';
 
 import { AlertComponent } from '@components/alert/alert.component';
 import { CODES_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
@@ -65,6 +66,8 @@ export class ApplicationCodeSearchComponent implements OnInit {
   parentSubmitted = input(false);
   patchedFormData = input<ApplicationsListEntryForm | undefined>(undefined);
   lodgementDateDisabled = input(false);
+  savedApplicationCode = input<string | null>(null);
+  savedApplicationCodeId = input<number | null>(null);
 
   // API query params
   pageSize = signal(10);
@@ -98,6 +101,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   hasSearched = signal(false);
   loading = signal(false);
   errored = signal(false);
+  historicalSavedCode = signal<string | null>(null);
   private readonly errorMap: ErrorMessageMap =
     APPLICATION_CODE_SEARCH_ERROR_MESSAGES;
 
@@ -126,6 +130,61 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
       this.form.updateValueAndValidity({ emitEvent: false });
       this.emitValidationErrors();
+    });
+
+    effect((onCleanup) => {
+      const code = this.savedApplicationCode()?.trim();
+      const id = this.savedApplicationCodeId();
+      this.historicalSavedCode.set(null);
+
+      if (!code || id === null) {
+        return;
+      }
+
+      const request = {
+        code,
+        pageSize: 100,
+      };
+      const subscription = this.codesApi
+        .getApplicationCodes({ ...request, pageNumber: 0 }, 'body', false, {
+          transferCache: true,
+        })
+        .pipe(
+          expand((page) => {
+            const nextPage = page.pageNumber + 1;
+            const totalPages =
+              page.totalPages ?? Math.ceil(page.totalElements / page.pageSize);
+            return nextPage < totalPages
+              ? this.codesApi.getApplicationCodes(
+                  { ...request, pageNumber: nextPage },
+                  'body',
+                  false,
+                  { transferCache: true },
+                )
+              : EMPTY;
+          }),
+          reduce(
+            (codes, page) => codes.concat(page.content),
+            [] as ApplicationCodeGetSummaryDto[],
+          ),
+        )
+        .subscribe({
+          next: (codes) => {
+            const current = codes.find(
+              (item) =>
+                item.applicationCode.trim().toUpperCase() ===
+                code.toUpperCase(),
+            );
+            if (
+              !current ||
+              (current.applicationCodeId !== undefined &&
+                current.applicationCodeId !== id)
+            ) {
+              this.historicalSavedCode.set(code);
+            }
+          },
+        });
+      onCleanup(() => subscription.unsubscribe());
     });
   }
 

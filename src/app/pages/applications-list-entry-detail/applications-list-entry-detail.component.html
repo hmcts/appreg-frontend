@@ -67,6 +67,8 @@
         [patchedFormData]="this.form"
         [parentSubmitted]="vm().formSubmitted"
         [lodgementDateDisabled]="true"
+        [savedApplicationCode]="entryDetail?.applicationCode ?? null"
+        [savedApplicationCodeId]="entryDetail?.applicationCodeId ?? null"
         (selectCodeAndLodgementDate)="onCodeSelected($event)"
         (codeSearchErrors)="onChildErrors('codes', $event)"
       />

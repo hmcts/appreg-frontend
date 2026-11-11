@@ -18,6 +18,13 @@
   </p>
 </app-help-details>
 
+@if (historicalSavedCode(); as code) {
+  <app-alert
+    alertType="information"
+    [message]="`The saved application code ${code} shown here may have been removed or a new version exists.`"
+  />
+}
+
 <fieldset class="govuk-fieldset">
   <legend class="govuk-fieldset__legend govuk-visually-hidden">
     Find an application code
