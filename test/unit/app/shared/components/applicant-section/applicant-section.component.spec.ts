@@ -233,7 +233,7 @@ describe('ApplicantSectionComponent', () => {
       alert.nativeElement.querySelector('.moj-alert--information'),
     ).toBeTruthy();
     expect(alert.nativeElement.textContent).toContain(
-      'The following historical saved applicants are shown here but can no longer be selected for new applications:',
+      'The historical saved applicant SA-123 shown here but may have been removed or a new version exists',
     );
     expect(alert.nativeElement.textContent).toContain('SA-123');
   });

@@ -89,6 +89,19 @@ describe('CivilFeeSectionComponent', () => {
     expect(component.entryId).toBe('EN-1');
   });
 
+  it('shows fee guidance only when a newer application code version exists', () => {
+    const message = 'The fee details may have changed in the newer version.';
+    expect(fixture.nativeElement.textContent).not.toContain(message);
+
+    fixture.componentRef.setInput('newerApplicationCodeVersionExists', true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(message);
+
+    fixture.componentRef.setInput('newerApplicationCodeVersionExists', false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain(message);
+  });
+
   it('feeStatusOptionsWithPlaceholder is disabled when fee is required', () => {
     fixture.componentRef.setInput('feeRequired', true);
     fixture.detectChanges();
