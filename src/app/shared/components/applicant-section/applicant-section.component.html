@@ -72,7 +72,7 @@
       @if (savedStandardApplicantFallback(); as fallback) {
         <app-alert
           alertType="information"
-          [message]="`The following historical saved applicants are shown here but can no longer be selected for new applications: ${fallback.displayText}`"
+          [message]="`The following historical saved applicants are shown here but may have been updated or removed: ${fallback.displayText}`"
         />
       }
 
