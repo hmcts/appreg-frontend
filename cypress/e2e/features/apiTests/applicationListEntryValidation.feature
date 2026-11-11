@@ -88,11 +88,13 @@ Feature: API - Application List Entry Validation
       | officials.0.surname                          | Clerk{SCENARIO_ID}            |
       | officials.0.forename                         | John                          |
       | officials.0.type                             | MAGISTRATE                    |
-    Then User Verify Response Status Code Should Be "400"
+    Then User Verify Response Status Code Should Be "201"
     Then User Verify Response Body Should Have:
-      | detail | Fee details are missing or incomplete, please contact Crime IT Support. |
+      | applicationCode     | MH99001 |
+      | respondent          | null    |
+      | numberOfRespondents | 5       |
 
-  @api @applicationListEntry @regression @ARCPOC-935
+  @api @applicationListEntry @regression @ARCPOC-935 @tp
   Scenario: Reject bulk respondent payloads when both respondent details and respondent count are provided
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                         | null                                |
@@ -136,7 +138,7 @@ Feature: API - Application List Entry Validation
       | officials.0.type                              | MAGISTRATE                          |
     Then User Verify Response Status Code Should Be "400"
     Then User Verify Response Body Should Have:
-      | type   | ALE-55 |
+      | type   | ALE-21 |
       | status | 400    |
 
   @api @applicationListEntry @regression @ARCPOC-935 @ARCPOC-1562

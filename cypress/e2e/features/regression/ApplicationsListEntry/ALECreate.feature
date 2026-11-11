@@ -444,8 +444,8 @@ Feature: Applications List Entry Create
             # Civil Fee Details
             When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
             Then User Should See The Text "Selecting this will apply the off site fee to the entry." In The Accordion "Civil fee"
-            Then User Should See The Text "Fee Reference: —" In The Accordion "Civil fee"
-            Then User Should See The Text "Amount: £0.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Fee Reference: CO10.1" In The Accordion "Civil fee"
+            Then User Should See The Text "Amount: £218.00" In The Accordion "Civil fee"
             Then User Verifies The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee" Is Unchecked
             Then User Checks The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee"
             # Bug ARCPOC-1241 is raised
@@ -461,7 +461,7 @@ Feature: Applications List Entry Create
             Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
             # Submit Application
             When User Clicks On The "Create entry" Button
-            Then User Sees Validation Error Banner "There is a problem" Containing "Fee details are missing or incomplete, please contact Crime IT Support."
+            Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
 
       @applicationListEntry @regression @ARCPOC-1297 @ARCPOC-1841
       Scenario Outline: Verify Application Codes sorting behaviour
