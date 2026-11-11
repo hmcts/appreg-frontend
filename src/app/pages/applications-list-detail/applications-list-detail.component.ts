@@ -212,6 +212,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly appListFormService = inject(ApplicationsListFormService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly refField = inject(ReferenceDataFacade);
+  readonly currentCourtLocations = this.refField.courtLocations;
+  readonly courtLocationsLoaded = this.refField.courtLocationsLoaded;
   private readonly appListApi = inject(ApplicationListsApi);
   private readonly pdf = inject(PdfService);
   private readonly appListEntriesApi = inject(ApplicationListEntriesApi);

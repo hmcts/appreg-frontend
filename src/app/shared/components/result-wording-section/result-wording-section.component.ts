@@ -167,7 +167,7 @@ export class ResultWordingSectionComponent {
 
   readonly historicalResultsMessage = computed(
     () =>
-      `Historical saved results are shown here but may have been updated or removed: ${this.historicalResultCodes().join(', ')}`,
+      `The following historical saved results are shown here but may have been removed or new versions exist: ${this.historicalResultCodes().join(', ')}`,
   );
 
   get resultCodeSearch(): string {

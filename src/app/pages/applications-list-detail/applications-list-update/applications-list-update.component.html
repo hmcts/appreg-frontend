@@ -54,6 +54,11 @@
     This application list is view-only. Closed lists cannot be changed.
   </p>
 }
+
+@if (historicalCourtSaved()) {
+  <app-alert alertType="information" [message]="historicalCourtMessage()" />
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
