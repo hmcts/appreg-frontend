@@ -20,13 +20,20 @@
  *
  * onSubmit():
  * - Validates all sections of the entry form
- * - Builds the Entry Create DTO
+ * - Builds the Entry Create DTO, with codeSuggestionId only when the
+ *   application code was added from code suggestions
  * - POST request to create the Application List Entry
  * - Navigates to the Entry Detail page on success
  *
  * onCodeSelected():
  * - Retrieves Application Code metadata
  * - Updates wording, fee and respondent requirements
+ *
+ * onCodeSuggestionIdChange():
+ * - Keeps the suggestionId of the code suggestions the application code was
+ *   added from, through the change-payment-reference round trip
+ * - Clears it when a searched-for code is added, the code is cleared, or new
+ *   suggestions replace the ones it came from; a search on its own keeps it
  *
  * onAddFeeDetails():
  * - Adds fee status rows to the Civil Fee table
@@ -60,6 +67,7 @@ import {
   EntryCreateSnapshot,
   initialApplicationsListEntryCreateState,
   parseCreateNavState,
+  toCodeSuggestionId,
 } from './util';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
@@ -105,6 +113,7 @@ import {
 import {
   ApplicationCodesApi,
   ApplicationListEntriesApi,
+  EntryCreateDto,
   TemplateDetail,
   TemplateSubstitution,
 } from '@openapi';
@@ -344,10 +353,15 @@ export class ApplicationsListEntryCreate implements OnInit {
       return;
     }
 
-    const entryCreateDto = this.formSvc.buildCreateDto(
-      this.forms,
-      this.form.value.standardApplicantCode,
-    );
+    const { codeSuggestionId } = this.appListEntryCreateState();
+    const entryCreateDto: EntryCreateDto = {
+      ...this.formSvc.buildCreateDto(
+        this.forms,
+        this.form.value.standardApplicantCode,
+      ),
+      // Only measures code suggestions, so it is left out unless set.
+      ...(codeSuggestionId ? { codeSuggestionId } : {}),
+    };
 
     this.disableSubmissionBtn.set(true);
     this.appEntryApi
@@ -715,6 +729,12 @@ export class ApplicationsListEntryCreate implements OnInit {
     }
   }
 
+  onCodeSuggestionIdChange(codeSuggestionId: string | null): void {
+    this.appListEntryCreatePatch({
+      codeSuggestionId: toCodeSuggestionId(codeSuggestionId),
+    });
+  }
+
   onStandardApplicantCodeChanged(code: string | null): void {
     this.formSvc.setStandardApplicantCode(this.forms, code, {
       emitEvent: false,
@@ -845,6 +865,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       wordingAppliedBannerVisible: this.wordingAppliedBannerVisible(),
       currentStandardApplicantSummary:
         this.appListEntryCreateState().currentStandardApplicantSummary,
+      codeSuggestionId: this.appListEntryCreateState().codeSuggestionId,
     };
   }
 
@@ -911,6 +932,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       bulkApplicationsAllowed: draft.bulkApplicationsAllowed === true,
       currentStandardApplicantSummary:
         draft.currentStandardApplicantSummary ?? null,
+      codeSuggestionId: toCodeSuggestionId(draft.codeSuggestionId),
     });
     this.wordingAppliedBannerVisible.set(
       draft.wordingAppliedBannerVisible === true,

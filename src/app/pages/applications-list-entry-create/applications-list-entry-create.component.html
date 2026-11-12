@@ -58,6 +58,7 @@
       [lodgementDateDisabled]="false"
       [enableSuggestions]="codeSuggestionsEnabled()"
       (selectCodeAndLodgementDate)="onCodeSelected($event)"
+      (codeSuggestionIdChange)="onCodeSuggestionIdChange($event)"
       (codeSearchErrors)="onChildErrors('codes', $event)"
       (resetParentErrors)="resetParentErrorsFromCodeSearch()"
     />

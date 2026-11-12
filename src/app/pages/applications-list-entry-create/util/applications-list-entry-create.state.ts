@@ -15,6 +15,10 @@ export interface ApplicationsListEntryCreateState {
   bulkApplicationsAllowed: boolean;
   isFeeRequired: boolean;
   currentStandardApplicantSummary: SelectedStandardApplicantSummary | null;
+  // The suggestionId of the code suggestions the application code was added
+  // from. Null when a searched-for code was added, newer suggestions replaced
+  // the ones it came from, or there is no code.
+  codeSuggestionId: string | null;
 }
 
 export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreateState =
@@ -29,4 +33,5 @@ export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreat
     bulkApplicationsAllowed: false,
     isFeeRequired: false,
     currentStandardApplicantSummary: null,
+    codeSuggestionId: null,
   };

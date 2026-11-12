@@ -1,3 +1,4 @@
+import { UUID_REGEX } from '@constants/regex';
 import { ContactDetails } from '@openapi';
 
 // Helpers
@@ -37,6 +38,12 @@ export const toOptionalInteger = (input: unknown): number | undefined => {
   const n = Number(asString);
   return n === 0 ? undefined : n;
 };
+
+// The suggestionId of the code suggestions an application code was added from.
+// Anything but a UUID becomes null, so the entry is never sent an empty or
+// malformed codeSuggestionId that the API would reject.
+export const toCodeSuggestionId = (input: unknown): string | null =>
+  typeof input === 'string' && UUID_REGEX.test(input) ? input : null;
 
 export const compactStrings = (
   values: (string | null | undefined)[],
