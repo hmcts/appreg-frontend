@@ -15,6 +15,10 @@ type EndpointRule = { endpoint: string | RegExp; responses: number[] };
 const regexIdPlaceholder = '[0-9a-fA-F-]{36}';
 const referenceDataCodePlaceholder = '[^/]+';
 
+// AI features fail closed: their errors stay on the page so the manual forms
+// keep working. A 401 still goes to login through the error interceptor.
+const aiEndpointResponses = [0, 400, 403, 404, 422, 429, 500, 502, 503, 504];
+
 const subscribedEndpoints: EndpointRule[] = [
   { endpoint: '/application-lists', responses: [400, 403, 404, 406, 500, 504] },
   { endpoint: '/application-codes', responses: [400, 403, 406, 500, 504] },
@@ -104,6 +108,15 @@ const subscribedEndpoints: EndpointRule[] = [
       `^/application-lists/${regexIdPlaceholder}/entries/bulk-action-preview$`,
     ),
     responses: [0, 400, 403, 404, 406, 409, 413, 500, 504],
+  },
+  { endpoint: /^\/ai\/capabilities$/, responses: aiEndpointResponses },
+  {
+    endpoint: /^\/application-list-entries\/search-interpretations$/,
+    responses: aiEndpointResponses,
+  },
+  {
+    endpoint: /^\/application-codes\/suggestions$/,
+    responses: aiEndpointResponses,
   },
 ];
 

@@ -54,6 +54,7 @@ function paged(content: unknown[]) {
 export const fixtures: Record<string, unknown> = {
   '/app/config': {},
   '/sso/me': {},
+  '/ai/capabilities': { searchInterpretation: false, codeSuggestions: false },
   '/court-locations': paged([{ locationCode: 'TEST', name: 'Test court' }]),
   '/court-locations/TEST': { locationCode: 'TEST', name: 'Test court' },
   '/criminal-justice-areas': paged([{ code: '01', description: 'Test area' }]),
