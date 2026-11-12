@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
-import { ApplicationCodesApi } from '@openapi';
+import { ApplicationCodePage, ApplicationCodesApi } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import * as helpers from '@util/application-code-helpers';
 import { CodeRow, CodeRowsResult } from '@util/application-code-helpers';
@@ -41,6 +41,34 @@ describe('ApplicationCodeSearchComponent', () => {
       },
     ],
     totalPages: 0,
+  };
+
+  const savedCodePage = (applicationCodeId?: number): ApplicationCodePage => ({
+    pageNumber: 0,
+    pageSize: 100,
+    totalElements: applicationCodeId === undefined ? 0 : 1,
+    totalPages: 1,
+    elementsOnPage: applicationCodeId === undefined ? 0 : 1,
+    content:
+      applicationCodeId === undefined
+        ? []
+        : [
+            {
+              applicationCode: 'APP99001',
+              applicationCodeId,
+              title: 'Saved application',
+              wording: { template: '' },
+              isFeeDue: false,
+              requiresRespondent: false,
+              bulkRespondentAllowed: false,
+            },
+          ],
+  });
+
+  const setSavedCode = () => {
+    componentRef.setInput('savedApplicationCode', 'APP99001');
+    componentRef.setInput('savedApplicationCodeId', 100);
+    fixture.detectChanges();
   };
 
   beforeEach(async () => {
@@ -170,6 +198,107 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(component.loading()).toBe(false);
     expect(component.errored()).toBe(false);
     expect(component.codesRows).toEqual([]);
+  });
+
+  it.each([
+    ['a newer version', savedCodePage(101), true],
+    ['a removed code', savedCodePage(), true],
+    ['the same version', savedCodePage(100), false],
+  ])('checks saved application code against %s', (_, page, showAlert) => {
+    const getApplicationCodes = jest.fn().mockReturnValue(of(page));
+    apiMock.getApplicationCodes = getApplicationCodes;
+    const newerVersionExists = jest.spyOn(component.newerVersionExists, 'emit');
+
+    setSavedCode();
+
+    expect(getApplicationCodes).toHaveBeenCalledWith(
+      {
+        code: 'APP99001',
+        pageNumber: 0,
+        pageSize: 100,
+      },
+      'body',
+      false,
+      { transferCache: true },
+    );
+    expect(component.historicalSavedCode()).toBe(showAlert ? 'APP99001' : null);
+    expect(newerVersionExists).toHaveBeenLastCalledWith(
+      page.content[0]?.applicationCodeId === 101,
+    );
+    expect(fixture.nativeElement.textContent).toContain(
+      showAlert
+        ? 'The saved application code APP99001'
+        : 'Find an application code',
+    );
+    if (!showAlert) {
+      expect(fixture.nativeElement.textContent).not.toContain(
+        'The saved application code APP99001',
+      );
+    }
+  });
+
+  it('waits for all current-code pages before deciding the saved code was removed', () => {
+    const secondPage = new Subject<ApplicationCodePage>();
+    apiMock.getApplicationCodes = jest
+      .fn()
+      .mockReturnValueOnce(
+        of({
+          ...savedCodePage(),
+          totalElements: 101,
+          totalPages: 2,
+        }),
+      )
+      .mockReturnValueOnce(secondPage);
+
+    setSavedCode();
+    expect(component.historicalSavedCode()).toBeNull();
+
+    secondPage.next({ ...savedCodePage(100), pageNumber: 1 });
+    secondPage.complete();
+    fixture.detectChanges();
+
+    expect(component.historicalSavedCode()).toBeNull();
+  });
+
+  it('does not show a historical warning when the current-code lookup fails', () => {
+    apiMock.getApplicationCodes = jest
+      .fn()
+      .mockReturnValue(throwError(() => new Error('lookup failed')));
+    const newerVersionExists = jest.spyOn(component.newerVersionExists, 'emit');
+
+    setSavedCode();
+
+    expect(component.historicalSavedCode()).toBeNull();
+    expect(newerVersionExists).toHaveBeenLastCalledWith(false);
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'The saved application code APP99001',
+    );
+  });
+
+  it('does not show a historical warning when a later current-code page fails', () => {
+    const secondPage = new Subject<ApplicationCodePage>();
+    apiMock.getApplicationCodes = jest
+      .fn()
+      .mockReturnValueOnce(
+        of({
+          ...savedCodePage(),
+          totalElements: 101,
+          totalPages: 2,
+        }),
+      )
+      .mockReturnValueOnce(secondPage);
+    const newerVersionExists = jest.spyOn(component.newerVersionExists, 'emit');
+
+    setSavedCode();
+    secondPage.error(new Error('lookup failed'));
+    fixture.detectChanges();
+
+    expect(apiMock.getApplicationCodes).toHaveBeenCalledTimes(2);
+    expect(component.historicalSavedCode()).toBeNull();
+    expect(newerVersionExists).toHaveBeenLastCalledWith(false);
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'The saved application code APP99001',
+    );
   });
 
   it('search() should call fetchCodeRows$ and populate codesRows', () => {

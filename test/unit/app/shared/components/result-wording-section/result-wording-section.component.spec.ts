@@ -14,7 +14,7 @@ import { ResultRow } from '@util/result-code-helpers';
 function makeResultCode(
   overrides: Partial<ResultCodeGetSummaryDto>,
 ): ResultCodeGetSummaryDto {
-  const base = { resultCode: '', title: '' };
+  const base = { id: 1, resultCode: '', title: '' };
   return { ...base, ...overrides };
 }
 
@@ -101,9 +101,9 @@ describe('ResultWordingSectionComponent', () => {
   let fixture: ComponentFixture<ResultWordingSectionComponent>;
 
   const codes: ResultCodeGetSummaryDto[] = [
-    makeResultCode({ resultCode: 'RC1', title: 'First' }),
-    makeResultCode({ resultCode: 'RC2', title: 'Second Match' }),
-    makeResultCode({ resultCode: 'AB9', title: 'Other' }),
+    makeResultCode({ id: 1, resultCode: 'RC1', title: 'First' }),
+    makeResultCode({ id: 2, resultCode: 'RC2', title: 'Second Match' }),
+    makeResultCode({ id: 3, resultCode: 'AB9', title: 'Other' }),
   ];
 
   beforeEach(async () => {
@@ -129,6 +129,43 @@ describe('ResultWordingSectionComponent', () => {
     fixture.componentRef.setInput('clearPendingToken', 0);
 
     fixture.detectChanges();
+  });
+
+  it('shows changed and removed saved codes in an information alert', () => {
+    fixture.componentRef.setInput('resultCodesLoaded', true);
+    fixture.componentRef.setInput('existingResults', [
+      makeExistingResult({ id: 'E1', resultCode: 'RC1', resultCodeId: 10 }),
+      makeExistingResult({ id: 'E2', resultCode: 'RC2', resultCodeId: 2 }),
+      makeExistingResult({ id: 'E3', resultCode: 'OLD', resultCodeId: 30 }),
+      makeExistingResult({ id: 'E4', resultCode: 'RC1', resultCodeId: 10 }),
+    ]);
+    fixture.detectChanges();
+
+    const alert = fixture.nativeElement.querySelector(
+      'app-alert[alerttype="information"]',
+    ) as HTMLElement;
+
+    expect(alert).toBeTruthy();
+    expect(alert.textContent).toContain('RC1, OLD');
+    expect(alert.textContent).not.toContain('RC2');
+    expect(component.historicalResultCodes()).toEqual(['RC1', 'OLD']);
+  });
+
+  it('waits for result codes to load and hides the alert when saved IDs match', () => {
+    fixture.componentRef.setInput('existingResults', [
+      makeExistingResult({ id: 'E1', resultCode: 'RC1', resultCodeId: 1 }),
+    ]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-alert')).toBeNull();
+
+    fixture.componentRef.setInput('resultCodesLoaded', true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-alert')).toBeNull();
+
+    fixture.componentRef.setInput('resultCodesList', []);
+    fixture.detectChanges();
+    expect(component.historicalResultCodes()).toEqual(['RC1']);
   });
 
   it('compares result drafts with persisted wording, not applied wording', () => {

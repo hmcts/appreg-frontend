@@ -22,6 +22,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
@@ -56,6 +57,7 @@ export type CivilFeeForm = FormGroup<{
 @Component({
   selector: 'app-civil-fee-section',
   imports: [
+    AlertComponent,
     SortableTableComponent,
     SelectInputComponent,
     DateInputComponent,
@@ -80,6 +82,7 @@ export class CivilFeeSectionComponent implements OnInit {
   civilFeeColumns = input.required<TableColumn[]>();
   feeStatusOptions = input.required<{ value: string; label: string }[]>();
   feeMeta = input<CivilFeeMeta | null>(null);
+  newerApplicationCodeVersionExists = input(false);
   changePaymentReferenceStateFactory = input<
     (() => Record<string, unknown>) | null
   >(null);

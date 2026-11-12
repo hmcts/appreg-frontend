@@ -249,6 +249,27 @@ describe('ApplicationsListEntryDetail', () => {
     );
     mockGetApplicationCodeByCodeAndDate.mockClear();
 
+    mockGetApplicationCodes.mockReturnValue(
+      of({
+        pageNumber: 0,
+        pageSize: 100,
+        totalElements: 1,
+        totalPages: 1,
+        elementsOnPage: 1,
+        content: [
+          {
+            applicationCodeId: 100,
+            applicationCode: 'APP-100',
+            title: 'Loaded title',
+            wording: { template: '' },
+            isFeeDue: false,
+            requiresRespondent: false,
+            bulkRespondentAllowed: false,
+          },
+        ],
+      }),
+    );
+
     mockGetStandardApplicants.mockReturnValue(
       of({
         pageNumber: 0,
@@ -298,6 +319,24 @@ describe('ApplicationsListEntryDetail', () => {
     component = fixture.componentInstance;
 
     fixture.detectChanges();
+  });
+
+  it('shows the fee warning when the saved application code has a newer version', async () => {
+    component.entryDetail = {
+      ...component.entryDetail!,
+      applicationCodeId: 99,
+    };
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.newerApplicationCodeVersionExists()).toBe(true);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        'app-civil-fee-section',
+      )?.textContent,
+    ).toContain('The fee details may have changed in the newer version.');
   });
 
   it('warns about unsaved changes and supports staying or discarding', async () => {
@@ -2644,6 +2683,7 @@ describe('ApplicationsListEntryDetail', () => {
   });
 
   it('onCodeSelected preserves the existing lodgement date when clearing the code selection', () => {
+    component.newerApplicationCodeVersionExists.set(true);
     component['form'].patchValue({
       applicationCode: 'APP-7',
       lodgementDate: '2025-11-01',
@@ -2655,6 +2695,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component['form'].controls.applicationCode.value).toBe('');
     expect(component['form'].controls.lodgementDate.value).toBe('2025-11-01');
+    expect(component.newerApplicationCodeVersionExists()).toBe(false);
     expect(mockGetApplicationCodeByCodeAndDate).not.toHaveBeenCalled();
   });
 

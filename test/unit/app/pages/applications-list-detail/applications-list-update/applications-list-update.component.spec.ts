@@ -162,6 +162,60 @@ describe('ApplicationsListUpdateComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('shows an information alert when the saved court code is no longer current', () => {
+    fixture.componentRef.setInput('originalListDetails', {
+      ...component.form().getRawValue(),
+      court: 'OLD',
+    });
+    fixture.componentRef.setInput('originalCourtId', 42);
+    fixture.componentRef.setInput('currentCourtLocations', [
+      { locationCode: 'NEW', courtId: 43, name: 'Current court' },
+    ]);
+    fixture.componentRef.setInput('courtLocationsLoaded', true);
+    fixture.detectChanges();
+
+    const alert = fixture.nativeElement.querySelector(
+      'app-alert[alerttype="information"]',
+    ) as HTMLElement;
+    expect(alert).toBeTruthy();
+    expect(alert.textContent).toContain('OLD');
+  });
+
+  it('shows the alert when a current court reuses the saved code with a different ID', () => {
+    fixture.componentRef.setInput('originalListDetails', {
+      ...component.form().getRawValue(),
+      court: 'SAME',
+    });
+    fixture.componentRef.setInput('originalCourtId', 42);
+    fixture.componentRef.setInput('currentCourtLocations', [
+      { locationCode: 'SAME', courtId: 43, name: 'Current court' },
+    ]);
+    fixture.componentRef.setInput('courtLocationsLoaded', true);
+    fixture.detectChanges();
+
+    expect(component.historicalCourtSaved()).toBe(true);
+    expect(fixture.nativeElement.querySelector('app-alert')).toBeTruthy();
+  });
+
+  it('waits for court locations to load and hides the alert for the saved ID', () => {
+    fixture.componentRef.setInput('originalListDetails', {
+      ...component.form().getRawValue(),
+      court: 'SAME',
+    });
+    fixture.componentRef.setInput('originalCourtId', 42);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-alert')).toBeNull();
+
+    fixture.componentRef.setInput('currentCourtLocations', [
+      { locationCode: 'SAME', courtId: 42, name: 'Saved court' },
+    ]);
+    fixture.componentRef.setInput('courtLocationsLoaded', true);
+    fixture.detectChanges();
+
+    expect(component.historicalCourtSaved()).toBe(false);
+    expect(fixture.nativeElement.querySelector('app-alert')).toBeNull();
+  });
+
   it('makes list details view-only and prevents update and close handlers', () => {
     fixture.componentRef.setInput('canModifyList', false);
     fixture.detectChanges();

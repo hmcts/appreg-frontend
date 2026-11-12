@@ -1,6 +1,6 @@
-import { Signal } from '@angular/core';
+import { Signal, computed } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Observable, catchError, map, of } from 'rxjs';
+import { EMPTY, Observable, catchError, expand, map, of, reduce } from 'rxjs';
 
 import {
   ApplicationListEntryResultsApi,
@@ -22,12 +22,34 @@ import { wordingFromFields } from '@util/template-substitution-utils';
 export function getAllResultCodes(
   codesApi: ResultCodesApi,
 ): Signal<ResultCodeGetSummaryDto[]> {
+  const state = getAllResultCodesState(codesApi);
+  return computed(() => state().codes);
+}
+
+export function getAllResultCodesState(
+  codesApi: ResultCodesApi,
+): Signal<{ codes: ResultCodeGetSummaryDto[]; loaded: boolean }> {
+  // When checking for historical codes, we need to ensure we have a complete list of codes.
   return toSignal(
     codesApi.getResultCodes({ pageNumber: 0, pageSize: 100 }).pipe(
-      map((page: ResultCodePage) => page.content ?? []),
-      catchError(() => of([] as ResultCodeGetSummaryDto[])),
+      expand((page: ResultCodePage) =>
+        page.pageNumber + 1 < (page.totalPages ?? 1)
+          ? codesApi.getResultCodes({
+              pageNumber: page.pageNumber + 1,
+              pageSize: 100,
+            })
+          : EMPTY,
+      ),
+      reduce(
+        (codes, page) => [...codes, ...(page.content ?? [])],
+        [] as ResultCodeGetSummaryDto[],
+      ),
+      map((codes) => ({ codes, loaded: true })),
+      catchError(() =>
+        of({ codes: [] as ResultCodeGetSummaryDto[], loaded: false }),
+      ),
     ),
-    { initialValue: [] as ResultCodeGetSummaryDto[] },
+    { initialValue: { codes: [] as ResultCodeGetSummaryDto[], loaded: false } },
   );
 }
 

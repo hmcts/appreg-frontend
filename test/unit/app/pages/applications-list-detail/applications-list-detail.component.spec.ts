@@ -134,12 +134,21 @@ describe('ApplicationsListDetail', () => {
   };
 
   const courts$ = new BehaviorSubject<CourtLocationGetSummaryDto[]>([]);
+  const currentCourtLocations = signal<CourtLocationGetSummaryDto[]>([]);
+  const courtLocationsLoaded = signal(false);
   const referenceDataLoadError = signal(false);
   const refFacadeStub: Pick<
     ReferenceDataFacade,
-    'courtLocations$' | 'cja$' | 'hasPlaceLoadError' | 'refresh'
+    | 'courtLocations$'
+    | 'courtLocations'
+    | 'courtLocationsLoaded'
+    | 'cja$'
+    | 'hasPlaceLoadError'
+    | 'refresh'
   > = {
     courtLocations$: courts$,
+    courtLocations: currentCourtLocations,
+    courtLocationsLoaded,
     cja$: of([] as CriminalJusticeAreaGetDto[]),
     hasPlaceLoadError: referenceDataLoadError,
     refresh: jest.fn(),
@@ -163,6 +172,8 @@ describe('ApplicationsListDetail', () => {
 
   beforeEach(async () => {
     courts$.next([]);
+    currentCourtLocations.set([]);
+    courtLocationsLoaded.set(false);
     referenceDataLoadError.set(false);
     jest.mocked(refFacadeStub.refresh).mockClear();
     const row = {
@@ -393,6 +404,10 @@ describe('ApplicationsListDetail', () => {
     courts$.next([
       { locationCode: 'SAME', courtId: 43, name: 'Current court' },
     ]);
+    currentCourtLocations.set([
+      { locationCode: 'SAME', courtId: 43, name: 'Current court' },
+    ]);
+    courtLocationsLoaded.set(true);
     component['prefillFromApi'](saved);
     courts$.next([
       { locationCode: 'SAME', courtId: 43, name: 'Current court' },
@@ -403,6 +418,11 @@ describe('ApplicationsListDetail', () => {
     expect(
       component.placeState().courtLocations.map((court) => court.courtId),
     ).toEqual([42, 43]);
+    await flushSignalEffects(fixture);
+    expect(
+      fixture.nativeElement.querySelector('app-alert[alerttype="information"]')
+        ?.textContent,
+    ).toContain('SAME');
 
     component.form.patchValue({ description: 'Updated description' });
     await flushSignalEffects(fixture);

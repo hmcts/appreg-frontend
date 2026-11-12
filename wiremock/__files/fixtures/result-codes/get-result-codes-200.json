@@ -1,19 +1,19 @@
 {
   "pageNumber": 0,
-  "pageSize": 10,
-  "totalElements": 43,
-  "totalPages": 5,
+  "pageSize": 100,
+  "totalElements": 10,
+  "totalPages": 1,
   "sort": ["title,asc"],
   "content": [
-    { "resultCode": "ADJ", "title": "Adjourned" },
-    { "resultCode": "HRD", "title": "Heard" },
-    { "resultCode": "WTH", "title": "Withdrawn" },
-    { "resultCode": "DIS", "title": "Dismissed" },
-    { "resultCode": "GTL", "title": "Leave Granted" },
-    { "resultCode": "REF", "title": "Refused" },
-    { "resultCode": "CNV", "title": "Convicted" },
-    { "resultCode": "ACL", "title": "Absolute Discharge" },
-    { "resultCode": "CST", "title": "Case Stood Down" },
-    { "resultCode": "NA", "title": "No Appearance" }
+    { "id": 30003, "resultCode": "ADJ", "title": "Adjourned" },
+    { "id": 30004, "resultCode": "HRD", "title": "Heard" },
+    { "id": 30005, "resultCode": "WTH", "title": "Withdrawn" },
+    { "id": 30006, "resultCode": "DIS", "title": "Dismissed" },
+    { "id": 30007, "resultCode": "GTL", "title": "Leave Granted" },
+    { "id": 30008, "resultCode": "REF", "title": "Refused" },
+    { "id": 30009, "resultCode": "CNV", "title": "Convicted" },
+    { "id": 30010, "resultCode": "ACL", "title": "Absolute Discharge" },
+    { "id": 30011, "resultCode": "CST", "title": "Case Stood Down" },
+    { "id": 30012, "resultCode": "NA", "title": "No Appearance" }
   ]
 }

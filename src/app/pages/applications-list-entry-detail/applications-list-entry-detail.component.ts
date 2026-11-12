@@ -316,6 +316,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   wordingAppliedBannerVisible = signal(false);
   readonly submitAttempt = signal(0);
   readonly savedApplicationCodeLoaded = signal(false);
+  readonly newerApplicationCodeVersionExists = signal(false);
 
   resultAppliedBannerVisible = signal(false);
 
@@ -586,6 +587,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }): void {
     this.resetSuccessBanner();
     this.resetErrors();
+    this.newerApplicationCodeVersionExists.set(false);
 
     const prevSelection = {
       code: this.form.controls.applicationCode.value,

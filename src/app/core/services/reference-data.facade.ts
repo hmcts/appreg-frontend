@@ -30,6 +30,7 @@ interface ReferenceDataState {
   applicationCodeTitles: string[];
   cjaLoading: boolean;
   courtsLoading: boolean;
+  courtsLoaded: boolean;
   appCodeLoading: boolean;
   cjaLoadError: boolean;
   courtsLoadError: boolean;
@@ -42,6 +43,7 @@ const initialReferenceDataState: ReferenceDataState = {
   applicationCodeTitles: [],
   cjaLoading: false,
   courtsLoading: false,
+  courtsLoaded: false,
   appCodeLoading: false,
   cjaLoadError: false,
   courtsLoadError: false,
@@ -78,6 +80,7 @@ export class ReferenceDataFacade {
 
   readonly cja = computed(() => this.state().cja);
   readonly courtLocations = computed(() => this.state().courtLocations);
+  readonly courtLocationsLoaded = computed(() => this.state().courtsLoaded);
   readonly applicationCodeTitles = computed(
     () => this.state().applicationCodeTitles,
   );
@@ -106,6 +109,7 @@ export class ReferenceDataFacade {
     this.signalState.patch({
       cjaLoading: true,
       courtsLoading: true,
+      courtsLoaded: false,
       appCodeLoading: true,
     });
     this.loadCjaRequest.set(true);
@@ -118,6 +122,7 @@ export class ReferenceDataFacade {
     this.signalState.patch({
       cjaLoading: true,
       courtsLoading: true,
+      courtsLoaded: false,
       appCodeLoading: true,
       cjaLoadError: false,
       courtsLoadError: false,
@@ -161,6 +166,7 @@ export class ReferenceDataFacade {
           this.signalState.patch({
             courtLocations: items,
             courtsLoading: false,
+            courtsLoaded: true,
             courtsLoadError: false,
           });
           this.loadCourtsRequest.set(null);
@@ -169,6 +175,7 @@ export class ReferenceDataFacade {
           this.signalState.patch({
             courtLocations: [],
             courtsLoading: false,
+            courtsLoaded: false,
             courtsLoadError: true,
           });
           this.loadCourtsRequest.set(null);
