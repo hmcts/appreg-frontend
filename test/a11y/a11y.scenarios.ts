@@ -80,7 +80,7 @@ export const scenarios: Scenario[] = [
     name: 'Delete list',
     path: `${root}/delete`,
     heading: 'Check the application list and entries before deleting',
-    ready: 'app-applications-list-delete .govuk-summary-card',
+    ready: 'app-applications-list-delete app-sortable-table tbody tr',
     state: {
       listRow: {
         ...list,

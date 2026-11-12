@@ -52,24 +52,14 @@
   </dl>
   @if (entriesLoaded() && childEntries().length > 0) {
     <h2 class="govuk-heading-m">Application list entries to be deleted</h2>
-    @for (entry of childSummaries(); track entry.id; let index = $index) {
-      <div class="govuk-summary-card">
-        <div class="govuk-summary-card__title-wrapper">
-          <h3 class="govuk-summary-card__title">
-            {{ 'Application list entry ' + (index + 1) }}
-          </h3>
-        </div>
-        <div class="govuk-summary-card__content">
-          <dl class="govuk-summary-list">
-            @for (detail of entry.details; track detail.key) {
-              <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">{{ detail.key }}</dt>
-                <dd class="govuk-summary-list__value">{{ detail.value }}</dd>
-              </div>
-            }
-          </dl>
-        </div>
-      </div>
-    }
+    <app-sortable-table
+      [columns]="childColumns"
+      [data]="childRows()"
+      caption="Application list entries to be deleted"
+      [hiddenCaption]="true"
+      [selectable]="false"
+      clientOrServerSort="server"
+      idField="id"
+    />
   }
 </app-review-confirm>
