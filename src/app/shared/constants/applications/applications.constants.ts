@@ -1,3 +1,5 @@
+import { SearchFilterField, SearchInterpretationNotice } from '@openapi';
+
 export const ApplicationsColumns = [
   { header: 'Date', field: 'date', wrap: false },
   { header: 'Applicant', field: 'applicant' },
@@ -17,3 +19,59 @@ export const COURT_CODES_MAX_ITEMS = 20;
 // accepts, so Court and Other courts together can never send more than it
 // allows.
 export const OTHER_COURTS_MAX_ITEMS = COURT_CODES_MAX_ITEMS - 1;
+
+// Most characters in a plain-English search question (the API's limit,
+// SearchInterpretationRequestDto.question)
+export const PLAIN_ENGLISH_QUESTION_MAX_LENGTH = 300;
+
+// The name of each search filter field, shown next to the value the
+// plain-English search set it to. Typed against SearchFilterField, so a field
+// the API adds fails to compile here.
+export const INTERPRETED_FILTER_FIELD_LABELS: Readonly<
+  Record<SearchFilterField, string>
+> = {
+  [SearchFilterField.DATE]: 'List date',
+  [SearchFilterField.DATE_FROM]: 'List date from',
+  [SearchFilterField.DATE_TO]: 'List date to',
+  [SearchFilterField.COURT_CODE]: 'Court',
+  [SearchFilterField.COURT_CODES]: 'Courts',
+  [SearchFilterField.CJA_CODE]: 'Criminal justice area',
+  [SearchFilterField.APPLICATION_CODES]: 'Application codes',
+  [SearchFilterField.APPLICATION_CODE_CATEGORY]: 'Application category',
+  [SearchFilterField.RESULT_CODES]: 'Result codes',
+  [SearchFilterField.STANDARD_APPLICANT_CODES]: 'Standard applicants',
+  [SearchFilterField.APPLICANT_NAME]: 'Applicant name',
+  [SearchFilterField.APPLICANT_ORGANISATION]: 'Applicant organisation',
+  [SearchFilterField.APPLICANT_SURNAME]: 'Applicant surname',
+  [SearchFilterField.RESPONDENT_NAME]: 'Respondent name',
+  [SearchFilterField.RESPONDENT_ORGANISATION]: 'Respondent organisation',
+  [SearchFilterField.RESPONDENT_SURNAME]: 'Respondent surname',
+  [SearchFilterField.RESPONDENT_POSTCODE]: 'Respondent post code',
+  [SearchFilterField.ACCOUNT_REFERENCE]: 'Account reference',
+  [SearchFilterField.STATUS]: 'Status',
+};
+
+// Fixed copy for each plain-English search notice. Typed against
+// SearchInterpretationNotice, so a notice the API adds fails to compile here.
+export const INTERPRETATION_NOTICE_TEXT: Readonly<
+  Record<SearchInterpretationNotice, string>
+> = {
+  [SearchInterpretationNotice.WELSH_NOT_SUPPORTED]:
+    'Plain-English search only understands questions in English.',
+  [SearchInterpretationNotice.MINIMUM_FILTER_NOT_MET]:
+    'These filters are not narrow enough to search yet. Add more filters before you search.',
+  [SearchInterpretationNotice.UNKNOWN_CODE_DROPPED]:
+    'A code in your question does not exist, so it was left out.',
+  [SearchInterpretationNotice.FIELD_NOT_AVAILABLE]:
+    'Your question asked for a filter that is not available yet, so it was left out.',
+  [SearchInterpretationNotice.DATE_NOT_UNDERSTOOD]:
+    'A date in your question could not be worked out. Check the dates before you search.',
+  [SearchInterpretationNotice.DATE_IN_FUTURE]:
+    'A date in your question is in the future. Check the dates before you search.',
+  [SearchInterpretationNotice.NAME_TOO_SHORT]:
+    'A name in your question was too short to search on, so it was left out.',
+  [SearchInterpretationNotice.TOO_MANY_MATCHES]:
+    'A name in your question matched too many values to offer as choices, so it was left out.',
+  [SearchInterpretationNotice.VALUE_NOT_VALID]:
+    'A value in your question is not a valid filter value, so it was left out.',
+};
