@@ -74,6 +74,11 @@
  *   Picks that are not applied are added to `notApplied` by their label.
  *   Apply every answer to the result of mapInterpretationToForm() each time an
  *   answer changes, rather than to a result that already has a pick in it.
+ * - The page also applies a pick to its own form, which staff may have edited
+ *   since: it passes changes built from the form, with no appliedFilters or
+ *   notApplied, so the same rules hold against what the form holds. After it
+ *   undoes a pick, withCourtsExclusive() applies the court rule above to those
+ *   changes, as a CJA or Other location the pick took out may come back.
  */
 
 import { type RadioOption } from '@components/radio-button/radio-button.component';
@@ -287,6 +292,20 @@ export function applyInterpretationChoice(
     draft.appliedFilters = withoutField(draft.appliedFilters, field);
   }
 
+  keepCourtsExclusive(draft);
+  return draft;
+}
+
+/**
+ * Applies the court rule to changes and returns new changes (the input is not
+ * changed): when a court is set, a CJA or Other location is taken out and
+ * listed as not applied. Changes from the functions above already follow it;
+ * this is for changes the page built from its own form.
+ */
+export function withCourtsExclusive(
+  changes: InterpretationFormChanges,
+): InterpretationFormChanges {
+  const draft = cloneChanges(changes);
   keepCourtsExclusive(draft);
   return draft;
 }

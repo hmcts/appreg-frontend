@@ -20,6 +20,38 @@
  * - A 400 from the search, such as a rejected filter combination, shows the
  *   API's problem text in the error summary. Other errors show a generic message
  *
+ * Plain-English search (app-plain-english-search and
+ * app-interpreted-filters-summary, above the form):
+ * - Shown only while AiCapabilitiesFacade.searchInterpretationEnabled() is on.
+ *   ngOnInit() calls refresh(), so the server's kill switch takes effect on the
+ *   next visit. With it off nothing about it renders and no AI call is made
+ * - onInterpreted(): the interpretation replaces the form's values (never
+ *   merged; interpretation-mapper.ts), with the Court and CJA display text and
+ *   Other courts labels. Advanced search opens when it sets one of its filters.
+ *   The search is never run: staff check the filters and press Search.
+ *   Applying it clears earlier search errors and, unless results are on screen
+ *   or loading, the "no entries found" state, which no longer applies
+ * - onInterpretationAnswersChange(): a choice pick is applied to the form as
+ *   it is now, through the mapper, so its court rules and list limits hold
+ *   against filters edited by hand since: a court pick never replaces a
+ *   Court (it goes into Other courts) and takes out a CJA or Other location,
+ *   and a CJA pick while a court is set is not applied. Changing an answer
+ *   first takes out what the previous pick did, keeping later hand edits.
+ *   What the page leaves out is listed in the summary as not applied
+ * - Other courts labels (court names, never question text) are saved with the
+ *   search form, so an end-dated court keeps its label when it is restored
+ * - Search is blocked while any choice is not answered ("None of these" is an
+ *   answer), so a search never widens silently. The error summary links to the
+ *   first choice that is not answered
+ * - The panel's errors go first in the page's one error summary. Search and
+ *   Clear search clear them
+ * - interpretationId is sent once, as a top-level query parameter of the first
+ *   search after the interpretation. It is never sent on paging, sorting or a
+ *   restored search, never again, and never after Clear search, and it is not
+ *   saved with the search state
+ * - Clear search also clears the question, the summary and its choices, and
+ *   cancels a request in flight
+ *
  * onPrintContinuous/Page():
  * - Runs bulk preview endpoint to get selected row details
  * - Runs print endpoint with entryIds + listIds
@@ -42,6 +74,7 @@ import {
   computed,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import {
   FormControl,
@@ -54,6 +87,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import {
+  InterpretedFiltersSummaryComponent,
+  interpretationChoiceHref,
+  interpretationChoiceIdPrefix,
+} from './plain-english-search/interpreted-filters-summary.component';
+import { PlainEnglishSearchComponent } from './plain-english-search/plain-english-search.component';
+import {
   type ApplicationsState,
   clearNotificationsPatch,
   defaultApplicationsSort,
@@ -63,11 +102,22 @@ import {
   searchSuccessPatch,
   startSearchPatch,
 } from './util/applications.state';
+import {
+  type ApplicationsSearchControl,
+  type InterpretationChoiceOption,
+  type InterpretationFormChanges,
+  applyInterpretationChoice,
+  mapInterpretationToForm,
+  withCourtsExclusive,
+} from './util/interpretation-mapper';
 import { mapToRow } from './util/table-mapper';
 
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
-import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
+import {
+  type ErrorItem,
+  ErrorSummaryComponent,
+} from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { MultiSuggestionsComponent } from '@components/multi-suggestions/multi-suggestions.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
@@ -88,9 +138,13 @@ import {
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
   ApplicationsColumns,
+  COURT_CODES_MAX_ITEMS,
   OTHER_COURTS_MAX_ITEMS,
 } from '@constants/applications/applications.constants';
-import { APPLICATIONS_ERROR_MAP } from '@constants/applications/error-messages';
+import {
+  APPLICATIONS_ERROR_MAP,
+  INTERPRETATION_CHOICE_ERROR_MESSAGE,
+} from '@constants/applications/error-messages';
 import {
   APPLICATIONS_LIST_CHOOSE_STATUS,
   APPLICATIONS_LIST_ERROR_MESSAGES,
@@ -108,11 +162,14 @@ import {
   BulkActionSelectionDto,
   BulkActionSelectionType,
   BulkActionType,
+  CourtLocationGetSummaryDto,
   EntryGetFilterDto,
   EntryGetSummaryDto,
   GetEntriesRequestParams,
   PrintApplicationListsRequestParams,
+  SearchInterpretationDto,
 } from '@openapi';
+import { AiCapabilitiesFacade } from '@services/ai-capabilities.facade';
 import {
   ApplicationsSearchFormService,
   ApplicationsSearchFormValue,
@@ -141,7 +198,11 @@ import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { isAllMatchingSelected } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
-import { trimStringToLowerCase, trimToUndefined } from '@util/string-helpers';
+import {
+  hasText,
+  trimStringToLowerCase,
+  trimToUndefined,
+} from '@util/string-helpers';
 import { withDisabledColumnSort } from '@util/table-column-sort';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { atLeastOneRequiredValidator } from '@validators/at-least-one-value.validator';
@@ -190,6 +251,246 @@ const toCourtCodeList = (
     });
 };
 
+// The controls inside Advanced search, which opens when an interpretation or
+// a choice pick sets one of them
+const ADVANCED_SEARCH_CONTROLS: readonly ApplicationsSearchControl[] = [
+  'respondentPostcode',
+  'cja',
+  'location',
+  'standardApplicantCode',
+  'accountReference',
+  'applicationTitle',
+  'applicationCodes',
+  'resultCodes',
+];
+
+// The filters a choice pick works on: the form's values, and the display text
+// of Court and CJA and the labels of Other courts
+type PageFilters = Pick<
+  InterpretationFormChanges,
+  'formValue' | 'courthouseSearch' | 'cjaSearch' | 'courtChipLabels'
+>;
+
+/** What one answer did to the page's filters. */
+interface ChoicePick {
+  /** The filters just before the pick: undoing it goes back to these. */
+  before: PageFilters;
+  /** The filters just after the pick. */
+  after: PageFilters;
+  /** What the page left out for the pick, as text staff can read. */
+  notApplied: string[];
+}
+
+/** A plain-English search result that staff are checking. */
+interface CheckedInterpretation {
+  /** The mapper's changes, before any choice pick. */
+  changes: InterpretationFormChanges;
+  /** The picked radio value for each choice, by index (null: not answered). */
+  answers: (string | null)[];
+  /** What each answer did to the page's filters, by index. */
+  picks: (ChoicePick | null)[];
+  /** The active courts the mapper used, so picks are applied the same way. */
+  activeCourts: readonly CourtLocationGetSummaryDto[];
+  /** A new value for each result, so focus moves to its summary. */
+  focusKey: number;
+}
+
+// The interpretation's changes with every answered choice applied, each time
+// from the mapper's own result (see interpretation-mapper.ts)
+const withAnswers = ({
+  changes,
+  answers,
+  activeCourts,
+}: CheckedInterpretation): InterpretationFormChanges =>
+  changes.choices.reduce((current, choice, index) => {
+    const option = choice.options.find((item) => item.value === answers[index]);
+    return option
+      ? applyInterpretationChoice(current, option, activeCourts)
+      : current;
+  }, changes);
+
+// What the summary shows: the interpretation with its answers applied, and
+// also what the page left out when it applied them to its own filters
+const summaryChanges = (
+  checked: CheckedInterpretation,
+): InterpretationFormChanges => {
+  const changes = withAnswers(checked);
+  return {
+    ...changes,
+    notApplied: [
+      ...new Set([
+        ...changes.notApplied,
+        ...checked.picks.flatMap((pick) => pick?.notApplied ?? []),
+      ]),
+    ],
+  };
+};
+
+// The controls that hold a list of codes
+const LIST_CONTROLS = [
+  'applicationCodes',
+  'resultCodes',
+  'courtCodes',
+] as const;
+type ListControl = (typeof LIST_CONTROLS)[number];
+const isListControl = (name: string): name is ListControl =>
+  (LIST_CONTROLS as readonly string[]).includes(name);
+
+const copyFilters = (filters: PageFilters): PageFilters => ({
+  formValue: {
+    ...filters.formValue,
+    applicationCodes: [...filters.formValue.applicationCodes],
+    resultCodes: [...filters.formValue.resultCodes],
+    courtCodes: [...filters.formValue.courtCodes],
+  },
+  courthouseSearch: filters.courthouseSearch,
+  cjaSearch: filters.cjaSearch,
+  courtChipLabels: { ...filters.courtChipLabels },
+});
+
+// Changes for the mapper built from the page's filters, with nothing listed
+// yet, so its notApplied afterwards is only what it left out
+const toChanges = (filters: PageFilters): InterpretationFormChanges => ({
+  ...copyFilters(filters),
+  appliedFilters: [],
+  notApplied: [],
+  choices: [],
+  unusedParts: [],
+  notices: [],
+});
+
+// The form values that differ between two sets of filters
+const changedValues = (
+  current: PageFilters['formValue'],
+  next: PageFilters['formValue'],
+): Partial<PageFilters['formValue']> => {
+  const patch: Record<string, unknown> = {};
+
+  for (const name of Object.keys(next) as ApplicationsSearchControl[]) {
+    const value: unknown = next[name];
+    const same = isListControl(name)
+      ? current[name].length === next[name].length &&
+        current[name].every((code, index) => code === next[name][index])
+      : current[name] === value;
+    if (!same) {
+      patch[name] = value;
+    }
+  }
+
+  return patch;
+};
+
+/**
+ * Takes a pick back out of the filters as they are now, which staff may have
+ * edited since:
+ * - a code the pick added to a list is removed;
+ * - a value the pick set or cleared goes back only while it still holds what
+ *   the pick left, so a value changed by hand since is kept. Court and CJA
+ *   display text go back with their value;
+ * - a court the pick moved from a full Other courts into Court goes back into
+ *   Other courts while the court limits leave room, and is otherwise listed
+ *   as not applied. No other pick takes a code out of a list.
+ * A CJA or Other location that comes back may now sit beside a court: the
+ * caller applies the court rule afterwards.
+ */
+function undoPick(
+  current: PageFilters,
+  { before, after }: ChoicePick,
+): { filters: PageFilters; notApplied: string[] } {
+  const filters = copyFilters(current);
+  const form = filters.formValue;
+  const values: Record<string, unknown> = {};
+  const notApplied: string[] = [];
+
+  for (const name of Object.keys(
+    after.formValue,
+  ) as ApplicationsSearchControl[]) {
+    if (
+      !isListControl(name) &&
+      before.formValue[name] !== after.formValue[name] &&
+      form[name] === after.formValue[name]
+    ) {
+      values[name] = before.formValue[name];
+    }
+  }
+  Object.assign(form, values);
+  if (Object.hasOwn(values, 'court')) {
+    filters.courthouseSearch = before.courthouseSearch;
+  }
+  if (Object.hasOwn(values, 'cja')) {
+    filters.cjaSearch = before.cjaSearch;
+  }
+
+  for (const name of LIST_CONTROLS) {
+    const added = after.formValue[name].filter(
+      (code) => !before.formValue[name].includes(code),
+    );
+    form[name] = form[name].filter((code) => !added.includes(code));
+    if (name === 'courtCodes') {
+      for (const code of added) {
+        delete filters.courtChipLabels[code];
+      }
+    }
+  }
+
+  const movedOut = before.formValue.courtCodes.filter(
+    (code) => !after.formValue.courtCodes.includes(code),
+  );
+  for (const code of movedOut) {
+    const courts = toCourtCodeList(form.court, form.courtCodes);
+    if (courts.some((court) => court.toUpperCase() === code.toUpperCase())) {
+      continue;
+    }
+
+    const label = before.courtChipLabels[code];
+    if (
+      form.courtCodes.length < OTHER_COURTS_MAX_ITEMS &&
+      courts.length < COURT_CODES_MAX_ITEMS
+    ) {
+      form.courtCodes = [...form.courtCodes, code];
+      if (label) {
+        filters.courtChipLabels[code] = label;
+      }
+    } else {
+      notApplied.push(label ?? code);
+    }
+  }
+
+  return { filters, notApplied };
+}
+
+/**
+ * Applies a changed answer to the page's filters as they are now. The
+ * previous answer's pick is taken out first (undoPick), then the new option
+ * is applied through the mapper, so its rules hold against what the form
+ * holds rather than the interpretation: a court pick never replaces a court
+ * (it goes into Other courts), a court takes out a CJA or Other location, a
+ * CJA pick while a court is set is not applied, and the list and court limits
+ * hold. Returns what the new answer did.
+ */
+function pickAnswer(
+  current: PageFilters,
+  previous: ChoicePick | null,
+  option: InterpretationChoiceOption | undefined,
+  activeCourts: readonly CourtLocationGetSummaryDto[],
+): ChoicePick {
+  const undone = previous
+    ? undoPick(current, previous)
+    : { filters: current, notApplied: [] };
+  // A CJA or Other location the previous pick took out may be back beside a
+  // court that was set since; the court is kept
+  const before = withCourtsExclusive(toChanges(undone.filters));
+  const after = option
+    ? applyInterpretationChoice(before, option, activeCourts)
+    : before;
+
+  return {
+    before: copyFilters(before),
+    after: copyFilters(after),
+    notApplied: [...new Set([...undone.notApplied, ...after.notApplied])],
+  };
+}
+
 @Component({
   selector: 'app-applications',
   standalone: true,
@@ -210,6 +511,8 @@ const toCourtCodeList = (
     DateTimePipe,
     AsyncJobProgressComponent,
     HelpDetailsComponent,
+    PlainEnglishSearchComponent,
+    InterpretedFiltersSummaryComponent,
   ],
   templateUrl: './applications.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -226,6 +529,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly searchState = inject(ApplicationsSearchStateService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly aiCapabilities = inject(AiCapabilitiesFacade);
 
   private readonly appState = createSignalState(initialApplicationsState);
   readonly vm = this.appState.vm;
@@ -275,9 +579,46 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   // together can never send more than it allows
   readonly otherCourtsMaxItems = OTHER_COURTS_MAX_ITEMS;
 
+  // Plain-English search: off until the capabilities load, and on any error
+  readonly searchInterpretationEnabled =
+    this.aiCapabilities.searchInterpretationEnabled;
+
+  private readonly plainEnglishSearch = viewChild(PlainEnglishSearchComponent);
+
+  // The panel's errors, first in the page's error summary
+  readonly plainEnglishErrors = signal<ErrorItem[]>([]);
+
+  private readonly checkedInterpretation = signal<CheckedInterpretation | null>(
+    null,
+  );
+  private interpretationCount = 0;
+
+  // Sent once, with the first search after an interpretation. Never saved.
+  private pendingInterpretationId: string | null = null;
+
+  /**
+   * The interpretation's form changes with the choice picks applied, and what
+   * the page left out when it applied them, for the summary.
+   */
+  readonly interpretationChanges = computed(() => {
+    const checked = this.checkedInterpretation();
+    return checked && this.searchInterpretationEnabled()
+      ? summaryChanges(checked)
+      : null;
+  });
+  readonly interpretationAnswers = computed(
+    () => this.checkedInterpretation()?.answers ?? [],
+  );
+  readonly interpretationFocusKey = computed(
+    () => this.checkedInterpretation()?.focusKey,
+  );
+  // Set when a search is blocked by a choice that is not answered
+  readonly showChoiceErrors = signal(false);
+
   readonly summaryItems = computed(() => {
     const { errorSummary, searchErrors } = this.vm();
     return [
+      ...this.plainEnglishErrors(),
       ...(errorSummary.length ? errorSummary : searchErrors),
       ...(this.refFacade.hasLoadError()
         ? [{ text: 'Failed to load reference data' }]
@@ -379,6 +720,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   ngOnInit(): void {
+    // Plain-English search stays off until this answers
+    this.aiCapabilities.refresh();
     this.restoreSearchState();
     this.applicationTitleSearch.set(
       this.form.controls.applicationTitle.value ?? '',
@@ -412,6 +755,9 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     const storedState = this.searchState.state();
 
     this.form.reset(storedForm, { emitEvent: false });
+    // Labels for Other courts the typeahead does not know, such as end-dated
+    // courts from a plain-English search
+    this.courtChipLabels.set(this.searchForm.courtChipLabels());
     this.appState.state.set({
       ...initialApplicationsState,
       isSearch: storedState.hasSearched,
@@ -502,6 +848,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       this.refFacade.refresh();
     }
 
+    this.clearPlainEnglishErrors();
     this.patchApp({
       ...clearNotificationsPatch(),
       submitted: true,
@@ -511,14 +858,20 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
+    // The choices are above the form, so their error comes first
+    const choiceErrors = this.unansweredChoiceErrors();
     const validationErrors = buildErrorSummary(this.form, this.errorMap, {
       hrefs: APPLICATIONS_ERROR_HREFS,
     });
     this.persistFormState();
 
-    if (validationErrors.length) {
+    if (choiceErrors.length) {
+      this.showChoiceErrors.set(true);
+    }
+
+    if (choiceErrors.length || validationErrors.length) {
       this.patchApp({
-        searchErrors: validationErrors,
+        searchErrors: [...choiceErrors, ...validationErrors],
         isSelectingAll: false,
       });
       return;
@@ -538,7 +891,101 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       isSelectingAll: false,
     });
 
-    this.loadApplications(filter);
+    this.loadApplications(filter, { withInterpretation: true });
+  }
+
+  /**
+   * Applies a plain-English search result to the form, replacing its values.
+   * The search is not run: staff check the filters and press Search.
+   */
+  onInterpreted(interpretation: SearchInterpretationDto): void {
+    const activeCourts = [...this.state().courtLocations];
+    const changes = mapInterpretationToForm(interpretation, activeCourts);
+
+    this.interpretationCount += 1;
+    this.checkedInterpretation.set({
+      changes,
+      answers: changes.choices.map(() => null),
+      picks: changes.choices.map(() => null),
+      activeCourts,
+      focusKey: this.interpretationCount,
+    });
+    this.pendingInterpretationId =
+      trimToUndefined(interpretation.interpretationId) ?? null;
+    this.showChoiceErrors.set(false);
+    // Errors about the replaced values no longer apply. Unless results are on
+    // screen or on their way, nothing on the page is about a search any more,
+    // so the "no entries found" state goes too (submitted and isSearch move
+    // together for app-date-input)
+    const searchOnScreen = this.vm().rows.length > 0 || this.vm().isLoading;
+    this.patchApp({
+      ...clearNotificationsPatch(),
+      ...(searchOnScreen ? {} : { isSearch: false, submitted: false }),
+    });
+
+    // Display text first: the court and CJA validators read it when the form
+    // is reset
+    this.courtChipLabels.set({ ...changes.courtChipLabels });
+    this.patch({
+      courthouseSearch: changes.courthouseSearch,
+      cjaSearch: changes.cjaSearch,
+      filteredCourthouses: [],
+      filteredCja: [],
+    });
+    this.form.reset(changes.formValue);
+    this.applicationTitleSearch.set(changes.formValue.applicationTitle);
+    this.openAdvancedSearchWhenUsed();
+  }
+
+  /**
+   * Applies the answers that changed to the form as it is now, so filters
+   * edited by hand since are kept and the mapper's rules hold against them
+   * (pickAnswer).
+   */
+  onInterpretationAnswersChange(answers: (string | null)[]): void {
+    const checked = this.checkedInterpretation();
+    if (!checked) {
+      return;
+    }
+
+    const current = this.pageFilters();
+    const picks = [...checked.picks];
+    let filters = current;
+
+    checked.changes.choices.forEach((choice, index) => {
+      const answer = answers[index] ?? null;
+      if (answer === checked.answers[index]) {
+        return;
+      }
+
+      const option = choice.options.find((item) => item.value === answer);
+      const pick = pickAnswer(
+        filters,
+        checked.picks[index],
+        option,
+        checked.activeCourts,
+      );
+      picks[index] = pick;
+      filters = pick.after;
+    });
+
+    this.checkedInterpretation.set({
+      ...checked,
+      answers: [...answers],
+      picks,
+    });
+    // No choice is for the Application title (not a SearchFilterField), so
+    // applicationTitleSearch needs no update here
+    this.applyPageFilters(current, filters);
+    this.openAdvancedSearchWhenUsed();
+  }
+
+  onPlainEnglishErrorsChange(errors: ErrorItem[]): void {
+    this.plainEnglishErrors.set(errors);
+    if (errors.length) {
+      // A new error cycle, so the error summary takes focus
+      this.submitAttempt.update((attempt) => attempt + 1);
+    }
   }
 
   async onPrintContinuousClick(): Promise<void> {
@@ -701,11 +1148,21 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     };
   }
 
-  loadApplications(filterOverride?: EntryGetFilterDto): void {
+  /**
+   * Runs the search. `withInterpretation` (a submitted search only) sends the
+   * pending interpretationId, once: it is cleared when the request is made.
+   */
+  loadApplications(
+    filterOverride?: EntryGetFilterDto,
+    { withInterpretation = false }: { withInterpretation?: boolean } = {},
+  ): void {
     if (this.vm().isLoading) {
       return;
     }
 
+    const interpretationId = withInterpretation
+      ? this.takePendingInterpretationId()
+      : null;
     const apiSortKey =
       APPLICATIONS_SORT_MAP[this.vm().sortField.key] ?? this.vm().sortField.key;
     const params: GetEntriesRequestParams = {
@@ -713,6 +1170,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       pageSize: this.vm().pageSize,
       sort: [`${apiSortKey},${this.vm().sortField.direction}`],
       filter: filterOverride ?? this.loadQuery(),
+      // Top level, never in the filter, so it is not saved with the search
+      ...(interpretationId ? { interpretationId } : {}),
     };
 
     this.patchApp({ ...startSearchPatch(), ...clearNotificationsPatch() });
@@ -838,6 +1297,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     });
     this.searchForm.reset();
     this.searchState.reset();
+    this.resetPlainEnglishSearch();
 
     // A copy of the defaults, so the form never holds the default arrays
     this.form.reset(this.searchForm.state());
@@ -1002,6 +1462,93 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.searchForm.patchState({ isAdvancedSearch });
   }
 
+  // Opens Advanced search when it holds a value, so staff can check it
+  private openAdvancedSearchWhenUsed(): void {
+    if (this.vm().isAdvancedSearch) {
+      return;
+    }
+
+    const value = this.form.getRawValue();
+    const used = ADVANCED_SEARCH_CONTROLS.some((name) => {
+      const controlValue: unknown = value[name];
+      return Array.isArray(controlValue)
+        ? controlValue.length > 0
+        : hasText(controlValue);
+    });
+
+    if (used) {
+      this.patchApp({ isAdvancedSearch: true });
+      this.searchForm.patchState({ isAdvancedSearch: true });
+    }
+  }
+
+  // The form's values and the court and CJA display text, as they are now
+  private pageFilters(): PageFilters {
+    // isAdvancedSearch is page state, not a filter
+    const { isAdvancedSearch, ...formValue } = this.searchFormValue();
+    const { courthouseSearch, cjaSearch } = this.state();
+
+    return {
+      formValue,
+      courthouseSearch,
+      cjaSearch,
+      courtChipLabels: { ...this.courtChipLabels() },
+    };
+  }
+
+  // Patches only what changed. Display text goes first: the court and CJA
+  // validators read it when the form changes.
+  private applyPageFilters(current: PageFilters, next: PageFilters): void {
+    this.courtChipLabels.set({ ...next.courtChipLabels });
+    this.patch({
+      ...(current.courthouseSearch === next.courthouseSearch
+        ? {}
+        : { courthouseSearch: next.courthouseSearch, filteredCourthouses: [] }),
+      ...(current.cjaSearch === next.cjaSearch
+        ? {}
+        : { cjaSearch: next.cjaSearch, filteredCja: [] }),
+    });
+    this.form.patchValue(changedValues(current.formValue, next.formValue));
+  }
+
+  // One error for the choices that are not answered, linking to the first
+  private unansweredChoiceErrors(): ErrorItem[] {
+    const changes = this.interpretationChanges();
+    const answers = this.interpretationAnswers();
+    const index = changes?.choices.findIndex((_, i) => !answers[i]) ?? -1;
+
+    if (index < 0) {
+      return [];
+    }
+
+    return [
+      {
+        id: `${interpretationChoiceIdPrefix(index)}-1`,
+        href: interpretationChoiceHref(index),
+        text: INTERPRETATION_CHOICE_ERROR_MESSAGE,
+      },
+    ];
+  }
+
+  private takePendingInterpretationId(): string | null {
+    const interpretationId = this.pendingInterpretationId;
+    this.pendingInterpretationId = null;
+    return interpretationId;
+  }
+
+  private clearPlainEnglishErrors(): void {
+    this.plainEnglishErrors.set([]);
+    this.plainEnglishSearch()?.clearError();
+  }
+
+  private resetPlainEnglishSearch(): void {
+    this.plainEnglishSearch()?.reset();
+    this.plainEnglishErrors.set([]);
+    this.checkedInterpretation.set(null);
+    this.pendingInterpretationId = null;
+    this.showChoiceErrors.set(false);
+  }
+
   private saveSearchState(): void {
     this.persistFormState();
     this.searchState.setState({
@@ -1015,6 +1562,11 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   private persistFormState(): void {
     this.searchForm.setState(this.searchFormValue());
+    // Court names only, for the Other courts being saved
+    this.searchForm.setCourtChipLabels(
+      this.courtChipLabels(),
+      this.form.controls.courtCodes.value,
+    );
   }
 
   private searchFormValue(): ApplicationsSearchFormValue {

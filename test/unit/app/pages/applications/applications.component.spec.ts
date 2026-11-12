@@ -30,6 +30,7 @@ import {
   EntryPage,
   ResultCodeGetSummaryDto,
 } from '@openapi';
+import { AiCapabilitiesFacade } from '@services/ai-capabilities.facade';
 import {
   ApplicationsSearchFormService,
   DEFAULT_APPLICATIONS_SEARCH_FORM,
@@ -247,6 +248,15 @@ describe('ApplicationsComponent', () => {
       providers: [
         { provide: LOCALE_ID, useValue: 'en-GB' },
         { provide: ReferenceDataFacade, useValue: referenceDataFacadeStub },
+        // Plain-English search is off: its tests are in
+        // applications-plain-english-search.spec.ts
+        {
+          provide: AiCapabilitiesFacade,
+          useValue: {
+            searchInterpretationEnabled: signal(false),
+            refresh: jest.fn(),
+          },
+        },
         { provide: ApplicationListEntriesApi, useValue: appListEntriesApiStub },
         { provide: ApplicationListsApi, useValue: appListsApiStub },
         { provide: PdfService, useValue: pdfServiceStub },

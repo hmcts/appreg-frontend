@@ -34,6 +34,7 @@ import {
   GetEntriesRequestParams,
   ResultCodeGetSummaryDto,
 } from '@openapi';
+import { AiCapabilitiesFacade } from '@services/ai-capabilities.facade';
 import { ApplicationsSearchFormService } from '@services/applications/applications-search-form.service';
 import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
@@ -191,6 +192,14 @@ describe('Applications', () => {
         { provide: LOCALE_ID, useValue: 'en-GB' },
         { provide: PLATFORM_ID, useValue: 'browser' },
         { provide: ReferenceDataFacade, useValue: referenceDataFacadeStub },
+        // Plain-English search is off, so no GET /ai/capabilities is made
+        {
+          provide: AiCapabilitiesFacade,
+          useValue: {
+            searchInterpretationEnabled: signal(false),
+            refresh: jest.fn(),
+          },
+        },
         { provide: PdfService, useValue: {} },
         {
           provide: ActivatedRoute,

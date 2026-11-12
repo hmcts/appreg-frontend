@@ -207,4 +207,80 @@ describe('ApplicationsSearchFormService', () => {
 
     expect(service.state()).toEqual(DEFAULT_APPLICATIONS_SEARCH_FORM);
   });
+
+  describe('Other courts labels', () => {
+    it('has no labels by default', () => {
+      expect(service.courtChipLabels()).toEqual({});
+    });
+
+    it('saves the labels of the given Other courts codes only', () => {
+      service.setCourtChipLabels(
+        {
+          SYN900: 'Synthetic Closed Court',
+          SYN901: 'Synthetic Removed Court',
+          SYN002: 'Synthetic Court Two',
+        },
+        ['SYN900', 'SYN002'],
+      );
+
+      expect(service.courtChipLabels()).toEqual({
+        SYN900: 'Synthetic Closed Court',
+        SYN002: 'Synthetic Court Two',
+      });
+    });
+
+    it('replaces the labels it saved before', () => {
+      service.setCourtChipLabels({ SYN900: 'Synthetic Closed Court' }, [
+        'SYN900',
+      ]);
+
+      service.setCourtChipLabels({ SYN901: 'Synthetic Other Court' }, [
+        'SYN901',
+      ]);
+
+      expect(service.courtChipLabels()).toEqual({
+        SYN901: 'Synthetic Other Court',
+      });
+    });
+
+    it('does not share the labels with the value it was given or returns', () => {
+      const labels: Record<string, string> = {
+        SYN900: 'Synthetic Closed Court',
+      };
+
+      service.setCourtChipLabels(labels, ['SYN900', 'SYN901']);
+      labels['SYN901'] = 'Synthetic Other Court';
+      service.courtChipLabels()['SYN902'] = 'Synthetic Third Court';
+
+      expect(service.courtChipLabels()).toEqual({
+        SYN900: 'Synthetic Closed Court',
+      });
+    });
+
+    it('clears the labels on reset', () => {
+      service.setCourtChipLabels({ SYN900: 'Synthetic Closed Court' }, [
+        'SYN900',
+      ]);
+
+      service.reset();
+
+      expect(service.courtChipLabels()).toEqual({});
+    });
+
+    it('keeps the labels when the form state is set or patched', () => {
+      service.setCourtChipLabels({ SYN900: 'Synthetic Closed Court' }, [
+        'SYN900',
+      ]);
+
+      service.setState({
+        ...DEFAULT_APPLICATIONS_SEARCH_FORM,
+        courtCodes: ['SYN900'],
+      });
+      service.patchState({ isAdvancedSearch: true });
+
+      expect(service.courtChipLabels()).toEqual({
+        SYN900: 'Synthetic Closed Court',
+      });
+    });
+  });
 });
