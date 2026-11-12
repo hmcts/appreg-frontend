@@ -52,7 +52,6 @@ import { Observable, map } from 'rxjs';
 
 import {
   ApplicationsListEntryCreateState,
-  ChildErrorSource,
   EntryCreateSnapshot,
   initialApplicationsListEntryCreateState,
   parseCreateNavState,
@@ -88,6 +87,7 @@ import {
 } from '@constants/application-list-entry/columns-options';
 import {
   APPLICANT_ENTRY_ERROR_MESSAGES,
+  ChildErrorSourceALECreate,
   ENTRY_ERROR_MESSAGES,
   RESPONDENT_ENTRY_ERROR_MESSAGES,
 } from '@constants/application-list-entry/error-messages';
@@ -182,7 +182,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   readonly vm = this.appListEntryCreateSignalState.vm;
 
   private parentErrors: ErrorItem[] = [];
-  private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
+  private childErrors: Record<ChildErrorSourceALECreate, ErrorItem[]> = {
     codes: [],
     notes: [],
     fee: [],
@@ -500,7 +500,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     }
   }
 
-  onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
+  onChildErrors(source: ChildErrorSourceALECreate, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
     this.submitAttempt.update((attempt) => attempt + 1);
 
@@ -574,7 +574,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private validateChildSectionsForSubmit(): void {
-    const submitErrors = collectChildSubmitErrors<ChildErrorSource>([
+    const submitErrors = collectChildSubmitErrors<ChildErrorSourceALECreate>([
       { source: 'wording', section: this.wordingSection },
       { source: 'civilFee', section: this.civilFeeSection },
     ]);

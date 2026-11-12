@@ -87,6 +87,7 @@ import {
 } from '@constants/application-list-entry/columns-options';
 import {
   APPLICANT_ENTRY_ERROR_MESSAGES,
+  ChildErrorSourceALEDetail,
   ENTRY_ERROR_MESSAGES,
   RESPONDENT_ENTRY_ERROR_MESSAGES,
 } from '@constants/application-list-entry/error-messages';
@@ -150,15 +151,7 @@ import {
   withWordingFieldValues,
 } from '@util/template-substitution-utils';
 
-type ChildErrorSource =
-  | 'codes'
-  | 'notes'
-  | 'fee'
-  | 'respondent'
-  | 'applicant'
-  | 'civilFee'
-  | 'wording'
-  | 'resultWording';
+type ChildErrorSource = ChildErrorSourceALEDetail;
 
 const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
