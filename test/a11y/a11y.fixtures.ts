@@ -38,6 +38,32 @@ const code = {
   bulkRespondentAllowed: false,
   startDate: '2020-01-01',
 };
+// POST /application-codes/suggestions, for scenarios that turn code suggestions on.
+export const codeSuggestions = {
+  suggestionId: '00000000-0000-4000-8000-000000000004',
+  suggestions: [
+    {
+      rank: 1,
+      reason: "Matches 'test' in the title",
+      activeOnLodgementDate: true,
+      applicationCode: { ...code, applicationCodeId: 100 },
+    },
+    {
+      rank: 2,
+      reason: "Matches 'synthetic' in the title",
+      activeOnLodgementDate: false,
+      applicationCode: {
+        ...code,
+        applicationCodeId: 101,
+        applicationCode: 'TEST2',
+        title: 'Synthetic test application',
+        isFeeDue: true,
+      },
+    },
+  ],
+  needsMoreDetail: false,
+  notices: ['CODES_NOT_ACTIVE_ON_LODGEMENT_DATE'],
+};
 function paged(content: unknown[]) {
   return {
     content,

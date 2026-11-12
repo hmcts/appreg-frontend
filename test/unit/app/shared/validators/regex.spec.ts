@@ -2,7 +2,9 @@ import {
   ADDRESS_REGEX,
   ALPHANUMERIC_REGEX,
   APPLICATION_CODE_REGEX,
+  ISO_DATE_REGEX,
   NAME_REGEX,
+  SEARCHED_APPLICATION_CODE_REGEX,
   STANDARD_APPLICANT_CODE_REGEX,
   UK_POSTCODE_REGEX,
 } from '@constants/regex';
@@ -38,6 +40,34 @@ describe('regex constants', () => {
       expect(APPLICATION_CODE_REGEX.test('APP-2026')).toBe(false);
       expect(APPLICATION_CODE_REGEX.test('APP 2026')).toBe(false);
       expect(APPLICATION_CODE_REGEX.test('APP.2026')).toBe(false);
+    });
+  });
+
+  describe('SEARCHED_APPLICATION_CODE_REGEX', () => {
+    it('accepts 1 to 10 letters and digits', () => {
+      expect(SEARCHED_APPLICATION_CODE_REGEX.test('A')).toBe(true);
+      expect(SEARCHED_APPLICATION_CODE_REGEX.test('AP99001')).toBe(true);
+      expect(SEARCHED_APPLICATION_CODE_REGEX.test('ABCDEFGHIJ')).toBe(true);
+    });
+
+    it('rejects an empty code, other characters and more than 10 characters', () => {
+      expect(SEARCHED_APPLICATION_CODE_REGEX.test('')).toBe(false);
+      expect(SEARCHED_APPLICATION_CODE_REGEX.test('AP-99001')).toBe(false);
+      expect(SEARCHED_APPLICATION_CODE_REGEX.test('AP 99001')).toBe(false);
+      expect(SEARCHED_APPLICATION_CODE_REGEX.test('ABCDEFGHIJK')).toBe(false);
+    });
+  });
+
+  describe('ISO_DATE_REGEX', () => {
+    it('accepts a yyyy-MM-dd date', () => {
+      expect(ISO_DATE_REGEX.test('2026-11-02')).toBe(true);
+    });
+
+    it('rejects anything else', () => {
+      expect(ISO_DATE_REGEX.test('')).toBe(false);
+      expect(ISO_DATE_REGEX.test('2026-11')).toBe(false);
+      expect(ISO_DATE_REGEX.test('02/11/2026')).toBe(false);
+      expect(ISO_DATE_REGEX.test('2026-11-02T00:00:00')).toBe(false);
     });
   });
 

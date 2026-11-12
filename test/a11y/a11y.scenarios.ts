@@ -1,6 +1,6 @@
 import type { Page } from 'puppeteer';
 
-import { entryId, list, listId } from './a11y.fixtures';
+import { codeSuggestions, entryId, list, listId } from './a11y.fixtures';
 
 export interface Scenario {
   name: string;
@@ -254,3 +254,68 @@ scenarios.push({
   },
   error: '.govuk-error-summary',
 });
+const codeSuggestionsOn = {
+  status: 200,
+  body: { searchInterpretation: false, codeSuggestions: true },
+};
+async function requestCodeSuggestions(
+  page: Page,
+  description: string,
+): Promise<void> {
+  await page.waitForSelector('#code-suggestion-description', {
+    visible: true,
+  });
+  if (description) {
+    await page.type('#code-suggestion-description', description);
+  }
+  await page.click('#code-suggestions .govuk-button-group button');
+}
+scenarios.push(
+  {
+    ...scenarios.find((item) => item.name === 'Create entry')!,
+    name: 'Create entry: code suggestions',
+    responses: {
+      '/ai/capabilities': codeSuggestionsOn,
+      '/application-codes/suggestions': { status: 200, body: codeSuggestions },
+    },
+    exercise: async (page) => {
+      await requestCodeSuggestions(page, 'Synthetic application description');
+      await page.waitForSelector('#codes-table', { visible: true });
+      expect(
+        await page.$eval(
+          '#code-suggestions-status',
+          (element) => element.textContent,
+        ),
+      ).toContain('Suggested codes are shown in the table');
+    },
+  },
+  {
+    ...scenarios.find((item) => item.name === 'Create entry')!,
+    name: 'Create entry: code suggestions unavailable',
+    responses: {
+      '/ai/capabilities': codeSuggestionsOn,
+      '/application-codes/suggestions': {
+        status: 503,
+        body: { detail: 'Synthetic code suggestion failure' },
+      },
+    },
+    exercise: async (page) => {
+      await requestCodeSuggestions(page, 'Synthetic application description');
+      await page.waitForSelector('#code-suggestions-status .moj-alert--error', {
+        visible: true,
+      });
+    },
+  },
+  {
+    ...scenarios.find((item) => item.name === 'Create entry')!,
+    name: 'Create entry: code suggestion description missing',
+    responses: { '/ai/capabilities': codeSuggestionsOn },
+    exercise: async (page) => {
+      await requestCodeSuggestions(page, '');
+      await page.waitForSelector('#code-suggestion-description-error', {
+        visible: true,
+      });
+    },
+    error: '.govuk-error-summary',
+  },
+);

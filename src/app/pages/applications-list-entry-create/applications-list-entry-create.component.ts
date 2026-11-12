@@ -14,6 +14,10 @@
  * - the fee type to be applied
  *
  * Functionality:
+ * ngOnInit():
+ * - Refreshes the AI capabilities, so the code search offers code
+ *   suggestions only while the user can use them
+ *
  * onSubmit():
  * - Validates all sections of the entry form
  * - Builds the Entry Create DTO
@@ -104,6 +108,7 @@ import {
   TemplateDetail,
   TemplateSubstitution,
 } from '@openapi';
+import { AiCapabilitiesFacade } from '@services/ai-capabilities.facade';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
@@ -166,6 +171,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   appEntryApi = inject(ApplicationListEntriesApi);
   applicationCodesApi = inject(ApplicationCodesApi);
   formSvc = inject(ApplicationListEntryFormService);
+  private readonly aiCapabilities = inject(AiCapabilitiesFacade);
   private readonly location = inject(Location);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
@@ -193,6 +199,9 @@ export class ApplicationsListEntryCreate implements OnInit {
   };
 
   wordingSubmitAttempt = signal(0);
+  // Only onSubmit changes this, so the code search re-checks its errors once
+  // per entry submit.
+  codeSearchSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
   readonly submitAttempt = signal(0);
 
@@ -256,6 +265,9 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   disableSubmissionBtn = signal(false);
 
+  // Code suggestions: off until the capabilities load, and on any error.
+  readonly codeSuggestionsEnabled = this.aiCapabilities.codeSuggestionsEnabled;
+
   // Civil fee
   civilFeeColumns = CIVIL_FEE_COLUMNS;
   feeStatusOptions = FEE_STATUS_OPTIONS;
@@ -270,6 +282,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   ngOnInit(): void {
     this.appListEntryCreateState().id = this.route.snapshot.paramMap.get('id')!;
+    this.aiCapabilities.refresh();
     this.bindApplicantTypeChanges();
     this.bindPartyValidationChanges();
     this.restoreNavigationState();
@@ -312,6 +325,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     this.resetFlags();
     this.wordingSubmitAttempt.update((n) => n + 1);
+    this.codeSearchSubmitAttempt.update((n) => n + 1);
 
     this.appListEntryCreatePatch({ submitted: true });
 

@@ -76,6 +76,68 @@
     </button>
   </div>
 
+  @if (enableSuggestions()) {
+    <div id="code-suggestions">
+      <div
+        class="govuk-form-group"
+        [class.govuk-form-group--error]="!!descriptionError()"
+      >
+        <label class="govuk-label govuk-label--s" [for]="descriptionId">
+          {{ suggestionCopy.label }}
+        </label>
+        <div [id]="descriptionId + '-guidance'" class="govuk-hint">
+          {{ suggestionCopy.hint }}
+        </div>
+        @if (descriptionError(); as error) {
+          <p [id]="descriptionId + '-error'" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span>
+            {{ error }}
+          </p>
+        }
+        <app-govuk-textarea
+          [control]="descriptionControl"
+          [id]="descriptionId"
+          name="codeSuggestionDescription"
+          [ariaDescribedBy]="
+            descriptionId +
+            '-guidance' +
+            (descriptionError() ? ' ' + descriptionId + '-error' : '') +
+            ' ' +
+            descriptionId +
+            '-hint'
+          "
+          [rows]="4"
+          [maxCharacterLimit]="descriptionMaxLength"
+          [isInvalid]="!!descriptionError()"
+        />
+      </div>
+
+      <div class="govuk-button-group">
+        <button
+          class="govuk-button govuk-button--secondary"
+          type="button"
+          (click)="suggestCodes()"
+        >
+          {{ suggestionCopy.suggestButton }}
+        </button>
+      </div>
+
+      <div id="code-suggestions-status" aria-live="polite">
+        @if (suggestionsLoading()) {
+          <p class="govuk-body">{{ suggestionCopy.loading }}</p>
+        } @else if (suggestionsError(); as error) {
+          <app-alert alertType="error" [message]="error" />
+        } @else if (suggestionMessages().length > 0) {
+          <div class="govuk-inset-text">
+            @for (message of suggestionMessages(); track message) {
+              <p class="govuk-body">{{ message }}</p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
   @if (loading() && !codesRows.length) {
     <p class="govuk-body">Searching…</p>
   } @else if (errored()) {
@@ -100,8 +162,8 @@
     @if (codesRows.length > 0) {
       <app-sortable-table
         id="codes-table"
-        caption="Codes"
-        [columns]="codesColumns"
+        [caption]="showingSuggestions() ? suggestionCopy.tableCaption : 'Codes'"
+        [columns]="showingSuggestions() ? suggestedCodesColumns : codesColumns"
         [data]="codesRows"
         [loading]="loading()"
         [clientOrServerSort]="'server'"
@@ -119,11 +181,13 @@
         </ng-template>
       </app-sortable-table>
 
-      <app-pagination
-        [currentPage]="currentPage()"
-        [totalPages]="totalPages()"
-        (pageChange)="onPageChange($event)"
-      />
+      @if (!showingSuggestions()) {
+        <app-pagination
+          [currentPage]="currentPage()"
+          [totalPages]="totalPages()"
+          (pageChange)="onPageChange($event)"
+        />
+      }
     }
   }
 </fieldset>
