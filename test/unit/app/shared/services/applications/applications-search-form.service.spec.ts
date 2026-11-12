@@ -122,6 +122,49 @@ describe('ApplicationsSearchFormService', () => {
     );
   });
 
+  it('defaults Other courts to an empty list', () => {
+    expect(DEFAULT_APPLICATIONS_SEARCH_FORM).toEqual(
+      expect.objectContaining({ court: '', courtCodes: [] }),
+    );
+    expect(service.state().courtCodes).toEqual([]);
+    expect(service.state().courtCodes).not.toBe(
+      DEFAULT_APPLICATIONS_SEARCH_FORM.courtCodes,
+    );
+  });
+
+  it('does not share Other courts with the value it was given or returns', () => {
+    const next: ApplicationsSearchFormValue = {
+      ...DEFAULT_APPLICATIONS_SEARCH_FORM,
+      courtCodes: ['SYN001'],
+    };
+
+    service.setState(next);
+    next.courtCodes.push('SYN002');
+    service.state().courtCodes.push('SYN003');
+
+    expect(service.state().courtCodes).toEqual(['SYN001']);
+  });
+
+  it('does not share Other courts with a patch', () => {
+    const courtCodes = ['SYN001'];
+
+    service.patchState({ courtCodes });
+    courtCodes.push('SYN002');
+
+    expect(service.state().courtCodes).toEqual(['SYN001']);
+  });
+
+  it('resets Other courts to an empty list', () => {
+    service.setState({
+      ...DEFAULT_APPLICATIONS_SEARCH_FORM,
+      courtCodes: ['SYN001', 'SYN002'],
+    });
+
+    service.reset();
+
+    expect(service.state().courtCodes).toEqual([]);
+  });
+
   it('sets form state', () => {
     const next: ApplicationsSearchFormValue = {
       ...DEFAULT_APPLICATIONS_SEARCH_FORM,

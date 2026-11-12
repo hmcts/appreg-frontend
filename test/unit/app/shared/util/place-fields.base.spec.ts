@@ -8,7 +8,11 @@ import {
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
 } from '@openapi';
-import { PlaceFieldsBase, PlaceFieldsState } from '@util/place-fields.base';
+import {
+  PlaceFieldsBase,
+  PlaceFieldsOptions,
+  PlaceFieldsState,
+} from '@util/place-fields.base';
 
 const COURTS: CourtLocationGetSummaryDto[] = [
   { courtId: 1, name: 'Alpha Court', locationCode: 'A1' },
@@ -42,11 +46,15 @@ class PlaceFieldsHostComponent extends PlaceFieldsBase {
     cja$: new BehaviorSubject<CriminalJusticeAreaGetDto[]>([]),
   };
 
-  init(form: FormGroup = this.form): void {
-    this.initPlaceFields(form, {
-      courtLocations$: this.refStub.courtLocations$.asObservable(),
-      cja$: this.refStub.cja$.asObservable(),
-    });
+  init(form: FormGroup = this.form, options?: PlaceFieldsOptions): void {
+    this.initPlaceFields(
+      form,
+      {
+        courtLocations$: this.refStub.courtLocations$.asObservable(),
+        cja$: this.refStub.cja$.asObservable(),
+      },
+      options,
+    );
   }
 
   emitCourts(items: CourtLocationGetSummaryDto[]): void {
@@ -197,6 +205,44 @@ describe('PlaceFieldsBase', () => {
     expect(component.form.controls.court.disabled).toBe(true);
     expect(component.form.controls.location.disabled).toBe(false);
     expect(component.form.controls.cja.disabled).toBe(false);
+  });
+
+  describe('additional courts', () => {
+    const makeForm = () =>
+      new FormGroup({
+        court: new FormControl<string>('', { nonNullable: true }),
+        courtCodes: new FormControl<string[]>([], { nonNullable: true }),
+        location: new FormControl<string>('', { nonNullable: true }),
+        cja: new FormControl<string>('', { nonNullable: true }),
+      });
+
+    it('counts a passed courts list as a court when disabling location and CJA', () => {
+      const form = makeForm();
+      component.init(form, { additionalCourts: form.controls.courtCodes });
+
+      form.controls.courtCodes.setValue(['B2']);
+      expect(form.controls.location.disabled).toBe(true);
+      expect(form.controls.cja.disabled).toBe(true);
+
+      form.controls.courtCodes.setValue([]);
+      form.controls.cja.setValue('C1');
+      expect(form.controls.court.disabled).toBe(true);
+      expect(form.controls.courtCodes.disabled).toBe(true);
+    });
+
+    it('leaves a courts list alone when it is not passed, as other pages do', () => {
+      const form = makeForm();
+      component.init(form);
+
+      form.controls.courtCodes.setValue(['B2']);
+      expect(form.controls.location.enabled).toBe(true);
+      expect(form.controls.cja.enabled).toBe(true);
+
+      form.controls.courtCodes.setValue([]);
+      form.controls.cja.setValue('C1');
+      expect(form.controls.court.disabled).toBe(true);
+      expect(form.controls.courtCodes.enabled).toBe(true);
+    });
   });
 
   it('supports reports forms that name the location control otherLocation', () => {

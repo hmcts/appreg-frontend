@@ -10,6 +10,10 @@
  * - GET request to Spring API which returns applications based on given params
  * - Populates query based on fields that are  !null/!undefined/!defaultValue
  * - Searches by a single List date or a date range (List date from/to), not both
+ * - Court and Other courts are one list of exact court codes, without repeats
+ *   (compared case-insensitively, as the API does). One code is sent as
+ *   courtCode and more than one as courtCodes, never both. Other courts counts
+ *   as a court, so it disables Other location and CJA, and they disable it
  * - Application codes and Result codes (Advanced search) are lists of exact
  *   codes, sent only when they hold at least one code. Text typed into either
  *   but not picked from the list blocks the search with an error
@@ -78,6 +82,7 @@ import {
   type SuggestionsItem,
   isAppcodeSuggestionItem,
   toApplicationCodeSuggestionItem,
+  toCourtSuggestionItem,
   toResultCodeSuggestionItem,
 } from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
@@ -127,6 +132,7 @@ import {
   getProblemText,
   hasProblemText,
 } from '@util/http-error-to-text';
+import { hasCourtCodes } from '@util/location-suggestion-helpers';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
@@ -159,6 +165,30 @@ const APPLICATIONS_ERROR_HREFS: Record<string, string> = {
 const toCodeList = (codes: readonly string[]): string[] => [
   ...new Set(codes.map((code) => code.trim()).filter((code) => !!code)),
 ];
+
+// Most court codes the API accepts in one search (EntryGetFilterDto.courtCodes)
+const COURT_CODES_MAX_ITEMS = 20;
+
+// Court then Other courts as one list of codes, trimmed and without blanks or
+// repeats. Codes are compared case-insensitively, as the API compares them,
+// and the first spelling is kept.
+const toCourtCodeList = (
+  court: string | null | undefined,
+  otherCourts: readonly string[],
+): string[] => {
+  const seen = new Set<string>();
+
+  return [court ?? '', ...otherCourts]
+    .map((code) => code.trim())
+    .filter((code) => {
+      const key = code.toUpperCase();
+      if (!code || seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+};
 
 @Component({
   selector: 'app-applications',
@@ -232,6 +262,19 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.refFacade.resultCodes().map(toResultCodeSuggestionItem),
   );
 
+  // Other courts offers the same active courts as the Court typeahead
+  readonly courtOptions = computed<SuggestionsItem[]>(() =>
+    this.state().courtLocations.map(toCourtSuggestionItem),
+  );
+
+  // Labels for Other courts codes that are not in courtOptions, such as
+  // end-dated courts returned by a plain-English search
+  readonly courtChipLabels = signal<Record<string, string>>({});
+
+  // Court takes one of the codes the API accepts, so Court and Other courts
+  // together can never send more than it allows
+  readonly otherCourtsMaxItems = COURT_CODES_MAX_ITEMS - 1;
+
   readonly summaryItems = computed(() => {
     const { errorSummary, searchErrors } = this.vm();
     return [
@@ -278,6 +321,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       applicationCodes: new FormControl<string[]>([], { nonNullable: true }),
       resultCodes: new FormControl<string[]>([], { nonNullable: true }),
       court: new FormControl<string>(''),
+      courtCodes: new FormControl<string[]>([], { nonNullable: true }),
       cja: new FormControl<string>(''),
       status: new FormControl<string | null>(null),
     },
@@ -329,12 +373,20 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     return this.hasSelection && !this.vm().isSelectingAll;
   }
 
+  /** Whether Other courts holds a court, which disables the CJA field. */
+  hasOtherCourts(): boolean {
+    return hasCourtCodes(this.form.controls.courtCodes.value);
+  }
+
   ngOnInit(): void {
     this.restoreSearchState();
     this.applicationTitleSearch.set(
       this.form.controls.applicationTitle.value ?? '',
     );
-    this.initPlaceFields(this.form, this.refFacade);
+    // Other courts counts as a court when disabling Other location and CJA
+    this.initPlaceFields(this.form, this.refFacade, {
+      additionalCourts: this.form.controls.courtCodes,
+    });
     // Options for Result codes; application codes are loaded by the facade
     this.refFacade.ensureResultCodes();
     this.setupEffects();
@@ -790,6 +842,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     // A copy of the defaults, so the form never holds the default arrays
     this.form.reset(this.searchForm.state());
     this.applicationTitleSearch.set('');
+    this.courtChipLabels.set({});
 
     this.patch({
       courthouseSearch: '',
@@ -834,8 +887,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       filter.dateTo = v.dateTo.trim();
     }
 
-    if (v.court?.trim()) {
-      filter.courtCode = v.court.trim();
+    // The API rejects courtCode and courtCodes together (ALE-59)
+    const courtCodes = toCourtCodeList(v.court, v.courtCodes);
+    if (courtCodes.length === 1) {
+      filter.courtCode = courtCodes[0];
+    } else if (courtCodes.length > 1) {
+      filter.courtCodes = courtCodes;
     }
 
     if (v.location?.trim()) {
@@ -981,6 +1038,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       applicationCodes: [...value.applicationCodes],
       resultCodes: [...value.resultCodes],
       court: value.court ?? '',
+      courtCodes: [...value.courtCodes],
       cja: value.cja ?? '',
       status: value.status ?? null,
       isAdvancedSearch: this.vm().isAdvancedSearch,

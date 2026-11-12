@@ -5,6 +5,10 @@ Feature helper for Applications List forms.
 Purpose:
 - Toggle enabled/disabled state of location-related controls based on selection
   (e.g., court vs CJA vs free-text “other location”).
+- A page can also pass an additionalCourts control (a list of court codes, such
+  as Other courts on /applications). Holding at least one code counts as a
+  court, and a location or CJA disables it with the court. Pages that do not
+  pass it behave as before.
 
 ----------------
 
@@ -47,38 +51,66 @@ export interface LocationControls {
   court: AbstractControl;
   location: AbstractControl;
   cja: AbstractControl;
+  /**
+   * More courts as a list of codes (Other courts on /applications). Optional:
+   * without it, only `court` counts as a court.
+   */
+  additionalCourts?: AbstractControl;
 }
 
-/** Wires mutually exclusive enable/disable for court vs location+cja. */
+/**
+ * True when a list of court codes holds at least one non-blank code. Arrays
+ * are checked here because has() is true for any array, even an empty one.
+ */
+export function hasCourtCodes(value: unknown): boolean {
+  return (
+    Array.isArray(value) &&
+    value.some((code) => typeof code === 'string' && code.trim().length > 0)
+  );
+}
+
+const enableAll = (controls: readonly AbstractControl[]): void => {
+  for (const control of controls) {
+    control.enable({ emitEvent: false });
+  }
+};
+
+const disableAll = (controls: readonly AbstractControl[]): void => {
+  for (const control of controls) {
+    control.disable({ emitEvent: false });
+  }
+};
+
+/**
+ * Wires mutually exclusive enable/disable for court (and any additional
+ * courts) vs location+cja.
+ */
 export function attachLocationDisabler({
   court,
   location,
   cja,
+  additionalCourts,
 }: LocationControls): Subscription {
+  const courts = additionalCourts ? [court, additionalCourts] : [court];
+
   const sync = () => {
-    const hasCourt = has(court.value);
+    const hasCourt = has(court.value) || hasCourtCodes(additionalCourts?.value);
     const hasLoc = has(location.value);
     const hasCja = has(cja.value);
 
     if (hasCourt) {
-      court.enable({ emitEvent: false });
-      location.disable({ emitEvent: false });
-      cja.disable({ emitEvent: false });
+      enableAll(courts);
+      disableAll([location, cja]);
     } else if (hasLoc || hasCja) {
-      court.disable({ emitEvent: false });
-      location.enable({ emitEvent: false });
-      cja.enable({ emitEvent: false });
+      disableAll(courts);
+      enableAll([location, cja]);
     } else {
-      court.enable({ emitEvent: false });
-      location.enable({ emitEvent: false });
-      cja.enable({ emitEvent: false });
+      enableAll([...courts, location, cja]);
     }
   };
 
   const sub = merge(
-    court.valueChanges,
-    location.valueChanges,
-    cja.valueChanges,
+    ...[...courts, location, cja].map((control) => control.valueChanges),
   ).subscribe(sync);
 
   sync();
