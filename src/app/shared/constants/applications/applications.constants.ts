@@ -53,21 +53,23 @@ export const INTERPRETED_FILTER_FIELD_LABELS: Readonly<
 
 // Fixed copy for each plain-English search notice. Typed against
 // SearchInterpretationNotice, so a notice the API adds fails to compile here.
+// The search runs straight from the question, so the copy never asks staff
+// to check something "before you search".
 export const INTERPRETATION_NOTICE_TEXT: Readonly<
   Record<SearchInterpretationNotice, string>
 > = {
   [SearchInterpretationNotice.WELSH_NOT_SUPPORTED]:
     'Plain-English search only understands questions in English.',
   [SearchInterpretationNotice.MINIMUM_FILTER_NOT_MET]:
-    'These filters are not narrow enough to search yet. Add more filters before you search.',
+    'The filters from your question are not narrow enough to search on their own. Add more filters and search again.',
   [SearchInterpretationNotice.UNKNOWN_CODE_DROPPED]:
     'A code in your question does not exist, so it was left out.',
   [SearchInterpretationNotice.FIELD_NOT_AVAILABLE]:
     'Your question asked for a filter that is not available yet, so it was left out.',
   [SearchInterpretationNotice.DATE_NOT_UNDERSTOOD]:
-    'A date in your question could not be worked out. Check the dates before you search.',
+    'A date in your question could not be worked out. Check the dates and search again if they are wrong.',
   [SearchInterpretationNotice.DATE_IN_FUTURE]:
-    'A date in your question is in the future. Check the dates before you search.',
+    'A date in your question is in the future. Check the dates and search again if they are wrong.',
   [SearchInterpretationNotice.NAME_TOO_SHORT]:
     'A name in your question was too short to search on, so it was left out.',
   [SearchInterpretationNotice.TOO_MANY_MATCHES]:
@@ -75,3 +77,16 @@ export const INTERPRETATION_NOTICE_TEXT: Readonly<
   [SearchInterpretationNotice.VALUE_NOT_VALID]:
     'A value in your question is not a valid filter value, so it was left out.',
 };
+
+// Said in each choice of a plain-English search (the radio group's hint, so
+// it is in the fieldset's aria-describedby). A pick reached with the arrow
+// keys does not search until staff press Space or move out of the choice, so
+// passing over an option never searches for it.
+export const INTERPRETATION_CHOICE_SEARCH_HINT =
+  'The search runs once every choice is answered. If you use the arrow keys, it runs when you press Space or move on.';
+
+// Said in "Searched for" when staff changed a filter by hand before the search
+// from their question ran. The summary leaves out what the question set for
+// those filters rather than repeat what staff typed.
+export const SEARCHED_FOR_CHANGED_BY_HAND_TEXT =
+  'Some filters were changed by hand. The search form shows every filter that was searched.';

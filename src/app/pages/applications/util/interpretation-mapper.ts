@@ -79,6 +79,26 @@
  *   notApplied, so the same rules hold against what the form holds. After it
  *   undoes a pick, withCourtsExclusive() applies the court rule above to those
  *   changes, as a CJA or Other location the pick took out may come back.
+ *
+ * Running the search straight from the question (FE-19):
+ * - setsNoFilter() is true when the changes leave every control empty, as in
+ *   a new form. The page then does not search: a search with no filters
+ *   returns every entry. The API's stub provider, and the model, can return a
+ *   filter with every field null.
+ * - applyCourtChoices() applies every option of the choices at once when every
+ *   choice is about courts (each option's field is courtCode or courtCodes)
+ *   and Court plus Other courts then hold every court: at most
+ *   COURT_CODES_MAX_ITEMS codes in all, without repeats (compared
+ *   case-insensitively, as the page's search query does). Each option goes in
+ *   through applyInterpretationChoice(), so the court rules above hold. It
+ *   returns the changes with no choices left, and a label for each court
+ *   added, once per court (codes compared case-insensitively), or null when
+ *   the choices must be shown to staff instead. A court is listed by its
+ *   label, or its code when it has none. When two courts share a label, each
+ *   is listed as "CODE - label", as the Court typeahead shows a court, so two
+ *   courts searched never read as one.
+ * - controlFor() gives the control a SearchFilterField sets, so the page can
+ *   tell which summary rows are about a filter staff changed by hand.
  */
 
 import { type RadioOption } from '@components/radio-button/radio-button.component';
@@ -180,7 +200,29 @@ export interface InterpretationFormChanges {
   notices: SearchInterpretationNotice[];
 }
 
+/** Court-only choices with every option applied (applyCourtChoices). */
+export interface AppliedCourtChoices {
+  /** The changes with every court added, and no choices left. */
+  changes: InterpretationFormChanges;
+  /**
+   * A label for each court added from the choices, once per court, in order
+   * (see the file header).
+   */
+  matchedCourts: string[];
+}
+
 type ListControl = 'applicationCodes' | 'resultCodes';
+
+// A choice option that applies a value (not "None of these")
+type PickOption = InterpretationChoiceOption & {
+  pick: InterpretationChoiceOptionDto;
+};
+
+// The fields of a choice option that add a court
+const COURT_FIELDS: ReadonlySet<string> = new Set<string>([
+  SearchFilterField.COURT_CODE,
+  SearchFilterField.COURT_CODES,
+]);
 
 // Most codes the API accepts in one search (EntryGetFilterDto maxItems). The
 // court limits are COURT_CODES_MAX_ITEMS and OTHER_COURTS_MAX_ITEMS.
@@ -308,6 +350,98 @@ export function withCourtsExclusive(
   const draft = cloneChanges(changes);
   keepCourtsExclusive(draft);
   return draft;
+}
+
+/**
+ * Whether the changes set no filter at all: every control is empty, as in a
+ * new form. Choices are not filters: check them separately.
+ */
+export function setsNoFilter(changes: InterpretationFormChanges): boolean {
+  return Object.values(changes.formValue).every((value: unknown) =>
+    Array.isArray(value) ? value.length === 0 : !hasText(value),
+  );
+}
+
+/**
+ * Applies every option of the choices when they are all about courts and
+ * every court fits, so the search can run without asking staff (see the file
+ * header). Returns null when there are no choices, when an option is for
+ * another field or has no code, when Court and Other courts would hold more
+ * than COURT_CODES_MAX_ITEMS courts, or when the form cannot hold them all
+ * (Other courts holds OTHER_COURTS_MAX_ITEMS, and only an active court goes
+ * into Court). The input is not changed.
+ */
+export function applyCourtChoices(
+  changes: InterpretationFormChanges,
+  activeCourts: readonly CourtLocationGetSummaryDto[],
+): AppliedCourtChoices | null {
+  const { choices } = changes;
+  const options = choices.flatMap((choice) => pickOptions(choice));
+  const courtOnly =
+    choices.length > 0 &&
+    choices.every((choice) => pickOptions(choice).length > 0) &&
+    options.every(
+      ({ pick }) => COURT_FIELDS.has(pick.field) && hasText(pick.code),
+    );
+
+  if (!courtOnly) {
+    return null;
+  }
+
+  const { court, courtCodes } = changes.formValue;
+  const codes = toCodeList([
+    court,
+    ...courtCodes,
+    ...options.map(({ pick }) => pick.code),
+  ]);
+  if (codes.length > COURT_CODES_MAX_ITEMS) {
+    return null;
+  }
+
+  const applied = options.reduce(
+    (current, option) =>
+      applyInterpretationChoice(current, option, activeCourts),
+    changes,
+  );
+  const held = [applied.formValue.court, ...applied.formValue.courtCodes];
+  if (!codes.every((code) => held.some((c) => sameCode(c, code)))) {
+    return null;
+  }
+
+  return {
+    changes: { ...applied, choices: [] },
+    matchedCourts: matchedCourtLabels(options),
+  };
+}
+
+// A label for each court the options add, once per court (codes compared
+// case-insensitively), in order: its label, or its code when it has none.
+// Courts that share a label are listed as "CODE - label", as the Court
+// typeahead shows a court, so two courts never read as one.
+function matchedCourtLabels(options: readonly PickOption[]): string[] {
+  const courts: { code: string; label: string | undefined }[] = [];
+
+  for (const { pick, label } of options) {
+    const code = pick.code.trim();
+    if (!courts.some((court) => sameCode(court.code, code))) {
+      courts.push({ code, label: trimToUndefined(label) });
+    }
+  }
+
+  return courts.map(({ code, label }) => {
+    if (!label) {
+      return code;
+    }
+    const shared = courts.filter((court) => court.label === label).length > 1;
+    return shared ? `${code} - ${label}` : label;
+  });
+}
+
+// A choice's options that apply a value: every option but "None of these"
+function pickOptions(choice: InterpretationChoice): PickOption[] {
+  return choice.options.filter(
+    (option): option is PickOption => option.pick !== null,
+  );
 }
 
 // Applies one filter field's value from the interpretation. True when the
@@ -643,7 +777,11 @@ function isIsoDate(value: string): boolean {
   return date.toISOString().slice(0, 10) === value;
 }
 
-function controlFor(field: string): ApplicationsSearchControl | null {
+/**
+ * The control an EntryGetFilterDto field (or SearchFilterField) sets, or null
+ * when the page has no control for it or the field is unknown.
+ */
+export function controlFor(field: string): ApplicationsSearchControl | null {
   return Object.hasOwn(INTERPRETED_FILTER_CONTROLS, field)
     ? INTERPRETED_FILTER_CONTROLS[field as keyof EntryGetFilterDto]
     : null;

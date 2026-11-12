@@ -1,6 +1,13 @@
 import type { Page } from 'puppeteer';
 
-import { entryId, list, listId, searchInterpretation } from './a11y.fixtures';
+import {
+  applicationEntries,
+  entryId,
+  list,
+  listId,
+  searchInterpretation,
+  searchInterpretationCourts,
+} from './a11y.fixtures';
 
 export interface Scenario {
   name: string;
@@ -269,6 +276,7 @@ const searchInterpretationOn = {
   body: { searchInterpretation: true, codeSuggestions: false },
 };
 const interpretationsPath = '/application-list-entries/search-interpretations';
+const entriesSearchPath = '/application-list-entries';
 async function askPlainEnglishQuestion(
   page: Page,
   question: string,
@@ -294,6 +302,36 @@ async function showInterpretedFilters(page: Page): Promise<void> {
     expect(await page.$(selector)).not.toBeNull();
   }
 }
+// A question whose courts are all applied runs the search: the results show
+// with the "Searched for" summary directly above them, which takes focus
+async function showSearchedFor(page: Page): Promise<void> {
+  await askPlainEnglishQuestion(page, 'Synthetic open applications question');
+  await page.waitForSelector('app-sortable-table', { visible: true });
+  await page.waitForFunction(
+    () => document.activeElement?.id === 'searched-for-heading',
+  );
+  expect(
+    await page.$eval('#searched-for-heading', (element) =>
+      element.textContent?.trim(),
+    ),
+  ).toBe('Searched for');
+  expect(
+    await page.$eval(
+      'app-interpreted-filters-summary:has(#searched-for)',
+      (element) => element.nextElementSibling?.tagName,
+    ),
+  ).toBe('APP-SORTABLE-TABLE');
+  for (const selector of [
+    '#interpreted-filters-applied',
+    '#interpreted-filters-matched-courts',
+    '#interpreted-filters-unused',
+    '#interpreted-filters-notices',
+  ]) {
+    expect(await page.$(selector)).not.toBeNull();
+  }
+  expect(await page.$('#interpreted-filters')).toBeNull();
+  expect(await page.$('input[type="radio"]')).toBeNull();
+}
 scenarios.push(
   applicationsScenario,
   {
@@ -305,17 +343,36 @@ scenarios.push(
   },
   {
     ...applicationsScenario,
-    name: 'Applications: interpreted filters',
+    name: 'Applications: plain-English search choices',
     ready: '#plain-english-question',
     responses: {
       '/ai/capabilities': searchInterpretationOn,
       [interpretationsPath]: { status: 200, body: searchInterpretation },
     },
-    exercise: showInterpretedFilters,
+    exercise: async (page) => {
+      await showInterpretedFilters(page);
+      // The search waits for the choice
+      expect(await page.$('#searched-for')).toBeNull();
+      expect(await page.$('app-sortable-table')).toBeNull();
+    },
   },
   {
     ...applicationsScenario,
-    name: 'Applications: interpreted filters after a blocked search',
+    name: 'Applications: plain-English search results',
+    ready: '#plain-english-question',
+    responses: {
+      '/ai/capabilities': searchInterpretationOn,
+      [interpretationsPath]: {
+        status: 200,
+        body: searchInterpretationCourts,
+      },
+      [entriesSearchPath]: { status: 200, body: applicationEntries },
+    },
+    exercise: showSearchedFor,
+  },
+  {
+    ...applicationsScenario,
+    name: 'Applications: plain-English search choices after a blocked search',
     ready: '#plain-english-question',
     responses: {
       '/ai/capabilities': searchInterpretationOn,
@@ -336,7 +393,7 @@ scenarios.push(
   },
   {
     ...applicationsScenario,
-    name: 'Applications: interpreted filters choice not answered',
+    name: 'Applications: plain-English search choice not answered',
     ready: '#plain-english-question',
     responses: {
       '/ai/capabilities': searchInterpretationOn,

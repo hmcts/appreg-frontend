@@ -20,24 +20,62 @@
  * - A 400 from the search, such as a rejected filter combination, shows the
  *   API's problem text in the error summary. Other errors show a generic message
  *
- * Plain-English search (app-plain-english-search and
- * app-interpreted-filters-summary, above the form):
+ * Plain-English search (app-plain-english-search, with
+ * app-interpreted-filters-summary above the form while the question needs
+ * staff, and as "Searched for" directly above the results):
  * - Shown only while AiCapabilitiesFacade.searchInterpretationEnabled() is on.
  *   ngOnInit() calls refresh(), so the server's kill switch takes effect on the
  *   next visit. With it off nothing about it renders and no AI call is made
- * - onInterpreted(): the interpretation replaces the form's values (never
- *   merged; interpretation-mapper.ts), with the Court and CJA display text and
- *   Other courts labels. Advanced search opens when it sets one of its filters.
- *   The search is never run: staff check the filters and press Search.
- *   Applying it clears earlier search errors and, unless results are on screen
- *   or loading, the "no entries found" state, which no longer applies
+ * - Asking a question (onQuestionAsked) drops the "Searched for" summary, the
+ *   summary above the form and the interpretationId of an earlier question
+ * - onInterpreted() runs the search straight from the question:
+ *   - An interpretation that sets no filter and needs no choice is not
+ *     searched (a search with no filters returns every entry): the panel shows
+ *     the 422 copy, as for any AI error, in the error summary, which takes
+ *     focus, and the form is left as it was. When the question still asked
+ *     for something the page could not use (not applied, unused parts or
+ *     notices, such as a question not in English), the summary above the form
+ *     lists it too. It has no choices, so it never blocks Search, and no
+ *     interpretationId is kept for a later search
+ *   - Otherwise it replaces the form's values (never merged;
+ *     interpretation-mapper.ts), with the Court and CJA display text and Other
+ *     courts labels. Advanced search opens when it sets one of its filters.
+ *     Applying it clears earlier search errors and, unless results are on
+ *     screen or loading, the "no entries found" state, which no longer applies
+ *   - Choices that are all about courts, and fit Court and Other courts (20
+ *     courts in all), are all applied at once (applyCourtChoices) and the
+ *     search runs. Any other choice is shown as radios above the form and the
+ *     search waits for staff
+ *   - The search runs through the Search button's own path (submitSearch:
+ *     validation, the error summary, saved form state, interpretationId). A
+ *     search still loading is cancelled first, as its filters were replaced
  * - onInterpretationAnswersChange(): a choice pick is applied to the form as
  *   it is now, through the mapper, so its court rules and list limits hold
  *   against filters edited by hand since: a court pick never replaces a
  *   Court (it goes into Other courts) and takes out a CJA or Other location,
  *   and a CJA pick while a court is set is not applied. Changing an answer
  *   first takes out what the previous pick did, keeping later hand edits.
- *   What the page leaves out is listed in the summary as not applied
+ *   What the page leaves out is listed in the summary as not applied. As soon
+ *   as every choice is answered, the search runs (each pick checks again).
+ *   A pick reached with an arrow key, which a keyboard or screen reader user
+ *   may only be passing over, waits until they settle on it (Space or Enter
+ *   on it, or focus leaving the choice: onInterpretationCommit()), and
+ *   cancels a search from an earlier pick still loading
+ * - When the search from a question has found its results, the "Searched
+ *   for" summary shows above them and takes focus, and the panel says how many
+ *   were found. When it is blocked by validation or fails, its errors are in
+ *   the error summary (which takes focus) and what the question set stays in
+ *   the summary above the form. The "Searched for" summary stays while staff
+ *   page or sort its results, and goes when staff run Search themselves, on
+ *   Clear search and when a new question is asked. It is never saved with the
+ *   search state, as its labels can repeat the question
+ * - "Searched for" describes what was searched: the form's values are kept
+ *   when the search starts, and a filter staff changed by hand before then
+ *   (compared with the interpretation and its answers) loses its rows, its
+ *   picks and, for courts, the courts added from court choices. The summary
+ *   then says filters were changed by hand, and the form shows them
+ * - A search staff run themselves also empties the panel's status, which
+ *   described the question's search
  * - Other courts labels (court names, never question text) are saved with the
  *   search form, so an end-dated court keeps its label when it is restored
  * - Search is blocked while any choice is not answered ("None of these" is an
@@ -46,11 +84,16 @@
  * - The panel's errors go first in the page's one error summary. Search and
  *   Clear search clear them
  * - interpretationId is sent once, as a top-level query parameter of the first
- *   search after the interpretation. It is never sent on paging, sorting or a
- *   restored search, never again, and never after Clear search, and it is not
- *   saved with the search state
- * - Clear search also clears the question, the summary and its choices, and
- *   cancels a request in flight
+ *   search after the interpretation, which is the search from the question
+ *   unless that was blocked. A search from a changed pick that replaces one
+ *   still loading (which sent it) sends it again, so the search whose results
+ *   are shown has it. Otherwise it is never sent again: not on paging,
+ *   sorting or a restored search, not after a search from the question
+ *   failed, and never after Clear search or a new question. It is not saved
+ *   with the search state
+ * - Clear search also clears the question, both summaries and the choices,
+ *   and cancels the interpretation and the search in flight, so no results
+ *   or saved filters come back after it
  *
  * onPrintContinuous/Page():
  * - Runs bulk preview endpoint to get selected row details
@@ -84,7 +127,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 
 import {
   InterpretedFiltersSummaryComponent,
@@ -106,8 +149,11 @@ import {
   type ApplicationsSearchControl,
   type InterpretationChoiceOption,
   type InterpretationFormChanges,
+  applyCourtChoices,
   applyInterpretationChoice,
+  controlFor,
   mapInterpretationToForm,
+  setsNoFilter,
   withCourtsExclusive,
 } from './util/interpretation-mapper';
 import { mapToRow } from './util/table-mapper';
@@ -144,6 +190,7 @@ import {
 import {
   APPLICATIONS_ERROR_MAP,
   INTERPRETATION_CHOICE_ERROR_MESSAGE,
+  PLAIN_ENGLISH_SEARCH_NOT_UNDERSTOOD,
 } from '@constants/applications/error-messages';
 import {
   APPLICATIONS_LIST_CHOOSE_STATUS,
@@ -281,9 +328,12 @@ interface ChoicePick {
   notApplied: string[];
 }
 
-/** A plain-English search result that staff are checking. */
+/** A plain-English search result, until its search has run. */
 interface CheckedInterpretation {
-  /** The mapper's changes, before any choice pick. */
+  /**
+   * The mapper's changes, before any choice pick. Court choices applied all
+   * at once (applyCourtChoices) are in them, and are no longer choices.
+   */
   changes: InterpretationFormChanges;
   /** The picked radio value for each choice, by index (null: not answered). */
   answers: (string | null)[];
@@ -291,7 +341,40 @@ interface CheckedInterpretation {
   picks: (ChoicePick | null)[];
   /** The active courts the mapper used, so picks are applied the same way. */
   activeCourts: readonly CourtLocationGetSummaryDto[];
-  /** A new value for each result, so focus moves to its summary. */
+  /** The labels of the courts applyCourtChoices added. */
+  matchedCourts: string[];
+  /**
+   * A new value for each result whose summary should take focus (it has
+   * choices); undefined when the error summary takes focus instead.
+   */
+  focusKey: number | undefined;
+}
+
+/** A search from a question, while it loads. */
+interface QuestionSearch {
+  /** The interpretation it runs from, with its answers. */
+  checked: CheckedInterpretation;
+  /** The form's values when it started, which staff may have edited. */
+  searched: PageFilters['formValue'];
+}
+
+/** The "Searched for" summary of a search that ran from a question. */
+interface SearchedFor {
+  /**
+   * The interpretation as it was searched, picks applied, without the rows of
+   * filters staff changed by hand.
+   */
+  changes: InterpretationFormChanges;
+  /**
+   * The picked radio value for each choice, by index; null for a pick whose
+   * filter staff changed by hand.
+   */
+  answers: (string | null)[];
+  /** The labels of the courts applyCourtChoices added, unless changed. */
+  matchedCourts: string[];
+  /** Staff changed a filter by hand before the search ran. */
+  changedByHand: boolean;
+  /** A new value for each search, so focus moves to the summary. */
   focusKey: number;
 }
 
@@ -335,6 +418,96 @@ const LIST_CONTROLS = [
 type ListControl = (typeof LIST_CONTROLS)[number];
 const isListControl = (name: string): name is ListControl =>
   (LIST_CONTROLS as readonly string[]).includes(name);
+
+// A control's value as the search uses it: text trimmed, nothing as ''
+const searchedValue = (value: unknown): unknown =>
+  typeof value === 'string' ? value.trim() : (value ?? '');
+
+// Whether two lists hold the same codes, in any order
+const sameCodes = (a: readonly string[], b: readonly string[]): boolean => {
+  const left = new Set(toCodeList(a));
+  const right = new Set(toCodeList(b));
+  return left.size === right.size && [...left].every((code) => right.has(code));
+};
+
+// Court and Other courts as one list of courts, compared case-insensitively
+const searchedCourts = (value: PageFilters['formValue']): string[] =>
+  toCourtCodeList(value.court, value.courtCodes).map((code) =>
+    code.toUpperCase(),
+  );
+
+/**
+ * The controls staff changed by hand before a search from a question ran:
+ * those whose value as searched differs from the interpretation with its
+ * answers applied. Lists are compared as sets, as undoing a pick and picking
+ * again can reorder them, and Court with Other courts as one list of courts,
+ * as picks made in another order can fill them the other way round.
+ */
+function controlsChangedByHand(
+  expected: PageFilters['formValue'],
+  searched: PageFilters['formValue'],
+): Set<ApplicationsSearchControl> {
+  const changed = new Set<ApplicationsSearchControl>();
+
+  for (const name of Object.keys(expected) as ApplicationsSearchControl[]) {
+    if (name === 'court' || name === 'courtCodes') {
+      continue;
+    }
+    const same = isListControl(name)
+      ? sameCodes(expected[name], searched[name])
+      : searchedValue(expected[name]) === searchedValue(searched[name]);
+    if (!same) {
+      changed.add(name);
+    }
+  }
+
+  if (!sameCodes(searchedCourts(expected), searchedCourts(searched))) {
+    changed.add('court');
+    changed.add('courtCodes');
+  }
+
+  return changed;
+}
+
+/**
+ * The "Searched for" summary of a search from a question. What the question
+ * set for a control staff changed by hand before the search ran is left out
+ * (its rows, its picks and, for a court, the courts added from court
+ * choices), so the summary lists no filter that was not searched, and it says
+ * filters were changed by hand rather than repeat what staff typed.
+ */
+function searchedForOf(
+  { checked, searched }: QuestionSearch,
+  focusKey: number,
+): SearchedFor {
+  const changed = controlsChangedByHand(
+    withAnswers(checked).formValue,
+    searched,
+  );
+  const isChanged = (field: string): boolean => {
+    const control = controlFor(field);
+    return !!control && changed.has(control);
+  };
+  const changes = summaryChanges(checked);
+
+  return {
+    changes: {
+      ...changes,
+      appliedFilters: changes.appliedFilters.filter(
+        (row) => !isChanged(row.field),
+      ),
+    },
+    answers: checked.answers.map((answer, index) => {
+      const option = checked.changes.choices[index]?.options.find(
+        (item) => item.value === answer,
+      );
+      return option?.pick && isChanged(option.pick.field) ? null : answer;
+    }),
+    matchedCourts: changed.has('court') ? [] : [...checked.matchedCourts],
+    changedByHand: changed.size > 0,
+    focusKey,
+  };
+}
 
 const copyFilters = (filters: PageFilters): PageFilters => ({
   formValue: {
@@ -588,13 +761,29 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   // The panel's errors, first in the page's error summary
   readonly plainEnglishErrors = signal<ErrorItem[]>([]);
 
+  // An interpretation whose search has not run yet: shown above the form
   private readonly checkedInterpretation = signal<CheckedInterpretation | null>(
     null,
   );
+  // The summary of the last search from a question: shown above the results.
+  // Never saved, as its labels can repeat the question.
+  private readonly searchedFor = signal<SearchedFor | null>(null);
+  // The search from a question that is loading, until it finishes
+  private questionSearch: QuestionSearch | null = null;
   private interpretationCount = 0;
+  // A pick was made since the last search from the answers, so settling on
+  // an option reached with the arrow keys searches
+  private picksNotSearched = false;
 
   // Sent once, with the first search after an interpretation. Never saved.
   private pendingInterpretationId: string | null = null;
+  // The interpretationId the search in flight sent, so a search from a
+  // changed pick that replaces it can send it again
+  private inFlightInterpretationId: string | null = null;
+
+  // The search request in flight, so a search from a question can replace it
+  // and Clear search can cancel it
+  private searchRequest?: Subscription;
 
   /**
    * The interpretation's form changes with the choice picks applied, and what
@@ -609,8 +798,15 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   readonly interpretationAnswers = computed(
     () => this.checkedInterpretation()?.answers ?? [],
   );
+  readonly interpretationMatchedCourts = computed(
+    () => this.checkedInterpretation()?.matchedCourts ?? [],
+  );
   readonly interpretationFocusKey = computed(
     () => this.checkedInterpretation()?.focusKey,
+  );
+  /** The "Searched for" summary, while plain-English search is on. */
+  readonly searchedForSummary = computed(() =>
+    this.searchInterpretationEnabled() ? this.searchedFor() : null,
   );
   // Set when a search is blocked by a choice that is not answered
   readonly showChoiceErrors = signal(false);
@@ -842,6 +1038,28 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   onSubmit(e: SubmitEvent): void {
     e.preventDefault();
+
+    if (this.submitSearch()) {
+      // A search staff ran themselves: what a question set, and the outcome
+      // of its search, no longer describe it
+      this.searchedFor.set(null);
+      this.checkedInterpretation.set(null);
+      this.showChoiceErrors.set(false);
+      this.plainEnglishSearch()?.clearStatus();
+    }
+  }
+
+  /**
+   * The Search button's path, which a search from a question takes too:
+   * validation (choices first), the error summary, the saved form state, and
+   * the pending interpretationId. Returns whether the search was started.
+   * `fromQuestion` cancels a search still loading; `replacesPick` (a search
+   * from changed answers) also sends the interpretationId it had sent.
+   */
+  private submitSearch({
+    fromQuestion = false,
+    replacesPick = false,
+  }: { fromQuestion?: boolean; replacesPick?: boolean } = {}): boolean {
     this.submitAttempt.update((attempt) => attempt + 1);
 
     if (this.refFacade.hasLoadError()) {
@@ -874,10 +1092,19 @@ export class Applications extends PlaceFieldsBase implements OnInit {
         searchErrors: [...choiceErrors, ...validationErrors],
         isSelectingAll: false,
       });
-      return;
+      return false;
     }
 
     const filter = this.loadQuery();
+
+    // The question replaced the filters of a search still loading. A search
+    // from a changed pick sends the interpretationId the one it replaces sent.
+    if (fromQuestion) {
+      if (replacesPick) {
+        this.resendInterpretationId();
+      }
+      this.cancelSearch();
+    }
 
     this.patchApp({
       currentPage: 0,
@@ -891,58 +1118,99 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       isSelectingAll: false,
     });
 
-    this.loadApplications(filter, { withInterpretation: true });
+    this.loadApplications(filter, { withInterpretation: true, fromQuestion });
+    return true;
   }
 
   /**
-   * Applies a plain-English search result to the form, replacing its values.
-   * The search is not run: staff check the filters and press Search.
+   * A question was sent: what the page shows about an earlier question no
+   * longer applies.
+   */
+  onQuestionAsked(): void {
+    this.searchedFor.set(null);
+    this.checkedInterpretation.set(null);
+    this.questionSearch = null;
+    this.picksNotSearched = false;
+    this.pendingInterpretationId = null;
+    this.inFlightInterpretationId = null;
+    this.showChoiceErrors.set(false);
+  }
+
+  /**
+   * Applies a plain-English search result to the form, replacing its values,
+   * and runs the search, unless it sets no filter (the panel shows an error)
+   * or staff must choose what they meant first.
    */
   onInterpreted(interpretation: SearchInterpretationDto): void {
     const activeCourts = [...this.state().courtLocations];
-    const changes = mapInterpretationToForm(interpretation, activeCourts);
+    const mapped = mapInterpretationToForm(interpretation, activeCourts);
+    this.picksNotSearched = false;
 
-    this.interpretationCount += 1;
-    this.checkedInterpretation.set({
+    // A search with no filters returns every entry, so it is not run. The
+    // form is left as it was and no interpretationId is kept. What the
+    // question asked for that the page could not use is still shown above
+    // the form; with no choices and no focusKey, it blocks nothing and the
+    // error summary keeps focus.
+    if (setsNoFilter(mapped) && !mapped.choices.length) {
+      this.plainEnglishSearch()?.fail(PLAIN_ENGLISH_SEARCH_NOT_UNDERSTOOD);
+      if (
+        mapped.notApplied.length ||
+        mapped.unusedParts.length ||
+        mapped.notices.length
+      ) {
+        this.checkedInterpretation.set({
+          changes: mapped,
+          answers: [],
+          picks: [],
+          activeCourts,
+          matchedCourts: [],
+          focusKey: undefined,
+        });
+      }
+      return;
+    }
+
+    const courts = applyCourtChoices(mapped, activeCourts);
+    const changes = courts?.changes ?? mapped;
+    const checked: CheckedInterpretation = {
       changes,
       answers: changes.choices.map(() => null),
       picks: changes.choices.map(() => null),
       activeCourts,
-      focusKey: this.interpretationCount,
-    });
+      matchedCourts: courts?.matchedCourts ?? [],
+      focusKey: undefined,
+    };
+
     this.pendingInterpretationId =
       trimToUndefined(interpretation.interpretationId) ?? null;
-    this.showChoiceErrors.set(false);
-    // Errors about the replaced values no longer apply. Unless results are on
-    // screen or on their way, nothing on the page is about a search any more,
-    // so the "no entries found" state goes too (submitted and isSearch move
-    // together for app-date-input)
-    const searchOnScreen = this.vm().rows.length > 0 || this.vm().isLoading;
-    this.patchApp({
-      ...clearNotificationsPatch(),
-      ...(searchOnScreen ? {} : { isSearch: false, submitted: false }),
-    });
+    this.applyInterpretation(changes);
 
-    // Display text first: the court and CJA validators read it when the form
-    // is reset
-    this.courtChipLabels.set({ ...changes.courtChipLabels });
-    this.patch({
-      courthouseSearch: changes.courthouseSearch,
-      cjaSearch: changes.cjaSearch,
-      filteredCourthouses: [],
-      filteredCja: [],
-    });
-    this.form.reset(changes.formValue);
-    this.applicationTitleSearch.set(changes.formValue.applicationTitle);
-    this.openAdvancedSearchWhenUsed();
+    if (changes.choices.length) {
+      // Staff choose what they meant; the search waits for every answer
+      this.interpretationCount += 1;
+      this.checkedInterpretation.set({
+        ...checked,
+        focusKey: this.interpretationCount,
+      });
+      this.plainEnglishSearch()?.showChoices();
+      return;
+    }
+
+    this.searchFromQuestion(checked);
   }
 
   /**
    * Applies the answers that changed to the form as it is now, so filters
    * edited by hand since are kept and the mapper's rules hold against them
-   * (pickAnswer).
+   * (pickAnswer). Once every choice is answered, the search runs, unless the
+   * pick is not final (`commit` false: reached with an arrow key). It then
+   * waits for onInterpretationCommit(), and a search from an earlier pick
+   * still loading is cancelled, as its results no longer match the answers.
    */
-  onInterpretationAnswersChange(answers: (string | null)[]): void {
+  onInterpretationAnswersChange(
+    answers: (string | null)[],
+    commit = true,
+  ): void {
     const checked = this.checkedInterpretation();
     if (!checked) {
       return;
@@ -969,15 +1237,35 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       filters = pick.after;
     });
 
-    this.checkedInterpretation.set({
+    const next: CheckedInterpretation = {
       ...checked,
       answers: [...answers],
       picks,
-    });
+    };
+    this.checkedInterpretation.set(next);
     // No choice is for the Application title (not a SearchFilterField), so
     // applicationTitleSearch needs no update here
     this.applyPageFilters(current, filters);
     this.openAdvancedSearchWhenUsed();
+    this.picksNotSearched = true;
+
+    if (commit) {
+      this.searchWhenAnswered(next);
+    } else {
+      this.cancelQuestionSearch();
+    }
+  }
+
+  /**
+   * Staff settled on an option they reached with the arrow keys (Space or
+   * Enter on it, or focus leaving its choice). Searches when a pick has been
+   * made since the last search and every choice is answered.
+   */
+  onInterpretationCommit(): void {
+    const checked = this.checkedInterpretation();
+    if (checked && this.picksNotSearched) {
+      this.searchWhenAnswered(checked);
+    }
   }
 
   onPlainEnglishErrorsChange(errors: ErrorItem[]): void {
@@ -1151,10 +1439,15 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   /**
    * Runs the search. `withInterpretation` (a submitted search only) sends the
    * pending interpretationId, once: it is cleared when the request is made.
+   * `fromQuestion` (a search from a plain-English question) shows its
+   * "Searched for" summary once its results are in.
    */
   loadApplications(
     filterOverride?: EntryGetFilterDto,
-    { withInterpretation = false }: { withInterpretation?: boolean } = {},
+    {
+      withInterpretation = false,
+      fromQuestion = false,
+    }: { withInterpretation?: boolean; fromQuestion?: boolean } = {},
   ): void {
     if (this.vm().isLoading) {
       return;
@@ -1163,6 +1456,9 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     const interpretationId = withInterpretation
       ? this.takePendingInterpretationId()
       : null;
+    // Its results get the "Searched for" summary while it is still the search
+    // from the question
+    const forQuestion = fromQuestion ? this.questionSearch : null;
     const apiSortKey =
       APPLICATIONS_SORT_MAP[this.vm().sortField.key] ?? this.vm().sortField.key;
     const params: GetEntriesRequestParams = {
@@ -1175,24 +1471,27 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     };
 
     this.patchApp({ ...startSearchPatch(), ...clearNotificationsPatch() });
+    this.inFlightInterpretationId = interpretationId;
 
-    this.appListEntryApi
+    this.searchRequest = this.appListEntryApi
       .getEntries(params, undefined, undefined, { transferCache: false })
       .subscribe({
         next: (page) => {
+          this.inFlightInterpretationId = null;
           const rows = page?.content ?? ([] as EntryGetSummaryDto[]);
+          const totalEntries = page?.totalElements ?? 0;
           this.patchApp({
-            ...searchSuccessPatch(
-              rows,
-              page?.totalPages ?? 1,
-              page?.totalElements ?? 0,
-            ),
+            ...searchSuccessPatch(rows, page?.totalPages ?? 1, totalEntries),
             getFilters: params.filter ?? {},
           });
           this.saveSearchState();
           this.patchApp({ isLoading: false });
+          if (forQuestion) {
+            this.onQuestionSearchDone(forQuestion, totalEntries);
+          }
         },
         error: (err: unknown) => {
+          this.inFlightInterpretationId = null;
           // A 400 without a problem body (e.g. from a proxy) keeps the generic error
           this.patchApp(
             getHttpStatus(err) === 400 && hasProblemText(err)
@@ -1200,6 +1499,9 @@ export class Applications extends PlaceFieldsBase implements OnInit {
               : searchErrorPatch(),
           );
           this.patchApp({ isLoading: false });
+          if (forQuestion) {
+            this.onQuestionSearchFailed(forQuestion);
+          }
         },
       });
   }
@@ -1288,6 +1590,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   clearSearch(): void {
+    // Cancelled before the page state is reset (which stops it loading), so
+    // its results and filters never come back after the page is cleared
+    this.searchRequest?.unsubscribe();
+    this.searchRequest = undefined;
     this.appState.state.set({
       ...initialApplicationsState,
       sortField: defaultApplicationsSort(),
@@ -1536,6 +1842,139 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     return interpretationId;
   }
 
+  // Replaces the form's values with an interpretation's
+  private applyInterpretation(changes: InterpretationFormChanges): void {
+    this.showChoiceErrors.set(false);
+    // Errors about the replaced values no longer apply. Unless results are on
+    // screen or on their way, nothing on the page is about a search any more,
+    // so the "no entries found" state goes too (submitted and isSearch move
+    // together for app-date-input)
+    const searchOnScreen = this.vm().rows.length > 0 || this.vm().isLoading;
+    this.patchApp({
+      ...clearNotificationsPatch(),
+      ...(searchOnScreen ? {} : { isSearch: false, submitted: false }),
+    });
+
+    // Display text first: the court and CJA validators read it when the form
+    // is reset
+    this.courtChipLabels.set({ ...changes.courtChipLabels });
+    this.patch({
+      courthouseSearch: changes.courthouseSearch,
+      cjaSearch: changes.cjaSearch,
+      filteredCourthouses: [],
+      filteredCja: [],
+    });
+    this.form.reset(changes.formValue);
+    this.applicationTitleSearch.set(changes.formValue.applicationTitle);
+    this.openAdvancedSearchWhenUsed();
+  }
+
+  // Runs the search from the answers once every choice is answered. A search
+  // from an earlier pick still loading is replaced, and the interpretationId
+  // it sent goes with the new one.
+  private searchWhenAnswered(checked: CheckedInterpretation): void {
+    if (
+      !checked.changes.choices.every((_, index) => !!checked.answers[index])
+    ) {
+      return;
+    }
+
+    this.plainEnglishSearch()?.showSearching();
+    this.searchFromQuestion(checked, { replacesPick: true });
+  }
+
+  // Runs the search from a question through the Search button's path. When
+  // validation blocks it, what the question set stays above the form.
+  private searchFromQuestion(
+    checked: CheckedInterpretation,
+    { replacesPick = false } = {},
+  ): void {
+    this.picksNotSearched = false;
+    // Set first: the results can arrive before submitSearch() returns. The
+    // form's values are kept as they are sent, for "Searched for".
+    this.questionSearch = { checked, searched: this.pageFilters().formValue };
+
+    if (!this.submitSearch({ fromQuestion: true, replacesPick })) {
+      this.questionSearch = null;
+      this.keepInterpretation(checked);
+      this.plainEnglishSearch()?.stop();
+    }
+  }
+
+  // The search from a question found its results: they get the "Searched
+  // for" summary, which takes focus
+  private onQuestionSearchDone(
+    search: QuestionSearch,
+    totalEntries: number,
+  ): void {
+    // Cleared by Clear search or a new question while it loaded, or replaced
+    if (this.questionSearch !== search) {
+      return;
+    }
+
+    this.questionSearch = null;
+    this.interpretationCount += 1;
+    this.checkedInterpretation.set(null);
+    this.showChoiceErrors.set(false);
+    this.searchedFor.set(searchedForOf(search, this.interpretationCount));
+    this.plainEnglishSearch()?.showResults(totalEntries);
+  }
+
+  // The search from a question failed: its error is in the error summary,
+  // and what the question set stays above the form
+  private onQuestionSearchFailed(search: QuestionSearch): void {
+    if (this.questionSearch !== search) {
+      return;
+    }
+
+    this.questionSearch = null;
+    this.keepInterpretation(search.checked);
+    this.plainEnglishSearch()?.stop();
+  }
+
+  // Shows what the question set above the form, unless its choices are there
+  // already (staff may have changed an answer since this search started). It
+  // has no focusKey, so the error summary keeps focus.
+  private keepInterpretation(checked: CheckedInterpretation): void {
+    if (!this.checkedInterpretation()) {
+      this.checkedInterpretation.set({ ...checked, focusKey: undefined });
+    }
+  }
+
+  // Cancels a search still loading, whose results no longer apply
+  private cancelSearch(): void {
+    if (this.vm().isLoading) {
+      this.searchRequest?.unsubscribe();
+      this.patchApp({ isLoading: false });
+    }
+  }
+
+  // A search from a changed pick replaces the one still loading for the same
+  // interpretation: the interpretationId that search sent goes with it
+  private resendInterpretationId(): void {
+    if (this.vm().isLoading && this.inFlightInterpretationId) {
+      this.pendingInterpretationId = this.inFlightInterpretationId;
+    }
+  }
+
+  // Staff are moving through the options with the arrow keys: a search from
+  // an earlier pick still loading no longer matches the answers, so it is
+  // cancelled, and the search they settle on sends its interpretationId. It
+  // had emptied the results, so nothing on the page is about a search.
+  private cancelQuestionSearch(): void {
+    if (!this.questionSearch || !this.vm().isLoading) {
+      return;
+    }
+
+    this.resendInterpretationId();
+    this.searchRequest?.unsubscribe();
+    this.searchRequest = undefined;
+    this.questionSearch = null;
+    this.inFlightInterpretationId = null;
+    this.patchApp({ isLoading: false, isSearch: false, submitted: false });
+    this.plainEnglishSearch()?.stop();
+  }
+
   private clearPlainEnglishErrors(): void {
     this.plainEnglishErrors.set([]);
     this.plainEnglishSearch()?.clearError();
@@ -1545,7 +1984,11 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.plainEnglishSearch()?.reset();
     this.plainEnglishErrors.set([]);
     this.checkedInterpretation.set(null);
+    this.searchedFor.set(null);
+    this.questionSearch = null;
+    this.picksNotSearched = false;
     this.pendingInterpretationId = null;
+    this.inFlightInterpretationId = null;
     this.showChoiceErrors.set(false);
   }
 
