@@ -377,6 +377,43 @@ describe('ApplicantSectionComponent', () => {
     expect(component.historicalSavedApplicantCode()).toBeNull();
   });
 
+  it('clears the saved code fallback when the current lookup fails', () => {
+    getStandardApplicants.mockReturnValue(
+      throwError(() => new Error('lookup failed')),
+    );
+    fixture.componentRef.setInput('applicantType', 'standard');
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
+    fixture.componentRef.setInput('savedStandardApplicantId', 10);
+    fixture.componentRef.setInput(
+      'savedStandardApplicantDetailsUnavailable',
+      true,
+    );
+    fixture.detectChanges();
+
+    expect(component.savedStandardApplicantFallback()).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Only the saved Standard Applicant code is available',
+    );
+
+    getStandardApplicants.mockReturnValue(
+      of({
+        pageNumber: 0,
+        pageSize: 100,
+        totalElements: 0,
+        totalPages: 0,
+        elementsOnPage: 0,
+        content: [],
+      } satisfies StandardApplicantPage),
+    );
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-456');
+    fixture.detectChanges();
+
+    expect(component.savedStandardApplicantFallback()).toEqual({
+      code: 'SA-456',
+      displayText: 'SA-456',
+    });
+  });
+
   it('emits updateClicked when the update button is clicked', () => {
     const spy = jest.fn();
     component.updateClicked.subscribe(spy);

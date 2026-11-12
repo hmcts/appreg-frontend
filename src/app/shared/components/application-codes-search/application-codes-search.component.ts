@@ -185,6 +185,9 @@ export class ApplicationCodeSearchComponent implements OnInit {
               this.historicalSavedCode.set(code);
             }
           },
+          error: () => {
+            this.historicalSavedCode.set(null);
+          },
         });
       onCleanup(() => subscription.unsubscribe());
     });

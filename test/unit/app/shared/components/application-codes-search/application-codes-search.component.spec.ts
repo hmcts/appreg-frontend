@@ -275,6 +275,32 @@ describe('ApplicationCodeSearchComponent', () => {
     );
   });
 
+  it('does not show a historical warning when a later current-code page fails', () => {
+    const secondPage = new Subject<ApplicationCodePage>();
+    apiMock.getApplicationCodes = jest
+      .fn()
+      .mockReturnValueOnce(
+        of({
+          ...savedCodePage(),
+          totalElements: 101,
+          totalPages: 2,
+        }),
+      )
+      .mockReturnValueOnce(secondPage);
+    const newerVersionExists = jest.spyOn(component.newerVersionExists, 'emit');
+
+    setSavedCode();
+    secondPage.error(new Error('lookup failed'));
+    fixture.detectChanges();
+
+    expect(apiMock.getApplicationCodes).toHaveBeenCalledTimes(2);
+    expect(component.historicalSavedCode()).toBeNull();
+    expect(newerVersionExists).toHaveBeenLastCalledWith(false);
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'The saved application code APP99001',
+    );
+  });
+
   it('search() should call fetchCodeRows$ and populate codesRows', () => {
     const fetchSpy = jest
       .spyOn(helpers, 'fetchCodeRows$')

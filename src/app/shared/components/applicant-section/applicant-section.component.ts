@@ -79,6 +79,7 @@ export class ApplicantSectionComponent {
 
   readonly entryTypeOptions = computed(() => this.applicantEntryTypeOptions);
   readonly historicalSavedApplicantCode = signal<string | null>(null);
+  private readonly standardApplicantLookupFailed = signal(false);
   readonly standardApplicantSummary = computed(() => {
     const code = this.savedStandardApplicantCode()?.trim() || null;
     const name = this.savedStandardApplicantName()?.trim() || null;
@@ -96,7 +97,11 @@ export class ApplicantSectionComponent {
   readonly savedStandardApplicantFallback = computed(() => {
     const code = this.savedStandardApplicantCode()?.trim() || null;
 
-    if (!code || !this.savedStandardApplicantDetailsUnavailable()) {
+    if (
+      !code ||
+      !this.savedStandardApplicantDetailsUnavailable() ||
+      this.standardApplicantLookupFailed()
+    ) {
       return null;
     }
 
@@ -105,6 +110,7 @@ export class ApplicantSectionComponent {
       displayText: code,
     };
   });
+
   readonly currentSelectionSummary = computed(() => {
     const current = this.currentStandardApplicantSummary();
     const code = current?.code?.trim() || null;
@@ -136,6 +142,7 @@ export class ApplicantSectionComponent {
       const code = this.savedStandardApplicantCode()?.trim();
       const savedId = this.savedStandardApplicantId();
       this.historicalSavedApplicantCode.set(null);
+      this.standardApplicantLookupFailed.set(false);
 
       if (!code || savedId === null) {
         return;
@@ -178,6 +185,10 @@ export class ApplicantSectionComponent {
             ) {
               this.historicalSavedApplicantCode.set(code);
             }
+          },
+          error: () => {
+            this.historicalSavedApplicantCode.set(null);
+            this.standardApplicantLookupFailed.set(true);
           },
         });
       onCleanup(() => subscription.unsubscribe());
