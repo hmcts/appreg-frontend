@@ -65,6 +65,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   parentSubmitted = input(false);
   patchedFormData = input<ApplicationsListEntryForm | undefined>(undefined);
   lodgementDateDisabled = input(false);
+  disabledReason = input('');
 
   // API query params
   pageSize = signal(10);

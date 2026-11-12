@@ -63,13 +63,29 @@
 
   <ng-template #codesTpl>
     @if (vm().formReady) {
-      <app-application-code-search
-        [patchedFormData]="this.form"
-        [parentSubmitted]="vm().formSubmitted"
-        [lodgementDateDisabled]="true"
-        (selectCodeAndLodgementDate)="onCodeSelected($event)"
-        (codeSearchErrors)="onChildErrors('codes', $event)"
-      />
+      <fieldset
+        class="govuk-fieldset"
+        [disabled]="hasBlockingFeeStatuses"
+        [attr.aria-describedby]="
+          hasBlockingFeeStatuses ? 'application-code-lock-hint' : null
+        "
+      >
+        <legend class="govuk-fieldset__legend govuk-visually-hidden">
+          Application code
+        </legend>
+        <app-application-code-search
+          [disabledReason]="
+            hasBlockingFeeStatuses
+              ? 'Cannot change the application code because a fee has been paid or remitted for this entry.'
+              : ''
+          "
+          [patchedFormData]="this.form"
+          [parentSubmitted]="vm().formSubmitted"
+          [lodgementDateDisabled]="true"
+          (selectCodeAndLodgementDate)="onCodeSelected($event)"
+          (codeSearchErrors)="onChildErrors('codes', $event)"
+        />
+      </fieldset>
     }
   </ng-template>
 

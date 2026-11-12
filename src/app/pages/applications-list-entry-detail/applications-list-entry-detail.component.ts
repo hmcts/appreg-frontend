@@ -107,6 +107,7 @@ import {
   EntryGetDetailDto,
   EntryUpdateDto,
   FeeStatus,
+  PaymentStatus,
   StandardApplicantGetDetailDto,
   StandardApplicantsApi,
   TemplateDetail,
@@ -1306,6 +1307,16 @@ export class ApplicationsListEntryDetail implements OnInit {
       summaryErrors: mapped.errorSummary,
       errorFound: mapped.errorSummary.length > 0,
     });
+  }
+
+  get hasBlockingFeeStatuses(): boolean {
+    return (
+      this.entryDetail?.feeStatuses?.some(
+        (status) =>
+          status.paymentStatus === PaymentStatus.PAID ||
+          status.paymentStatus === PaymentStatus.REMITTED,
+      ) ?? false
+    );
   }
 
   get applicationCodeSaveDisabled(): boolean {
