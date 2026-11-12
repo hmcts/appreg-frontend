@@ -21,7 +21,6 @@ import {
 } from '@angular/core';
 
 import { AlertComponent } from '@components/alert/alert.component';
-import { RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import {
   ApplicantContext,
   ApplicationEntriesResultContext,
@@ -57,6 +56,17 @@ import {
 } from '@shared-types/result-wording-section/result-section.types';
 import { makeTempId } from '@util/data-utils';
 import { ResultRow, toExistingRows } from '@util/result-code-helpers';
+
+const RESULT_WORDING_COLUMNS = [
+  { header: 'Applicant', field: 'applicant' },
+  { header: 'Respondent', field: 'respondent' },
+  {
+    header: 'Application title',
+    field: 'title',
+    maxWidth: '25rem',
+    wrap: true,
+  },
+];
 
 @Component({
   selector: 'app-result-wording-section',

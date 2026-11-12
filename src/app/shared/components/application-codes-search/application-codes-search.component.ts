@@ -21,7 +21,6 @@ import {
 import { ActivatedRoute } from '@angular/router';
 
 import { AlertComponent } from '@components/alert/alert.component';
-import { CODES_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
@@ -31,6 +30,7 @@ import {
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { CODES_COLUMNS } from '@constants/application-list-entry/columns-options';
 import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
 import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';

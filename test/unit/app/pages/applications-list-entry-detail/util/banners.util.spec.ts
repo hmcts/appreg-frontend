@@ -1,34 +1,10 @@
 import {
-  computeSuccessBanner,
   focusLocalBanner,
   focusSuccessBanner,
 } from '@components/applications-list-entry-detail/util/banners.util';
-import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 
 const BROWSER_PLATFORM_ID = 'browser' as unknown as object;
 const SERVER_PLATFORM_ID = 'server' as unknown as object;
-
-describe('computeSuccessBanner', () => {
-  it('returns the wording-required banner when the wording reference regex matches', () => {
-    const banner = computeSuccessBanner(
-      'Result requires [wording] before submission',
-      /\[wording\]/,
-    );
-
-    expect(banner).toBe(
-      ENTRY_SUCCESS_MESSAGES.applicationCodeAdded.needsWording,
-    );
-  });
-
-  it('returns the standard banner when the wording reference regex does not match', () => {
-    const banner = computeSuccessBanner(
-      'Result wording is already complete',
-      /\[wording\]/,
-    );
-
-    expect(banner).toBe(ENTRY_SUCCESS_MESSAGES.applicationCodeAdded.ok);
-  });
-});
 
 describe('focusSuccessBanner', () => {
   afterEach(() => {

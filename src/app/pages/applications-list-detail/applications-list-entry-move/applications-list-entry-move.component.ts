@@ -45,7 +45,6 @@ import {
 } from './util';
 
 import { loadQuery } from '@components/applications-list/util/load-query';
-import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import {
   ApplicationEntriesMoveContext,
   toRow,
@@ -61,6 +60,7 @@ import {
   SortableTableComponent,
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
+import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@constants/application-list-detail-bulk-operations/bulk-action';
 import {
   APPLICATIONS_LIST_COLUMNS_ACTION,
   APPLICATIONS_LIST_FORM_ERROR_MESSAGES,

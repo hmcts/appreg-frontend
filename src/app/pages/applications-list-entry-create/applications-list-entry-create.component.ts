@@ -61,13 +61,6 @@ import {
 import { AccordionComponent } from '@components/accordion/accordion.component';
 import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
-import {
-  APPLICANT_TYPE_OPTIONS,
-  CIVIL_FEE_COLUMNS,
-  FEE_STATUS_OPTIONS,
-  PERSON_TITLE_OPTIONS,
-  RESPONDENT_TYPE_OPTIONS,
-} from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { mapHttpErrorToSummary } from '@components/applications-list-entry-detail/util/errors.util';
 import { readNavState } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -86,6 +79,13 @@ import { NotesSectionComponent } from '@components/notes-section/notes-section.c
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
+import {
+  APPLICANT_TYPE_OPTIONS,
+  CIVIL_FEE_COLUMNS,
+  FEE_STATUS_OPTIONS,
+  PERSON_TITLE_OPTIONS,
+  RESPONDENT_TYPE_OPTIONS,
+} from '@constants/application-list-entry/columns-options';
 import {
   APPLICANT_ENTRY_ERROR_MESSAGES,
   ENTRY_ERROR_MESSAGES,

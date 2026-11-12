@@ -39,14 +39,6 @@ import {
   initialApplicationsListEntryDetailState,
 } from './util/applications-list-entry-detail.state';
 import { focusLocalBanner, focusSuccessBanner } from './util/banners.util';
-import {
-  APPLICANT_COLUMNS,
-  CIVIL_FEE_COLUMNS,
-  CODES_COLUMNS,
-  FEE_STATUS_OPTIONS,
-  PERSON_TITLE_OPTIONS,
-  RESPONDENT_TYPE_OPTIONS,
-} from './util/entry-detail.constants';
 import { buildEntryUpdateDtoForFeeChange } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { buildResultApplicantContext } from './util/result-context.util';
@@ -85,6 +77,14 @@ import { TableColumn } from '@components/sortable-table/sortable-table.component
 import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
+import {
+  APPLICANT_COLUMNS,
+  CIVIL_FEE_COLUMNS,
+  CODES_COLUMNS,
+  FEE_STATUS_OPTIONS,
+  PERSON_TITLE_OPTIONS,
+  RESPONDENT_TYPE_OPTIONS,
+} from '@constants/application-list-entry/columns-options';
 import {
   APPLICANT_ENTRY_ERROR_MESSAGES,
   ENTRY_ERROR_MESSAGES,
