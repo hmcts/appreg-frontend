@@ -71,8 +71,15 @@
 
       @if (savedStandardApplicantFallback(); as fallback) {
         <app-alert
+          alertType="warning"
+          [message]="`Only the saved Standard Applicant code is available: ${fallback.displayText}`"
+        />
+      }
+
+      @if (historicalSavedApplicantCode(); as code) {
+        <app-alert
           alertType="information"
-          [message]="`The historical saved applicant ${fallback.displayText} shown here but may have been removed or a new version exists`"
+          [message]="`The saved applicant ${code} shown here may have been removed or a new version exists.`"
         />
       }
 
