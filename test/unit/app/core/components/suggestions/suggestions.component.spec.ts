@@ -596,6 +596,23 @@ describe('SuggestionsComponent', () => {
     );
   });
 
+  it('renders a custom no results message when noResultsText is set', () => {
+    setInput('id', 'court');
+    component.onInput('missing');
+    component.onFocus();
+    fixture.detectChanges();
+
+    const status = (): HTMLElement =>
+      fixture.nativeElement.querySelector('#court-status') as HTMLElement;
+
+    expect(status().textContent?.trim()).toBe('No results found');
+
+    setInput('noResultsText', 'You can add up to 2');
+
+    expect(status().textContent?.trim()).toBe('You can add up to 2');
+    expect(status().getAttribute('aria-live')).toBe('polite');
+  });
+
   it('onKeydown opens all values for ArrowDown and Enter when enabled', () => {
     setInput('showAllValues', true);
     setInput('suggestions', [suggestion('A1', 'Alpha')]);
