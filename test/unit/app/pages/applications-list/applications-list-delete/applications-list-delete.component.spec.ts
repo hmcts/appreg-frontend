@@ -138,7 +138,7 @@ describe('ApplicationsListDeleteComponent', () => {
         if (page === 0) {
           response.content[0] = {
             ...response.content[0],
-            sequenceNumber: 7,
+            sequenceNumber: 0,
             accountNumber: 'SYNTHETIC-ACCOUNT',
             applicationTitle: 'Synthetic title',
             applicant: {
@@ -179,27 +179,43 @@ describe('ApplicationsListDeleteComponent', () => {
         ?.textContent?.replace(/\s+/g, ' ')
         .trim(),
     ).toBe('2 application list entries will be deleted.');
-    const cards = root.querySelectorAll('.govuk-summary-card');
-    expect(cards).toHaveLength(2);
+    const table = root.querySelector('table')!;
+    const rows = table.querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(2);
+    expect(table.querySelector('caption')?.textContent?.trim()).toBe(
+      'Application list entries to be deleted',
+    );
     expect(
-      Array.from(root.querySelectorAll('.govuk-summary-card__title'), (title) =>
-        title.textContent?.trim(),
+      Array.from(table.querySelectorAll('thead th[scope="col"]'), (cell) =>
+        cell.textContent?.trim(),
       ),
-    ).toEqual(['Application list entry 1', 'Application list entry 2']);
-    expect(values(cards[0])).toEqual([
-      '7',
+    ).toEqual([
+      'Sequence number',
+      'Account number',
+      'Applicant',
+      'Respondent',
+      'Title',
+    ]);
+    const cells = (row: Element) =>
+      Array.from(row.querySelectorAll('th, td'), (cell) =>
+        cell.textContent?.trim(),
+      );
+    expect(cells(rows[0])).toEqual([
+      '0',
       'SYNTHETIC-ACCOUNT',
       'Synthetic organisation',
       'Synthetic Respondent',
       'Synthetic title',
     ]);
-    expect(values(cards[1])).toEqual([
+    expect(cells(rows[1])).toEqual([
       'Not provided',
       'Not provided',
       'Not provided',
       'Not provided',
       'Synthetic application',
     ]);
+    expect(root.querySelector('.govuk-summary-card')).toBeNull();
+    expect(table.querySelector('input, button, a')).toBeNull();
     expect(root.querySelector('.govuk-summary-list__actions')).toBeNull();
     expect(api.deleteApplicationList).not.toHaveBeenCalled();
   });
@@ -275,7 +291,7 @@ describe('ApplicationsListDeleteComponent', () => {
       expect(component.childEntries()).toEqual([]);
       expect(component.entriesLoaded()).toBe(false);
       expect(
-        fixture.nativeElement.querySelector('.govuk-summary-card'),
+        fixture.nativeElement.querySelector('app-sortable-table'),
       ).toBeNull();
       expect(confirm().disabled).toBe(true);
       expect(

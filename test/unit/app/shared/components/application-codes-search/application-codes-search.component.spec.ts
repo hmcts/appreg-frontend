@@ -75,6 +75,41 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(search).toHaveBeenCalledTimes(1);
   });
 
+  it('sets native disabled attributes for GOV.UK styling on Search, Clear and Add code', () => {
+    component.codesRows = mockRows.rows.slice();
+    componentRef.setInput('disabledReason', 'A fee has been paid or remitted.');
+    fixture.detectChanges();
+    const buttons = [
+      ...(
+        fixture.nativeElement as HTMLElement
+      ).querySelectorAll<HTMLButtonElement>('.govuk-button-group > button'),
+    ];
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual([
+      'Search',
+      'Clear',
+      'Add code',
+      'Add code',
+    ]);
+    const search = jest.spyOn(component, 'search');
+    const clear = jest.spyOn(component, 'clear');
+    const addCode = jest.spyOn(component, 'onAddCode');
+    buttons.forEach((button) => {
+      expect(button.disabled).toBe(true);
+      expect(button.hasAttribute('disabled')).toBe(true);
+      button.click();
+    });
+    expect(search).not.toHaveBeenCalled();
+    expect(clear).not.toHaveBeenCalled();
+    expect(addCode).not.toHaveBeenCalled();
+
+    componentRef.setInput('disabledReason', '');
+    fixture.detectChanges();
+    buttons.forEach((button) => {
+      expect(button.disabled).toBe(false);
+      expect(button.hasAttribute('disabled')).toBe(false);
+    });
+  });
+
   it.each([
     'applicationCode',
     'app-code-title',

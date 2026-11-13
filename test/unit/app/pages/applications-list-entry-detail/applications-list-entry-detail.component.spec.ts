@@ -300,6 +300,142 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
   });
 
+  it.each([PaymentStatus.PAID, PaymentStatus.REMITTED])(
+    'keeps the code layout but disables its fields and buttons for saved %s, even before a later Due status',
+    (paymentStatus) => {
+      component.entryDetail = {
+        ...component.entryDetail!,
+        feeStatuses: [
+          { paymentStatus, statusDate: '2025-10-31' },
+          { paymentStatus: PaymentStatus.DUE, statusDate: '2025-11-01' },
+        ],
+      };
+      component.openApplicationCodeSection.set(true);
+      fixture.detectChanges();
+
+      expect(component.hasBlockingFeeStatuses).toBe(true);
+      const codeSearch: HTMLElement = fixture.nativeElement.querySelector(
+        'app-application-code-search',
+      );
+      expect(codeSearch).not.toBeNull();
+      expect(codeSearch.querySelector('app-help-details')).toBeNull();
+      expect(
+        codeSearch.querySelector('#application-code-lock-hint')?.textContent,
+      ).toContain(
+        'Cannot change the application code because a fee has been paid or remitted for this entry.',
+      );
+      expect(codeSearch.closest('fieldset')?.disabled).toBe(true);
+      expect(
+        codeSearch.closest('fieldset')?.getAttribute('aria-describedby'),
+      ).toBe('application-code-lock-hint');
+      const inputs = codeSearch.querySelectorAll('input');
+      const buttons = codeSearch.querySelectorAll('button');
+      expect(inputs.length).toBeGreaterThan(0);
+      expect(buttons.length).toBeGreaterThan(0);
+      [...inputs, ...buttons].forEach((control) => {
+        // Inputs inherit fieldset disabling; buttons also need the attribute for GOV.UK styling.
+        expect(control.matches(':disabled')).toBe(true);
+      });
+      buttons.forEach((button) => {
+        expect(button.disabled).toBe(true);
+        expect(button.hasAttribute('disabled')).toBe(true);
+      });
+      expect(inputs[0].value).toBe(
+        component.form.controls.applicationCode.value,
+      );
+      mockGetApplicationCodes.mockClear();
+      buttons.forEach((button) => button.click());
+      expect(mockGetApplicationCodes).not.toHaveBeenCalled();
+      expect(fixture.nativeElement.textContent).toContain(
+        'Cannot change the application code because a fee has been paid or remitted for this entry.',
+      );
+      expect(component.applicationCodeSaveDisabled).toBe(false);
+    },
+  );
+
+  it.each([
+    { feeStatuses: null },
+    { feeStatuses: [] },
+    {
+      feeStatuses: [
+        { paymentStatus: PaymentStatus.DUE, statusDate: '2025-11-01' },
+      ],
+    },
+    {
+      feeStatuses: [
+        { paymentStatus: PaymentStatus.UNDERTAKEN, statusDate: '2025-11-01' },
+      ],
+    },
+    {
+      feeStatuses: [
+        { paymentStatus: PaymentStatus.DUE, statusDate: '2025-11-01' },
+        { paymentStatus: PaymentStatus.UNDERTAKEN, statusDate: '2025-11-01' },
+      ],
+    },
+  ])(
+    'keeps code search available without blocking saved fee statuses ($feeStatuses), even with unsaved Paid statuses',
+    ({ feeStatuses }) => {
+      component.entryDetail = {
+        ...component.entryDetail!,
+        feeStatuses,
+      };
+      component.form.controls.feeStatuses.setValue([
+        { paymentStatus: PaymentStatus.PAID, statusDate: '2025-11-01' },
+      ]);
+      component.openApplicationCodeSection.set(true);
+      fixture.detectChanges();
+
+      expect(component.hasBlockingFeeStatuses).toBe(false);
+      const codeSearch: HTMLElement = fixture.nativeElement.querySelector(
+        'app-application-code-search',
+      );
+      expect(codeSearch).not.toBeNull();
+      expect(codeSearch.querySelector('app-help-details')).not.toBeNull();
+      expect(
+        codeSearch.querySelector('#application-code-lock-hint'),
+      ).toBeNull();
+      expect(codeSearch.closest('fieldset')?.disabled).toBe(false);
+      expect(codeSearch.querySelector('input')?.matches(':disabled')).toBe(
+        false,
+      );
+      const searchButtons = [...codeSearch.querySelectorAll('button')].filter(
+        (button) =>
+          ['Search', 'Clear'].includes(button.textContent?.trim() ?? ''),
+      );
+      expect(searchButtons).toHaveLength(2);
+      // Lodgement-date buttons remain disabled independently of the fee-status lock.
+      searchButtons.forEach((button) => {
+        expect(button.matches(':disabled')).toBe(false);
+      });
+      expect(fixture.nativeElement.textContent).not.toContain(
+        'Cannot change the application code because a fee has been paid or remitted for this entry.',
+      );
+    },
+  );
+
+  it('does not lock the code before an entry has loaded', () => {
+    component.entryDetail = null;
+    expect(component.hasBlockingFeeStatuses).toBe(false);
+  });
+
+  it('displays the API fee-lock error from a stale edit page', () => {
+    component['applyMappedError']({
+      status: 400,
+      error: {
+        type: 'ALE-57',
+        detail:
+          'Cannot change the application code because a fee has been paid or remitted for this entry.',
+      },
+    });
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('app-error-summary').textContent,
+    ).toContain(
+      'Cannot change the application code because a fee has been paid or remitted for this entry.',
+    );
+  });
+
   it('warns about unsaved changes and supports staying or discarding', async () => {
     await fixture.whenStable();
     expect(component.canLeave()).toBe(true);

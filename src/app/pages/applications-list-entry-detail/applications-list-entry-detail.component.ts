@@ -107,6 +107,7 @@ import {
   EntryGetDetailDto,
   EntryUpdateDto,
   FeeStatus,
+  PaymentStatus,
   StandardApplicantGetDetailDto,
   StandardApplicantsApi,
   TemplateDetail,
@@ -1901,6 +1902,16 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   get applicationNotesForm(): ApplicationNotesForm {
     return this.form.controls.applicationNotes;
+  }
+
+  get hasBlockingFeeStatuses(): boolean {
+    return (
+      this.entryDetail?.feeStatuses?.some(
+        (status) =>
+          status.paymentStatus === PaymentStatus.PAID ||
+          status.paymentStatus === PaymentStatus.REMITTED,
+      ) ?? false
+    );
   }
 
   get applicationCodeSaveDisabled(): boolean {
