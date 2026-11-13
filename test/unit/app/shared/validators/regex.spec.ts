@@ -7,6 +7,7 @@ import {
   SEARCHED_APPLICATION_CODE_REGEX,
   STANDARD_APPLICANT_CODE_REGEX,
   UK_POSTCODE_REGEX,
+  UUID_REGEX,
 } from '@constants/regex';
 
 describe('regex constants', () => {
@@ -68,6 +69,34 @@ describe('regex constants', () => {
       expect(ISO_DATE_REGEX.test('2026-11')).toBe(false);
       expect(ISO_DATE_REGEX.test('02/11/2026')).toBe(false);
       expect(ISO_DATE_REGEX.test('2026-11-02T00:00:00')).toBe(false);
+    });
+  });
+
+  describe('UUID_REGEX', () => {
+    it('accepts a UUID in either case', () => {
+      expect(UUID_REGEX.test('3fa85f64-5717-4562-b3fc-2c963f66afa6')).toBe(
+        true,
+      );
+      expect(UUID_REGEX.test('3FA85F64-5717-4562-B3FC-2C963F66AFA6')).toBe(
+        true,
+      );
+    });
+
+    it('rejects anything else', () => {
+      expect(UUID_REGEX.test('')).toBe(false);
+      expect(UUID_REGEX.test('3fa85f6457174562b3fc2c963f66afa6')).toBe(false);
+      expect(UUID_REGEX.test('3fa85f64-5717-4562-b3fc-2c963f66afa')).toBe(
+        false,
+      );
+      expect(UUID_REGEX.test('3fa85f64-5717-4562-b3fc-2c963f66afag')).toBe(
+        false,
+      );
+      expect(UUID_REGEX.test('{3fa85f64-5717-4562-b3fc-2c963f66afa6}')).toBe(
+        false,
+      );
+      expect(UUID_REGEX.test(' 3fa85f64-5717-4562-b3fc-2c963f66afa6')).toBe(
+        false,
+      );
     });
   });
 

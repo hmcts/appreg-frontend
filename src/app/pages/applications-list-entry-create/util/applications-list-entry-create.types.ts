@@ -28,6 +28,7 @@ export type EntryCreateSnapshot = {
   bulkApplicationsAllowed: boolean;
   wordingAppliedBannerVisible: boolean;
   currentStandardApplicantSummary: SelectedStandardApplicantSummary | null;
+  codeSuggestionId: string | null;
 };
 
 export type ApplicantStep = 'select' | 'person' | 'org' | 'standard';

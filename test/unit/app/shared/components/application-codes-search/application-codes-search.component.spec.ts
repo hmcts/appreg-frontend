@@ -1626,5 +1626,135 @@ describe('ApplicationCodeSearchComponent', () => {
         expect(sentBody()['searchedApplicationCode']).toBe('AP99001');
       });
     });
+
+    describe('codeSuggestionIdChange', () => {
+      const suggestionId = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
+      const newerSuggestionId = '7c9e6679-7425-40de-944b-e07fc1f90ae7';
+
+      function addCodeFromTable(index = 0): void {
+        host()
+          .querySelectorAll<HTMLButtonElement>('#codes-table tbody button')
+          [index].click();
+        fixture.detectChanges();
+      }
+
+      function watchSuggestionId(): jest.SpyInstance<void, [string | null]> {
+        return jest.spyOn(component.codeSuggestionIdChange, 'emit');
+      }
+
+      it('emits the suggestion id when a suggested code is added', () => {
+        enableSuggestions();
+        requestSuggestions();
+        const idSpy = watchSuggestionId();
+
+        addCodeFromTable(1);
+
+        expect(idSpy).toHaveBeenCalledTimes(1);
+        expect(idSpy).toHaveBeenCalledWith(suggestionId);
+      });
+
+      it('emits null when a searched-for code is added', () => {
+        enableSuggestions();
+        searchManually('MS99004');
+        const idSpy = watchSuggestionId();
+
+        addCodeFromTable();
+
+        expect(idSpy).toHaveBeenCalledTimes(1);
+        expect(idSpy).toHaveBeenCalledWith(null);
+      });
+
+      it('emits null when a code is added from search results that replaced suggestions', () => {
+        enableSuggestions();
+        requestSuggestions();
+        searchManually('MS99004');
+        const idSpy = watchSuggestionId();
+
+        addCodeFromTable();
+
+        expect(idSpy).toHaveBeenCalledTimes(1);
+        expect(idSpy).toHaveBeenCalledWith(null);
+      });
+
+      it('emits null when new suggestions arrive, then the newer id when one of them is added', () => {
+        enableSuggestions();
+        requestSuggestions();
+        addCodeFromTable();
+        const idSpy = watchSuggestionId();
+
+        requestSuggestions(
+          suggestionResponse({ suggestionId: newerSuggestionId }),
+        );
+
+        expect(idSpy).toHaveBeenCalledTimes(1);
+        expect(idSpy).toHaveBeenLastCalledWith(null);
+
+        addCodeFromTable();
+
+        expect(idSpy).toHaveBeenCalledTimes(2);
+        expect(idSpy).toHaveBeenLastCalledWith(newerSuggestionId);
+      });
+
+      it('emits null when new suggestions with no codes arrive', () => {
+        enableSuggestions();
+        requestSuggestions();
+        addCodeFromTable();
+        const idSpy = watchSuggestionId();
+
+        requestSuggestions(
+          suggestionResponse({
+            suggestionId: newerSuggestionId,
+            suggestions: [],
+            needsMoreDetail: true,
+          }),
+        );
+
+        expect(idSpy).toHaveBeenCalledTimes(1);
+        expect(idSpy).toHaveBeenCalledWith(null);
+      });
+
+      it('emits nothing when a suggestion request fails or the user only searches', () => {
+        enableSuggestions();
+        requestSuggestions();
+        addCodeFromTable();
+        const idSpy = watchSuggestionId();
+
+        failSuggestions(503);
+        searchManually('MS99004');
+
+        expect(idSpy).not.toHaveBeenCalled();
+      });
+
+      it.each([
+        ['the Clear button is used', (): void => button('Clear')!.click()],
+        [
+          'the code is emptied',
+          (): void => component.form.controls.code.setValue(' '),
+        ],
+      ])('emits only null when %s', (_label, clearCode) => {
+        enableSuggestions();
+        requestSuggestions();
+        addCodeFromTable();
+        const idSpy = watchSuggestionId();
+
+        clearCode();
+
+        // Clear empties the code, which clears again: each emits null.
+        expect(new Set(idSpy.mock.calls.map(([id]) => id))).toEqual(
+          new Set([null]),
+        );
+      });
+
+      it('emits nothing when a suggested row cannot be added', () => {
+        enableSuggestions();
+        requestSuggestions();
+        component.listId = null;
+        const idSpy = watchSuggestionId();
+
+        addCodeFromTable();
+
+        expect(idSpy).not.toHaveBeenCalled();
+      });
+    });
   });
 });

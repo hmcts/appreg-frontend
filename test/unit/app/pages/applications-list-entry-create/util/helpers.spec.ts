@@ -7,6 +7,7 @@ import {
   makeContactDetails,
   normalisePhone,
   pruneNullish,
+  toCodeSuggestionId,
   toOptionalTrimmed,
 } from '@components/applications-list-entry-create/util/helpers';
 
@@ -22,6 +23,32 @@ describe('helpers', () => {
     it('trims and returns non-empty strings', () => {
       expect(toOptionalTrimmed('  abc  ')).toBe('abc');
       expect(toOptionalTrimmed('a')).toBe('a');
+    });
+  });
+
+  describe('toCodeSuggestionId', () => {
+    it('returns a UUID unchanged', () => {
+      expect(toCodeSuggestionId('3fa85f64-5717-4562-b3fc-2c963f66afa6')).toBe(
+        '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      );
+      expect(toCodeSuggestionId('3FA85F64-5717-4562-B3FC-2C963F66AFA6')).toBe(
+        '3FA85F64-5717-4562-B3FC-2C963F66AFA6',
+      );
+    });
+
+    it('returns null for anything that is not a UUID string', () => {
+      expect(toCodeSuggestionId(undefined)).toBeNull();
+      expect(toCodeSuggestionId(null)).toBeNull();
+      expect(toCodeSuggestionId('')).toBeNull();
+      expect(toCodeSuggestionId('   ')).toBeNull();
+      expect(toCodeSuggestionId('synthetic-suggestion')).toBeNull();
+      expect(
+        toCodeSuggestionId(' 3fa85f64-5717-4562-b3fc-2c963f66afa6'),
+      ).toBeNull();
+      expect(toCodeSuggestionId(42)).toBeNull();
+      expect(
+        toCodeSuggestionId({ id: '3fa85f64-5717-4562-b3fc-2c963f66afa6' }),
+      ).toBeNull();
     });
   });
 
