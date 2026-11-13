@@ -33,12 +33,14 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Observable, map } from 'rxjs';
 
+import { EntryDetailLoadFacade } from './entry-detail-load.facade';
 import {
   ApplicationsListEntryDetailState,
   initialApplicationsListEntryDetailState,
 } from './util/applications-list-entry-detail.state';
 import { focusLocalBanner, focusSuccessBanner } from './util/banners.util';
 import { buildEntryUpdateDtoForFeeChange } from './util/entry-detail.form';
+import { codeFeeMeta } from './util/entry-load-fee-meta';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { buildResultApplicantContext } from './util/result-context.util';
 import { getEntryId } from './util/routing.util';
@@ -166,7 +168,7 @@ export const ERROR_HREFS = {
 @Component({
   selector: 'app-applications-list-entry-detail',
   standalone: true,
-  providers: [ApplicationListEntryResultsFacade],
+  providers: [ApplicationListEntryResultsFacade, EntryDetailLoadFacade],
   imports: [
     ReactiveFormsModule,
     RouterModule,
@@ -211,6 +213,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly formSvc = inject(ApplicationListEntryFormService);
   private readonly location = inject(Location);
   private readonly applicationCodesApi = inject(ApplicationCodesApi);
+  private readonly loadFacade = inject(EntryDetailLoadFacade);
   private readonly standardApplicantsApi = inject(StandardApplicantsApi);
 
   //Utilising facade for entry results to keep component clean
@@ -417,14 +420,11 @@ export class ApplicationsListEntryDetail implements OnInit {
     paymentRefReturn: PaymentRefReturn | null,
     state: EntryDetailNavState | null | undefined,
   ): void {
-    this.entriesApi
-      .getApplicationListEntry({ listId, entryId }, 'body', false, {
-        context: undefined,
-        transferCache: true,
-      })
+    this.loadFacade
+      .loadEntry(listId, entryId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (entry) => {
+        next: ({ entry }) => {
           this.entryDetail = entry;
           this.persistedHasOffsiteFee = entry.hasOffsiteFee === true;
 
@@ -497,82 +497,30 @@ export class ApplicationsListEntryDetail implements OnInit {
       isFeeRequired: false,
       bulkApplicationsAllowed: false,
     });
-    if (
-      entry.applicationCodeId === null ||
-      entry.applicationCodeId === undefined
-    ) {
-      this.appListEntryDetailPatch({ formReady: true });
-      this.showApplicationCodeLoadError();
-      return;
-    }
-
-    // Check if fees is populated and use this first
-    const feesMetaExistsInResponse = (entry.fees?.length ?? 0) > 0;
-
-    if (feesMetaExistsInResponse) {
-      const feesArr = entry.fees ?? [];
-
-      if (!feesArr.length) {
-        return;
-      }
-
-      const mainFee = feesArr.find((fee) => fee.offsite !== true);
-      const offsiteFee = feesArr.find((fee) => fee.offsite === true);
-
-      const feeMeta = {
-        feeReference: mainFee?.reference ?? null,
-        feeDescription: mainFee?.description ?? null,
-        feeAmount:
-          mainFee?.value === null || mainFee?.value === undefined
-            ? null
-            : { value: mainFee.value * 100, currency: 'GBP' }, // formatGbp() assumes the returned value in pence so multiple by 100
-        offsiteFeeReference: offsiteFee?.reference ?? null,
-        offsiteFeeDescription: offsiteFee?.description ?? null,
-        offsiteFeeAmount:
-          offsiteFee?.value === null || offsiteFee?.value === undefined
-            ? null
-            : { value: offsiteFee.value * 100, currency: 'GBP' }, // formatGbp() assumes the returned value in pence so multiple by 100
-      };
-
-      this.feeMeta = feeMeta;
-    }
-
-    this.applicationCodesApi
-      .getApplicationCodeById({ id: entry.applicationCodeId }, 'body', false, {
-        transferCache: true,
-      })
+    this.loadFacade
+      .loadLinkedCode(entry)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (codeDto) => {
-          this.form.patchValue({ applicationTitle: codeDto.title });
-          this.handleResultWordingContext(this.navState);
-
-          if (!feesMetaExistsInResponse) {
-            this.feeMeta = {
-              feeReference: codeDto.feeReference ?? null,
-              feeDescription: codeDto.feeDescription ?? null,
-              feeAmount: codeDto.feeAmount ?? null,
-              offsiteFeeReference: codeDto.offsiteFeeReference ?? null,
-              offsiteFeeDescription: codeDto.offsiteFeeDescription ?? null,
-              offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
-            };
-          }
-
-          this.savedApplicationCodeLoaded.set(true);
-          this.appListEntryDetailPatch({
-            appCodeDetail: codeDto,
-            isFeeRequired: codeDto.isFeeDue,
-            bulkApplicationsAllowed: codeDto.bulkRespondentAllowed,
-            formReady: true,
-          });
-          onLoaded?.();
-        },
-        error: () => {
+      .subscribe((result) => {
+        if (result.kind === 'linkedCodeUnavailable') {
           this.form.patchValue({ applicationTitle: '' });
           this.handleResultWordingContext(this.navState);
           this.appListEntryDetailPatch({ formReady: true });
           this.showApplicationCodeLoadError();
-        },
+          return;
+        }
+
+        const { code, feeMeta } = result;
+        this.form.patchValue({ applicationTitle: code.title });
+        this.handleResultWordingContext(this.navState);
+        this.feeMeta = feeMeta;
+        this.savedApplicationCodeLoaded.set(true);
+        this.appListEntryDetailPatch({
+          appCodeDetail: code,
+          isFeeRequired: code.isFeeDue,
+          bulkApplicationsAllowed: code.bulkRespondentAllowed,
+          formReady: true,
+        });
+        onLoaded?.();
       });
   }
 
@@ -632,14 +580,7 @@ export class ApplicationsListEntryDetail implements OnInit {
             applicationTitle: appCodeDetail.title,
             applicationCodeId: appCodeDetail.applicationCodeId ?? null,
           });
-          this.feeMeta = {
-            feeReference: appCodeDetail.feeReference ?? null,
-            feeDescription: appCodeDetail.feeDescription ?? null,
-            feeAmount: appCodeDetail.feeAmount ?? null,
-            offsiteFeeReference: appCodeDetail.offsiteFeeReference ?? null,
-            offsiteFeeDescription: appCodeDetail.offsiteFeeDescription ?? null,
-            offsiteFeeAmount: appCodeDetail.offsiteFeeAmount ?? null,
-          };
+          this.feeMeta = codeFeeMeta(appCodeDetail);
 
           if (hasSelectionChanged) {
             this.wordingSubmitAttempt.set(0);
@@ -772,16 +713,13 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.savedStandardApplicantDetailsUnavailable = false;
 
-    this.standardApplicantsApi
-      .getStandardApplicantById({ id })
+    this.loadFacade
+      .loadSavedStandardApplicant(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (
-          applicant: StandardApplicantGetDetailDto & { applicant?: Applicant },
-        ) => {
-          this.saveStandardApplicantDetailsFromResponse(applicant);
-        },
-        error: (err) => {
+      .subscribe((result) => {
+        if (result.kind === 'savedStandardApplicantLoaded') {
+          this.saveStandardApplicantDetailsFromResponse(result.applicant);
+        } else {
           this.savedStandardApplicantName = null;
           this.savedStandardApplicantDetailsUnavailable = true;
           this.pendingStandardApplicantSummary = null;
@@ -791,7 +729,9 @@ export class ApplicationsListEntryDetail implements OnInit {
           const summaryErrors = [
             ...allErrors,
             {
-              text: getProblemText(err) ?? 'Failed to load standard applicant',
+              text:
+                getProblemText(result.error) ??
+                'Failed to load standard applicant',
             },
           ];
 
@@ -799,7 +739,7 @@ export class ApplicationsListEntryDetail implements OnInit {
             errorFound: true,
             summaryErrors,
           });
-        },
+        }
       });
   }
 
