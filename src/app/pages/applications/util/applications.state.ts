@@ -121,6 +121,15 @@ export const searchErrorPatch = (): Pick<
   isLoading: false,
 });
 
+// When the API rejects the search filters (400), show its problem text
+export const searchBadRequestPatch = (
+  text: string,
+): Pick<ApplicationsState, 'errorHint' | 'searchErrors' | 'isLoading'> => ({
+  errorHint: 'There is a problem',
+  searchErrors: [{ id: '', text }],
+  isLoading: false,
+});
+
 // Reset results/paging
 export const clearResultsPatch = (): Pick<
   ApplicationsState,
