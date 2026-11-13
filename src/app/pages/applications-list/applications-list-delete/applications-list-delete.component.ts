@@ -104,7 +104,7 @@ export class ApplicationsListDeleteComponent implements OnInit {
     { header: 'Account number', field: 'accountNumber', sortable: false },
     { header: 'Applicant', field: 'applicant', sortable: false },
     { header: 'Respondent', field: 'respondent', sortable: false },
-    { header: 'Title', field: 'title', sortable: false },
+    { header: 'Title', field: 'title', sortable: false, minWidth: '15em' },
   ];
 
   readonly childRows = computed(() =>
