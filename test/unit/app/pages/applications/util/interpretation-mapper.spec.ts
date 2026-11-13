@@ -1,7 +1,8 @@
 /**
  * Tests for the plain-English search interpretation mapper: the control map,
  * mapInterpretationToForm (replace not merge, courts, CJA, dates, status,
- * not-applied fields and choices) and applyInterpretationChoice.
+ * not-applied fields and choices), applyInterpretationChoice and
+ * withCourtsExclusive.
  *
  * All codes, names and labels are synthetic.
  */
@@ -14,6 +15,7 @@ import {
   NONE_OF_THESE_VALUE,
   applyInterpretationChoice,
   mapInterpretationToForm,
+  withCourtsExclusive,
 } from '@components/applications/util/interpretation-mapper';
 import {
   ApplicationCodeCategory,
@@ -1429,5 +1431,77 @@ describe('applyInterpretationChoice', () => {
     expect(result.formValue).toEqual(
       formWith({ court: ACTIVE_COURT, applicationCodes: ['AP99001'] }),
     );
+  });
+});
+
+describe('withCourtsExclusive', () => {
+  // Changes the page built from its own form: no rows, nothing listed yet
+  function pageChanges(
+    values: Partial<ApplicationsSearchFormValue>,
+    cjaSearch = '',
+  ): InterpretationFormChanges {
+    return {
+      formValue: formWith(values),
+      courthouseSearch: '',
+      cjaSearch,
+      courtChipLabels: {},
+      appliedFilters: [],
+      notApplied: [],
+      choices: [],
+      unusedParts: [],
+      notices: [],
+    };
+  }
+
+  it('takes out a CJA and an Other location beside a court and lists them', () => {
+    const changes = pageChanges(
+      { court: ACTIVE_COURT, cja: 'CJ99', location: 'Synthetic Hall' },
+      'CJ99 - Synthetic Area',
+    );
+
+    const result = withCourtsExclusive(changes);
+
+    expect(result.formValue).toEqual(formWith({ court: ACTIVE_COURT }));
+    expect(result.cjaSearch).toBe('');
+    expect(result.notApplied).toEqual([
+      'CJ99 - Synthetic Area',
+      'Synthetic Hall',
+    ]);
+    // A new value: the input is not changed
+    expect(changes.formValue.cja).toBe('CJ99');
+    expect(changes.notApplied).toEqual([]);
+  });
+
+  it('counts Other courts as a court, and lists a CJA with no display text by its code', () => {
+    const result = withCourtsExclusive(
+      pageChanges({ courtCodes: [ENDED_COURT], cja: 'CJ99' }),
+    );
+
+    expect(result.formValue).toEqual(formWith({ courtCodes: [ENDED_COURT] }));
+    expect(result.notApplied).toEqual(['CJ99']);
+  });
+
+  it('moves the CJA row of an interpretation to not applied', () => {
+    const changes: InterpretationFormChanges = {
+      ...pageChanges({ court: ACTIVE_COURT, cja: 'CJ99' }, 'Synthetic Area'),
+      appliedFilters: [row(SearchFilterField.CJA_CODE, 'Synthetic Area row')],
+    };
+
+    const result = withCourtsExclusive(changes);
+
+    expect(result.appliedFilters).toEqual([]);
+    expect(result.notApplied).toEqual(['Synthetic Area row']);
+  });
+
+  it('keeps a CJA and an Other location when no court is set', () => {
+    const changes = pageChanges(
+      { cja: 'CJ99', location: 'Synthetic Hall' },
+      'CJ99 - Synthetic Area',
+    );
+
+    const result = withCourtsExclusive(changes);
+
+    expect(result).toEqual(changes);
+    expect(result).not.toBe(changes);
   });
 });

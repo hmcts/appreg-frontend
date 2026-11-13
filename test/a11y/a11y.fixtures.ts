@@ -79,3 +79,33 @@ export const fixtures: Record<string, unknown> = {
     },
   ],
 };
+// POST /application-list-entries/search-interpretations, for scenarios that turn
+// plain-English search on: applied filters, an unused part, a choice and a notice.
+export const searchInterpretation = {
+  interpretationId: '00000000-0000-4000-8000-000000000005',
+  filter: { courtCode: 'TEST', status: 'OPEN' },
+  appliedFilters: [
+    { field: 'courtCode', label: 'Test court', source: 'SYNONYM' },
+    { field: 'status', label: 'Open', source: 'MODEL' },
+  ],
+  choicesNeeded: [
+    {
+      field: 'applicationCodes',
+      text: 'Which application did you mean?',
+      options: [
+        {
+          field: 'applicationCodes',
+          code: code.applicationCode,
+          label: `${code.applicationCode} - ${code.title}`,
+        },
+        {
+          field: 'applicationCodes',
+          code: 'TEST2',
+          label: 'TEST2 - Synthetic test application',
+        },
+      ],
+    },
+  ],
+  unusedParts: ['with a blue folder'],
+  notices: ['DATE_NOT_UNDERSTOOD'],
+};

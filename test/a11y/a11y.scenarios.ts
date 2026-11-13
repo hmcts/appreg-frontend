@@ -1,6 +1,6 @@
 import type { Page } from 'puppeteer';
 
-import { entryId, list, listId } from './a11y.fixtures';
+import { entryId, list, listId, searchInterpretation } from './a11y.fixtures';
 
 export interface Scenario {
   name: string;
@@ -254,3 +254,133 @@ scenarios.push({
   },
   error: '.govuk-error-summary',
 });
+const applicationsScenario: Scenario = {
+  name: 'Applications',
+  path: '/applications',
+  heading: 'Applications',
+  ready: 'app-applications form',
+  exercise: async (page) => {
+    // The fixture turns plain-English search off
+    expect(await page.$('app-plain-english-search')).toBeNull();
+  },
+};
+const searchInterpretationOn = {
+  status: 200,
+  body: { searchInterpretation: true, codeSuggestions: false },
+};
+const interpretationsPath = '/application-list-entries/search-interpretations';
+async function askPlainEnglishQuestion(
+  page: Page,
+  question: string,
+): Promise<void> {
+  await page.waitForSelector('#plain-english-question', { visible: true });
+  if (question) {
+    await page.type('#plain-english-question', question);
+  }
+  await page.click('app-plain-english-search button');
+}
+async function showInterpretedFilters(page: Page): Promise<void> {
+  await askPlainEnglishQuestion(page, 'Synthetic open applications question');
+  await page.waitForSelector('#interpreted-filters-heading', { visible: true });
+  await page.waitForFunction(
+    () => document.activeElement?.id === 'interpreted-filters-heading',
+  );
+  for (const selector of [
+    '#interpreted-filters-applied',
+    '#interpreted-filters-unused',
+    '#interpreted-filters-notices',
+    '#interpretation-choice-1-1',
+  ]) {
+    expect(await page.$(selector)).not.toBeNull();
+  }
+}
+scenarios.push(
+  applicationsScenario,
+  {
+    ...applicationsScenario,
+    name: 'Applications: plain-English search',
+    ready: '#plain-english-question',
+    responses: { '/ai/capabilities': searchInterpretationOn },
+    exercise: undefined,
+  },
+  {
+    ...applicationsScenario,
+    name: 'Applications: interpreted filters',
+    ready: '#plain-english-question',
+    responses: {
+      '/ai/capabilities': searchInterpretationOn,
+      [interpretationsPath]: { status: 200, body: searchInterpretation },
+    },
+    exercise: showInterpretedFilters,
+  },
+  {
+    ...applicationsScenario,
+    name: 'Applications: interpreted filters after a blocked search',
+    ready: '#plain-english-question',
+    responses: {
+      '/ai/capabilities': searchInterpretationOn,
+      [interpretationsPath]: { status: 200, body: searchInterpretation },
+    },
+    exercise: async (page) => {
+      // An empty search is blocked; the result replaces its errors, and
+      // nothing on the page says a search found no entries
+      await page.click('#search');
+      await page.waitForSelector('.govuk-error-summary', { visible: true });
+      await showInterpretedFilters(page);
+      await page.waitForSelector('.govuk-error-summary', { hidden: true });
+      expect(await page.$('app-notification-banner')).toBeNull();
+      expect(await page.evaluate(() => document.activeElement?.id ?? '')).toBe(
+        'interpreted-filters-heading',
+      );
+    },
+  },
+  {
+    ...applicationsScenario,
+    name: 'Applications: interpreted filters choice not answered',
+    ready: '#plain-english-question',
+    responses: {
+      '/ai/capabilities': searchInterpretationOn,
+      [interpretationsPath]: { status: 200, body: searchInterpretation },
+    },
+    exercise: async (page) => {
+      await showInterpretedFilters(page);
+      await page.click('#search');
+      await page.waitForSelector('#interpretation-choice-1-error', {
+        visible: true,
+      });
+    },
+    error: '.govuk-error-summary',
+  },
+  {
+    ...applicationsScenario,
+    name: 'Applications: plain-English search unavailable',
+    ready: '#plain-english-question',
+    responses: {
+      '/ai/capabilities': searchInterpretationOn,
+      [interpretationsPath]: {
+        status: 503,
+        body: { detail: 'Synthetic search interpretation failure' },
+      },
+    },
+    exercise: async (page) => {
+      await askPlainEnglishQuestion(page, 'Synthetic question');
+      await page.waitForSelector('#plain-english-question-error', {
+        visible: true,
+      });
+    },
+    error: '.govuk-error-summary',
+  },
+  {
+    ...applicationsScenario,
+    name: 'Applications: plain-English question missing',
+    ready: '#plain-english-question',
+    responses: { '/ai/capabilities': searchInterpretationOn },
+    exercise: async (page) => {
+      await askPlainEnglishQuestion(page, '');
+      await page.waitForSelector('#plain-english-question-error', {
+        visible: true,
+      });
+    },
+    error: '.govuk-error-summary',
+  },
+);

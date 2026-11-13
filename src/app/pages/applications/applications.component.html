@@ -47,6 +47,29 @@
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
+
+<!-- Plain-English search: only while the user can use it -->
+@if (searchInterpretationEnabled()) {
+  <app-plain-english-search
+    (interpreted)="onInterpreted($event)"
+    (errorsChange)="onPlainEnglishErrorsChange($event)"
+  />
+
+  @if (interpretationChanges(); as changes) {
+    <app-interpreted-filters-summary
+      [changes]="changes"
+      [answers]="interpretationAnswers()"
+      [showChoiceErrors]="showChoiceErrors()"
+      [focusKey]="interpretationFocusKey()"
+      (answersChange)="onInterpretationAnswersChange($event)"
+    />
+  }
+
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+}
+
 <form [formGroup]="form" (ngSubmit)="onSubmit($event)">
   <div class="govuk-grid-row">
     <!-- Date -->

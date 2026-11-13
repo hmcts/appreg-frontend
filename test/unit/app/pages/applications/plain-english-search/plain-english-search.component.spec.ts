@@ -1,7 +1,8 @@
 /**
  * Tests for the plain-English search panel: the question field, what is sent
  * (the question in the POST body only), the character limit, the fixed error
- * copy for each status, the live status and the emitted result.
+ * copy for each status, the live status and the emitted result, and the
+ * page's clearError() and reset() (which also cancels a request in flight).
  *
  * All questions and values are synthetic.
  */
@@ -394,6 +395,67 @@ describe('PlainEnglishSearchComponent', () => {
       fixture.destroy();
 
       expect(response.observed).toBe(false);
+    });
+
+    it('hides the error without emitting when clearError is called', () => {
+      interpretEntrySearch.mockReturnValue(throwError(() => httpError(503)));
+      type(QUESTION);
+      press();
+      expect(errorMessage()).toBe(UNAVAILABLE);
+      const emitted = emittedErrors.length;
+
+      component.clearError();
+      fixture.detectChanges();
+
+      expect(errorMessage()).toBeUndefined();
+      expect(element().querySelector('.govuk-form-group--error')).toBeNull();
+      expect(textarea().value).toBe(QUESTION);
+      expect(emittedErrors).toHaveLength(emitted);
+    });
+
+    it('empties the question and hides its error and status without emitting when reset is called', () => {
+      press();
+      expect(errorMessage()).toBe('Enter a question');
+      type(QUESTION);
+      press();
+      expect(statusRegion().textContent?.trim()).not.toBe('');
+      interpretEntrySearch.mockReturnValue(throwError(() => httpError(429)));
+      press();
+      const emitted = emittedErrors.length;
+
+      component.reset();
+      fixture.detectChanges();
+
+      expect(textarea().value).toBe('');
+      expect(component.question.value).toBe('');
+      expect(errorMessage()).toBeUndefined();
+      expect(statusRegion().textContent?.trim()).toBe('');
+      expect(element().textContent).toContain(
+        'You have 300 characters remaining',
+      );
+      expect(emittedErrors).toHaveLength(emitted);
+    });
+
+    it('cancels a request in flight when reset is called, and sends the next question', () => {
+      const response = new Subject<SearchInterpretationDto>();
+      interpretEntrySearch.mockReturnValue(response);
+      type(QUESTION);
+      press();
+      expect(statusRegion().textContent?.trim()).toBe('Working out filters…');
+
+      component.reset();
+      fixture.detectChanges();
+
+      expect(response.observed).toBe(false);
+      expect(statusRegion().textContent?.trim()).toBe('');
+
+      // Not working any more, so the next press is sent
+      interpretEntrySearch.mockReturnValue(of(INTERPRETATION));
+      type('synthetic court two');
+      press();
+
+      expect(interpretEntrySearch).toHaveBeenCalledTimes(2);
+      expect(interpreted).toEqual([INTERPRETATION]);
     });
   });
 

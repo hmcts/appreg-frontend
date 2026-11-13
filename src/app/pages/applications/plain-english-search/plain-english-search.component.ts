@@ -26,6 +26,10 @@
  *   and further presses are ignored. When a result arrives the live region
  *   says so, and the summary component takes focus.
  * - The request is cancelled when the component is destroyed.
+ * - The page can call clearError() when it clears its error summary (on
+ *   Search), and reset() on Clear search: that also empties the question and
+ *   cancels a request in flight, so no result arrives afterwards. Neither
+ *   emits.
  */
 
 import {
@@ -39,6 +43,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { GovukTextareaComponent } from '@components/govuk-textarea/govuk-textarea.component';
@@ -93,6 +98,8 @@ export class PlainEnglishSearchComponent {
   readonly statusText = computed(() => STATUS_TEXT[this.phase()]);
   readonly errorText = signal<string | null>(null);
 
+  private request?: Subscription;
+
   interpret(): void {
     if (this.working()) {
       return;
@@ -110,7 +117,7 @@ export class PlainEnglishSearchComponent {
     this.showError(null);
     this.phase.set('working');
 
-    this.searchInterpretationsApi
+    this.request = this.searchInterpretationsApi
       .interpretEntrySearch(
         { searchInterpretationRequestDto: { question } },
         'body',
@@ -130,6 +137,23 @@ export class PlainEnglishSearchComponent {
         },
         error: (err: unknown) => this.fail(errorTextFor(err)),
       });
+  }
+
+  /** Hides the question's error. Emits nothing. */
+  clearError(): void {
+    this.errorText.set(null);
+  }
+
+  /**
+   * Empties the question, hides its error and status, and cancels a request
+   * in flight. Emits nothing.
+   */
+  reset(): void {
+    this.request?.unsubscribe();
+    this.request = undefined;
+    this.question.reset('');
+    this.errorText.set(null);
+    this.phase.set('idle');
   }
 
   private fail(text: string): void {
