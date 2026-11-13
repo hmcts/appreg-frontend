@@ -6,6 +6,8 @@ type ApplicationsControl =
   | 'date'
   | 'dateFrom'
   | 'dateTo'
+  | 'applicationCodes'
+  | 'resultCodes'
   | 'court'
   | 'cja';
 type ApplicationsErrorKeyMap = {
@@ -16,6 +18,8 @@ type ApplicationsErrorKeyMap = {
   respondentName: 'maxlength';
   respondentPostcode: 'maxlength';
   applicationTitle: 'maxlength' | 'pattern';
+  applicationCodes: 'notAdded';
+  resultCodes: 'notAdded';
   court: 'courtNotFound';
   cja: 'cjaNotFound';
 };
@@ -45,6 +49,13 @@ export const APPLICATIONS_ERROR_MAP: {
   applicationTitle: {
     maxlength: 'Application title must be 500 characters or fewer',
     pattern: 'Application title contains invalid characters',
+  },
+  // Text typed into a code list but not picked from it (app-multi-suggestions)
+  applicationCodes: {
+    notAdded: 'Select an application code from the list, or clear the text',
+  },
+  resultCodes: {
+    notAdded: 'Select a result code from the list, or clear the text',
   },
   court: {
     courtNotFound: 'Court location not found',

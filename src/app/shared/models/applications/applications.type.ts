@@ -15,6 +15,8 @@ export type ApplicationsSearchFormValue = {
   standardApplicantCode: string;
   respondentPostcode: string;
   accountReference: string;
+  applicationCodes: string[];
+  resultCodes: string[];
   court: string;
   cja: string;
   status: string | null;

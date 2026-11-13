@@ -16,6 +16,7 @@ import { SortableTableComponent } from '@components/sortable-table/sortable-tabl
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@constants/applications-list/applications-list.constants';
 import { PdfService } from '@core/services/pdf.service';
 import {
+  ApplicationCodeGetSummaryDto,
   ApplicationListEntriesApi,
   ApplicationListGetPrintDto,
   ApplicationListStatus,
@@ -25,8 +26,12 @@ import {
   EntryGetFilterDto,
   EntryGetSummaryDto,
   EntryPage,
+  ResultCodeGetSummaryDto,
 } from '@openapi';
-import { ApplicationsSearchFormService } from '@services/applications/applications-search-form.service';
+import {
+  ApplicationsSearchFormService,
+  DEFAULT_APPLICATIONS_SEARCH_FORM,
+} from '@services/applications/applications-search-form.service';
 import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
@@ -107,6 +112,24 @@ const LIST_DATE = '2026-05-21';
 const RANGE_FROM = '2026-05-01';
 const RANGE_TO = '2026-05-31';
 const SEARCH_PROBLEM_TEXT = 'Synthetic search filter problem';
+const APPLICATION_CODE_A = 'AP99001';
+const APPLICATION_CODE_B = 'SW99002';
+const RESULT_CODE_A = 'RC9901';
+const RESULT_CODE_B = 'RC9902';
+
+function makeApplicationCode(
+  applicationCode: string,
+  title: string,
+): ApplicationCodeGetSummaryDto {
+  return {
+    applicationCode,
+    title,
+    wording: { template: 'Synthetic wording' },
+    isFeeDue: false,
+    requiresRespondent: false,
+    bulkRespondentAllowed: false,
+  };
+}
 
 describe('ApplicationsComponent', () => {
   let component: Applications;
@@ -114,6 +137,8 @@ describe('ApplicationsComponent', () => {
   let searchFormService: ApplicationsSearchFormService;
   let searchStateService: ApplicationsSearchStateService;
   const applicationCodeTitles = signal<string[]>([]);
+  const applicationCodes = signal<ApplicationCodeGetSummaryDto[]>([]);
+  const resultCodes = signal<ResultCodeGetSummaryDto[]>([]);
   const referenceDataLoadError = signal(false);
   const placeReferenceDataLoadError = signal(false);
 
@@ -122,6 +147,9 @@ describe('ApplicationsComponent', () => {
     | 'cja$'
     | 'courtLocations$'
     | 'applicationCodeTitles'
+    | 'applicationCodes'
+    | 'resultCodes'
+    | 'ensureResultCodes'
     | 'hasLoadError'
     | 'hasPlaceLoadError'
     | 'refresh'
@@ -129,6 +157,9 @@ describe('ApplicationsComponent', () => {
     cja$: of([]),
     courtLocations$: of([]),
     applicationCodeTitles,
+    applicationCodes,
+    resultCodes,
+    ensureResultCodes: jest.fn(),
     hasLoadError: referenceDataLoadError,
     hasPlaceLoadError: placeReferenceDataLoadError,
     refresh: jest.fn(),
@@ -172,9 +203,12 @@ describe('ApplicationsComponent', () => {
     pdfServiceStub.generatePagedApplicationListPdf.mockReset();
     pdfServiceStub.generateContinuousApplicationListsPdf.mockReset();
     applicationCodeTitles.set([]);
+    applicationCodes.set([]);
+    resultCodes.set([]);
     referenceDataLoadError.set(false);
     placeReferenceDataLoadError.set(false);
     jest.mocked(referenceDataFacadeStub.refresh).mockClear();
+    jest.mocked(referenceDataFacadeStub.ensureResultCodes).mockClear();
 
     // default: empty page response
     getEntriesMock.mockReturnValue(
@@ -1640,6 +1674,505 @@ describe('ApplicationsComponent', () => {
         (root().querySelector('#date-to-day') as HTMLInputElement).value,
       ).toBe('');
       expect((component as unknown as HasLoadQuery).loadQuery()).toEqual({});
+    });
+  });
+
+  describe('application codes and result codes', () => {
+    const APPLICATION_CODE_A_LABEL = `${APPLICATION_CODE_A} - Synthetic application one`;
+    const APPLICATION_CODE_B_LABEL = `${APPLICATION_CODE_B} - Synthetic search warrant two`;
+    const RESULT_CODE_A_LABEL = `${RESULT_CODE_A} - Synthetic result one`;
+    const RESULT_CODE_B_LABEL = `${RESULT_CODE_B} - Synthetic result two`;
+
+    const root = () => fixture.nativeElement as HTMLElement;
+
+    const loadQuery = () => (component as unknown as HasLoadQuery).loadQuery();
+
+    const submitSearch = () => {
+      component.onSubmit({
+        preventDefault: jest.fn(),
+      } as unknown as SubmitEvent);
+      fixture.detectChanges();
+    };
+
+    const advancedSearch = (element: HTMLElement = root()) =>
+      Array.from(element.querySelectorAll('details')).find((details) =>
+        details
+          .querySelector('summary')
+          ?.textContent?.includes('Advanced search'),
+      );
+
+    const typeInto = (id: string, text: string) => {
+      const input = root().querySelector(`input#${id}`) as HTMLInputElement;
+      input.focus();
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    };
+
+    const offeredLabels = () =>
+      Array.from(root().querySelectorAll<HTMLElement>('[role="option"]')).map(
+        (option) => option.textContent?.trim(),
+      );
+
+    const clickOption = (label: string) => {
+      const option = Array.from(
+        root().querySelectorAll<HTMLElement>('[role="option"]'),
+      ).find((item) => item.textContent?.trim() === label);
+      expect(option).toBeDefined();
+      option?.dispatchEvent(
+        new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
+      );
+      option?.dispatchEvent(
+        new MouseEvent('click', { bubbles: true, cancelable: true }),
+      );
+      fixture.detectChanges();
+    };
+
+    const selectedLabels = (id: string, element: HTMLElement = root()) =>
+      Array.from(
+        element.querySelectorAll<HTMLElement>(
+          `#${id}-selected .govuk-summary-list__value`,
+        ),
+      ).map((row) => row.textContent?.trim());
+
+    // The heading rendered just before a field's own selected list
+    const selectedHeading = (id: string, element: HTMLElement = root()) =>
+      element
+        .querySelector(`#${id}-selected`)
+        ?.previousElementSibling?.textContent?.trim();
+
+    const summaryLinks = () =>
+      Array.from(
+        root().querySelectorAll<HTMLAnchorElement>(
+          '.govuk-error-summary__list a',
+        ),
+      ).map((link) => ({
+        href: link.getAttribute('href'),
+        text: link.textContent?.trim(),
+      }));
+
+    const setOptions = () => {
+      applicationCodes.set([
+        makeApplicationCode(APPLICATION_CODE_A, 'Synthetic application one'),
+        makeApplicationCode(APPLICATION_CODE_B, 'Synthetic search warrant two'),
+      ]);
+      resultCodes.set([
+        { resultCode: RESULT_CODE_A, title: 'Synthetic result one' },
+        { resultCode: RESULT_CODE_B, title: 'Synthetic result two' },
+      ]);
+      fixture.detectChanges();
+    };
+
+    it.each([
+      [
+        'applicationCodes',
+        'Application codes',
+        'Start typing a code or title. You can add more than one.',
+      ],
+      [
+        'resultCodes',
+        'Result codes',
+        'Finds applications with any of these results recorded',
+      ],
+    ])(
+      'renders %s under Advanced search with its label and hint',
+      (id, label, hint) => {
+        const advanced = advancedSearch();
+
+        expect(advanced?.querySelector(`input#${id}`)).toBeTruthy();
+        expect(
+          advanced?.querySelector(`#${id}-label`)?.textContent?.trim(),
+        ).toBe(label);
+        expect(
+          advanced?.querySelector(`#${id}-hint`)?.textContent?.trim(),
+        ).toBe(hint);
+      },
+    );
+
+    it('requests result codes when the page initialises', () => {
+      expect(referenceDataFacadeStub.ensureResultCodes).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
+    it('offers application codes by code and title and adds the chosen code to the form', () => {
+      setOptions();
+
+      typeInto('applicationCodes', 'synthetic');
+
+      expect(offeredLabels()).toEqual([
+        APPLICATION_CODE_A_LABEL,
+        APPLICATION_CODE_B_LABEL,
+      ]);
+
+      clickOption(APPLICATION_CODE_B_LABEL);
+
+      expect(selectedHeading('applicationCodes')).toBe(
+        'Selected application codes',
+      );
+      expect(component.form.controls.applicationCodes.value).toEqual([
+        APPLICATION_CODE_B,
+      ]);
+      expect(selectedLabels('applicationCodes')).toEqual([
+        APPLICATION_CODE_B_LABEL,
+      ]);
+    });
+
+    it('offers result codes by code and title and adds the chosen code to the form', () => {
+      setOptions();
+
+      typeInto('resultCodes', 'result two');
+
+      expect(offeredLabels()).toEqual([RESULT_CODE_B_LABEL]);
+
+      clickOption(RESULT_CODE_B_LABEL);
+
+      expect(selectedHeading('resultCodes')).toBe('Selected result codes');
+      expect(component.form.controls.resultCodes.value).toEqual([
+        RESULT_CODE_B,
+      ]);
+      expect(selectedLabels('resultCodes')).toEqual([RESULT_CODE_B_LABEL]);
+    });
+
+    describe.each([
+      [
+        'applicationCodes',
+        APPLICATION_CODE_A,
+        `${APPLICATION_CODE_A} - Synthetic application one`,
+        'Select an application code from the list, or clear the text',
+      ],
+      [
+        'resultCodes',
+        RESULT_CODE_A,
+        `${RESULT_CODE_A} - Synthetic result one`,
+        'Select a result code from the list, or clear the text',
+      ],
+    ] as const)(
+      '%s typed but not picked',
+      (controlName, code, codeLabel, errorText) => {
+        const expectBlocked = () => {
+          expect(getEntriesMock).not.toHaveBeenCalled();
+          expect(component.vm().searchErrors).toEqual([
+            { id: controlName, href: `#${controlName}`, text: errorText },
+          ]);
+          expect(summaryLinks()).toEqual([
+            { href: `#${controlName}`, text: errorText },
+          ]);
+          expect(
+            root().querySelector(`#${controlName}-error`)?.textContent?.trim(),
+          ).toBe(`Error: ${errorText}`);
+          expect(
+            root().querySelector(`input#${controlName}`)?.classList,
+          ).toContain('govuk-input--error');
+        };
+
+        beforeEach(() => {
+          setOptions();
+          getEntriesMock.mockClear();
+        });
+
+        it('blocks a search by that field alone and shows the error inline and in the summary', () => {
+          typeInto(controlName, code);
+
+          submitSearch();
+
+          expectBlocked();
+          expect(component.form.controls[controlName].value).toEqual([]);
+          expect(
+            (root().querySelector(`input#${controlName}`) as HTMLInputElement)
+              .value,
+          ).toBe(code);
+        });
+
+        it('blocks a search with another filter and shows the error inline and in the summary', () => {
+          component.form.patchValue({ applicantOrg: 'Synthetic Org' });
+          typeInto(controlName, code);
+
+          submitSearch();
+
+          expectBlocked();
+        });
+
+        it('clears the error once the code is picked and then sends it', () => {
+          typeInto(controlName, code);
+          submitSearch();
+          expectBlocked();
+
+          clickOption(codeLabel);
+
+          expect(component.form.controls[controlName].errors).toBeNull();
+          expect(root().querySelector(`#${controlName}-error`)).toBeNull();
+
+          submitSearch();
+
+          expect(getEntriesMock).toHaveBeenCalledTimes(1);
+          expect(getEntriesMock.mock.calls[0][0]?.filter).toEqual({
+            [controlName]: [code],
+          });
+          expect(component.vm().searchErrors).toEqual([]);
+          expect(summaryLinks()).toEqual([]);
+        });
+
+        it('clears the error and the typed text when the search is cleared', () => {
+          typeInto(controlName, code);
+          submitSearch();
+          expectBlocked();
+
+          component.clearSearch();
+          fixture.detectChanges();
+
+          expect(component.form.controls[controlName].errors).toBeNull();
+          expect(
+            (root().querySelector(`input#${controlName}`) as HTMLInputElement)
+              .value,
+          ).toBe('');
+          expect(root().querySelector(`#${controlName}-error`)).toBeNull();
+          expect(summaryLinks()).toEqual([]);
+        });
+      },
+    );
+
+    it.each([
+      ['applicationCodes', 50],
+      ['resultCodes', 20],
+    ] as const)('stops adding %s at %i codes', (id, maxItems) => {
+      const codes = Array.from(
+        { length: maxItems },
+        (_, index) => `XC${String(index).padStart(4, '0')}`,
+      );
+
+      component.form.controls[id].setValue(codes.slice(0, -1));
+      fixture.detectChanges();
+      expect(root().querySelector(`#${id}-hint`)?.textContent?.trim()).not.toBe(
+        `You can add up to ${maxItems}`,
+      );
+
+      component.form.controls[id].setValue(codes);
+      fixture.detectChanges();
+      expect(root().querySelector(`#${id}-hint`)?.textContent?.trim()).toBe(
+        `You can add up to ${maxItems}`,
+      );
+    });
+
+    it('maps both lists into the filter as new arrays', () => {
+      component.form.patchValue({
+        applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
+        resultCodes: [RESULT_CODE_A],
+      });
+
+      const filter = loadQuery();
+
+      expect(filter).toEqual({
+        applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
+        resultCodes: [RESULT_CODE_A],
+      });
+      expect(filter.applicationCodes).not.toBe(
+        component.form.controls.applicationCodes.value,
+      );
+      expect(filter.resultCodes).not.toBe(
+        component.form.controls.resultCodes.value,
+      );
+    });
+
+    it('leaves out empty lists', () => {
+      component.form.patchValue({ applicantOrg: 'Synthetic Org' });
+
+      const filter = loadQuery();
+
+      expect(filter).toEqual({ applicantOrganisation: 'Synthetic Org' });
+      expect(filter).not.toHaveProperty('applicationCodes');
+      expect(filter).not.toHaveProperty('resultCodes');
+    });
+
+    it('trims codes and leaves out blanks and repeats', () => {
+      component.form.patchValue({
+        applicationCodes: [
+          ` ${APPLICATION_CODE_A} `,
+          '',
+          APPLICATION_CODE_A,
+          '   ',
+        ],
+        resultCodes: ['  '],
+      });
+
+      expect(loadQuery()).toEqual({ applicationCodes: [APPLICATION_CODE_A] });
+    });
+
+    it.each([
+      ['applicationCodes', [APPLICATION_CODE_A]],
+      ['resultCodes', [RESULT_CODE_A]],
+    ] as const)('searches by %s alone', (controlName, codes) => {
+      getEntriesMock.mockClear();
+      component.form.controls[controlName].setValue([...codes]);
+
+      submitSearch();
+
+      expect(getEntriesMock).toHaveBeenCalledTimes(1);
+      expect(getEntriesMock.mock.calls[0][0]?.filter).toEqual({
+        [controlName]: codes,
+      });
+      expect(component.vm().searchErrors).toEqual([]);
+    });
+
+    it('saves both lists to the form service and the applied filters on submit', () => {
+      component.form.patchValue({
+        applicationCodes: [APPLICATION_CODE_A],
+        resultCodes: [RESULT_CODE_A, RESULT_CODE_B],
+      });
+
+      submitSearch();
+
+      expect(searchFormService.state()).toEqual(
+        expect.objectContaining({
+          applicationCodes: [APPLICATION_CODE_A],
+          resultCodes: [RESULT_CODE_A, RESULT_CODE_B],
+        }),
+      );
+      expect(searchStateService.state().appliedFilters).toEqual({
+        applicationCodes: [APPLICATION_CODE_A],
+        resultCodes: [RESULT_CODE_A, RESULT_CODE_B],
+      });
+    });
+
+    it('restores both lists and reruns the search after navigation', () => {
+      setOptions();
+      getEntriesMock.mockClear();
+      component.form.patchValue({
+        applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
+        resultCodes: [RESULT_CODE_B],
+      });
+      submitSearch();
+
+      const restoredFixture = TestBed.createComponent(Applications);
+      const restored = restoredFixture.componentInstance;
+      restoredFixture.detectChanges();
+      const restoredRoot = restoredFixture.nativeElement as HTMLElement;
+
+      expect(restored.form.controls.applicationCodes.value).toEqual([
+        APPLICATION_CODE_A,
+        APPLICATION_CODE_B,
+      ]);
+      expect(restored.form.controls.resultCodes.value).toEqual([RESULT_CODE_B]);
+      expect(getEntriesMock).toHaveBeenCalledTimes(2);
+      expect(getEntriesMock.mock.calls[1][0]?.filter).toEqual({
+        applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
+        resultCodes: [RESULT_CODE_B],
+      });
+      expect(selectedLabels('applicationCodes', restoredRoot)).toEqual([
+        APPLICATION_CODE_A_LABEL,
+        APPLICATION_CODE_B_LABEL,
+      ]);
+      expect(selectedLabels('resultCodes', restoredRoot)).toEqual([
+        RESULT_CODE_B_LABEL,
+      ]);
+      expect(selectedHeading('applicationCodes', restoredRoot)).toBe(
+        'Selected application codes',
+      );
+      expect(selectedHeading('resultCodes', restoredRoot)).toBe(
+        'Selected result codes',
+      );
+    });
+
+    it('empties both lists when the search is cleared', () => {
+      setOptions();
+      component.form.patchValue({
+        applicationCodes: [APPLICATION_CODE_A],
+        resultCodes: [RESULT_CODE_A],
+      });
+      submitSearch();
+      expect(selectedLabels('applicationCodes')).toEqual([
+        APPLICATION_CODE_A_LABEL,
+      ]);
+      expect(selectedLabels('resultCodes')).toEqual([RESULT_CODE_A_LABEL]);
+
+      component.clearSearch();
+      fixture.detectChanges();
+
+      expect(component.form.controls.applicationCodes.value).toEqual([]);
+      expect(component.form.controls.resultCodes.value).toEqual([]);
+      expect(searchFormService.state().applicationCodes).toEqual([]);
+      expect(searchFormService.state().resultCodes).toEqual([]);
+      expect(root().querySelector('#applicationCodes-selected')).toBeNull();
+      expect(root().querySelector('#resultCodes-selected')).toBeNull();
+      expect(loadQuery()).toEqual({});
+    });
+
+    it('does not give the form the shared default arrays when the search is cleared', () => {
+      component.clearSearch();
+
+      expect(component.form.controls.applicationCodes.value).not.toBe(
+        DEFAULT_APPLICATIONS_SEARCH_FORM.applicationCodes,
+      );
+      expect(component.form.controls.resultCodes.value).not.toBe(
+        DEFAULT_APPLICATIONS_SEARCH_FORM.resultCodes,
+      );
+    });
+
+    it('keeps the saved search unchanged when the form lists are changed in place', () => {
+      component.form.patchValue({
+        applicationCodes: [APPLICATION_CODE_A],
+        resultCodes: [RESULT_CODE_A],
+      });
+      submitSearch();
+
+      component.form.controls.applicationCodes.value.push(APPLICATION_CODE_B);
+      component.form.controls.resultCodes.value.push(RESULT_CODE_B);
+
+      expect(searchFormService.state().applicationCodes).toEqual([
+        APPLICATION_CODE_A,
+      ]);
+      expect(searchFormService.state().resultCodes).toEqual([RESULT_CODE_A]);
+      expect(searchStateService.state().appliedFilters).toEqual({
+        applicationCodes: [APPLICATION_CODE_A],
+        resultCodes: [RESULT_CODE_A],
+      });
+      expect(component.vm().getFilters).toEqual({
+        applicationCodes: [APPLICATION_CODE_A],
+        resultCodes: [RESULT_CODE_A],
+      });
+    });
+
+    it('sends both lists in the filter of a select-all-matching bulk preview', async () => {
+      getEntriesMock.mockReturnValue(
+        of({
+          content: [
+            makeEntry({ id: 'entry-1', listId: 'list-a' }),
+            makeEntry({ id: 'entry-2', listId: 'list-b' }),
+          ],
+          totalPages: 2,
+          totalElements: 12,
+          number: 0,
+        } as unknown as EntryPage) as unknown as ReturnType<
+          ApplicationListEntriesApi['getEntries']
+        >,
+      );
+      component.form.patchValue({
+        applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
+        resultCodes: [RESULT_CODE_A],
+      });
+      submitSearch();
+      component.onHeaderSelectAllChange(true);
+      bulkActionPreviewMock.mockClear();
+
+      await (
+        component as unknown as {
+          getBulkPreviewData: (action: BulkActionType) => Promise<unknown>;
+        }
+      ).getBulkPreviewData(BulkActionType.PRINT_PAGE);
+
+      expect(bulkActionPreviewMock).toHaveBeenCalledTimes(1);
+      expect(bulkActionPreviewMock).toHaveBeenCalledWith({
+        bulkActionPreviewRequestDto: {
+          action: BulkActionType.PRINT_PAGE,
+          selection: {
+            selectionType: 'FILTER',
+            filter: {
+              applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
+              resultCodes: [RESULT_CODE_A],
+            },
+          },
+        },
+      });
     });
   });
 

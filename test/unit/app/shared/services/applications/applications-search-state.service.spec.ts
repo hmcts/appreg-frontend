@@ -47,6 +47,57 @@ describe('ApplicationsSearchStateService', () => {
     });
   });
 
+  it('does not share list filters with the state it was given', () => {
+    const appliedFilters = {
+      applicationCodes: ['AP99001'],
+      resultCodes: ['RC9901'],
+    };
+
+    service.setState({
+      ...DEFAULT_APPLICATIONS_SEARCH_STATE,
+      hasSearched: true,
+      appliedFilters,
+    });
+
+    appliedFilters.applicationCodes.push('SW99002');
+    appliedFilters.resultCodes.push('RC9902');
+
+    expect(service.state().appliedFilters).toEqual({
+      applicationCodes: ['AP99001'],
+      resultCodes: ['RC9901'],
+    });
+  });
+
+  it('does not share list filters with the state it returns', () => {
+    service.setState({
+      ...DEFAULT_APPLICATIONS_SEARCH_STATE,
+      appliedFilters: {
+        applicationCodes: ['AP99001'],
+        resultCodes: ['RC9901'],
+      },
+    });
+
+    const read = service.state();
+    read.appliedFilters.applicationCodes?.push('SW99002');
+    read.appliedFilters.resultCodes?.push('RC9902');
+
+    expect(service.state().appliedFilters).toEqual({
+      applicationCodes: ['AP99001'],
+      resultCodes: ['RC9901'],
+    });
+  });
+
+  it('does not share list filters with a patch', () => {
+    const applicationCodes = ['AP99001'];
+
+    service.patchState({ appliedFilters: { applicationCodes } });
+    applicationCodes.push('SW99002');
+
+    expect(service.state().appliedFilters).toEqual({
+      applicationCodes: ['AP99001'],
+    });
+  });
+
   it('patches state without mutating nested values', () => {
     service.patchState({
       hasSearched: true,
