@@ -13,7 +13,7 @@ properties([
   ])
 ])
 
-@Library('Infrastructure@2.13.4')
+@Library('Infrastructure@2.13.6')
 
 def type = 'angular'
 def product = 'appreg'
