@@ -24,6 +24,7 @@ export const DEFAULT_APPLICATIONS_SEARCH_FORM: ApplicationsSearchFormValue = {
   applicationCodes: [],
   resultCodes: [],
   court: '',
+  courtCodes: [],
   cja: '',
   status: null,
   isAdvancedSearch: false,
@@ -37,6 +38,7 @@ const cloneSearchForm = (
   ...value,
   applicationCodes: [...value.applicationCodes],
   resultCodes: [...value.resultCodes],
+  courtCodes: [...value.courtCodes],
 });
 
 @Injectable({

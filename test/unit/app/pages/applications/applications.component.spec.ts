@@ -8,7 +8,7 @@ import {
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
-import { Subject, of, throwError } from 'rxjs';
+import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
 import { type ApplicationsState } from '@components/applications/util/applications.state';
@@ -23,6 +23,8 @@ import {
   ApplicationListsApi,
   BulkActionPreviewResponseDto,
   BulkActionType,
+  CourtLocationGetSummaryDto,
+  CriminalJusticeAreaGetDto,
   EntryGetFilterDto,
   EntryGetSummaryDto,
   EntryPage,
@@ -139,6 +141,8 @@ describe('ApplicationsComponent', () => {
   const applicationCodeTitles = signal<string[]>([]);
   const applicationCodes = signal<ApplicationCodeGetSummaryDto[]>([]);
   const resultCodes = signal<ResultCodeGetSummaryDto[]>([]);
+  const courtLocations = new BehaviorSubject<CourtLocationGetSummaryDto[]>([]);
+  const cjas = new BehaviorSubject<CriminalJusticeAreaGetDto[]>([]);
   const referenceDataLoadError = signal(false);
   const placeReferenceDataLoadError = signal(false);
 
@@ -154,8 +158,8 @@ describe('ApplicationsComponent', () => {
     | 'hasPlaceLoadError'
     | 'refresh'
   > = {
-    cja$: of([]),
-    courtLocations$: of([]),
+    cja$: cjas,
+    courtLocations$: courtLocations,
     applicationCodeTitles,
     applicationCodes,
     resultCodes,
@@ -205,6 +209,8 @@ describe('ApplicationsComponent', () => {
     applicationCodeTitles.set([]);
     applicationCodes.set([]);
     resultCodes.set([]);
+    courtLocations.next([]);
+    cjas.next([]);
     referenceDataLoadError.set(false);
     placeReferenceDataLoadError.set(false);
     jest.mocked(referenceDataFacadeStub.refresh).mockClear();
@@ -2172,6 +2178,430 @@ describe('ApplicationsComponent', () => {
             },
           },
         },
+      });
+    });
+  });
+
+  describe('other courts', () => {
+    const COURT_ONE = 'SYN001';
+    const COURT_TWO = 'SYN002';
+    const COURT_THREE = 'SYN003';
+    const COURT_ONE_LABEL = `${COURT_ONE} - Synthetic Court One`;
+    const COURT_TWO_LABEL = `${COURT_TWO} - Synthetic Court Two`;
+    const COURT_THREE_LABEL = `${COURT_THREE} - Synthetic Court Three`;
+    const ENDED_COURT = 'SYN900';
+    const ENDED_COURT_LABEL = `${ENDED_COURT} - Synthetic Closed Court`;
+    const OTHER_COURTS_HINT =
+      'Start typing a court name or code. You can add more than one.';
+    const OTHER_COURTS_ERROR =
+      'Select a court from the list, or clear the text';
+
+    const COURTS: CourtLocationGetSummaryDto[] = [
+      { courtId: 1, locationCode: COURT_ONE, name: 'Synthetic Court One' },
+      { courtId: 2, locationCode: COURT_TWO, name: 'Synthetic Court Two' },
+      { courtId: 3, locationCode: COURT_THREE, name: 'Synthetic Court Three' },
+    ];
+    const CJA_AREA: CriminalJusticeAreaGetDto = {
+      code: 'CJ99',
+      description: 'Synthetic Area',
+    };
+
+    const root = () => fixture.nativeElement as HTMLElement;
+
+    const loadQuery = () => (component as unknown as HasLoadQuery).loadQuery();
+
+    const submitSearch = () => {
+      component.onSubmit({
+        preventDefault: jest.fn(),
+      } as unknown as SubmitEvent);
+      fixture.detectChanges();
+    };
+
+    const inputById = (id: string, element: HTMLElement = root()) =>
+      element.querySelector(`input#${id}`) as HTMLInputElement;
+
+    const typeInto = (id: string, text: string) => {
+      const input = inputById(id);
+      input.focus();
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    };
+
+    const offeredLabels = () =>
+      Array.from(root().querySelectorAll<HTMLElement>('[role="option"]')).map(
+        (option) => option.textContent?.trim(),
+      );
+
+    const clickOption = (label: string) => {
+      const option = Array.from(
+        root().querySelectorAll<HTMLElement>('[role="option"]'),
+      ).find((item) => item.textContent?.trim() === label);
+      expect(option).toBeDefined();
+      option?.dispatchEvent(
+        new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
+      );
+      option?.dispatchEvent(
+        new MouseEvent('click', { bubbles: true, cancelable: true }),
+      );
+      fixture.detectChanges();
+    };
+
+    const selectedLabels = (element: HTMLElement = root()) =>
+      Array.from(
+        element.querySelectorAll<HTMLElement>(
+          '#courtCodes-selected .govuk-summary-list__value',
+        ),
+      ).map((row) => row.textContent?.trim());
+
+    const summaryLinks = () =>
+      Array.from(
+        root().querySelectorAll<HTMLAnchorElement>(
+          '.govuk-error-summary__list a',
+        ),
+      ).map((link) => ({
+        href: link.getAttribute('href'),
+        text: link.textContent?.trim(),
+      }));
+
+    const setOtherCourts = (codes: string[]) => {
+      component.form.controls.courtCodes.setValue(codes);
+      fixture.detectChanges();
+    };
+
+    beforeEach(() => {
+      courtLocations.next(COURTS);
+      cjas.next([CJA_AREA]);
+      fixture.detectChanges();
+      getEntriesMock.mockClear();
+    });
+
+    it('renders Other courts straight after Court, outside Advanced search, with its label and hint', () => {
+      const courtRow = inputById('court').closest('.govuk-grid-row');
+
+      expect(
+        courtRow?.nextElementSibling?.querySelector('input#courtCodes'),
+      ).toBe(inputById('courtCodes'));
+      expect(inputById('courtCodes').closest('details')).toBeNull();
+      expect(
+        root().querySelector('#courtCodes-label')?.textContent?.trim(),
+      ).toBe('Other courts');
+      expect(
+        root().querySelector('#courtCodes-hint')?.textContent?.trim(),
+      ).toBe(OTHER_COURTS_HINT);
+    });
+
+    it('offers the active courts the Court field uses and adds the chosen court', () => {
+      typeInto('courtCodes', 'synthetic court');
+
+      expect(offeredLabels()).toEqual([
+        COURT_ONE_LABEL,
+        COURT_TWO_LABEL,
+        COURT_THREE_LABEL,
+      ]);
+
+      clickOption(COURT_TWO_LABEL);
+
+      expect(component.form.controls.courtCodes.value).toEqual([COURT_TWO]);
+      expect(selectedLabels()).toEqual([COURT_TWO_LABEL]);
+      expect(
+        root()
+          .querySelector('#courtCodes-selected')
+          ?.previousElementSibling?.textContent?.trim(),
+      ).toBe('Selected other courts');
+    });
+
+    it('labels a court that is not an active court from courtChipLabels', () => {
+      component.courtChipLabels.set({ [ENDED_COURT]: ENDED_COURT_LABEL });
+
+      setOtherCourts([COURT_ONE, ENDED_COURT]);
+
+      expect(selectedLabels()).toEqual([COURT_ONE_LABEL, ENDED_COURT_LABEL]);
+    });
+
+    it('stops adding at 19, so Court and Other courts together stay within the 20 the API allows', () => {
+      const codes = Array.from(
+        { length: 19 },
+        (_, index) => `SYN${String(100 + index)}`,
+      );
+
+      setOtherCourts(codes.slice(0, -1));
+      expect(
+        root().querySelector('#courtCodes-hint')?.textContent?.trim(),
+      ).toBe(OTHER_COURTS_HINT);
+
+      setOtherCourts(codes);
+      expect(
+        root().querySelector('#courtCodes-hint')?.textContent?.trim(),
+      ).toBe('You can add up to 19');
+
+      component.form.patchValue({ court: COURT_ONE });
+      expect(loadQuery().courtCodes).toHaveLength(20);
+    });
+
+    it.each([
+      ['Court alone', { court: ` ${COURT_ONE} ` }, COURT_ONE],
+      ['one other court alone', { courtCodes: [COURT_TWO] }, COURT_TWO],
+      [
+        'Court and the same court in Other courts',
+        { court: COURT_ONE, courtCodes: [COURT_ONE.toLowerCase()] },
+        COURT_ONE,
+      ],
+    ])('sends one court as courtCode for %s', (_, value, courtCode) => {
+      component.form.patchValue(value);
+
+      const filter = loadQuery();
+
+      expect(filter).toEqual({ courtCode });
+      expect(filter).not.toHaveProperty('courtCodes');
+    });
+
+    it.each([
+      [
+        'Court and other courts',
+        { court: COURT_ONE, courtCodes: [COURT_TWO, COURT_THREE] },
+        [COURT_ONE, COURT_TWO, COURT_THREE],
+      ],
+      [
+        'other courts alone',
+        { courtCodes: [COURT_TWO, COURT_THREE] },
+        [COURT_TWO, COURT_THREE],
+      ],
+    ])(
+      'sends several courts as courtCodes and never courtCode for %s',
+      (_, value, courtCodes) => {
+        component.form.patchValue(value);
+
+        const filter = loadQuery();
+
+        expect(filter).toEqual({ courtCodes });
+        expect(filter).not.toHaveProperty('courtCode');
+      },
+    );
+
+    it('removes repeats across Court and Other courts, ignoring case and blanks, and keeps the first spelling', () => {
+      component.form.patchValue({
+        court: ` ${COURT_ONE} `,
+        courtCodes: [
+          COURT_ONE.toLowerCase(),
+          COURT_TWO,
+          ` ${COURT_TWO.toLowerCase()} `,
+          '  ',
+          COURT_THREE,
+        ],
+      });
+
+      expect(loadQuery()).toEqual({
+        courtCodes: [COURT_ONE, COURT_TWO, COURT_THREE],
+      });
+    });
+
+    it('sends Other courts as a new array', () => {
+      setOtherCourts([COURT_ONE, COURT_TWO]);
+
+      const filter = loadQuery();
+
+      expect(filter.courtCodes).toEqual([COURT_ONE, COURT_TWO]);
+      expect(filter.courtCodes).not.toBe(
+        component.form.controls.courtCodes.value,
+      );
+    });
+
+    it('leaves out Court and Other courts when both are empty', () => {
+      component.form.patchValue({ applicantOrg: 'Synthetic Org' });
+
+      const filter = loadQuery();
+
+      expect(filter).toEqual({ applicantOrganisation: 'Synthetic Org' });
+      expect(filter).not.toHaveProperty('courtCode');
+      expect(filter).not.toHaveProperty('courtCodes');
+    });
+
+    it('searches by Other courts alone', () => {
+      setOtherCourts([COURT_ONE, COURT_TWO]);
+
+      submitSearch();
+
+      expect(getEntriesMock).toHaveBeenCalledTimes(1);
+      expect(getEntriesMock.mock.calls[0][0]?.filter).toEqual({
+        courtCodes: [COURT_ONE, COURT_TWO],
+      });
+      expect(component.vm().searchErrors).toEqual([]);
+    });
+
+    it('disables Other location and CJA while Other courts holds a court', () => {
+      typeInto('courtCodes', 'court one');
+      clickOption(COURT_ONE_LABEL);
+
+      expect(component.hasOtherCourts()).toBe(true);
+      expect(inputById('cja').disabled).toBe(true);
+      expect(inputById('location').disabled).toBe(true);
+      expect(inputById('court').disabled).toBe(false);
+      expect(inputById('courtCodes').disabled).toBe(false);
+
+      // Removing the last court enables them again
+      root()
+        .querySelector<HTMLAnchorElement>('#courtCodes-selected a')
+        ?.click();
+      fixture.detectChanges();
+
+      expect(component.form.controls.courtCodes.value).toEqual([]);
+      expect(inputById('cja').disabled).toBe(false);
+      expect(inputById('location').disabled).toBe(false);
+    });
+
+    it.each([
+      ['an empty list', []],
+      ['a list of blank codes', ['  ']],
+    ])('counts %s in Other courts as no court', (_, codes) => {
+      setOtherCourts(codes);
+
+      expect(component.hasOtherCourts()).toBe(false);
+      expect(inputById('cja').disabled).toBe(false);
+      expect(inputById('location').disabled).toBe(false);
+    });
+
+    it.each([
+      ['a CJA is chosen', () => component.selectCja(CJA_AREA)],
+      [
+        'an Other location is entered',
+        () =>
+          component.form.controls.location.setValue('Synthetic other location'),
+      ],
+    ])('disables Other courts and Court when %s', (_, fill) => {
+      fill();
+      fixture.detectChanges();
+
+      expect(component.form.controls.courtCodes.disabled).toBe(true);
+      expect(inputById('courtCodes').disabled).toBe(true);
+      expect(inputById('court').disabled).toBe(true);
+    });
+
+    it('blocks a search when text typed into Other courts is not picked', () => {
+      component.form.patchValue({ applicantOrg: 'Synthetic Org' });
+      typeInto('courtCodes', COURT_ONE);
+
+      submitSearch();
+
+      expect(getEntriesMock).not.toHaveBeenCalled();
+      expect(summaryLinks()).toEqual([
+        { href: '#courtCodes', text: OTHER_COURTS_ERROR },
+      ]);
+      expect(
+        root().querySelector('#courtCodes-error')?.textContent?.trim(),
+      ).toBe(`Error: ${OTHER_COURTS_ERROR}`);
+    });
+
+    it('drops the Other courts error once a CJA disables it, and searches by the CJA', () => {
+      typeInto('courtCodes', COURT_ONE);
+      submitSearch();
+      expect(getEntriesMock).not.toHaveBeenCalled();
+
+      component.selectCja(CJA_AREA);
+      fixture.detectChanges();
+
+      expect(component.form.controls.courtCodes.disabled).toBe(true);
+      expect(component.form.controls.courtCodes.errors).toBeNull();
+
+      submitSearch();
+
+      expect(getEntriesMock).toHaveBeenCalledTimes(1);
+      expect(getEntriesMock.mock.calls[0][0]?.filter).toEqual({
+        cjaCode: CJA_AREA.code,
+      });
+      expect(summaryLinks()).toEqual([]);
+    });
+
+    it('saves Other courts to the form service and the applied filters on submit', () => {
+      setOtherCourts([COURT_ONE, COURT_TWO]);
+
+      submitSearch();
+
+      expect(searchFormService.state().courtCodes).toEqual([
+        COURT_ONE,
+        COURT_TWO,
+      ]);
+      expect(searchStateService.state().appliedFilters).toEqual({
+        courtCodes: [COURT_ONE, COURT_TWO],
+      });
+    });
+
+    it('restores Other courts after navigation, reruns the search and keeps CJA disabled', () => {
+      setOtherCourts([COURT_TWO, COURT_THREE]);
+      submitSearch();
+
+      const restoredFixture = TestBed.createComponent(Applications);
+      const restored = restoredFixture.componentInstance;
+      restoredFixture.detectChanges();
+      const restoredRoot = restoredFixture.nativeElement as HTMLElement;
+
+      expect(restored.form.controls.courtCodes.value).toEqual([
+        COURT_TWO,
+        COURT_THREE,
+      ]);
+      expect(getEntriesMock).toHaveBeenCalledTimes(2);
+      expect(getEntriesMock.mock.calls[1][0]?.filter).toEqual({
+        courtCodes: [COURT_TWO, COURT_THREE],
+      });
+      expect(selectedLabels(restoredRoot)).toEqual([
+        COURT_TWO_LABEL,
+        COURT_THREE_LABEL,
+      ]);
+      expect(inputById('cja', restoredRoot).disabled).toBe(true);
+      expect(inputById('location', restoredRoot).disabled).toBe(true);
+    });
+
+    it('sends a restored Court and Other courts together as courtCodes', () => {
+      component.selectCourthouse(COURTS[0]);
+      setOtherCourts([COURT_TWO]);
+      submitSearch();
+
+      const restoredFixture = TestBed.createComponent(Applications);
+      restoredFixture.detectChanges();
+
+      expect(restoredFixture.componentInstance.form.controls.court.value).toBe(
+        COURT_ONE,
+      );
+      expect(getEntriesMock.mock.calls[1][0]?.filter).toEqual({
+        courtCodes: [COURT_ONE, COURT_TWO],
+      });
+    });
+
+    it('empties Other courts and its labels when the search is cleared', () => {
+      component.courtChipLabels.set({ [ENDED_COURT]: ENDED_COURT_LABEL });
+      setOtherCourts([COURT_ONE, ENDED_COURT]);
+      submitSearch();
+      expect(selectedLabels()).toEqual([COURT_ONE_LABEL, ENDED_COURT_LABEL]);
+
+      component.clearSearch();
+      fixture.detectChanges();
+
+      expect(component.form.controls.courtCodes.value).toEqual([]);
+      expect(component.form.controls.courtCodes.value).not.toBe(
+        DEFAULT_APPLICATIONS_SEARCH_FORM.courtCodes,
+      );
+      expect(searchFormService.state().courtCodes).toEqual([]);
+      expect(component.courtChipLabels()).toEqual({});
+      expect(root().querySelector('#courtCodes-selected')).toBeNull();
+      expect(inputById('cja').disabled).toBe(false);
+      expect(loadQuery()).toEqual({});
+    });
+
+    it('keeps the saved search unchanged when Other courts is changed in place', () => {
+      setOtherCourts([COURT_ONE, COURT_TWO]);
+      submitSearch();
+
+      component.form.controls.courtCodes.value.push(COURT_THREE);
+
+      expect(searchFormService.state().courtCodes).toEqual([
+        COURT_ONE,
+        COURT_TWO,
+      ]);
+      expect(searchStateService.state().appliedFilters).toEqual({
+        courtCodes: [COURT_ONE, COURT_TWO],
+      });
+      expect(component.vm().getFilters).toEqual({
+        courtCodes: [COURT_ONE, COURT_TWO],
       });
     });
   });

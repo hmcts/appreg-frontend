@@ -6,6 +6,9 @@
  * a JSON string (applicationCodes=["AP99001","SW99002"]). The API's
  * ListStringConverter parses that form, so these tests use the real generated
  * client and check the request it actually sends.
+ *
+ * Court and Other courts are sent as courtCode when they hold one court and
+ * as courtCodes when they hold more, never both (the API rejects both).
  */
 
 import { provideHttpClient } from '@angular/common/http';
@@ -37,6 +40,7 @@ import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 const APPLICATION_CODES = ['AP99001', 'SW99002'];
 const RESULT_CODES = ['RC9901', 'RC9902'];
+const COURT_CODES = ['SYN001', 'SYN002'];
 const ENTRIES_PATH = '/application-list-entries';
 
 const EMPTY_PAGE = {
@@ -122,6 +126,14 @@ describe('ApplicationListEntriesApi.getEntries', () => {
 
     expect(req.request.params.getAll('resultCodes')).toEqual([
       '["RC9901","RC9902"]',
+    ]);
+  });
+
+  it('sends one courtCodes parameter holding the codes as a JSON string', async () => {
+    const req = await search({ filter: { courtCodes: COURT_CODES } });
+
+    expect(req.request.params.getAll('courtCodes')).toEqual([
+      '["SYN001","SYN002"]',
     ]);
   });
 
@@ -249,11 +261,37 @@ describe('Applications', () => {
     req.flush(EMPTY_PAGE);
   });
 
-  it('sends the lists as JSON arrays in the body of a select-all-matching bulk preview', async () => {
+  it('sends a single court as courtCode and no courtCodes parameter', () => {
+    const component = createPage();
+    component.form.patchValue({ courtCodes: ['SYN001'] });
+
+    const req = submit(component);
+
+    expect(req.request.params.getAll('courtCode')).toEqual(['SYN001']);
+    expect(req.request.params.has('courtCodes')).toBe(false);
+    req.flush(EMPTY_PAGE);
+  });
+
+  it('sends Court and Other courts as one courtCodes parameter and no courtCode', () => {
+    const component = createPage();
+    component.form.patchValue({ court: 'SYN001', courtCodes: ['SYN002'] });
+
+    const req = submit(component);
+
+    expect(req.request.params.getAll('courtCodes')).toEqual([
+      '["SYN001","SYN002"]',
+    ]);
+    expect(req.request.params.has('courtCode')).toBe(false);
+    req.flush(EMPTY_PAGE);
+  });
+
+  it('sends the lists, courts included, as JSON arrays in the body of a select-all-matching bulk preview', async () => {
     const component = createPage();
     component.form.patchValue({
       applicationCodes: APPLICATION_CODES,
       resultCodes: RESULT_CODES,
+      court: COURT_CODES[0],
+      courtCodes: COURT_CODES.slice(1),
     });
     submit(component).flush({
       ...EMPTY_PAGE,
@@ -279,6 +317,7 @@ describe('Applications', () => {
       selection: {
         selectionType: BulkActionSelectionType.FILTER,
         filter: {
+          courtCodes: COURT_CODES,
           applicationCodes: APPLICATION_CODES,
           resultCodes: RESULT_CODES,
         },

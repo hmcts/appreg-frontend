@@ -18,6 +18,7 @@ export type ApplicationsSearchFormValue = {
   applicationCodes: string[];
   resultCodes: string[];
   court: string;
+  courtCodes: string[];
   cja: string;
   status: string | null;
 };

@@ -125,6 +125,31 @@
   </div>
 
   <div class="govuk-grid-row">
+    <!-- Other courts (searched together with Court; disabled by the form
+         control when Other location or CJA is filled in) -->
+    <app-multi-suggestions
+      id="courtCodes"
+      formControlName="courtCodes"
+      label="Other courts"
+      hint="Start typing a court name or code. You can add more than one."
+      selectedHeading="Selected other courts"
+      [options]="courtOptions()"
+      [extraLabels]="courtChipLabels()"
+      [maxItems]="otherCourtsMaxItems"
+      [showError]="
+        vm().submitted &&
+        !!getControlErrorItem(form.controls.courtCodes, 'courtCodes', errorMap)
+      "
+      [errorText]="
+        getControlErrorItem(form.controls.courtCodes, 'courtCodes', errorMap)
+          ?.text ?? ''
+      "
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
     <!-- Applicant Org -->
     <app-text-input
       formControlName="applicantOrg"
@@ -251,7 +276,11 @@
           (searchChange)="onCjaInputChange()"
           [suggestions]="state().filteredCja"
           (selectItem)="onCjaSuggestionSelected($event)"
-          [disabled]="!!state().courthouseSearch || !!form.get('court')?.value"
+          [disabled]="
+            !!state().courthouseSearch ||
+            !!form.get('court')?.value ||
+            hasOtherCourts()
+          "
           [showError]="
             vm().submitted &&
             !!getControlErrorItem(form.controls.cja, 'cja', errorMap)
