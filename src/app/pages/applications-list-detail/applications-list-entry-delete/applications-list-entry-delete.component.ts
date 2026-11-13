@@ -15,7 +15,6 @@ import { getProblemText } from '@util/http-error-to-text';
   selector: 'app-applications-list-entry-delete',
   imports: [AlertComponent, ReviewConfirmComponent, TableComponent],
   templateUrl: './applications-list-entry-delete.component.html',
-  styleUrl: './applications-list-entry-delete.component.scss',
 })
 export class ApplicationsListEntryDeleteComponent implements OnInit {
   private readonly api = inject(ApplicationListEntriesApi);
