@@ -70,3 +70,51 @@ export const APPLICATIONS_ERROR_MAP: {
     cjaNotFound: 'Criminal justice area not found',
   },
 };
+
+// Plain-English search: the question staff type (checked before it is sent)
+export const PLAIN_ENGLISH_QUESTION_ERROR_MESSAGES: Readonly<
+  Record<'required' | 'maxlength', string>
+> = {
+  required: 'Enter a question',
+  maxlength: 'Question must be 300 characters or fewer',
+};
+
+// Statuses from POST /application-list-entries/search-interpretations that
+// stay on the page (ErrorMessageService). 0 is a network error with no
+// response. A 401 goes to login.
+export type PlainEnglishSearchErrorStatus =
+  | 0
+  | 400
+  | 403
+  | 404
+  | 422
+  | 429
+  | 500
+  | 502
+  | 503
+  | 504;
+
+// Shown for a status with no copy of its own
+export const PLAIN_ENGLISH_SEARCH_UNAVAILABLE =
+  'Plain-English search is unavailable. Use the filters below.';
+
+// Fixed copy for each status. The API's problem text is never shown, so no
+// part of the question can be echoed back.
+export const PLAIN_ENGLISH_SEARCH_ERROR_MESSAGES: Readonly<
+  Record<PlainEnglishSearchErrorStatus, string>
+> = {
+  0: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  400: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  403: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  404: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  422: 'We could not work out any filters from your question.',
+  429: 'You have made too many requests. Try again in a minute.',
+  500: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  502: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  503: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  504: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+};
+
+// A choice from a plain-English search that has not been answered
+export const INTERPRETATION_CHOICE_ERROR_MESSAGE =
+  'Select one of the options, or None of these';

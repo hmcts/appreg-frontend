@@ -1,0 +1,44 @@
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <div
+      class="govuk-form-group"
+      [class.govuk-form-group--error]="!!errorText()"
+    >
+      <h2 class="govuk-label-wrapper">
+        <label class="govuk-label govuk-label--m" [for]="questionId">
+          Search in plain English
+        </label>
+      </h2>
+
+      <div class="govuk-hint" [id]="hintId">
+        AI-assisted. Check the filters before you search.
+      </div>
+
+      <!-- The textarea shows the error message after the hint -->
+      <app-govuk-textarea
+        [control]="question"
+        [id]="questionId"
+        name="plainEnglishQuestion"
+        [ariaDescribedBy]="describedBy"
+        [rows]="3"
+        [maxCharacterLimit]="maxLength"
+        [isInvalid]="!!errorText()"
+        [errorMessage]="errorText() ?? ''"
+      />
+    </div>
+
+    <button
+      type="button"
+      class="govuk-button govuk-button--secondary"
+      (click)="interpret()"
+    >
+      Work out filters
+    </button>
+
+    <div id="plain-english-search-status" aria-live="polite">
+      @if (statusText()) {
+        <p class="govuk-body">{{ statusText() }}</p>
+      }
+    </div>
+  </div>
+</div>
