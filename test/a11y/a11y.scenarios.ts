@@ -1,6 +1,6 @@
 import type { Page } from 'puppeteer';
 
-import { entryId, list, listId } from './a11y.fixtures';
+import { entry, entryId, list, listId } from './a11y.fixtures';
 
 export interface Scenario {
   name: string;
@@ -80,7 +80,37 @@ export const scenarios: Scenario[] = [
     name: 'Delete list',
     path: `${root}/delete`,
     heading: 'Check the application list and entries before deleting',
-    ready: 'app-applications-list-delete .govuk-summary-card',
+    ready: 'app-applications-list-delete app-sortable-table tbody tr',
+    responses: {
+      [`/application-lists/${listId}/entries`]: {
+        status: 200,
+        body: {
+          content: [
+            {
+              ...entry,
+              sequenceNumber: 1,
+              applicationTitle: 'Synthetic title ' + 'SYNTHETIC'.repeat(12),
+            },
+          ],
+          pageNumber: 0,
+          pageSize: 100,
+          totalElements: 1,
+          elementsOnPage: 1,
+        },
+      },
+    },
+    exercise: async (page) => {
+      await page.setViewport({ width: 320, height: 900 });
+      expect(
+        await page.$eval(
+          'app-applications-list-delete tbody tr',
+          (row) => row.getBoundingClientRect().height,
+        ),
+      ).toBeLessThan(300);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth),
+      ).toBe(320);
+    },
     state: {
       listRow: {
         ...list,
@@ -148,7 +178,7 @@ scenarios.push(
       },
     },
     exercise: async (page) => {
-      expect(await page.$('.govuk-summary-card')).toBeNull();
+      expect(await page.$('app-applications-list-delete table')).toBeNull();
       expect(
         await page.$eval('[role="status"]', (element) => element.textContent),
       ).toContain('This application list has no entries.');
@@ -166,7 +196,7 @@ scenarios.push(
     },
     error: '.govuk-error-summary',
     exercise: async (page) => {
-      expect(await page.$('.govuk-summary-card')).toBeNull();
+      expect(await page.$('app-applications-list-delete table')).toBeNull();
       expect(
         await page.$eval(
           '.govuk-button--warning',

@@ -31,6 +31,10 @@ import { EMPTY, expand, map, reduce } from 'rxjs';
 import { AlertComponent } from '@components/alert/alert.component';
 import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
+import {
+  SortableTableComponent,
+  TableColumn,
+} from '@components/sortable-table/sortable-table.component';
 import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
@@ -44,7 +48,12 @@ import { ApplicationListRow } from '@util/types/application-list/types';
 
 @Component({
   selector: 'app-applications-list-delete',
-  imports: [ReviewConfirmComponent, AlertComponent, ErrorSummaryComponent],
+  imports: [
+    ReviewConfirmComponent,
+    AlertComponent,
+    ErrorSummaryComponent,
+    SortableTableComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-delete.component.html',
 })
@@ -90,31 +99,22 @@ export class ApplicationsListDeleteComponent implements OnInit {
     ];
   });
 
-  readonly childSummaries = computed(() =>
+  readonly childColumns: TableColumn[] = [
+    { header: 'Sequence number', field: 'sequenceNumber', sortable: false },
+    { header: 'Account number', field: 'accountNumber', sortable: false },
+    { header: 'Applicant', field: 'applicant', sortable: false },
+    { header: 'Respondent', field: 'respondent', sortable: false },
+    { header: 'Title', field: 'title', sortable: false, minWidth: '15em' },
+  ];
+
+  readonly childRows = computed(() =>
     this.childEntries().map((entry) => ({
       id: entry.id,
-      details: [
-        {
-          key: 'Sequence number',
-          value: entry.sequenceNumber ?? 'Not provided',
-        },
-        {
-          key: 'Account number',
-          value: entry.accountNumber?.trim() || 'Not provided',
-        },
-        {
-          key: 'Applicant',
-          value: formatPartyName(entry.applicant) || 'Not provided',
-        },
-        {
-          key: 'Respondent',
-          value: formatPartyName(entry.respondent) || 'Not provided',
-        },
-        {
-          key: 'Title',
-          value: entry.applicationTitle?.trim() || 'Not provided',
-        },
-      ],
+      sequenceNumber: entry.sequenceNumber ?? 'Not provided',
+      accountNumber: entry.accountNumber?.trim() || 'Not provided',
+      applicant: formatPartyName(entry.applicant) || 'Not provided',
+      respondent: formatPartyName(entry.respondent) || 'Not provided',
+      title: entry.applicationTitle?.trim() || 'Not provided',
     })),
   );
 
