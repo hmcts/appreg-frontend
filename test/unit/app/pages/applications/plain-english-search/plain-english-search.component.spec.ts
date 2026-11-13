@@ -1,8 +1,11 @@
 /**
  * Tests for the plain-English search panel: the question field, what is sent
  * (the question in the POST body only), the character limit, the fixed error
- * copy for each status, the live status and the emitted result, and the
- * page's clearError() and reset() (which also cancels a request in flight).
+ * copy for each status, the emitted question and result, the live status
+ * (working until the page reports the outcome, then the outcome once), and
+ * the page's showSearching(), showResults(), showChoices(), stop(), fail(),
+ * clearError(), clearStatus() (only once the panel has finished) and reset()
+ * (which also cancels a request in flight).
  *
  * All questions and values are synthetic.
  */
@@ -21,7 +24,9 @@ import { Observable, Subject, of, throwError } from 'rxjs';
 
 import {
   PLAIN_ENGLISH_QUESTION_ID,
+  PLAIN_ENGLISH_SEARCH_CHOICES_STATUS,
   PlainEnglishSearchComponent,
+  plainEnglishSearchResultsStatus,
 } from '@components/applications/plain-english-search/plain-english-search.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import {
@@ -66,6 +71,7 @@ describe('PlainEnglishSearchComponent', () => {
   >;
   let interpreted: SearchInterpretationDto[];
   let emittedErrors: ErrorItem[][];
+  let asked: number;
 
   const element = (): HTMLElement => fixture.nativeElement as HTMLElement;
   const textarea = (): HTMLTextAreaElement =>
@@ -105,6 +111,8 @@ describe('PlainEnglishSearchComponent', () => {
     component = fixture.componentInstance;
     interpreted = [];
     emittedErrors = [];
+    asked = 0;
+    component.asked.subscribe(() => (asked += 1));
     component.interpreted.subscribe((value) => interpreted.push(value));
     component.errorsChange.subscribe((items) => emittedErrors.push(items));
     fixture.detectChanges();
@@ -139,7 +147,7 @@ describe('PlainEnglishSearchComponent', () => {
       expect(label?.getAttribute('for')).toBe(PLAIN_ENGLISH_QUESTION_ID);
       expect(label?.textContent?.trim()).toBe('Search in plain English');
       expect(hint?.textContent?.trim()).toBe(
-        'AI-assisted. Check the filters before you search.',
+        'AI-assisted. Check what was searched for above the results.',
       );
       expect(count?.textContent?.trim()).toBe(
         'You have 300 characters remaining',
@@ -168,7 +176,8 @@ describe('PlainEnglishSearchComponent', () => {
       expect(textarea().tabIndex).toBe(0);
       expect(button().tagName).toBe('BUTTON');
       expect(button().type).toBe('button');
-      expect(button().textContent?.trim()).toBe('Work out filters');
+      // Not "Search": the form's own Search button does something else
+      expect(button().textContent?.trim()).toBe('Find applications');
     });
 
     it('sends the trimmed question in the POST body with transferCache off', () => {
@@ -184,13 +193,22 @@ describe('PlainEnglishSearchComponent', () => {
       );
     });
 
-    it('emits the interpretation without applying it', () => {
+    it('emits that a question was asked, then the interpretation', () => {
       type(QUESTION);
       press();
 
+      expect(asked).toBe(1);
       expect(interpreted).toEqual([INTERPRETATION]);
       expect(emittedErrors).toEqual([[]]);
       expect(errorMessage()).toBeUndefined();
+    });
+
+    it('does not emit that a question was asked when it is not sent', () => {
+      type('   ');
+      press();
+
+      expect(asked).toBe(0);
+      expect(interpretEntrySearch).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -251,7 +269,7 @@ describe('PlainEnglishSearchComponent', () => {
       );
     });
 
-    it('says it is working out filters in a polite live region, then that it has finished', () => {
+    it('says it is finding applications in a polite live region until the page reports the outcome', () => {
       const response = new Subject<SearchInterpretationDto>();
       interpretEntrySearch.mockReturnValue(response);
 
@@ -261,15 +279,96 @@ describe('PlainEnglishSearchComponent', () => {
       type(QUESTION);
       press();
 
-      expect(statusRegion().textContent?.trim()).toBe('Working out filters…');
+      expect(statusRegion().textContent?.trim()).toBe('Finding applications…');
+      expect(component.working()).toBe(true);
 
+      // The page runs the search after the result
       response.next(INTERPRETATION);
       response.complete();
       fixture.detectChanges();
 
+      expect(statusRegion().textContent?.trim()).toBe('Finding applications…');
+      expect(component.working()).toBe(true);
+
+      component.showResults(25);
+      fixture.detectChanges();
+
+      expect(statusRegion().textContent?.trim()).toBe('25 applications found.');
+      expect(component.working()).toBe(false);
+    });
+
+    it.each([
+      [0, 'No applications found.'],
+      [1, '1 application found.'],
+      [25, '25 applications found.'],
+    ])('says how many were found for %s results', (total, text) => {
+      expect(plainEnglishSearchResultsStatus(total)).toBe(text);
+
+      component.showResults(total);
+      fixture.detectChanges();
+
+      expect(statusRegion().textContent?.trim()).toBe(text);
+    });
+
+    it('says to choose what they meant when the page shows choices', () => {
+      type(QUESTION);
+      press();
+
+      component.showChoices();
+      fixture.detectChanges();
+
       expect(statusRegion().textContent?.trim()).toBe(
-        'Finished working out filters. Check them before you search.',
+        PLAIN_ENGLISH_SEARCH_CHOICES_STATUS,
       );
+      expect(component.working()).toBe(false);
+    });
+
+    it('says it is finding applications again while the page searches after a choice', () => {
+      component.showChoices();
+      component.showSearching();
+      fixture.detectChanges();
+
+      expect(statusRegion().textContent?.trim()).toBe('Finding applications…');
+
+      type(QUESTION);
+      press();
+
+      expect(interpretEntrySearch).not.toHaveBeenCalled();
+    });
+
+    it('says nothing and works again when the page stops it, as its error summary says why', () => {
+      type(QUESTION);
+      press();
+
+      component.stop();
+      fixture.detectChanges();
+
+      expect(statusRegion().textContent?.trim()).toBe('');
+      expect(component.working()).toBe(false);
+      expect(errorMessage()).toBeUndefined();
+
+      press();
+      expect(interpretEntrySearch).toHaveBeenCalledTimes(2);
+    });
+
+    it('shows an error from the page on the question and in the error summary through fail', () => {
+      type(QUESTION);
+      press();
+      const text = 'We could not work out any filters from your question.';
+
+      component.fail(text);
+      fixture.detectChanges();
+
+      expect(errorMessage()).toBe(text);
+      expect(statusRegion().textContent?.trim()).toBe('');
+      expect(component.working()).toBe(false);
+      expect(emittedErrors.at(-1)).toEqual([
+        {
+          id: PLAIN_ENGLISH_QUESTION_ID,
+          href: `#${PLAIN_ENGLISH_QUESTION_ID}`,
+          text,
+        },
+      ]);
     });
 
     it('ignores presses while a request is running', () => {
@@ -280,7 +379,22 @@ describe('PlainEnglishSearchComponent', () => {
       press();
 
       expect(interpretEntrySearch).toHaveBeenCalledTimes(1);
+      expect(asked).toBe(1);
       expect(emittedErrors).toEqual([[]]);
+    });
+
+    it('ignores presses after the result until the page reports the outcome', () => {
+      type(QUESTION);
+      press();
+      press();
+
+      expect(interpretEntrySearch).toHaveBeenCalledTimes(1);
+      expect(interpreted).toEqual([INTERPRETATION]);
+
+      component.showResults(1);
+      press();
+
+      expect(interpretEntrySearch).toHaveBeenCalledTimes(2);
     });
 
     it.each([
@@ -370,15 +484,18 @@ describe('PlainEnglishSearchComponent', () => {
       try {
         type(QUESTION);
         press();
+        // The page found nothing to search, then the API failed
+        component.fail('We could not work out any filters from your question.');
         interpretEntrySearch.mockReturnValue(throwError(() => httpError(503)));
         press();
 
         const consoleArgs = JSON.stringify(
           spies.flatMap((spy) => spy.mock.calls),
         );
+        expect(interpretEntrySearch).toHaveBeenCalledTimes(2);
         expect(consoleArgs).not.toContain(QUESTION);
         expect(JSON.stringify(emittedErrors)).not.toContain(QUESTION);
-        expect(errorMessage()).not.toContain(QUESTION);
+        expect(errorMessage()).toBe(UNAVAILABLE);
       } finally {
         spies.forEach((spy) => spy.mockRestore());
       }
@@ -413,14 +530,62 @@ describe('PlainEnglishSearchComponent', () => {
       expect(emittedErrors).toHaveLength(emitted);
     });
 
+    it('empties the status once the panel has finished when clearStatus is called, without emitting', () => {
+      type(QUESTION);
+      press();
+      component.showResults(25);
+      fixture.detectChanges();
+      const emitted = emittedErrors.length;
+
+      component.clearStatus();
+      fixture.detectChanges();
+
+      expect(statusRegion().textContent?.trim()).toBe('');
+      expect(component.working()).toBe(false);
+      expect(textarea().value).toBe(QUESTION);
+      expect(emittedErrors).toHaveLength(emitted);
+    });
+
+    it('leaves the status, the question and its error alone when clearStatus is called while it is working', () => {
+      const response = new Subject<SearchInterpretationDto>();
+      interpretEntrySearch.mockReturnValue(response);
+      type(QUESTION);
+      press();
+
+      component.clearStatus();
+      fixture.detectChanges();
+
+      expect(statusRegion().textContent?.trim()).toBe('Finding applications…');
+      expect(component.working()).toBe(true);
+      expect(textarea().value).toBe(QUESTION);
+      // Still working, so a press sends nothing
+      press();
+      expect(interpretEntrySearch).toHaveBeenCalledTimes(1);
+      expect(response.observed).toBe(true);
+    });
+
+    it('keeps the error on the question when clearStatus is called', () => {
+      interpretEntrySearch.mockReturnValue(throwError(() => httpError(503)));
+      type(QUESTION);
+      press();
+
+      component.clearStatus();
+      fixture.detectChanges();
+
+      expect(errorMessage()).toBe(UNAVAILABLE);
+    });
+
     it('empties the question and hides its error and status without emitting when reset is called', () => {
       press();
       expect(errorMessage()).toBe('Enter a question');
       type(QUESTION);
       press();
+      component.showResults(3);
+      fixture.detectChanges();
       expect(statusRegion().textContent?.trim()).not.toBe('');
       interpretEntrySearch.mockReturnValue(throwError(() => httpError(429)));
       press();
+      expect(errorMessage()).not.toBeUndefined();
       const emitted = emittedErrors.length;
 
       component.reset();
@@ -441,7 +606,7 @@ describe('PlainEnglishSearchComponent', () => {
       interpretEntrySearch.mockReturnValue(response);
       type(QUESTION);
       press();
-      expect(statusRegion().textContent?.trim()).toBe('Working out filters…');
+      expect(statusRegion().textContent?.trim()).toBe('Finding applications…');
 
       component.reset();
       fixture.detectChanges();

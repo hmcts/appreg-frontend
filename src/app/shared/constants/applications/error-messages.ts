@@ -98,6 +98,11 @@ export type PlainEnglishSearchErrorStatus =
 export const PLAIN_ENGLISH_SEARCH_UNAVAILABLE =
   'Plain-English search is unavailable. Use the filters below.';
 
+// Shown for a 422, and when an interpretation sets no filter at all, so the
+// search is not run (it would return every entry)
+export const PLAIN_ENGLISH_SEARCH_NOT_UNDERSTOOD =
+  'We could not work out any filters from your question.';
+
 // Fixed copy for each status. The API's problem text is never shown, so no
 // part of the question can be echoed back.
 export const PLAIN_ENGLISH_SEARCH_ERROR_MESSAGES: Readonly<
@@ -107,7 +112,7 @@ export const PLAIN_ENGLISH_SEARCH_ERROR_MESSAGES: Readonly<
   400: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
   403: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
   404: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
-  422: 'We could not work out any filters from your question.',
+  422: PLAIN_ENGLISH_SEARCH_NOT_UNDERSTOOD,
   429: 'You have made too many requests. Try again in a minute.',
   500: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
   502: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,

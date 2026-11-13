@@ -1,12 +1,12 @@
 /**
  * Plain-English search panel (`app-plain-english-search`) for /applications.
  *
- * Staff type a question and press "Work out filters". The panel sends it to
+ * Staff type a question and press "Find applications". The panel sends it to
  * POST /application-list-entries/search-interpretations
  * (SearchInterpretationsApi.interpretEntrySearch) and emits the
- * SearchInterpretationDto through `interpreted`. It never applies filters or
- * runs a search: the page maps the result (interpretation-mapper.ts) and
- * staff check the filters before they search.
+ * SearchInterpretationDto through `interpreted`. The page applies it to the
+ * form (interpretation-mapper.ts) and runs the search straight away, or asks
+ * staff to choose what they meant first, then tells the panel the outcome.
  *
  * - The question is user free text that may hold personal data. It is sent
  *   only in the POST body: never in a URL, a log, the console, telemetry, an
@@ -16,27 +16,36 @@
  *   than PLAIN_ENGLISH_QUESTION_MAX_LENGTH (300) characters is not sent and
  *   shows an error. The textarea also stops typing at 300 characters and
  *   says how many are left.
+ * - `asked` is emitted when a question is sent, so the page can drop what it
+ *   shows about an earlier question.
  * - An API error shows fixed copy for its status
  *   (PLAIN_ENGLISH_SEARCH_ERROR_MESSAGES), never the API's problem text. An
- *   empty response counts as unavailable.
+ *   empty response counts as unavailable. The page shows its own errors on
+ *   the question the same way through fail(), such as when an interpretation
+ *   sets no filter at all.
  * - Errors show on the question and are emitted through `errorsChange` as
  *   ErrorItems that link to it, for the page's error summary. Each press
  *   emits: the error, or [] when the question is sent.
- * - While a request runs, a polite live region says "Working out filters…"
- *   and further presses are ignored. When a result arrives the live region
- *   says so, and the summary component takes focus.
+ * - Working: from the press until the page reports the outcome, and again
+ *   while the page runs a search after a choice is answered
+ *   (showSearching()), a polite live region says "Finding applications…" and
+ *   further presses are ignored. The page then calls showResults() (the live
+ *   region says how many were found), showChoices() (it says to choose what
+ *   they meant) or stop() (nothing is said, as the page's error summary takes
+ *   focus), or fail() with an error. Each outcome is said once.
  * - The request is cancelled when the component is destroyed.
  * - The page can call clearError() when it clears its error summary (on
- *   Search), and reset() on Clear search: that also empties the question and
- *   cancels a request in flight, so no result arrives afterwards. Neither
- *   emits.
+ *   Search), clearStatus() when staff run their own search (the outcome of
+ *   the question's search no longer describes the page; nothing changes while
+ *   the panel is working), and reset() on Clear search: that also empties the
+ *   question and cancels a request in flight, so no result arrives
+ *   afterwards. None of them emits.
  */
 
 import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  computed,
   inject,
   output,
   signal,
@@ -61,13 +70,20 @@ import { trimToString } from '@util/string-helpers';
 /** The id of the question textarea, which error summary links point to. */
 export const PLAIN_ENGLISH_QUESTION_ID = 'plain-english-question';
 
-type Phase = 'idle' | 'working' | 'done';
+/** What the live region says while the panel is working. */
+export const PLAIN_ENGLISH_SEARCH_WORKING_STATUS = 'Finding applications…';
 
-const STATUS_TEXT: Readonly<Record<Phase, string>> = {
-  idle: '',
-  working: 'Working out filters…',
-  done: 'Finished working out filters. Check them before you search.',
-};
+/** What the live region says when staff must choose what they meant. */
+export const PLAIN_ENGLISH_SEARCH_CHOICES_STATUS =
+  'Choose what you meant below. The search runs when every choice is answered.';
+
+/** What the live region says when the search has run. */
+export function plainEnglishSearchResultsStatus(total: number): string {
+  if (total <= 0) {
+    return 'No applications found.';
+  }
+  return total === 1 ? '1 application found.' : `${total} applications found.`;
+}
 
 @Component({
   selector: 'app-plain-english-search',
@@ -77,7 +93,9 @@ const STATUS_TEXT: Readonly<Record<Phase, string>> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlainEnglishSearchComponent {
-  /** The interpretation of the question, for the page to check and apply. */
+  /** A question was sent. */
+  readonly asked = output<void>();
+  /** The interpretation of the question, for the page to apply and search. */
   readonly interpreted = output<SearchInterpretationDto>();
   /** The panel's errors after each press, or [] when there are none. */
   readonly errorsChange = output<ErrorItem[]>();
@@ -93,9 +111,12 @@ export class PlainEnglishSearchComponent {
 
   readonly question = new FormControl<string | null>('');
 
-  private readonly phase = signal<Phase>('idle');
-  readonly working = computed(() => this.phase() === 'working');
-  readonly statusText = computed(() => STATUS_TEXT[this.phase()]);
+  private readonly busy = signal(false);
+  private readonly status = signal('');
+  /** True from a press until the page reports the outcome. */
+  readonly working = this.busy.asReadonly();
+  /** What the live region says. */
+  readonly statusText = this.status.asReadonly();
   readonly errorText = signal<string | null>(null);
 
   private request?: Subscription;
@@ -109,13 +130,14 @@ export class PlainEnglishSearchComponent {
     const invalid = questionError(question);
 
     if (invalid) {
-      this.phase.set('idle');
+      this.stop();
       this.showError(invalid);
       return;
     }
 
     this.showError(null);
-    this.phase.set('working');
+    this.asked.emit();
+    this.showSearching();
 
     this.request = this.searchInterpretationsApi
       .interpretEntrySearch(
@@ -132,16 +154,63 @@ export class PlainEnglishSearchComponent {
             return;
           }
 
-          this.phase.set('done');
+          // Still working: the page reports the outcome
           this.interpreted.emit(interpretation);
         },
         error: (err: unknown) => this.fail(errorTextFor(err)),
       });
   }
 
+  /** Working again, while the page runs a search. Emits nothing. */
+  showSearching(): void {
+    this.busy.set(true);
+    this.status.set(PLAIN_ENGLISH_SEARCH_WORKING_STATUS);
+  }
+
+  /** The search ran and found `total` entries. Emits nothing. */
+  showResults(total: number): void {
+    this.busy.set(false);
+    this.status.set(plainEnglishSearchResultsStatus(total));
+  }
+
+  /** Staff must choose what they meant before the search runs. Emits nothing. */
+  showChoices(): void {
+    this.busy.set(false);
+    this.status.set(PLAIN_ENGLISH_SEARCH_CHOICES_STATUS);
+  }
+
+  /**
+   * Stops working and says nothing, for when the page's error summary shows
+   * why the search did not run. Emits nothing.
+   */
+  stop(): void {
+    this.busy.set(false);
+    this.status.set('');
+  }
+
+  /**
+   * Stops working and shows an error on the question, emitted through
+   * `errorsChange` for the page's error summary.
+   */
+  fail(text: string): void {
+    this.stop();
+    this.showError(text);
+  }
+
   /** Hides the question's error. Emits nothing. */
   clearError(): void {
     this.errorText.set(null);
+  }
+
+  /**
+   * Empties the status once the panel has finished, for when staff run their
+   * own search. While it is working, the status, the question and its error
+   * are left as they are. Emits nothing.
+   */
+  clearStatus(): void {
+    if (!this.busy()) {
+      this.status.set('');
+    }
   }
 
   /**
@@ -153,12 +222,7 @@ export class PlainEnglishSearchComponent {
     this.request = undefined;
     this.question.reset('');
     this.errorText.set(null);
-    this.phase.set('idle');
-  }
-
-  private fail(text: string): void {
-    this.phase.set('idle');
-    this.showError(text);
+    this.stop();
   }
 
   private showError(text: string | null): void {

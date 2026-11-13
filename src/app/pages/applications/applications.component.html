@@ -6,9 +6,11 @@
   />
 } @else {
   @if (vm().isSearch && !vm().isLoading && !vm().rows.length) {
+    <!-- After a search from a question, focus goes to "Searched for" -->
     <app-notification-banner
       heading="No application list entries found"
       body="Try different filters"
+      [autoFocus]="!searchedForSummary()"
     />
   }
 }
@@ -51,17 +53,23 @@
 <!-- Plain-English search: only while the user can use it -->
 @if (searchInterpretationEnabled()) {
   <app-plain-english-search
+    (asked)="onQuestionAsked()"
     (interpreted)="onInterpreted($event)"
     (errorsChange)="onPlainEnglishErrorsChange($event)"
   />
 
+  <!-- A question whose search has not run: its choices, or why it stopped -->
   @if (interpretationChanges(); as changes) {
     <app-interpreted-filters-summary
       [changes]="changes"
       [answers]="interpretationAnswers()"
+      [matchedCourts]="interpretationMatchedCourts()"
       [showChoiceErrors]="showChoiceErrors()"
       [focusKey]="interpretationFocusKey()"
-      (answersChange)="onInterpretationAnswersChange($event)"
+      (answersChange)="
+        onInterpretationAnswersChange($event.answers, $event.commit)
+      "
+      (commit)="onInterpretationCommit()"
     />
   }
 
@@ -466,6 +474,19 @@
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
+
+<!-- Results. A search from a plain-English question shows what it searched
+     for directly above them -->
+@if (searchedForSummary(); as searched) {
+  <app-interpreted-filters-summary
+    [changes]="searched.changes"
+    [answers]="searched.answers"
+    [matchedCourts]="searched.matchedCourts"
+    [changedByHand]="searched.changedByHand"
+    [searched]="true"
+    [focusKey]="searched.focusKey"
+  />
+}
 
 @if (vm().rows.length) {
   <!-- Sortable table component -->

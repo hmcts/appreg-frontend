@@ -81,6 +81,7 @@ export const fixtures: Record<string, unknown> = {
 };
 // POST /application-list-entries/search-interpretations, for scenarios that turn
 // plain-English search on: applied filters, an unused part, a choice and a notice.
+// The choice is not about courts, so staff answer it before the search runs.
 export const searchInterpretation = {
   interpretationId: '00000000-0000-4000-8000-000000000005',
   filter: { courtCode: 'TEST', status: 'OPEN' },
@@ -108,4 +109,40 @@ export const searchInterpretation = {
   ],
   unusedParts: ['with a blue folder'],
   notices: ['DATE_NOT_UNDERSTOOD'],
+};
+// A question whose place matched two courts, one active and one end-dated: both
+// are applied at once and the search runs, so its results show with the
+// "Searched for" summary.
+export const searchInterpretationCourts = {
+  interpretationId: '00000000-0000-4000-8000-000000000006',
+  filter: { status: 'OPEN' },
+  appliedFilters: [{ field: 'status', label: 'Open', source: 'MODEL' }],
+  choicesNeeded: [
+    {
+      field: 'courtCode',
+      text: 'Which place did you mean?',
+      options: [
+        { field: 'courtCode', code: 'TEST', label: 'Test court' },
+        { field: 'courtCode', code: 'TEST9', label: 'Synthetic closed court' },
+      ],
+    },
+  ],
+  unusedParts: ['with a blue folder'],
+  notices: ['DATE_NOT_UNDERSTOOD'],
+};
+// GET /application-list-entries: one open entry, for the results of a search.
+export const applicationEntries = {
+  ...paged([
+    {
+      id: entryId,
+      listId,
+      date: list.date,
+      applicant: entry.applicant,
+      applicationTitle: code.title,
+      isFeeRequired: false,
+      isResulted: false,
+      status: 'OPEN',
+    },
+  ]),
+  pageSize: 10,
 };

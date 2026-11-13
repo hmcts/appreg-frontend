@@ -1,8 +1,9 @@
 /**
  * Tests for the plain-English search interpretation mapper: the control map,
  * mapInterpretationToForm (replace not merge, courts, CJA, dates, status,
- * not-applied fields and choices), applyInterpretationChoice and
- * withCourtsExclusive.
+ * not-applied fields and choices), applyInterpretationChoice,
+ * withCourtsExclusive, setsNoFilter (no search without a filter) and
+ * applyCourtChoices (court-only choices applied all at once).
  *
  * All codes, names and labels are synthetic.
  */
@@ -13,8 +14,10 @@ import {
   type InterpretationFormChanges,
   NONE_OF_THESE_LABEL,
   NONE_OF_THESE_VALUE,
+  applyCourtChoices,
   applyInterpretationChoice,
   mapInterpretationToForm,
+  setsNoFilter,
   withCourtsExclusive,
 } from '@components/applications/util/interpretation-mapper';
 import {
@@ -1503,5 +1506,311 @@ describe('withCourtsExclusive', () => {
 
     expect(result).toEqual(changes);
     expect(result).not.toBe(changes);
+  });
+});
+
+describe('setsNoFilter', () => {
+  it('is true for a filter with every field null, as the stub provider returns', () => {
+    const filter = Object.fromEntries(
+      Object.keys(INTERPRETED_FILTER_CONTROLS).map((field) => [field, null]),
+    ) as EntryGetFilterDto;
+
+    expect(setsNoFilter(map(filter))).toBe(true);
+  });
+
+  it.each([
+    ['an empty filter', {}],
+    ['blank text and empty lists', { applicantName: '  ', courtCodes: [] }],
+    [
+      'only fields with no control on the page',
+      {
+        applicationCodeCategory: ApplicationCodeCategory.SEARCH_WARRANTS,
+        standardApplicantCodes: ['SA0001'],
+      },
+    ],
+    ['only a date that is not real', { date: '2026-02-30' }],
+  ])('is true for %s', (_name, filter: EntryGetFilterDto) => {
+    expect(setsNoFilter(map(filter))).toBe(true);
+  });
+
+  it.each([
+    ['a text filter', { applicantName: 'Synthetic Applicant' }],
+    ['a date', { dateFrom: '2026-03-01' }],
+    ['a status', { status: ApplicationListStatus.OPEN }],
+    ['a court', { courtCode: ENDED_COURT }],
+    ['a list of codes', { resultCodes: ['RC9901'] }],
+  ])('is false for %s', (_name, filter: EntryGetFilterDto) => {
+    expect(setsNoFilter(map(filter))).toBe(false);
+  });
+
+  it('ignores choices, which are not filters', () => {
+    const { changes } = withChoice(
+      {},
+      [],
+      choice(SearchFilterField.APPLICANT_ORGANISATION, [
+        { code: 'Synthetic Council', label: 'Synthetic Council' },
+      ]),
+    );
+
+    expect(changes.choices).toHaveLength(1);
+    expect(setsNoFilter(changes)).toBe(true);
+  });
+});
+
+describe('applyCourtChoices', () => {
+  // Synthetic end-dated court codes: ZZ500 and on
+  const endedCodes = (count: number, from = 500): string[] =>
+    Array.from({ length: count }, (_, index) => `ZZ${from + index}`);
+
+  const courtOptions = (codes: string[], label = 'Synthetic Court') =>
+    codes.map((code) => ({ code, label: `${label} ${code}` }));
+
+  const changesWith = (
+    filter: EntryGetFilterDto,
+    ...choices: InterpretationChoiceDto[]
+  ): InterpretationFormChanges =>
+    mapInterpretationToForm(
+      interpretation({ filter, choicesNeeded: choices }),
+      ACTIVE_COURTS,
+    );
+
+  it('applies every option of a court choice: an active court into Court, the rest into Other courts with their labels', () => {
+    const changes = changesWith(
+      { applicantName: 'Synthetic Applicant' },
+      choice(SearchFilterField.COURT_CODE, [
+        { code: ACTIVE_COURT, label: 'Synthetic Magistrates Court' },
+        { code: ENDED_COURT, label: 'Synthetic Closed Court' },
+        { code: OTHER_ACTIVE_COURT, label: 'Synthetic County Court' },
+      ]),
+    );
+
+    const result = applyCourtChoices(changes, ACTIVE_COURTS);
+
+    expect(result?.changes.formValue).toEqual(
+      formWith({
+        applicantName: 'Synthetic Applicant',
+        court: ACTIVE_COURT,
+        courtCodes: [ENDED_COURT, OTHER_ACTIVE_COURT],
+      }),
+    );
+    expect(result?.changes.courthouseSearch).toBe(
+      'Synthetic Magistrates Court',
+    );
+    expect(result?.changes.courtChipLabels).toEqual({
+      [ENDED_COURT]: 'Synthetic Closed Court',
+      [OTHER_ACTIVE_COURT]: 'Synthetic County Court',
+    });
+    expect(result?.changes.choices).toEqual([]);
+    expect(result?.changes.notApplied).toEqual([]);
+    expect(result?.matchedCourts).toEqual([
+      'Synthetic Magistrates Court',
+      'Synthetic Closed Court',
+      'Synthetic County Court',
+    ]);
+    // The input is not changed
+    expect(changes.choices).toHaveLength(1);
+    expect(changes.formValue.courtCodes).toEqual([]);
+  });
+
+  it('applies ten options, as the API sends for a place that matches ten courts', () => {
+    const codes = endedCodes(10);
+    const changes = changesWith(
+      {},
+      choice(SearchFilterField.COURT_CODE, courtOptions(codes)),
+    );
+
+    const result = applyCourtChoices(changes, ACTIVE_COURTS);
+
+    expect(result?.changes.formValue.courtCodes).toEqual(codes);
+    expect(result?.matchedCourts).toHaveLength(10);
+    expect(Object.keys(result?.changes.courtChipLabels ?? {})).toEqual(codes);
+  });
+
+  it('applies the options of more than one court choice, courtCodes options included', () => {
+    const changes = changesWith(
+      {},
+      choice(SearchFilterField.COURT_CODE, courtOptions(endedCodes(2))),
+      choice(SearchFilterField.COURT_CODES, courtOptions(endedCodes(2, 600))),
+    );
+
+    const result = applyCourtChoices(changes, ACTIVE_COURTS);
+
+    expect(result?.changes.formValue.courtCodes).toEqual([
+      ...endedCodes(2),
+      ...endedCodes(2, 600),
+    ]);
+  });
+
+  it('takes out a CJA for the courts and lists it as not applied, as a court pick does', () => {
+    const changes = changesWith(
+      { cjaCode: 'CJ99' },
+      choice(SearchFilterField.COURT_CODE, courtOptions(endedCodes(2))),
+    );
+
+    const result = applyCourtChoices(changes, ACTIVE_COURTS);
+
+    expect(result?.changes.formValue.cja).toBe('');
+    expect(result?.changes.notApplied).toEqual(['CJ99']);
+  });
+
+  it('applies the courts when Court plus Other courts hold exactly 20, counting repeats once, case-insensitively', () => {
+    const inFilter = endedCodes(18);
+    const changes = changesWith(
+      { courtCodes: inFilter },
+      choice(SearchFilterField.COURT_CODE, [
+        { code: inFilter[0].toLowerCase(), label: 'Synthetic repeat' },
+        { code: ACTIVE_COURT, label: 'Synthetic Magistrates Court' },
+        { code: OTHER_ACTIVE_COURT, label: 'Synthetic County Court' },
+      ]),
+    );
+
+    const result = applyCourtChoices(changes, ACTIVE_COURTS);
+
+    expect(result).not.toBeNull();
+    const form = result!.changes.formValue;
+    expect([form.court, ...form.courtCodes]).toHaveLength(20);
+  });
+
+  it('returns null when the courts would be more than 20', () => {
+    const changes = changesWith(
+      { courtCodes: endedCodes(11) },
+      choice(SearchFilterField.COURT_CODE, courtOptions(endedCodes(10, 600))),
+    );
+
+    expect(applyCourtChoices(changes, ACTIVE_COURTS)).toBeNull();
+  });
+
+  it('returns null when 20 courts would not fit, as only an active court goes into Court', () => {
+    // 20 end-dated courts: Other courts holds 19 and none can go into Court
+    const changes = changesWith(
+      { courtCodes: endedCodes(10) },
+      choice(SearchFilterField.COURT_CODE, courtOptions(endedCodes(10, 600))),
+    );
+
+    expect(applyCourtChoices(changes, ACTIVE_COURTS)).toBeNull();
+  });
+
+  it('returns null when an option is not about courts', () => {
+    const changes = changesWith(
+      {},
+      choice(SearchFilterField.COURT_CODE, courtOptions(endedCodes(1))),
+      {
+        field: SearchFilterField.COURT_CODE,
+        text: 'Which place did you mean?',
+        options: [
+          {
+            field: SearchFilterField.COURT_CODE,
+            code: ENDED_COURT,
+            label: 'Synthetic Closed Court',
+          },
+          {
+            field: SearchFilterField.CJA_CODE,
+            code: 'CJ99',
+            label: 'Synthetic Area',
+          },
+        ],
+      },
+    );
+
+    expect(applyCourtChoices(changes, ACTIVE_COURTS)).toBeNull();
+  });
+
+  it('returns null when another choice is not about courts', () => {
+    const changes = changesWith(
+      {},
+      choice(SearchFilterField.COURT_CODE, courtOptions(endedCodes(2))),
+      choice(SearchFilterField.APPLICANT_ORGANISATION, [
+        { code: 'Synthetic Council', label: 'Synthetic Council' },
+      ]),
+    );
+
+    expect(applyCourtChoices(changes, ACTIVE_COURTS)).toBeNull();
+  });
+
+  it('returns null when an option has no code', () => {
+    const changes = changesWith(
+      {},
+      choice(SearchFilterField.COURT_CODE, [
+        { code: ENDED_COURT, label: 'Synthetic Closed Court' },
+        { code: '  ', label: 'Synthetic court with no code' },
+      ]),
+    );
+
+    expect(applyCourtChoices(changes, ACTIVE_COURTS)).toBeNull();
+  });
+
+  it('returns null when a choice has no options, or there are no choices', () => {
+    expect(
+      applyCourtChoices(
+        changesWith({}, choice(SearchFilterField.COURT_CODE, [])),
+        ACTIVE_COURTS,
+      ),
+    ).toBeNull();
+    expect(
+      applyCourtChoices(changesWith({ courtCode: ENDED_COURT }), ACTIVE_COURTS),
+    ).toBeNull();
+  });
+
+  it('lists each court searched, with its code when two courts share a label', () => {
+    const changes = changesWith(
+      {},
+      choice(SearchFilterField.COURT_CODE, [
+        { code: ENDED_COURT, label: 'Synthetic Closed Court' },
+        { code: OTHER_ENDED_COURT, label: 'Synthetic Closed Court' },
+        { code: 'ZZ902', label: 'Synthetic Old Court' },
+      ]),
+    );
+
+    const result = applyCourtChoices(changes, ACTIVE_COURTS);
+
+    expect(result?.changes.formValue.courtCodes).toEqual([
+      ENDED_COURT,
+      OTHER_ENDED_COURT,
+      'ZZ902',
+    ]);
+    expect(result?.matchedCourts).toEqual([
+      `${ENDED_COURT} - Synthetic Closed Court`,
+      `${OTHER_ENDED_COURT} - Synthetic Closed Court`,
+      'Synthetic Old Court',
+    ]);
+  });
+
+  it('lists a court offered in two choices once, whatever the case of its code', () => {
+    const changes = changesWith(
+      {},
+      choice(SearchFilterField.COURT_CODE, [
+        { code: ENDED_COURT, label: 'Synthetic Closed Court' },
+      ]),
+      choice(SearchFilterField.COURT_CODES, [
+        { code: ENDED_COURT.toLowerCase(), label: 'Synthetic Closed Court' },
+        { code: OTHER_ENDED_COURT, label: 'Synthetic Old Court' },
+      ]),
+    );
+
+    const result = applyCourtChoices(changes, ACTIVE_COURTS);
+
+    expect(result?.changes.formValue.courtCodes).toEqual([
+      ENDED_COURT,
+      OTHER_ENDED_COURT,
+    ]);
+    expect(result?.matchedCourts).toEqual([
+      'Synthetic Closed Court',
+      'Synthetic Old Court',
+    ]);
+  });
+
+  it('lists a court with no label by its code', () => {
+    const changes = changesWith(
+      {},
+      choice(SearchFilterField.COURT_CODE, [
+        { code: ENDED_COURT, label: '  ' },
+        { code: OTHER_ENDED_COURT, label: 'Synthetic Old Court' },
+      ]),
+    );
+
+    expect(applyCourtChoices(changes, ACTIVE_COURTS)?.matchedCourts).toEqual([
+      ENDED_COURT,
+      'Synthetic Old Court',
+    ]);
   });
 });
