@@ -411,9 +411,11 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
   }
 
-  // Entry and application code loading
+  /**
+   * Entry and application code loading
+   */
 
-  //Also loads entry result
+  // Also loads entry result
   private loadEntryAndPatchForm(
     listId: string,
     entryId: string,
@@ -665,43 +667,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     return true;
   }
 
-  // Applicant and wording
-
-  onStandardApplicantCodeChanged(code: string | null): void {
-    this.selectedStandardApplicantCode = code;
-    // In Update, no selection means no replacement of the persisted applicant.
-    const effectiveCode =
-      code ??
-      (this.applicantType === 'standard'
-        ? (this.entryDetail?.standardApplicantCode ?? null)
-        : null);
-    this.formSvc.setStandardApplicantCode(this.forms, effectiveCode, {
-      emitEvent: false,
-    });
-    if (
-      effectiveCode === this.entryDetail?.standardApplicantCode &&
-      !this.form.controls.standardApplicantId?.value
-    ) {
-      this.form.controls.standardApplicantId?.setValue(
-        this.entryDetail?.standardApplicantId ?? null,
-        { emitEvent: false },
-      );
-    }
-  }
-
-  onSelectedStandardApplicantSummaryChanged(
-    summary: SelectedStandardApplicantSummary | null,
-  ): void {
-    this.pendingStandardApplicantSummary = summary;
-    this.form.controls.standardApplicantId?.setValue(
-      summary?.standardApplicantId ??
-        (this.form.controls.standardApplicantCode.value ===
-        this.entryDetail?.standardApplicantCode
-          ? (this.entryDetail?.standardApplicantId ?? null)
-          : null),
-    );
-  }
-
   private loadSavedStandardApplicantName(id: number | null | undefined): void {
     if (!id) {
       this.savedStandardApplicantName = null;
@@ -741,6 +706,45 @@ export class ApplicationsListEntryDetail implements OnInit {
           });
         }
       });
+  }
+
+  /**
+   * Applicant and wording
+   */
+
+  onStandardApplicantCodeChanged(code: string | null): void {
+    this.selectedStandardApplicantCode = code;
+    // In Update, no selection means no replacement of the persisted applicant.
+    const effectiveCode =
+      code ??
+      (this.applicantType === 'standard'
+        ? (this.entryDetail?.standardApplicantCode ?? null)
+        : null);
+    this.formSvc.setStandardApplicantCode(this.forms, effectiveCode, {
+      emitEvent: false,
+    });
+    if (
+      effectiveCode === this.entryDetail?.standardApplicantCode &&
+      !this.form.controls.standardApplicantId?.value
+    ) {
+      this.form.controls.standardApplicantId?.setValue(
+        this.entryDetail?.standardApplicantId ?? null,
+        { emitEvent: false },
+      );
+    }
+  }
+
+  onSelectedStandardApplicantSummaryChanged(
+    summary: SelectedStandardApplicantSummary | null,
+  ): void {
+    this.pendingStandardApplicantSummary = summary;
+    this.form.controls.standardApplicantId?.setValue(
+      summary?.standardApplicantId ??
+        (this.form.controls.standardApplicantCode.value ===
+        this.entryDetail?.standardApplicantCode
+          ? (this.entryDetail?.standardApplicantId ?? null)
+          : null),
+    );
   }
 
   private saveStandardApplicantDetailsFromResponse(
@@ -835,7 +839,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     );
   }
 
-  // Results
+  /**
+   * Result code
+   */
 
   private handleResultWordingContext(
     state: EntryDetailNavState | null | undefined,
@@ -961,7 +967,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.resultAppliedBannerVisible.set(false);
   }
 
-  // Fees and partial saves
+  /**
+   * Fees and partial saves
+   */
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
     if (this.blockSaveWithoutApplicationCode()) {
@@ -1173,7 +1181,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.persistFeeStatuses(previousFeeStatuses, next, bannerText);
   }
 
-  // Full entry saves
+  /**
+   * Full entry saves
+   */
 
   onUpdateApplicant(): void {
     if (this.blockSaveWithoutApplicationCode()) {
@@ -1364,7 +1374,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.disableSaveCompleteAppBtn.set(disabled);
   }
 
-  // Validation, errors and section state
+  /**
+   * Validation, errors and section state
+   */
 
   private buildErrorSummary(): ErrorItem[] {
     return buildFormErrorSummary(this.form, UPDATE_ENTRY_ERROR_MESSAGES, {
@@ -1644,7 +1656,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
   }
 
-  // Navigation and draft snapshots
+  /**
+   * Navigation and draft snapshots
+   */
 
   canLeave(): boolean | Observable<boolean> {
     const destination = this.router
@@ -1798,7 +1812,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.formSvc.syncApplicantTypeState(this.forms, type);
   }
 
-  // Form accessors and DTO helpers
+  /**
+   * Form accessors and DTO helpers
+   */
 
   get respondentErrorItems(): ErrorItem[] {
     return this.childErrors.respondent;
