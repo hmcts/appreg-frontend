@@ -47,7 +47,8 @@ no registered sign-in callbacks and its Cypress tests cannot sign in.
 `codex-preview-redirects.yml` does their job for Codex PRs instead. Every five
 minutes, and when dispatched by hand, it runs from `master`, registers the
 login and logout callbacks for open Codex PRs and removes them once those PRs
-close. It never checks out or runs PR code.
+close. It checks out only `master`'s `.github/scripts`, which holds the update
+script all three workflows share, and never checks out or runs PR code.
 
 ## Restrict runner scheduling
 
