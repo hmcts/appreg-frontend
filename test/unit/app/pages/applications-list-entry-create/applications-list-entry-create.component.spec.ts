@@ -7,10 +7,7 @@ import { Observable, Subject, of } from 'rxjs';
 
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
-import {
-  compactStrings,
-  toOptionalTrimmed,
-} from '@components/applications-list-entry-create/util/helpers';
+import { toOptionalTrimmed } from '@components/applications-list-entry-create/util/helpers';
 import { CivilFeeSectionComponent } from '@components/civil-fee-section/civil-fee-section.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import {
@@ -670,12 +667,9 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(payload['accountNumber']).toBe('AC-999');
   });
 
-  it('helpers: toOptionalTrimmed and compactStrings', () => {
+  it('helpers: toOptionalTrimmed', () => {
     expect(toOptionalTrimmed('  x  ')).toBe('x');
     expect(toOptionalTrimmed('   ')).toBeUndefined();
-
-    const compact = compactStrings(['  a', ' ', null, undefined, 'b  ']);
-    expect(compact).toEqual(['a', 'b']);
   });
 });
 

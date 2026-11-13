@@ -2,19 +2,20 @@
   Main component for /applications-list/:listId/entries/:entryId
   Functionality:
     On load:
-      - Reads list and entry IDs from the route/query params
-      - Fetches the entry details and initial application code metadata
-      - Builds and hydrates the entry detail form (codes, applicant, respondent, wording, fees, notes, officials)
+      - Reads list and entry IDs from the route and navigation state
+      - Loads the entry, saved code by ID, and saved standard applicant through the load facade
+      - Hydrates the form, restores a navigation draft, and loads entry results
     Application code section:
       - Searches application codes and maps results into the sortable table
-      - Updates the entry with the selected application code via full PUT and refreshes wording metadata
+      - Updates the selected code and its metadata; full saves persist entry changes
     Applicant section:
       - Supports Standard Applicant, Person and Organisation applicant types
-      - Validates applicant fields per type and updates only the applicant-related part of the entry using a full PUT
-      - Validation should be mostly handled via Angular form validation, with some custom validation logic for complex rules
+      - Validates applicant fields and uses the form service to build full entry updates
+    Fee section:
+      - Persists fee statuses and offsite fee changes through partial saves
     Error and UX handling:
-      - Maps HTTP errors into GOV.UK-style error summary and hint state
-      - Manages success banners and scroll/focus behaviour for validation and server errors
+      - Maps validation and server errors into the error summary and hint state
+      - Manages success banners, focus, accordion state, and navigation draft warnings
 */
 import { Location, isPlatformBrowser } from '@angular/common';
 import {
@@ -33,13 +34,13 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Observable, map } from 'rxjs';
 
+import { EntryDetailFeeSaveFacade } from './entry-detail-fee-save.facade';
 import { EntryDetailLoadFacade } from './entry-detail-load.facade';
 import {
   ApplicationsListEntryDetailState,
   initialApplicationsListEntryDetailState,
 } from './util/applications-list-entry-detail.state';
 import { focusLocalBanner, focusSuccessBanner } from './util/banners.util';
-import { buildEntryUpdateDtoForFeeChange } from './util/entry-detail.form';
 import { codeFeeMeta } from './util/entry-load-fee-meta';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { buildResultApplicantContext } from './util/result-context.util';
@@ -111,7 +112,6 @@ import {
   FeeStatus,
   PaymentStatus,
   StandardApplicantGetDetailDto,
-  StandardApplicantsApi,
   TemplateDetail,
   TemplateSubstitution,
   UpdateApplicationListEntryRequestParams,
@@ -168,7 +168,11 @@ export const ERROR_HREFS = {
 @Component({
   selector: 'app-applications-list-entry-detail',
   standalone: true,
-  providers: [ApplicationListEntryResultsFacade, EntryDetailLoadFacade],
+  providers: [
+    ApplicationListEntryResultsFacade,
+    EntryDetailLoadFacade,
+    EntryDetailFeeSaveFacade,
+  ],
   imports: [
     ReactiveFormsModule,
     RouterModule,
@@ -214,7 +218,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly location = inject(Location);
   private readonly applicationCodesApi = inject(ApplicationCodesApi);
   private readonly loadFacade = inject(EntryDetailLoadFacade);
-  private readonly standardApplicantsApi = inject(StandardApplicantsApi);
+  private readonly feeSaveFacade = inject(EntryDetailFeeSaveFacade);
 
   //Utilising facade for entry results to keep component clean
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
@@ -1025,57 +1029,48 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     if (this.runWordingValidationForPartialSave()) {
-      this.form.controls.feeStatuses.setValue(previousFeeStatuses, {
-        emitEvent: false,
-      });
-      this.form.controls.feeStatuses.markAsPristine();
+      this.feeSaveFacade.rollbackFeeStatuses(
+        this.form.controls.feeStatuses,
+        previousFeeStatuses,
+      );
       return;
     }
 
-    const entryUpdateDto = buildEntryUpdateDtoForFeeChange(
+    const { entryUpdateDto, response } = this.feeSaveFacade.save(
+      this.appListEntryDetailState().appListId,
+      entryId,
       this.entryDetail,
-      this.form.getRawValue(),
+      this.form,
       'feeStatuses',
       feeStatuses,
     );
 
-    const params: UpdateApplicationListEntryRequestParams = {
-      listId: this.appListEntryDetailState().appListId,
-      entryId,
-      entryUpdateDto,
-    };
+    response.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (res) => {
+        this.mergeEntryDetailUpdate(entryUpdateDto, res);
 
-    this.entriesApi
-      .updateApplicationListEntry(params, 'body', false, {
-        transferCache: false,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          this.mergeEntryDetailUpdate(entryUpdateDto, res);
+        this.form.controls.feeStatuses.markAsPristine();
 
-          this.form.controls.feeStatuses.markAsPristine();
+        if (this.savedContent) {
+          this.savedContent.form.feeStatuses = structuredClone(
+            this.form.controls.feeStatuses.getRawValue(),
+          );
+        }
 
-          if (this.savedContent) {
-            this.savedContent.form.feeStatuses = structuredClone(
-              this.form.controls.feeStatuses.getRawValue(),
-            );
-          }
+        this.appListEntryDetailPatch({
+          successBanner: bannerText,
+        });
+        focusSuccessBanner(this.platformId);
+      },
+      error: (err) => {
+        this.form.controls.feeStatuses.setValue(previousFeeStatuses, {
+          emitEvent: false,
+        });
+        this.form.controls.feeStatuses.markAsPristine();
 
-          this.appListEntryDetailPatch({
-            successBanner: bannerText,
-          });
-          focusSuccessBanner(this.platformId);
-        },
-        error: (err) => {
-          this.form.controls.feeStatuses.setValue(previousFeeStatuses, {
-            emitEvent: false,
-          });
-          this.form.controls.feeStatuses.markAsPristine();
-
-          this.applyMappedError(err);
-        },
-      });
+        this.applyMappedError(err);
+      },
+    });
   }
 
   private persistHasOffsiteFee(nextValue: boolean, prevValue: boolean): void {
@@ -1086,79 +1081,54 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     if (this.runWordingValidationForPartialSave()) {
-      this.form.controls.hasOffsiteFee.setValue(prevValue, {
-        emitEvent: false,
-      });
-      this.form.controls.hasOffsiteFee.markAsPristine();
+      this.feeSaveFacade.rollbackOffsiteFee(
+        this.form.controls.hasOffsiteFee,
+        prevValue,
+      );
       return;
     }
 
-    const entryUpdateDto = buildEntryUpdateDtoForFeeChange(
+    const { entryUpdateDto, response } = this.feeSaveFacade.save(
+      this.appListEntryDetailState().appListId,
+      entryId,
       this.entryDetail,
-      this.form.getRawValue(),
+      this.form,
       'hasOffsiteFee',
       nextValue,
     );
 
-    const params: UpdateApplicationListEntryRequestParams = {
-      listId: this.appListEntryDetailState().appListId,
-      entryId,
-      entryUpdateDto,
-    };
+    response.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (res) => {
+        this.mergeEntryDetailUpdate(entryUpdateDto, res);
+        this.persistedHasOffsiteFee = nextValue;
+        this.feeMeta = this.feeSaveFacade.offsiteFeeMeta(
+          this.feeMeta,
+          this.entryDetail,
+          this.appListEntryDetailState().appCodeDetail,
+          nextValue,
+        );
+        if (this.savedContent) {
+          this.savedContent.form.hasOffsiteFee = nextValue;
+        }
+        this.form.controls.hasOffsiteFee.markAsPristine();
 
-    this.entriesApi
-      .updateApplicationListEntry(params, 'body', false, {
-        transferCache: false,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          this.mergeEntryDetailUpdate(entryUpdateDto, res);
-          this.persistedHasOffsiteFee = nextValue;
-          const offsiteFee = this.entryDetail?.fees?.find(
-            (fee) => fee.offsite === true,
-          );
-          const codeDetail = this.appListEntryDetailState().appCodeDetail;
-          this.feeMeta = {
-            ...this.feeMeta,
-            offsiteFeeReference: nextValue
-              ? (offsiteFee?.reference ??
-                codeDetail?.offsiteFeeReference ??
-                null)
-              : null,
-            offsiteFeeDescription: nextValue
-              ? (offsiteFee?.description ??
-                codeDetail?.offsiteFeeDescription ??
-                null)
-              : null,
-            offsiteFeeAmount: nextValue
-              ? typeof offsiteFee?.value === 'number'
-                ? { value: offsiteFee.value * 100, currency: 'GBP' }
-                : (codeDetail?.offsiteFeeAmount ?? null)
-              : null,
-          };
-          if (this.savedContent) {
-            this.savedContent.form.hasOffsiteFee = nextValue;
-          }
-          this.form.controls.hasOffsiteFee.markAsPristine();
+        this.appListEntryDetailPatch({
+          successBanner: nextValue
+            ? ENTRY_SUCCESS_MESSAGES.offSiteFeeApplied
+            : ENTRY_SUCCESS_MESSAGES.offSiteFeeRemoved,
+        });
+        focusSuccessBanner(this.platformId);
+      },
+      error: (err) => {
+        // rollback UI state
+        this.form.controls.hasOffsiteFee.setValue(prevValue, {
+          emitEvent: false,
+        });
+        this.form.controls.hasOffsiteFee.markAsPristine();
 
-          this.appListEntryDetailPatch({
-            successBanner: nextValue
-              ? ENTRY_SUCCESS_MESSAGES.offSiteFeeApplied
-              : ENTRY_SUCCESS_MESSAGES.offSiteFeeRemoved,
-          });
-          focusSuccessBanner(this.platformId);
-        },
-        error: (err) => {
-          // rollback UI state
-          this.form.controls.hasOffsiteFee.setValue(prevValue, {
-            emitEvent: false,
-          });
-          this.form.controls.hasOffsiteFee.markAsPristine();
-
-          this.applyMappedError(err);
-        },
-      });
+        this.applyMappedError(err);
+      },
+    });
   }
 
   // Used to update payment reference for current fee status from /change-payment-reference
