@@ -1,9 +1,21 @@
-import { type Server, createServer, request as httpRequest } from 'node:http';
+import {
+  type ClientRequest,
+  type IncomingMessage,
+  type Server,
+  createServer,
+  request as httpRequest,
+} from 'node:http';
 import type { AddressInfo } from 'node:net';
+import { format } from 'node:util';
 
-import express from 'express';
+import type { TelemetryClient } from 'applicationinsights';
+import express, { type RequestHandler } from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import request from 'supertest';
+
+import { createAuthenticatedApiProxyHandler } from '../../server/middleware/authenticated-api-proxy';
+import { HmctsLoggerBridge } from '../../server/modules/logger';
+import { toProxyForwardingLogMessage } from '../../server/utils/proxy-forwarding-log-message';
 
 describe('HTTP proxy compatibility', () => {
   let upstream: Server;
@@ -204,4 +216,243 @@ describe('HTTP proxy compatibility', () => {
       await close(frontend);
     }
   });
+});
+
+describe('API proxy logging of AI free text', () => {
+  // Synthetic stand-ins for the free text people type into the AI features. The
+  // first and last words are unique markers that survive every encoding a leak
+  // could use (raw, percent-encoded, form-encoded or JSON-escaped).
+  const aiRequests = [
+    {
+      field: 'question',
+      path: '/application-list-entries/search-interpretations',
+      text: 'qmark7f3c9a entries for a fictional applicant last week qmark7f3c9z',
+      body: (text: string) => ({ question: text }),
+    },
+    {
+      field: 'description',
+      path: '/application-codes/suggestions',
+      text: 'dmark4b8e21 a fictional licence application dmark4b8e2z',
+      body: (text: string) => ({
+        description: text,
+        lodgementDate: '2026-01-05',
+      }),
+    },
+  ];
+  // Statuses the API documents for both AI POSTs, plus success.
+  const apiStatuses = [200, 400, 401, 403, 422, 429, 500, 503, 504];
+  const statusCases = aiRequests.flatMap((aiRequest) =>
+    apiStatuses.map(
+      (status) => [aiRequest.field, aiRequest.path, status, aiRequest] as const,
+    ),
+  );
+  const apiToken = 'synthetic-api-token';
+
+  // The bridge wraps the named HMCTS logger once, so one client records every
+  // trace the proxy log line sends to App Insights.
+  const telemetryClient = { trackException: jest.fn(), trackTrace: jest.fn() };
+  const logger = HmctsLoggerBridge.enable(
+    'hmcts applications register - server',
+    telemetryClient as unknown as TelemetryClient,
+  );
+
+  let upstream: Server;
+  let target: string;
+  let upstreamStatus: number;
+  let received: { url?: string; authorization?: string; body: string }[];
+  let output: string[];
+  let outputSpies: jest.SpyInstance[];
+
+  function markersOf(text: string): string[] {
+    const words = text.split(' ');
+    return [words[0], words[words.length - 1]];
+  }
+
+  function expectFreeTextAbsent(captured: unknown, text: string): void {
+    const serialised = JSON.stringify(captured);
+
+    for (const marker of markersOf(text)) {
+      expect(serialised).not.toContain(marker);
+    }
+  }
+
+  // Everything the server could log: the HMCTS logger writes to stdout and
+  // stderr, and anything else may use the console.
+  function captureOutput(): void {
+    output = [];
+    outputSpies = [
+      ...[process.stdout, process.stderr].map((stream) =>
+        jest
+          .spyOn(stream, 'write')
+          .mockImplementation((chunk: string | Uint8Array) => {
+            output.push(String(chunk));
+            return true;
+          }),
+      ),
+      ...(['debug', 'error', 'info', 'log', 'warn'] as const).map((method) =>
+        jest.spyOn(console, method).mockImplementation((...args: unknown[]) => {
+          output.push(format(...args));
+        }),
+      ),
+    ];
+  }
+
+  function captured(responseText: string): unknown {
+    return {
+      output,
+      response: responseText,
+      trackException: telemetryClient.trackException.mock.calls,
+      trackTrace: telemetryClient.trackTrace.mock.calls,
+    };
+  }
+
+  // Mirrors the API proxy in server/server.ts: the same token handler, request
+  // hook and log line, with no proxy logger (so the middleware's own is a no-op).
+  function apiProxyApp(): express.Express {
+    const apiProxy: RequestHandler = createProxyMiddleware({
+      target,
+      changeOrigin: true,
+      xfwd: true,
+      secure: false,
+      on: {
+        proxyReq: (
+          proxyReq: ClientRequest,
+          req: IncomingMessage & { apiAccessToken?: string | null },
+        ) => {
+          const token = req.apiAccessToken ?? null;
+          logger.info(toProxyForwardingLogMessage(req.url, Boolean(token)));
+          if (token) {
+            proxyReq.setHeader('authorization', `Bearer ${token}`);
+          }
+        },
+      },
+    });
+    const app = express();
+    app.use(
+      createAuthenticatedApiProxyHandler(
+        () => Promise.resolve(apiToken),
+        apiProxy,
+      ),
+    );
+    return app;
+  }
+
+  function postAiRequest(url: string, body: object) {
+    return request(apiProxyApp())
+      .post(url)
+      .set(
+        'Accept',
+        'application/vnd.hmcts.appreg.v1+json, application/problem+json',
+      )
+      .set('Content-Type', 'application/vnd.hmcts.appreg.v1+json')
+      .send(JSON.stringify(body));
+  }
+
+  beforeEach(async () => {
+    upstreamStatus = 200;
+    received = [];
+    upstream = createServer((req, res) => {
+      const chunks: Buffer[] = [];
+      req.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+      req.on('end', () => {
+        received.push({
+          url: req.url,
+          authorization: req.headers.authorization,
+          body: Buffer.concat(chunks).toString(),
+        });
+        const failed = upstreamStatus >= 400;
+        res.writeHead(upstreamStatus, {
+          'content-type': failed
+            ? 'application/problem+json'
+            : 'application/vnd.hmcts.appreg.v1+json',
+        });
+        res.end(
+          JSON.stringify(
+            failed
+              ? { type: 'about:blank', status: upstreamStatus, detail: 'Error' }
+              : { notices: [] },
+          ),
+        );
+      });
+    });
+    await new Promise<void>((resolve) =>
+      upstream.listen(0, '127.0.0.1', resolve),
+    );
+    target = `http://127.0.0.1:${(upstream.address() as AddressInfo).port}`;
+    captureOutput();
+  });
+
+  afterEach(async () => {
+    for (const spy of outputSpies) {
+      spy.mockRestore();
+    }
+    if (upstream.listening) {
+      upstream.closeAllConnections();
+      await new Promise<void>((resolve) => upstream.close(() => resolve()));
+    }
+  });
+
+  it.each(statusCases)(
+    'keeps the %s out of the proxy log and its App Insights traces when POST %s gets %i',
+    async (_field, path, status, aiRequest) => {
+      upstreamStatus = status;
+      const body = aiRequest.body(aiRequest.text);
+
+      const response = await postAiRequest(path, body);
+
+      expect(response.status).toBe(status);
+      // The free text reached the API in the body, so the proxy handled it.
+      expect(received).toEqual([
+        {
+          url: path,
+          authorization: `Bearer ${apiToken}`,
+          body: JSON.stringify(body),
+        },
+      ]);
+      // The proxy logged the request and sent the line to App Insights.
+      const forwarding = `[proxy] forwarding ${path} tokenPresent=true`;
+      expect(output.join('')).toContain(forwarding);
+      expect(telemetryClient.trackTrace).toHaveBeenCalledWith({
+        message: forwarding,
+        severity: 'Information',
+      });
+      expectFreeTextAbsent(captured(response.text), aiRequest.text);
+    },
+  );
+
+  it.each(aiRequests)(
+    'keeps the $field out of the proxy log when the API cannot be reached',
+    async ({ path, text, body }) => {
+      upstream.closeAllConnections();
+      await new Promise<void>((resolve) => upstream.close(() => resolve()));
+
+      const response = await postAiRequest(path, body(text));
+
+      expect(response.status).toBe(504);
+      expect(output.join('')).toContain(
+        `[proxy] forwarding ${path} tokenPresent=true`,
+      );
+      expectFreeTextAbsent(captured(response.text), text);
+    },
+  );
+
+  it.each(aiRequests)(
+    'logs only the path when the $field reaches the query string',
+    async ({ field, path, text, body }) => {
+      const url = `${path}?${field}=${encodeURIComponent(text)}`;
+
+      const response = await postAiRequest(url, body(text));
+
+      expect(response.status).toBe(200);
+      // The query still reaches the API; only the log copy is cut.
+      expect(received[0].url).toBe(url);
+      const forwarding = `[proxy] forwarding ${path} tokenPresent=true`;
+      expect(output.join('')).toContain(forwarding);
+      expect(telemetryClient.trackTrace).toHaveBeenCalledWith({
+        message: forwarding,
+        severity: 'Information',
+      });
+      expectFreeTextAbsent(captured(response.text), text);
+    },
+  );
 });

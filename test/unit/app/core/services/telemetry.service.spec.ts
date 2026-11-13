@@ -52,6 +52,55 @@ const {
   },
 } = mockAppInsightsModule;
 
+type TelemetryItemLike = {
+  tags?: Record<string, string>;
+  baseType?: string;
+  baseData?: Record<string, unknown>;
+};
+
+// Synthetic stand-ins for the free text people type into the AI features. The
+// first and last words are unique markers that survive every encoding a leak
+// could use (raw, percent-encoded, form-encoded or JSON-escaped).
+const AI_FREE_TEXT = [
+  {
+    field: 'question',
+    path: '/application-list-entries/search-interpretations',
+    text: 'qmark7f3c9a entries for a fictional applicant last week qmark7f3c9z',
+  },
+  {
+    field: 'description',
+    path: '/application-codes/suggestions',
+    text: 'dmark4b8e21 a fictional licence application dmark4b8e2z',
+  },
+];
+
+function markersOf(text: string): string[] {
+  const words = text.split(' ');
+  return [words[0], words[words.length - 1]];
+}
+
+function serialise(value: unknown): string {
+  return JSON.stringify(value, (_key, item: unknown) =>
+    item instanceof Error
+      ? { name: item.name, message: item.message, stack: item.stack }
+      : item,
+  );
+}
+
+function expectFreeTextAbsent(captured: unknown, text: string): void {
+  const serialised = serialise(captured);
+
+  for (const marker of markersOf(text)) {
+    expect(serialised).not.toContain(marker);
+  }
+}
+
+function telemetryInitializer(): (item: TelemetryItemLike) => void {
+  return addTelemetryInitializer.mock.calls[0][0] as (
+    item: TelemetryItemLike,
+  ) => void;
+}
+
 describe('TelemetryService', () => {
   let routerEvents: Subject<unknown>;
   let router: {
@@ -251,5 +300,142 @@ describe('TelemetryService', () => {
     expect(applicationInsightsCtor).not.toHaveBeenCalled();
     expect(trackException).not.toHaveBeenCalled();
     expect(trackTrace).not.toHaveBeenCalled();
+  });
+
+  describe('AI free text', () => {
+    it('keeps error-body and header capture off so AI request and error bodies are never collected', () => {
+      service.initialize();
+
+      const [{ config }] = applicationInsightsCtor.mock.calls[0] as [
+        { config: Record<string, unknown> },
+      ];
+
+      // With these off, the SDK records an AI call's method, URL, status and
+      // timing, but never its request body, headers or error response body.
+      expect({
+        addRequestContext: config['addRequestContext'],
+        enableAjaxErrorStatusText: config['enableAjaxErrorStatusText'] ?? false,
+        enableRequestHeaderTracking:
+          config['enableRequestHeaderTracking'] ?? false,
+        enableResponseHeaderTracking:
+          config['enableResponseHeaderTracking'] ?? false,
+      }).toEqual({
+        addRequestContext: undefined,
+        enableAjaxErrorStatusText: false,
+        enableRequestHeaderTracking: false,
+        enableResponseHeaderTracking: false,
+      });
+    });
+
+    it.each(AI_FREE_TEXT)(
+      'strips the $field from $path dependency telemetry when it reaches the URL',
+      ({ field, path, text }) => {
+        service.initialize();
+
+        const url = `https://appreg.example.test${path}?${field}=${encodeURIComponent(text)}`;
+        // Shaped as @microsoft/applicationinsights-dependencies-js 3.x builds a
+        // failed XHR dependency (ajaxRecord.CreateTrackItem inside
+        // createTelemetryItem) with the capture options above left off.
+        const item = {
+          tags: {} as Record<string, string>,
+          baseType: 'RemoteDependencyData',
+          baseData: {
+            id: '|0123456789abcdef0123456789abcdef.0123456789abcdef',
+            target: url,
+            name: `POST ${url}`,
+            type: 'Ajax',
+            duration: 120,
+            success: false,
+            responseCode: 422,
+            properties: { HttpMethod: 'POST' },
+          } as Record<string, unknown>,
+        };
+        expect(serialise(item)).toContain(markersOf(text)[0]);
+
+        telemetryInitializer()(item);
+
+        expect(item.baseData).toEqual(
+          expect.objectContaining({
+            name: `POST ${path}`,
+            target: path,
+            responseCode: 422,
+            properties: { HttpMethod: 'POST' },
+          }),
+        );
+        expectFreeTextAbsent(item, text);
+      },
+    );
+
+    it.each(AI_FREE_TEXT)(
+      'keeps the $field out of page views and operation names when the page URL carries it',
+      ({ field, text }) => {
+        const query = `?${field}=${encodeURIComponent(text)}`;
+        router.url = `/applications${query}`;
+
+        service.initialize();
+        routerEvents.next(
+          new NavigationEnd(
+            2,
+            `/applications${query}`,
+            `/applications${query}#${encodeURIComponent(text)}`,
+          ),
+        );
+        const item: TelemetryItemLike = {
+          tags: {},
+          baseType: 'PageviewData',
+          baseData: { name: '/applications' },
+        };
+        telemetryInitializer()(item);
+
+        expect(trackPageView).toHaveBeenCalledTimes(2);
+        expect(trackPageView).toHaveBeenLastCalledWith({
+          name: '/applications',
+          uri: '/applications',
+          properties: { route: '/applications' },
+        });
+        expect(item.tags?.['ai.operation.name']).toBe('/applications');
+        expectFreeTextAbsent(
+          [trackPageView.mock.calls, traceContext.setName.mock.calls, item],
+          text,
+        );
+      },
+    );
+
+    it.each(AI_FREE_TEXT)(
+      'keeps the $field out of exception and trace routes when a URL carries it',
+      ({ field, path, text }) => {
+        const query = `?${field}=${encodeURIComponent(text)}`;
+        router.url = `/applications${query}`;
+
+        service.initialize();
+        service.logException(
+          new Error(`HTTP POST ${path} failed with 422 Unprocessable Content`),
+          { route: `${path}${query}`, statusCode: 422 },
+        );
+        service.logException(new Error('Unexpected browser error'));
+        service.logTrace('Frontend asset load error recovery', {
+          attemptsInWindow: 1,
+        });
+
+        expect(trackException).toHaveBeenNthCalledWith(
+          1,
+          expect.anything(),
+          expect.objectContaining({ route: path, statusCode: '422' }),
+        );
+        expect(trackException).toHaveBeenNthCalledWith(
+          2,
+          expect.anything(),
+          expect.objectContaining({ route: '/applications' }),
+        );
+        expect(trackTrace).toHaveBeenCalledWith(
+          { message: 'Frontend asset load error recovery' },
+          expect.objectContaining({ route: '/applications' }),
+        );
+        expectFreeTextAbsent(
+          [trackException.mock.calls, trackTrace.mock.calls],
+          text,
+        );
+      },
+    );
   });
 });
