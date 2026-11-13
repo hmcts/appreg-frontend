@@ -9,6 +9,13 @@ export const STANDARD_APPLICANT_CODE_REGEX: RegExp = /^[a-zA-Z0-9+\-._ ]*$/;
 
 export const APPLICATION_CODE_REGEX: RegExp = /^[a-zA-Z0-9]*$/;
 
+// A complete application code (aligned with BE searchedApplicationCode):
+// 1 to 10 letters and digits.
+export const SEARCHED_APPLICATION_CODE_REGEX: RegExp = /^[A-Za-z0-9]{1,10}$/;
+
+// A date as the date input reports it: yyyy-MM-dd.
+export const ISO_DATE_REGEX: RegExp = /^\d{4}-\d{2}-\d{2}$/;
+
 export const APPLICATION_TITLE_REGEX: RegExp =
   /^[a-zA-Z0-9\-+.,£@?'()/%_ &!:]*$/;
 

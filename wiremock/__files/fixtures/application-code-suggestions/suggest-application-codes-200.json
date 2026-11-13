@@ -1,0 +1,64 @@
+{
+  "suggestionId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "suggestions": [
+    {
+      "rank": 1,
+      "reason": "Matches 'stolen goods' in the title",
+      "activeOnLodgementDate": true,
+      "applicationCode": {
+        "applicationCodeId": 99001,
+        "applicationCode": "AP99001",
+        "title": "Synthetic warrant to enter premises to search for stolen goods",
+        "wording": {
+          "template": "Attends to apply for a synthetic warrant to search {TEXT|Premises|100}"
+        },
+        "isFeeDue": true,
+        "requiresRespondent": false,
+        "bulkRespondentAllowed": false,
+        "feeReference": "SYN1",
+        "feeAmount": { "value": 1000, "currency": "GBP" },
+        "feeDescription": "Synthetic warrant fee"
+      }
+    },
+    {
+      "rank": 2,
+      "reason": "Matches 'warrant to enter' in the title",
+      "activeOnLodgementDate": false,
+      "applicationCode": {
+        "applicationCodeId": 99002,
+        "applicationCode": "AP99002",
+        "title": "Synthetic warrant to enter premises",
+        "wording": {
+          "template": "Attends to apply for a synthetic warrant to enter {TEXT|Premises|100}"
+        },
+        "isFeeDue": false,
+        "requiresRespondent": false,
+        "bulkRespondentAllowed": false,
+        "feeReference": null,
+        "feeAmount": null,
+        "feeDescription": null
+      }
+    },
+    {
+      "rank": 3,
+      "reason": "Matches 'search' in the legislation",
+      "activeOnLodgementDate": true,
+      "applicationCode": {
+        "applicationCodeId": 99003,
+        "applicationCode": "AP99003",
+        "title": "Synthetic application to search premises",
+        "wording": {
+          "template": "Attends to apply to search {TEXT|Premises|100}"
+        },
+        "isFeeDue": false,
+        "requiresRespondent": true,
+        "bulkRespondentAllowed": false,
+        "feeReference": null,
+        "feeAmount": null,
+        "feeDescription": null
+      }
+    }
+  ],
+  "needsMoreDetail": false,
+  "notices": ["CODES_NOT_ACTIVE_ON_LODGEMENT_DATE"]
+}

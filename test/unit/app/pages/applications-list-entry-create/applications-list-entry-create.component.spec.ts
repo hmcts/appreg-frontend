@@ -1,10 +1,15 @@
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { Observable, Subject, of } from 'rxjs';
 
+import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
 import {
@@ -22,6 +27,7 @@ import {
   EntryCreateDto,
   FeeStatus,
 } from '@openapi';
+import { AiCapabilitiesFacade } from '@services/ai-capabilities.facade';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { AddFeeDetailsPayload } from '@shared-types/civil-fee/civil-fee';
 
@@ -1754,5 +1760,218 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
     expect(document.activeElement).toBe(
       summary.querySelector('.govuk-error-summary'),
     );
+  });
+});
+
+describe('ApplicationsListEntryCreate (code suggestions)', () => {
+  const routeStub = {
+    provide: ActivatedRoute,
+    useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+  };
+
+  function codeSearch(
+    fixture: ComponentFixture<ApplicationsListEntryCreate>,
+  ): ApplicationCodeSearchComponent {
+    return fixture.debugElement.query(
+      By.directive(ApplicationCodeSearchComponent),
+    ).componentInstance as ApplicationCodeSearchComponent;
+  }
+
+  function descriptionField(
+    fixture: ComponentFixture<ApplicationsListEntryCreate>,
+  ): HTMLTextAreaElement | null {
+    return (fixture.nativeElement as HTMLElement).querySelector(
+      '#code-suggestion-description',
+    );
+  }
+
+  it('refreshes the AI capabilities once when the page opens', async () => {
+    const refresh = jest.fn();
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: AiCapabilitiesFacade,
+          useValue: { codeSuggestionsEnabled: signal(false), refresh },
+        },
+        routeStub,
+      ],
+    })
+      .overrideTemplate(ApplicationsListEntryCreate, '')
+      .compileComponents();
+    const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+
+    expect(refresh).not.toHaveBeenCalled();
+    fixture.detectChanges();
+
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers code suggestions in the code search only while the user has the capability', async () => {
+    const codeSuggestionsEnabled = signal(false);
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: AiCapabilitiesFacade,
+          useValue: { codeSuggestionsEnabled, refresh: jest.fn() },
+        },
+        routeStub,
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    fixture.detectChanges();
+
+    expect(codeSearch(fixture).enableSuggestions()).toBe(false);
+    expect(descriptionField(fixture)).toBeNull();
+
+    codeSuggestionsEnabled.set(true);
+    fixture.detectChanges();
+
+    expect(codeSearch(fixture).enableSuggestions()).toBe(true);
+    expect(descriptionField(fixture)).not.toBeNull();
+
+    codeSuggestionsEnabled.set(false);
+    fixture.detectChanges();
+
+    expect(codeSearch(fixture).enableSuggestions()).toBe(false);
+    expect(descriptionField(fixture)).toBeNull();
+  });
+
+  it.each([
+    ['the user has the capability', 200, true],
+    ['the capabilities request fails', 503, false],
+  ])(
+    'shows the description field from GET /ai/capabilities when %s',
+    async (_label, status, shown) => {
+      await TestBed.configureTestingModule({
+        imports: [ApplicationsListEntryCreate],
+        providers: [
+          provideRouter([]),
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          routeStub,
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+      fixture.detectChanges();
+      TestBed.tick();
+
+      const req = TestBed.inject(HttpTestingController).expectOne((request) =>
+        request.url.endsWith('/ai/capabilities'),
+      );
+      if (status === 200) {
+        req.flush({ searchInterpretation: false, codeSuggestions: true });
+      } else {
+        req.flush(
+          { title: 'Synthetic problem' },
+          { status, statusText: 'Synthetic status' },
+        );
+      }
+      fixture.detectChanges();
+
+      expect(descriptionField(fixture) !== null).toBe(shown);
+    },
+  );
+
+  it('keeps the description out of the entry and the payment reference snapshot', async () => {
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: AiCapabilitiesFacade,
+          useValue: {
+            codeSuggestionsEnabled: signal(true),
+            refresh: jest.fn(),
+          },
+        },
+        routeStub,
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const description = 'Synthetic description of an application';
+
+    const field = descriptionField(fixture)!;
+    field.value = description;
+    field.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const component = fixture.componentInstance;
+    expect(codeSearch(fixture).descriptionControl.value).toBe(description);
+    expect(JSON.stringify(component.form.getRawValue())).not.toContain(
+      description,
+    );
+    expect(
+      JSON.stringify(component.buildChangePaymentReferenceState()),
+    ).not.toContain(description);
+    expect(component.hasUnchangedContent()).toBe(true);
+  });
+
+  it('keeps the description error and the error summary in step when the entry is submitted again', async () => {
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: AiCapabilitiesFacade,
+          useValue: {
+            codeSuggestionsEnabled: signal(true),
+            refresh: jest.fn(),
+          },
+        },
+        routeStub,
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const host = fixture.nativeElement as HTMLElement;
+    const summaryIds = () =>
+      component.vm().summaryErrors.map((error) => error.id);
+    const descriptionErrorShown = () =>
+      host.querySelector('#code-suggestion-description-error') !== null;
+
+    component.onSubmit(new Event('submit'));
+    fixture.detectChanges();
+    expect(component.vm().errorFound).toBe(true);
+    expect(summaryIds()).not.toContain('codeSuggestionDescription');
+
+    Array.from(host.querySelectorAll('button'))
+      .find((button) => button.textContent?.trim() === 'Suggest codes')!
+      .click();
+    fixture.detectChanges();
+
+    expect(descriptionErrorShown()).toBe(true);
+    expect(descriptionField(fixture)!.getAttribute('aria-invalid')).toBe(
+      'true',
+    );
+    expect(summaryIds()).toContain('codeSuggestionDescription');
+
+    component.onSubmit(new Event('submit'));
+    fixture.detectChanges();
+
+    expect(component.vm().submitted).toBe(true);
+    expect(codeSearch(fixture).descriptionError()).toBeNull();
+    expect(descriptionErrorShown()).toBe(false);
+    expect(descriptionField(fixture)!.getAttribute('aria-invalid')).not.toBe(
+      'true',
+    );
+    expect(summaryIds()).not.toContain('codeSuggestionDescription');
+    expect(component.vm().errorFound).toBe(true);
   });
 });

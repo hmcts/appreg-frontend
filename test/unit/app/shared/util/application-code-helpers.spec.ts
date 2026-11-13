@@ -3,16 +3,19 @@ import { firstValueFrom, of } from 'rxjs';
 import type {
   ApplicationCodeGetDetailDto,
   ApplicationCodePage,
+  ApplicationCodeSuggestionDto,
   ApplicationCodesApi,
   GetApplicationCodesRequestParams,
 } from '@openapi';
 import {
   CodeRow,
   CodeRowsResult,
+  CodeSuggestionRow,
   fetchCodeDetail$,
   fetchCodeRows$,
   fetchCodesPage$,
   mapCodeRows,
+  mapCodeSuggestionRows,
   requiresAccountReference,
   titleFromDetail,
   wordingFromDetail,
@@ -197,6 +200,93 @@ describe('application-code-helpers', () => {
     it('returns empty array when page content missing', () => {
       expect(mapCodeRows({} as unknown as ApplicationCodePage)).toEqual([]);
       expect(mapCodeRows(null as unknown as ApplicationCodePage)).toEqual([]);
+    });
+  });
+
+  describe('mapCodeSuggestionRows', () => {
+    const suggestion = (
+      rank: number,
+      activeOnLodgementDate: boolean | null,
+      isFeeDue: boolean,
+    ): ApplicationCodeSuggestionDto => ({
+      rank,
+      reason: `Matches 'synthetic ${rank}' in the title`,
+      activeOnLodgementDate,
+      applicationCode: {
+        applicationCodeId: 99000 + rank,
+        applicationCode: `AP9900${rank}`,
+        title: `Synthetic code title ${rank}`,
+        wording: { template: 'Synthetic wording' },
+        isFeeDue,
+        requiresRespondent: false,
+        bulkRespondentAllowed: rank === 1,
+        feeReference: isFeeDue ? 'SYN1' : null,
+        feeAmount: isFeeDue ? { value: 1000 } : null,
+      },
+    });
+
+    it('maps suggestions to rows best match first, flagging only codes not active on the lodgement date', () => {
+      const suggestions = [
+        suggestion(3, null, false),
+        suggestion(1, false, true),
+        suggestion(2, true, false),
+      ];
+
+      expect(mapCodeSuggestionRows(suggestions)).toStrictEqual<
+        CodeSuggestionRow[]
+      >([
+        {
+          applicationCodeId: 99001,
+          code: 'AP99001',
+          title: 'Synthetic code title 1',
+          bulk: 'Yes',
+          fee: 'SYN1',
+          isFeeDue: 'Yes',
+          reason: "Matches 'synthetic 1' in the title",
+          lodgementDateFlag: 'Not active on the lodgement date',
+        },
+        {
+          applicationCodeId: 99002,
+          code: 'AP99002',
+          title: 'Synthetic code title 2',
+          bulk: 'No',
+          fee: '—',
+          isFeeDue: 'No',
+          reason: "Matches 'synthetic 2' in the title",
+          lodgementDateFlag: '',
+        },
+        {
+          applicationCodeId: 99003,
+          code: 'AP99003',
+          title: 'Synthetic code title 3',
+          bulk: 'No',
+          fee: '—',
+          isFeeDue: 'No',
+          reason: "Matches 'synthetic 3' in the title",
+          lodgementDateFlag: '',
+        },
+      ]);
+      // The input keeps the API's order.
+      expect(suggestions.map((item) => item.rank)).toEqual([3, 1, 2]);
+    });
+
+    it('leaves out suggestions without an application code', () => {
+      const missing = {
+        ...suggestion(1, true, false),
+        applicationCode: null,
+      } as unknown as ApplicationCodeSuggestionDto;
+
+      expect(
+        mapCodeSuggestionRows([missing, suggestion(2, true, false)]).map(
+          (row) => row.code,
+        ),
+      ).toEqual(['AP99002']);
+    });
+
+    it('returns an empty array when there are no suggestions', () => {
+      expect(mapCodeSuggestionRows([])).toEqual([]);
+      expect(mapCodeSuggestionRows(null)).toEqual([]);
+      expect(mapCodeSuggestionRows(undefined)).toEqual([]);
     });
   });
 

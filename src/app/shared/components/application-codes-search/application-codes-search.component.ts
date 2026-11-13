@@ -1,5 +1,6 @@
 // TODO: add header comment
 
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,6 +11,7 @@ import {
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -19,11 +21,16 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 import { AlertComponent } from '@components/alert/alert.component';
-import { CODES_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import {
+  CODES_COLUMNS,
+  SUGGESTED_CODES_COLUMNS,
+} from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { GovukTextareaComponent } from '@components/govuk-textarea/govuk-textarea.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import {
@@ -31,9 +38,31 @@ import {
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
-import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
+import {
+  CODE_SUGGESTIONS_UNAVAILABLE,
+  CODE_SUGGESTION_DESCRIPTION_MAX_LENGTH,
+  CODE_SUGGESTION_ERROR_MESSAGES,
+  CODE_SUGGESTION_MESSAGES,
+  CODE_SUGGESTION_NOTICE_MESSAGES,
+  CodeSuggestionErrorStatus,
+} from '@constants/application-list-entry/code-suggestion-messages';
+import {
+  ISO_DATE_REGEX,
+  SEARCHED_APPLICATION_CODE_REGEX,
+} from '@constants/regex';
+import {
+  ApplicationCodeGetSummaryDto,
+  ApplicationCodeSuggestionRequestDto,
+  ApplicationCodeSuggestionResponseDto,
+  ApplicationCodeSuggestionsApi,
+  ApplicationCodesApi,
+} from '@openapi';
 import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
-import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
+import {
+  CodeRow,
+  fetchCodeRows$,
+  mapCodeSuggestionRows,
+} from '@util/application-code-helpers';
 import { toApplicationCodeSortKey } from '@util/application-code-sort-map';
 import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 
@@ -42,6 +71,8 @@ const APPLICATION_CODE_SEARCH_ERROR_MESSAGES = {
     maxlength: 'Application code must be 10 characters or fewer',
   },
 } as const;
+
+const CODE_SUGGESTION_DESCRIPTION_ID = 'code-suggestion-description';
 
 @Component({
   selector: 'app-application-code-search',
@@ -54,6 +85,7 @@ const APPLICATION_CODE_SEARCH_ERROR_MESSAGES = {
     PaginationComponent,
     AlertComponent,
     HelpDetailsComponent,
+    GovukTextareaComponent,
   ],
   templateUrl: './application-codes-search.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -63,8 +95,14 @@ export class ApplicationCodeSearchComponent implements OnInit {
   codePlaceholder = input('The code for the application');
   titlePlaceholder = input('Enter a concise title for this application');
   parentSubmitted = input(false);
+  // Counts entry submits. parentSubmitted can stay true from one submit to the
+  // next, so this is what re-checks the errors on every submit.
+  parentSubmitAttempt = input(0);
   patchedFormData = input<ApplicationsListEntryForm | undefined>(undefined);
   lodgementDateDisabled = input(false);
+  // Code suggestions ("Describe the application"): only the create-entry page
+  // turns them on, and only while the user has the capability.
+  enableSuggestions = input(false);
 
   // API query params
   pageSize = signal(10);
@@ -88,10 +126,12 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
   private readonly route = inject(ActivatedRoute);
   private readonly codesApi = inject(ApplicationCodesApi);
+  private readonly suggestionsApi = inject(ApplicationCodeSuggestionsApi);
   private readonly destroyRef = inject(DestroyRef);
 
   listId!: string | null;
   codesColumns: TableColumn[] = CODES_COLUMNS;
+  suggestedCodesColumns: TableColumn[] = SUGGESTED_CODES_COLUMNS;
   codesRows: CodeRow[] = [];
 
   submitted = signal(false);
@@ -100,6 +140,24 @@ export class ApplicationCodeSearchComponent implements OnInit {
   errored = signal(false);
   private readonly errorMap: ErrorMessageMap =
     APPLICATION_CODE_SEARCH_ERROR_MESSAGES;
+  private searchSubscription?: Subscription;
+
+  // Code suggestions. The description is user free text that may contain
+  // personal data: it is sent only in the POST body and never logged or saved.
+  readonly suggestionCopy = CODE_SUGGESTION_MESSAGES;
+  readonly descriptionId = CODE_SUGGESTION_DESCRIPTION_ID;
+  readonly descriptionMaxLength = CODE_SUGGESTION_DESCRIPTION_MAX_LENGTH;
+  descriptionControl = new FormControl<string | null>(null);
+  descriptionError = signal<string | null>(null);
+  suggestionsLoading = signal(false);
+  // True while the codes table holds suggestions rather than search results.
+  showingSuggestions = signal(false);
+  suggestionsError = signal<string | null>(null);
+  suggestionMessages = signal<string[]>([]);
+  private suggestionsSubscription?: Subscription;
+  private suggestionsRequested = false;
+  // The first well-formed code searched for before asking for suggestions.
+  private searchedApplicationCode: string | null = null;
 
   form = new FormGroup({
     lodgementDate: new FormControl<string | null>(null),
@@ -120,12 +178,21 @@ export class ApplicationCodeSearchComponent implements OnInit {
     });
 
     effect(() => {
-      if (!this.parentSubmitted()) {
+      const parentSubmitted = this.parentSubmitted();
+      // Tracked so that each entry submit runs this again.
+      this.parentSubmitAttempt();
+
+      if (!parentSubmitted) {
         return;
       }
 
-      this.form.updateValueAndValidity({ emitEvent: false });
-      this.emitValidationErrors();
+      untracked(() => {
+        // The description is not part of the entry, so each entry submit
+        // clears its error and reports only the search errors.
+        this.descriptionError.set(null);
+        this.form.updateValueAndValidity({ emitEvent: false });
+        this.emitValidationErrors();
+      });
     });
   }
 
@@ -185,6 +252,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   search(): void {
     this.submitted.set(true);
     this.errored.set(false);
+    this.descriptionError.set(null);
 
     if (!this.canSearch()) {
       this.hasSearched.set(false);
@@ -202,12 +270,15 @@ export class ApplicationCodeSearchComponent implements OnInit {
     const title = rawTitle?.trim() ?? '';
     const lodgementDate = rawLodgementDate?.trim() ?? '';
 
+    this.recordSearchedApplicationCode(code);
+    this.resetSuggestions();
     this.loading.set(true);
 
     const sort = this.sortField();
     const apiSortKey = toApplicationCodeSortKey(sort.key);
 
-    fetchCodeRows$(
+    this.searchSubscription?.unsubscribe();
+    this.searchSubscription = fetchCodeRows$(
       this.codesApi,
       {
         code: code || undefined,
@@ -235,9 +306,63 @@ export class ApplicationCodeSearchComponent implements OnInit {
       });
   }
 
+  // Fills the codes table with suggestions for the description. Nothing is
+  // selected: "Add code" runs the same flow as for a search result.
+  suggestCodes(): void {
+    const description = (this.descriptionControl.value ?? '').trim();
+    const hadDescriptionError = this.descriptionError() !== null;
+    const descriptionError = validateDescription(description);
+    this.descriptionError.set(descriptionError);
+
+    if (descriptionError || hadDescriptionError) {
+      this.emitSuggestionValidationErrors();
+    }
+
+    if (descriptionError) {
+      return;
+    }
+
+    const request = this.buildSuggestionRequest(description);
+    this.suggestionsRequested = true;
+
+    // Suggestions replace whatever the table showed, so stop a search in flight.
+    this.searchSubscription?.unsubscribe();
+    this.loading.set(false);
+    this.errored.set(false);
+    this.hasSearched.set(false);
+    this.resetSuggestions();
+    this.codesRows = [];
+    this.suggestionsLoading.set(true);
+
+    this.suggestionsSubscription = this.suggestionsApi
+      .suggestApplicationCodes(
+        { applicationCodeSuggestionRequestDto: request },
+        'body',
+        false,
+        { transferCache: false },
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.codesRows = mapCodeSuggestionRows(response?.suggestions);
+          this.showingSuggestions.set(true);
+          this.suggestionMessages.set(
+            toSuggestionMessages(response, this.codesRows.length),
+          );
+          this.suggestionsLoading.set(false);
+        },
+        error: (error: unknown) => {
+          this.codesRows = [];
+          this.suggestionsError.set(toSuggestionErrorMessage(error));
+          this.suggestionsLoading.set(false);
+        },
+      });
+  }
+
   onAddCode(row: CodeRow): void {
     this.submitted.set(false);
     this.hasSearched.set(false);
+    this.resetSuggestions();
     this.codesRows = [];
 
     if (!this.listId) {
@@ -313,6 +438,8 @@ export class ApplicationCodeSearchComponent implements OnInit {
       { code: null, title: null },
       { emitEvent: options?.emitEvent ?? true },
     );
+    this.resetSuggestions();
+    this.descriptionError.set(null);
     this.codesRows = [];
     this.errored.set(false);
     this.submitted.set(false);
@@ -351,7 +478,118 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
   private emitValidationErrors(): ErrorItem[] {
     const errors = this.getValidationErrors();
-    this.codeSearchErrors.emit(errors);
+    this.codeSearchErrors.emit([...errors, ...this.descriptionErrorItems()]);
     return errors;
   }
+
+  // Reports the description error without surfacing search errors the user
+  // has not been shown yet.
+  private emitSuggestionValidationErrors(): void {
+    const searchErrors =
+      this.submitted() || this.parentSubmitted()
+        ? this.getValidationErrors()
+        : [];
+    this.codeSearchErrors.emit([
+      ...searchErrors,
+      ...this.descriptionErrorItems(),
+    ]);
+  }
+
+  private descriptionErrorItems(): ErrorItem[] {
+    const text = untracked(this.descriptionError);
+    return text
+      ? [
+          {
+            id: 'codeSuggestionDescription',
+            text,
+            href: `#${CODE_SUGGESTION_DESCRIPTION_ID}`,
+          },
+        ]
+      : [];
+  }
+
+  // Only the trimmed code of a search that ran, before any suggestions were
+  // asked for, and only when it is 1 to 10 letters and digits.
+  private recordSearchedApplicationCode(code: string): void {
+    if (this.suggestionsRequested || this.searchedApplicationCode !== null) {
+      return;
+    }
+
+    if (SEARCHED_APPLICATION_CODE_REGEX.test(code)) {
+      this.searchedApplicationCode = code;
+    }
+  }
+
+  private buildSuggestionRequest(
+    description: string,
+  ): ApplicationCodeSuggestionRequestDto {
+    const lodgementDate = this.form.getRawValue().lodgementDate?.trim() ?? '';
+
+    return {
+      description,
+      ...(ISO_DATE_REGEX.test(lodgementDate) ? { lodgementDate } : {}),
+      ...(this.searchedApplicationCode
+        ? { searchedApplicationCode: this.searchedApplicationCode }
+        : {}),
+    };
+  }
+
+  // Cancels a suggestion request in flight and removes shown suggestions.
+  private resetSuggestions(): void {
+    this.suggestionsSubscription?.unsubscribe();
+    this.suggestionsSubscription = undefined;
+    this.suggestionsLoading.set(false);
+    this.suggestionsError.set(null);
+    this.suggestionMessages.set([]);
+
+    if (this.showingSuggestions()) {
+      this.codesRows = [];
+      this.showingSuggestions.set(false);
+    }
+  }
+}
+
+function validateDescription(description: string): string | null {
+  if (!description) {
+    return CODE_SUGGESTION_MESSAGES.descriptionRequired;
+  }
+
+  if (description.length > CODE_SUGGESTION_DESCRIPTION_MAX_LENGTH) {
+    return CODE_SUGGESTION_MESSAGES.descriptionTooLong;
+  }
+
+  return null;
+}
+
+// Fixed copy only: the summary, then needsMoreDetail, then each known notice.
+function toSuggestionMessages(
+  response: ApplicationCodeSuggestionResponseDto | null | undefined,
+  rowCount: number,
+): string[] {
+  const messages: string[] = [
+    rowCount > 0
+      ? CODE_SUGGESTION_MESSAGES.suggestionsShown
+      : CODE_SUGGESTION_MESSAGES.noSuggestions,
+  ];
+
+  if (response?.needsMoreDetail === true) {
+    messages.push(CODE_SUGGESTION_MESSAGES.needsMoreDetail);
+  }
+
+  for (const notice of response?.notices ?? []) {
+    if (Object.hasOwn(CODE_SUGGESTION_NOTICE_MESSAGES, notice)) {
+      messages.push(CODE_SUGGESTION_NOTICE_MESSAGES[notice]);
+    }
+  }
+
+  return [...new Set(messages)];
+}
+
+function toSuggestionErrorMessage(error: unknown): string {
+  const status = error instanceof HttpErrorResponse ? error.status : null;
+
+  return status !== null &&
+    Object.hasOwn(CODE_SUGGESTION_ERROR_MESSAGES, status)
+    ? CODE_SUGGESTION_ERROR_MESSAGES[status as CodeSuggestionErrorStatus]
+    : CODE_SUGGESTIONS_UNAVAILABLE;
 }
