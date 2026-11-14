@@ -1,14 +1,18 @@
-import { PLATFORM_ID } from '@angular/core';
+import { PLATFORM_ID, effect } from '@angular/core';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import {
+  ApplicationCodeGetSummaryDto,
   ApplicationCodePage,
   ApplicationCodesApi,
   CourtLocationPage,
   CourtLocationsApi,
   CriminalJusticeAreaPage,
   CriminalJusticeAreasApi,
+  ResultCodeGetSummaryDto,
+  ResultCodePage,
+  ResultCodesApi,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 
@@ -37,10 +41,30 @@ const makePage = <T>(
   content,
 });
 
+const makeApplicationCode = (
+  applicationCode: string,
+  title: string,
+): ApplicationCodeGetSummaryDto => ({
+  applicationCode,
+  title,
+  wording: { template: 'Synthetic wording' },
+  isFeeDue: false,
+  requiresRespondent: false,
+  bulkRespondentAllowed: false,
+});
+
+const makeResultCodesPage = (
+  pageNumber: number,
+  content: ResultCodeGetSummaryDto[],
+  last: boolean,
+  totalElements = content.length,
+): ResultCodePage => makePage(pageNumber, content, last, totalElements);
+
 describe('ReferenceDataFacade', () => {
   let getApplicationCodes: jest.Mock;
   let getCourtLocations: jest.Mock;
   let getCriminalJusticeAreas: jest.Mock;
+  let getResultCodes: jest.Mock;
 
   const setup = (platformId: 'browser' | 'server' = 'browser') => {
     TestBed.configureTestingModule({
@@ -58,6 +82,10 @@ describe('ReferenceDataFacade', () => {
           provide: CriminalJusticeAreasApi,
           useValue: { getCriminalJusticeAreas },
         },
+        {
+          provide: ResultCodesApi,
+          useValue: { getResultCodes },
+        },
       ],
     });
   };
@@ -69,9 +97,9 @@ describe('ReferenceDataFacade', () => {
         of(
           makePage(
             0,
-            [{ title: 'Application title' }],
+            [makeApplicationCode('AC001', 'Application title')],
             true,
-          ) as unknown as ApplicationCodePage,
+          ) as ApplicationCodePage,
         ),
       );
     getCourtLocations = jest
@@ -94,6 +122,17 @@ describe('ReferenceDataFacade', () => {
             [{ code: 'C1', description: 'Area One' }],
             true,
           ) as unknown as CriminalJusticeAreaPage,
+        ),
+      );
+    getResultCodes = jest
+      .fn()
+      .mockReturnValue(
+        of(
+          makeResultCodesPage(
+            0,
+            [{ resultCode: 'RC1', title: 'Granted' }],
+            true,
+          ),
         ),
       );
   });
@@ -171,16 +210,19 @@ describe('ReferenceDataFacade', () => {
     );
     getApplicationCodes.mockImplementation(
       ({ pageNumber = 0 }: { pageNumber?: number }) => {
-        const content = Array.from({ length: 100 }, (_, index) => ({
-          title: `Title ${pageNumber * 100 + index}`,
-        }));
+        const content = Array.from({ length: 100 }, (_, index) =>
+          makeApplicationCode(
+            `AC${pageNumber * 100 + index}`,
+            `Title ${pageNumber * 100 + index}`,
+          ),
+        );
         return of(
           makePage(
             pageNumber,
             content,
             pageNumber === 4,
             500,
-          ) as unknown as ApplicationCodePage,
+          ) as ApplicationCodePage,
         );
       },
     );
@@ -264,10 +306,10 @@ describe('ReferenceDataFacade', () => {
           ? of(
               makePage(
                 0,
-                [{ title: 'First page title' }],
+                [makeApplicationCode('AC001', 'First page title')],
                 false,
                 101,
-              ) as unknown as ApplicationCodePage,
+              ) as ApplicationCodePage,
             )
           : throwError(() => new Error('Second application-code page failed')),
     );
@@ -322,6 +364,7 @@ describe('ReferenceDataFacade', () => {
     expect(getCriminalJusticeAreas).toHaveBeenCalledTimes(2);
     expect(getCourtLocations).toHaveBeenCalledTimes(2);
     expect(getApplicationCodes).toHaveBeenCalledTimes(2);
+    expect(getResultCodes).not.toHaveBeenCalled();
   }));
 
   it('does not request reference data during server-side rendering', fakeAsync(() => {
@@ -335,6 +378,246 @@ describe('ReferenceDataFacade', () => {
     expect(facade.cja()).toEqual([]);
     expect(facade.courtLocations()).toEqual([]);
     expect(facade.applicationCodeTitles()).toEqual([]);
+    expect(facade.hasLoadError()).toBe(false);
+  }));
+
+  it('keeps the code and title of each application code and derives the titles', fakeAsync(() => {
+    getApplicationCodes.mockReturnValue(
+      of(
+        makePage(
+          0,
+          [
+            makeApplicationCode('AC001', 'Synthetic application one'),
+            makeApplicationCode('AC002', 'Synthetic application two'),
+            makeApplicationCode('AC003', 'Synthetic application one'),
+          ],
+          true,
+        ) as ApplicationCodePage,
+      ),
+    );
+    setup();
+    const facade = TestBed.inject(ReferenceDataFacade);
+
+    tick();
+
+    expect(
+      facade
+        .applicationCodes()
+        .map(({ applicationCode, title }) => ({ applicationCode, title })),
+    ).toEqual([
+      { applicationCode: 'AC001', title: 'Synthetic application one' },
+      { applicationCode: 'AC002', title: 'Synthetic application two' },
+      { applicationCode: 'AC003', title: 'Synthetic application one' },
+    ]);
+    expect(facade.applicationCodeTitles()).toEqual([
+      'Synthetic application one',
+      'Synthetic application two',
+      'Synthetic application one',
+    ]);
+  }));
+
+  it('returns empty application codes without an error when the first page is empty', fakeAsync(() => {
+    getApplicationCodes.mockReturnValue(
+      of(makePage(0, [], true) as ApplicationCodePage),
+    );
+    setup();
+    const facade = TestBed.inject(ReferenceDataFacade);
+
+    tick();
+
+    expect(facade.applicationCodes()).toEqual([]);
+    expect(facade.applicationCodeTitles()).toEqual([]);
+    expect(facade.hasLoadError()).toBe(false);
+  }));
+
+  it('does not request result codes until a page asks for them', fakeAsync(() => {
+    setup();
+    const facade = TestBed.inject(ReferenceDataFacade);
+
+    tick();
+
+    expect(getResultCodes).not.toHaveBeenCalled();
+    expect(facade.resultCodes()).toEqual([]);
+    expect(facade.resultCodesLoading()).toBe(false);
+    expect(facade.resultCodesLoadError()).toBe(false);
+  }));
+
+  it('loads every result-code page when ensureResultCodes is called', fakeAsync(() => {
+    getResultCodes.mockImplementation(
+      ({ pageNumber = 0 }: { pageNumber?: number }) =>
+        of(
+          makeResultCodesPage(
+            pageNumber,
+            Array.from({ length: 100 }, (_, index) => ({
+              resultCode: `RC${pageNumber * 100 + index}`,
+              title: `Result ${pageNumber * 100 + index}`,
+            })),
+            pageNumber === 2,
+            300,
+          ),
+        ),
+    );
+    setup();
+    const facade = TestBed.inject(ReferenceDataFacade);
+    tick();
+
+    facade.ensureResultCodes();
+    tick();
+
+    expect(getResultCodes.mock.calls).toEqual(
+      [0, 1, 2].map((pageNumber) => [{ pageNumber, pageSize: 100 }]),
+    );
+    expect(facade.resultCodes()).toHaveLength(300);
+    expect(facade.resultCodes()[0]).toEqual({
+      resultCode: 'RC0',
+      title: 'Result 0',
+    });
+    expect(facade.resultCodes()[299]).toEqual({
+      resultCode: 'RC299',
+      title: 'Result 299',
+    });
+    expect(facade.resultCodesLoading()).toBe(false);
+    expect(facade.hasLoadError()).toBe(false);
+  }));
+
+  it('makes one result-code request while loading and none after a successful load', fakeAsync(() => {
+    const firstPage$ = new Subject<ResultCodePage>();
+    getResultCodes.mockReturnValue(firstPage$);
+    setup();
+    const facade = TestBed.inject(ReferenceDataFacade);
+    tick();
+
+    facade.ensureResultCodes();
+    tick();
+    facade.ensureResultCodes();
+    tick();
+
+    expect(getResultCodes).toHaveBeenCalledTimes(1);
+    expect(facade.resultCodesLoading()).toBe(true);
+
+    firstPage$.next(
+      makeResultCodesPage(0, [{ resultCode: 'RC1', title: 'Granted' }], true),
+    );
+    firstPage$.complete();
+    tick();
+
+    expect(facade.resultCodesLoading()).toBe(false);
+    expect(facade.resultCodes()).toEqual([
+      { resultCode: 'RC1', title: 'Granted' },
+    ]);
+
+    facade.ensureResultCodes();
+    tick();
+
+    expect(getResultCodes).toHaveBeenCalledTimes(1);
+  }));
+
+  it('sets hasLoadError and empties the result codes when a result-code page fails', fakeAsync(() => {
+    getResultCodes.mockImplementation(
+      ({ pageNumber = 0 }: { pageNumber?: number }) =>
+        pageNumber === 0
+          ? of(
+              makeResultCodesPage(
+                0,
+                [{ resultCode: 'RC1', title: 'Granted' }],
+                false,
+                101,
+              ),
+            )
+          : throwError(() => new Error('Second result-code page failed')),
+    );
+    setup();
+    const facade = TestBed.inject(ReferenceDataFacade);
+    tick();
+
+    facade.ensureResultCodes();
+    tick();
+
+    expect(facade.resultCodes()).toEqual([]);
+    expect(facade.resultCodesLoading()).toBe(false);
+    expect(facade.resultCodesLoadError()).toBe(true);
+    expect(facade.hasLoadError()).toBe(true);
+    expect(facade.hasPlaceLoadError()).toBe(false);
+    expect(facade.cja()).toEqual([{ code: 'C1', description: 'Area One' }]);
+  }));
+
+  it('retries result codes when ensureResultCodes is called after a failure', fakeAsync(() => {
+    getResultCodes.mockReturnValueOnce(
+      throwError(() => new Error('Result codes failed')),
+    );
+    setup();
+    const facade = TestBed.inject(ReferenceDataFacade);
+    tick();
+    facade.ensureResultCodes();
+    tick();
+
+    expect(facade.resultCodesLoadError()).toBe(true);
+
+    facade.ensureResultCodes();
+    tick();
+
+    expect(getResultCodes).toHaveBeenCalledTimes(2);
+    expect(facade.resultCodes()).toEqual([
+      { resultCode: 'RC1', title: 'Granted' },
+    ]);
+    expect(facade.resultCodesLoadError()).toBe(false);
+    expect(facade.hasLoadError()).toBe(false);
+  }));
+
+  it('retries result codes on refresh once they have been requested', fakeAsync(() => {
+    getResultCodes.mockReturnValueOnce(
+      throwError(() => new Error('Result codes failed')),
+    );
+    setup();
+    const facade = TestBed.inject(ReferenceDataFacade);
+    tick();
+    facade.ensureResultCodes();
+    tick();
+
+    expect(facade.hasLoadError()).toBe(true);
+
+    facade.refresh();
+    tick();
+
+    expect(getResultCodes).toHaveBeenCalledTimes(2);
+    expect(facade.resultCodes()).toEqual([
+      { resultCode: 'RC1', title: 'Granted' },
+    ]);
+    expect(facade.hasLoadError()).toBe(false);
+  }));
+
+  it('does not retry result codes on its own when called from an effect after a failure', fakeAsync(() => {
+    getResultCodes.mockReturnValueOnce(
+      throwError(() => new Error('Result codes failed')),
+    );
+    setup();
+    const facade = TestBed.inject(ReferenceDataFacade);
+    tick();
+
+    TestBed.runInInjectionContext(() =>
+      effect(() => facade.ensureResultCodes()),
+    );
+    TestBed.tick();
+    tick();
+    TestBed.tick();
+    tick();
+
+    expect(getResultCodes).toHaveBeenCalledTimes(1);
+    expect(facade.resultCodesLoadError()).toBe(true);
+  }));
+
+  it('does not request result codes during server-side rendering', fakeAsync(() => {
+    setup('server');
+    const facade = TestBed.inject(ReferenceDataFacade);
+
+    facade.ensureResultCodes();
+    tick();
+    facade.refresh();
+    tick();
+
+    expect(getResultCodes).not.toHaveBeenCalled();
+    expect(facade.resultCodes()).toEqual([]);
+    expect(facade.resultCodesLoading()).toBe(false);
     expect(facade.hasLoadError()).toBe(false);
   }));
 });

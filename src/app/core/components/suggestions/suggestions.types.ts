@@ -1,5 +1,6 @@
 import {
   ActivityType,
+  ApplicationCodeGetSummaryDto,
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
   ResultCodeGetSummaryDto,
@@ -36,12 +37,19 @@ export type ApplicationCodeTitleSuggestionItem = {
   value: string;
 };
 
+export type ApplicationCodeSuggestionItem = ApplicationCodeGetSummaryDto & {
+  kind: 'app-code';
+  label: string;
+  value: string;
+};
+
 export type SuggestionsItem =
   | CourtSuggestionItem
   | CjaSuggestionItem
   | ResultCodeSuggestionItem
   | ActivitySuggestionItem
-  | ApplicationCodeTitleSuggestionItem;
+  | ApplicationCodeTitleSuggestionItem
+  | ApplicationCodeSuggestionItem;
 
 /**
  * Transform inputs into types for use in suggestions component
@@ -96,6 +104,17 @@ export const toAppcodeSuggestionsItem = (
   value: title,
 });
 
+export const toApplicationCodeSuggestionItem = (
+  applicationCode: ApplicationCodeGetSummaryDto,
+): ApplicationCodeSuggestionItem => ({
+  ...applicationCode,
+  kind: 'app-code',
+  label: applicationCode.title
+    ? `${applicationCode.applicationCode} - ${applicationCode.title}`
+    : applicationCode.applicationCode,
+  value: applicationCode.applicationCode,
+});
+
 /**
  * Get type of suggestion it is
  */
@@ -118,3 +137,7 @@ export const isActivitySuggestionItem = (
 export const isAppcodeSuggestionItem = (
   item: SuggestionsItem,
 ): item is ApplicationCodeTitleSuggestionItem => item.kind === 'app-code-title';
+
+export const isApplicationCodeSuggestionItem = (
+  item: SuggestionsItem,
+): item is ApplicationCodeSuggestionItem => item.kind === 'app-code';
