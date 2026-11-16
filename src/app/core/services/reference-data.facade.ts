@@ -99,10 +99,6 @@ export class ReferenceDataFacade {
     this.applicationCodes().map((code) => code.title),
   );
   readonly resultCodes = computed(() => this.state().resultCodes);
-  readonly resultCodesLoading = computed(() => this.state().resultCodesLoading);
-  readonly resultCodesLoadError = computed(
-    () => this.state().resultCodesLoadError,
-  );
   readonly cja$: Observable<CriminalJusticeAreaGetDto[]> = toObservable(
     this.cja,
     { injector: this.envInjector },
