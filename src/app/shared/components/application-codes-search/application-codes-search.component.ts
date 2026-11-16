@@ -100,8 +100,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   parentSubmitAttempt = input(0);
   patchedFormData = input<ApplicationsListEntryForm | undefined>(undefined);
   lodgementDateDisabled = input(false);
-  // Code suggestions ("Describe the application"): only the create-entry page
-  // turns them on, and only while the user has the capability.
+  // Only the create-entry page turns code suggestions on.
   enableSuggestions = input(false);
 
   // API query params
@@ -142,15 +141,14 @@ export class ApplicationCodeSearchComponent implements OnInit {
     APPLICATION_CODE_SEARCH_ERROR_MESSAGES;
   private searchSubscription?: Subscription;
 
-  // Code suggestions. The description is user free text that may contain
-  // personal data: it is sent only in the POST body and never logged or saved.
+  // The description is user free text that may contain personal data: it is
+  // sent only in the POST body and never logged or saved.
   readonly suggestionCopy = CODE_SUGGESTION_MESSAGES;
   readonly descriptionId = CODE_SUGGESTION_DESCRIPTION_ID;
   readonly descriptionMaxLength = CODE_SUGGESTION_DESCRIPTION_MAX_LENGTH;
   descriptionControl = new FormControl<string | null>(null);
   descriptionError = signal<string | null>(null);
   suggestionsLoading = signal(false);
-  // True while the codes table holds suggestions rather than search results.
   showingSuggestions = signal(false);
   suggestionsError = signal<string | null>(null);
   suggestionMessages = signal<string[]>([]);
@@ -306,8 +304,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
       });
   }
 
-  // Fills the codes table with suggestions for the description. Nothing is
-  // selected: "Add code" runs the same flow as for a search result.
+  // Nothing is selected: "Add code" runs the same flow as for a search result.
   suggestCodes(): void {
     const description = (this.descriptionControl.value ?? '').trim();
     const hadDescriptionError = this.descriptionError() !== null;
@@ -508,8 +505,6 @@ export class ApplicationCodeSearchComponent implements OnInit {
       : [];
   }
 
-  // Only the trimmed code of a search that ran, before any suggestions were
-  // asked for, and only when it is 1 to 10 letters and digits.
   private recordSearchedApplicationCode(code: string): void {
     if (this.suggestionsRequested || this.searchedApplicationCode !== null) {
       return;
@@ -534,7 +529,6 @@ export class ApplicationCodeSearchComponent implements OnInit {
     };
   }
 
-  // Cancels a suggestion request in flight and removes shown suggestions.
   private resetSuggestions(): void {
     this.suggestionsSubscription?.unsubscribe();
     this.suggestionsSubscription = undefined;
@@ -561,7 +555,6 @@ function validateDescription(description: string): string | null {
   return null;
 }
 
-// Fixed copy only: the summary, then needsMoreDetail, then each known notice.
 function toSuggestionMessages(
   response: ApplicationCodeSuggestionResponseDto | null | undefined,
   rowCount: number,

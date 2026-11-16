@@ -1,18 +1,10 @@
 /**
- * Fixed copy for application code suggestions ("Describe the application")
- * on the create-entry page.
+ * Fixed copy for application code suggestions on the create-entry page.
  *
  * The page never shows model text. It shows this copy, plus each
  * suggestion's reason, which the API builds from the code's own title or
- * legislation, rendered as text.
- *
- * - CODE_SUGGESTION_MESSAGES: the field, the button, progress, results and
- *   validation errors.
- * - CODE_SUGGESTION_NOTICE_MESSAGES: one message per CodeSuggestionNotice.
- * - CODE_SUGGESTION_ERROR_MESSAGES: one message per HTTP status that stays on
- *   the page. Any other status uses CODE_SUGGESTIONS_UNAVAILABLE.
- *
- * Every message is for content design sign-off before the pilot.
+ * legislation, rendered as text. Every message is for content design
+ * sign-off before the pilot.
  */
 
 import { CodeSuggestionNotice } from '@openapi';
