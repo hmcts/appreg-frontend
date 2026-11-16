@@ -9,16 +9,10 @@
  * onSubmit():
  * - GET request to Spring API which returns applications based on given params
  * - Populates query based on fields that are  !null/!undefined/!defaultValue
- * - Searches by a single List date or a date range (List date from/to), not both
  * - Court and Other courts are one list of exact court codes, without repeats
  *   (compared case-insensitively, as the API does). One code is sent as
  *   courtCode and more than one as courtCodes, never both. Other courts counts
  *   as a court, so it disables Other location and CJA, and they disable it
- * - Application codes and Result codes (Advanced search) are lists of exact
- *   codes, sent only when they hold at least one code. Text typed into either
- *   but not picked from the list blocks the search with an error
- * - A 400 from the search, such as a rejected filter combination, shows the
- *   API's problem text in the error summary. Other errors show a generic message
  *
  * onPrintContinuous/Page():
  * - Runs bulk preview endpoint to get selected row details
@@ -161,7 +155,6 @@ const APPLICATIONS_ERROR_HREFS: Record<string, string> = {
   dateTo: '#date-to-day',
 };
 
-// A list filter's codes, trimmed and without blanks or repeats
 const toCodeList = (codes: readonly string[]): string[] => [
   ...new Set(codes.map((code) => code.trim()).filter((code) => !!code)),
 ];
@@ -387,7 +380,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.initPlaceFields(this.form, this.refFacade, {
       additionalCourts: this.form.controls.courtCodes,
     });
-    // Options for Result codes; application codes are loaded by the facade
     this.refFacade.ensureResultCodes();
     this.setupEffects();
 
@@ -943,7 +935,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       filter.accountReference = v.accountReference.trim();
     }
 
-    // New arrays, so the filter never shares one with the form
     const applicationCodes = toCodeList(v.applicationCodes);
     if (applicationCodes.length) {
       filter.applicationCodes = applicationCodes;

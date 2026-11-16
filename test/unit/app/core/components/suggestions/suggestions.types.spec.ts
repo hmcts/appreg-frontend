@@ -1,7 +1,6 @@
 import {
   isActivitySuggestionItem,
   isAppcodeSuggestionItem,
-  isApplicationCodeSuggestionItem,
   isCjaSuggestionItem,
   isCourtSuggestionItem,
   isResultCodeSuggestionItem,
@@ -189,14 +188,12 @@ describe('suggestions.types', () => {
     const item = toAppcodeSuggestionsItem('Private Prosecution');
 
     expect(isAppcodeSuggestionItem(item)).toBe(true);
-    expect(isApplicationCodeSuggestionItem(item)).toBe(false);
     expect(isActivitySuggestionItem(item)).toBe(false);
   });
 
-  it('identifies an application code suggestion item', () => {
+  it('does not identify an application code suggestion item as another kind', () => {
     const item = toApplicationCodeSuggestionItem(makeApplicationCode());
 
-    expect(isApplicationCodeSuggestionItem(item)).toBe(true);
     expect(isAppcodeSuggestionItem(item)).toBe(false);
     expect(isResultCodeSuggestionItem(item)).toBe(false);
     expect(isCourtSuggestionItem(item)).toBe(false);

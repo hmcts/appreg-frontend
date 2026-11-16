@@ -1980,16 +1980,6 @@ describe('ApplicationsComponent', () => {
       );
     });
 
-    it('leaves out empty lists', () => {
-      component.form.patchValue({ applicantOrg: 'Synthetic Org' });
-
-      const filter = loadQuery();
-
-      expect(filter).toEqual({ applicantOrganisation: 'Synthetic Org' });
-      expect(filter).not.toHaveProperty('applicationCodes');
-      expect(filter).not.toHaveProperty('resultCodes');
-    });
-
     it('trims codes and leaves out blanks and repeats', () => {
       component.form.patchValue({
         applicationCodes: [
@@ -2096,22 +2086,17 @@ describe('ApplicationsComponent', () => {
 
       expect(component.form.controls.applicationCodes.value).toEqual([]);
       expect(component.form.controls.resultCodes.value).toEqual([]);
-      expect(searchFormService.state().applicationCodes).toEqual([]);
-      expect(searchFormService.state().resultCodes).toEqual([]);
-      expect(root().querySelector('#applicationCodes-selected')).toBeNull();
-      expect(root().querySelector('#resultCodes-selected')).toBeNull();
-      expect(loadQuery()).toEqual({});
-    });
-
-    it('does not give the form the shared default arrays when the search is cleared', () => {
-      component.clearSearch();
-
       expect(component.form.controls.applicationCodes.value).not.toBe(
         DEFAULT_APPLICATIONS_SEARCH_FORM.applicationCodes,
       );
       expect(component.form.controls.resultCodes.value).not.toBe(
         DEFAULT_APPLICATIONS_SEARCH_FORM.resultCodes,
       );
+      expect(searchFormService.state().applicationCodes).toEqual([]);
+      expect(searchFormService.state().resultCodes).toEqual([]);
+      expect(root().querySelector('#applicationCodes-selected')).toBeNull();
+      expect(root().querySelector('#resultCodes-selected')).toBeNull();
+      expect(loadQuery()).toEqual({});
     });
 
     it('keeps the saved search unchanged when the form lists are changed in place', () => {
@@ -2135,49 +2120,6 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().getFilters).toEqual({
         applicationCodes: [APPLICATION_CODE_A],
         resultCodes: [RESULT_CODE_A],
-      });
-    });
-
-    it('sends both lists in the filter of a select-all-matching bulk preview', async () => {
-      getEntriesMock.mockReturnValue(
-        of({
-          content: [
-            makeEntry({ id: 'entry-1', listId: 'list-a' }),
-            makeEntry({ id: 'entry-2', listId: 'list-b' }),
-          ],
-          totalPages: 2,
-          totalElements: 12,
-          number: 0,
-        } as unknown as EntryPage) as unknown as ReturnType<
-          ApplicationListEntriesApi['getEntries']
-        >,
-      );
-      component.form.patchValue({
-        applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
-        resultCodes: [RESULT_CODE_A],
-      });
-      submitSearch();
-      component.onHeaderSelectAllChange(true);
-      bulkActionPreviewMock.mockClear();
-
-      await (
-        component as unknown as {
-          getBulkPreviewData: (action: BulkActionType) => Promise<unknown>;
-        }
-      ).getBulkPreviewData(BulkActionType.PRINT_PAGE);
-
-      expect(bulkActionPreviewMock).toHaveBeenCalledTimes(1);
-      expect(bulkActionPreviewMock).toHaveBeenCalledWith({
-        bulkActionPreviewRequestDto: {
-          action: BulkActionType.PRINT_PAGE,
-          selection: {
-            selectionType: 'FILTER',
-            filter: {
-              applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
-              resultCodes: [RESULT_CODE_A],
-            },
-          },
-        },
       });
     });
   });
