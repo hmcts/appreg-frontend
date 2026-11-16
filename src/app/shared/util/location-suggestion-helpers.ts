@@ -5,10 +5,6 @@ Feature helper for Applications List forms.
 Purpose:
 - Toggle enabled/disabled state of location-related controls based on selection
   (e.g., court vs CJA vs free-text “other location”).
-- A page can also pass an additionalCourts control (a list of court codes, such
-  as Other courts on /applications). Holding at least one code counts as a
-  court, and a location or CJA disables it with the court. Pages that do not
-  pass it behave as before.
 
 ----------------
 
@@ -51,10 +47,7 @@ export interface LocationControls {
   court: AbstractControl;
   location: AbstractControl;
   cja: AbstractControl;
-  /**
-   * More courts as a list of codes (Other courts on /applications). Optional:
-   * without it, only `court` counts as a court.
-   */
+  /** Court codes that also count as a court, such as Other courts. */
   additionalCourts?: AbstractControl;
 }
 
@@ -81,10 +74,7 @@ const disableAll = (controls: readonly AbstractControl[]): void => {
   }
 };
 
-/**
- * Wires mutually exclusive enable/disable for court (and any additional
- * courts) vs location+cja.
- */
+/** Wires mutually exclusive enable/disable for court vs location+cja. */
 export function attachLocationDisabler({
   court,
   location,

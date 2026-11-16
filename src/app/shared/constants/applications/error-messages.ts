@@ -60,7 +60,6 @@ export const APPLICATIONS_ERROR_MAP: {
   court: {
     courtNotFound: 'Court location not found',
   },
-  // Text typed into Other courts but not picked from it
   courtCodes: {
     notAdded: 'Select a court from the list, or clear the text',
   },

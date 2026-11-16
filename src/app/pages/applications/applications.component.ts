@@ -9,10 +9,6 @@
  * onSubmit():
  * - GET request to Spring API which returns applications based on given params
  * - Populates query based on fields that are  !null/!undefined/!defaultValue
- * - Court and Other courts are one list of exact court codes, without repeats
- *   (compared case-insensitively, as the API does). One code is sent as
- *   courtCode and more than one as courtCodes, never both. Other courts counts
- *   as a court, so it disables Other location and CJA, and they disable it
  *
  * onPrintContinuous/Page():
  * - Runs bulk preview endpoint to get selected row details
@@ -162,9 +158,7 @@ const toCodeList = (codes: readonly string[]): string[] => [
 // Most court codes the API accepts in one search (EntryGetFilterDto.courtCodes)
 const COURT_CODES_MAX_ITEMS = 20;
 
-// Court then Other courts as one list of codes, trimmed and without blanks or
-// repeats. Codes are compared case-insensitively, as the API compares them,
-// and the first spelling is kept.
+// Repeats are found case-insensitively, as the API does; the first is kept
 const toCourtCodeList = (
   court: string | null | undefined,
   otherCourts: readonly string[],
@@ -255,17 +249,14 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.refFacade.resultCodes().map(toResultCodeSuggestionItem),
   );
 
-  // Other courts offers the same active courts as the Court typeahead
   readonly courtOptions = computed<SuggestionsItem[]>(() =>
     this.state().courtLocations.map(toCourtSuggestionItem),
   );
 
-  // Labels for Other courts codes that are not in courtOptions, such as
-  // end-dated courts returned by a plain-English search
+  // Labels for codes not in courtOptions, such as end-dated courts
   readonly courtChipLabels = signal<Record<string, string>>({});
 
-  // Court takes one of the codes the API accepts, so Court and Other courts
-  // together can never send more than it allows
+  // Court takes one of the codes the API accepts
   readonly otherCourtsMaxItems = COURT_CODES_MAX_ITEMS - 1;
 
   readonly summaryItems = computed(() => {
@@ -366,7 +357,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     return this.hasSelection && !this.vm().isSelectingAll;
   }
 
-  /** Whether Other courts holds a court, which disables the CJA field. */
   hasOtherCourts(): boolean {
     return hasCourtCodes(this.form.controls.courtCodes.value);
   }
@@ -376,7 +366,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.applicationTitleSearch.set(
       this.form.controls.applicationTitle.value ?? '',
     );
-    // Other courts counts as a court when disabling Other location and CJA
     this.initPlaceFields(this.form, this.refFacade, {
       additionalCourts: this.form.controls.courtCodes,
     });
