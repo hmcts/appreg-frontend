@@ -1,80 +1,5 @@
-/**
- * Interpretation mapper for /applications (plain-English search).
- *
- * Pure functions that turn a SearchInterpretationDto into changes for the
- * Applications search form. Nothing here has side effects or uses Angular
- * DI: the page (FE-14) applies the result to its form and signals.
- *
- * mapInterpretationToForm(interpretation, activeCourts):
- * - Replaces, never merges: `formValue` is a whole form value. Every control
- *   starts from the page defaults (DEFAULT_APPLICATIONS_SEARCH_FORM) and only
- *   the filters in the interpretation are set, so nothing from an earlier
- *   search is kept. Arrays are always new, never shared with the input.
- * - INTERPRETED_FILTER_CONTROLS maps each EntryGetFilterDto field to its
- *   control. Fields with no control on the page map to null.
- * - Court: `courtCode` goes into Court when it is one of `activeCourts` (the
- *   Court typeahead only knows courts that are active today). Its display text
- *   (`courthouseSearch`) is the field's appliedFilters label, or the active
- *   court's typeahead label when there is none. A `courtCode` that is not
- *   active, and every `courtCodes` code, goes into Other courts, with a label
- *   in `courtChipLabels`.
- * - Court labels: the API sends one appliedFilters row for each field, not one
- *   for each court. A `courtCode`, or a `courtCodes` list of one code, takes
- *   its row's label. For a `courtCodes` list of more than one code, the row's
- *   label is the court names joined with ", ", in the order of the codes, with
- *   the code itself for a court that has no name. Its parts are paired with
- *   the codes by position in the list as sent. When the parts do not pair up
- *   one to one (a name holds ", "), or the label was cut to the API's 200
- *   characters (it then ends "…"), each court's label is its code: a joined
- *   label is never given to one court. The join is not documented in the API
- *   contract. Open point for the API: send a label for each court (a row for
- *   each court code, or a code-to-label list) so this does not depend on it.
- * - Court limits: Court and Other courts together hold at most the 20 codes
- *   the API accepts (COURT_CODES_MAX_ITEMS), and Other courts at most 19
- *   (OTHER_COURTS_MAX_ITEMS), the page's limit, which leaves room for a Court.
- *   When Other courts is full and Court is empty, an active court goes into
- *   Court to make room: the new court, or else an active court already in
- *   Other courts, which takes its chip label as display text. A court that
- *   cannot be held is listed as not applied.
- * - CJA: `cjaCode` sets CJA and its display text (`cjaSearch`) from the
- *   field's appliedFilters label, or the code.
- * - Court and CJA stay mutually exclusive, as do court and Other location: a
- *   court is narrower, so it is kept and the CJA or location is not applied.
- * - Dates must be real YYYY-MM-DD dates, the value app-date-input holds.
- *   `status` maps to the Status options' values (OPEN to 'open').
- * - `notApplied` lists, as text staff can read, what the interpretation asked
- *   for that the form cannot hold: fields with no control (such as
- *   applicationCodeCategory and standardApplicantCodes), unknown fields,
- *   values that are not valid for their control, a CJA or location dropped for
- *   a court, and codes or courts over the list and court limits. Each entry is
- *   the API's appliedFilters label (for a court, its own label), or the value
- *   when there is no label. It is kept apart from the enum-typed `notices`.
- *   `appliedFilters` keeps only the rows for filters that were applied, so no
- *   row is in both.
- * - `applicationTitle` has no display text of its own: the page shows the
- *   control's value, so FE-14 copies it to `applicationTitleSearch`.
- *
- * Choices:
- * - Each choicesNeeded item becomes radio options (app-radio-group) built from
- *   its options[], plus "None of these". Option values are unique per choice.
- * - applyInterpretationChoice() applies one picked option to the changes and
- *   returns new changes. "None of these" changes nothing, so the search runs
- *   without that part of the question.
- *   - Array fields (applicationCodes, resultCodes, courtCodes): the code is
- *     added, unless it is already there or the list is full.
- *   - Scalar fields: the value is set, replacing any value the interpretation
- *     gave the field (its appliedFilters rows are then removed).
- *   - Courts: Court and Other courts are one list of courts on this page, so a
- *     court pick is added to it and never replaces a court. A `courtCode` pick
- *     goes into Court when Court is empty and the court is active; anything
- *     else goes into Other courts. The court limits above apply to picks too.
- *   - A CJA pick while a court is set is not applied; a court pick removes a
- *     CJA or location and lists it as not applied. A pick for a field with no
- *     control, or with a value its control cannot hold, is not applied.
- *   Picks that are not applied are added to `notApplied` by their label.
- *   Apply every answer to the result of mapInterpretationToForm() each time an
- *   answer changes, rather than to a result that already has a pick in it.
- */
+// Pure functions that turn a plain-English search interpretation into changes
+// for the Applications search form. The page applies the result.
 
 import { type RadioOption } from '@components/radio-button/radio-button.component';
 import { toCourtSuggestionItem } from '@components/suggestions/suggestions.types';
@@ -97,13 +22,11 @@ import { DEFAULT_APPLICATIONS_SEARCH_FORM } from '@services/applications/applica
 import { ApplicationsSearchFormValue } from '@shared-types/applications/applications.type';
 import { hasText, trimToUndefined } from '@util/string-helpers';
 
-/** A control on the Applications search form. */
 export type ApplicationsSearchControl = keyof ApplicationsSearchFormValue;
 
 /**
- * The form control for each EntryGetFilterDto field, or null when the page has
- * no control for it. Typed against EntryGetFilterDto, so a field the API adds,
- * renames or removes fails to compile here.
+ * Null when the page has no control for the field. Typed against
+ * EntryGetFilterDto, so a field the API adds, renames or removes fails here.
  */
 export const INTERPRETED_FILTER_CONTROLS: Readonly<
   Record<keyof EntryGetFilterDto, ApplicationsSearchControl | null>
@@ -134,39 +57,29 @@ export const INTERPRETED_FILTER_CONTROLS: Readonly<
   standardApplicantCodes: null,
 };
 
-/** The radio value of the "None of these" option in every choice. */
 export const NONE_OF_THESE_VALUE = 'none';
 export const NONE_OF_THESE_LABEL = 'None of these';
 
-/** A radio option for a choice, with the option it applies. */
 export interface InterpretationChoiceOption extends RadioOption {
   value: string;
-  /** The option to apply, or null for "None of these". */
+  /** Null for "None of these". */
   pick: InterpretationChoiceOptionDto | null;
 }
 
-/** A choicesNeeded item as app-radio-group options. */
 export interface InterpretationChoice {
   field: SearchFilterField;
-  /** The prompt to show staff (untrusted text: render it as text). */
+  /** Untrusted text: render it as text. */
   text: string;
   options: InterpretationChoiceOption[];
 }
 
-/** Form changes for an interpretation. Labels and text are untrusted. */
+/** Labels and text are untrusted: render them as text. */
 export interface InterpretationFormChanges {
-  /** The whole new form value: every control, defaults where unset. */
   formValue: ApplicationsSearchFormValue;
-  /** Display text for the Court typeahead (PlaceFieldsState). */
   courthouseSearch: string;
-  /** Display text for the CJA typeahead (PlaceFieldsState). */
   cjaSearch: string;
-  /** Labels for Other courts codes (the page's courtChipLabels). */
   courtChipLabels: Record<string, string>;
-  /**
-   * The API's rows for the filters that were applied. Choice picks are not
-   * added here: the picked radio option shows them.
-   */
+  /** Picks are not added here: the picked radio option shows them. */
   appliedFilters: InterpretedFilterDto[];
   /** What was asked for but not applied, as text staff can read. */
   notApplied: string[];
@@ -177,8 +90,7 @@ export interface InterpretationFormChanges {
 
 type ListControl = 'applicationCodes' | 'resultCodes';
 
-// Most codes the API accepts in one search (EntryGetFilterDto maxItems). The
-// court limits are COURT_CODES_MAX_ITEMS and OTHER_COURTS_MAX_ITEMS.
+// Most codes the API accepts in one search (EntryGetFilterDto maxItems)
 const LIST_MAX_ITEMS: Readonly<Record<ListControl, number>> = {
   applicationCodes: 50,
   resultCodes: 20,
@@ -186,14 +98,12 @@ const LIST_MAX_ITEMS: Readonly<Record<ListControl, number>> = {
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-// How the API joins the court names in a courtCodes row's label, and how a
-// label ends when the API cut it to its 200-character limit
 const COURT_LABEL_SEPARATOR = ', ';
 const CUT_LABEL_END = '…';
 
 /**
- * Turns an interpretation into changes for the Applications search form. The
- * interpretation's values replace the form's; see the file header.
+ * Replaces, never merges: every control starts from the page defaults, so
+ * nothing from an earlier search is kept.
  */
 export function mapInterpretationToForm(
   interpretation: SearchInterpretationDto,
@@ -249,9 +159,9 @@ export function mapInterpretationToForm(
 }
 
 /**
- * Applies one picked choice option to the changes and returns new changes
- * (the input is not changed). "None of these" returns an unchanged copy. See
- * the file header for what a pick does to each kind of field.
+ * Returns new changes; the input is not changed. Apply every answer to the
+ * result of mapInterpretationToForm() each time an answer changes, not to a
+ * result that already has a pick in it.
  */
 export function applyInterpretationChoice(
   changes: InterpretationFormChanges,
@@ -291,8 +201,7 @@ export function applyInterpretationChoice(
   return draft;
 }
 
-// Applies one filter field's value from the interpretation. True when the
-// field was applied (for a list, when at least one code was).
+// True when the field was applied (for a list, when at least one code was)
 function applyFilterValue(
   draft: InterpretationFormChanges,
   field: string,
@@ -343,8 +252,7 @@ function applyFilterValue(
   return applyOneValue(draft, field, control, value, label, activeCourts);
 }
 
-// Applies a single value (one code for a list) to its control. False when the
-// control cannot hold it.
+// False when the control cannot hold the value
 function applyOneValue(
   draft: InterpretationFormChanges,
   field: string,
@@ -393,12 +301,9 @@ function applyOneValue(
   }
 }
 
-// Adds a court to Court or Other courts, within the page's limits: at most
-// COURT_CODES_MAX_ITEMS courts in all, and OTHER_COURTS_MAX_ITEMS in Other
-// courts. An active courtCode goes into an empty Court. When Other courts is
-// full and Court is empty, an active court goes into Court to make room: this
-// court, or else one already in Other courts. A court already searched counts
-// as applied. False when the court cannot be held.
+// Court takes only active courts, as its typeahead knows no others. When
+// Other courts is full and Court is empty, an active court goes into Court to
+// make room. A court already searched counts as applied.
 function addCourt(
   draft: InterpretationFormChanges,
   code: string,
@@ -439,9 +344,7 @@ function addCourt(
   return true;
 }
 
-// Moves the first active court in Other courts into Court, which must be
-// empty, with its chip label as display text. False when Other courts has no
-// active court.
+// Court must be empty. False when Other courts has no active court.
 function moveOtherCourtToCourt(
   draft: InterpretationFormChanges,
   activeCourts: readonly CourtLocationGetSummaryDto[],
@@ -464,8 +367,6 @@ function moveOtherCourtToCourt(
   return false;
 }
 
-// Puts an active court in Court. Its display text is the label, or else the
-// court's typeahead label.
 function setCourt(
   draft: InterpretationFormChanges,
   active: CourtLocationGetSummaryDto,
@@ -524,8 +425,6 @@ function keepCourtsExclusive(draft: InterpretationFormChanges): void {
   }
 }
 
-// Moves a field's rows from appliedFilters to notApplied, or lists the
-// fallback text when it has none
 function dropFilter(
   draft: InterpretationFormChanges,
   field: string,
@@ -537,20 +436,13 @@ function dropFilter(
   addNotApplied(draft, ...(labels.length ? labels : [fallback]));
 }
 
-/**
- * Labels for the codes of a courtCodes list, from the field's rows. The API
- * sends one row for the whole field, not one for each court:
- * - A list of one code takes its row's label.
- * - For a list of more than one code, the row's label is the court names
- *   joined with ", " in the order of the codes, with the code itself for a
- *   court that has no name. The label's parts are paired with the codes by
- *   position in the list as sent (counting repeats and blanks, so a code the
- *   form drops can never shift the others), and only when there is one row,
- *   one part for each code, and the label was not cut ("…" at the end).
- *   Otherwise no code has a label, so each chip shows its code: a joined label
- *   is never given to one court.
- * Keys are the codes as toCodeList() keeps them (the first spelling).
- */
+// The API sends one row for the field. For more than one code, its label is
+// the court names (the code for a court with no name) joined with ", " in code
+// order, which the API contract does not document. Parts are paired with the
+// codes by position as sent, counting repeats and blanks so a dropped code
+// never shifts the others, and only for one uncut row ("…" ends a cut label)
+// with a part for each code. Otherwise each chip shows its code: a joined
+// label is never given to one court. Keys are the first spelling of each code.
 function courtCodesLabels(
   values: readonly unknown[],
   rows: readonly InterpretedFilterDto[],
@@ -603,7 +495,6 @@ function toInterpretationChoice(
   };
 }
 
-// The Status option value for an API status (OPEN to 'open'), if there is one
 function toStatusOptionValue(status: string): string | undefined {
   const wanted = status.toUpperCase();
   return APPLICATIONS_LIST_CHOOSE_STATUS.find(
@@ -611,8 +502,8 @@ function toStatusOptionValue(status: string): string | undefined {
   )?.value;
 }
 
-// A real calendar date as YYYY-MM-DD. A day or month out of range rolls the
-// date over, so it no longer reads back the same.
+// A day or month out of range rolls the date over, so it no longer reads back
+// the same
 function isIsoDate(value: string): boolean {
   if (!ISO_DATE.test(value)) {
     return false;
@@ -640,7 +531,6 @@ function isPresent(value: unknown): boolean {
   return !Array.isArray(value) || value.length > 0;
 }
 
-// What to list for a value with no label: the value, or else the field name
 function describeValue(field: string, value: unknown): string {
   if (typeof value === 'string') {
     return value.trim();
@@ -664,7 +554,6 @@ function addNotApplied(
   }
 }
 
-// String codes, trimmed and without blanks or repeats (case-insensitive)
 function toCodeList(values: readonly unknown[]): string[] {
   const codes: string[] = [];
 

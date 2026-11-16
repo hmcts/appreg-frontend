@@ -9,11 +9,8 @@ export const ApplicationsColumns = [
   { header: 'Actions', field: 'actions', sortable: false },
 ];
 
-// Most court codes the API accepts in one search (EntryGetFilterDto.courtCodes
-// maxItems). Court and Other courts together are sent as one list of codes.
+// Most court codes the API accepts in one search (EntryGetFilterDto.courtCodes)
 export const COURT_CODES_MAX_ITEMS = 20;
 
-// Most courts Other courts can hold. Court takes one of the codes the API
-// accepts, so Court and Other courts together can never send more than it
-// allows.
+// Court takes one of the codes the API accepts
 export const OTHER_COURTS_MAX_ITEMS = COURT_CODES_MAX_ITEMS - 1;
