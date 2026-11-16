@@ -1,38 +1,17 @@
 /**
- * Multi-select typeahead (`app-multi-suggestions`): a ControlValueAccessor
- * whose value is a `string[]` of option values.
+ * Multi-select typeahead whose form value is a `string[]` of option values.
  *
- * It wraps `app-suggestions` without a form control and drives it through
- * `[search]`, `(searchChange)`, `[suggestions]` and `(selectItem)`, as the
- * activity audit section does. The wrapped typeahead runs with
- * `showAllValues` off, so it shows exactly what this component passes it:
- * the `options` whose label or value contains the search text, without the
- * values already selected, up to 20 matches. Choosing a match adds its value,
- * clears the search and emits `searchChange('')`. Pages can use
- * `searchChange` to load `options` from the API.
- *
- * Selected values are listed under `selectedHeading` (`#<id>-selected`), each
- * with a Remove link. A value's label comes from `options`, then
- * `extraLabels` (values not in the options, such as end-dated codes), then the
- * label it was chosen with, and finally the value itself.
- *
- * Adding stops at `maxItems`, and the hint then reads "You can add up to N".
- * The typeahead stays enabled so the Remove links can move focus back to it,
- * and its live status then gives the limit rather than "No results found".
- * Disabling, through the `disabled` input or the form control, disables the
- * typeahead and hides the Remove links. Every change emits a new array, so the
- * array bound to the control is never changed.
- *
- * Writing a value to the control (a reset, a restore, or filters applied by
- * the page) also clears any typed search text and emits `searchChange('')`.
+ * It wraps `app-suggestions` without a form control, as the activity audit
+ * section does, and passes it only the matches to show (`showAllValues` is
+ * off). `extraLabels` names values that are not in the options, such as
+ * end-dated codes. At `maxItems` the typeahead stays enabled so a Remove link
+ * can move focus back to it. Every change emits a new array, never the bound
+ * one.
  *
  * It is also the control's validator. Text typed but not added from the list
  * makes the control invalid with `notAdded`, so a search cannot silently run
  * without it. Picking a match, clearing the text or writing a value makes it
- * valid again. A disabled field has no errors. Changing the `disabled` input
- * does not re-validate the control by itself (the next keystroke or write
- * does), so a page that may disable the field while text is typed should
- * disable the form control instead, which Angular re-validates.
+ * valid again. A disabled field has no errors.
  */
 
 import {
@@ -43,7 +22,6 @@ import {
   forwardRef,
   inject,
   input,
-  output,
   signal,
 } from '@angular/core';
 import {
@@ -98,13 +76,10 @@ export class MultiSuggestionsComponent
   readonly options = input<SuggestionsItem[]>([]);
   readonly extraLabels = input<Record<string, string>>({});
   readonly maxItems = input(20);
-  readonly disabled = input(false);
   readonly showError = input(false);
   readonly errorText = input('This field is required');
   readonly widthClass = input('govuk-input--width-10');
   readonly containerWidthClass = input('govuk-grid-column-one-quarter');
-
-  readonly searchChange = output<string>();
 
   readonly search = signal('');
   private readonly selected = signal<readonly string[]>([]);
@@ -113,9 +88,7 @@ export class MultiSuggestionsComponent
   );
   private readonly controlDisabled = signal(false);
 
-  readonly disabledState = computed(
-    () => this.disabled() || this.controlDisabled(),
-  );
+  readonly disabledState = this.controlDisabled.asReadonly();
 
   readonly atLimit = computed(() => this.selected().length >= this.maxItems());
 
@@ -123,7 +96,6 @@ export class MultiSuggestionsComponent
     this.atLimit() ? `You can add up to ${this.maxItems()}` : this.hint(),
   );
 
-  /** Live status shown by the typeahead when typing offers nothing. */
   readonly noResultsText = computed(() =>
     this.atLimit()
       ? `You can add up to ${this.maxItems()}. Remove one to add another.`
@@ -191,11 +163,10 @@ export class MultiSuggestionsComponent
   }
 
   validate(): ValidationErrors | null {
-    // Angular does not validate a disabled control, so only the input is
-    // checked here. When a control is enabled it is validated before
-    // setDisabledState(false) runs, so checking controlDisabled would wrongly
-    // pass typed text then.
-    if (this.disabled() || !this.search().trim()) {
+    // Angular does not validate a disabled control. When a control is enabled
+    // it is validated before setDisabledState(false) runs, so checking
+    // controlDisabled here would wrongly pass typed text then.
+    if (!this.search().trim()) {
       return null;
     }
 
@@ -263,7 +234,6 @@ export class MultiSuggestionsComponent
     }
 
     this.search.set(value);
-    this.searchChange.emit(value);
 
     // Typed text that has not been added makes the control invalid.
     if (revalidate) {

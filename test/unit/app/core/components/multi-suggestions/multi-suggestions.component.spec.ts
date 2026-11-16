@@ -34,7 +34,6 @@ const CHARLIE = court('CRT003', 'Charlie Court');
       [extraLabels]="extraLabels()"
       [maxItems]="maxItems()"
       [formControl]="control"
-      (searchChange)="searches.push($event)"
     />
   `,
 })
@@ -43,7 +42,6 @@ class MultiSuggestionsHostComponent {
   readonly options = signal<SuggestionsItem[]>([ALPHA, BRAVO, CHARLIE]);
   readonly extraLabels = signal<Record<string, string>>({});
   readonly maxItems = signal(20);
-  readonly searches: string[] = [];
 }
 
 describe('MultiSuggestionsComponent', () => {
@@ -140,10 +138,10 @@ describe('MultiSuggestionsComponent', () => {
     ).toBeNull();
   });
 
-  it('emits searchChange as the user types and offers matching options', () => {
+  it('offers matching options as the user types', () => {
     type('bravo');
 
-    expect(host.searches).toEqual(['bravo']);
+    expect(component().search()).toBe('bravo');
     expect(offeredLabels()).toEqual([BRAVO.label]);
   });
 
@@ -162,7 +160,6 @@ describe('MultiSuggestionsComponent', () => {
     expect(input().value).toBe('');
     expect(typeahead().searchState()).toBe('');
     expect(component().search()).toBe('');
-    expect(host.searches).toEqual(['alp', '']);
     expect(offeredLabels()).toEqual([]);
     expect(element.textContent).toContain('Selected courts');
     expect(selectedLabels()).toEqual([ALPHA.label]);
@@ -182,7 +179,7 @@ describe('MultiSuggestionsComponent', () => {
 
     expect(host.control.value).toEqual([CHARLIE.value]);
     expect(input().value).toBe('');
-    expect(host.searches).toEqual(['charlie', '']);
+    expect(component().search()).toBe('');
   });
 
   it('marks the control dirty and touched when a value is added', () => {
@@ -340,7 +337,6 @@ describe('MultiSuggestionsComponent', () => {
     expect(typeahead().searchState()).toBe('');
     expect(offeredLabels()).toEqual([]);
     expect(element.querySelector('#host-courts-selected')).toBeNull();
-    expect(host.searches).toEqual(['bra', '']);
 
     input().blur();
     input().focus();
@@ -348,11 +344,6 @@ describe('MultiSuggestionsComponent', () => {
 
     expect(offeredLabels()).toEqual([]);
     expect(statusText()).toBeUndefined();
-
-    host.control.reset([]);
-    fixture.detectChanges();
-
-    expect(host.searches).toEqual(['bra', '']);
   });
 
   it('ignores duplicate, empty and non-string values written to the control', () => {
@@ -489,10 +480,13 @@ describe('MultiSuggestionsComponent', () => {
 
   it('disables the typeahead and hides the Remove links when the control is disabled', () => {
     setValue([ALPHA.value]);
+    type('court');
+    expect(component().suggestions()).toEqual([BRAVO, CHARLIE]);
 
     host.control.disable();
     fixture.detectChanges();
 
+    expect(component().suggestions()).toEqual([]);
     expect(input().disabled).toBe(true);
     expect(selectedLabels()).toEqual([ALPHA.label]);
     expect(removeLinks()).toHaveLength(0);
@@ -512,30 +506,6 @@ describe('MultiSuggestionsComponent', () => {
 
     expect(input().disabled).toBe(false);
     expect(removeLinks()).toHaveLength(1);
-  });
-
-  it('disables the typeahead and hides the Remove links when the disabled input is set', () => {
-    const disabledFixture = TestBed.createComponent(MultiSuggestionsComponent);
-    const multi = disabledFixture.componentInstance;
-    disabledFixture.componentRef.setInput('id', 'codes');
-    disabledFixture.componentRef.setInput('options', [ALPHA, BRAVO]);
-    multi.writeValue([ALPHA.value]);
-    multi.onSearchChange('court');
-    disabledFixture.detectChanges();
-    expect(multi.suggestions()).toEqual([BRAVO]);
-
-    disabledFixture.componentRef.setInput('disabled', true);
-    disabledFixture.detectChanges();
-
-    const disabledElement = disabledFixture.nativeElement as HTMLElement;
-    expect(
-      (disabledElement.querySelector('input#codes') as HTMLInputElement)
-        .disabled,
-    ).toBe(true);
-    expect(
-      disabledElement.querySelectorAll('#codes-selected .govuk-link'),
-    ).toHaveLength(0);
-    expect(multi.suggestions()).toEqual([]);
   });
 
   describe('typed text that has not been added', () => {
@@ -621,24 +591,19 @@ describe('MultiSuggestionsComponent', () => {
       expect(host.control.errors).toEqual({ notAdded: true });
     });
 
-    it('does not report typed text while the disabled input is set', () => {
-      const disabledFixture = TestBed.createComponent(
+    it('asks the control to re-validate once when the typed text changes', () => {
+      const standaloneFixture = TestBed.createComponent(
         MultiSuggestionsComponent,
       );
-      const multi = disabledFixture.componentInstance;
+      const multi = standaloneFixture.componentInstance;
       const onValidatorChange = jest.fn();
-      disabledFixture.componentRef.setInput('id', 'codes');
+      standaloneFixture.componentRef.setInput('id', 'codes');
       multi.registerOnValidatorChange(onValidatorChange);
       multi.onSearchChange('alp');
-      disabledFixture.detectChanges();
+      standaloneFixture.detectChanges();
 
       expect(onValidatorChange).toHaveBeenCalledTimes(1);
       expect(multi.validate()).toEqual({ notAdded: true });
-
-      disabledFixture.componentRef.setInput('disabled', true);
-      disabledFixture.detectChanges();
-
-      expect(multi.validate()).toBeNull();
     });
   });
 

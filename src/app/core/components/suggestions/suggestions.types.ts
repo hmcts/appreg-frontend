@@ -137,7 +137,3 @@ export const isActivitySuggestionItem = (
 export const isAppcodeSuggestionItem = (
   item: SuggestionsItem,
 ): item is ApplicationCodeTitleSuggestionItem => item.kind === 'app-code-title';
-
-export const isApplicationCodeSuggestionItem = (
-  item: SuggestionsItem,
-): item is ApplicationCodeSuggestionItem => item.kind === 'app-code';

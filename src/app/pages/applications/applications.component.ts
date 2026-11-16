@@ -9,12 +9,9 @@
  * onSubmit():
  * - GET request to Spring API which returns applications based on given params
  * - Populates query based on fields that are  !null/!undefined/!defaultValue
- * - Searches by a single List date or a date range (List date from/to), not both
  * - Application codes and Result codes (Advanced search) are lists of exact
  *   codes, sent only when they hold at least one code. Text typed into either
  *   but not picked from the list blocks the search with an error
- * - A 400 from the search, such as a rejected filter combination, shows the
- *   API's problem text in the error summary. Other errors show a generic message
  *
  * onPrintContinuous/Page():
  * - Runs bulk preview endpoint to get selected row details

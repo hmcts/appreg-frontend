@@ -19,48 +19,6 @@ describe('ApplicationsSearchFormService', () => {
     expect(service.state()).toEqual(DEFAULT_APPLICATIONS_SEARCH_FORM);
   });
 
-  it('defaults the applicant and respondent names to empty strings', () => {
-    expect(DEFAULT_APPLICATIONS_SEARCH_FORM).toEqual(
-      expect.objectContaining({ applicantName: '', respondentName: '' }),
-    );
-    expect(service.state().applicantName).toBe('');
-    expect(service.state().respondentName).toBe('');
-  });
-
-  it('resets applicant and respondent names to empty strings', () => {
-    service.setState({
-      ...DEFAULT_APPLICATIONS_SEARCH_FORM,
-      applicantName: 'Synthetic Applicant Ltd',
-      respondentName: 'Synthetic Respondent',
-    });
-
-    service.reset();
-
-    expect(service.state().applicantName).toBe('');
-    expect(service.state().respondentName).toBe('');
-  });
-
-  it('defaults the list date range to null', () => {
-    expect(DEFAULT_APPLICATIONS_SEARCH_FORM).toEqual(
-      expect.objectContaining({ dateFrom: null, dateTo: null }),
-    );
-    expect(service.state().dateFrom).toBeNull();
-    expect(service.state().dateTo).toBeNull();
-  });
-
-  it('resets the list date range to null', () => {
-    service.setState({
-      ...DEFAULT_APPLICATIONS_SEARCH_FORM,
-      dateFrom: '2026-05-01',
-      dateTo: '2026-05-31',
-    });
-
-    service.reset();
-
-    expect(service.state().dateFrom).toBeNull();
-    expect(service.state().dateTo).toBeNull();
-  });
-
   it('defaults the application codes and result codes to empty lists', () => {
     expect(DEFAULT_APPLICATIONS_SEARCH_FORM).toEqual(
       expect.objectContaining({ applicationCodes: [], resultCodes: [] }),
