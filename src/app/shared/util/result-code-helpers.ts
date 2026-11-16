@@ -25,13 +25,9 @@ type IndexedResultCodePage = { index: number; page: ResultCodePage };
 
 /**
  * Requests every page of GET /result-codes and emits all codes once the last
- * page has loaded. Errors are passed on.
- *
- * The next page is requested only when the server says `last: false`, the page
- * has content and, when `totalPages` is sent, the next index is in range. A
- * response without `last` counts as the last page. The page index is counted
- * here rather than read back from the response, so a server or stub that
- * ignores `pageNumber` cannot make this page forever.
+ * page has loaded. The page index is counted here rather than read back from
+ * the response, so a server or stub that ignores `pageNumber` cannot make this
+ * page forever.
  */
 export function loadAllResultCodes$(
   codesApi: ResultCodesApi,
