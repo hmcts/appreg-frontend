@@ -342,6 +342,17 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   getControlErrorItem = getControlErrorItem;
 
+  showError(name: keyof typeof APPLICATIONS_ERROR_MAP): boolean {
+    return this.vm().submitted && !!this.errorText(name);
+  }
+
+  errorText(name: keyof typeof APPLICATIONS_ERROR_MAP): string {
+    return (
+      getControlErrorItem(this.form.controls[name], name, this.errorMap)
+        ?.text ?? ''
+    );
+  }
+
   get selectedCount(): number {
     const vm = this.vm();
     return vm.isFilterSelection
