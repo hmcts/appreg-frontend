@@ -1,12 +1,6 @@
 /**
- * Root store for reference data used across the search and place fields.
- *
- * - CJAs, court locations and application codes are fully paged GET ALL
- *   requests that start when the facade is created in the browser
- *   (place-fields.base.ts and the Applications page use them).
- * - Result codes are loaded lazily and fully paged: nothing is requested until
- *   a page calls ensureResultCodes().
- * - Nothing is requested during server-side rendering.
+ * GET ALL requests for the reference data used in place-fields.base.ts and the
+ * Applications page.
  */
 
 import { isPlatformBrowser } from '@angular/common';
@@ -85,7 +79,7 @@ export class ReferenceDataFacade {
   );
   private readonly state = this.signalState.state;
 
-  // for Applications page only; result codes count once a page has asked for them
+  // for Applications page only
   readonly hasLoadError = computed(
     () =>
       this.state().cjaLoadError ||
@@ -166,9 +160,8 @@ export class ReferenceDataFacade {
   }
 
   /**
-   * Loads every result code the first time a page asks for them. Does nothing
-   * while a load is in flight, after a successful load, or on the server. After
-   * a failed load, calling it again retries.
+   * Loads every result code the first time a page asks for them. Later calls do
+   * nothing unless the last load failed, in which case they retry.
    */
   ensureResultCodes(): void {
     // untracked: an effect or computed that calls this must not re-run on every state change
