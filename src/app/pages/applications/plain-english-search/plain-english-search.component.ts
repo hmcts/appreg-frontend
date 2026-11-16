@@ -29,9 +29,9 @@ import {
   PLAIN_ENGLISH_QUESTION_ERROR_MESSAGES,
   PLAIN_ENGLISH_SEARCH_ERROR_MESSAGES,
   PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
-  type PlainEnglishSearchErrorStatus,
 } from '@constants/applications/error-messages';
 import { SearchInterpretationDto, SearchInterpretationsApi } from '@openapi';
+import { type AiOnPageStatus } from '@services/error-message.service';
 import { getHttpStatus } from '@util/http-error-to-text';
 import { trimToString } from '@util/string-helpers';
 
@@ -191,8 +191,6 @@ function errorTextFor(err: unknown): string {
   const status = getHttpStatus(err);
 
   return Object.hasOwn(PLAIN_ENGLISH_SEARCH_ERROR_MESSAGES, status)
-    ? PLAIN_ENGLISH_SEARCH_ERROR_MESSAGES[
-        status as PlainEnglishSearchErrorStatus
-      ]
+    ? PLAIN_ENGLISH_SEARCH_ERROR_MESSAGES[status as AiOnPageStatus]
     : PLAIN_ENGLISH_SEARCH_UNAVAILABLE;
 }

@@ -1,3 +1,5 @@
+import { type AiOnPageStatus } from '@services/error-message.service';
+
 type ApplicationsControl =
   | 'applicantName'
   | 'respondentName'
@@ -76,19 +78,6 @@ export const PLAIN_ENGLISH_QUESTION_ERROR_MESSAGES: Readonly<
   maxlength: 'Question must be 300 characters or fewer',
 };
 
-// Statuses that stay on the page (ErrorMessageService). 0 is a network error.
-export type PlainEnglishSearchErrorStatus =
-  | 0
-  | 400
-  | 403
-  | 404
-  | 422
-  | 429
-  | 500
-  | 502
-  | 503
-  | 504;
-
 // Shown for a status with no copy of its own
 export const PLAIN_ENGLISH_SEARCH_UNAVAILABLE =
   'Plain-English search is unavailable. Use the filters below.';
@@ -97,10 +86,10 @@ export const PLAIN_ENGLISH_SEARCH_UNAVAILABLE =
 export const PLAIN_ENGLISH_SEARCH_NOT_UNDERSTOOD =
   'We could not work out any filters from your question.';
 
-// Fixed copy for each status. The API's problem text is never shown, so no
-// part of the question can be echoed back.
+// Fixed copy for each status ErrorMessageService keeps on the page. The API's
+// problem text is never shown, so no part of the question can be echoed back.
 export const PLAIN_ENGLISH_SEARCH_ERROR_MESSAGES: Readonly<
-  Record<PlainEnglishSearchErrorStatus, string>
+  Record<AiOnPageStatus, string>
 > = {
   0: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
   400: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
