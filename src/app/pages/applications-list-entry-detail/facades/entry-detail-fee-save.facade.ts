@@ -3,7 +3,6 @@
  */
 import { Injectable, inject } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { cloneDeep } from 'lodash';
 import { Observable } from 'rxjs';
 
 import { buildEntryUpdateDtoForFeeChange } from '../util/entry-detail.form';
@@ -57,32 +56,11 @@ export class EntryDetailFeeSaveFacade {
     control.markAsPristine();
   }
 
-  commitFeeStatuses(
-    control: FormControl<FeeStatus[] | null>,
-    savedForm?: { feeStatuses: FeeStatus[] | null },
-  ): void {
-    control.markAsPristine();
-    if (savedForm) {
-      savedForm.feeStatuses = cloneDeep(control.getRawValue());
-    }
-  }
-
   rollbackOffsiteFee(
     control: FormControl<boolean | null>,
     previous: boolean,
   ): void {
     control.setValue(previous, { emitEvent: false });
-    control.markAsPristine();
-  }
-
-  commitOffsiteFee(
-    control: FormControl<boolean | null>,
-    savedForm: { hasOffsiteFee: boolean | null } | undefined,
-    enabled: boolean,
-  ): void {
-    if (savedForm) {
-      savedForm.hasOffsiteFee = enabled;
-    }
     control.markAsPristine();
   }
 

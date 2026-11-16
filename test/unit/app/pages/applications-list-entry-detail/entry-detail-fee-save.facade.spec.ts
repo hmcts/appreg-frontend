@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { FormControl } from '@angular/forms';
 import { of } from 'rxjs';
 
 import { EntryDetailFeeSaveFacade } from '@components/applications-list-entry-detail/facades/entry-detail-fee-save.facade';
@@ -55,19 +54,6 @@ describe('EntryDetailFeeSaveFacade', () => {
       false,
       { transferCache: false },
     );
-  });
-
-  it('commits and rolls back fee baselines without emitting form changes', () => {
-    const control = new FormControl<FeeStatus[] | null>([]);
-    const saved = { feeStatuses: null as FeeStatus[] | null };
-    const changes = jest.fn();
-    control.valueChanges.subscribe(changes);
-    facade.commitFeeStatuses(control, saved);
-    expect(saved.feeStatuses).toEqual([]);
-
-    facade.rollbackFeeStatuses(control, []);
-    expect(changes).not.toHaveBeenCalled();
-    expect(control.pristine).toBe(true);
   });
 
   it('uses saved offsite fee metadata before linked code metadata', () => {
