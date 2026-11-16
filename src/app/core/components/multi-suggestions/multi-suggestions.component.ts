@@ -17,7 +17,6 @@ import {
   forwardRef,
   inject,
   input,
-  output,
   signal,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -59,13 +58,10 @@ export class MultiSuggestionsComponent implements ControlValueAccessor {
   readonly options = input<SuggestionsItem[]>([]);
   readonly extraLabels = input<Record<string, string>>({});
   readonly maxItems = input(20);
-  readonly disabled = input(false);
   readonly showError = input(false);
   readonly errorText = input('This field is required');
   readonly widthClass = input('govuk-input--width-10');
   readonly containerWidthClass = input('govuk-grid-column-one-quarter');
-
-  readonly searchChange = output<string>();
 
   readonly search = signal('');
   private readonly selected = signal<readonly string[]>([]);
@@ -74,9 +70,7 @@ export class MultiSuggestionsComponent implements ControlValueAccessor {
   );
   private readonly controlDisabled = signal(false);
 
-  readonly disabledState = computed(
-    () => this.disabled() || this.controlDisabled(),
-  );
+  readonly disabledState = this.controlDisabled.asReadonly();
 
   readonly atLimit = computed(() => this.selected().length >= this.maxItems());
 
@@ -204,7 +198,6 @@ export class MultiSuggestionsComponent implements ControlValueAccessor {
     }
 
     this.search.set(value);
-    this.searchChange.emit(value);
   }
 
   private commit(next: string[]): void {
