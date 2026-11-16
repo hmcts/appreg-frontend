@@ -219,14 +219,10 @@ function applyFilterValue(
     control === 'applicationCodes' ||
     control === 'resultCodes'
   ) {
-    if (!Array.isArray(value)) {
-      return false;
-    }
-
-    const codes = toCodeList(value);
+    const codes = toCodeList(value as unknown[]);
     const labels =
       control === 'courtCodes'
-        ? courtCodesLabels(value, rowsFor(rows, field))
+        ? courtCodesLabels(value as unknown[], rowsFor(rows, field))
         : new Map<string, string>();
     let applied = false;
 
@@ -242,10 +238,6 @@ function applyFilterValue(
     return applied;
   }
 
-  if (typeof value !== 'string') {
-    return false;
-  }
-
   // One value has one row: its label (a court's name, for a courtCode)
   const label = rowsFor(rows, field)[0]?.label;
 
@@ -257,7 +249,7 @@ function applyOneValue(
   draft: InterpretationFormChanges,
   field: string,
   control: ApplicationsSearchControl,
-  rawValue: string,
+  rawValue: unknown,
   label: string | undefined,
   activeCourts: readonly CourtLocationGetSummaryDto[],
 ): boolean {
