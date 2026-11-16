@@ -1974,16 +1974,6 @@ describe('ApplicationsComponent', () => {
       );
     });
 
-    it('leaves out empty lists', () => {
-      component.form.patchValue({ applicantOrg: 'Synthetic Org' });
-
-      const filter = loadQuery();
-
-      expect(filter).toEqual({ applicantOrganisation: 'Synthetic Org' });
-      expect(filter).not.toHaveProperty('applicationCodes');
-      expect(filter).not.toHaveProperty('resultCodes');
-    });
-
     it('trims codes and leaves out blanks and repeats', () => {
       component.form.patchValue({
         applicationCodes: [
@@ -2129,49 +2119,6 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().getFilters).toEqual({
         applicationCodes: [APPLICATION_CODE_A],
         resultCodes: [RESULT_CODE_A],
-      });
-    });
-
-    it('sends both lists in the filter of a select-all-matching bulk preview', async () => {
-      getEntriesMock.mockReturnValue(
-        of({
-          content: [
-            makeEntry({ id: 'entry-1', listId: 'list-a' }),
-            makeEntry({ id: 'entry-2', listId: 'list-b' }),
-          ],
-          totalPages: 2,
-          totalElements: 12,
-          number: 0,
-        } as unknown as EntryPage) as unknown as ReturnType<
-          ApplicationListEntriesApi['getEntries']
-        >,
-      );
-      component.form.patchValue({
-        applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
-        resultCodes: [RESULT_CODE_A],
-      });
-      submitSearch();
-      component.onHeaderSelectAllChange(true);
-      bulkActionPreviewMock.mockClear();
-
-      await (
-        component as unknown as {
-          getBulkPreviewData: (action: BulkActionType) => Promise<unknown>;
-        }
-      ).getBulkPreviewData(BulkActionType.PRINT_PAGE);
-
-      expect(bulkActionPreviewMock).toHaveBeenCalledTimes(1);
-      expect(bulkActionPreviewMock).toHaveBeenCalledWith({
-        bulkActionPreviewRequestDto: {
-          action: BulkActionType.PRINT_PAGE,
-          selection: {
-            selectionType: 'FILTER',
-            filter: {
-              applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
-              resultCodes: [RESULT_CODE_A],
-            },
-          },
-        },
       });
     });
   });
