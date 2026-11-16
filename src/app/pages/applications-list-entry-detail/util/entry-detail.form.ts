@@ -4,10 +4,9 @@ import {
   Validators,
 } from '@angular/forms';
 
-import { PERSON_TITLE_OPTIONS } from './entry-detail.constants';
-
 import { toOptionalTrimmed } from '@components/applications-list-entry-create/util';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
+import { PERSON_TITLE_OPTIONS } from '@constants/application-list-entry/columns-options';
 import {
   ADDRESS_REGEX,
   APPLICATION_CODE_REGEX,
@@ -46,17 +45,12 @@ import {
   mapTitleToOptionValue,
   toNullableInteger,
   trimToNull,
-  trimToString,
-  trimToUndefined,
 } from '@util/string-helpers';
 import {
   getEntryWordingFields,
   toTemplateSubstitutions,
 } from '@util/template-substitution-utils';
-import {
-  ContactFormRaw,
-  OrganisationFormRaw,
-} from '@util/types/applications-list-entry/types';
+import { ContactFormRaw } from '@util/types/applications-list-entry/types';
 import { accountReferenceRequiredForApplicationCode } from '@validators/account-reference.validator';
 import { officialRowRequiredValidator } from '@validators/official-row-required.validator';
 import { isEmpty, optional } from '@validators/optional.validator';
@@ -408,20 +402,6 @@ export function buildEntryUpdateDtoFromForm(
   return dto as EntryUpdateDto;
 }
 
-export function buildContactDetailsFromRaw(v: ContactFormRaw): ContactDetails {
-  return {
-    addressLine1: trimToString(v.addressLine1),
-    addressLine2: trimToUndefined(v.addressLine2),
-    addressLine3: trimToUndefined(v.addressLine3),
-    addressLine4: trimToUndefined(v.addressLine4),
-    addressLine5: trimToUndefined(v.addressLine5),
-    postcode: trimToUndefined(v.postcode),
-    phone: trimToUndefined(v.phoneNumber),
-    mobile: trimToUndefined(v.mobileNumber),
-    email: trimToUndefined(v.emailAddress),
-  };
-}
-
 export function contactDetailsToFormPatch(cd: ContactDetails): ContactFormRaw {
   return {
     addressLine1: cd.addressLine1 ?? '',
@@ -434,17 +414,6 @@ export function contactDetailsToFormPatch(cd: ContactDetails): ContactFormRaw {
     mobileNumber: cd.mobile ?? '',
     emailAddress: cd.email ?? '',
   };
-}
-
-export function buildOrganisationApplicantFromRaw(
-  raw: OrganisationFormRaw,
-): Applicant {
-  const organisation: Organisation = {
-    name: trimToString(raw.name),
-    contactDetails: buildContactDetailsFromRaw(raw),
-  };
-
-  return { organisation };
 }
 
 export function personToFormPatch(

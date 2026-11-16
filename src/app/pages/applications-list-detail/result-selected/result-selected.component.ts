@@ -26,7 +26,6 @@ import { ActivatedRoute } from '@angular/router';
 
 import { AlertComponent } from '@components/alert/alert.component';
 import { focusSuccessBanner } from '@components/applications-list-entry-detail/util/banners.util';
-import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { mapHttpErrorToSummary } from '@components/applications-list-entry-detail/util/errors.util';
 import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -36,6 +35,7 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
+import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@constants/application-list-detail-bulk-operations/bulk-action';
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import { ResultGetDto } from '@openapi';

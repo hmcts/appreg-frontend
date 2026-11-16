@@ -25,12 +25,12 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { ApplicationEntriesMoveContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { TableComponent } from '@components/table/table.component';
+import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@constants/application-list-detail-bulk-operations/bulk-action';
 import { APPLICATIONS_LIST_COLUMNS } from '@constants/applications-list/applications-list.constants';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {

@@ -52,7 +52,6 @@ import { Observable, map } from 'rxjs';
 
 import {
   ApplicationsListEntryCreateState,
-  ChildErrorSource,
   EntryCreateSnapshot,
   initialApplicationsListEntryCreateState,
   parseCreateNavState,
@@ -61,13 +60,6 @@ import {
 import { AccordionComponent } from '@components/accordion/accordion.component';
 import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
-import {
-  APPLICANT_TYPE_OPTIONS,
-  CIVIL_FEE_COLUMNS,
-  FEE_STATUS_OPTIONS,
-  PERSON_TITLE_OPTIONS,
-  RESPONDENT_TYPE_OPTIONS,
-} from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { mapHttpErrorToSummary } from '@components/applications-list-entry-detail/util/errors.util';
 import { readNavState } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -87,7 +79,15 @@ import { RespondentSectionComponent } from '@components/respondent-section/respo
 import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import {
+  APPLICANT_TYPE_OPTIONS,
+  CIVIL_FEE_COLUMNS,
+  FEE_STATUS_OPTIONS,
+  PERSON_TITLE_OPTIONS,
+  RESPONDENT_TYPE_OPTIONS,
+} from '@constants/application-list-entry/columns-options';
+import {
   APPLICANT_ENTRY_ERROR_MESSAGES,
+  ChildErrorSourceALECreate,
   ENTRY_ERROR_MESSAGES,
   RESPONDENT_ENTRY_ERROR_MESSAGES,
 } from '@constants/application-list-entry/error-messages';
@@ -182,7 +182,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   readonly vm = this.appListEntryCreateSignalState.vm;
 
   private parentErrors: ErrorItem[] = [];
-  private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
+  private childErrors: Record<ChildErrorSourceALECreate, ErrorItem[]> = {
     codes: [],
     notes: [],
     fee: [],
@@ -500,7 +500,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     }
   }
 
-  onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
+  onChildErrors(source: ChildErrorSourceALECreate, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
     this.submitAttempt.update((attempt) => attempt + 1);
 
@@ -574,7 +574,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private validateChildSectionsForSubmit(): void {
-    const submitErrors = collectChildSubmitErrors<ChildErrorSource>([
+    const submitErrors = collectChildSubmitErrors<ChildErrorSourceALECreate>([
       { source: 'wording', section: this.wordingSection },
       { source: 'civilFee', section: this.civilFeeSection },
     ]);

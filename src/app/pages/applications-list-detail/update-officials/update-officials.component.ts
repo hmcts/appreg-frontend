@@ -29,7 +29,6 @@ import {
   UpdateOfficialsNavState,
 } from './update-officials.types';
 
-import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { buildOfficialsFromFormValue } from '@components/applications-list-entry-detail/util/entry-detail.form';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
@@ -39,6 +38,7 @@ import {
 import { OfficialsSectionComponent } from '@components/officials-section/officials-section.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@constants/application-list-detail-bulk-operations/bulk-action';
 import { OFFICIAL_FIELD_MESSAGES } from '@constants/application-list-entry/error-messages';
 import { OFFICIALS_ERROR_HREFS } from '@constants/application-list-entry/respondent/error-hrefs';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';

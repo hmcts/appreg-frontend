@@ -7,10 +7,6 @@ import {
 } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import {
-  APPLICANT_TYPE_OPTIONS,
-  PERSON_TITLE_OPTIONS,
-} from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
@@ -20,6 +16,10 @@ import {
   SelectedStandardApplicantSummary,
   StandardApplicantSelectComponent,
 } from '@components/standard-applicant-select/standard-applicant-select.component';
+import {
+  APPLICANT_TYPE_OPTIONS,
+  PERSON_TITLE_OPTIONS,
+} from '@constants/application-list-entry/columns-options';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 @Component({

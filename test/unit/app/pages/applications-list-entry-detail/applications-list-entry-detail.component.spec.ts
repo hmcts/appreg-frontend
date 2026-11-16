@@ -1097,6 +1097,19 @@ describe('ApplicationsListEntryDetail', () => {
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
   });
 
+  it('treats entry retrieval failure as fatal and skips linked code retrieval', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      throwError(() => ({ status: 500 })),
+    );
+    mockGetApplicationCodeById.mockClear();
+
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.submitAttempt()).toBeGreaterThan(0);
+    expect(mockGetApplicationCodeById).not.toHaveBeenCalled();
+  });
+
   it('allows validation after clearing the code without saving an empty selection', () => {
     component.onCodeSelected({ code: '', date: '2025-11-01' });
     expect(component.applicationCodeSaveDisabled).toBe(false);

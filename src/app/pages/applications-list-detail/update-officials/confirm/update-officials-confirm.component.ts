@@ -31,7 +31,6 @@ import {
 } from '../update-officials.types';
 
 import { AlertComponent } from '@components/alert/alert.component';
-import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -39,6 +38,7 @@ import {
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@constants/application-list-detail-bulk-operations/bulk-action';
 import { ApplicationListEntriesApi, Official, OfficialType } from '@openapi';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';

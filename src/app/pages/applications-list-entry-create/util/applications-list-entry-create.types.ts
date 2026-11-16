@@ -31,11 +31,3 @@ export type EntryCreateSnapshot = {
 };
 
 export type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
-export type ChildErrorSource =
-  | 'codes'
-  | 'notes'
-  | 'fee'
-  | 'respondent'
-  | 'applicant'
-  | 'wording'
-  | 'civilFee';
