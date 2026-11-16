@@ -6,10 +6,6 @@
  *
  * This file is used in applications-list.ts, applications-list-create.ts, applications-list-detail.ts,
  * applications.ts
- *
- * initPlaceFields() can also take an additionalCourts control (a list of court
- * codes, such as Other courts on applications.ts). It then counts as a court
- * when disabling location and CJA. Pages that do not pass it are unchanged.
  */
 
 import { DestroyRef, Directive, computed, inject } from '@angular/core';
@@ -54,7 +50,7 @@ export interface PlaceFieldsState {
 }
 
 export interface PlaceFieldsOptions {
-  /** More courts as a list of codes, counted as a court (see LocationControls). */
+  /** See LocationControls.additionalCourts. */
   additionalCourts?: AbstractControl;
 }
 

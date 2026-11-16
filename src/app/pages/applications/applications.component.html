@@ -57,13 +57,11 @@
       idPrefix="date"
       [submitted]="vm().submitted"
       [isSearch]="vm().isSearch"
-      [externalErrorText]="
-        getControlErrorItem(form.controls.date, 'date', errorMap)?.text ?? ''
-      "
+      [externalErrorText]="errorText('date')"
     />
   </div>
 
-  <!-- Date range (cannot be combined with List date) -->
+  <!-- Date range -->
   <div role="group" aria-labelledby="date-range-heading">
     <p id="date-range-heading" class="govuk-body govuk-!-font-weight-bold">
       Or search a date range
@@ -78,10 +76,7 @@
         idPrefix="date-from"
         [submitted]="vm().submitted"
         [isSearch]="vm().isSearch"
-        [externalErrorText]="
-          getControlErrorItem(form.controls.dateFrom, 'dateFrom', errorMap)
-            ?.text ?? ''
-        "
+        [externalErrorText]="errorText('dateFrom')"
       />
     </div>
 
@@ -94,10 +89,7 @@
         idPrefix="date-to"
         [submitted]="vm().submitted"
         [isSearch]="vm().isSearch"
-        [externalErrorText]="
-          getControlErrorItem(form.controls.dateTo, 'dateTo', errorMap)?.text ??
-          ''
-        "
+        [externalErrorText]="errorText('dateTo')"
       />
     </div>
   </div>
@@ -125,8 +117,7 @@
   </div>
 
   <div class="govuk-grid-row">
-    <!-- Other courts (searched together with Court; disabled by the form
-         control when Other location or CJA is filled in) -->
+    <!-- Other courts -->
     <app-multi-suggestions
       id="courtCodes"
       formControlName="courtCodes"
@@ -136,14 +127,8 @@
       [options]="courtOptions()"
       [extraLabels]="courtChipLabels()"
       [maxItems]="otherCourtsMaxItems"
-      [showError]="
-        vm().submitted &&
-        !!getControlErrorItem(form.controls.courtCodes, 'courtCodes', errorMap)
-      "
-      [errorText]="
-        getControlErrorItem(form.controls.courtCodes, 'courtCodes', errorMap)
-          ?.text ?? ''
-      "
+      [showError]="showError('courtCodes')"
+      [errorText]="errorText('courtCodes')"
       containerWidthClass="govuk-grid-column-one-half"
       widthClass="govuk-!-width-two-thirds"
     />
@@ -170,19 +155,13 @@
   </div>
 
   <div class="govuk-grid-row">
-    <!-- Applicant name (organisation name or person's first and last name) -->
+    <!-- Applicant name -->
     <app-text-input
       formControlName="applicantName"
       label="Applicant name"
       hint="Part of an organisation name, or a person's first and last name"
       idPrefix="applicantName"
-      [error]="
-        getControlErrorItem(
-          form.controls.applicantName,
-          'applicantName',
-          errorMap
-        )?.text ?? null
-      "
+      [error]="errorText('applicantName') || null"
       [charLimit]="300"
       containerWidthClass="govuk-grid-column-one-half"
       widthClass="govuk-!-width-two-thirds"
@@ -209,19 +188,13 @@
   </div>
 
   <div class="govuk-grid-row">
-    <!-- Respondent name (organisation name or person's first and last name) -->
+    <!-- Respondent name -->
     <app-text-input
       formControlName="respondentName"
       label="Respondent name"
       hint="Part of an organisation name, or a person's first and last name"
       idPrefix="respondentName"
-      [error]="
-        getControlErrorItem(
-          form.controls.respondentName,
-          'respondentName',
-          errorMap
-        )?.text ?? null
-      "
+      [error]="errorText('respondentName') || null"
       [charLimit]="300"
       containerWidthClass="govuk-grid-column-one-half"
       widthClass="govuk-!-width-two-thirds"
@@ -358,7 +331,7 @@
       </div>
 
       <div class="govuk-grid-row">
-        <!-- Application codes (an entry matches any of these exact codes) -->
+        <!-- Application codes -->
         <app-multi-suggestions
           id="applicationCodes"
           formControlName="applicationCodes"
@@ -367,28 +340,15 @@
           selectedHeading="Selected application codes"
           [options]="applicationCodeOptions()"
           [maxItems]="50"
-          [showError]="
-            vm().submitted &&
-            !!getControlErrorItem(
-              form.controls.applicationCodes,
-              'applicationCodes',
-              errorMap
-            )
-          "
-          [errorText]="
-            getControlErrorItem(
-              form.controls.applicationCodes,
-              'applicationCodes',
-              errorMap
-            )?.text ?? ''
-          "
+          [showError]="showError('applicationCodes')"
+          [errorText]="errorText('applicationCodes')"
           containerWidthClass="govuk-grid-column-one-half"
           widthClass="govuk-!-width-two-thirds"
         />
       </div>
 
       <div class="govuk-grid-row">
-        <!-- Result codes (an entry matches when any of these is recorded) -->
+        <!-- Result codes -->
         <app-multi-suggestions
           id="resultCodes"
           formControlName="resultCodes"
@@ -397,21 +357,8 @@
           selectedHeading="Selected result codes"
           [options]="resultCodeOptions()"
           [maxItems]="20"
-          [showError]="
-            vm().submitted &&
-            !!getControlErrorItem(
-              form.controls.resultCodes,
-              'resultCodes',
-              errorMap
-            )
-          "
-          [errorText]="
-            getControlErrorItem(
-              form.controls.resultCodes,
-              'resultCodes',
-              errorMap
-            )?.text ?? ''
-          "
+          [showError]="showError('resultCodes')"
+          [errorText]="errorText('resultCodes')"
           containerWidthClass="govuk-grid-column-one-half"
           widthClass="govuk-!-width-two-thirds"
         />

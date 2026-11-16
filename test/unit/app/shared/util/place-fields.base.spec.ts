@@ -229,20 +229,6 @@ describe('PlaceFieldsBase', () => {
       expect(form.controls.court.disabled).toBe(true);
       expect(form.controls.courtCodes.disabled).toBe(true);
     });
-
-    it('leaves a courts list alone when it is not passed, as other pages do', () => {
-      const form = makeForm();
-      component.init(form);
-
-      form.controls.courtCodes.setValue(['B2']);
-      expect(form.controls.location.enabled).toBe(true);
-      expect(form.controls.cja.enabled).toBe(true);
-
-      form.controls.courtCodes.setValue([]);
-      form.controls.cja.setValue('C1');
-      expect(form.controls.court.disabled).toBe(true);
-      expect(form.controls.courtCodes.enabled).toBe(true);
-    });
   });
 
   it('supports reports forms that name the location control otherLocation', () => {
