@@ -59,6 +59,16 @@ export type SessionTokenCache = {
   tokenCache?: string;
 };
 
+/**
+ * Acquires an API token using an MSAL client and token cache isolated to this call.
+ * A successful acquisition writes the serialized cache back to the same session
+ * so refreshed tokens remain available to later requests.
+ *
+ * @param session - Session account and serialized token cache, if available.
+ * @param scopes - API scopes required for the token.
+ * @returns The authentication result, or `null` when session data or scopes are missing.
+ * @throws If SSO has not been initialized or silent token acquisition fails.
+ */
 export async function acquireApiTokenFromSession(
   session: SessionTokenCache | undefined,
   scopes: string[],
@@ -152,6 +162,16 @@ const loginLimiter: RateLimitRequestHandler = rateLimit({
 });
 
 // --- Main API (similar to setupInfoRoute) ------------------------------------
+/**
+ * Registers the login, callback, logout, and session-probe routes.
+ * The callback validates the saved state and nonce, regenerates the session,
+ * then saves the account and isolated MSAL token cache before redirecting.
+ * Logout requires a same-origin Origin or Referer and matching CSRF cookie
+ * and form token.
+ *
+ * @param app - Express application that receives the SSO router.
+ * @param overrides - Optional SSO configuration overrides, primarily for tests.
+ */
 export function setupSsoRoutes(
   app: Express,
   overrides?: SsoConfigOverrides,

@@ -128,6 +128,11 @@ export class WordingParserComponent {
     return key.length > 15 ? 'govuk-input--width-20' : 'govuk-input--width-10';
   }
 
+  /**
+   * Rebuilds wording inputs from the current template tokens and constraints.
+   * Controls from the previous template are removed, and a key map preserves
+   * the original substitution names after normalization for form control IDs.
+   */
   createFormControls(): void {
     // create an array where the key is the substitution key and the value is the constraint length
     // e.g. "Date": 10

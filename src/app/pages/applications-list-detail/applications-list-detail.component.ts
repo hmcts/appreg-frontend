@@ -453,6 +453,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  /**
+   * Restores one-time success banners from route parameters and navigation state.
+   * Bulk-upload details are read only in the browser. Consumed query parameters
+   * are then removed with a replacement navigation to avoid stale banners.
+   */
   setSuccessBanner(): void {
     if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
       this.vm().createDone = true;
@@ -636,6 +641,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  /**
+   * Registers list, entry, update, and print effects for this detail page.
+   * Responses synchronize the form, selection, ETag, and loading state; failed
+   * requests clear stale rows or expose actionable errors before the trigger
+   * signal is reset.
+   */
   private setupEffects(): void {
     // GET /application-lists/{listId} for list details info
     setupLoadEffect(
@@ -1553,6 +1564,18 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.selectAllRequestVersion += 1;
   }
 
+  /**
+   * Previews a bulk action using either the active filter selection or explicit IDs.
+   * Filter selections include excluded entry IDs; `forceIds` bypasses that mode.
+   * A successful preview is stored in component state. Failures return `null` and
+   * optionally add an error summary for the user.
+   *
+   * @param action - Bulk action whose eligible entries are requested.
+   * @param entryIds - Explicit IDs, defaulting to the current selected IDs.
+   * @param forceIds - Use explicit IDs even when filter selection is active.
+   * @param showError - Whether to show API failures in the error summary.
+   * @returns Preview response, or `null` if the request fails.
+   */
   private async getBulkPreview(
     action: BulkActionType,
     entryIds?: Set<string>,

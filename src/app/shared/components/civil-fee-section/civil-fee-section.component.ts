@@ -160,6 +160,12 @@ export class CivilFeeSectionComponent implements OnInit {
     this.offsiteFeeChanged.emit(next);
   }
 
+  /**
+   * Validates and emits a new fee-status row.
+   * Required validators are attached when the user attempts to add a row, so
+   * they do not appear during an unrelated parent save. A successful add clears
+   * the entry fields and their errors.
+   */
   onAddFeeDetailsClick(): void {
     if (!this.feeRequired()) {
       return;

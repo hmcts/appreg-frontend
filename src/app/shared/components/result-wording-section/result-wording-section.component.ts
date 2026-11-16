@@ -449,6 +449,14 @@ export class ResultWordingSectionComponent {
     return this.existingTemplateById()[card.id] ?? undefined;
   }
 
+  /**
+   * Applies wording edits to an existing result draft or a pending result row.
+   * Pending changes increment the version used to detect unapplied edits and
+   * emit the revised rows; both paths clear that card's validation errors.
+   *
+   * @param card - Result card whose wording was edited.
+   * @param dto - Updated wording substitutions from the child editor.
+   */
   onCardWordingFieldsDTO(
     card: SummaryListCardAction,
     dto: { wordingFields: TemplateSubstitution[] },

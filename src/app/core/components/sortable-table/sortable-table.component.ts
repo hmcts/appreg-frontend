@@ -272,6 +272,11 @@ export class SortableTableComponent
     this.tryInitSortableTable();
   }
 
+  /**
+   * Lazily initializes the MOJ sortable-table widget for browser-side sorting.
+   * Server sorting and repeated view checks skip initialization.
+   * Failed imports leave the table usable and allow a later attempt.
+   */
   private tryInitSortableTable(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;

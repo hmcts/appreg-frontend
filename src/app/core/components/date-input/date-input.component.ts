@@ -191,6 +191,13 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
       });
   }
 
+  /**
+   * Connects the MOJ date picker to the three editable date fields.
+   * A hidden input bridges the widget, while captured global listeners are
+   * removed on destroy. Closing restores focus to the visible calendar button.
+   *
+   * @returns A promise that resolves after the picker and listeners are ready.
+   */
   private async initCalendar(): Promise<void> {
     // Import only in the browser, after Angular has rendered the manual inputs.
     const { DatePicker } = await import('@ministryofjustice/frontend');

@@ -328,6 +328,11 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  /**
+   * Registers the PDF-print request effect for selected applications.
+   * It clears the request signal before rendering and resets loading state
+   * after rendering or an API failure.
+   */
   private setupEffects(): void {
     // GET /application-lists/print
     setupLoadEffect(

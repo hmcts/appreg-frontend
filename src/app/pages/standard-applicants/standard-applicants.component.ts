@@ -334,6 +334,11 @@ export class StandardApplicants implements OnInit {
     this.signalState.patch({ exportSuccess: true });
   }
 
+  /**
+   * Registers search, CSV export, and PDF print effects for standard applicants.
+   * Each request updates its own loading and feedback state; successful searches
+   * also persist the criteria used to restore the page.
+   */
   private setupEffects(): void {
     // GET /standard-applicants
     setupLoadEffect(

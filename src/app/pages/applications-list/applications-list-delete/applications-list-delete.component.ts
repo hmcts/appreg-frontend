@@ -131,6 +131,12 @@ export class ApplicationsListDeleteComponent implements OnInit {
     this.loadChildEntries();
   }
 
+  /**
+   * Loads every child entry before allowing list deletion.
+   * Each page is checked against the expected page number, size, and total;
+   * the combined result must also have the expected count and unique IDs.
+   * Any incomplete response leaves deletion blocked.
+   */
   loadChildEntries(): void {
     if (
       !this.listToDelete ||

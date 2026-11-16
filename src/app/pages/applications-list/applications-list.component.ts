@@ -249,8 +249,11 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.patch({ filteredCourthouses: [] });
   }
 
-  // Registers signal-driven effects that watch request signals and run API calls,
-  // then update state on success/error
+  /**
+   * Registers the list-search and PDF-print request effects.
+   * Both effects clear their request signals and loading state on completion;
+   * print failures are shown inline instead of leaving the loading UI active.
+   */
   private setupEffects(): void {
     setupLoadEffect(
       {

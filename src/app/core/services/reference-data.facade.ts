@@ -128,6 +128,11 @@ export class ReferenceDataFacade {
     this.loadAllAppCodeTitlesRequest.set(true);
   }
 
+  /**
+   * Connects request signals to the three reference-data API loads.
+   * Each result updates its own loading and error state and clears the triggering
+   * signal; a failed load also clears the corresponding cached items.
+   */
   private setupEffects(): void {
     setupLoadEffect(
       {

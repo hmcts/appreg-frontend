@@ -587,6 +587,15 @@ export class ApplicationsListEntryCreate implements OnInit {
     }
   }
 
+  /**
+   * Loads metadata for a selected application code and lodgement date.
+   * Changing codes resets dependent wording; fee fields are cleared when the
+   * new code has no fee. The response controls which sections open and whether
+   * fees and respondents are required.
+   * Clearing the code keeps the visible search date.
+   *
+   * @param codeAndLodgementDate - Selected code and date used for the lookup.
+   */
   onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
     this.form.patchValue({
       applicationCode: codeAndLodgementDate.code,
@@ -834,6 +843,13 @@ export class ApplicationsListEntryCreate implements OnInit {
     };
   }
 
+  /**
+   * Restores a draft after returning from payment-reference editing.
+   * Form values are patched without emitting change events, then applicant-type
+   * controls are synchronized with the restored selection.
+   *
+   * @param state - Navigation state containing an optional entry draft.
+   */
   private applyEntryCreateSnapshot(state: unknown): void {
     // We need to store a draft of the current forms so when we nav back from payment ref page
     // we patch the cleaned forms with the draft values
