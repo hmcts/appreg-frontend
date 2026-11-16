@@ -438,8 +438,7 @@ describe('ReferenceDataFacade', () => {
 
     expect(getResultCodes).not.toHaveBeenCalled();
     expect(facade.resultCodes()).toEqual([]);
-    expect(facade.resultCodesLoading()).toBe(false);
-    expect(facade.resultCodesLoadError()).toBe(false);
+    expect(facade.hasLoadError()).toBe(false);
   }));
 
   it('loads every result-code page when ensureResultCodes is called', fakeAsync(() => {
@@ -476,7 +475,6 @@ describe('ReferenceDataFacade', () => {
       resultCode: 'RC299',
       title: 'Result 299',
     });
-    expect(facade.resultCodesLoading()).toBe(false);
     expect(facade.hasLoadError()).toBe(false);
   }));
 
@@ -493,7 +491,6 @@ describe('ReferenceDataFacade', () => {
     tick();
 
     expect(getResultCodes).toHaveBeenCalledTimes(1);
-    expect(facade.resultCodesLoading()).toBe(true);
 
     firstPage$.next(
       makeResultCodesPage(0, [{ resultCode: 'RC1', title: 'Granted' }], true),
@@ -501,7 +498,6 @@ describe('ReferenceDataFacade', () => {
     firstPage$.complete();
     tick();
 
-    expect(facade.resultCodesLoading()).toBe(false);
     expect(facade.resultCodes()).toEqual([
       { resultCode: 'RC1', title: 'Granted' },
     ]);
@@ -534,8 +530,6 @@ describe('ReferenceDataFacade', () => {
     tick();
 
     expect(facade.resultCodes()).toEqual([]);
-    expect(facade.resultCodesLoading()).toBe(false);
-    expect(facade.resultCodesLoadError()).toBe(true);
     expect(facade.hasLoadError()).toBe(true);
     expect(facade.hasPlaceLoadError()).toBe(false);
     expect(facade.cja()).toEqual([{ code: 'C1', description: 'Area One' }]);
@@ -551,7 +545,7 @@ describe('ReferenceDataFacade', () => {
     facade.ensureResultCodes();
     tick();
 
-    expect(facade.resultCodesLoadError()).toBe(true);
+    expect(facade.hasLoadError()).toBe(true);
 
     facade.ensureResultCodes();
     tick();
@@ -560,7 +554,6 @@ describe('ReferenceDataFacade', () => {
     expect(facade.resultCodes()).toEqual([
       { resultCode: 'RC1', title: 'Granted' },
     ]);
-    expect(facade.resultCodesLoadError()).toBe(false);
     expect(facade.hasLoadError()).toBe(false);
   }));
 
@@ -603,7 +596,7 @@ describe('ReferenceDataFacade', () => {
     tick();
 
     expect(getResultCodes).toHaveBeenCalledTimes(1);
-    expect(facade.resultCodesLoadError()).toBe(true);
+    expect(facade.hasLoadError()).toBe(true);
   }));
 
   it('does not request result codes during server-side rendering', fakeAsync(() => {
@@ -617,7 +610,6 @@ describe('ReferenceDataFacade', () => {
 
     expect(getResultCodes).not.toHaveBeenCalled();
     expect(facade.resultCodes()).toEqual([]);
-    expect(facade.resultCodesLoading()).toBe(false);
     expect(facade.hasLoadError()).toBe(false);
   }));
 });
