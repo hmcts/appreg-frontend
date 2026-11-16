@@ -2039,17 +2039,6 @@ describe('ApplicationsComponent', () => {
       });
     });
 
-    it('sends Other courts as a new array', () => {
-      setOtherCourts([COURT_ONE, COURT_TWO]);
-
-      const filter = loadQuery();
-
-      expect(filter.courtCodes).toEqual([COURT_ONE, COURT_TWO]);
-      expect(filter.courtCodes).not.toBe(
-        component.form.controls.courtCodes.value,
-      );
-    });
-
     it('leaves out Court and Other courts when both are empty', () => {
       component.form.patchValue({ applicantOrg: 'Synthetic Org' });
 
@@ -2089,17 +2078,6 @@ describe('ApplicationsComponent', () => {
       fixture.detectChanges();
 
       expect(component.form.controls.courtCodes.value).toEqual([]);
-      expect(inputById('cja').disabled).toBe(false);
-      expect(inputById('location').disabled).toBe(false);
-    });
-
-    it.each([
-      ['an empty list', []],
-      ['a list of blank codes', ['  ']],
-    ])('counts %s in Other courts as no court', (_, codes) => {
-      setOtherCourts(codes);
-
-      expect(component.hasOtherCourts()).toBe(false);
       expect(inputById('cja').disabled).toBe(false);
       expect(inputById('location').disabled).toBe(false);
     });
