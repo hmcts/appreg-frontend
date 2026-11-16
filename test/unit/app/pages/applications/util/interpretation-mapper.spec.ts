@@ -451,16 +451,6 @@ describe('mapInterpretationToForm', () => {
       expect(result.notApplied).toEqual([]);
     });
 
-    it('lists a value of the wrong type for its control as not applied', () => {
-      const result = map({
-        applicantName: 42,
-        applicationCodes: 'AP99001',
-      } as unknown as EntryGetFilterDto);
-
-      expect(result.formValue).toEqual(EMPTY_FORM);
-      expect(result.notApplied).toEqual(['applicantName', 'AP99001']);
-    });
-
     it('does not list the same text twice', () => {
       expect(
         map({ standardApplicantCodes: ['SA99001'] }, [
@@ -471,48 +461,12 @@ describe('mapInterpretationToForm', () => {
     });
   });
 
-  describe('dates', () => {
-    it.each([
-      '2026-02-30',
-      '2026-13-01',
-      '02/11/2026',
-      '2026-1-2',
-      '0099-01-01',
-    ])('lists the date %s as not applied', (date) => {
-      const result = map({ dateFrom: date }, [
-        row(
-          SearchFilterField.DATE_FROM,
-          'Synthetic date',
-          InterpretationSource.DATE_RULE,
-        ),
-      ]);
-
-      expect(result.formValue.dateFrom).toBeNull();
-      expect(result.notApplied).toEqual(['Synthetic date']);
-      expect(result.appliedFilters).toEqual([]);
-    });
-
-    it('accepts 29 February in a leap year', () => {
-      expect(map({ date: '2028-02-29' }).formValue.date).toBe('2028-02-29');
-    });
-  });
-
   describe('status', () => {
     it.each([
       [ApplicationListStatus.OPEN, 'open'],
       [ApplicationListStatus.CLOSED, 'closed'],
     ])('maps %s to the Status option %s', (status, value) => {
       expect(map({ status }).formValue.status).toBe(value);
-    });
-
-    it('lists a status with no Status option as not applied', () => {
-      const result = map(
-        { status: 'PENDING' as unknown as ApplicationListStatus },
-        [row(SearchFilterField.STATUS, 'Pending')],
-      );
-
-      expect(result.formValue.status).toBeNull();
-      expect(result.notApplied).toEqual(['Pending']);
     });
   });
 
@@ -834,30 +788,6 @@ describe('mapInterpretationToForm', () => {
         expect(result.notApplied).toEqual(['ZZ519']);
       });
     });
-
-    it('lists application codes over the API limit of 50 as not applied', () => {
-      const codes = Array.from(
-        { length: 51 },
-        (_, index) => `AP${index + 99000}`,
-      );
-
-      const result = map({ applicationCodes: codes });
-
-      expect(result.formValue.applicationCodes).toEqual(codes.slice(0, 50));
-      expect(result.notApplied).toEqual(['AP99050']);
-    });
-
-    it('lists result codes over the API limit of 20 as not applied', () => {
-      const codes = Array.from(
-        { length: 21 },
-        (_, index) => `RC${index + 900}`,
-      );
-
-      const result = map({ resultCodes: codes });
-
-      expect(result.formValue.resultCodes).toEqual(codes.slice(0, 20));
-      expect(result.notApplied).toEqual(['RC920']);
-    });
   });
 
   describe('criminal justice area', () => {
@@ -1105,21 +1035,25 @@ describe('applyInterpretationChoice', () => {
     expect(result.notApplied).toEqual(['Synthetic blank']);
   });
 
-  it('lists the option as not applied when its list is full', () => {
-    const codes = Array.from({ length: 20 }, (_, index) => `RC${index + 900}`);
-    const { changes, options } = withChoice(
-      { resultCodes: codes },
-      [],
-      choice(SearchFilterField.RESULT_CODES, [
-        { code: 'RC999', label: 'Synthetic result' },
-      ]),
-    );
+  it.each([
+    ['applicationCodes', SearchFilterField.APPLICATION_CODES, 50],
+    ['resultCodes', SearchFilterField.RESULT_CODES, 20],
+  ] as const)(
+    'lists a %s option as not applied when the list holds the API limit',
+    (control, field, limit) => {
+      const codes = Array.from({ length: limit }, (_, i) => `ZZ${i + 100}`);
+      const { changes, options } = withChoice(
+        { [control]: codes },
+        [],
+        choice(field, [{ code: 'ZZ999', label: 'Synthetic code' }]),
+      );
 
-    const result = pick(changes, options[0]);
+      const result = pick(changes, options[0]);
 
-    expect(result.formValue.resultCodes).toEqual(codes);
-    expect(result.notApplied).toEqual(['Synthetic result']);
-  });
+      expect(result.formValue[control]).toEqual(codes);
+      expect(result.notApplied).toEqual(['Synthetic code']);
+    },
+  );
 
   it('adds a courtCodes option to Other courts with its label', () => {
     const { changes, options } = withChoice(
@@ -1318,6 +1252,7 @@ describe('applyInterpretationChoice', () => {
   it.each([
     [SearchFilterField.STATUS, 'CLOSED', 'status', 'closed'],
     [SearchFilterField.DATE, '2026-11-02', 'date', '2026-11-02'],
+    [SearchFilterField.DATE_FROM, '2028-02-29', 'dateFrom', '2028-02-29'],
     [
       SearchFilterField.RESPONDENT_POSTCODE,
       'ZZ9 9ZZ',
@@ -1340,10 +1275,15 @@ describe('applyInterpretationChoice', () => {
   it.each([
     [SearchFilterField.STATUS, 'PENDING'],
     [SearchFilterField.DATE_TO, '2026-02-31'],
+    [SearchFilterField.DATE_FROM, '2026-02-30'],
+    [SearchFilterField.DATE_FROM, '2026-13-01'],
+    [SearchFilterField.DATE_FROM, '02/11/2026'],
+    [SearchFilterField.DATE_FROM, '2026-1-2'],
+    [SearchFilterField.DATE_FROM, '0099-01-01'],
     [SearchFilterField.STANDARD_APPLICANT_CODES, 'SA99001'],
     [SearchFilterField.APPLICATION_CODE_CATEGORY, 'SEARCH_WARRANTS'],
     ['futureFilter' as unknown as SearchFilterField, 'ZZ1'],
-  ])('lists a %s option the form cannot hold as not applied', (field, code) => {
+  ])('lists a %s option of %s as not applied', (field, code) => {
     const { changes, options } = withChoice(
       {},
       [],

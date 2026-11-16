@@ -9,16 +9,6 @@
  * onSubmit():
  * - GET request to Spring API which returns applications based on given params
  * - Populates query based on fields that are  !null/!undefined/!defaultValue
- * - Searches by a single List date or a date range (List date from/to), not both
- * - Court and Other courts are one list of exact court codes, without repeats
- *   (compared case-insensitively, as the API does). One code is sent as
- *   courtCode and more than one as courtCodes, never both. Other courts counts
- *   as a court, so it disables Other location and CJA, and they disable it
- * - Application codes and Result codes (Advanced search) are lists of exact
- *   codes, sent only when they hold at least one code. Text typed into either
- *   but not picked from the list blocks the search with an error
- * - A 400 from the search, such as a rejected filter combination, shows the
- *   API's problem text in the error summary. Other errors show a generic message
  *
  * Plain-English search (app-plain-english-search, with
  * app-interpreted-filters-summary above the form while the question needs
@@ -272,14 +262,11 @@ const APPLICATIONS_ERROR_HREFS: Record<string, string> = {
   dateTo: '#date-to-day',
 };
 
-// A list filter's codes, trimmed and without blanks or repeats
 const toCodeList = (codes: readonly string[]): string[] => [
   ...new Set(codes.map((code) => code.trim()).filter((code) => !!code)),
 ];
 
-// Court then Other courts as one list of codes, trimmed and without blanks or
-// repeats. Codes are compared case-insensitively, as the API compares them,
-// and the first spelling is kept.
+// Repeats are found case-insensitively, as the API does; the first is kept
 const toCourtCodeList = (
   court: string | null | undefined,
   otherCourts: readonly string[],
@@ -739,17 +726,14 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.refFacade.resultCodes().map(toResultCodeSuggestionItem),
   );
 
-  // Other courts offers the same active courts as the Court typeahead
   readonly courtOptions = computed<SuggestionsItem[]>(() =>
     this.state().courtLocations.map(toCourtSuggestionItem),
   );
 
-  // Labels for Other courts codes that are not in courtOptions, such as
-  // end-dated courts returned by a plain-English search
+  // Labels for codes not in courtOptions, such as end-dated courts
   readonly courtChipLabels = signal<Record<string, string>>({});
 
-  // Court takes one of the codes the API accepts, so Court and Other courts
-  // together can never send more than it allows
+  // Court takes one of the codes the API accepts
   readonly otherCourtsMaxItems = OTHER_COURTS_MAX_ITEMS;
 
   // Plain-English search: off until the capabilities load, and on any error
@@ -895,6 +879,17 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   getControlErrorItem = getControlErrorItem;
 
+  showError(name: keyof typeof APPLICATIONS_ERROR_MAP): boolean {
+    return this.vm().submitted && !!this.errorText(name);
+  }
+
+  errorText(name: keyof typeof APPLICATIONS_ERROR_MAP): string {
+    return (
+      getControlErrorItem(this.form.controls[name], name, this.errorMap)
+        ?.text ?? ''
+    );
+  }
+
   get selectedCount(): number {
     const vm = this.vm();
     return vm.isFilterSelection
@@ -910,7 +905,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     return this.hasSelection && !this.vm().isSelectingAll;
   }
 
-  /** Whether Other courts holds a court, which disables the CJA field. */
   hasOtherCourts(): boolean {
     return hasCourtCodes(this.form.controls.courtCodes.value);
   }
@@ -922,11 +916,9 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.applicationTitleSearch.set(
       this.form.controls.applicationTitle.value ?? '',
     );
-    // Other courts counts as a court when disabling Other location and CJA
     this.initPlaceFields(this.form, this.refFacade, {
       additionalCourts: this.form.controls.courtCodes,
     });
-    // Options for Result codes; application codes are loaded by the facade
     this.refFacade.ensureResultCodes();
     this.setupEffects();
 
@@ -1709,7 +1701,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       filter.accountReference = v.accountReference.trim();
     }
 
-    // New arrays, so the filter never shares one with the form
     const applicationCodes = toCodeList(v.applicationCodes);
     if (applicationCodes.length) {
       filter.applicationCodes = applicationCodes;

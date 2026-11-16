@@ -37,7 +37,10 @@ import {
 } from '@services/applications/applications-search-form.service';
 import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
-import { ApplicationRow } from '@shared-types/applications/applications.type';
+import {
+  ApplicationRow,
+  ApplicationsSearchFormValue,
+} from '@shared-types/applications/applications.type';
 
 interface HasLoadQuery {
   loadQuery(): EntryGetFilterDto;
@@ -119,6 +122,22 @@ const APPLICATION_CODE_A = 'AP99001';
 const APPLICATION_CODE_B = 'SW99002';
 const RESULT_CODE_A = 'RC9901';
 const RESULT_CODE_B = 'RC9902';
+const APPLICATION_CODE_A_LABEL = `${APPLICATION_CODE_A} - Synthetic application one`;
+const APPLICATION_CODE_B_LABEL = `${APPLICATION_CODE_B} - Synthetic search warrant two`;
+const RESULT_CODE_B_LABEL = `${RESULT_CODE_B} - Synthetic result two`;
+const COURT_ONE = 'SYN001';
+const COURT_TWO = 'SYN002';
+const COURT_THREE = 'SYN003';
+const COURT_ONE_LABEL = `${COURT_ONE} - Synthetic Court One`;
+const COURT_TWO_LABEL = `${COURT_TWO} - Synthetic Court Two`;
+const COURT_THREE_LABEL = `${COURT_THREE} - Synthetic Court Three`;
+const ENDED_COURT = 'SYN900';
+const ENDED_COURT_LABEL = `${ENDED_COURT} - Synthetic Closed Court`;
+const COURTS: CourtLocationGetSummaryDto[] = [
+  { courtId: 1, locationCode: COURT_ONE, name: 'Synthetic Court One' },
+  { courtId: 2, locationCode: COURT_TWO, name: 'Synthetic Court Two' },
+  { courtId: 3, locationCode: COURT_THREE, name: 'Synthetic Court Three' },
+];
 
 function makeApplicationCode(
   applicationCode: string,
@@ -306,6 +325,82 @@ describe('ApplicationsComponent', () => {
     });
     fixture.detectChanges();
   });
+
+  const root = () => fixture.nativeElement as HTMLElement;
+
+  const loadQuery = () => (component as unknown as HasLoadQuery).loadQuery();
+
+  const submitSearch = () => {
+    component.onSubmit({
+      preventDefault: jest.fn(),
+    } as unknown as SubmitEvent);
+    fixture.detectChanges();
+  };
+
+  const inputById = (id: string, element: HTMLElement = root()) =>
+    element.querySelector(`input#${id}`) as HTMLInputElement;
+
+  const typeInto = (id: string, text: string) => {
+    const input = inputById(id);
+    input.focus();
+    input.value = text;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  };
+
+  const offeredLabels = () =>
+    Array.from(root().querySelectorAll<HTMLElement>('[role="option"]')).map(
+      (option) => option.textContent?.trim(),
+    );
+
+  const clickOption = (label: string) => {
+    const option = Array.from(
+      root().querySelectorAll<HTMLElement>('[role="option"]'),
+    ).find((item) => item.textContent?.trim() === label);
+    expect(option).toBeDefined();
+    option?.dispatchEvent(
+      new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
+    );
+    option?.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true }),
+    );
+    fixture.detectChanges();
+  };
+
+  const selectedLabels = (id: string, element: HTMLElement = root()) =>
+    Array.from(
+      element.querySelectorAll<HTMLElement>(
+        `#${id}-selected .govuk-summary-list__value`,
+      ),
+    ).map((row) => row.textContent?.trim());
+
+  // The heading rendered just before a field's own selected list
+  const selectedHeading = (id: string, element: HTMLElement = root()) =>
+    element
+      .querySelector(`#${id}-selected`)
+      ?.previousElementSibling?.textContent?.trim();
+
+  const summaryLinks = () =>
+    Array.from(
+      root().querySelectorAll<HTMLAnchorElement>(
+        '.govuk-error-summary__list a',
+      ),
+    ).map((link) => ({
+      href: link.getAttribute('href'),
+      text: link.textContent?.trim(),
+    }));
+
+  const setCodeOptions = () => {
+    applicationCodes.set([
+      makeApplicationCode(APPLICATION_CODE_A, 'Synthetic application one'),
+      makeApplicationCode(APPLICATION_CODE_B, 'Synthetic search warrant two'),
+    ]);
+    resultCodes.set([
+      { resultCode: RESULT_CODE_A, title: 'Synthetic result one' },
+      { resultCode: RESULT_CODE_B, title: 'Synthetic result two' },
+    ]);
+    fixture.detectChanges();
+  };
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -1064,94 +1159,6 @@ describe('ApplicationsComponent', () => {
       expect(filter).not.toHaveProperty('applicantName');
       expect(filter).not.toHaveProperty('respondentName');
     });
-
-    it('saves applicant and respondent names to the form service on submit', () => {
-      component.form.patchValue({
-        applicantName: SYNTHETIC_APPLICANT_NAME,
-        respondentName: SYNTHETIC_RESPONDENT_NAME,
-      });
-
-      component.onSubmit({
-        preventDefault: jest.fn(),
-      } as unknown as SubmitEvent);
-
-      expect(searchFormService.state()).toEqual(
-        expect.objectContaining({
-          applicantName: SYNTHETIC_APPLICANT_NAME,
-          respondentName: SYNTHETIC_RESPONDENT_NAME,
-        }),
-      );
-    });
-
-    it('restores applicant and respondent names from the form service', () => {
-      searchFormService.patchState({
-        applicantName: SYNTHETIC_APPLICANT_NAME,
-        respondentName: SYNTHETIC_RESPONDENT_NAME,
-      });
-
-      const restoredFixture = TestBed.createComponent(Applications);
-      const restored = restoredFixture.componentInstance;
-      restoredFixture.detectChanges();
-
-      expect(restored.form.controls.applicantName.value).toBe(
-        SYNTHETIC_APPLICANT_NAME,
-      );
-      expect(restored.form.controls.respondentName.value).toBe(
-        SYNTHETIC_RESPONDENT_NAME,
-      );
-      expect(
-        (
-          restoredFixture.nativeElement.querySelector(
-            '#applicantName',
-          ) as HTMLInputElement
-        ).value,
-      ).toBe(SYNTHETIC_APPLICANT_NAME);
-      expect(
-        (
-          restoredFixture.nativeElement.querySelector(
-            '#respondentName',
-          ) as HTMLInputElement
-        ).value,
-      ).toBe(SYNTHETIC_RESPONDENT_NAME);
-      expect((restored as unknown as HasLoadQuery).loadQuery()).toEqual({
-        applicantName: SYNTHETIC_APPLICANT_NAME,
-        respondentName: SYNTHETIC_RESPONDENT_NAME,
-      });
-    });
-
-    it('empties applicant and respondent names when the search is cleared', () => {
-      component.form.patchValue({
-        applicantName: SYNTHETIC_APPLICANT_NAME,
-        respondentName: SYNTHETIC_RESPONDENT_NAME,
-      });
-      component.onSubmit({
-        preventDefault: jest.fn(),
-      } as unknown as SubmitEvent);
-      fixture.detectChanges();
-
-      component.clearSearch();
-      fixture.detectChanges();
-
-      expect(component.form.controls.applicantName.value).toBe('');
-      expect(component.form.controls.respondentName.value).toBe('');
-      expect(searchFormService.state().applicantName).toBe('');
-      expect(searchFormService.state().respondentName).toBe('');
-      expect(
-        (
-          fixture.nativeElement.querySelector(
-            '#applicantName',
-          ) as HTMLInputElement
-        ).value,
-      ).toBe('');
-      expect(
-        (
-          fixture.nativeElement.querySelector(
-            '#respondentName',
-          ) as HTMLInputElement
-        ).value,
-      ).toBe('');
-      expect((component as unknown as HasLoadQuery).loadQuery()).toEqual({});
-    });
   });
 
   describe('applicant and respondent name fields', () => {
@@ -1472,15 +1479,6 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('list date range', () => {
-    const submitSearch = () => {
-      component.onSubmit({
-        preventDefault: jest.fn(),
-      } as unknown as SubmitEvent);
-      fixture.detectChanges();
-    };
-
-    const root = () => fixture.nativeElement as HTMLElement;
-
     const isBefore = (first: Element | null, second: Element | null) =>
       !!first &&
       !!second &&
@@ -1633,151 +1631,15 @@ describe('ApplicationsComponent', () => {
 
       expect(component.disabledSortColumns()).toEqual([]);
     });
-
-    it('saves the date range to the form service on submit', () => {
-      component.form.patchValue({ dateFrom: RANGE_FROM, dateTo: RANGE_TO });
-
-      submitSearch();
-
-      expect(searchFormService.state()).toEqual(
-        expect.objectContaining({ dateFrom: RANGE_FROM, dateTo: RANGE_TO }),
-      );
-      expect(searchStateService.state().appliedFilters).toEqual({
-        dateFrom: RANGE_FROM,
-        dateTo: RANGE_TO,
-      });
-    });
-
-    it('restores the date range from the form service', () => {
-      searchFormService.patchState({ dateFrom: RANGE_FROM, dateTo: RANGE_TO });
-
-      const restoredFixture = TestBed.createComponent(Applications);
-      const restored = restoredFixture.componentInstance;
-      restoredFixture.detectChanges();
-      const restoredRoot = restoredFixture.nativeElement as HTMLElement;
-      const valueOf = (id: string) =>
-        (restoredRoot.querySelector(`#${id}`) as HTMLInputElement).value;
-
-      expect(restored.form.controls.dateFrom.value).toBe(RANGE_FROM);
-      expect(restored.form.controls.dateTo.value).toBe(RANGE_TO);
-      expect(
-        ['date-from-day', 'date-from-month', 'date-from-year'].map(valueOf),
-      ).toEqual(['01', '05', '2026']);
-      expect(
-        ['date-to-day', 'date-to-month', 'date-to-year'].map(valueOf),
-      ).toEqual(['31', '05', '2026']);
-      expect((restored as unknown as HasLoadQuery).loadQuery()).toEqual({
-        dateFrom: RANGE_FROM,
-        dateTo: RANGE_TO,
-      });
-    });
-
-    it('empties the date range when the search is cleared', () => {
-      component.form.patchValue({ dateFrom: RANGE_FROM, dateTo: RANGE_TO });
-      submitSearch();
-
-      component.clearSearch();
-      fixture.detectChanges();
-
-      expect(component.form.controls.dateFrom.value).toBeNull();
-      expect(component.form.controls.dateTo.value).toBeNull();
-      expect(searchFormService.state().dateFrom).toBeNull();
-      expect(searchFormService.state().dateTo).toBeNull();
-      expect(
-        (root().querySelector('#date-from-day') as HTMLInputElement).value,
-      ).toBe('');
-      expect(
-        (root().querySelector('#date-to-day') as HTMLInputElement).value,
-      ).toBe('');
-      expect((component as unknown as HasLoadQuery).loadQuery()).toEqual({});
-    });
   });
 
   describe('application codes and result codes', () => {
-    const APPLICATION_CODE_A_LABEL = `${APPLICATION_CODE_A} - Synthetic application one`;
-    const APPLICATION_CODE_B_LABEL = `${APPLICATION_CODE_B} - Synthetic search warrant two`;
-    const RESULT_CODE_A_LABEL = `${RESULT_CODE_A} - Synthetic result one`;
-    const RESULT_CODE_B_LABEL = `${RESULT_CODE_B} - Synthetic result two`;
-
-    const root = () => fixture.nativeElement as HTMLElement;
-
-    const loadQuery = () => (component as unknown as HasLoadQuery).loadQuery();
-
-    const submitSearch = () => {
-      component.onSubmit({
-        preventDefault: jest.fn(),
-      } as unknown as SubmitEvent);
-      fixture.detectChanges();
-    };
-
     const advancedSearch = (element: HTMLElement = root()) =>
       Array.from(element.querySelectorAll('details')).find((details) =>
         details
           .querySelector('summary')
           ?.textContent?.includes('Advanced search'),
       );
-
-    const typeInto = (id: string, text: string) => {
-      const input = root().querySelector(`input#${id}`) as HTMLInputElement;
-      input.focus();
-      input.value = text;
-      input.dispatchEvent(new Event('input'));
-      fixture.detectChanges();
-    };
-
-    const offeredLabels = () =>
-      Array.from(root().querySelectorAll<HTMLElement>('[role="option"]')).map(
-        (option) => option.textContent?.trim(),
-      );
-
-    const clickOption = (label: string) => {
-      const option = Array.from(
-        root().querySelectorAll<HTMLElement>('[role="option"]'),
-      ).find((item) => item.textContent?.trim() === label);
-      expect(option).toBeDefined();
-      option?.dispatchEvent(
-        new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
-      );
-      option?.dispatchEvent(
-        new MouseEvent('click', { bubbles: true, cancelable: true }),
-      );
-      fixture.detectChanges();
-    };
-
-    const selectedLabels = (id: string, element: HTMLElement = root()) =>
-      Array.from(
-        element.querySelectorAll<HTMLElement>(
-          `#${id}-selected .govuk-summary-list__value`,
-        ),
-      ).map((row) => row.textContent?.trim());
-
-    // The heading rendered just before a field's own selected list
-    const selectedHeading = (id: string, element: HTMLElement = root()) =>
-      element
-        .querySelector(`#${id}-selected`)
-        ?.previousElementSibling?.textContent?.trim();
-
-    const summaryLinks = () =>
-      Array.from(
-        root().querySelectorAll<HTMLAnchorElement>(
-          '.govuk-error-summary__list a',
-        ),
-      ).map((link) => ({
-        href: link.getAttribute('href'),
-        text: link.textContent?.trim(),
-      }));
-
-    const setOptions = () => {
-      applicationCodes.set([
-        makeApplicationCode(APPLICATION_CODE_A, 'Synthetic application one'),
-        makeApplicationCode(APPLICATION_CODE_B, 'Synthetic search warrant two'),
-      ]);
-      resultCodes.set([
-        { resultCode: RESULT_CODE_A, title: 'Synthetic result one' },
-        { resultCode: RESULT_CODE_B, title: 'Synthetic result two' },
-      ]);
-      fixture.detectChanges();
-    };
 
     it.each([
       [
@@ -1812,7 +1674,7 @@ describe('ApplicationsComponent', () => {
     });
 
     it('offers application codes by code and title and adds the chosen code to the form', () => {
-      setOptions();
+      setCodeOptions();
 
       typeInto('applicationCodes', 'synthetic');
 
@@ -1835,7 +1697,7 @@ describe('ApplicationsComponent', () => {
     });
 
     it('offers result codes by code and title and adds the chosen code to the form', () => {
-      setOptions();
+      setCodeOptions();
 
       typeInto('resultCodes', 'result two');
 
@@ -1883,7 +1745,7 @@ describe('ApplicationsComponent', () => {
         };
 
         beforeEach(() => {
-          setOptions();
+          setCodeOptions();
           getEntriesMock.mockClear();
         });
 
@@ -1990,16 +1852,6 @@ describe('ApplicationsComponent', () => {
       );
     });
 
-    it('leaves out empty lists', () => {
-      component.form.patchValue({ applicantOrg: 'Synthetic Org' });
-
-      const filter = loadQuery();
-
-      expect(filter).toEqual({ applicantOrganisation: 'Synthetic Org' });
-      expect(filter).not.toHaveProperty('applicationCodes');
-      expect(filter).not.toHaveProperty('resultCodes');
-    });
-
     it('trims codes and leaves out blanks and repeats', () => {
       component.form.patchValue({
         applicationCodes: [
@@ -2030,100 +1882,6 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().searchErrors).toEqual([]);
     });
 
-    it('saves both lists to the form service and the applied filters on submit', () => {
-      component.form.patchValue({
-        applicationCodes: [APPLICATION_CODE_A],
-        resultCodes: [RESULT_CODE_A, RESULT_CODE_B],
-      });
-
-      submitSearch();
-
-      expect(searchFormService.state()).toEqual(
-        expect.objectContaining({
-          applicationCodes: [APPLICATION_CODE_A],
-          resultCodes: [RESULT_CODE_A, RESULT_CODE_B],
-        }),
-      );
-      expect(searchStateService.state().appliedFilters).toEqual({
-        applicationCodes: [APPLICATION_CODE_A],
-        resultCodes: [RESULT_CODE_A, RESULT_CODE_B],
-      });
-    });
-
-    it('restores both lists and reruns the search after navigation', () => {
-      setOptions();
-      getEntriesMock.mockClear();
-      component.form.patchValue({
-        applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
-        resultCodes: [RESULT_CODE_B],
-      });
-      submitSearch();
-
-      const restoredFixture = TestBed.createComponent(Applications);
-      const restored = restoredFixture.componentInstance;
-      restoredFixture.detectChanges();
-      const restoredRoot = restoredFixture.nativeElement as HTMLElement;
-
-      expect(restored.form.controls.applicationCodes.value).toEqual([
-        APPLICATION_CODE_A,
-        APPLICATION_CODE_B,
-      ]);
-      expect(restored.form.controls.resultCodes.value).toEqual([RESULT_CODE_B]);
-      expect(getEntriesMock).toHaveBeenCalledTimes(2);
-      expect(getEntriesMock.mock.calls[1][0]?.filter).toEqual({
-        applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
-        resultCodes: [RESULT_CODE_B],
-      });
-      expect(selectedLabels('applicationCodes', restoredRoot)).toEqual([
-        APPLICATION_CODE_A_LABEL,
-        APPLICATION_CODE_B_LABEL,
-      ]);
-      expect(selectedLabels('resultCodes', restoredRoot)).toEqual([
-        RESULT_CODE_B_LABEL,
-      ]);
-      expect(selectedHeading('applicationCodes', restoredRoot)).toBe(
-        'Selected application codes',
-      );
-      expect(selectedHeading('resultCodes', restoredRoot)).toBe(
-        'Selected result codes',
-      );
-    });
-
-    it('empties both lists when the search is cleared', () => {
-      setOptions();
-      component.form.patchValue({
-        applicationCodes: [APPLICATION_CODE_A],
-        resultCodes: [RESULT_CODE_A],
-      });
-      submitSearch();
-      expect(selectedLabels('applicationCodes')).toEqual([
-        APPLICATION_CODE_A_LABEL,
-      ]);
-      expect(selectedLabels('resultCodes')).toEqual([RESULT_CODE_A_LABEL]);
-
-      component.clearSearch();
-      fixture.detectChanges();
-
-      expect(component.form.controls.applicationCodes.value).toEqual([]);
-      expect(component.form.controls.resultCodes.value).toEqual([]);
-      expect(searchFormService.state().applicationCodes).toEqual([]);
-      expect(searchFormService.state().resultCodes).toEqual([]);
-      expect(root().querySelector('#applicationCodes-selected')).toBeNull();
-      expect(root().querySelector('#resultCodes-selected')).toBeNull();
-      expect(loadQuery()).toEqual({});
-    });
-
-    it('does not give the form the shared default arrays when the search is cleared', () => {
-      component.clearSearch();
-
-      expect(component.form.controls.applicationCodes.value).not.toBe(
-        DEFAULT_APPLICATIONS_SEARCH_FORM.applicationCodes,
-      );
-      expect(component.form.controls.resultCodes.value).not.toBe(
-        DEFAULT_APPLICATIONS_SEARCH_FORM.resultCodes,
-      );
-    });
-
     it('keeps the saved search unchanged when the form lists are changed in place', () => {
       component.form.patchValue({
         applicationCodes: [APPLICATION_CODE_A],
@@ -2147,132 +1905,18 @@ describe('ApplicationsComponent', () => {
         resultCodes: [RESULT_CODE_A],
       });
     });
-
-    it('sends both lists in the filter of a select-all-matching bulk preview', async () => {
-      getEntriesMock.mockReturnValue(
-        of({
-          content: [
-            makeEntry({ id: 'entry-1', listId: 'list-a' }),
-            makeEntry({ id: 'entry-2', listId: 'list-b' }),
-          ],
-          totalPages: 2,
-          totalElements: 12,
-          number: 0,
-        } as unknown as EntryPage) as unknown as ReturnType<
-          ApplicationListEntriesApi['getEntries']
-        >,
-      );
-      component.form.patchValue({
-        applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
-        resultCodes: [RESULT_CODE_A],
-      });
-      submitSearch();
-      component.onHeaderSelectAllChange(true);
-      bulkActionPreviewMock.mockClear();
-
-      await (
-        component as unknown as {
-          getBulkPreviewData: (action: BulkActionType) => Promise<unknown>;
-        }
-      ).getBulkPreviewData(BulkActionType.PRINT_PAGE);
-
-      expect(bulkActionPreviewMock).toHaveBeenCalledTimes(1);
-      expect(bulkActionPreviewMock).toHaveBeenCalledWith({
-        bulkActionPreviewRequestDto: {
-          action: BulkActionType.PRINT_PAGE,
-          selection: {
-            selectionType: 'FILTER',
-            filter: {
-              applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
-              resultCodes: [RESULT_CODE_A],
-            },
-          },
-        },
-      });
-    });
   });
 
   describe('other courts', () => {
-    const COURT_ONE = 'SYN001';
-    const COURT_TWO = 'SYN002';
-    const COURT_THREE = 'SYN003';
-    const COURT_ONE_LABEL = `${COURT_ONE} - Synthetic Court One`;
-    const COURT_TWO_LABEL = `${COURT_TWO} - Synthetic Court Two`;
-    const COURT_THREE_LABEL = `${COURT_THREE} - Synthetic Court Three`;
-    const ENDED_COURT = 'SYN900';
-    const ENDED_COURT_LABEL = `${ENDED_COURT} - Synthetic Closed Court`;
     const OTHER_COURTS_HINT =
       'Start typing a court name or code. You can add more than one.';
     const OTHER_COURTS_ERROR =
       'Select a court from the list, or clear the text';
 
-    const COURTS: CourtLocationGetSummaryDto[] = [
-      { courtId: 1, locationCode: COURT_ONE, name: 'Synthetic Court One' },
-      { courtId: 2, locationCode: COURT_TWO, name: 'Synthetic Court Two' },
-      { courtId: 3, locationCode: COURT_THREE, name: 'Synthetic Court Three' },
-    ];
     const CJA_AREA: CriminalJusticeAreaGetDto = {
       code: 'CJ99',
       description: 'Synthetic Area',
     };
-
-    const root = () => fixture.nativeElement as HTMLElement;
-
-    const loadQuery = () => (component as unknown as HasLoadQuery).loadQuery();
-
-    const submitSearch = () => {
-      component.onSubmit({
-        preventDefault: jest.fn(),
-      } as unknown as SubmitEvent);
-      fixture.detectChanges();
-    };
-
-    const inputById = (id: string, element: HTMLElement = root()) =>
-      element.querySelector(`input#${id}`) as HTMLInputElement;
-
-    const typeInto = (id: string, text: string) => {
-      const input = inputById(id);
-      input.focus();
-      input.value = text;
-      input.dispatchEvent(new Event('input'));
-      fixture.detectChanges();
-    };
-
-    const offeredLabels = () =>
-      Array.from(root().querySelectorAll<HTMLElement>('[role="option"]')).map(
-        (option) => option.textContent?.trim(),
-      );
-
-    const clickOption = (label: string) => {
-      const option = Array.from(
-        root().querySelectorAll<HTMLElement>('[role="option"]'),
-      ).find((item) => item.textContent?.trim() === label);
-      expect(option).toBeDefined();
-      option?.dispatchEvent(
-        new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
-      );
-      option?.dispatchEvent(
-        new MouseEvent('click', { bubbles: true, cancelable: true }),
-      );
-      fixture.detectChanges();
-    };
-
-    const selectedLabels = (element: HTMLElement = root()) =>
-      Array.from(
-        element.querySelectorAll<HTMLElement>(
-          '#courtCodes-selected .govuk-summary-list__value',
-        ),
-      ).map((row) => row.textContent?.trim());
-
-    const summaryLinks = () =>
-      Array.from(
-        root().querySelectorAll<HTMLAnchorElement>(
-          '.govuk-error-summary__list a',
-        ),
-      ).map((link) => ({
-        href: link.getAttribute('href'),
-        text: link.textContent?.trim(),
-      }));
 
     const setOtherCourts = (codes: string[]) => {
       component.form.controls.courtCodes.setValue(codes);
@@ -2313,12 +1957,8 @@ describe('ApplicationsComponent', () => {
       clickOption(COURT_TWO_LABEL);
 
       expect(component.form.controls.courtCodes.value).toEqual([COURT_TWO]);
-      expect(selectedLabels()).toEqual([COURT_TWO_LABEL]);
-      expect(
-        root()
-          .querySelector('#courtCodes-selected')
-          ?.previousElementSibling?.textContent?.trim(),
-      ).toBe('Selected other courts');
+      expect(selectedLabels('courtCodes')).toEqual([COURT_TWO_LABEL]);
+      expect(selectedHeading('courtCodes')).toBe('Selected other courts');
     });
 
     it('labels a court that is not an active court from courtChipLabels', () => {
@@ -2326,7 +1966,10 @@ describe('ApplicationsComponent', () => {
 
       setOtherCourts([COURT_ONE, ENDED_COURT]);
 
-      expect(selectedLabels()).toEqual([COURT_ONE_LABEL, ENDED_COURT_LABEL]);
+      expect(selectedLabels('courtCodes')).toEqual([
+        COURT_ONE_LABEL,
+        ENDED_COURT_LABEL,
+      ]);
     });
 
     it('stops adding at 19, so Court and Other courts together stay within the 20 the API allows', () => {
@@ -2406,17 +2049,6 @@ describe('ApplicationsComponent', () => {
       });
     });
 
-    it('sends Other courts as a new array', () => {
-      setOtherCourts([COURT_ONE, COURT_TWO]);
-
-      const filter = loadQuery();
-
-      expect(filter.courtCodes).toEqual([COURT_ONE, COURT_TWO]);
-      expect(filter.courtCodes).not.toBe(
-        component.form.controls.courtCodes.value,
-      );
-    });
-
     it('leaves out Court and Other courts when both are empty', () => {
       component.form.patchValue({ applicantOrg: 'Synthetic Org' });
 
@@ -2456,17 +2088,6 @@ describe('ApplicationsComponent', () => {
       fixture.detectChanges();
 
       expect(component.form.controls.courtCodes.value).toEqual([]);
-      expect(inputById('cja').disabled).toBe(false);
-      expect(inputById('location').disabled).toBe(false);
-    });
-
-    it.each([
-      ['an empty list', []],
-      ['a list of blank codes', ['  ']],
-    ])('counts %s in Other courts as no court', (_, codes) => {
-      setOtherCourts(codes);
-
-      expect(component.hasOtherCourts()).toBe(false);
       expect(inputById('cja').disabled).toBe(false);
       expect(inputById('location').disabled).toBe(false);
     });
@@ -2522,45 +2143,6 @@ describe('ApplicationsComponent', () => {
       expect(summaryLinks()).toEqual([]);
     });
 
-    it('saves Other courts to the form service and the applied filters on submit', () => {
-      setOtherCourts([COURT_ONE, COURT_TWO]);
-
-      submitSearch();
-
-      expect(searchFormService.state().courtCodes).toEqual([
-        COURT_ONE,
-        COURT_TWO,
-      ]);
-      expect(searchStateService.state().appliedFilters).toEqual({
-        courtCodes: [COURT_ONE, COURT_TWO],
-      });
-    });
-
-    it('restores Other courts after navigation, reruns the search and keeps CJA disabled', () => {
-      setOtherCourts([COURT_TWO, COURT_THREE]);
-      submitSearch();
-
-      const restoredFixture = TestBed.createComponent(Applications);
-      const restored = restoredFixture.componentInstance;
-      restoredFixture.detectChanges();
-      const restoredRoot = restoredFixture.nativeElement as HTMLElement;
-
-      expect(restored.form.controls.courtCodes.value).toEqual([
-        COURT_TWO,
-        COURT_THREE,
-      ]);
-      expect(getEntriesMock).toHaveBeenCalledTimes(2);
-      expect(getEntriesMock.mock.calls[1][0]?.filter).toEqual({
-        courtCodes: [COURT_TWO, COURT_THREE],
-      });
-      expect(selectedLabels(restoredRoot)).toEqual([
-        COURT_TWO_LABEL,
-        COURT_THREE_LABEL,
-      ]);
-      expect(inputById('cja', restoredRoot).disabled).toBe(true);
-      expect(inputById('location', restoredRoot).disabled).toBe(true);
-    });
-
     it('sends a restored Court and Other courts together as courtCodes', () => {
       component.selectCourthouse(COURTS[0]);
       setOtherCourts([COURT_TWO]);
@@ -2575,26 +2157,6 @@ describe('ApplicationsComponent', () => {
       expect(getEntriesMock.mock.calls[1][0]?.filter).toEqual({
         courtCodes: [COURT_ONE, COURT_TWO],
       });
-    });
-
-    it('empties Other courts and its labels when the search is cleared', () => {
-      component.courtChipLabels.set({ [ENDED_COURT]: ENDED_COURT_LABEL });
-      setOtherCourts([COURT_ONE, ENDED_COURT]);
-      submitSearch();
-      expect(selectedLabels()).toEqual([COURT_ONE_LABEL, ENDED_COURT_LABEL]);
-
-      component.clearSearch();
-      fixture.detectChanges();
-
-      expect(component.form.controls.courtCodes.value).toEqual([]);
-      expect(component.form.controls.courtCodes.value).not.toBe(
-        DEFAULT_APPLICATIONS_SEARCH_FORM.courtCodes,
-      );
-      expect(searchFormService.state().courtCodes).toEqual([]);
-      expect(component.courtChipLabels()).toEqual({});
-      expect(root().querySelector('#courtCodes-selected')).toBeNull();
-      expect(inputById('cja').disabled).toBe(false);
-      expect(loadQuery()).toEqual({});
     });
 
     it('keeps the saved search unchanged when Other courts is changed in place', () => {
@@ -2613,6 +2175,206 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().getFilters).toEqual({
         courtCodes: [COURT_ONE, COURT_TWO],
       });
+    });
+  });
+
+  describe('saved search for each new filter', () => {
+    const inputValue = (id: string, element: HTMLElement = root()) =>
+      (element.querySelector(`#${id}`) as HTMLInputElement).value;
+
+    // Each row's own checks run in its callbacks; the tests below run the rest
+    const rows: {
+      name: string;
+      value: Partial<ApplicationsSearchFormValue>;
+      filter: EntryGetFilterDto;
+      cleared: Partial<ApplicationsSearchFormValue>;
+      arrange?: () => void;
+      checkRestored?: (restoredRoot: HTMLElement) => void;
+      checkBeforeClear?: () => void;
+      checkCleared?: () => void;
+    }[] = [
+      {
+        name: 'applicant and respondent names',
+        value: {
+          applicantName: SYNTHETIC_APPLICANT_NAME,
+          respondentName: SYNTHETIC_RESPONDENT_NAME,
+        },
+        filter: {
+          applicantName: SYNTHETIC_APPLICANT_NAME,
+          respondentName: SYNTHETIC_RESPONDENT_NAME,
+        },
+        cleared: { applicantName: '', respondentName: '' },
+        checkRestored: (restoredRoot) => {
+          expect(inputValue('applicantName', restoredRoot)).toBe(
+            SYNTHETIC_APPLICANT_NAME,
+          );
+          expect(inputValue('respondentName', restoredRoot)).toBe(
+            SYNTHETIC_RESPONDENT_NAME,
+          );
+        },
+        checkCleared: () => {
+          expect(inputValue('applicantName')).toBe('');
+          expect(inputValue('respondentName')).toBe('');
+        },
+      },
+      {
+        name: 'the date range',
+        value: { dateFrom: RANGE_FROM, dateTo: RANGE_TO },
+        filter: { dateFrom: RANGE_FROM, dateTo: RANGE_TO },
+        cleared: { dateFrom: null, dateTo: null },
+        checkRestored: (restoredRoot) => {
+          const valueOf = (id: string) => inputValue(id, restoredRoot);
+          expect(
+            ['date-from-day', 'date-from-month', 'date-from-year'].map(valueOf),
+          ).toEqual(['01', '05', '2026']);
+          expect(
+            ['date-to-day', 'date-to-month', 'date-to-year'].map(valueOf),
+          ).toEqual(['31', '05', '2026']);
+        },
+        checkCleared: () => {
+          expect(inputValue('date-from-day')).toBe('');
+          expect(inputValue('date-to-day')).toBe('');
+        },
+      },
+      {
+        name: 'both code lists',
+        value: {
+          applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
+          resultCodes: [RESULT_CODE_B],
+        },
+        filter: {
+          applicationCodes: [APPLICATION_CODE_A, APPLICATION_CODE_B],
+          resultCodes: [RESULT_CODE_B],
+        },
+        cleared: { applicationCodes: [], resultCodes: [] },
+        arrange: setCodeOptions,
+        checkRestored: (restoredRoot) => {
+          expect(selectedLabels('applicationCodes', restoredRoot)).toEqual([
+            APPLICATION_CODE_A_LABEL,
+            APPLICATION_CODE_B_LABEL,
+          ]);
+          expect(selectedLabels('resultCodes', restoredRoot)).toEqual([
+            RESULT_CODE_B_LABEL,
+          ]);
+          expect(selectedHeading('applicationCodes', restoredRoot)).toBe(
+            'Selected application codes',
+          );
+          expect(selectedHeading('resultCodes', restoredRoot)).toBe(
+            'Selected result codes',
+          );
+        },
+        checkBeforeClear: () => {
+          expect(selectedLabels('applicationCodes')).toEqual([
+            APPLICATION_CODE_A_LABEL,
+            APPLICATION_CODE_B_LABEL,
+          ]);
+          expect(selectedLabels('resultCodes')).toEqual([RESULT_CODE_B_LABEL]);
+        },
+        checkCleared: () => {
+          expect(root().querySelector('#applicationCodes-selected')).toBeNull();
+          expect(root().querySelector('#resultCodes-selected')).toBeNull();
+        },
+      },
+      {
+        name: 'Other courts',
+        value: { courtCodes: [COURT_TWO, COURT_THREE] },
+        filter: { courtCodes: [COURT_TWO, COURT_THREE] },
+        cleared: { court: '', courtCodes: [] },
+        arrange: () => {
+          courtLocations.next(COURTS);
+          component.courtChipLabels.set({ [ENDED_COURT]: ENDED_COURT_LABEL });
+          fixture.detectChanges();
+        },
+        checkRestored: (restoredRoot) => {
+          expect(selectedLabels('courtCodes', restoredRoot)).toEqual([
+            COURT_TWO_LABEL,
+            COURT_THREE_LABEL,
+          ]);
+          expect(inputById('cja', restoredRoot).disabled).toBe(true);
+          expect(inputById('location', restoredRoot).disabled).toBe(true);
+        },
+        checkBeforeClear: () => {
+          expect(selectedLabels('courtCodes')).toEqual([
+            COURT_TWO_LABEL,
+            COURT_THREE_LABEL,
+          ]);
+          expect(component.courtChipLabels()).toEqual({
+            [ENDED_COURT]: ENDED_COURT_LABEL,
+          });
+        },
+        checkCleared: () => {
+          expect(component.courtChipLabels()).toEqual({});
+          expect(root().querySelector('#courtCodes-selected')).toBeNull();
+          expect(inputById('cja').disabled).toBe(false);
+        },
+      },
+    ];
+
+    it.each(rows)(
+      'saves $name to the form service and the applied filters on submit',
+      (row) => {
+        row.arrange?.();
+        component.form.patchValue(row.value);
+
+        submitSearch();
+
+        expect(searchFormService.state()).toEqual(
+          expect.objectContaining(row.value),
+        );
+        expect(searchStateService.state().appliedFilters).toEqual(row.filter);
+      },
+    );
+
+    it.each(rows)(
+      'restores $name and reruns the search after navigation',
+      (row) => {
+        row.arrange?.();
+        getEntriesMock.mockClear();
+        component.form.patchValue(row.value);
+        submitSearch();
+
+        const restoredFixture = TestBed.createComponent(Applications);
+        const restored = restoredFixture.componentInstance;
+        restoredFixture.detectChanges();
+
+        expect(restored.form.getRawValue()).toEqual(
+          expect.objectContaining(row.value),
+        );
+        expect(getEntriesMock).toHaveBeenCalledTimes(2);
+        expect(getEntriesMock.mock.calls[1][0]?.filter).toEqual(row.filter);
+        expect((restored as unknown as HasLoadQuery).loadQuery()).toEqual(
+          row.filter,
+        );
+        row.checkRestored?.(restoredFixture.nativeElement as HTMLElement);
+      },
+    );
+
+    it.each(rows)('empties $name when the search is cleared', (row) => {
+      row.arrange?.();
+      component.form.patchValue(row.value);
+      submitSearch();
+      row.checkBeforeClear?.();
+
+      component.clearSearch();
+      fixture.detectChanges();
+
+      expect(component.form.getRawValue()).toEqual(
+        expect.objectContaining(row.cleared),
+      );
+      expect(searchFormService.state()).toEqual(
+        expect.objectContaining(row.cleared),
+      );
+      for (const [name, value] of Object.entries(row.cleared)) {
+        if (Array.isArray(value)) {
+          expect(component.form.get(name)?.value).not.toBe(
+            DEFAULT_APPLICATIONS_SEARCH_FORM[
+              name as keyof typeof DEFAULT_APPLICATIONS_SEARCH_FORM
+            ],
+          );
+        }
+      }
+      expect(loadQuery()).toEqual({});
+      row.checkCleared?.();
     });
   });
 

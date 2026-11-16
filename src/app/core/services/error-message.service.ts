@@ -88,8 +88,7 @@ const subscribedEndpoints: EndpointRule[] = [
     endpoint: new RegExp(`^/reports/jobs/${regexIdPlaceholder}/download$`),
     responses: [0, 400, 403, 404, 406, 409, 500, 504],
   },
-  // Entry search only: the Applications page shows 400s, such as rejected
-  // filter combinations, in its error summary.
+  // Search 400s, such as rejected filter combinations, stay on the page
   { endpoint: /^\/application-list-entries$/, responses: [400] },
   {
     endpoint: '/application-list-entries/bulk-action-preview',

@@ -1,10 +1,7 @@
 /**
- * Form group validator that stops a single date being combined with a date
- * range. The API rejects that combination (ALE-57).
- *
- * The error is set on the single date control, which always has a value when
- * the rule fails, so the message shows next to a field the user filled in.
- * A range needs only one of its ends to count as given.
+ * Form group validator that stops a list date being combined with a date
+ * range, which the API rejects (ALE-57). The error goes on the date control,
+ * which always has a value when the rule fails.
  */
 
 import {
@@ -14,6 +11,7 @@ import {
   ValidatorFn,
 } from '@angular/forms';
 
+import { hasText } from '@util/string-helpers';
 import { setControlError } from '@util/validation-helpers';
 
 export function singleDateOrDateRangeValidator(
@@ -27,18 +25,14 @@ export function singleDateOrDateRangeValidator(
       return null;
     }
 
-    const hasDate = hasValue(ctrl.get(dateControlName)?.value);
+    const hasDate = hasText(ctrl.get(dateControlName)?.value);
     const hasRange =
-      hasValue(ctrl.get(fromControlName)?.value) ||
-      hasValue(ctrl.get(toControlName)?.value);
+      hasText(ctrl.get(fromControlName)?.value) ||
+      hasText(ctrl.get(toControlName)?.value);
     const hasBoth = hasDate && hasRange;
 
     setControlError(ctrl, dateControlName, errorKey, hasBoth);
 
     return hasBoth ? { [errorKey]: true } : null;
   };
-}
-
-function hasValue(value: unknown): boolean {
-  return typeof value === 'string' && value.trim().length > 0;
 }
