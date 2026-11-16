@@ -15,8 +15,7 @@
  *
  * Functionality:
  * ngOnInit():
- * - Refreshes the AI capabilities, so the code search offers code
- *   suggestions only while the user can use them
+ * - Refreshes the AI capabilities used by the code search
  *
  * onSubmit():
  * - Validates all sections of the entry form
@@ -208,8 +207,6 @@ export class ApplicationsListEntryCreate implements OnInit {
   };
 
   wordingSubmitAttempt = signal(0);
-  // Only onSubmit changes this, so the code search re-checks its errors once
-  // per entry submit.
   codeSearchSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
   readonly submitAttempt = signal(0);
@@ -274,7 +271,6 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   disableSubmissionBtn = signal(false);
 
-  // Code suggestions: off until the capabilities load, and on any error.
   readonly codeSuggestionsEnabled = this.aiCapabilities.codeSuggestionsEnabled;
 
   // Civil fee

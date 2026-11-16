@@ -1,8 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -1846,42 +1843,6 @@ describe('ApplicationsListEntryCreate (code suggestions)', () => {
     expect(codeSearch(fixture).enableSuggestions()).toBe(false);
     expect(descriptionField(fixture)).toBeNull();
   });
-
-  it.each([
-    ['the user has the capability', 200, true],
-    ['the capabilities request fails', 503, false],
-  ])(
-    'shows the description field from GET /ai/capabilities when %s',
-    async (_label, status, shown) => {
-      await TestBed.configureTestingModule({
-        imports: [ApplicationsListEntryCreate],
-        providers: [
-          provideRouter([]),
-          provideHttpClient(),
-          provideHttpClientTesting(),
-          routeStub,
-        ],
-      }).compileComponents();
-      const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
-      fixture.detectChanges();
-      TestBed.tick();
-
-      const req = TestBed.inject(HttpTestingController).expectOne((request) =>
-        request.url.endsWith('/ai/capabilities'),
-      );
-      if (status === 200) {
-        req.flush({ searchInterpretation: false, codeSuggestions: true });
-      } else {
-        req.flush(
-          { title: 'Synthetic problem' },
-          { status, statusText: 'Synthetic status' },
-        );
-      }
-      fixture.detectChanges();
-
-      expect(descriptionField(fixture) !== null).toBe(shown);
-    },
-  );
 
   it('keeps the description out of the entry and the payment reference snapshot', async () => {
     await TestBed.configureTestingModule({

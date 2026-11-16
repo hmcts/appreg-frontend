@@ -1,21 +1,14 @@
 /**
- * Fixed copy for application code suggestions ("Describe the application")
- * on the create-entry page.
+ * Fixed copy for application code suggestions on the create-entry page.
  *
  * The page never shows model text. It shows this copy, plus each
  * suggestion's reason, which the API builds from the code's own title or
- * legislation, rendered as text.
- *
- * - CODE_SUGGESTION_MESSAGES: the field, the button, progress, results and
- *   validation errors.
- * - CODE_SUGGESTION_NOTICE_MESSAGES: one message per CodeSuggestionNotice.
- * - CODE_SUGGESTION_ERROR_MESSAGES: one message per HTTP status that stays on
- *   the page. Any other status uses CODE_SUGGESTIONS_UNAVAILABLE.
- *
- * Every message is for content design sign-off before the pilot.
+ * legislation, rendered as text. Every message is for content design
+ * sign-off before the pilot.
  */
 
 import { CodeSuggestionNotice } from '@openapi';
+import { AiOnPageStatus } from '@services/error-message.service';
 
 // The API accepts descriptions of 1 to 1000 characters.
 export const CODE_SUGGESTION_DESCRIPTION_MAX_LENGTH = 1000;
@@ -53,30 +46,11 @@ export const CODE_SUGGESTION_NOTICE_MESSAGES: Readonly<
   [CodeSuggestionNotice.DESCRIPTION_TOO_VAGUE]: NEEDS_MORE_DETAIL,
 };
 
-// The statuses ErrorMessageService keeps on the page for this endpoint.
-export type CodeSuggestionErrorStatus =
-  | 0
-  | 400
-  | 403
-  | 404
-  | 422
-  | 429
-  | 500
-  | 502
-  | 503
-  | 504;
-
+// Copy for statuses that ErrorMessageService keeps on the page. Any status
+// without its own copy uses CODE_SUGGESTIONS_UNAVAILABLE.
 export const CODE_SUGGESTION_ERROR_MESSAGES: Readonly<
-  Record<CodeSuggestionErrorStatus, string>
+  Partial<Record<AiOnPageStatus, string>>
 > = {
-  0: CODE_SUGGESTIONS_UNAVAILABLE,
-  400: CODE_SUGGESTIONS_UNAVAILABLE,
-  403: CODE_SUGGESTIONS_UNAVAILABLE,
-  404: CODE_SUGGESTIONS_UNAVAILABLE,
   422: 'We could not suggest any codes from that description. Add more detail, or search for a code instead.',
   429: 'You have made too many requests. Try again in a minute.',
-  500: CODE_SUGGESTIONS_UNAVAILABLE,
-  502: CODE_SUGGESTIONS_UNAVAILABLE,
-  503: CODE_SUGGESTIONS_UNAVAILABLE,
-  504: CODE_SUGGESTIONS_UNAVAILABLE,
 };

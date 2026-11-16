@@ -65,7 +65,6 @@ export type CodeRow = {
   isFeeDue: string;
 };
 
-/** A suggested code: a CodeRow plus the API's reason and the lodgement date flag. */
 export type CodeSuggestionRow = CodeRow & {
   reason: string;
   lodgementDateFlag: string;
@@ -92,14 +91,8 @@ export function mapCodeRows(page: ApplicationCodePage): CodeRow[] {
   return items.map(mapCodeRow);
 }
 
-/**
- * Maps code suggestions to table rows, best match (rank 1) first.
- *
- * The flag is shown only when a code was not active on the lodgement date
- * (activeOnLodgementDate false); null means no lodgement date was sent.
- * Suggestions without an application code are left out. The fee amount is
- * not shown.
- */
+// Best match (rank 1) first. activeOnLodgementDate is null when no lodgement
+// date was sent, so only false shows the flag.
 export function mapCodeSuggestionRows(
   suggestions: readonly ApplicationCodeSuggestionDto[] | null | undefined,
 ): CodeSuggestionRow[] {
