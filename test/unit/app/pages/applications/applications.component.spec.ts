@@ -297,6 +297,70 @@ describe('ApplicationsComponent', () => {
     fixture.detectChanges();
   });
 
+  const root = () => fixture.nativeElement as HTMLElement;
+
+  const loadQuery = () => (component as unknown as HasLoadQuery).loadQuery();
+
+  const submitSearch = () => {
+    component.onSubmit({
+      preventDefault: jest.fn(),
+    } as unknown as SubmitEvent);
+    fixture.detectChanges();
+  };
+
+  const inputById = (id: string, element: HTMLElement = root()) =>
+    element.querySelector(`input#${id}`) as HTMLInputElement;
+
+  const typeInto = (id: string, text: string) => {
+    const input = inputById(id);
+    input.focus();
+    input.value = text;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  };
+
+  const offeredLabels = () =>
+    Array.from(root().querySelectorAll<HTMLElement>('[role="option"]')).map(
+      (option) => option.textContent?.trim(),
+    );
+
+  const clickOption = (label: string) => {
+    const option = Array.from(
+      root().querySelectorAll<HTMLElement>('[role="option"]'),
+    ).find((item) => item.textContent?.trim() === label);
+    expect(option).toBeDefined();
+    option?.dispatchEvent(
+      new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
+    );
+    option?.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true }),
+    );
+    fixture.detectChanges();
+  };
+
+  const selectedLabels = (id: string, element: HTMLElement = root()) =>
+    Array.from(
+      element.querySelectorAll<HTMLElement>(
+        `#${id}-selected .govuk-summary-list__value`,
+      ),
+    ).map((row) => row.textContent?.trim());
+
+  // The heading rendered just before a field's own selected list
+  const selectedHeading = (id: string, element: HTMLElement = root()) =>
+    element
+      .querySelector(`#${id}-selected`)
+      ?.previousElementSibling?.textContent?.trim();
+
+  const summaryLinks = () =>
+    Array.from(
+      root().querySelectorAll<HTMLAnchorElement>(
+        '.govuk-error-summary__list a',
+      ),
+    ).map((link) => ({
+      href: link.getAttribute('href'),
+      text: link.textContent?.trim(),
+    }));
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
@@ -1462,15 +1526,6 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('list date range', () => {
-    const submitSearch = () => {
-      component.onSubmit({
-        preventDefault: jest.fn(),
-      } as unknown as SubmitEvent);
-      fixture.detectChanges();
-    };
-
-    const root = () => fixture.nativeElement as HTMLElement;
-
     const isBefore = (first: Element | null, second: Element | null) =>
       !!first &&
       !!second &&
@@ -1689,73 +1744,12 @@ describe('ApplicationsComponent', () => {
     const RESULT_CODE_A_LABEL = `${RESULT_CODE_A} - Synthetic result one`;
     const RESULT_CODE_B_LABEL = `${RESULT_CODE_B} - Synthetic result two`;
 
-    const root = () => fixture.nativeElement as HTMLElement;
-
-    const loadQuery = () => (component as unknown as HasLoadQuery).loadQuery();
-
-    const submitSearch = () => {
-      component.onSubmit({
-        preventDefault: jest.fn(),
-      } as unknown as SubmitEvent);
-      fixture.detectChanges();
-    };
-
     const advancedSearch = (element: HTMLElement = root()) =>
       Array.from(element.querySelectorAll('details')).find((details) =>
         details
           .querySelector('summary')
           ?.textContent?.includes('Advanced search'),
       );
-
-    const typeInto = (id: string, text: string) => {
-      const input = root().querySelector(`input#${id}`) as HTMLInputElement;
-      input.focus();
-      input.value = text;
-      input.dispatchEvent(new Event('input'));
-      fixture.detectChanges();
-    };
-
-    const offeredLabels = () =>
-      Array.from(root().querySelectorAll<HTMLElement>('[role="option"]')).map(
-        (option) => option.textContent?.trim(),
-      );
-
-    const clickOption = (label: string) => {
-      const option = Array.from(
-        root().querySelectorAll<HTMLElement>('[role="option"]'),
-      ).find((item) => item.textContent?.trim() === label);
-      expect(option).toBeDefined();
-      option?.dispatchEvent(
-        new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
-      );
-      option?.dispatchEvent(
-        new MouseEvent('click', { bubbles: true, cancelable: true }),
-      );
-      fixture.detectChanges();
-    };
-
-    const selectedLabels = (id: string, element: HTMLElement = root()) =>
-      Array.from(
-        element.querySelectorAll<HTMLElement>(
-          `#${id}-selected .govuk-summary-list__value`,
-        ),
-      ).map((row) => row.textContent?.trim());
-
-    // The heading rendered just before a field's own selected list
-    const selectedHeading = (id: string, element: HTMLElement = root()) =>
-      element
-        .querySelector(`#${id}-selected`)
-        ?.previousElementSibling?.textContent?.trim();
-
-    const summaryLinks = () =>
-      Array.from(
-        root().querySelectorAll<HTMLAnchorElement>(
-          '.govuk-error-summary__list a',
-        ),
-      ).map((link) => ({
-        href: link.getAttribute('href'),
-        text: link.textContent?.trim(),
-      }));
 
     const setOptions = () => {
       applicationCodes.set([
@@ -2148,64 +2142,6 @@ describe('ApplicationsComponent', () => {
       description: 'Synthetic Area',
     };
 
-    const root = () => fixture.nativeElement as HTMLElement;
-
-    const loadQuery = () => (component as unknown as HasLoadQuery).loadQuery();
-
-    const submitSearch = () => {
-      component.onSubmit({
-        preventDefault: jest.fn(),
-      } as unknown as SubmitEvent);
-      fixture.detectChanges();
-    };
-
-    const inputById = (id: string, element: HTMLElement = root()) =>
-      element.querySelector(`input#${id}`) as HTMLInputElement;
-
-    const typeInto = (id: string, text: string) => {
-      const input = inputById(id);
-      input.focus();
-      input.value = text;
-      input.dispatchEvent(new Event('input'));
-      fixture.detectChanges();
-    };
-
-    const offeredLabels = () =>
-      Array.from(root().querySelectorAll<HTMLElement>('[role="option"]')).map(
-        (option) => option.textContent?.trim(),
-      );
-
-    const clickOption = (label: string) => {
-      const option = Array.from(
-        root().querySelectorAll<HTMLElement>('[role="option"]'),
-      ).find((item) => item.textContent?.trim() === label);
-      expect(option).toBeDefined();
-      option?.dispatchEvent(
-        new MouseEvent('mousedown', { bubbles: true, cancelable: true }),
-      );
-      option?.dispatchEvent(
-        new MouseEvent('click', { bubbles: true, cancelable: true }),
-      );
-      fixture.detectChanges();
-    };
-
-    const selectedLabels = (element: HTMLElement = root()) =>
-      Array.from(
-        element.querySelectorAll<HTMLElement>(
-          '#courtCodes-selected .govuk-summary-list__value',
-        ),
-      ).map((row) => row.textContent?.trim());
-
-    const summaryLinks = () =>
-      Array.from(
-        root().querySelectorAll<HTMLAnchorElement>(
-          '.govuk-error-summary__list a',
-        ),
-      ).map((link) => ({
-        href: link.getAttribute('href'),
-        text: link.textContent?.trim(),
-      }));
-
     const setOtherCourts = (codes: string[]) => {
       component.form.controls.courtCodes.setValue(codes);
       fixture.detectChanges();
@@ -2245,12 +2181,8 @@ describe('ApplicationsComponent', () => {
       clickOption(COURT_TWO_LABEL);
 
       expect(component.form.controls.courtCodes.value).toEqual([COURT_TWO]);
-      expect(selectedLabels()).toEqual([COURT_TWO_LABEL]);
-      expect(
-        root()
-          .querySelector('#courtCodes-selected')
-          ?.previousElementSibling?.textContent?.trim(),
-      ).toBe('Selected other courts');
+      expect(selectedLabels('courtCodes')).toEqual([COURT_TWO_LABEL]);
+      expect(selectedHeading('courtCodes')).toBe('Selected other courts');
     });
 
     it('labels a court that is not an active court from courtChipLabels', () => {
@@ -2258,7 +2190,10 @@ describe('ApplicationsComponent', () => {
 
       setOtherCourts([COURT_ONE, ENDED_COURT]);
 
-      expect(selectedLabels()).toEqual([COURT_ONE_LABEL, ENDED_COURT_LABEL]);
+      expect(selectedLabels('courtCodes')).toEqual([
+        COURT_ONE_LABEL,
+        ENDED_COURT_LABEL,
+      ]);
     });
 
     it('stops adding at 19, so Court and Other courts together stay within the 20 the API allows', () => {
@@ -2485,7 +2420,7 @@ describe('ApplicationsComponent', () => {
       expect(getEntriesMock.mock.calls[1][0]?.filter).toEqual({
         courtCodes: [COURT_TWO, COURT_THREE],
       });
-      expect(selectedLabels(restoredRoot)).toEqual([
+      expect(selectedLabels('courtCodes', restoredRoot)).toEqual([
         COURT_TWO_LABEL,
         COURT_THREE_LABEL,
       ]);
@@ -2513,7 +2448,10 @@ describe('ApplicationsComponent', () => {
       component.courtChipLabels.set({ [ENDED_COURT]: ENDED_COURT_LABEL });
       setOtherCourts([COURT_ONE, ENDED_COURT]);
       submitSearch();
-      expect(selectedLabels()).toEqual([COURT_ONE_LABEL, ENDED_COURT_LABEL]);
+      expect(selectedLabels('courtCodes')).toEqual([
+        COURT_ONE_LABEL,
+        ENDED_COURT_LABEL,
+      ]);
 
       component.clearSearch();
       fixture.detectChanges();
