@@ -1,6 +1,5 @@
 // TODO: add header comment
 
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -44,7 +43,6 @@ import {
   CODE_SUGGESTION_ERROR_MESSAGES,
   CODE_SUGGESTION_MESSAGES,
   CODE_SUGGESTION_NOTICE_MESSAGES,
-  CodeSuggestionErrorStatus,
 } from '@constants/application-list-entry/code-suggestion-messages';
 import {
   ISO_DATE_REGEX,
@@ -57,6 +55,7 @@ import {
   ApplicationCodeSuggestionsApi,
   ApplicationCodesApi,
 } from '@openapi';
+import { AiOnPageStatus } from '@services/error-message.service';
 import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
   CodeRow,
@@ -65,6 +64,7 @@ import {
 } from '@util/application-code-helpers';
 import { toApplicationCodeSortKey } from '@util/application-code-sort-map';
 import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
+import { getHttpStatus } from '@util/http-error-to-text';
 
 const APPLICATION_CODE_SEARCH_ERROR_MESSAGES = {
   code: {
@@ -579,10 +579,7 @@ function toSuggestionMessages(
 }
 
 function toSuggestionErrorMessage(error: unknown): string {
-  const status = error instanceof HttpErrorResponse ? error.status : null;
+  const status = getHttpStatus(error) as AiOnPageStatus;
 
-  return status !== null &&
-    Object.hasOwn(CODE_SUGGESTION_ERROR_MESSAGES, status)
-    ? CODE_SUGGESTION_ERROR_MESSAGES[status as CodeSuggestionErrorStatus]
-    : CODE_SUGGESTIONS_UNAVAILABLE;
+  return CODE_SUGGESTION_ERROR_MESSAGES[status] ?? CODE_SUGGESTIONS_UNAVAILABLE;
 }

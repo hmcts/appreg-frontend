@@ -1018,7 +1018,7 @@ describe('ApplicationCodeSearchComponent', () => {
         ).not.toBeNull();
         expect(textarea().getAttribute('aria-invalid')).toBe('true');
         expect(textarea().getAttribute('aria-describedby')).toBe(
-          'code-suggestion-description-guidance code-suggestion-description-error code-suggestion-description-hint',
+          'code-suggestion-description-guidance code-suggestion-description-hint code-suggestion-description-error',
         );
         expect(errorsSpy).toHaveBeenCalledWith([descriptionError]);
         expect(text(statusRegion())).toBe('');

@@ -88,27 +88,17 @@
         <div [id]="descriptionId + '-guidance'" class="govuk-hint">
           {{ suggestionCopy.hint }}
         </div>
-        @if (descriptionError(); as error) {
-          <p [id]="descriptionId + '-error'" class="govuk-error-message">
-            <span class="govuk-visually-hidden">Error:</span>
-            {{ error }}
-          </p>
-        }
         <app-govuk-textarea
           [control]="descriptionControl"
           [id]="descriptionId"
           name="codeSuggestionDescription"
           [ariaDescribedBy]="
-            descriptionId +
-            '-guidance' +
-            (descriptionError() ? ' ' + descriptionId + '-error' : '') +
-            ' ' +
-            descriptionId +
-            '-hint'
+            descriptionId + '-guidance ' + descriptionId + '-hint'
           "
           [rows]="4"
           [maxCharacterLimit]="descriptionMaxLength"
           [isInvalid]="!!descriptionError()"
+          [errorMessage]="descriptionError() ?? ''"
         />
       </div>
 
