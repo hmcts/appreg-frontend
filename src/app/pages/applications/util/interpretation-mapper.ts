@@ -191,6 +191,8 @@ export function applyInterpretationChoice(
   if (
     control &&
     !Array.isArray(before) &&
+    // Court and Other courts are one list here: a court pick is added to it
+    // and never replaces a court
     control !== 'court' &&
     before !== draft.formValue[control]
   ) {
