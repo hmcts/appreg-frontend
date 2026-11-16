@@ -68,7 +68,7 @@ export const APPLICATIONS_ERROR_MAP: {
   },
 };
 
-// Plain-English search: the question staff type (checked before it is sent)
+// Plain-English search
 export const PLAIN_ENGLISH_QUESTION_ERROR_MESSAGES: Readonly<
   Record<'required' | 'maxlength', string>
 > = {
@@ -76,9 +76,7 @@ export const PLAIN_ENGLISH_QUESTION_ERROR_MESSAGES: Readonly<
   maxlength: 'Question must be 300 characters or fewer',
 };
 
-// Statuses from POST /application-list-entries/search-interpretations that
-// stay on the page (ErrorMessageService). 0 is a network error with no
-// response. A 401 goes to login.
+// Statuses that stay on the page (ErrorMessageService). 0 is a network error.
 export type PlainEnglishSearchErrorStatus =
   | 0
   | 400
@@ -95,8 +93,7 @@ export type PlainEnglishSearchErrorStatus =
 export const PLAIN_ENGLISH_SEARCH_UNAVAILABLE =
   'Plain-English search is unavailable. Use the filters below.';
 
-// Shown for a 422, and when an interpretation sets no filter at all, so the
-// search is not run (it would return every entry)
+// Also shown when an interpretation sets no filter, so no search runs
 export const PLAIN_ENGLISH_SEARCH_NOT_UNDERSTOOD =
   'We could not work out any filters from your question.';
 
@@ -117,6 +114,5 @@ export const PLAIN_ENGLISH_SEARCH_ERROR_MESSAGES: Readonly<
   504: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
 };
 
-// A choice from a plain-English search that has not been answered
 export const INTERPRETATION_CHOICE_ERROR_MESSAGE =
   'Select one of the options, or None of these';

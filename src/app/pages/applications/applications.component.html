@@ -50,7 +50,6 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-<!-- Plain-English search: only while the user can use it -->
 @if (searchInterpretationEnabled()) {
   <app-plain-english-search
     (asked)="onQuestionAsked()"
@@ -422,8 +421,7 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-<!-- Results. A search from a plain-English question shows what it searched
-     for directly above them -->
+<!-- Results, with "Searched for" above them after a search from a question -->
 @if (searchedForSummary(); as searched) {
   <app-interpreted-filters-summary
     [changes]="searched.changes"

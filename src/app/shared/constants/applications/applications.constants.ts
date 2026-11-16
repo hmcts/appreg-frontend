@@ -17,13 +17,10 @@ export const COURT_CODES_MAX_ITEMS = 20;
 // Court takes one of the codes the API accepts
 export const OTHER_COURTS_MAX_ITEMS = COURT_CODES_MAX_ITEMS - 1;
 
-// Most characters in a plain-English search question (the API's limit,
-// SearchInterpretationRequestDto.question)
+// The API's limit (SearchInterpretationRequestDto.question)
 export const PLAIN_ENGLISH_QUESTION_MAX_LENGTH = 300;
 
-// The name of each search filter field, shown next to the value the
-// plain-English search set it to. Typed against SearchFilterField, so a field
-// the API adds fails to compile here.
+// Typed against SearchFilterField, so a field the API adds fails here
 export const INTERPRETED_FILTER_FIELD_LABELS: Readonly<
   Record<SearchFilterField, string>
 > = {
@@ -48,10 +45,7 @@ export const INTERPRETED_FILTER_FIELD_LABELS: Readonly<
   [SearchFilterField.STATUS]: 'Status',
 };
 
-// Fixed copy for each plain-English search notice. Typed against
-// SearchInterpretationNotice, so a notice the API adds fails to compile here.
-// The search runs straight from the question, so the copy never asks staff
-// to check something "before you search".
+// Typed against SearchInterpretationNotice, so a new notice fails here
 export const INTERPRETATION_NOTICE_TEXT: Readonly<
   Record<SearchInterpretationNotice, string>
 > = {
@@ -75,15 +69,11 @@ export const INTERPRETATION_NOTICE_TEXT: Readonly<
     'A value in your question is not a valid filter value, so it was left out.',
 };
 
-// Said in each choice of a plain-English search (the radio group's hint, so
-// it is in the fieldset's aria-describedby). A pick reached with the arrow
-// keys does not search until staff press Space or move out of the choice, so
-// passing over an option never searches for it.
+// Each choice's hint, so it is in the fieldset's aria-describedby
 export const INTERPRETATION_CHOICE_SEARCH_HINT =
   'The search runs once every choice is answered. If you use the arrow keys, it runs when you press Space or move on.';
 
-// Said in "Searched for" when staff changed a filter by hand before the search
-// from their question ran. The summary leaves out what the question set for
-// those filters rather than repeat what staff typed.
+// The summary leaves out what the question set for filters changed by hand,
+// rather than repeat what staff typed
 export const SEARCHED_FOR_CHANGED_BY_HAND_TEXT =
   'Some filters were changed by hand. The search form shows every filter that was searched.';
