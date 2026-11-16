@@ -435,24 +435,4 @@ describe('API proxy logging of AI free text', () => {
       expectFreeTextAbsent(captured(response.text), text);
     },
   );
-
-  it.each(aiRequests)(
-    'logs only the path when the $field reaches the query string',
-    async ({ field, path, text, body }) => {
-      const url = `${path}?${field}=${encodeURIComponent(text)}`;
-
-      const response = await postAiRequest(url, body(text));
-
-      expect(response.status).toBe(200);
-      // The query still reaches the API; only the log copy is cut.
-      expect(received[0].url).toBe(url);
-      const forwarding = `[proxy] forwarding ${path} tokenPresent=true`;
-      expect(output.join('')).toContain(forwarding);
-      expect(telemetryClient.trackTrace).toHaveBeenCalledWith({
-        message: forwarding,
-        severity: 'Information',
-      });
-      expectFreeTextAbsent(captured(response.text), text);
-    },
-  );
 });

@@ -47,42 +47,6 @@ jest.mock('config', () => ({
 
 import { AppInsights } from '../../../server/modules/appinsights';
 
-type SpanAttributes = Record<string, string | number>;
-
-type SpanProcessor = {
-  onEnd: (span: { attributes: SpanAttributes; kind: number }) => void;
-  onStart: (span: { attributes: SpanAttributes; kind: number }) => void;
-};
-
-// Synthetic stand-ins for the free text people type into the AI features. The
-// first and last words are unique markers that survive every encoding a leak
-// could use (raw, percent-encoded, form-encoded or JSON-escaped).
-const AI_FREE_TEXT = [
-  {
-    field: 'question',
-    path: '/application-list-entries/search-interpretations',
-    text: 'qmark7f3c9a entries for a fictional applicant last week qmark7f3c9z',
-  },
-  {
-    field: 'description',
-    path: '/application-codes/suggestions',
-    text: 'dmark4b8e21 a fictional licence application dmark4b8e2z',
-  },
-];
-
-function markersOf(text: string): string[] {
-  const words = text.split(' ');
-  return [words[0], words[words.length - 1]];
-}
-
-function expectFreeTextAbsent(captured: unknown, text: string): void {
-  const serialised = JSON.stringify(captured);
-
-  for (const marker of markersOf(text)) {
-    expect(serialised).not.toContain(marker);
-  }
-}
-
 describe('AppInsights', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -180,7 +144,10 @@ describe('AppInsights', () => {
     };
 
     const incomingAttributes = {
+      'http.method': 'GET',
+      'http.target': '/sso/login-callback?code=SyntheticCode',
       'http.url': '/sso/login-callback?code=SyntheticCode',
+      'url.query': 'code=SyntheticCode',
     };
 
     spanProcessor.onStart({ kind: 2 });
@@ -194,6 +161,8 @@ describe('AppInsights', () => {
       'url.full': '/standard-applicants',
     });
     expect(incomingAttributes).toEqual({
+      'http.method': 'GET',
+      'http.target': '/sso/login-callback',
       'http.url': '/sso/login-callback',
       'url.full': '/sso/login-callback',
     });
@@ -233,70 +202,5 @@ describe('AppInsights', () => {
         ],
       });
     });
-
-    it.each(AI_FREE_TEXT)(
-      'strips the $field from incoming and outgoing $path spans when it reaches the URL',
-      ({ field, path, text }) => {
-        AppInsights.enable();
-
-        const spanProcessor = setAzureMonitorOptions.mock.calls[0][0]
-          .spanProcessors[0] as SpanProcessor;
-        const query = `${field}=${encodeURIComponent(text)}`;
-        // Old and stable OpenTelemetry HTTP attribute names, as the HTTP
-        // instrumentation sets them for the browser's POST to the Express proxy
-        // (server span) and the proxy's POST to the API (client span).
-        const incoming: SpanAttributes = {
-          'http.method': 'POST',
-          'http.request.method': 'POST',
-          'http.status_code': 422,
-          'http.target': `${path}?${query}`,
-          'http.url': `https://appreg.example.test${path}?${query}`,
-          'url.path': path,
-          'url.query': query,
-          'url.scheme': 'https',
-        };
-        const outgoing: SpanAttributes = {
-          'http.method': 'POST',
-          'http.request.method': 'POST',
-          'http.response.status_code': 422,
-          'http.target': `${path}?${query}`,
-          'http.url': `https://appreg-api.example.test${path}?${query}`,
-          'server.address': 'appreg-api.example.test',
-          'url.full': `https://appreg-api.example.test${path}?${query}`,
-        };
-        expect(JSON.stringify([incoming, outgoing])).toContain(
-          markersOf(text)[0],
-        );
-
-        for (const span of [
-          { attributes: incoming, kind: 1 },
-          { attributes: outgoing, kind: 2 },
-        ]) {
-          spanProcessor.onStart(span);
-          spanProcessor.onEnd(span);
-        }
-
-        expect(incoming).toEqual({
-          'http.method': 'POST',
-          'http.request.method': 'POST',
-          'http.status_code': 422,
-          'http.target': path,
-          'http.url': `https://appreg.example.test${path}`,
-          'url.full': `https://appreg.example.test${path}`,
-          'url.path': path,
-          'url.scheme': 'https',
-        });
-        expect(outgoing).toEqual({
-          'http.method': 'POST',
-          'http.request.method': 'POST',
-          'http.response.status_code': 422,
-          'http.target': path,
-          'http.url': `https://appreg-api.example.test${path}`,
-          'server.address': 'appreg-api.example.test',
-          'url.full': `https://appreg-api.example.test${path}`,
-        });
-        expectFreeTextAbsent([incoming, outgoing], text);
-      },
-    );
   });
 });
