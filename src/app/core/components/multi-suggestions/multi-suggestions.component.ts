@@ -8,10 +8,8 @@
  * can move focus back to it. Every change emits a new array, never the bound
  * one.
  *
- * It is also the control's validator. Text typed but not added from the list
- * makes the control invalid with `notAdded`, so a search cannot silently run
- * without it. Picking a match, clearing the text or writing a value makes it
- * valid again. A disabled field has no errors.
+ * It is also its control's validator: text typed but not added gives
+ * `notAdded`, so a search cannot silently run without it.
  */
 
 import {
@@ -144,9 +142,8 @@ export class MultiSuggestionsComponent
 
   writeValue(value: readonly string[] | null | undefined): void {
     this.selected.set(this.coerceValues(value));
-    // A programmatic write replaces whatever was being typed. The control
-    // validates itself straight after a write, so this does not ask it to
-    // (which would also ignore the caller's emitEvent and onlySelf options).
+    // No re-validation request: Angular validates straight after a write, and
+    // asking here would ignore the caller's emitEvent and onlySelf options.
     this.setSearch('', false);
   }
 
@@ -163,9 +160,8 @@ export class MultiSuggestionsComponent
   }
 
   validate(): ValidationErrors | null {
-    // Angular does not validate a disabled control. When a control is enabled
-    // it is validated before setDisabledState(false) runs, so checking
-    // controlDisabled here would wrongly pass typed text then.
+    // Angular skips disabled controls. On enable it validates before
+    // setDisabledState(false) runs, so checking controlDisabled would be wrong.
     if (!this.search().trim()) {
       return null;
     }
@@ -235,7 +231,6 @@ export class MultiSuggestionsComponent
 
     this.search.set(value);
 
-    // Typed text that has not been added makes the control invalid.
     if (revalidate) {
       this.onValidatorChange();
     }

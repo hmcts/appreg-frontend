@@ -49,7 +49,6 @@ export const APPLICATIONS_ERROR_MAP: {
     maxlength: 'Application title must be 500 characters or fewer',
     pattern: 'Application title contains invalid characters',
   },
-  // Text typed into a code list but not picked from it (app-multi-suggestions)
   applicationCodes: {
     notAdded: 'Select an application code from the list, or clear the text',
   },

@@ -9,9 +9,6 @@
  * onSubmit():
  * - GET request to Spring API which returns applications based on given params
  * - Populates query based on fields that are  !null/!undefined/!defaultValue
- * - Application codes and Result codes (Advanced search) are lists of exact
- *   codes, sent only when they hold at least one code. Text typed into either
- *   but not picked from the list blocks the search with an error
  *
  * onPrintContinuous/Page():
  * - Runs bulk preview endpoint to get selected row details
@@ -152,7 +149,6 @@ const APPLICATIONS_ERROR_HREFS: Record<string, string> = {
   dateTo: '#date-to-day',
 };
 
-// A list filter's codes, trimmed and without blanks or repeats
 const toCodeList = (codes: readonly string[]): string[] => [
   ...new Set(codes.map((code) => code.trim()).filter((code) => !!code)),
 ];
@@ -332,7 +328,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       this.form.controls.applicationTitle.value ?? '',
     );
     this.initPlaceFields(this.form, this.refFacade);
-    // Options for Result codes; application codes are loaded by the facade
     this.refFacade.ensureResultCodes();
     this.setupEffects();
 
@@ -883,7 +878,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       filter.accountReference = v.accountReference.trim();
     }
 
-    // New arrays, so the filter never shares one with the form
     const applicationCodes = toCodeList(v.applicationCodes);
     if (applicationCodes.length) {
       filter.applicationCodes = applicationCodes;
