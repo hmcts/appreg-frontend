@@ -2080,22 +2080,17 @@ describe('ApplicationsComponent', () => {
 
       expect(component.form.controls.applicationCodes.value).toEqual([]);
       expect(component.form.controls.resultCodes.value).toEqual([]);
-      expect(searchFormService.state().applicationCodes).toEqual([]);
-      expect(searchFormService.state().resultCodes).toEqual([]);
-      expect(root().querySelector('#applicationCodes-selected')).toBeNull();
-      expect(root().querySelector('#resultCodes-selected')).toBeNull();
-      expect(loadQuery()).toEqual({});
-    });
-
-    it('does not give the form the shared default arrays when the search is cleared', () => {
-      component.clearSearch();
-
       expect(component.form.controls.applicationCodes.value).not.toBe(
         DEFAULT_APPLICATIONS_SEARCH_FORM.applicationCodes,
       );
       expect(component.form.controls.resultCodes.value).not.toBe(
         DEFAULT_APPLICATIONS_SEARCH_FORM.resultCodes,
       );
+      expect(searchFormService.state().applicationCodes).toEqual([]);
+      expect(searchFormService.state().resultCodes).toEqual([]);
+      expect(root().querySelector('#applicationCodes-selected')).toBeNull();
+      expect(root().querySelector('#resultCodes-selected')).toBeNull();
+      expect(loadQuery()).toEqual({});
     });
 
     it('keeps the saved search unchanged when the form lists are changed in place', () => {
