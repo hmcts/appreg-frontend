@@ -19,8 +19,7 @@
  *
  * onSubmit():
  * - Validates all sections of the entry form
- * - Builds the Entry Create DTO, with codeSuggestionId only when the
- *   application code was added from code suggestions
+ * - Builds the Entry Create DTO
  * - POST request to create the Application List Entry
  * - Navigates to the Entry Detail page on success
  *
@@ -29,10 +28,7 @@
  * - Updates wording, fee and respondent requirements
  *
  * onCodeSuggestionIdChange():
- * - Keeps the suggestionId of the code suggestions the application code was
- *   added from, through the change-payment-reference round trip
- * - Clears it when a searched-for code is added, the code is cleared, or new
- *   suggestions replace the ones it came from; a search on its own keeps it
+ * - Stores the suggestionId the application code was added from, or null
  *
  * onAddFeeDetails():
  * - Adds fee status rows to the Civil Fee table

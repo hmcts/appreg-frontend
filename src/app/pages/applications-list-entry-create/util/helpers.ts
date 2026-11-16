@@ -39,8 +39,7 @@ export const toOptionalInteger = (input: unknown): number | undefined => {
   return n === 0 ? undefined : n;
 };
 
-// The suggestionId of the code suggestions an application code was added from.
-// Anything but a UUID becomes null, so the entry is never sent an empty or
+// Anything but a UUID becomes null, so a create is never sent an empty or
 // malformed codeSuggestionId that the API would reject.
 export const toCodeSuggestionId = (input: unknown): string | null =>
   typeof input === 'string' && UUID_REGEX.test(input) ? input : null;

@@ -157,7 +157,6 @@ export class ApplicationCodeSearchComponent implements OnInit {
   suggestionsError = signal<string | null>(null);
   suggestionMessages = signal<string[]>([]);
   private suggestionsSubscription?: Subscription;
-  // Identifies the suggestions in the codes table; null while it has none.
   private suggestionId: string | null = null;
   private suggestionsRequested = false;
   // The first well-formed code searched for before asking for suggestions.
@@ -354,7 +353,6 @@ export class ApplicationCodeSearchComponent implements OnInit {
             toSuggestionMessages(response, this.codesRows.length),
           );
           this.suggestionsLoading.set(false);
-          // New suggestions replace the ones a code may have been added from.
           this.codeSuggestionIdChange.emit(null);
         },
         error: (error: unknown) => {
@@ -366,7 +364,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   }
 
   onAddCode(row: CodeRow): void {
-    // Set only while the table shows suggestions, so only their rows carry it.
+    // Read before resetSuggestions() clears it; null for a searched-for code.
     const codeSuggestionId = this.suggestionId;
     this.submitted.set(false);
     this.hasSearched.set(false);

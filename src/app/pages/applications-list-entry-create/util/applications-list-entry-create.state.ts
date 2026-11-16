@@ -15,9 +15,7 @@ export interface ApplicationsListEntryCreateState {
   bulkApplicationsAllowed: boolean;
   isFeeRequired: boolean;
   currentStandardApplicantSummary: SelectedStandardApplicantSummary | null;
-  // The suggestionId of the code suggestions the application code was added
-  // from. Null when a searched-for code was added, newer suggestions replaced
-  // the ones it came from, or there is no code.
+  // Null unless the application code was added from code suggestions.
   codeSuggestionId: string | null;
 }
 
