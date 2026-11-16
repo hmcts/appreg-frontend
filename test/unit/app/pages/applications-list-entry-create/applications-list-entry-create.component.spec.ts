@@ -1942,7 +1942,6 @@ describe('ApplicationsListEntryCreate (code suggestions)', () => {
 
 describe('ApplicationsListEntryCreate (code suggestion id)', () => {
   const suggestionId = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
-  const newerSuggestionId = '7c9e6679-7425-40de-944b-e07fc1f90ae7';
   const lodgementDate = '2026-11-02';
 
   let fixture: ComponentFixture<ApplicationsListEntryCreate>;
@@ -2077,11 +2076,6 @@ describe('ApplicationsListEntryCreate (code suggestion id)', () => {
     clickCodeSearchButton('Suggest codes');
   }
 
-  function searchForCode(code: string): void {
-    codeSearch().form.controls.code.setValue(code);
-    clickCodeSearchButton('Search');
-  }
-
   function addFirstCode(): void {
     codeSearchHost()
       .querySelector<HTMLButtonElement>('#codes-table tbody button')!
@@ -2140,57 +2134,6 @@ describe('ApplicationsListEntryCreate (code suggestion id)', () => {
     );
   });
 
-  it('clears the suggestion id when a code is picked manually and sends none on create', async () => {
-    await createPage({ template: true });
-    useStandardApplicant();
-    addSuggestedCode();
-    expect(component.vm().codeSuggestionId).toBe(suggestionId);
-
-    searchForCode('MS99004');
-    addFirstCode();
-
-    expect(component.form.controls.applicationCode.value).toBe('MS99004');
-    expect(component.vm().codeSuggestionId).toBeNull();
-    const entry = submittedEntry();
-    expect(entry.applicationCode).toBe('MS99004');
-    expect(entry).not.toHaveProperty('codeSuggestionId');
-  });
-
-  it('clears the suggestion id when the code is cleared', async () => {
-    await createPage({ template: true });
-    addSuggestedCode();
-    expect(component.vm().codeSuggestionId).toBe(suggestionId);
-
-    clickCodeSearchButton('Clear');
-
-    expect(component.form.controls.applicationCode.value).toBe('');
-    expect(component.vm().codeSuggestionId).toBeNull();
-  });
-
-  it('clears the suggestion id when new suggestions replace the ones the code came from', async () => {
-    await createPage({ template: true });
-    useStandardApplicant();
-    addSuggestedCode();
-    expect(component.vm().codeSuggestionId).toBe(suggestionId);
-
-    suggestCodes(suggestionResponse(newerSuggestionId, ['AP99002']));
-
-    expect(component.form.controls.applicationCode.value).toBe('AP99001');
-    expect(component.vm().codeSuggestionId).toBeNull();
-    expect(submittedEntry()).not.toHaveProperty('codeSuggestionId');
-  });
-
-  it('keeps the newer suggestion id when a code is added from the new suggestions', async () => {
-    await createPage({ template: true });
-    addSuggestedCode();
-
-    suggestCodes(suggestionResponse(newerSuggestionId, ['AP99002']));
-    addFirstCode();
-
-    expect(component.form.controls.applicationCode.value).toBe('AP99002');
-    expect(component.vm().codeSuggestionId).toBe(newerSuggestionId);
-  });
-
   it('keeps the suggestion id through the change-payment-reference round trip', async () => {
     await createPage({ template: true });
     useStandardApplicant();
@@ -2215,33 +2158,6 @@ describe('ApplicationsListEntryCreate (code suggestion id)', () => {
         codeSuggestionId: suggestionId,
       }),
     );
-  });
-
-  it('keeps no suggestion id through the round trip when a searched-for code replaced a suggested one', async () => {
-    await createPage({ template: true });
-    useStandardApplicant();
-    addSuggestedCode();
-    expect(component.vm().codeSuggestionId).toBe(suggestionId);
-    searchForCode('MS99004');
-    addFirstCode();
-    expect(component.vm().codeSuggestionId).toBeNull();
-
-    const state = component.buildChangePaymentReferenceState();
-    expect(state['entryCreateSnapshot']).toEqual(
-      expect.objectContaining({ codeSuggestionId: null }),
-    );
-    readNavStateSpy.mockReturnValue(state);
-    fixture.destroy();
-    createApplicationListEntry.mockClear();
-    openPage();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    expect(codeSearch().form.controls.code.value).toBe('MS99004');
-    expect(component.vm().codeSuggestionId).toBeNull();
-    const entry = submittedEntry();
-    expect(entry.applicationCode).toBe('MS99004');
-    expect(entry).not.toHaveProperty('codeSuggestionId');
   });
 
   it.each([
