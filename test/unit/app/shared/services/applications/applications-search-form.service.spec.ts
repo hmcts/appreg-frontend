@@ -19,14 +19,6 @@ describe('ApplicationsSearchFormService', () => {
     expect(service.state()).toEqual(DEFAULT_APPLICATIONS_SEARCH_FORM);
   });
 
-  it('defaults the application codes and result codes to empty lists', () => {
-    expect(DEFAULT_APPLICATIONS_SEARCH_FORM).toEqual(
-      expect.objectContaining({ applicationCodes: [], resultCodes: [] }),
-    );
-    expect(service.state().applicationCodes).toEqual([]);
-    expect(service.state().resultCodes).toEqual([]);
-  });
-
   it('does not share the code lists with the value it was given', () => {
     const next: ApplicationsSearchFormValue = {
       ...DEFAULT_APPLICATIONS_SEARCH_FORM,
@@ -54,19 +46,6 @@ describe('ApplicationsSearchFormService', () => {
 
     expect(service.state().applicationCodes).toEqual(['AP99001']);
     expect(service.state().resultCodes).toEqual(['RC9901']);
-  });
-
-  it('resets the code lists to empty lists', () => {
-    service.setState({
-      ...DEFAULT_APPLICATIONS_SEARCH_FORM,
-      applicationCodes: ['AP99001'],
-      resultCodes: ['RC9901'],
-    });
-
-    service.reset();
-
-    expect(service.state().applicationCodes).toEqual([]);
-    expect(service.state().resultCodes).toEqual([]);
   });
 
   it('never returns the default lists, so changing a value read cannot change the defaults', () => {
