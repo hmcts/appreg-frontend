@@ -1,18 +1,8 @@
 /**
  * Which AI features the current user can use, from GET /ai/capabilities.
- *
- * Pages call refresh() in ngOnInit, so a change on the server (the admin
- * kill switch or the ai-pilot role) takes effect on the next page visit.
- * Requests are made in the browser only.
- *
- * Fails closed, so the manual forms are used instead:
- * - both features are off on the server, before the first refresh and while
- *   a request is in flight;
- * - an error turns both features off;
- * - a flag that is missing, null or not a boolean counts as off.
- *
- * When refresh() is called again before an earlier request finishes, the
- * earlier request is cancelled and only the newest response is used.
+ * Pages call refresh() on each visit, so a kill switch or role change applies
+ * on the next page. Fails closed: both features are off on the server, until
+ * a refresh answers and after an error, and a flag is on only when it is true.
  */
 
 import { isPlatformBrowser } from '@angular/common';
@@ -78,7 +68,6 @@ export class AiCapabilitiesFacade {
     this.setupEffects();
   }
 
-  // Requests the capabilities again; both features are off until it answers.
   refresh(): void {
     if (!this.isBrowser) {
       return;
