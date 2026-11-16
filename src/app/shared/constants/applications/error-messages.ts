@@ -26,8 +26,7 @@ export const APPLICATIONS_ERROR_MAP: {
     dateInvalid: 'Enter a valid date',
     singleDateOrDateRange: 'Enter a list date or a date range, not both',
   },
-  // Range summary items name their field so they stay distinct from each
-  // other and from List date
+  // Range messages name their field so summary items stay distinct
   dateFrom: { dateInvalid: 'List date from must be a valid date' },
   dateTo: {
     dateInvalid: 'List date to must be a valid date',

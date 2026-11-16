@@ -1,10 +1,7 @@
 /**
- * Form group validator that stops a single date being combined with a date
- * range. The API rejects that combination (ALE-57).
- *
- * The error is set on the single date control, which always has a value when
- * the rule fails, so the message shows next to a field the user filled in.
- * A range needs only one of its ends to count as given.
+ * Form group validator that stops a list date being combined with a date
+ * range, which the API rejects (ALE-57). The error goes on the date control,
+ * which always has a value when the rule fails.
  */
 
 import {
