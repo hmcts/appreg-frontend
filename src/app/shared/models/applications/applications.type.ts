@@ -2,6 +2,8 @@ import { Row } from '@core-types/table/row.types';
 
 export type ApplicationsSearchFormValue = {
   date: string | null;
+  dateFrom: string | null;
+  dateTo: string | null;
   applicantOrg: string;
   respondentOrg: string;
   applicantSurname: string;

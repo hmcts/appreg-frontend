@@ -2,10 +2,14 @@ type ApplicationsControl =
   | 'respondentPostcode'
   | 'applicationTitle'
   | 'date'
+  | 'dateFrom'
+  | 'dateTo'
   | 'court'
   | 'cja';
 type ApplicationsErrorKeyMap = {
-  date: 'dateInvalid';
+  date: 'dateInvalid' | 'singleDateOrDateRange';
+  dateFrom: 'dateInvalid';
+  dateTo: 'dateInvalid' | 'dateRange';
   respondentPostcode: 'maxlength';
   applicationTitle: 'maxlength' | 'pattern';
   court: 'courtNotFound';
@@ -14,7 +18,17 @@ type ApplicationsErrorKeyMap = {
 export const APPLICATIONS_ERROR_MAP: {
   [C in ApplicationsControl]: Record<ApplicationsErrorKeyMap[C], string>;
 } = {
-  date: { dateInvalid: 'Enter a valid date' },
+  date: {
+    dateInvalid: 'Enter a valid date',
+    singleDateOrDateRange: 'Enter a list date or a date range, not both',
+  },
+  // Range summary items name their field so they stay distinct from each
+  // other and from List date
+  dateFrom: { dateInvalid: 'List date from must be a valid date' },
+  dateTo: {
+    dateInvalid: 'List date to must be a valid date',
+    dateRange: 'List date to must be on or after List date from',
+  },
   respondentPostcode: {
     maxlength: 'Postcode must be 8 characters or fewer',
   },

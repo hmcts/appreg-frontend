@@ -148,6 +148,46 @@ describe('ErrorMessageService', () => {
       expect(svc.errorMessage()?.status).toBe(500);
     });
 
+    it('does not navigate for entry search 400s handled by the applications page', () => {
+      const err = makeErr({
+        status: 400,
+        url: 'https://local/application-list-entries?filter=x&pageNumber=0',
+        error: {
+          type: 'ALE-57',
+          title: 'Bad Request',
+          status: 400,
+          detail: 'Synthetic search filter problem',
+        },
+      });
+
+      svc.handleErrorMessage(err);
+
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+      expect(svc.errorMessage()?.status).toBe(400);
+    });
+
+    it('navigates to /internal-error for entry search 500s', () => {
+      const err = makeErr({
+        status: 500,
+        url: 'https://local/application-list-entries?pageNumber=0',
+      });
+
+      svc.handleErrorMessage(err);
+
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/internal-error');
+    });
+
+    it('navigates to /internal-error for 400s from other entry paths', () => {
+      const err = makeErr({
+        status: 400,
+        url: 'https://local/application-list-entries/other',
+      });
+
+      svc.handleErrorMessage(err);
+
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/internal-error');
+    });
+
     it('navigates to /forbidden for non-subscribed 403', () => {
       const err = makeErr({
         status: 403,

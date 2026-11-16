@@ -8,6 +8,8 @@ export type ApplicationsSearchFormValue = BaseApplicationsSearchFormValue & {
 
 export const DEFAULT_APPLICATIONS_SEARCH_FORM: ApplicationsSearchFormValue = {
   date: null,
+  dateFrom: null,
+  dateTo: null,
   applicantOrg: '',
   respondentOrg: '',
   applicantSurname: '',

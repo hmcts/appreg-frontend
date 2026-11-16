@@ -21,6 +21,18 @@ function isProblemDetails(x: unknown): x is ProblemDetails {
   return typeof x === 'object' && x !== null && ('detail' in x || 'title' in x);
 }
 
+// True when an HTTP error body carries a non-empty problem detail or title
+export function hasProblemText(err: unknown): boolean {
+  if (!(err instanceof HttpErrorResponse) || !isProblemDetails(err.error)) {
+    return false;
+  }
+  const { detail, title } = err.error;
+  return (
+    (typeof detail === 'string' && detail.trim() !== '') ||
+    (typeof title === 'string' && title.trim() !== '')
+  );
+}
+
 export function getProblemText(
   err: unknown,
   textSelection: ErrorResponseBodyShape = 'detail',

@@ -53,7 +53,49 @@
       idPrefix="date"
       [submitted]="vm().submitted"
       [isSearch]="vm().isSearch"
+      [externalErrorText]="
+        getControlErrorItem(form.controls.date, 'date', errorMap)?.text ?? ''
+      "
     />
+  </div>
+
+  <!-- Date range (cannot be combined with List date) -->
+  <div role="group" aria-labelledby="date-range-heading">
+    <p id="date-range-heading" class="govuk-body govuk-!-font-weight-bold">
+      Or search a date range
+    </p>
+
+    <div class="govuk-grid-row">
+      <!-- Date from -->
+      <app-date-input
+        formControlName="dateFrom"
+        label="List date from"
+        hint="For example, 27 3 2007"
+        idPrefix="date-from"
+        [submitted]="vm().submitted"
+        [isSearch]="vm().isSearch"
+        [externalErrorText]="
+          getControlErrorItem(form.controls.dateFrom, 'dateFrom', errorMap)
+            ?.text ?? ''
+        "
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <!-- Date to -->
+      <app-date-input
+        formControlName="dateTo"
+        label="List date to"
+        hint="For example, 27 3 2007"
+        idPrefix="date-to"
+        [submitted]="vm().submitted"
+        [isSearch]="vm().isSearch"
+        [externalErrorText]="
+          getControlErrorItem(form.controls.dateTo, 'dateTo', errorMap)?.text ??
+          ''
+        "
+      />
+    </div>
   </div>
 
   <div class="govuk-grid-row">

@@ -31,8 +31,9 @@ export function buildApplicationsListErrorSummary<
 export function buildErrorSummary<TErrorMessages extends FormErrorMessages>(
   form: FormGroup,
   messages: TErrorMessages,
+  options?: BuildFormErrorSummaryOptions,
 ): ErrorItem[] {
-  const errors = buildApplicationsListErrorSummary(form, messages);
+  const errors = buildApplicationsListErrorSummary(form, messages, options);
 
   if (form.hasError('atLeastOneRequired') && !errors.length) {
     errors.push({

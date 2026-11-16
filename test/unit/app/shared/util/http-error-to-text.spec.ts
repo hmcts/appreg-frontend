@@ -1,6 +1,39 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
+import {
+  getHttpStatus,
+  getProblemText,
+  hasProblemText,
+} from '@util/http-error-to-text';
+
+describe('hasProblemText', () => {
+  it('returns true when an HTTP error body has a detail or title', () => {
+    expect(
+      hasProblemText(
+        new HttpErrorResponse({ status: 400, error: { detail: 'Bad dates' } }),
+      ),
+    ).toBe(true);
+    expect(
+      hasProblemText(
+        new HttpErrorResponse({ status: 400, error: { title: 'Bad Request' } }),
+      ),
+    ).toBe(true);
+  });
+
+  it.each([
+    ['a non-problem body', '<html>Bad Request</html>'],
+    ['an empty body', null],
+    ['blank problem fields', { detail: '  ', title: '' }],
+  ])('returns false for %s', (_label, error) => {
+    expect(hasProblemText(new HttpErrorResponse({ status: 400, error }))).toBe(
+      false,
+    );
+  });
+
+  it('returns false for an error that is not an HTTP error response', () => {
+    expect(hasProblemText({ detail: 'Bad dates' })).toBe(false);
+  });
+});
 
 describe('getHttpStatus', () => {
   it('returns the status from an HTTP error response', () => {
