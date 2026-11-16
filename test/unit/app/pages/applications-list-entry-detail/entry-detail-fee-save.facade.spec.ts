@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { FormControl } from '@angular/forms';
 import { of } from 'rxjs';
 
-import { EntryDetailFeeSaveFacade } from '@components/applications-list-entry-detail/entry-detail-fee-save.facade';
+import { EntryDetailFeeSaveFacade } from '@components/applications-list-entry-detail/facades/entry-detail-fee-save.facade';
 import {
   ApplicationListEntriesApi,
   EntryGetDetailDto,

@@ -6,7 +6,7 @@ import { FormControl } from '@angular/forms';
 import { cloneDeep } from 'lodash';
 import { Observable } from 'rxjs';
 
-import { buildEntryUpdateDtoForFeeChange } from './util/entry-detail.form';
+import { buildEntryUpdateDtoForFeeChange } from '../util/entry-detail.form';
 
 import {
   ApplicationListEntriesApi,

@@ -34,8 +34,9 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Observable, map } from 'rxjs';
 
-import { EntryDetailFeeSaveFacade } from './entry-detail-fee-save.facade';
-import { EntryDetailLoadFacade } from './entry-detail-load.facade';
+import { EntryDetailFeeSaveFacade } from './facades/entry-detail-fee-save.facade';
+import { EntryDetailLoadFacade } from './facades/entry-detail-load.facade';
+import { EntryDetailSaveFacade } from './facades/entry-detail-save.facade';
 import {
   ApplicationsListEntryDetailState,
   initialApplicationsListEntryDetailState,
@@ -106,7 +107,6 @@ import { SuccessBanner } from '@core-types/banner/banner.types';
 import {
   Applicant,
   ApplicationCodesApi,
-  ApplicationListEntriesApi,
   EntryGetDetailDto,
   EntryUpdateDto,
   FeeStatus,
@@ -114,7 +114,6 @@ import {
   StandardApplicantGetDetailDto,
   TemplateDetail,
   TemplateSubstitution,
-  UpdateApplicationListEntryRequestParams,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
@@ -172,6 +171,7 @@ export const ERROR_HREFS = {
     ApplicationListEntryResultsFacade,
     EntryDetailLoadFacade,
     EntryDetailFeeSaveFacade,
+    EntryDetailSaveFacade,
   ],
   imports: [
     ReactiveFormsModule,
@@ -213,12 +213,12 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
-  private readonly entriesApi = inject(ApplicationListEntriesApi);
   private readonly formSvc = inject(ApplicationListEntryFormService);
   private readonly location = inject(Location);
   private readonly applicationCodesApi = inject(ApplicationCodesApi);
   private readonly loadFacade = inject(EntryDetailLoadFacade);
   private readonly feeSaveFacade = inject(EntryDetailFeeSaveFacade);
+  private readonly saveFacade = inject(EntryDetailSaveFacade);
 
   //Utilising facade for entry results to keep component clean
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
@@ -1265,20 +1265,15 @@ export class ApplicationsListEntryDetail implements OnInit {
     successBanner: SuccessBanner,
     onComplete?: () => void,
   ): void {
-    const submittedContent = this.formSvc.editableContent(this.forms);
-    if (Array.isArray(submittedContent.form.feeStatuses)) {
-      // The mapper sends table rows instead of the unadded fee-entry fields.
-      for (const field of [
-        'feeStatus',
-        'feeStatusDate',
-        'paymentRef',
-      ] as const) {
-        submittedContent.form[field] = this.savedContent?.form[field] ?? null;
-      }
-    }
+    const submittedContent = this.saveFacade.prepareSubmittedContent(
+      this.forms,
+      this.savedContent,
+    );
+
     if (this.blockSaveWithoutApplicationCode()) {
       return;
     }
+
     const entryId = getEntryId(this.route);
     this.submitAttempt.update((attempt) => attempt + 1);
     if (!entryId || !this.entryDetail) {
@@ -1293,26 +1288,22 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    const params: UpdateApplicationListEntryRequestParams = {
-      listId: this.appListEntryDetailState().appListId,
-      entryId,
-      entryUpdateDto,
-    };
-
-    this.entriesApi
-      .updateApplicationListEntry(params, 'body', false, {
-        context: undefined,
-        transferCache: false,
-      })
+    this.saveFacade
+      .save(
+        this.appListEntryDetailState().appListId,
+        entryId,
+        entryUpdateDto,
+        submittedContent,
+      )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
+        next: ({ entry: res, submittedContent: savedContent }) => {
           this.appListEntryDetailPatch({
             formSubmitted: false,
             errorFound: false,
           });
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
-          this.savedContent = submittedContent;
+          this.savedContent = savedContent;
           this.applySavedStandardApplicantSummary();
           this.appListEntryDetailPatch({ successBanner });
 

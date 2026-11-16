@@ -4,7 +4,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, of } from 'rxjs';
 
-import { savedFeeMeta } from './util/entry-load-fee-meta';
+import { savedFeeMeta } from '../util/entry-load-fee-meta';
 
 import {
   ApplicationCodeGetDetailDto,
