@@ -49,6 +49,11 @@ export interface PlaceFieldsState {
   filteredCja: CjaSuggestionItem[];
 }
 
+export interface PlaceFieldsOptions {
+  /** See LocationControls.additionalCourts. */
+  additionalCourts?: AbstractControl;
+}
+
 const initialPlaceFieldsState: PlaceFieldsState = {
   courthouseSearch: '',
   cjaSearch: '',
@@ -102,7 +107,11 @@ export abstract class PlaceFieldsBase {
     this.placeBindings = undefined;
   }
 
-  protected initPlaceFields(form: FormGroup, ref: PlaceRefFacade): void {
+  protected initPlaceFields(
+    form: FormGroup,
+    ref: PlaceRefFacade,
+    options: PlaceFieldsOptions = {},
+  ): void {
     this.disposePlaceFields();
     const bindings = new Subscription();
     this.placeBindings = bindings;
@@ -147,6 +156,7 @@ export abstract class PlaceFieldsBase {
         court: form.controls['court'],
         location: this.locationControl,
         cja: form.controls['cja'],
+        additionalCourts: options.additionalCourts,
       }),
     );
   }

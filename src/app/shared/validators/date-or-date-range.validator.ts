@@ -11,6 +11,7 @@ import {
   ValidatorFn,
 } from '@angular/forms';
 
+import { hasText } from '@util/string-helpers';
 import { setControlError } from '@util/validation-helpers';
 
 export function singleDateOrDateRangeValidator(
@@ -24,18 +25,14 @@ export function singleDateOrDateRangeValidator(
       return null;
     }
 
-    const hasDate = hasValue(ctrl.get(dateControlName)?.value);
+    const hasDate = hasText(ctrl.get(dateControlName)?.value);
     const hasRange =
-      hasValue(ctrl.get(fromControlName)?.value) ||
-      hasValue(ctrl.get(toControlName)?.value);
+      hasText(ctrl.get(fromControlName)?.value) ||
+      hasText(ctrl.get(toControlName)?.value);
     const hasBoth = hasDate && hasRange;
 
     setControlError(ctrl, dateControlName, errorKey, hasBoth);
 
     return hasBoth ? { [errorKey]: true } : null;
   };
-}
-
-function hasValue(value: unknown): boolean {
-  return typeof value === 'string' && value.trim().length > 0;
 }

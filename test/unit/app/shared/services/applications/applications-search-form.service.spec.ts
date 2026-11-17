@@ -59,6 +59,15 @@ describe('ApplicationsSearchFormService', () => {
     );
   });
 
+  it('does not share Other courts with a patch', () => {
+    const courtCodes = ['SYN001'];
+
+    service.patchState({ courtCodes });
+    courtCodes.push('SYN002');
+
+    expect(service.state().courtCodes).toEqual(['SYN001']);
+  });
+
   it('sets form state', () => {
     const next: ApplicationsSearchFormValue = {
       ...DEFAULT_APPLICATIONS_SEARCH_FORM,

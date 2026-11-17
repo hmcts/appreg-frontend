@@ -57,9 +57,7 @@
       idPrefix="date"
       [submitted]="vm().submitted"
       [isSearch]="vm().isSearch"
-      [externalErrorText]="
-        getControlErrorItem(form.controls.date, 'date', errorMap)?.text ?? ''
-      "
+      [externalErrorText]="errorText('date')"
     />
   </div>
 
@@ -78,10 +76,7 @@
         idPrefix="date-from"
         [submitted]="vm().submitted"
         [isSearch]="vm().isSearch"
-        [externalErrorText]="
-          getControlErrorItem(form.controls.dateFrom, 'dateFrom', errorMap)
-            ?.text ?? ''
-        "
+        [externalErrorText]="errorText('dateFrom')"
       />
     </div>
 
@@ -94,10 +89,7 @@
         idPrefix="date-to"
         [submitted]="vm().submitted"
         [isSearch]="vm().isSearch"
-        [externalErrorText]="
-          getControlErrorItem(form.controls.dateTo, 'dateTo', errorMap)?.text ??
-          ''
-        "
+        [externalErrorText]="errorText('dateTo')"
       />
     </div>
   </div>
@@ -119,6 +111,24 @@
       [errorText]="
         getControlErrorItem(form.controls.court, 'court', errorMap)?.text ?? ''
       "
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Other courts -->
+    <app-multi-suggestions
+      id="courtCodes"
+      formControlName="courtCodes"
+      label="Other courts"
+      hint="Start typing a court name or code. You can add more than one."
+      selectedHeading="Selected other courts"
+      [options]="courtOptions()"
+      [extraLabels]="courtChipLabels()"
+      [maxItems]="otherCourtsMaxItems"
+      [showError]="showError('courtCodes')"
+      [errorText]="errorText('courtCodes')"
       containerWidthClass="govuk-grid-column-one-half"
       widthClass="govuk-!-width-two-thirds"
     />
@@ -151,13 +161,7 @@
       label="Applicant name"
       hint="Part of an organisation name, or a person's first and last name"
       idPrefix="applicantName"
-      [error]="
-        getControlErrorItem(
-          form.controls.applicantName,
-          'applicantName',
-          errorMap
-        )?.text ?? null
-      "
+      [error]="errorText('applicantName') || null"
       [charLimit]="300"
       containerWidthClass="govuk-grid-column-one-half"
       widthClass="govuk-!-width-two-thirds"
@@ -190,13 +194,7 @@
       label="Respondent name"
       hint="Part of an organisation name, or a person's first and last name"
       idPrefix="respondentName"
-      [error]="
-        getControlErrorItem(
-          form.controls.respondentName,
-          'respondentName',
-          errorMap
-        )?.text ?? null
-      "
+      [error]="errorText('respondentName') || null"
       [charLimit]="300"
       containerWidthClass="govuk-grid-column-one-half"
       widthClass="govuk-!-width-two-thirds"
@@ -251,7 +249,11 @@
           (searchChange)="onCjaInputChange()"
           [suggestions]="state().filteredCja"
           (selectItem)="onCjaSuggestionSelected($event)"
-          [disabled]="!!state().courthouseSearch || !!form.get('court')?.value"
+          [disabled]="
+            !!state().courthouseSearch ||
+            !!form.get('court')?.value ||
+            hasOtherCourts()
+          "
           [showError]="
             vm().submitted &&
             !!getControlErrorItem(form.controls.cja, 'cja', errorMap)
@@ -338,21 +340,8 @@
           selectedHeading="Selected application codes"
           [options]="applicationCodeOptions()"
           [maxItems]="50"
-          [showError]="
-            vm().submitted &&
-            !!getControlErrorItem(
-              form.controls.applicationCodes,
-              'applicationCodes',
-              errorMap
-            )
-          "
-          [errorText]="
-            getControlErrorItem(
-              form.controls.applicationCodes,
-              'applicationCodes',
-              errorMap
-            )?.text ?? ''
-          "
+          [showError]="showError('applicationCodes')"
+          [errorText]="errorText('applicationCodes')"
           containerWidthClass="govuk-grid-column-one-half"
           widthClass="govuk-!-width-two-thirds"
         />
@@ -368,21 +357,8 @@
           selectedHeading="Selected result codes"
           [options]="resultCodeOptions()"
           [maxItems]="20"
-          [showError]="
-            vm().submitted &&
-            !!getControlErrorItem(
-              form.controls.resultCodes,
-              'resultCodes',
-              errorMap
-            )
-          "
-          [errorText]="
-            getControlErrorItem(
-              form.controls.resultCodes,
-              'resultCodes',
-              errorMap
-            )?.text ?? ''
-          "
+          [showError]="showError('resultCodes')"
+          [errorText]="errorText('resultCodes')"
           containerWidthClass="govuk-grid-column-one-half"
           widthClass="govuk-!-width-two-thirds"
         />

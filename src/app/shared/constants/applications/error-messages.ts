@@ -9,6 +9,7 @@ type ApplicationsControl =
   | 'applicationCodes'
   | 'resultCodes'
   | 'court'
+  | 'courtCodes'
   | 'cja';
 type ApplicationsErrorKeyMap = {
   date: 'dateInvalid' | 'singleDateOrDateRange';
@@ -21,6 +22,7 @@ type ApplicationsErrorKeyMap = {
   applicationCodes: 'notAdded';
   resultCodes: 'notAdded';
   court: 'courtNotFound';
+  courtCodes: 'notAdded';
   cja: 'cjaNotFound';
 };
 export const APPLICATIONS_ERROR_MAP: {
@@ -57,6 +59,9 @@ export const APPLICATIONS_ERROR_MAP: {
   },
   court: {
     courtNotFound: 'Court location not found',
+  },
+  courtCodes: {
+    notAdded: 'Select a court from the list, or clear the text',
   },
   cja: {
     cjaNotFound: 'Criminal justice area not found',
