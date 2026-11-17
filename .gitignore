@@ -75,3 +75,6 @@ runner-results/
 # Wiremock generated files
 /wiremock/__files/errors
 /wiremock/mappings
+
+# Code documentation
+/docs/code-documentation
