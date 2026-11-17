@@ -597,7 +597,9 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
         '.govuk-summary-list__row',
       )[1];
       expect(durationRow?.querySelector('dd')?.textContent).toBe('45 Minutes');
-      expect(header?.querySelector('dd')?.textContent).not.toContain('45 Minutes');
+      expect(header?.querySelector('dd')?.textContent).not.toContain(
+        '45 Minutes',
+      );
       expect(target.querySelectorAll('section > dl')).toHaveLength(4);
       const separators = target.querySelectorAll(
         '.app-print-preview-entry-end',
