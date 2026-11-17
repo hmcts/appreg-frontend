@@ -30,6 +30,7 @@
     "lint": "yarn api:all && stylelint **/*.scss -v -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .",
     "lint:fix": "prettier --write . && eslint --fix . && stylelint **/*.scss -v -q --fix ",
     "doc": "yarn compodoc -p tsconfig.doc.json -d docs/code-documentation",
+    "doc:serve": "yarn compodoc -s -d ./docs/code-documentation",
     "build": "ng build",
     "build:ssr": "ng build --configuration production",
     "verify-stg-access": "ts-node -P ./tsconfig.json scripts/verify-stg-access.ts",
