@@ -111,7 +111,7 @@ const AffectedColumn: Record<string, string> = {
   RESPONDENT: 'Respondent details',
 };
 
-/*
+/**
 Applications List – Bulk Upload (/applications-list/:id/bulk-upload)
 
 Functionality:

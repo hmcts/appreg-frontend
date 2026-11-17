@@ -145,7 +145,7 @@ export const ERROR_HREFS = {
   ...(RESPONDENT_PERSON_ERROR_HREFS as Record<string, string>),
 } as const satisfies Record<string, string>;
 
-/*
+/**
   Main component for /applications-list/:listId/entries/:entryId
   Functionality:
     On load:

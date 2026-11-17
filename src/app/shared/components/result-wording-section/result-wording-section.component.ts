@@ -58,7 +58,7 @@ const RESULT_WORDING_COLUMNS = [
   },
 ];
 
-/*
+/**
   Result wording section orchestration:
   - Displays existing and pending result cards, rendering wording-parser inputs for templated wording.
   - Tracks pending result selection plus in-progress edits for existing result wording fields.
