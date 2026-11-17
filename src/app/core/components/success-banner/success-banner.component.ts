@@ -13,6 +13,14 @@ export type BannerSegment =
   | { kind: 'text'; text: string }
   | { kind: 'link'; text: string; href?: string; commands?: string[] };
 
+/**
+ * SuccessBannerComponent
+ *
+ * Functionality:
+ * - Displays a success banner.
+ * - Supports links, click events, and focus management.
+ * - Can render segmented content and an optional link action.
+ */
 @Component({
   selector: 'app-success-banner',
   standalone: true,

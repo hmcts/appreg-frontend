@@ -34,6 +34,20 @@ type DateForm = FormGroup<{
 
 type DateField = 'day' | 'month' | 'year';
 
+/**
+ * DateInputComponent
+ *
+ * Functionality:
+ * - Supports manual day, month, and year entry or selection with the MOJ date picker.
+ * - Integrates date values, validation, and touched state with Angular forms.
+ * - Validation rules:
+ *   - Day and month use one or two digits; year uses four digits.
+ *   - A partial date requires every missing part; a complete date must exist on the calendar, including leap-day checks.
+ *   - Dates must fall between 1900 and 3000.
+ *   - Past-only mode excludes today and future dates; no-future mode permits today but excludes future dates.
+ * - Shows field and group errors after interaction or submission; empty search dates remain optional.
+ * - Keeps manual entry and date picker selection in the same form value.
+ */
 @Component({
   selector: 'app-date-input',
   templateUrl: './date-input.component.html',

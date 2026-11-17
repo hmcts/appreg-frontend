@@ -1,12 +1,3 @@
-/*
-Applications List – Bulk Upload (/applications-list/:id/bulk-upload)
-
-Functionality:
-  - Validates selected CSV file by extension and MIME type
-  - Submits bulk upload request for the selected list
-  - Updates UI state for upload progress and result
-*/
-
 import { DOCUMENT } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
@@ -120,6 +111,14 @@ const AffectedColumn: Record<string, string> = {
   RESPONDENT: 'Respondent details',
 };
 
+/*
+Applications List – Bulk Upload (/applications-list/:id/bulk-upload)
+
+Functionality:
+  - Validates selected CSV file by extension and MIME type
+  - Submits bulk upload request for the selected list
+  - Updates UI state for upload progress and result
+*/
 @Component({
   selector: 'app-applications-list-bulk-upload',
   imports: [

@@ -7,6 +7,14 @@ import { ReportsSharedFormComponent } from '@components/reports-shared-form/repo
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import type { ErrorMessageMap } from '@util/error-summary';
 
+/**
+ * PrivateProsecutorsIndexSectionComponent
+ *
+ * Functionality:
+ * - Displays private prosecutors index form fields.
+ * - Shows validation errors for index details.
+ * - Uses the parent form, suggestions, and external errors in the shared report form.
+ */
 @Component({
   selector: 'app-private-prosecutors-index-section',
   standalone: true,

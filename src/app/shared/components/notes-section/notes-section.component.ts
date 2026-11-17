@@ -20,6 +20,14 @@ export type ApplicationNotesForm = FormGroup<{
   caseReference: FormControl<string | null>;
   accountReference: FormControl<string | null>;
 }>;
+/**
+ * NotesSectionComponent
+ *
+ * Functionality:
+ * - Displays notes form fields.
+ * - Emits notes validation errors.
+ * - Keeps notes validation feedback available to the parent form.
+ */
 @Component({
   selector: 'app-notes-section',
   imports: [GovukTextareaComponent, ReactiveFormsModule, HelpDetailsComponent],

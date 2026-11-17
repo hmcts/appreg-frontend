@@ -34,6 +34,14 @@ type AppListForm =
   | FormGroup<ApplicationsListFormControls>
   | FormGroup<ApplicationsListUpdateFormControls>;
 
+/**
+ * ApplicationsListFormComponent
+ *
+ * Functionality:
+ * - Displays applications list form fields.
+ * - Handles advanced options, suggestions, and validation messages.
+ * - Supports courthouse and CJA suggestions in its form fields.
+ */
 @Component({
   selector: 'app-applications-list-form',
   standalone: true,

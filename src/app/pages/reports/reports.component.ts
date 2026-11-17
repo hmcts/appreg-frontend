@@ -137,6 +137,11 @@ const REPORT_LOCATION_RESET_VALUE = {
  * setupEffects():
  * - Handles asynchronous report creation requests
  * - Starts polling when report jobs are accepted
+ *
+ * - Validation rules:
+ *   - A report type is required.
+ *   - Each report requires a start and end date, with the end on or after the start.
+ *   - Activity audit reports also require at least one activity.
  */
 @Component({
   selector: 'app-reports',

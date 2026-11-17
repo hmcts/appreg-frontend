@@ -1,13 +1,3 @@
-/*
-  Result wording section orchestration:
-  - Displays existing and pending result cards, rendering wording-parser inputs for templated wording.
-  - Tracks pending result selection plus in-progress edits for existing result wording fields.
-  - Coordinates submit-time validation across all parser instances and emits a single payload containing:
-      1) pending results to create, and
-      2) existing results whose wording fields changed (for update).
-  - Emits section-level wording errors for parent error summary and guards existing-row removal when errors are unresolved.
-*/
-
 import {
   ChangeDetectionStrategy,
   Component,
@@ -68,6 +58,15 @@ const RESULT_WORDING_COLUMNS = [
   },
 ];
 
+/*
+  Result wording section orchestration:
+  - Displays existing and pending result cards, rendering wording-parser inputs for templated wording.
+  - Tracks pending result selection plus in-progress edits for existing result wording fields.
+  - Coordinates submit-time validation across all parser instances and emits a single payload containing:
+      1) pending results to create, and
+      2) existing results whose wording fields changed (for update).
+  - Emits section-level wording errors for parent error summary and guards existing-row removal when errors are unresolved.
+*/
 @Component({
   selector: 'app-result-wording-section',
   templateUrl: './result-wording-section.component.html',

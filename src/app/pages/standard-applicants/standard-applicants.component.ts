@@ -112,6 +112,9 @@ const initialStandardApplicantsState: StandardApplicantsState = {
  *
  * onPrintButtonClick():
  * - Generates and downloads a PDF of matching Standard Applicants
+ *
+ * - Validation rules:
+ *   - Search code is limited to 10 characters and name to 100 characters.
  */
 @Component({
   selector: 'app-standard-applicants',

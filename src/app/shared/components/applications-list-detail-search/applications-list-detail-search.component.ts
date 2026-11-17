@@ -62,6 +62,18 @@ export type ApplicationsListDetailSearchResult = {
   errors: ErrorItem[];
 };
 
+/**
+ * ApplicationsListDetailSearchComponent
+ *
+ * Functionality:
+ * - Searches entries within an applications list.
+ * - Emits search results and status.
+ * - Handles application title suggestions and maps search or API errors.
+ * - Validation rules:
+ *   - Sequence number contains digits only.
+ *   - Account reference is limited to 20 characters; applicant and respondent names to 300 each.
+ *   - Respondent postcode is limited to 8 characters and application title to 500.
+ */
 @Component({
   selector: 'app-applications-list-detail-search',
   standalone: true,

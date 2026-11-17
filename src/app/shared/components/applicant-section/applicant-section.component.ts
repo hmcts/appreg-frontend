@@ -22,6 +22,14 @@ import {
 } from '@constants/application-list-entry/columns-options';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
+/**
+ * ApplicantSectionComponent
+ *
+ * Functionality:
+ * - Displays applicant details and standard applicant selection.
+ * - Emits applicant selection, errors, and update actions.
+ * - Keeps the selected standard applicant code and summary in sync with the parent.
+ */
 @Component({
   selector: 'app-applicant-section',
   imports: [

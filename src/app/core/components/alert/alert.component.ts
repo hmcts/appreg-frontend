@@ -9,6 +9,20 @@ import {
 
 import { ALERT_ICON_PATHS, AlertType } from './alert-icons';
 
+/**
+ * AlertComponent
+ *
+ * Functionality:
+ * - Displays an alert message.
+ * - Supports dismissal and emits dismissal events.
+ * - Alert has 4 types which you must provide 1:
+ *    - "error"
+ *    - "information"
+ *    - "success"
+ *    - "warning"
+ * - You must provide a message
+ * - Allows the parent to control whether dismissal is available.
+ */
 @Component({
   selector: 'app-alert',
   host: {

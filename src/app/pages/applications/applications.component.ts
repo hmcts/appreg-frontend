@@ -132,6 +132,10 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
  *
  * onResultSelectedClick():
  * - Navigates to ./applications-result-selected/applications-result-selected.component.ts with row context
+ *
+ * - Validation rules:
+ *   - Application title is limited to 500 characters and the allowed title punctuation.
+ *   - Respondent postcode is limited to 8 characters.
  */
 @Component({
   selector: 'app-applications',

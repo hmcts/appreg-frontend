@@ -15,6 +15,14 @@ import {
 
 import { HeaderService } from '@services/header.service';
 
+/**
+ * ReviewConfirmComponent
+ *
+ * Functionality:
+ * - Displays a review confirmation dialog.
+ * - Emits confirmation or cancellation actions.
+ * - Configures dialog text, buttons, and disabled confirmation state.
+ */
 @Component({
   selector: 'app-review-confirm',
   standalone: true,

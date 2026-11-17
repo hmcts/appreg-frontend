@@ -31,6 +31,17 @@ export type WordingValidationOptions = {
   enforceSavedWording?: boolean;
 };
 
+/**
+ * WordingParserComponent
+ *
+ * Functionality:
+ * - Parses wording into editable form fields.
+ * - Emits completed wording values and errors.
+ * - Builds form controls from wording placeholders and patches existing values.
+ * - Validation rules:
+ *   - Each substitution field requires a non-blank value.
+ *   - Each value must fit its template-defined character limit.
+ */
 @Component({
   selector: 'app-wording-parser',
   imports: [ReactiveFormsModule, NgClass],

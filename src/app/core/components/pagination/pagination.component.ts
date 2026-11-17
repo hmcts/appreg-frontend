@@ -7,6 +7,14 @@ import {
 
 type PageItem = number | '…';
 
+/**
+ * PaginationComponent
+ *
+ * Functionality:
+ * - Displays page navigation controls.
+ * - Emits page changes and manages previous and next availability.
+ * - Uses the current page and total pages to enable navigation controls.
+ */
 @Component({
   selector: 'app-pagination',
   changeDetection: ChangeDetectionStrategy.Eager,

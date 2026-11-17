@@ -71,6 +71,9 @@ const MAX_APPLICATION_NOTES_LENGTH = 3000;
  * loadEntry():
  * - GET request to retrieve the latest Application List Entry details
  * - Populates application context and existing application notes
+ *
+ * - Validation rules:
+ *   - Additional notes must fit within the 3,000-character total, including existing notes and their separator.
  */
 @Component({
   selector: 'app-update-notes',

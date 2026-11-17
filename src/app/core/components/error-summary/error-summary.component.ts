@@ -15,6 +15,14 @@ import { onCreateErrorClick } from '@util/error-click';
 
 export type ErrorItem = { text: string; href?: string; id?: string };
 
+/**
+ * ErrorSummaryComponent
+ *
+ * Functionality:
+ * - Displays a summary of validation errors.
+ * - Links errors to their associated fields.
+ * - Can focus the summary and move focus to an error target.
+ */
 @Component({
   selector: 'app-error-summary',
   standalone: true,

@@ -27,6 +27,14 @@ export interface AccordionItem {
   expanded?: boolean;
 }
 
+/**
+ * AccordionComponent
+ *
+ * Functionality:
+ * - Displays expandable accordion sections.
+ * - Tracks expansion state and supports expanding & closing multiple sections.
+ * - Can remember expanded sections and scroll to expanded content.
+ */
 @Component({
   selector: 'app-accordion',
   // The ID belongs to the inner element, not the component host.
