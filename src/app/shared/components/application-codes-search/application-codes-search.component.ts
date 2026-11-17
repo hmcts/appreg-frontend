@@ -122,6 +122,10 @@ export class ApplicationCodeSearchComponent implements OnInit {
   resultsChange = output<ApplicationCodeGetSummaryDto[]>();
   resetParentErrors = output<void>();
   codeSearchErrors = output<ErrorItem[]>();
+  // The suggestionId of the code suggestions a code was added from. Null when
+  // a searched-for code is added, the code is cleared, or new suggestions
+  // replace the ones the code came from. Only the create-entry page listens.
+  codeSuggestionIdChange = output<string | null>();
 
   private readonly route = inject(ActivatedRoute);
   private readonly codesApi = inject(ApplicationCodesApi);
@@ -153,6 +157,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   suggestionsError = signal<string | null>(null);
   suggestionMessages = signal<string[]>([]);
   private suggestionsSubscription?: Subscription;
+  private suggestionId: string | null = null;
   private suggestionsRequested = false;
   // The first well-formed code searched for before asking for suggestions.
   private searchedApplicationCode: string | null = null;
@@ -342,11 +347,13 @@ export class ApplicationCodeSearchComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.codesRows = mapCodeSuggestionRows(response?.suggestions);
+          this.suggestionId = response?.suggestionId ?? null;
           this.showingSuggestions.set(true);
           this.suggestionMessages.set(
             toSuggestionMessages(response, this.codesRows.length),
           );
           this.suggestionsLoading.set(false);
+          this.codeSuggestionIdChange.emit(null);
         },
         error: (error: unknown) => {
           this.codesRows = [];
@@ -357,6 +364,8 @@ export class ApplicationCodeSearchComponent implements OnInit {
   }
 
   onAddCode(row: CodeRow): void {
+    // Read before resetSuggestions() clears it; null for a searched-for code.
+    const codeSuggestionId = this.suggestionId;
     this.submitted.set(false);
     this.hasSearched.set(false);
     this.resetSuggestions();
@@ -383,6 +392,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
       applicationCodeId: row.applicationCodeId,
       date: this.form.controls.lodgementDate.value ?? '',
     });
+    this.codeSuggestionIdChange.emit(codeSuggestionId);
   }
 
   onPageChange(page: number): void {
@@ -441,6 +451,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.errored.set(false);
     this.submitted.set(false);
     this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
+    this.codeSuggestionIdChange.emit(null);
     this.resetParentErrors.emit();
     this.codeSearchErrors.emit([]);
     this.totalPages.set(0);
@@ -532,6 +543,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   private resetSuggestions(): void {
     this.suggestionsSubscription?.unsubscribe();
     this.suggestionsSubscription = undefined;
+    this.suggestionId = null;
     this.suggestionsLoading.set(false);
     this.suggestionsError.set(null);
     this.suggestionMessages.set([]);

@@ -15,6 +15,8 @@ export interface ApplicationsListEntryCreateState {
   bulkApplicationsAllowed: boolean;
   isFeeRequired: boolean;
   currentStandardApplicantSummary: SelectedStandardApplicantSummary | null;
+  // Null unless the application code was added from code suggestions.
+  codeSuggestionId: string | null;
 }
 
 export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreateState =
@@ -29,4 +31,5 @@ export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreat
     bulkApplicationsAllowed: false,
     isFeeRequired: false,
     currentStandardApplicantSummary: null,
+    codeSuggestionId: null,
   };

@@ -19,6 +19,9 @@ import {
   ApplicationCodeGetDetailDto,
   ApplicationCodeGetDetailDtoFeeAmountCurrencyEnum,
   ApplicationCodeGetDetailDtoOffsiteFeeAmountCurrencyEnum,
+  ApplicationCodeGetSummaryDto,
+  ApplicationCodeSuggestionResponseDto,
+  ApplicationCodeSuggestionsApi,
   ApplicationCodesApi,
   ApplicationListEntriesApi,
   EntryCreateDto,
@@ -1935,4 +1938,271 @@ describe('ApplicationsListEntryCreate (code suggestions)', () => {
     expect(summaryIds()).not.toContain('codeSuggestionDescription');
     expect(component.vm().errorFound).toBe(true);
   });
+});
+
+describe('ApplicationsListEntryCreate (code suggestion id)', () => {
+  const suggestionId = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
+  const lodgementDate = '2026-11-02';
+
+  let fixture: ComponentFixture<ApplicationsListEntryCreate>;
+  let component: ApplicationsListEntryCreate;
+  let createApplicationListEntry: jest.Mock;
+  let suggestApplicationCodes: jest.Mock;
+  let readNavStateSpy: jest.SpyInstance;
+
+  function codeSummary(code: string): ApplicationCodeGetSummaryDto {
+    return {
+      applicationCodeId: 99001,
+      applicationCode: code,
+      title: `Synthetic title for ${code}`,
+      wording: { template: 'Synthetic wording' },
+      isFeeDue: false,
+      requiresRespondent: false,
+      bulkRespondentAllowed: false,
+    };
+  }
+
+  function suggestionResponse(
+    id: string,
+    codes: string[] = ['AP99001'],
+  ): ApplicationCodeSuggestionResponseDto {
+    return {
+      suggestionId: id,
+      suggestions: codes.map((code, index) => ({
+        rank: index + 1,
+        reason: `Matches 'synthetic' in the title of ${code}`,
+        activeOnLodgementDate: true,
+        applicationCode: codeSummary(code),
+      })),
+      needsMoreDetail: false,
+      notices: [],
+    };
+  }
+
+  async function createPage(options: { template: boolean }): Promise<void> {
+    createApplicationListEntry = jest
+      .fn()
+      .mockReturnValue(of({ listId: 'LIST-1', id: 'ENTRY-1' }));
+    suggestApplicationCodes = jest.fn();
+
+    const testBed = TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ApplicationListEntriesApi,
+          useValue: { createApplicationListEntry },
+        },
+        {
+          provide: ApplicationCodesApi,
+          useValue: {
+            getApplicationCodes: jest
+              .fn()
+              .mockReturnValue(
+                of({ content: [codeSummary('MS99004')], totalPages: 1 }),
+              ),
+            getApplicationCodeByCodeAndDate: jest
+              .fn()
+              .mockImplementation(({ code }: { code: string }) =>
+                of({
+                  ...codeSummary(code),
+                  startDate: '2026-01-01',
+                  endDate: null,
+                }),
+              ),
+          },
+        },
+        {
+          provide: ApplicationCodeSuggestionsApi,
+          useValue: { suggestApplicationCodes },
+        },
+        {
+          provide: AiCapabilitiesFacade,
+          useValue: {
+            codeSuggestionsEnabled: signal(true),
+            refresh: jest.fn(),
+          },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+        },
+      ],
+    });
+    if (!options.template) {
+      testBed.overrideTemplate(ApplicationsListEntryCreate, '');
+    }
+    await testBed.compileComponents();
+
+    jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    openPage();
+    await fixture.whenStable();
+  }
+
+  function openPage(): void {
+    fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  function codeSearchHost(): HTMLElement {
+    return (fixture.nativeElement as HTMLElement).querySelector(
+      'app-application-code-search',
+    )!;
+  }
+
+  function clickCodeSearchButton(label: string): void {
+    Array.from(codeSearchHost().querySelectorAll('button'))
+      .find((button) => button.textContent?.trim() === label)!
+      .click();
+    fixture.detectChanges();
+  }
+
+  function codeSearch(): ApplicationCodeSearchComponent {
+    return fixture.debugElement.query(
+      By.directive(ApplicationCodeSearchComponent),
+    ).componentInstance as ApplicationCodeSearchComponent;
+  }
+
+  function suggestCodes(response: ApplicationCodeSuggestionResponseDto): void {
+    suggestApplicationCodes.mockReturnValueOnce(of(response));
+    const field = codeSearchHost().querySelector<HTMLTextAreaElement>(
+      '#code-suggestion-description',
+    )!;
+    field.value = 'Synthetic description of an application';
+    field.dispatchEvent(new Event('input'));
+    clickCodeSearchButton('Suggest codes');
+  }
+
+  function addFirstCode(): void {
+    codeSearchHost()
+      .querySelector<HTMLButtonElement>('#codes-table tbody button')!
+      .click();
+    fixture.detectChanges();
+  }
+
+  function addSuggestedCode(): void {
+    codeSearch().form.controls.lodgementDate.setValue(lodgementDate);
+    suggestCodes(suggestionResponse(suggestionId));
+    addFirstCode();
+  }
+
+  function useStandardApplicant(): void {
+    component.form.controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-1');
+    fixture.detectChanges();
+  }
+
+  function submittedEntry(): EntryCreateDto {
+    component.onSubmit(new Event('submit'));
+
+    expect(component.vm().summaryErrors).toEqual([]);
+    expect(createApplicationListEntry).toHaveBeenCalledTimes(1);
+    const [request] = createApplicationListEntry.mock.calls[0] as [
+      { listId: string; entryCreateDto: EntryCreateDto },
+    ];
+    return request.entryCreateDto;
+  }
+
+  beforeEach(async () => {
+    const routingStateUtil =
+      await import('@components/applications-list-entry-detail/util/routing-state-util');
+    readNavStateSpy = jest.spyOn(routingStateUtil, 'readNavState');
+  });
+
+  afterEach(() => {
+    readNavStateSpy.mockRestore();
+    history.replaceState({}, '');
+  });
+
+  it('keeps the suggestion id when a suggested code is added and sends it on create', async () => {
+    await createPage({ template: true });
+    useStandardApplicant();
+
+    addSuggestedCode();
+
+    expect(component.form.controls.applicationCode.value).toBe('AP99001');
+    expect(component.vm().codeSuggestionId).toBe(suggestionId);
+    expect(submittedEntry()).toEqual(
+      expect.objectContaining({
+        applicationCode: 'AP99001',
+        lodgementDate,
+        codeSuggestionId: suggestionId,
+      }),
+    );
+  });
+
+  it('keeps the suggestion id through the change-payment-reference round trip', async () => {
+    await createPage({ template: true });
+    useStandardApplicant();
+    addSuggestedCode();
+
+    const state = component.buildChangePaymentReferenceState();
+    expect(state['entryCreateSnapshot']).toEqual(
+      expect.objectContaining({ codeSuggestionId: suggestionId }),
+    );
+    readNavStateSpy.mockReturnValue(state);
+    fixture.destroy();
+    createApplicationListEntry.mockClear();
+    openPage();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(codeSearch().form.controls.code.value).toBe('AP99001');
+    expect(component.vm().codeSuggestionId).toBe(suggestionId);
+    expect(submittedEntry()).toEqual(
+      expect.objectContaining({
+        applicationCode: 'AP99001',
+        codeSuggestionId: suggestionId,
+      }),
+    );
+  });
+
+  it.each([
+    ['missing', undefined],
+    ['null', null],
+    ['empty', ''],
+    ['not a UUID', 'synthetic-suggestion'],
+    ['not a string', 42],
+  ])(
+    'restores no suggestion id when the snapshot id is %s',
+    async (_label, codeSuggestionId) => {
+      readNavStateSpy.mockReturnValue({
+        entryCreateSnapshot: {
+          form: { applicationCode: 'AP99001', lodgementDate },
+          codeSuggestionId,
+        },
+      });
+
+      await createPage({ template: false });
+
+      expect(component.form.controls.applicationCode.value).toBe('AP99001');
+      expect(component.vm().codeSuggestionId).toBeNull();
+    },
+  );
+
+  it.each([
+    ['empty', ''],
+    ['not a UUID', 'synthetic-suggestion'],
+  ])(
+    'sends no codeSuggestionId when the emitted id is %s',
+    async (_label, codeSuggestionId) => {
+      await createPage({ template: false });
+      component.onCodeSuggestionIdChange(suggestionId);
+      expect(component.vm().codeSuggestionId).toBe(suggestionId);
+      component.form.patchValue({
+        applicationCode: 'AP99001',
+        lodgementDate,
+        applicantType: 'standard',
+        standardApplicantCode: 'SA-1',
+      });
+
+      component.onCodeSuggestionIdChange(codeSuggestionId);
+
+      expect(component.vm().codeSuggestionId).toBeNull();
+      expect(submittedEntry()).not.toHaveProperty('codeSuggestionId');
+    },
+  );
 });
