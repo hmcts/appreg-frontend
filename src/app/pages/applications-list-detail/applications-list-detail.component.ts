@@ -1,49 +1,3 @@
-/**
- * Application List Detail
- * Main Component for page /applications-list/:id
- *
- * Note:
- * Bulk preview endpoint contains a BE limit of 1050 max selected applications
- *
- * Functionality:
- * ngOnInit():
- * - Loads the Application List details and Application List Entries
- * - Initialises the update form and restores navigation state
- *
- * onSearchStarted()/onSearchResult():
- * - GET request to search and filter Application List Entries
- * - Updates server-side pagination and selection state
- *
- * onUpdateOfficialsButtonClick():
- * - Retrieves eligible entries using the Bulk Action Preview endpoint
- * - Navigates to Bulk Update Officials
- *
- * onResultButtonClick():
- * - Retrieves eligible entries using the Bulk Action Preview endpoint
- * - Navigates to Bulk Result Selected
- *
- * onUpdateFeeButtonClick():
- * - Retrieves eligible entries using the Bulk Action Preview endpoint
- * - Navigates to Bulk Update Fees
- *
- * onMoveButtonClick():
- * - Retrieves eligible entries using the Bulk Action Preview endpoint
- * - Navigates to Move Application List Entries
- *
- * onPrintContinuousClick()/onPrintPageClick():
- * - Retrieves eligible entries using the Bulk Action Preview endpoint
- * - Generates Continuous or Page print PDFs
- *
- * openUpdate():
- * - Navigates to the selected Application List Entry
- *
- * onUndoClick():
- * - Navigates to undo application list creation page
- *
- * onDeleteButtonClick()
- * - Navigates to delete an application list entry
- */
-
 import { isPlatformBrowser } from '@angular/common';
 import {
   HttpContext,
@@ -185,6 +139,51 @@ const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
   resulted: 'resulted',
 };
 
+/**
+ * Application List Detail
+ * Main Component for page /applications-list/:id
+ *
+ * Note:
+ * Bulk preview endpoint contains a BE limit of 1050 max selected applications
+ *
+ * Functionality:
+ * ngOnInit():
+ * - Loads the Application List details and Application List Entries
+ * - Initialises the update form and restores navigation state
+ *
+ * onSearchStarted()/onSearchResult():
+ * - GET request to search and filter Application List Entries
+ * - Updates server-side pagination and selection state
+ *
+ * onUpdateOfficialsButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Bulk Update Officials
+ *
+ * onResultButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Bulk Result Selected
+ *
+ * onUpdateFeeButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Bulk Update Fees
+ *
+ * onMoveButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Move Application List Entries
+ *
+ * onPrintContinuousClick()/onPrintPageClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Generates Continuous or Page print PDFs
+ *
+ * openUpdate():
+ * - Navigates to the selected Application List Entry
+ *
+ * onUndoClick():
+ * - Navigates to undo application list creation page
+ *
+ * onDeleteButtonClick()
+ * - Navigates to delete an application list entry
+ */
 @Component({
   selector: 'app-application-detail',
   standalone: true,

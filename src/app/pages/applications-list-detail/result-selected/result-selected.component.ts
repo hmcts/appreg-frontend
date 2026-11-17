@@ -1,16 +1,3 @@
-/**
- * Result Application List Entries
- * Main Component for page /applications-list/:id/result-selected
- *
- * Functionality:
- * onSubmitResults():
- * - Creates or updates Result Codes for the selected Application List Entries
- * - Displays success or mapped API validation errors
- *
- * onRemoveResult():
- * - Removes previously created Result Codes from the selected entries
- */
-
 import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -44,6 +31,19 @@ import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { ResultSelectedTableBase } from '@util/result-selected-table.base';
+
+/**
+ * Result Application List Entries
+ * Main Component for page /applications-list/:id/result-selected
+ *
+ * Functionality:
+ * onSubmitResults():
+ * - Creates or updates Result Codes for the selected Application List Entries
+ * - Displays success or mapped API validation errors
+ *
+ * onRemoveResult():
+ * - Removes previously created Result Codes from the selected entries
+ */
 @Component({
   selector: 'app-result-selected',
   standalone: true,

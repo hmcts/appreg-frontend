@@ -1,22 +1,3 @@
-/**
- * Standard Applicants
- * Main Component for page /standard-applicants
- *
- * Functionality:
- * onSubmit():
- * - GET request to search Standard Applicants
- * - Persists search filters, pagination and sort state
- *
- * onViewClick():
- * - Navigates to the Standard Applicant details page
- *
- * onExportButtonClick():
- * - Downloads matching Standard Applicants as a CSV
- *
- * onPrintButtonClick():
- * - Generates and downloads a PDF of matching Standard Applicants
- */
-
 import { isPlatformBrowser } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
@@ -114,6 +95,24 @@ const initialStandardApplicantsState: StandardApplicantsState = {
   isActionLoading: false,
 };
 
+/**
+ * Standard Applicants
+ * Main Component for page /standard-applicants
+ *
+ * Functionality:
+ * onSubmit():
+ * - GET request to search Standard Applicants
+ * - Persists search filters, pagination and sort state
+ *
+ * onViewClick():
+ * - Navigates to the Standard Applicant details page
+ *
+ * onExportButtonClick():
+ * - Downloads matching Standard Applicants as a CSV
+ *
+ * onPrintButtonClick():
+ * - Generates and downloads a PDF of matching Standard Applicants
+ */
 @Component({
   selector: 'app-standard-applicants',
   standalone: true,

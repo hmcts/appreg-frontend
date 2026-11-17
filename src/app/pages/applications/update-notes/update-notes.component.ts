@@ -1,22 +1,3 @@
-/**
- * Update Notes
- * Main Component for page /applications-list/:listId/update-notes/:entryId
- *
- * Note:
- * Only Application List Entries belonging to CLOSED Application Lists can have
- * additional notes appended.
- *
- * Functionality:
- * onSaveAdditionalNotes():
- * - Validates additional notes against the remaining character limit
- * - PUT request to append additional notes to the selected Application List Entry
- * - Updates the displayed notes and shows a success banner on completion
- *
- * loadEntry():
- * - GET request to retrieve the latest Application List Entry details
- * - Populates application context and existing application notes
- */
-
 import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -73,6 +54,24 @@ type ApplicationContextTableRow = {
 
 const MAX_APPLICATION_NOTES_LENGTH = 3000;
 
+/**
+ * Update Notes
+ * Main Component for page /applications-list/:listId/update-notes/:entryId
+ *
+ * Note:
+ * Only Application List Entries belonging to CLOSED Application Lists can have
+ * additional notes appended.
+ *
+ * Functionality:
+ * onSaveAdditionalNotes():
+ * - Validates additional notes against the remaining character limit
+ * - PUT request to append additional notes to the selected Application List Entry
+ * - Updates the displayed notes and shows a success banner on completion
+ *
+ * loadEntry():
+ * - GET request to retrieve the latest Application List Entry details
+ * - Populates application context and existing application notes
+ */
 @Component({
   selector: 'app-update-notes',
   standalone: true,

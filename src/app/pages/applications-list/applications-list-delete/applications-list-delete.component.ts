@@ -1,17 +1,3 @@
-/**
- * Delete Application List
- * Main Component for page /applications-list/:id/delete
- *
- * Functionality:
- * onDelete():
- * - DELETE request to remove the selected Application List
- * - Sends concurrency headers (ETag and row version)
- * - Redirects back to /applications-list with success or error status
- *
- * goBack():
- * - Navigates back to /applications-list without deleting the Application List
- */
-
 import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import {
@@ -46,6 +32,19 @@ import { AppListNavState } from '@shared-types/applications-list/applications-li
 import { formatPartyName } from '@util/string-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
+/**
+ * Delete Application List
+ * Main Component for page /applications-list/:id/delete
+ *
+ * Functionality:
+ * onDelete():
+ * - DELETE request to remove the selected Application List
+ * - Sends concurrency headers (ETag and row version)
+ * - Redirects back to /applications-list with success or error status
+ *
+ * goBack():
+ * - Navigates back to /applications-list without deleting the Application List
+ */
 @Component({
   selector: 'app-applications-list-delete',
   imports: [

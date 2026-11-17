@@ -1,15 +1,3 @@
-/**
- * Contains applications-list-detail#list-details update logic + validation
- *
- * onUpdate:
-    - Input validation
-    - Window confirmation of update
-    - Create payload with If-match etag in header
-    - PUT request sent with payload and row ID
-
-  On close, navigate to applications-list/:id/close confirmation page
- */
-
 import {
   ChangeDetectionStrategy,
   Component,
@@ -47,6 +35,17 @@ import { PlaceFieldsState } from '@util/place-fields.base';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { closeDurationError } from '@validators/applications-list-close.validator';
 
+/**
+ * Contains applications-list-detail#list-details update logic + validation
+ *
+ * onUpdate:
+    - Input validation
+    - Window confirmation of update
+    - Create payload with If-match etag in header
+    - PUT request sent with payload and row ID
+
+  On close, navigate to applications-list/:id/close confirmation page
+ */
 @Component({
   selector: 'app-applications-list-update',
   standalone: true,

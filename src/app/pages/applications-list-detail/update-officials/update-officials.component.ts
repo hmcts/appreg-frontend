@@ -1,17 +1,3 @@
-/**
- * Bulk Update Officials
- * Main Component for page /applications-list/:id/update-officials
- *
- * Functionality:
- * onSaveOfficials():
- * - Validates official details
- * - Ensures at least one official has been entered
- * - Navigates to the confirmation page with the selected entries and officials
- *
- * goBack():
- * - Navigates back to the parent Application List without applying changes
- */
-
 import { Location, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -45,6 +31,19 @@ import { ApplicationListEntryFormService } from '@services/applications-list-ent
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
 
+/**
+ * Bulk Update Officials
+ * Main Component for page /applications-list/:id/update-officials
+ *
+ * Functionality:
+ * onSaveOfficials():
+ * - Validates official details
+ * - Ensures at least one official has been entered
+ * - Navigates to the confirmation page with the selected entries and officials
+ *
+ * goBack():
+ * - Navigates back to the parent Application List without applying changes
+ */
 @Component({
   selector: 'app-update-officials',
   standalone: true,
