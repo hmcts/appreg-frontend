@@ -76,7 +76,10 @@ import {
   toResultCodeSuggestionItem,
 } from '@components/suggestions/suggestions.types';
 import { TextInputComponent } from '@components/text-input/text-input.component';
-import { ApplicationsColumns } from '@constants/applications/applications.constants';
+import {
+  ApplicationsColumns,
+  OTHER_COURTS_MAX_ITEMS,
+} from '@constants/applications/applications.constants';
 import { APPLICATIONS_ERROR_MAP } from '@constants/applications/error-messages';
 import {
   APPLICATIONS_LIST_CHOOSE_STATUS,
@@ -154,9 +157,6 @@ const APPLICATIONS_ERROR_HREFS: Record<string, string> = {
 const toCodeList = (codes: readonly string[]): string[] => [
   ...new Set(codes.map((code) => code.trim()).filter((code) => !!code)),
 ];
-
-// Most court codes the API accepts in one search (EntryGetFilterDto.courtCodes)
-const COURT_CODES_MAX_ITEMS = 20;
 
 // Repeats are found case-insensitively, as the API does; the first is kept
 const toCourtCodeList = (
@@ -257,7 +257,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   readonly courtChipLabels = signal<Record<string, string>>({});
 
   // Court takes one of the codes the API accepts
-  readonly otherCourtsMaxItems = COURT_CODES_MAX_ITEMS - 1;
+  readonly otherCourtsMaxItems = OTHER_COURTS_MAX_ITEMS;
 
   readonly summaryItems = computed(() => {
     const { errorSummary, searchErrors } = this.vm();
