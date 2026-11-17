@@ -144,7 +144,10 @@ describe('AppInsights', () => {
     };
 
     const incomingAttributes = {
+      'http.method': 'GET',
+      'http.target': '/sso/login-callback?code=SyntheticCode',
       'http.url': '/sso/login-callback?code=SyntheticCode',
+      'url.query': 'code=SyntheticCode',
     };
 
     spanProcessor.onStart({ kind: 2 });
@@ -158,6 +161,8 @@ describe('AppInsights', () => {
       'url.full': '/standard-applicants',
     });
     expect(incomingAttributes).toEqual({
+      'http.method': 'GET',
+      'http.target': '/sso/login-callback',
       'http.url': '/sso/login-callback',
       'url.full': '/sso/login-callback',
     });
@@ -178,5 +183,24 @@ describe('AppInsights', () => {
 
     expect(setup).toHaveBeenCalledTimes(1);
     expect(start).toHaveBeenCalledTimes(1);
+  });
+
+  describe('AI free text', () => {
+    it('adds no HTTP instrumentation hooks or header capture that could copy an AI request body into telemetry', () => {
+      AppInsights.enable();
+
+      // The default HTTP instrumentation records URLs, methods and statuses,
+      // never request bodies; only the query-stripping processor is added.
+      expect(setAzureMonitorOptions).toHaveBeenCalledWith({
+        spanProcessors: [
+          {
+            forceFlush: expect.any(Function),
+            onEnd: expect.any(Function),
+            onStart: expect.any(Function),
+            shutdown: expect.any(Function),
+          },
+        ],
+      });
+    });
   });
 });

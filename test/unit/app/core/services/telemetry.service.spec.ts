@@ -152,6 +152,8 @@ describe('TelemetryService', () => {
       },
     });
     expect(traceContext.setName).toHaveBeenLastCalledWith('/reports');
+    expect(trackPageView).toHaveBeenCalledTimes(2);
+    expect(traceContext.setName).toHaveBeenCalledTimes(2);
 
     const initializer = addTelemetryInitializer.mock.calls[0][0] as (item: {
       tags?: Record<string, string>;
@@ -183,6 +185,26 @@ describe('TelemetryService', () => {
     );
   });
 
+  it('removes the query from an explicit exception route and from trace routes', () => {
+    service.initialize();
+
+    const error = new Error('boom');
+    service.logException(error, {
+      route: '/application-list-entries?applicantSurname=SyntheticApplicant',
+      statusCode: 422,
+    });
+    service.logTrace('hello', { attemptsInWindow: 1 });
+
+    expect(trackException).toHaveBeenCalledWith(
+      { exception: error },
+      { route: '/application-list-entries', statusCode: '422' },
+    );
+    expect(trackTrace).toHaveBeenCalledWith(
+      { message: 'hello' },
+      { attemptsInWindow: '1', route: '/applications-list' },
+    );
+  });
+
   it('sanitizes dependency telemetry URLs before they are emitted', () => {
     service.initialize();
 
@@ -203,6 +225,8 @@ describe('TelemetryService', () => {
         target:
           'https://appreg.example.test/application-list-entries?applicantSurname=SyntheticApplicant&pageNumber=0',
         data: '/application-list-entries?applicantSurname=SyntheticApplicant&pageNumber=0',
+        responseCode: 422,
+        properties: { HttpMethod: 'GET' },
       },
     };
 
@@ -212,6 +236,8 @@ describe('TelemetryService', () => {
       name: 'GET /application-list-entries',
       target: '/application-list-entries',
       data: '/application-list-entries',
+      responseCode: 422,
+      properties: { HttpMethod: 'GET' },
     });
   });
 
@@ -251,5 +277,31 @@ describe('TelemetryService', () => {
     expect(applicationInsightsCtor).not.toHaveBeenCalled();
     expect(trackException).not.toHaveBeenCalled();
     expect(trackTrace).not.toHaveBeenCalled();
+  });
+
+  describe('AI free text', () => {
+    it('keeps error-body and header capture off so AI request and error bodies are never collected', () => {
+      service.initialize();
+
+      const [{ config }] = applicationInsightsCtor.mock.calls[0] as [
+        { config: Record<string, unknown> },
+      ];
+
+      // With these off, the SDK records an AI call's method, URL, status and
+      // timing, but never its request body, headers or error response body.
+      expect({
+        addRequestContext: config['addRequestContext'],
+        enableAjaxErrorStatusText: config['enableAjaxErrorStatusText'] ?? false,
+        enableRequestHeaderTracking:
+          config['enableRequestHeaderTracking'] ?? false,
+        enableResponseHeaderTracking:
+          config['enableResponseHeaderTracking'] ?? false,
+      }).toEqual({
+        addRequestContext: undefined,
+        enableAjaxErrorStatusText: false,
+        enableRequestHeaderTracking: false,
+        enableResponseHeaderTracking: false,
+      });
+    });
   });
 });
