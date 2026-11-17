@@ -88,7 +88,22 @@ export interface InterpretationFormChanges {
   notices: SearchInterpretationNotice[];
 }
 
+export interface AppliedCourtChoices {
+  changes: InterpretationFormChanges;
+  /** A label for each court added, once per court, in order. */
+  matchedCourts: string[];
+}
+
 type ListControl = 'applicationCodes' | 'resultCodes';
+
+type PickOption = InterpretationChoiceOption & {
+  pick: InterpretationChoiceOptionDto;
+};
+
+const COURT_FIELDS: ReadonlySet<string> = new Set<string>([
+  SearchFilterField.COURT_CODE,
+  SearchFilterField.COURT_CODES,
+]);
 
 // Most codes the API accepts in one search (EntryGetFilterDto maxItems)
 const LIST_MAX_ITEMS: Readonly<Record<ListControl, number>> = {
@@ -201,6 +216,97 @@ export function applyInterpretationChoice(
 
   keepCourtsExclusive(draft);
   return draft;
+}
+
+/** For changes the page built from its own form. The input is not changed. */
+export function withCourtsExclusive(
+  changes: InterpretationFormChanges,
+): InterpretationFormChanges {
+  const draft = cloneChanges(changes);
+  keepCourtsExclusive(draft);
+  return draft;
+}
+
+/** Every control is empty, as in a new form. Choices are not filters. */
+export function setsNoFilter(changes: InterpretationFormChanges): boolean {
+  return Object.values(changes.formValue).every((value: unknown) =>
+    Array.isArray(value) ? value.length === 0 : !hasText(value),
+  );
+}
+
+/**
+ * Applies every option at once when every choice is about courts and the form
+ * can hold every court (repeats compared case-insensitively, as the search
+ * query does), or returns null. The input is not changed.
+ */
+export function applyCourtChoices(
+  changes: InterpretationFormChanges,
+  activeCourts: readonly CourtLocationGetSummaryDto[],
+): AppliedCourtChoices | null {
+  const { choices } = changes;
+  const options = choices.flatMap((choice) => pickOptions(choice));
+  const courtOnly =
+    choices.length > 0 &&
+    choices.every((choice) => pickOptions(choice).length > 0) &&
+    options.every(
+      ({ pick }) => COURT_FIELDS.has(pick.field) && hasText(pick.code),
+    );
+
+  if (!courtOnly) {
+    return null;
+  }
+
+  const { court, courtCodes } = changes.formValue;
+  const codes = toCodeList([
+    court,
+    ...courtCodes,
+    ...options.map(({ pick }) => pick.code),
+  ]);
+  if (codes.length > COURT_CODES_MAX_ITEMS) {
+    return null;
+  }
+
+  const applied = options.reduce(
+    (current, option) =>
+      applyInterpretationChoice(current, option, activeCourts),
+    changes,
+  );
+  const held = [applied.formValue.court, ...applied.formValue.courtCodes];
+  if (!codes.every((code) => held.some((c) => sameCode(c, code)))) {
+    return null;
+  }
+
+  return {
+    changes: { ...applied, choices: [] },
+    matchedCourts: matchedCourtLabels(options),
+  };
+}
+
+// Courts that share a label are listed as "CODE - label", as the Court
+// typeahead shows a court, so two courts never read as one
+function matchedCourtLabels(options: readonly PickOption[]): string[] {
+  const courts: { code: string; label: string | undefined }[] = [];
+
+  for (const { pick, label } of options) {
+    const code = pick.code.trim();
+    if (!courts.some((court) => sameCode(court.code, code))) {
+      courts.push({ code, label: trimToUndefined(label) });
+    }
+  }
+
+  return courts.map(({ code, label }) => {
+    if (!label) {
+      return code;
+    }
+    const shared = courts.filter((court) => court.label === label).length > 1;
+    return shared ? `${code} - ${label}` : label;
+  });
+}
+
+function pickOptions(choice: InterpretationChoice): PickOption[] {
+  return choice.options.filter(
+    (option): option is PickOption => option.pick !== null,
+  );
 }
 
 // True when the field was applied (for a list, when at least one code was)
@@ -509,7 +615,8 @@ function isIsoDate(value: string): boolean {
   return date.toISOString().slice(0, 10) === value;
 }
 
-function controlFor(field: string): ApplicationsSearchControl | null {
+/** Null when the page has no control for the field, or it is unknown. */
+export function controlFor(field: string): ApplicationsSearchControl | null {
   return Object.hasOwn(INTERPRETED_FILTER_CONTROLS, field)
     ? INTERPRETED_FILTER_CONTROLS[field as keyof EntryGetFilterDto]
     : null;

@@ -1,0 +1,39 @@
+{
+  "interpretationId": "00000000-0000-4000-8000-000000000101",
+  "filter": {
+    "dateFrom": "2026-03-01",
+    "dateTo": "2026-03-31",
+    "courtCode": "SYN901",
+    "status": "OPEN"
+  },
+  "appliedFilters": [
+    { "field": "dateFrom", "label": "1 March 2026", "source": "DATE_RULE" },
+    { "field": "dateTo", "label": "31 March 2026", "source": "DATE_RULE" },
+    {
+      "field": "courtCode",
+      "label": "Synthetic Magistrates Court",
+      "source": "SYNONYM"
+    },
+    { "field": "status", "label": "Open", "source": "MODEL" }
+  ],
+  "choicesNeeded": [
+    {
+      "field": "applicationCodes",
+      "text": "Which application did you mean?",
+      "options": [
+        {
+          "field": "applicationCodes",
+          "code": "SYN01",
+          "label": "SYN01 - Synthetic application one"
+        },
+        {
+          "field": "applicationCodes",
+          "code": "SYN02",
+          "label": "SYN02 - Synthetic application two"
+        }
+      ]
+    }
+  ],
+  "unusedParts": ["with a blue folder"],
+  "notices": ["UNKNOWN_CODE_DROPPED"]
+}

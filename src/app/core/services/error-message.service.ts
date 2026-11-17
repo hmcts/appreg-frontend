@@ -9,11 +9,18 @@ import {
   ProblemDetails,
 } from '@core-types/error/http-error.types';
 
-type EndpointRule = { endpoint: string | RegExp; responses: number[] };
+type EndpointRule = { endpoint: string | RegExp; responses: readonly number[] };
 
 // Contains endpoints where errors are handled in their component
 const regexIdPlaceholder = '[0-9a-fA-F-]{36}';
 const referenceDataCodePlaceholder = '[^/]+';
+
+// AI features fail closed: their errors stay on the page so the manual forms
+// keep working. A 401 still goes to login through the error interceptor.
+export const AI_ON_PAGE_STATUSES = [
+  0, 400, 403, 404, 422, 429, 500, 502, 503, 504,
+] as const;
+export type AiOnPageStatus = (typeof AI_ON_PAGE_STATUSES)[number];
 
 const subscribedEndpoints: EndpointRule[] = [
   { endpoint: '/application-lists', responses: [400, 403, 404, 406, 500, 504] },
@@ -103,6 +110,15 @@ const subscribedEndpoints: EndpointRule[] = [
       `^/application-lists/${regexIdPlaceholder}/entries/bulk-action-preview$`,
     ),
     responses: [0, 400, 403, 404, 406, 409, 413, 500, 504],
+  },
+  { endpoint: /^\/ai\/capabilities$/, responses: AI_ON_PAGE_STATUSES },
+  {
+    endpoint: /^\/application-list-entries\/search-interpretations$/,
+    responses: AI_ON_PAGE_STATUSES,
+  },
+  {
+    endpoint: /^\/application-codes\/suggestions$/,
+    responses: AI_ON_PAGE_STATUSES,
   },
 ];
 

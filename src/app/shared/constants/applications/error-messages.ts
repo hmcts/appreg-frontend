@@ -1,3 +1,5 @@
+import { type AiOnPageStatus } from '@services/error-message.service';
+
 type ApplicationsControl =
   | 'applicantName'
   | 'respondentName'
@@ -67,3 +69,39 @@ export const APPLICATIONS_ERROR_MAP: {
     cjaNotFound: 'Criminal justice area not found',
   },
 };
+
+// Plain-English search
+export const PLAIN_ENGLISH_QUESTION_ERROR_MESSAGES: Readonly<
+  Record<'required' | 'maxlength', string>
+> = {
+  required: 'Enter a question',
+  maxlength: 'Question must be 300 characters or fewer',
+};
+
+// Shown for a status with no copy of its own
+export const PLAIN_ENGLISH_SEARCH_UNAVAILABLE =
+  'Plain-English search is unavailable. Use the filters below.';
+
+// Also shown when an interpretation sets no filter, so no search runs
+export const PLAIN_ENGLISH_SEARCH_NOT_UNDERSTOOD =
+  'We could not work out any filters from your question.';
+
+// Fixed copy for each status ErrorMessageService keeps on the page. The API's
+// problem text is never shown, so no part of the question can be echoed back.
+export const PLAIN_ENGLISH_SEARCH_ERROR_MESSAGES: Readonly<
+  Record<AiOnPageStatus, string>
+> = {
+  0: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  400: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  403: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  404: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  422: PLAIN_ENGLISH_SEARCH_NOT_UNDERSTOOD,
+  429: 'You have made too many requests. Try again in a minute.',
+  500: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  502: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  503: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+  504: PLAIN_ENGLISH_SEARCH_UNAVAILABLE,
+};
+
+export const INTERPRETATION_CHOICE_ERROR_MESSAGE =
+  'Select one of the options, or None of these';

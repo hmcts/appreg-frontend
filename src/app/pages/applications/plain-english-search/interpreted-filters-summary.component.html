@@ -1,0 +1,132 @@
+<!-- AI text (labels, unused parts, choices) is interpolated as text only -->
+<section [id]="sectionId()" [attr.aria-labelledby]="headingId()">
+  <h2 #heading class="govuk-heading-m" [id]="headingId()" tabindex="-1">
+    {{ headingText() }}
+  </h2>
+
+  <div class="govuk-inset-text">
+    @if (hasFilters()) {
+      @if (!searched()) {
+        <h3 class="govuk-heading-s">Filters set</h3>
+      }
+
+      @if (appliedRows().length) {
+        <dl
+          class="govuk-summary-list govuk-summary-list--no-border"
+          id="interpreted-filters-applied"
+        >
+          @for (row of appliedRows(); track $index) {
+            <div class="govuk-summary-list__row">
+              <dt class="govuk-summary-list__key">{{ row.field }}</dt>
+              <dd class="govuk-summary-list__value">{{ row.label }}</dd>
+            </div>
+          }
+        </dl>
+      }
+
+      @if (matchedCourts().length) {
+        <p class="govuk-body">
+          @if (searched()) {
+            Your question matched more than one court, so all of them were
+            searched:
+          } @else {
+            Your question matched more than one court, so all of them were added
+            to the filters:
+          }
+        </p>
+        <ul
+          class="govuk-list govuk-list--bullet"
+          id="interpreted-filters-matched-courts"
+        >
+          @for (court of matchedCourts(); track $index) {
+            <li>{{ court }}</li>
+          }
+        </ul>
+      }
+    } @else if (!changedByHand()) {
+      <!-- A pick is not in appliedFilters, so with choices say "apart from" -->
+      <p class="govuk-body" id="interpreted-filters-none">
+        @if (showChoices()) {
+          Apart from the choices below, no filters were set from your question.
+        } @else {
+          No filters were set from your question.
+        }
+      </p>
+    }
+
+    <!-- Rows for filters changed by hand are left out, so say why -->
+    @if (changedByHand()) {
+      <p class="govuk-body" id="interpreted-filters-changed-by-hand">
+        {{ changedByHandText }}
+      </p>
+    }
+
+    @if (changes().notApplied.length) {
+      <h3 class="govuk-heading-s">Not applied</h3>
+      <p class="govuk-body">
+        These were in your question but could not be added to the filters:
+      </p>
+      <ul
+        class="govuk-list govuk-list--bullet"
+        id="interpreted-filters-not-applied"
+      >
+        @for (text of changes().notApplied; track $index) {
+          <li>{{ text }}</li>
+        }
+      </ul>
+    }
+
+    @if (changes().unusedParts.length) {
+      <h3 class="govuk-heading-s">Not used from your question</h3>
+      <ul class="govuk-list govuk-list--bullet" id="interpreted-filters-unused">
+        @for (part of changes().unusedParts; track $index) {
+          <li>{{ part }}</li>
+        }
+      </ul>
+    }
+
+    @if (noticeTexts().length) {
+      <h3 class="govuk-heading-s">Things to check</h3>
+      <ul
+        class="govuk-list govuk-list--bullet"
+        id="interpreted-filters-notices"
+      >
+        @for (text of noticeTexts(); track text) {
+          <li>{{ text }}</li>
+        }
+      </ul>
+    }
+  </div>
+
+  @if (showChoices()) {
+    <h3 class="govuk-heading-s">Choose what you meant</h3>
+    <p class="govuk-body">
+      Select None of these to search without that part of your question.
+    </p>
+
+    @for (choice of changes().choices; track $index; let i = $index) {
+      <div
+        class="app-interpretation-choice"
+        (keydown)="onChoiceKeydown($event)"
+        (focusout)="onChoiceFocusOut($event)"
+      >
+        <app-radio-group
+          [legend]="choice.text"
+          [options]="choice.options"
+          [idPrefix]="choiceIdPrefix(i)"
+          [legendIsPageHeading]="false"
+          size="s"
+          [hint]="choiceHint"
+          [showError]="choiceHasError(i)"
+          [errorText]="choiceErrorText"
+          [containerWidthClass]="
+            choiceHasError(i) ? 'govuk-form-group--error' : ''
+          "
+          [ngModel]="answerFor(i)"
+          (ngModelChange)="onAnswer(i, $event)"
+          [ngModelOptions]="{ standalone: true }"
+        />
+      </div>
+    }
+  }
+</section>
