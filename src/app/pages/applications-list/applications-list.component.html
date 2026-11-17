@@ -142,7 +142,7 @@
     <ng-template #actionsTemplate let-row>
       <div class="govuk-button-group">
         <!-- actions slot -->
-        @if (isOpen(row)) {
+        @if (isOpen(row) && row.entries > 0) {
           <div
             class="moj-button-menu"
             data-module="moj-button-menu"
@@ -158,7 +158,7 @@
               Open
             </button>
 
-            <!-- Print page button (always shown) -->
+            <!-- Print page button -->
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
@@ -167,7 +167,7 @@
               Print page
             </button>
 
-            <!-- Print continuous button (always shown)
+            <!-- Print continuous button
                Print cont with false bool param to change PDF title -->
             <button
               type="button"
@@ -175,6 +175,16 @@
               (click)="onPrintContinuous(row, false)"
             >
               Print continuous
+            </button>
+
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onPreviewPrintContinuous(row)"
+            >
+              Preview print cont<span class="govuk-visually-hidden">
+                (opens in a new window)</span
+              >
             </button>
 
             <!-- Delete button (only when open) -->
@@ -186,7 +196,29 @@
               Delete
             </button>
           </div>
-        } @else {
+        } @else if (isOpen(row)) {
+          <div
+            class="moj-button-menu"
+            data-module="moj-button-menu"
+            data-button-text="Select"
+            data-button-classes="govuk-button"
+          >
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onOpenList(row)"
+            >
+              Open
+            </button>
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--warning"
+              (click)="onDeleteClick(row)"
+            >
+              Delete
+            </button>
+          </div>
+        } @else if (row.entries > 0) {
           <div
             class="moj-button-menu"
             data-module="moj-button-menu"
@@ -210,6 +242,15 @@
               (click)="onPrintContinuous(row, true)"
             >
               Print continuous
+            </button>
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onPreviewPrintContinuous(row)"
+            >
+              Preview print cont<span class="govuk-visually-hidden">
+                (opens in a new window)</span
+              >
             </button>
           </div>
         }

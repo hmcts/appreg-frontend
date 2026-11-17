@@ -621,6 +621,92 @@ export class PdfService {
     doc.save(`standard-applicant-pdf-${todaysDate}.pdf`);
   }
 
+  previewContinuousApplicationLists(
+    dtos: unknown[],
+    isClosed: boolean,
+    target: Document,
+    description?: string,
+    container: HTMLElement = target.body,
+  ): void {
+    const title =
+      description?.trim() ||
+      `${this.getContinuousPageHeader(isClosed)} – Preview`;
+    target.title = `Application List - ${title}`;
+    target.documentElement.lang = 'en';
+    const main = target.createElement('section');
+    main.className = 'app-print-preview';
+    const heading = target.createElement('h1');
+    heading.className = 'govuk-heading-l';
+    heading.textContent = title;
+    main.append(heading);
+
+    const addRow = (label: string, value: string): void => {
+      const row = target.createElement('div');
+      row.className = 'govuk-summary-list__row';
+      // Location is the final AL header row, immediately above its entries.
+      if (label === 'Location') {
+        row.classList.add('app-print-preview-entries-start');
+      }
+      const key = target.createElement('dt');
+      key.className = 'govuk-summary-list__key';
+      key.textContent = label;
+      const content = target.createElement('dd');
+      content.className = 'govuk-summary-list__value';
+      // Preserve report line breaks without treating any report content as HTML.
+      value.split('\n').forEach((line, index) => {
+        if (index) {
+          content.append(target.createElement('br'));
+        }
+        content.append(target.createTextNode(line));
+      });
+      row.append(key, content);
+      rows.append(row);
+    };
+    let rows = target.createElement('dl');
+    rows.className = 'govuk-summary-list';
+    main.append(rows);
+    let entryNumber = 0;
+    // Reuse the PDF's formatting and field selection; only the layout differs.
+    this.renderContinuousApplicationLists(
+      dtos.map((dto) => this.normalise(dto)),
+      dtos,
+      () => {
+        rows = target.createElement('dl');
+        rows.className = 'govuk-summary-list';
+        main.append(target.createElement('hr'), rows);
+      },
+      (leftLabel, leftValue, rightLabel, rightValue) => {
+        if (leftLabel === 'Date & Time\nDuration') {
+          const [dateTime, duration] = leftValue.split('\n');
+          addRow('Date & Time', dateTime);
+          addRow('Duration', duration);
+        } else {
+          addRow(
+            leftLabel === `${entryNumber}. Applicant` ? 'Applicant' : leftLabel,
+            leftValue,
+          );
+        }
+        addRow(rightLabel, rightValue);
+      },
+      addRow,
+      (index) => {
+        entryNumber = index;
+        const entry = target.createElement('section');
+        entry.className = 'app-print-preview-entry app-print-preview-entry-end';
+        entry.setAttribute('aria-label', `Application list entry ${index}`);
+        const number = target.createElement('p');
+        number.className =
+          'govuk-body govuk-!-font-weight-bold app-print-preview-entry-number';
+        number.textContent = String(index);
+        rows = target.createElement('dl');
+        rows.className = 'govuk-summary-list';
+        entry.append(number, rows);
+        main.append(entry);
+      },
+    );
+    container.replaceChildren(main);
+  }
+
   // -------------------- Mapping helpers --------------------
 
   private renderContinuousApplicationLists(
@@ -629,6 +715,7 @@ export class PdfService {
     drawListDivider: () => void,
     drawTwoColRow: DrawContinuousTwoColumnRow,
     drawFullRow: DrawContinuousFullRow,
+    drawEntryStart?: (index: number) => void,
   ): void {
     let entryIndex = 0;
 
@@ -644,6 +731,7 @@ export class PdfService {
 
       for (const entry of data.entries) {
         entryIndex += 1;
+        drawEntryStart?.(entryIndex);
         this.drawContinuousEntry(entry, entryIndex, drawTwoColRow, drawFullRow);
       }
     }

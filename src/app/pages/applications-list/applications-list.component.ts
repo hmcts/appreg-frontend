@@ -511,6 +511,32 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  onPreviewPrintContinuous(row: ApplicationListRow): void {
+    if (!isPlatformBrowser(this.platformId) || this.vm().pdfLoading) {
+      return;
+    }
+    this.appListSignalState.patch(clearNotificationsPatch());
+    if (!row?.id || !row.entries) {
+      this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
+      return;
+    }
+
+    const url = this.router.serializeUrl(
+      this.router.createUrlTree(['/applications-list', row.id, 'preview']),
+    );
+    // The route loads its own data; the named window is reused across lists.
+    const preview = window.open(
+      url,
+      'appreg-print-cont-preview',
+      'popup,width=1000,height=800,resizable=yes,scrollbars=yes',
+    );
+    if (!preview) {
+      this.showInline('Allow popups for this site to preview print cont.');
+      return;
+    }
+    preview.focus();
+  }
+
   async onDeleteClick(row: ApplicationListRow): Promise<void> {
     if (!row) {
       return;

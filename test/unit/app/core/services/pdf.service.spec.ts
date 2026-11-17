@@ -555,6 +555,114 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     ...overrides,
   });
 
+  it.each([false, true])(
+    'renders HTML using the same continuous report rows (closed=%s)',
+    (isClosed) => {
+      const target = document.implementation.createHTMLDocument();
+      target.body.textContent = 'Loading preview…';
+      service.previewContinuousApplicationLists(
+        [makeRawDto(), makeRawDto({ courtName: 'Second Court' })],
+        isClosed,
+        target,
+      );
+      expect(target.title).toBe(
+        `Application List - ${isClosed ? 'Applications Register Report' : 'Check List Report'} – Preview`,
+      );
+      expect(target.documentElement.lang).toBe('en');
+      expect(target.querySelector('section h1')?.textContent).toBe(
+        target.title.replace('Application List - ', ''),
+      );
+      const text = target.body.textContent;
+      for (const value of [
+        'Bath Magistrates Court',
+        'Second Court',
+        'Alice Smith',
+        'ACME Ltd',
+        'REF-1',
+        'ACC-9',
+        'Granted',
+        'No additional notes',
+      ]) {
+        expect(text).toContain(value);
+      }
+      expect(text).not.toContain('Loading preview');
+      const header = target.querySelector('section > dl');
+      expect(
+        Array.from(
+          header?.querySelectorAll('dt') ?? [],
+          (key) => key.textContent,
+        ),
+      ).toEqual(['Date & Time', 'Duration', 'Location']);
+      const durationRow = header?.querySelectorAll(
+        '.govuk-summary-list__row',
+      )[1];
+      expect(durationRow?.querySelector('dd')?.textContent).toBe('45 Minutes');
+      expect(header?.querySelector('dd')?.textContent).not.toContain('45 Minutes');
+      expect(target.querySelectorAll('section > dl')).toHaveLength(4);
+      const separators = target.querySelectorAll(
+        '.app-print-preview-entry-end',
+      );
+      expect(separators).toHaveLength(2);
+      separators.forEach((entry, index) => {
+        expect(entry.getAttribute('aria-label')).toBe(
+          `Application list entry ${index + 1}`,
+        );
+        expect(entry.firstElementChild?.textContent).toBe(String(index + 1));
+        expect(entry.lastElementChild?.tagName).toBe('DL');
+        expect(entry.querySelector('dt')?.textContent).toBe('Applicant');
+        expect(
+          entry.querySelector('dl')?.lastElementChild?.querySelector('dt')
+            ?.textContent,
+        ).toBe('Notes');
+      });
+      const starts = target.querySelectorAll(
+        '.app-print-preview-entries-start',
+      );
+      expect(starts).toHaveLength(2);
+      starts.forEach((row) => {
+        expect(row.querySelector('dt')?.textContent).toBe('Location');
+        expect(
+          row.parentElement?.nextElementSibling?.querySelector('dt')
+            ?.textContent,
+        ).toBe('Applicant');
+      });
+      expect(target.querySelectorAll('br').length).toBeGreaterThan(0);
+      expect(getJsPDF().__instance.save).not.toHaveBeenCalled();
+    },
+  );
+
+  it('uses the AL description for the window title and heading as plain text', () => {
+    const target = document.implementation.createHTMLDocument();
+    const shell = target.createElement('header');
+    const container = target.createElement('div');
+    target.body.append(shell, container);
+    const description = 'Historical applications <script>alert(1)</script>';
+    service.previewContinuousApplicationLists(
+      [makeRawDto()],
+      true,
+      target,
+      description,
+      container,
+    );
+    expect(target.title).toBe(`Application List - ${description}`);
+    expect(target.querySelector('h1')?.textContent).toBe(description);
+    expect(target.querySelector('script')).toBeNull();
+    expect(target.body.firstElementChild).toBe(shell);
+    expect(container.querySelector('h1')?.textContent).toBe(description);
+  });
+
+  it('renders report values as text, not executable markup', () => {
+    const target = document.implementation.createHTMLDocument();
+    const hostile = '<img src=x onerror="alert(1)">';
+    service.previewContinuousApplicationLists(
+      [makeRawDto({ courtName: hostile }, [{ notes: hostile }])],
+      false,
+      target,
+    );
+    expect(target.body.textContent).toContain(hostile);
+    expect(target.querySelector('img, script')).toBeNull();
+  });
+
   it('constructs a landscape jsPDF and renders header with page number', async () => {
     const { jsPDF } = getJsPDF();
 

@@ -18,9 +18,9 @@
   :host
     ::ng-deep
     .applications-list__results-table
-    .govuk-table__body
-    td:last-child {
+    :is(.govuk-table__header, .govuk-table__cell):last-child {
     width: 1%;
+    overflow-wrap: normal;
     white-space: nowrap;
   }
 }
