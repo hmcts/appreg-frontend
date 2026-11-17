@@ -31,6 +31,17 @@ export type WordingValidationOptions = {
   enforceSavedWording?: boolean;
 };
 
+/**
+ * WordingParserComponent
+ *
+ * Functionality:
+ * - Parses wording into editable form fields.
+ * - Emits completed wording values and errors.
+ * - Builds form controls from wording placeholders and patches existing values.
+ * - Validation rules:
+ *   - Each substitution field requires a non-blank value.
+ *   - Each value must fit its template-defined character limit.
+ */
 @Component({
   selector: 'app-wording-parser',
   imports: [ReactiveFormsModule, NgClass],
@@ -128,6 +139,11 @@ export class WordingParserComponent {
     return key.length > 15 ? 'govuk-input--width-20' : 'govuk-input--width-10';
   }
 
+  /**
+   * Rebuilds wording inputs from the current template tokens and constraints.
+   * Controls from the previous template are removed, and a key map preserves
+   * the original substitution names after normalization for form control IDs.
+   */
   createFormControls(): void {
     // create an array where the key is the substitution key and the value is the constraint length
     // e.g. "Date": 10

@@ -51,6 +51,15 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
+/**
+ * Applications List – Create (/applications-list/create)
+ * Functionality:
+ * - Submits form via POST to create a new application list
+ * - buildPayload(): maps form fields → ApplicationListCreateDto
+ *    - Uses courtLocationCode or (otherLocationDescription + cjaCode)
+ * - Handles API errors with errorSummary messages
+ * - Uses text-suggestion helpers for court/CJA inputs
+ */
 @Component({
   selector: 'app-applications-list',
   standalone: true,

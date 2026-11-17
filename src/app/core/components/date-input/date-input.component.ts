@@ -34,6 +34,20 @@ type DateForm = FormGroup<{
 
 type DateField = 'day' | 'month' | 'year';
 
+/**
+ * DateInputComponent
+ *
+ * Functionality:
+ * - Supports manual day, month, and year entry or selection with the MOJ date picker.
+ * - Integrates date values, validation, and touched state with Angular forms.
+ * - Validation rules:
+ *   - Day and month use one or two digits; year uses four digits.
+ *   - A partial date requires every missing part; a complete date must exist on the calendar, including leap-day checks.
+ *   - Dates must fall between 1900 and 3000.
+ *   - Past-only mode excludes today and future dates; no-future mode permits today but excludes future dates.
+ * - Shows field and group errors after interaction or submission; empty search dates remain optional.
+ * - Keeps manual entry and date picker selection in the same form value.
+ */
 @Component({
   selector: 'app-date-input',
   templateUrl: './date-input.component.html',
@@ -191,6 +205,13 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
       });
   }
 
+  /**
+   * Connects the MOJ date picker to the three editable date fields.
+   * A hidden input bridges the widget, while captured global listeners are
+   * removed on destroy. Closing restores focus to the visible calendar button.
+   *
+   * @returns A promise that resolves after the picker and listeners are ready.
+   */
   private async initCalendar(): Promise<void> {
     // Import only in the browser, after Angular has rendered the manual inputs.
     const { DatePicker } = await import('@ministryofjustice/frontend');

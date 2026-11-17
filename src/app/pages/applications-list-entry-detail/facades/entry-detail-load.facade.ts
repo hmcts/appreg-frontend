@@ -1,6 +1,3 @@
-/**
- * Facade to load data for a given entry
- */
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, of } from 'rxjs';
 
@@ -31,6 +28,9 @@ export type SavedStandardApplicantLoad =
     }
   | { kind: 'savedStandardApplicantUnavailable'; error: unknown };
 
+/**
+ * Facade to load data for a given entry
+ */
 @Injectable()
 export class EntryDetailLoadFacade {
   private readonly entriesApi = inject(ApplicationListEntriesApi);

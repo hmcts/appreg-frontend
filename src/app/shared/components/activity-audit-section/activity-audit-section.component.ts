@@ -22,6 +22,14 @@ import { ActivityType } from '@openapi';
 import { type ErrorMessageMap, getControlErrorItem } from '@util/error-summary';
 import { trimStringToLowerCase } from '@util/string-helpers';
 
+/**
+ * ActivityAuditSectionComponent
+ *
+ * Functionality:
+ * - Searches and selects activity audit entries.
+ * - Displays selected activities and validation errors.
+ * - Adds or removes activities in the parent form selection.
+ */
 @Component({
   selector: 'app-activity-audit-section',
   standalone: true,

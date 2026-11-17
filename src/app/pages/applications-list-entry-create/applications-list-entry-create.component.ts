@@ -1,33 +1,3 @@
-/**
- * Create Application List Entry
- * Main Component for page /applications-list/:id/create-entry
- *
- * Note:
- * Creates a new Application List Entry using the selected Application Code,
- * applicant, respondent, wording, fee, notes and officials.
- *
- * Application code drives application rules:
- * - the wording template for the application
- * - whether a fee is required
- * - whether a respondent is required
- * - whether bulk respondents are allowed
- * - the fee type to be applied
- *
- * Functionality:
- * onSubmit():
- * - Validates all sections of the entry form
- * - Builds the Entry Create DTO
- * - POST request to create the Application List Entry
- * - Navigates to the Entry Detail page on success
- *
- * onCodeSelected():
- * - Retrieves Application Code metadata
- * - Updates wording, fee and respondent requirements
- *
- * onAddFeeDetails():
- * - Adds fee status rows to the Civil Fee table
- */
-
 import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -132,6 +102,35 @@ const ENTRY_CREATE_ERROR_HREFS = {
   lodgementDate: '#lodgement-date-day',
 } as const satisfies Record<string, string>;
 
+/**
+ * Create Application List Entry
+ * Main Component for page /applications-list/:id/create-entry
+ *
+ * Note:
+ * Creates a new Application List Entry using the selected Application Code,
+ * applicant, respondent, wording, fee, notes and officials.
+ *
+ * Application code drives application rules:
+ * - the wording template for the application
+ * - whether a fee is required
+ * - whether a respondent is required
+ * - whether bulk respondents are allowed
+ * - the fee type to be applied
+ *
+ * Functionality:
+ * onSubmit():
+ * - Validates all sections of the entry form
+ * - Builds the Entry Create DTO
+ * - POST request to create the Application List Entry
+ * - Navigates to the Entry Detail page on success
+ *
+ * onCodeSelected():
+ * - Retrieves Application Code metadata
+ * - Updates wording, fee and respondent requirements
+ *
+ * onAddFeeDetails():
+ * - Adds fee status rows to the Civil Fee table
+ */
 @Component({
   selector: 'app-applications-list-entry-create',
   standalone: true,
@@ -587,6 +586,15 @@ export class ApplicationsListEntryCreate implements OnInit {
     }
   }
 
+  /**
+   * Loads metadata for a selected application code and lodgement date.
+   * Changing codes resets dependent wording; fee fields are cleared when the
+   * new code has no fee. The response controls which sections open and whether
+   * fees and respondents are required.
+   * Clearing the code keeps the visible search date.
+   *
+   * @param codeAndLodgementDate - Selected code and date used for the lookup.
+   */
   onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
     this.form.patchValue({
       applicationCode: codeAndLodgementDate.code,
@@ -834,6 +842,13 @@ export class ApplicationsListEntryCreate implements OnInit {
     };
   }
 
+  /**
+   * Restores a draft after returning from payment-reference editing.
+   * Form values are patched without emitting change events, then applicant-type
+   * controls are synchronized with the restored selection.
+   *
+   * @param state - Navigation state containing an optional entry draft.
+   */
   private applyEntryCreateSnapshot(state: unknown): void {
     // We need to store a draft of the current forms so when we nav back from payment ref page
     // we patch the cleaned forms with the draft values

@@ -27,6 +27,14 @@ export interface AccordionItem {
   expanded?: boolean;
 }
 
+/**
+ * AccordionComponent
+ *
+ * Functionality:
+ * - Displays expandable accordion sections.
+ * - Tracks expansion state and supports expanding & closing multiple sections.
+ * - Can remember expanded sections and scroll to expanded content.
+ */
 @Component({
   selector: 'app-accordion',
   // The ID belongs to the inner element, not the component host.
@@ -167,6 +175,15 @@ export class AccordionComponent {
     this.syncShowAllState(root, Array.from(sections));
   }
 
+  /**
+   * Synchronizes a section's visible and accessible expanded state.
+   * It updates the content visibility, toggle label, ARIA attributes, and
+   * chevron together so programmatic changes match user-triggered expansion.
+   *
+   * @param section - Accordion section to update.
+   * @param expanded - Whether its content should be visible.
+   * @param heading - Fallback heading when no heading text is present.
+   */
   private syncSectionExpandedState(
     section: HTMLElement,
     expanded: boolean,

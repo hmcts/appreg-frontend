@@ -1,9 +1,3 @@
-/**
- * Reports page shared form fields:
- *
- * Form: Date from, Date to, projected fields, Court, Other location, CJA
- */
-
 import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -26,6 +20,11 @@ import {
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { type ErrorMessageMap, getControlErrorItem } from '@util/error-summary';
 
+/**
+ * Reports page shared form fields:
+ *
+ * Form: Date from, Date to, projected fields, Court, Other location, CJA
+ */
 @Component({
   selector: 'app-reports-shared-form',
   imports: [

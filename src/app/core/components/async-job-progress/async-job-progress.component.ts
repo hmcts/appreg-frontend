@@ -7,6 +7,14 @@ import {
   input,
 } from '@angular/core';
 
+/**
+ * AsyncJobProgressComponent
+ *
+ * Functionality:
+ * - Displays progress for an asynchronous job.
+ * - Initialises frontend behavior after rendering.
+ * - Focuses the progress message when it appears.
+ */
 @Component({
   selector: 'app-async-job-progress',
   standalone: true,

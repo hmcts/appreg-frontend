@@ -9,6 +9,14 @@ import {
 
 import { SummaryListCardAction } from '@core-types/summary-list-card-action/summary-list-card.type';
 
+/**
+ * SummaryListCardActionComponent
+ *
+ * Functionality:
+ * - Displays an action for a summary list card.
+ * - Emits clicks on the card action.
+ * - Supports a compact action and optional card body template.
+ */
 @Component({
   selector: 'app-summary-list-card-action',
   imports: [CommonModule],

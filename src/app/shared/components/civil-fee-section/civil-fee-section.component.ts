@@ -53,6 +53,18 @@ export type CivilFeeForm = FormGroup<{
   feeStatuses: FormControl<FeeStatus[] | null>;
 }>;
 
+/**
+ * CivilFeeSectionComponent
+ *
+ * Functionality:
+ * - Manages civil fee form fields and payment reference actions.
+ * - Emits fee changes and validation errors.
+ * - Handles offsite fee selection and the add-fee-details action.
+ * - Validation rules:
+ *   - A required fee needs at least one fee status row.
+ *   - Status and status date are required when adding a fee, unless fee-only entry is allowed.
+ *   - Payment references have a maximum of 15 characters and are not allowed when status is DUE.
+ */
 @Component({
   selector: 'app-civil-fee-section',
   imports: [
@@ -160,6 +172,12 @@ export class CivilFeeSectionComponent implements OnInit {
     this.offsiteFeeChanged.emit(next);
   }
 
+  /**
+   * Validates and emits a new fee-status row.
+   * Required validators are attached when the user attempts to add a row, so
+   * they do not appear during an unrelated parent save. A successful add clears
+   * the entry fields and their errors.
+   */
   onAddFeeDetailsClick(): void {
     if (!this.feeRequired()) {
       return;

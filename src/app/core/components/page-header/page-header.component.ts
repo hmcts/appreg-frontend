@@ -17,6 +17,14 @@ export type PageHeaderAction = {
   onClick?: (this: void, ev: Event) => void;
 };
 
+/**
+ * PageHeaderComponent
+ *
+ * Functionality:
+ * - Displays a page header and actions.
+ * - Applies header styles based on action type and size.
+ * - Supports actions with secondary or warning presentation.
+ */
 @Component({
   selector: 'app-page-header',
   standalone: true,

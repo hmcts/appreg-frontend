@@ -1,22 +1,3 @@
-/**
- * Standard Applicants
- * Main Component for page /standard-applicants
- *
- * Functionality:
- * onSubmit():
- * - GET request to search Standard Applicants
- * - Persists search filters, pagination and sort state
- *
- * onViewClick():
- * - Navigates to the Standard Applicant details page
- *
- * onExportButtonClick():
- * - Downloads matching Standard Applicants as a CSV
- *
- * onPrintButtonClick():
- * - Generates and downloads a PDF of matching Standard Applicants
- */
-
 import { isPlatformBrowser } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
@@ -114,6 +95,27 @@ const initialStandardApplicantsState: StandardApplicantsState = {
   isActionLoading: false,
 };
 
+/**
+ * Standard Applicants
+ * Main Component for page /standard-applicants
+ *
+ * Functionality:
+ * onSubmit():
+ * - GET request to search Standard Applicants
+ * - Persists search filters, pagination and sort state
+ *
+ * onViewClick():
+ * - Navigates to the Standard Applicant details page
+ *
+ * onExportButtonClick():
+ * - Downloads matching Standard Applicants as a CSV
+ *
+ * onPrintButtonClick():
+ * - Generates and downloads a PDF of matching Standard Applicants
+ *
+ * - Validation rules:
+ *   - Search code is limited to 10 characters and name to 100 characters.
+ */
 @Component({
   selector: 'app-standard-applicants',
   standalone: true,
@@ -334,6 +336,11 @@ export class StandardApplicants implements OnInit {
     this.signalState.patch({ exportSuccess: true });
   }
 
+  /**
+   * Registers search, CSV export, and PDF print effects for standard applicants.
+   * Each request updates its own loading and feedback state; successful searches
+   * also persist the criteria used to restore the page.
+   */
   private setupEffects(): void {
     // GET /standard-applicants
     setupLoadEffect(

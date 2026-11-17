@@ -15,6 +15,14 @@ import { SuggestionsItem } from './suggestions.types';
 
 import { trimStringToLowerCase } from '@util/string-helpers';
 
+/**
+ * SuggestionsComponent
+ *
+ * Functionality:
+ * - Displays searchable suggestions.
+ * - Supports keyboard selection and Angular forms integration.
+ * - Emits searches and selections and handles keyboard navigation.
+ */
 @Component({
   selector: 'app-suggestions',
   standalone: true,

@@ -14,6 +14,14 @@ import {
 } from '@components/wording-parser/wording-parser.component';
 import { TemplateDetail, TemplateSubstitution } from '@openapi';
 
+/**
+ * WordingSectionComponent
+ *
+ * Functionality:
+ * - Displays and validates wording fields.
+ * - Emits wording values, errors, and banner dismissal.
+ * - Coordinates wording parsing with submission validation and applied-banner state.
+ */
 @Component({
   selector: 'app-wording-section',
   imports: [WordingParserComponent, AlertComponent],

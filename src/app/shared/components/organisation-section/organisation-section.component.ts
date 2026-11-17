@@ -10,6 +10,14 @@ import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
 
+/**
+ * OrganisationSectionComponent
+ *
+ * Functionality:
+ * - Displays organisation form fields.
+ * - Shows validation errors for organisation details.
+ * - Uses the parent reactive form group for organisation fields.
+ */
 @Component({
   selector: 'app-organisation-section',
   standalone: true,

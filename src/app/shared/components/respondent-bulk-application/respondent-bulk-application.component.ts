@@ -10,6 +10,14 @@ import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
 
+/**
+ * RespondentBulkApplicationComponent
+ *
+ * Functionality:
+ * - Displays bulk respondent form fields.
+ * - Shows validation errors for bulk respondent details.
+ * - Uses the parent reactive form group and submission state.
+ */
 @Component({
   selector: 'app-respondent-bulk-application',
   standalone: true,

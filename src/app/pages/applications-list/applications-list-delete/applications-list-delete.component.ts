@@ -1,17 +1,3 @@
-/**
- * Delete Application List
- * Main Component for page /applications-list/:id/delete
- *
- * Functionality:
- * onDelete():
- * - DELETE request to remove the selected Application List
- * - Sends concurrency headers (ETag and row version)
- * - Redirects back to /applications-list with success or error status
- *
- * goBack():
- * - Navigates back to /applications-list without deleting the Application List
- */
-
 import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import {
@@ -46,6 +32,19 @@ import { AppListNavState } from '@shared-types/applications-list/applications-li
 import { formatPartyName } from '@util/string-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
+/**
+ * Delete Application List
+ * Main Component for page /applications-list/:id/delete
+ *
+ * Functionality:
+ * onDelete():
+ * - DELETE request to remove the selected Application List
+ * - Sends concurrency headers (ETag and row version)
+ * - Redirects back to /applications-list with success or error status
+ *
+ * goBack():
+ * - Navigates back to /applications-list without deleting the Application List
+ */
 @Component({
   selector: 'app-applications-list-delete',
   imports: [
@@ -131,6 +130,12 @@ export class ApplicationsListDeleteComponent implements OnInit {
     this.loadChildEntries();
   }
 
+  /**
+   * Loads every child entry before allowing list deletion.
+   * Each page is checked against the expected page number, size, and total;
+   * the combined result must also have the expected count and unique IDs.
+   * Any incomplete response leaves deletion blocked.
+   */
   loadChildEntries(): void {
     if (
       !this.listToDelete ||

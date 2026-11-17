@@ -1,22 +1,3 @@
-/*
-  Main component for /applications-list/:listId/entries/:entryId
-  Functionality:
-    On load:
-      - Reads list and entry IDs from the route and navigation state
-      - Loads the entry, saved code by ID, and saved standard applicant through the load facade
-      - Hydrates the form, restores a navigation draft, and loads entry results
-    Application code section:
-      - Searches application codes and maps results into the sortable table
-      - Updates the selected code and its metadata; full saves persist entry changes
-    Applicant section:
-      - Supports Standard Applicant, Person and Organisation applicant types
-      - Validates applicant fields and uses the form service to build full entry updates
-    Fee section:
-      - Persists fee statuses and offsite fee changes through partial saves
-    Error and UX handling:
-      - Maps validation and server errors into the error summary and hint state
-      - Manages success banners, focus, accordion state, and navigation draft warnings
-*/
 import { Location, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -164,6 +145,25 @@ export const ERROR_HREFS = {
   ...(RESPONDENT_PERSON_ERROR_HREFS as Record<string, string>),
 } as const satisfies Record<string, string>;
 
+/**
+  Main component for /applications-list/:listId/entries/:entryId
+  Functionality:
+    On load:
+      - Reads list and entry IDs from the route and navigation state
+      - Loads the entry, saved code by ID, and saved standard applicant through the load facade
+      - Hydrates the form, restores a navigation draft, and loads entry results
+    Application code section:
+      - Searches application codes and maps results into the sortable table
+      - Updates the selected code and its metadata; full saves persist entry changes
+    Applicant section:
+      - Supports Standard Applicant, Person and Organisation applicant types
+      - Validates applicant fields and uses the form service to build full entry updates
+    Fee section:
+      - Persists fee statuses and offsite fee changes through partial saves
+    Error and UX handling:
+      - Maps validation and server errors into the error summary and hint state
+      - Manages success banners, focus, accordion state, and navigation draft warnings
+*/
 @Component({
   selector: 'app-applications-list-entry-detail',
   standalone: true,
@@ -419,7 +419,10 @@ export class ApplicationsListEntryDetail implements OnInit {
    * Entry and application code loading
    */
 
-  // Also loads entry result
+  /**
+   * Loads the entry, results, and linked application code. Restores a navigation
+   * snapshot before applying a returned payment-reference change.
+   */
   private loadEntryAndPatchForm(
     listId: string,
     entryId: string,
@@ -485,6 +488,10 @@ export class ApplicationsListEntryDetail implements OnInit {
       });
   }
 
+  /**
+   * Loads the saved code and fee metadata before enabling the form. A failed
+   * lookup shows an error that blocks saving.
+   */
   private loadCodesSectionFromEntry(
     entry: EntryGetDetailDto,
     onLoaded?: () => void,
@@ -530,6 +537,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       });
   }
 
+  /** Refreshes code details and dependent form state after a code selection. */
   onCodeSelected(codeAndLodgementDate: {
     code: string;
     date: string;
@@ -1015,6 +1023,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.submitAttempt.update((attempt) => attempt + 1);
   }
 
+  /** Saves fee rows, restoring the previous rows if validation or saving fails. */
   private persistFeeStatuses(
     previousFeeStatuses: FeeStatus[],
     feeStatuses: FeeStatus[],
@@ -1073,6 +1082,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
   }
 
+  /** Saves the offsite-fee selection and restores it if saving fails. */
   private persistHasOffsiteFee(nextValue: boolean, prevValue: boolean): void {
     const entryId = getEntryId(this.route);
 
@@ -1260,6 +1270,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     );
   }
 
+  /** Saves a complete entry update and synchronizes the saved form snapshot. */
   private submitEntryUpdate(
     entryUpdateDto: EntryUpdateDto,
     successBanner: SuccessBanner,
@@ -1692,6 +1703,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     };
   }
 
+  /** Restores form and section state captured before navigation. */
   private applyEntryDetailSnapshot(
     state: EntryDetailSnapshot | undefined,
   ): void {

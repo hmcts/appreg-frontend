@@ -29,6 +29,14 @@ export interface CellContext<T = unknown> {
   colIndex: number;
 }
 
+/**
+ * TableComponent
+ *
+ * Functionality:
+ * - Displays tabular data from columns and rows.
+ * - Supports captions and generated column labels.
+ * - Reads nested values and can generate labels when columns are omitted.
+ */
 @Component({
   selector: 'app-table',
   standalone: true,

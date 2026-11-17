@@ -1,5 +1,13 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
+/**
+ * HelpDetailsComponent
+ *
+ * Functionality:
+ * - Displays expandable help content.
+ * - Provides reusable help details for form sections.
+ * - Renders a supplied summary and projected help content in a details element.
+ */
 @Component({
   selector: 'app-help-details',
   standalone: true,

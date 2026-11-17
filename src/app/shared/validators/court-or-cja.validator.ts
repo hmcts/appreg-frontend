@@ -9,7 +9,15 @@ import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
 import { getTrimmedStringOrNullFromGroup } from '@util/string-helpers';
 import { setControlError } from '@util/validation-helpers';
 
-//Checks requiredness and conflicts between court, location and cja fields
+/**
+ * Requires either a selected court or both an other location and CJA.
+ * Typed but unselected court or CJA text suppresses premature required errors;
+ * conflicts are reported only for a selected court code. Errors are attached
+ * to child controls so the form error summary can focus the relevant field.
+ *
+ * @param opts - Accessors for unselected text in the court and CJA searches.
+ * @returns Group validator that updates child errors and returns `null`.
+ */
 export function courtLocCjaValidator(opts?: {
   getCourtTyped?: () => string;
   getCjaTyped?: () => string;

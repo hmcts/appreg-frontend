@@ -102,6 +102,14 @@ export abstract class PlaceFieldsBase {
     this.placeBindings = undefined;
   }
 
+  /**
+   * Binds court and CJA reference data to this form's place search fields.
+   * Previous bindings are disposed before new subscriptions are installed;
+   * selected codes are expanded to display labels as reference data arrives.
+   *
+   * @param form - Form containing court, location, and CJA controls.
+   * @param ref - Source of court and CJA reference data.
+   */
   protected initPlaceFields(form: FormGroup, ref: PlaceRefFacade): void {
     this.disposePlaceFields();
     const bindings = new Subscription();
