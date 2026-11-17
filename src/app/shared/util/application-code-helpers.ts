@@ -5,9 +5,12 @@ Helper functions for Application Codes
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+import { CODE_SUGGESTION_MESSAGES } from '@constants/application-list-entry/code-suggestion-messages';
 import {
   ApplicationCodeGetDetailDto,
+  ApplicationCodeGetSummaryDto,
   ApplicationCodePage,
+  ApplicationCodeSuggestionDto,
   ApplicationCodesApi,
   GetApplicationCodeByCodeAndDateRequestParams,
   GetApplicationCodesRequestParams,
@@ -62,21 +65,48 @@ export type CodeRow = {
   isFeeDue: string;
 };
 
+export type CodeSuggestionRow = CodeRow & {
+  reason: string;
+  lodgementDateFlag: string;
+};
+
 export type CodeRowsResult = {
   rows: CodeRow[];
   totalPages: number;
 };
 
-export function mapCodeRows(page: ApplicationCodePage): CodeRow[] {
-  const items = page?.content ?? [];
-  return items.map((i) => ({
+function mapCodeRow(i: ApplicationCodeGetSummaryDto): CodeRow {
+  return {
     applicationCodeId: i.applicationCodeId,
     code: i.applicationCode ?? '',
     title: i.title ?? '',
     bulk: i.bulkRespondentAllowed ? 'Yes' : 'No',
     fee: i.feeReference ?? '—',
     isFeeDue: i.isFeeDue ? 'Yes' : 'No',
-  }));
+  };
+}
+
+export function mapCodeRows(page: ApplicationCodePage): CodeRow[] {
+  const items = page?.content ?? [];
+  return items.map(mapCodeRow);
+}
+
+// Best match (rank 1) first. activeOnLodgementDate is null when no lodgement
+// date was sent, so only false shows the flag.
+export function mapCodeSuggestionRows(
+  suggestions: readonly ApplicationCodeSuggestionDto[] | null | undefined,
+): CodeSuggestionRow[] {
+  return (suggestions ?? [])
+    .filter((suggestion) => !!suggestion?.applicationCode)
+    .sort((a, b) => a.rank - b.rank)
+    .map((suggestion) => ({
+      ...mapCodeRow(suggestion.applicationCode),
+      reason: suggestion.reason ?? '',
+      lodgementDateFlag:
+        suggestion.activeOnLodgementDate === false
+          ? CODE_SUGGESTION_MESSAGES.notActiveOnLodgementDate
+          : '',
+    }));
 }
 
 /**

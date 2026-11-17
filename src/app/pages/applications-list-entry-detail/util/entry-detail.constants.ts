@@ -22,6 +22,56 @@ export const CODES_COLUMNS: TableColumn[] = [
   { header: 'Actions', field: 'actions', minWidth: '8rem', wrap: false },
 ];
 
+// Suggested codes keep the API's order (best match first, never by fee), so
+// no column sorts.
+export const SUGGESTED_CODES_COLUMNS: TableColumn[] = [
+  {
+    header: 'Code',
+    field: 'code',
+    minWidth: '8rem',
+    wrap: false,
+    sortable: false,
+  },
+  {
+    header: 'Title',
+    field: 'title',
+    minWidth: '18rem',
+    maxWidth: '28rem',
+    wrap: true,
+    sortable: false,
+  },
+  {
+    header: 'Reason',
+    field: 'reason',
+    minWidth: '12rem',
+    maxWidth: '20rem',
+    wrap: true,
+    sortable: false,
+  },
+  {
+    header: 'Bulk',
+    field: 'bulk',
+    minWidth: '7rem',
+    wrap: false,
+    sortable: false,
+  },
+  {
+    header: 'Fee required',
+    field: 'isFeeDue',
+    minWidth: '7rem',
+    wrap: false,
+    sortable: false,
+  },
+  {
+    header: 'Lodgement date',
+    field: 'lodgementDateFlag',
+    minWidth: '10rem',
+    wrap: true,
+    sortable: false,
+  },
+  { header: 'Actions', field: 'actions', minWidth: '8rem', wrap: false },
+];
+
 export const FEE_STATUS_OPTIONS = [
   { value: 'PAID', label: 'Paid' },
   { value: 'UNDERTAKEN', label: 'Undertaken' },

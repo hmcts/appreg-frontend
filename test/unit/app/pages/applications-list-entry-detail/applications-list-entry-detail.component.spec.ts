@@ -2,9 +2,13 @@
 
 import { Location } from '@angular/common';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import {
   ActivatedRoute,
   Router,
@@ -14,6 +18,7 @@ import {
 import { cloneDeep } from 'lodash';
 import { Observable, Subject, of, throwError } from 'rxjs';
 
+import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import {
   ApplicationsListEntryDetail,
   ERROR_HREFS,
@@ -43,6 +48,7 @@ import {
   TemplateConstraintTypeEnum,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
+import { AiCapabilitiesFacade } from '@services/ai-capabilities.facade';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicationsListEntryFormValue } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import type { AddFeeDetailsPayload } from '@shared-types/civil-fee/civil-fee';
@@ -341,6 +347,30 @@ describe('ApplicationsListEntryDetail', () => {
     expect(answers).toEqual([false, true]);
     notes.setValue(original);
     expect(component.canLeave()).toBe(true);
+  });
+
+  it('does not offer code suggestions on the update page, even when the user has the capability', () => {
+    const aiCapabilities = TestBed.inject(AiCapabilitiesFacade);
+    aiCapabilities.refresh();
+    TestBed.tick();
+    TestBed.inject(HttpTestingController)
+      .expectOne((req) => req.url.endsWith('/ai/capabilities'))
+      .flush({ searchInterpretation: true, codeSuggestions: true });
+    fixture.detectChanges();
+
+    expect(aiCapabilities.codeSuggestionsEnabled()).toBe(true);
+    const codeSearch = fixture.debugElement.query(
+      By.directive(ApplicationCodeSearchComponent),
+    );
+    expect(codeSearch).not.toBeNull();
+    expect(
+      (
+        codeSearch.componentInstance as ApplicationCodeSearchComponent
+      ).enableSuggestions(),
+    ).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector('#code-suggestion-description'),
+    ).toBeNull();
   });
 
   it('allows payment-reference editing without discarding the entry draft', () => {
