@@ -508,6 +508,105 @@ describe('MultiSuggestionsComponent', () => {
     expect(removeLinks()).toHaveLength(1);
   });
 
+  describe('typed text that has not been added', () => {
+    it('makes the control invalid with notAdded', () => {
+      expect(host.control.valid).toBe(true);
+
+      type('alp');
+
+      expect(host.control.errors).toEqual({ notAdded: true });
+      expect(host.control.value).toEqual([]);
+    });
+
+    it('does not count spaces alone as typed text', () => {
+      type('   ');
+
+      expect(host.control.errors).toBeNull();
+    });
+
+    it('makes the control valid again when a match is picked', () => {
+      type('alp');
+      clickOption(ALPHA.label);
+
+      expect(host.control.errors).toBeNull();
+      expect(host.control.value).toEqual([ALPHA.value]);
+    });
+
+    it('makes the control valid again when the only match is added with Enter', () => {
+      type('charlie');
+
+      input().dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Enter',
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+      fixture.detectChanges();
+
+      expect(host.control.errors).toBeNull();
+      expect(host.control.value).toEqual([CHARLIE.value]);
+    });
+
+    it('makes the control valid again when the text is cleared', () => {
+      type('alp');
+
+      type('');
+
+      expect(host.control.errors).toBeNull();
+    });
+
+    it('makes the control valid again when a value is written', () => {
+      type('alp');
+      expect(host.control.hasError('notAdded')).toBe(true);
+
+      setValue([BRAVO.value]);
+
+      expect(host.control.errors).toBeNull();
+      expect(component().search()).toBe('');
+    });
+
+    it('makes the control valid again when the control is reset', () => {
+      setValue([ALPHA.value]);
+      type('bra');
+
+      host.control.reset([]);
+      fixture.detectChanges();
+
+      expect(host.control.errors).toBeNull();
+    });
+
+    it('has no error while the control is disabled, and gets it back when enabled', () => {
+      type('alp');
+
+      host.control.disable();
+      fixture.detectChanges();
+
+      expect(host.control.errors).toBeNull();
+      expect(host.control.hasError('notAdded')).toBe(false);
+
+      host.control.enable();
+      fixture.detectChanges();
+
+      expect(host.control.errors).toEqual({ notAdded: true });
+    });
+
+    it('asks the control to re-validate once when the typed text changes', () => {
+      const standaloneFixture = TestBed.createComponent(
+        MultiSuggestionsComponent,
+      );
+      const multi = standaloneFixture.componentInstance;
+      const onValidatorChange = jest.fn();
+      standaloneFixture.componentRef.setInput('id', 'codes');
+      multi.registerOnValidatorChange(onValidatorChange);
+      multi.onSearchChange('alp');
+      standaloneFixture.detectChanges();
+
+      expect(onValidatorChange).toHaveBeenCalledTimes(1);
+      expect(multi.validate()).toEqual({ notAdded: true });
+    });
+  });
+
   it('passes the error state to the typeahead', () => {
     const errorFixture = TestBed.createComponent(MultiSuggestionsComponent);
     errorFixture.componentRef.setInput('id', 'codes');

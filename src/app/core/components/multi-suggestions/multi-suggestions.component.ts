@@ -7,6 +7,9 @@
  * end-dated codes. At `maxItems` the typeahead stays enabled so a Remove link
  * can move focus back to it. Every change emits a new array, never the bound
  * one.
+ *
+ * It is also its control's validator: text typed but not added gives
+ * `notAdded`, so a search cannot silently run without it.
  */
 
 import {
@@ -19,7 +22,13 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
+} from '@angular/forms';
 
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { SuggestionsItem } from '@components/suggestions/suggestions.types';
@@ -46,9 +55,16 @@ export const MULTI_SUGGESTIONS_MAX_MATCHES = 20;
       useExisting: forwardRef(() => MultiSuggestionsComponent),
       multi: true,
     },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => MultiSuggestionsComponent),
+      multi: true,
+    },
   ],
 })
-export class MultiSuggestionsComponent implements ControlValueAccessor {
+export class MultiSuggestionsComponent
+  implements ControlValueAccessor, Validator
+{
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly id = input('');
@@ -122,11 +138,13 @@ export class MultiSuggestionsComponent implements ControlValueAccessor {
 
   private onChange: (value: string[]) => void = () => {};
   private onTouched: () => void = () => {};
+  private onValidatorChange: () => void = () => {};
 
   writeValue(value: readonly string[] | null | undefined): void {
     this.selected.set(this.coerceValues(value));
-    // A programmatic write replaces whatever was being typed.
-    this.setSearch('');
+    // No re-validation request: Angular validates straight after a write, and
+    // asking here would ignore the caller's emitEvent and onlySelf options.
+    this.setSearch('', false);
   }
 
   registerOnChange(fn: (value: string[]) => void): void {
@@ -139,6 +157,20 @@ export class MultiSuggestionsComponent implements ControlValueAccessor {
 
   setDisabledState(isDisabled: boolean): void {
     this.controlDisabled.set(isDisabled);
+  }
+
+  validate(): ValidationErrors | null {
+    // Angular skips disabled controls. On enable it validates before
+    // setDisabledState(false) runs, so checking controlDisabled would be wrong.
+    if (!this.search().trim()) {
+      return null;
+    }
+
+    return { notAdded: true };
+  }
+
+  registerOnValidatorChange(fn: () => void): void {
+    this.onValidatorChange = fn;
   }
 
   onSearchChange(value: string): void {
@@ -192,12 +224,16 @@ export class MultiSuggestionsComponent implements ControlValueAccessor {
     this.onTouched();
   }
 
-  private setSearch(value: string): void {
+  private setSearch(value: string, revalidate = true): void {
     if (value === this.search()) {
       return;
     }
 
     this.search.set(value);
+
+    if (revalidate) {
+      this.onValidatorChange();
+    }
   }
 
   private commit(next: string[]): void {

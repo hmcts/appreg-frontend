@@ -22,12 +22,22 @@ export const DEFAULT_APPLICATIONS_SEARCH_STATE: ApplicationsSearchState = {
   appliedFilters: {},
 };
 
+// Copies list filters (such as applicationCodes) as well as the object, so the
+// saved filters never share an array with the form or the page state
+const cloneFilters = (filters: EntryGetFilterDto): EntryGetFilterDto =>
+  Object.fromEntries(
+    Object.entries(filters).map(([key, value]) => [
+      key,
+      Array.isArray(value) ? [...(value as unknown[])] : value,
+    ]),
+  );
+
 const cloneSearchState = (
   state: ApplicationsSearchState,
 ): ApplicationsSearchState => ({
   ...state,
   sortField: { ...state.sortField },
-  appliedFilters: { ...state.appliedFilters },
+  appliedFilters: cloneFilters(state.appliedFilters),
 });
 
 @Injectable({
