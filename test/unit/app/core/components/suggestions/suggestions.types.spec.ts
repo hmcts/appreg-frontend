@@ -6,11 +6,24 @@ import {
   isResultCodeSuggestionItem,
   toActivitySuggestionItem,
   toAppcodeSuggestionsItem,
+  toApplicationCodeSuggestionItem,
   toCjaSuggestionItem,
   toCourtSuggestionItem,
   toResultCodeSuggestionItem,
 } from '@components/suggestions/suggestions.types';
-import { ActivityType } from '@openapi';
+import { ActivityType, ApplicationCodeGetSummaryDto } from '@openapi';
+
+const makeApplicationCode = (
+  overrides: Partial<ApplicationCodeGetSummaryDto> = {},
+): ApplicationCodeGetSummaryDto => ({
+  applicationCode: 'AC001',
+  title: 'Synthetic application',
+  wording: { template: 'Synthetic wording' },
+  isFeeDue: true,
+  requiresRespondent: false,
+  bulkRespondentAllowed: false,
+  ...overrides,
+});
 
 describe('suggestions.types', () => {
   it('maps a court DTO to a typed suggestion item', () => {
@@ -95,6 +108,29 @@ describe('suggestions.types', () => {
     });
   });
 
+  it('maps an application code DTO to a code and title suggestion item', () => {
+    const applicationCode = makeApplicationCode();
+
+    expect(toApplicationCodeSuggestionItem(applicationCode)).toEqual({
+      ...applicationCode,
+      kind: 'app-code',
+      label: 'AC001 - Synthetic application',
+      value: 'AC001',
+    });
+  });
+
+  it('maps an application code DTO with a blank title to a code-only label', () => {
+    expect(
+      toApplicationCodeSuggestionItem(makeApplicationCode({ title: '' })),
+    ).toEqual(
+      expect.objectContaining({
+        kind: 'app-code',
+        label: 'AC001',
+        value: 'AC001',
+      }),
+    );
+  });
+
   it('identifies a court suggestion item', () => {
     const item = toCourtSuggestionItem({
       locationCode: 'A1',
@@ -148,5 +184,13 @@ describe('suggestions.types', () => {
 
     expect(isAppcodeSuggestionItem(item)).toBe(true);
     expect(isActivitySuggestionItem(item)).toBe(false);
+  });
+
+  it('does not identify an application code suggestion item as another kind', () => {
+    const item = toApplicationCodeSuggestionItem(makeApplicationCode());
+
+    expect(isAppcodeSuggestionItem(item)).toBe(false);
+    expect(isResultCodeSuggestionItem(item)).toBe(false);
+    expect(isCourtSuggestionItem(item)).toBe(false);
   });
 });
