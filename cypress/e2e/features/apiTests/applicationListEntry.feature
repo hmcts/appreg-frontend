@@ -1,7 +1,7 @@
 Feature: API - Application List Entry
 
-  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-229 @ARCPOC-1371
-  Scenario Outline: Create Application List Entry with CJA and Other Location
+  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-229 @ARCPOC-1371 @ARCPOC-1950
+  Scenario Outline: Create Application List Entry with CJA and Other Location and Verify Application Code Cannot Be Changed When Fee Status is PAID or REMITTED
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
       | date                     | todayiso                                     |
@@ -30,9 +30,9 @@ Feature: API - Application List Entry
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                             |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                            |
       | applicant.person.contactDetails.email        | john.smith{SCENARIO_ID}@example.com      |
-      | feeStatuses.0.paymentReference               | PAY-{RANDOM}                             |
-      | feeStatuses.0.paymentStatus                  | PAID                                     |
-      | feeStatuses.0.statusDate                     | todayiso                                 |
+      | feeStatuses.0.paymentReference               | <FeeReference>                           |
+      | feeStatuses.0.paymentStatus                  | <FeeStatus>                              |
+      | feeStatuses.0.statusDate                     | <statusDate>                             |
       | hasOffsiteFee                                | false                                    |
       | caseReference                                | CASE-001                                 |
       | accountNumber                                | APP-{RANDOM}                             |
@@ -53,7 +53,7 @@ Feature: API - Application List Entry
     Then User Verify Response Status Code Should Be "201"
     When User Makes PUT API Request To "/application-lists/:listId/entries/:entryId" With Object Builder:
       | standardApplicantCode                        | null                                             |
-      | applicationCode                              | AD99002                                          |
+      | applicationCode                              | MX99002                                          |
       | applicant.person.name.title                  | Mr                                               |
       | applicant.person.name.firstName              | John                                             |
       | applicant.person.name.middleName             | A B                                              |
@@ -67,9 +67,11 @@ Feature: API - Application List Entry
       | applicant.person.contactDetails.phone        | 0207{RANDOM}                                     |
       | applicant.person.contactDetails.mobile       | 07123{RANDOM}                                    |
       | applicant.person.contactDetails.email        | john.smith{SCENARIO_ID}@example.com              |
-      | feeStatuses.0.paymentReference               | PAY-{RANDOM}                                     |
-      | feeStatuses.0.paymentStatus                  | PAID                                             |
-      | feeStatuses.0.statusDate                     | todayiso                                         |
+      | wordingFields.0.key                          | New Name                                         |
+      | wordingFields.0.value                        | Test Value                                       |
+      | feeStatuses.0.paymentReference               | <FeeReference>                                   |
+      | feeStatuses.0.paymentStatus                  | <FeeStatus>                                      |
+      | feeStatuses.0.statusDate                     | <statusDate>                                     |
       | hasOffsiteFee                                | false                                            |
       | caseReference                                | CASE-001                                         |
       | accountNumber                                | APP-{RANDOM}                                     |
@@ -78,11 +80,94 @@ Feature: API - Application List Entry
       | officials.0.surname                          | Smith{SCENARIO_ID}                               |
       | officials.0.forename                         | John                                             |
       | officials.0.type                             | MAGISTRATE                                       |
-    Then User Verify Response Status Code Should Be "200"
+    Then User Verify Response Status Code Should Be "<ValidationStatus>"
+    Then User Verify Response Body Should Have:
+      | title | <ValidationMessage> |
 
     Examples:
-      | User  |
-      | user1 |
+      | User  | FeeStatus | FeeReference | statusDate | ValidationStatus | ValidationMessage                                                                          |
+      | user1 | PAID      | PAY-{RANDOM} | todayiso   | 400              | Cannot change the application code because a fee has been paid or remitted for this entry. |
+      | user1 | REMITTED  | PAY-{RANDOM} | todayiso   | 400              | Cannot change the application code because a fee has been paid or remitted for this entry. |
+
+  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-229 @ARCPOC-1371 @ARCPOC-1950
+  Scenario Outline: Create Application List Entry with CJA and Other Location and Verify Application Code Can Be Changed When Fee Status is DUE or UNDERTAKEN
+    Given User Authenticates Via API As "<User>"
+    When User Makes POST API Request To "/application-lists" With Object Builder:
+      | date                     | todayiso                                     |
+      | time                     | timenowhhmm-2h                               |
+      | status                   | OPEN                                         |
+      | description              | Applications to review at Test_{SCENARIO_ID} |
+      | durationHours            | 2                                            |
+      | durationMinutes          | 22                                           |
+      | otherLocationDescription | Temporary Courtroom at Town Hall             |
+      | cjaCode                  | 01                                           |
+    Then User Verify Response Status Code Should Be "201"
+    Then User Stores Response Body Property "id" As "listId"
+    When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
+      | standardApplicantCode                        | null                                     |
+      | applicationCode                              | AD99002                                  |
+      | applicant.person.name.title                  | Mr                                       |
+      | applicant.person.name.firstName              | John                                     |
+      | applicant.person.name.middleName             | A B                                      |
+      | applicant.person.name.lastName               | Smith{SCENARIO_ID}                       |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street                |
+      | applicant.person.contactDetails.addressLine2 | Westminster                              |
+      | applicant.person.contactDetails.addressLine3 | London                                   |
+      | applicant.person.contactDetails.addressLine4 | Greater London                           |
+      | applicant.person.contactDetails.addressLine5 | United Kingdom                           |
+      | applicant.person.contactDetails.postcode     | SW1A 2AA                                 |
+      | applicant.person.contactDetails.phone        | 0207{RANDOM}                             |
+      | applicant.person.contactDetails.mobile       | 07123{RANDOM}                            |
+      | applicant.person.contactDetails.email        | john.smith{SCENARIO_ID}@example.com      |
+      | feeStatuses.0.paymentReference               | <FeeReference>                           |
+      | feeStatuses.0.paymentStatus                  | <FeeStatus>                              |
+      | feeStatuses.0.statusDate                     | <statusDate>                             |
+      | hasOffsiteFee                                | false                                    |
+      | caseReference                                | CASE-001                                 |
+      | accountNumber                                | APP-{RANDOM}                             |
+      | notes                                        | Application discussion ref {SCENARIO_ID} |
+      | lodgementDate                                | todayiso                                 |
+      | officials.0.title                            | Mr                                       |
+      | officials.0.surname                          | Smith{SCENARIO_ID}                       |
+      | officials.0.forename                         | John                                     |
+      | officials.0.type                             | MAGISTRATE                               |
+    Then User Verify Response Status Code Should Be "201"
+    Then User Stores Response Body Property "id" As "entryId"
+    When User Makes PUT API Request To "/application-lists/:listId/entries/:entryId" With Object Builder:
+      | standardApplicantCode                        | null                                             |
+      | applicationCode                              | MX99002                                          |
+      | applicant.person.name.title                  | Mr                                               |
+      | applicant.person.name.firstName              | John                                             |
+      | applicant.person.name.middleName             | A B                                              |
+      | applicant.person.name.lastName               | Smith{SCENARIO_ID}                               |
+      | applicant.person.contactDetails.addressLine1 | {SCENARIO_ID} High Street                        |
+      | applicant.person.contactDetails.addressLine2 | Westminster                                      |
+      | applicant.person.contactDetails.addressLine3 | London                                           |
+      | applicant.person.contactDetails.addressLine4 | Greater London                                   |
+      | applicant.person.contactDetails.addressLine5 | United Kingdom                                   |
+      | applicant.person.contactDetails.postcode     | SW1A 2AA                                         |
+      | applicant.person.contactDetails.phone        | 0207{RANDOM}                                     |
+      | applicant.person.contactDetails.mobile       | 07123{RANDOM}                                    |
+      | applicant.person.contactDetails.email        | john.smith{SCENARIO_ID}@example.com              |
+      | wordingFields.0.key                          | New Name                                         |
+      | wordingFields.0.value                        | Test Value                                       |
+      | feeStatuses.0.paymentReference               | <FeeReference>                                   |
+      | feeStatuses.0.paymentStatus                  | <FeeStatus>                                      |
+      | feeStatuses.0.statusDate                     | <statusDate>                                     |
+      | hasOffsiteFee                                | false                                            |
+      | caseReference                                | CASE-001                                         |
+      | accountNumber                                | APP-{RANDOM}                                     |
+      | notes                                        | Updated application discussion ref {SCENARIO_ID} |
+      | officials.0.title                            | Mr                                               |
+      | officials.0.surname                          | Smith{SCENARIO_ID}                               |
+      | officials.0.forename                         | John                                             |
+      | officials.0.type                             | MAGISTRATE                                       |
+    Then User Verify Response Status Code Should Be "<ValidationStatus>"
+
+    Examples:
+      | User  | FeeStatus  | FeeReference | statusDate | ValidationStatus |
+      | user1 | DUE        |              | todayiso   | 200              |
+      | user1 | UNDERTAKEN | PAY-{RANDOM} | todayiso   | 200              |
 
   @api @applicationListEntry @regression @ARCPOC-280 @ARCPOC-290 @ARCPOC-1035
   Scenario Outline: Retrieve an application list entry by id

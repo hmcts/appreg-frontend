@@ -94,7 +94,7 @@ Feature: API - Application List Entry Validation
       | respondent          | null    |
       | numberOfRespondents | 5       |
 
-  @api @applicationListEntry @regression @ARCPOC-935 @tp
+  @api @applicationListEntry @regression @ARCPOC-935
   Scenario: Reject bulk respondent payloads when both respondent details and respondent count are provided
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                         | null                                |
