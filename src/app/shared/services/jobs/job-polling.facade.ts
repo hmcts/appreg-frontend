@@ -56,8 +56,18 @@ const FAILED_STATUS = String(JobStatus.FAILED);
 export class JobPollingFacade {
   private readonly jobsApi = inject(JobsApi);
 
-  // Retry RETRY_POLL_COUNT times and each request timeout = DEFAULT_TIMEOUT_MS
-  // Overall polling timeout = POLLING_TIMEOUT_MS
+  /**
+   * Polls until a terminal job status or the overall polling deadline is reached.
+   * Each status request has its own timeout and retry limit. Authorization errors
+   * propagate. Other exhausted requests and the overall deadline emit a terminal
+   * `unknown` status so the caller can offer a status retry.
+   *
+   * @param jobId - Job whose status is requested.
+   * @param intervalMs - Delay between polls and between request retries.
+   * @param timeoutRequest - Timeout for each status request.
+   * @param maxAttempts - Maximum attempts for each status request.
+   * @returns Status updates through the first terminal state, including that state.
+   */
   watchJob(
     jobId: string,
     intervalMs: number = DEFAULT_INTERVAL_MS,
@@ -129,6 +139,15 @@ function isAuthorizationError(err: unknown): boolean {
   return status === 401 || status === 403;
 }
 
+/**
+ * Reads job status and counts from the API's supported response shapes.
+ * Values may live at the top level or in summary, details, result, or outcome;
+ * unknown statuses remain in progress until the polling deadline is reached.
+ *
+ * @param payload - API job acknowledgement or status body.
+ * @param fallbackJobId - ID to use when the body has no job ID.
+ * @returns Consistent state, counts, message, and original response.
+ */
 function normaliseJobStatus(
   payload: unknown,
   fallbackJobId: string,

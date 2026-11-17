@@ -1,17 +1,3 @@
-/**
- * Bulk Update Fees Confirmation
- * Main Component for page /applications-list/:id/bulk-update-fee/confirm
- *
- * Functionality:
- * onConfirm():
- * - PUT request to bulk update fee details for the selected Application List Entries
- * - Redirects back to the Application List with success or error status
- *
- * goBack():
- * - Navigates back to the Bulk Update Fees page
- * - Restores the previously entered fee form state
- */
-
 import { Location, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -52,6 +38,19 @@ type FeeTableRow = {
   paymentReference: string;
 };
 
+/**
+ * Bulk Update Fees Confirmation
+ * Main Component for page /applications-list/:id/bulk-update-fee/confirm
+ *
+ * Functionality:
+ * onConfirm():
+ * - PUT request to bulk update fee details for the selected Application List Entries
+ * - Redirects back to the Application List with success or error status
+ *
+ * goBack():
+ * - Navigates back to the Bulk Update Fees page
+ * - Restores the previously entered fee form state
+ */
 @Component({
   selector: 'app-fee-update-confirm',
   imports: [

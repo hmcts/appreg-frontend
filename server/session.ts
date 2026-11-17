@@ -114,7 +114,12 @@ export function buildSessionCookieOptions(
 }
 
 /**
- * Creates an Express session middleware.
+ * Creates Express session middleware backed by Redis or an in-memory store.
+ * Production cookies receive an explicit maximum age, while all cookies use
+ * the configured secure setting.
+ *
+ * @returns Configured session middleware after any Redis connection completes.
+ * @throws If Redis is enabled without a URL or its connection fails.
  */
 export async function setupSession({
   isProd,

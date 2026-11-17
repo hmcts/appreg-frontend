@@ -14,6 +14,14 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 
+/**
+ * TextInputComponent
+ *
+ * Functionality:
+ * - Displays a text input with labels and hints.
+ * - Integrates text changes and disabled state with Angular forms.
+ * - Supports hints, suggestions, and configurable field widths.
+ */
 @Component({
   selector: 'app-text-input',
   standalone: true,

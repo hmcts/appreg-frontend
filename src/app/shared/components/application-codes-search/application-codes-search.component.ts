@@ -1,5 +1,3 @@
-// TODO: add header comment
-
 import {
   ChangeDetectionStrategy,
   Component,
@@ -43,6 +41,16 @@ const APPLICATION_CODE_SEARCH_ERROR_MESSAGES = {
   },
 } as const;
 
+/**
+ * ApplicationCodeSearchComponent
+ *
+ * Functionality:
+ * - Searches and sorts application codes.
+ * - Emits the selected code and lodgement date.
+ * - Supports clearing filters and changing result pages or sort order.
+ * - Validation rules:
+ *   - An application code search term can contain at most 10 characters.
+ */
 @Component({
   selector: 'app-application-code-search',
   standalone: true,

@@ -1,6 +1,3 @@
-/**
- * Facade for fee saves, rollbacks, commits, fee meta
- */
 import { Injectable, inject } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -16,6 +13,9 @@ import {
 import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import { CivilFeeMeta } from '@shared-types/civil-fee/civil-fee';
 
+/**
+ * Facade for fee saves, rollbacks, commits, fee meta
+ */
 @Injectable()
 export class EntryDetailFeeSaveFacade {
   private readonly entriesApi = inject(ApplicationListEntriesApi);

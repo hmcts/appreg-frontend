@@ -2,6 +2,14 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 import { HelpDetailsComponent } from './help-details.component';
 
+/**
+ * CivilFeeHelpComponent
+ *
+ * Functionality:
+ * - Displays civil fee help.
+ * - Adapts guidance for bulk updates.
+ * - Presents civil fee guidance for single-entry and bulk-update contexts.
+ */
 @Component({
   selector: 'app-civil-fee-help',
   standalone: true,

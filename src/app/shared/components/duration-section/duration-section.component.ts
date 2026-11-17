@@ -6,6 +6,14 @@ import type { ErrorItem } from '@components/error-summary/error-summary.componen
 import { ReportsSharedFormComponent } from '@components/reports-shared-form/reports-shared-form.component';
 import type { ErrorMessageMap } from '@util/error-summary';
 
+/**
+ * DurationSectionComponent
+ *
+ * Functionality:
+ * - Displays duration form fields.
+ * - Shows validation errors for duration details.
+ * - Uses the parent form and external errors for duration fields.
+ */
 @Component({
   selector: 'app-duration-section',
   standalone: true,

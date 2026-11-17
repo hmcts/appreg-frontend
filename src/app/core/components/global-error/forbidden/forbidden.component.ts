@@ -9,6 +9,14 @@ import {
 
 import { HeaderService } from '@services/header.service';
 
+/**
+ * ForbiddenComponent
+ *
+ * Functionality:
+ * - Displays the forbidden page.
+ * - Accepts an optional heading for access-denied messaging.
+ * - Hides service navigation while the page is active.
+ */
 @Component({
   selector: 'app-forbidden',
   standalone: true,

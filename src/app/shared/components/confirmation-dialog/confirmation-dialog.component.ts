@@ -8,6 +8,14 @@ import {
 } from '@angular/core';
 import { Observable } from 'rxjs';
 
+/**
+ * ConfirmationDialogComponent
+ *
+ * Functionality:
+ * - Displays a confirmation dialog.
+ * - Handles confirmation, cancellation, and dismissal.
+ * - Closes on dismissal and reports the selected response.
+ */
 @Component({
   selector: 'app-confirmation-dialog',
   standalone: true,

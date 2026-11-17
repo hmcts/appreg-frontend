@@ -19,6 +19,14 @@ import { filter, map, startWith } from 'rxjs/operators';
 import { HeaderService } from '@services/header.service';
 import { SessionService } from '@services/session.service';
 
+/**
+ * ServiceNavigationComponent
+ *
+ * Functionality:
+ * - Displays service navigation for authenticated users outside the login page.
+ * - Reads the CSRF cookie for logout.
+ * - Uses route, session, and header state to control menu visibility.
+ */
 @Component({
   selector: 'app-service-navigation',
   templateUrl: './service-navigation.component.html',

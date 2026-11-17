@@ -7,6 +7,14 @@ import {
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
+/**
+ * GovukTextareaComponent
+ *
+ * Functionality:
+ * - Displays a GOV.UK styled textarea.
+ * - Tracks input and optional character count and errors.
+ * - Supports a character limit, count display, and error presentation.
+ */
 @Component({
   selector: 'app-govuk-textarea',
   // The ID belongs to the inner element, not the component host.

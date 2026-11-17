@@ -1,24 +1,3 @@
-/*
-Applications List
-Main Component for page /applications-list
-
-Functionality:
-onSubmit():
-  - GET request to Spring API which returns applications lists based on given params
-  - Populates query based on fields that are  !null/!undefined/!defaultValue
-
-Delete:
-  - Handled in applications-list-delete component
-
-onPrintPage():
-  - Fetch list by id and generate a paged PDF in the browser
-  - If list is empty/missing or PDF fails, show inline message
-
-onPrintContinuous():
-  - Fetch list by id and generate a continuous PDF in the browser (uses isClosed which changes the title)
-  - If list is empty or PDF fails, show inline message
-*/
-
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -96,6 +75,26 @@ import { addLocationValidatorsToForm } from '@validators/add-location-validators
 
 type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
 
+/**
+ * Applications List
+ * Main Component for page /applications-list
+ *
+ * Functionality:
+ * onSubmit():
+ * - GET request to Spring API which returns applications lists based on given params
+ * - Populates query based on fields that are  !null/!undefined/!defaultValue
+ *
+ * Delete:
+ * - Handled in applications-list-delete component
+ *
+ * onPrintPage():
+ * - Fetch list by id and generate a paged PDF in the browser
+ * - If list is empty/missing or PDF fails, show inline message
+ *
+ * onPrintContinuous():
+ * - Fetch list by id and generate a continuous PDF in the browser (uses isClosed which changes the title)
+ * - If list is empty or PDF fails, show inline message
+ */
 @Component({
   selector: 'app-applications-list',
   standalone: true,
@@ -249,8 +248,11 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.patch({ filteredCourthouses: [] });
   }
 
-  // Registers signal-driven effects that watch request signals and run API calls,
-  // then update state on success/error
+  /**
+   * Registers the list-search and PDF-print request effects.
+   * Both effects clear their request signals and loading state on completion;
+   * print failures are shown inline instead of leaving the loading UI active.
+   */
   private setupEffects(): void {
     setupLoadEffect(
       {

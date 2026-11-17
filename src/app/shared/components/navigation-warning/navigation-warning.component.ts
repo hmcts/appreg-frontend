@@ -12,6 +12,14 @@ import { Observable } from 'rxjs';
 
 import { ConfirmationDialogComponent } from '@components/confirmation-dialog/confirmation-dialog.component';
 
+/**
+ * NavigationWarningComponent
+ *
+ * Functionality:
+ * - Warns about pending changes before navigation.
+ * - Opens a confirmation dialog when leaving with pending changes.
+ * - Warns before browser unload while active.
+ */
 @Component({
   selector: 'app-navigation-warning',
   standalone: true,

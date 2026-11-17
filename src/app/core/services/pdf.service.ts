@@ -78,8 +78,15 @@ export class PdfService {
   private readonly dateTimePipe = inject(DateTimePipe);
 
   /**
-   * Single-entry, paged layout (portrait).
-   * Intentionally mirrors the continuous layout’s typography where sensible.
+   * Saves application list entries in a paged portrait PDF.
+   * Each entry starts on a new page, and long entry content can continue beneath
+   * a repeated header on another page. An optional crest is loaded once for all
+   * headers (in this application we always render '/assets/govuk-crest.png').
+   * Failure to load or draw it does not stop PDF generation.
+   *
+   * @param dto - One list or an array of lists to normalize and render in order.
+   * @param opts - Optional crest URL used in each page header.
+   * @returns A promise that resolves after the PDF has been saved.
    */
   async generatePagedApplicationListPdf(
     dto: unknown,
@@ -290,8 +297,14 @@ export class PdfService {
   }
 
   /**
-   * Multi-entry, continuous layout (landscape).
-   * Uses a two-column grid; labels are short and values wrap.
+   * Saves multiple application lists in a continuous landscape PDF.
+   * Most rows use two columns with wrapping values. Long full-width values can
+   * split across pages with a continued label. New pages receive a fresh header.
+   * The closed-list flag selects the document header text.
+   *
+   * @param dtos - List data to normalize and render in input order.
+   * @param isClosed - Whether to use the closed-list page header.
+   * @returns A promise that resolves after the PDF has been saved.
    */
   async generateContinuousApplicationListsPdf(
     dtos: unknown[],
@@ -542,6 +555,14 @@ export class PdfService {
     );
   }
 
+  /**
+   * Saves a portrait report of standard applicants and any search criteria.
+   * Each applicant is rendered as a table that may move to another page;
+   * an absent DTO exits without creating a PDF.
+   *
+   * @param dto - Applicants and search criteria to print.
+   * @returns A promise that resolves after the PDF has been saved or skipped.
+   */
   async generateStandardApplicantsPdf(
     dto: StandardApplicantPrintDto,
   ): Promise<void> {
@@ -907,6 +928,16 @@ export class PdfService {
     );
   }
 
+  /**
+   * Converts supported list and entry response shapes into the printable model.
+   * When several source fields represent the same value, the first nonempty
+   * candidate wins (for example, `date` before `listDate` and `hearingDate`).
+   * Missing or malformed objects become empty printable fields which are then
+   * resolved as '–'.
+   *
+   * @param dto - List response or compatible legacy data shape.
+   * @returns Values and entries used by both PDF layouts.
+   */
   private normalise(dto: unknown): PdfList {
     const root = asObj(dto) ?? {};
 
@@ -1068,6 +1099,15 @@ export class PdfService {
     return address;
   }
 
+  /**
+   * Formats supported contact-detail field names for printable party text.
+   * Address fields are joined on one line; date of birth and available contact
+   * methods follow on separate lines.
+   *
+   * @param cd - Contact details in a current or legacy response shape.
+   * @param dob - Optional date of birth to include before contact methods.
+   * @returns Printable address and contact lines, or an empty string.
+   */
   private formatContactDetails(cd: unknown, dob?: string): string {
     const cdObj = asObj(cd);
     const addrObj = cdObj ? (asObj(cdObj['address']) ?? cdObj) : null;

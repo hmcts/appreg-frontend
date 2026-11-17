@@ -1,17 +1,3 @@
-/**
- * Bulk Update Officials Confirmation
- * Main Component for page /applications-list/:id/update-officials/confirm
- *
- * Functionality:
- * onConfirm():
- * - POST request to replace officials for the selected Application List Entries
- * - Redirects back to the Application List on success
- *
- * goBack():
- * - Navigates back to the Bulk Update Officials page
- * - Restores the previously entered official details
- */
-
 import { Location, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -48,6 +34,19 @@ type OfficialSummaryRow = {
   value: string;
 };
 
+/**
+ * Bulk Update Officials Confirmation
+ * Main Component for page /applications-list/:id/update-officials/confirm
+ *
+ * Functionality:
+ * onConfirm():
+ * - POST request to replace officials for the selected Application List Entries
+ * - Redirects back to the Application List on success
+ *
+ * goBack():
+ * - Navigates back to the Bulk Update Officials page
+ * - Restores the previously entered official details
+ */
 @Component({
   selector: 'app-update-officials-confirm',
   standalone: true,

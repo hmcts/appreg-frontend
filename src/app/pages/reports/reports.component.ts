@@ -1,26 +1,3 @@
-/**
- * Reports
- * Main Component for page /reports
- *
- * Note:
- * Supports asynchronous generation of multiple report types. Report creation,
- * polling and download are handled using background jobs.
- *
- * Functionality:
- * onDownload():
- * - Validates the selected report form
- * - Starts report generation for the selected report type
- * - Polls the background job until completion
- * - Downloads the generated CSV on success
- *
- * onClearFilters():
- * - Resets the currently selected report form and validation state
- *
- * setupEffects():
- * - Handles asynchronous report creation requests
- * - Starts polling when report jobs are accepted
- */
-
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
@@ -139,6 +116,33 @@ const REPORT_LOCATION_RESET_VALUE = {
   cja: '',
 } as const;
 
+/**
+ * Reports
+ * Main Component for page /reports
+ *
+ * Note:
+ * Supports asynchronous generation of multiple report types. Report creation,
+ * polling and download are handled using background jobs.
+ *
+ * Functionality:
+ * onDownload():
+ * - Validates the selected report form
+ * - Starts report generation for the selected report type
+ * - Polls the background job until completion
+ * - Downloads the generated CSV on success
+ *
+ * onClearFilters():
+ * - Resets the currently selected report form and validation state
+ *
+ * setupEffects():
+ * - Handles asynchronous report creation requests
+ * - Starts polling when report jobs are accepted
+ *
+ * - Validation rules:
+ *   - A report type is required.
+ *   - Each report requires a start and end date, with the end on or after the start.
+ *   - Activity audit reports also require at least one activity.
+ */
 @Component({
   selector: 'app-reports',
   standalone: true,
@@ -399,6 +403,13 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     );
   }
 
+  /**
+   * Downloads a previously generated report independently of current filters.
+   * Concurrent recent downloads are ignored; missing files and authorization
+   * failures receive distinct feedback so the user knows whether to retry.
+   *
+   * @param report - Recent report containing the job ID and report type.
+   */
   onDownloadRecent(report: RecentReport): void {
     if (this.recentDownloadId()) {
       return;
@@ -456,6 +467,11 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  /**
+   * Validates the selected report form and starts its matching create request.
+   * An active report blocks another submission; validation errors are displayed
+   * before any job is created.
+   */
   onDownload(): void {
     this.submitAttempt.update((attempt) => attempt + 1);
 
@@ -633,6 +649,11 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.createPpiRequest.set(request);
   }
 
+  /**
+   * Registers create-job effects for each report type.
+   * Each effect clears its request signal after a response and routes successful
+   * acknowledgements into polling; API and response-body errors update feedback.
+   */
   private setupEffects(): void {
     // POST /reports/duration/jobs
     setupLoadEffect(
@@ -966,6 +987,13 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.startReportPolling(jobId);
   }
 
+  /**
+   * Replaces any active status subscription and starts watching a created report.
+   * Authorization failures clear the pending job; an unconfirmed status keeps its
+   * ID so the user can request another status check.
+   *
+   * @param jobId - Created report job to watch.
+   */
   private startReportPolling(jobId: string): void {
     this.stopReportPolling();
     this.pendingReportJobId.set(jobId);
@@ -1012,6 +1040,13 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.createPpiRequest.set(null);
   }
 
+  /**
+   * Handles terminal report states after polling. A successful job refreshes
+   * recent reports before downloading, leaving a retry path if download fails.
+   * An unknown state keeps the pending job ID for a later status check.
+   *
+   * @param job - Normalized status emitted by the job polling facade.
+   */
   private handleReportJobStatus(job: PolledJobStatus): void {
     if (!job.isTerminal) {
       return;

@@ -11,6 +11,14 @@ import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
 
+/**
+ * OfficialsSectionComponent
+ *
+ * Functionality:
+ * - Displays official details and errors.
+ * - Emits a request to save officials.
+ * - Can disable the save action while official details are unavailable.
+ */
 @Component({
   selector: 'app-officials-section',
   imports: [TextInputComponent, ReactiveFormsModule],

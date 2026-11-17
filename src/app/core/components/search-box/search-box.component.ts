@@ -14,6 +14,14 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 
+/**
+ * SearchBoxComponent
+ *
+ * Functionality:
+ * - Displays a search field and submit button.
+ * - Emits search submissions and value changes.
+ * - Supports configurable labels, hints, and placeholder text.
+ */
 @Component({
   selector: 'app-search-box',
   standalone: true,

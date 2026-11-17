@@ -670,3 +670,10 @@ yarn branch:run
 # Enforce (deletes eligible branches for the latest batch):
 yarn branch:enforce
 ```
+
+# Code documentation
+
+We use [Compodoc](https://compodoc.app/) to generate code documentation:
+
+- `yarn doc` - Generates documentation at `docs/code-documentation`
+- `yarn doc:serve` - Serves documentation at `http://127.0.0.1:8080`. You must have run the previous command first.

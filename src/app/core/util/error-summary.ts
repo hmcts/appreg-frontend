@@ -9,6 +9,16 @@ import {
 export type ErrorMessageMap = Record<string, Record<string, string>>;
 export type ErrorHrefsMap = Record<string, string>;
 
+/**
+ * Collects validation errors from root, nested, and external form groups.
+ * Each control's message keys can be ordered by priority, while configured
+ * links determine where the summary sends the user.
+ *
+ * @param form - Root form to inspect.
+ * @param messages - Validation messages keyed by control and error type.
+ * @param options - Optional nested groups, external groups, links, and priorities.
+ * @returns Error items in form traversal and configured key order.
+ */
 function buildFormErrorSummaryImpl(
   form: FormGroup,
   messages: ErrorMessageMap,

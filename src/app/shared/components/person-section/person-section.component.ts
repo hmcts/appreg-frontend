@@ -12,6 +12,14 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
 
+/**
+ * PersonSectionComponent
+ *
+ * Functionality:
+ * - Displays person form fields.
+ * - Shows validation errors for person details.
+ * - Adapts its fields for respondent and non-respondent people.
+ */
 @Component({
   selector: 'app-person-section',
   standalone: true,

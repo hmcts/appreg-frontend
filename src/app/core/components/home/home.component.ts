@@ -10,6 +10,14 @@ import { Router } from '@angular/router';
 
 import { SessionService } from '@services/session.service';
 
+/**
+ * HomeComponent
+ *
+ * Functionality:
+ * - Refreshes the session in the browser.
+ * - Redirects to the applications list or login page based on authentication.
+ * - Contains no page content; routing follows the session refresh.
+ */
 @Component({
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
