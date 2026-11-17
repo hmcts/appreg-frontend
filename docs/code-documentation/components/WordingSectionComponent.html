@@ -1,0 +1,1076 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>appreg-frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+          <script>
+              // --- Iframe navigation tracking for Template Playground ---
+              function sendCurrentUrlToParent() {
+                  if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({
+                          type: 'compodoc-iframe-navigate',
+                          url: window.location.pathname + window.location.hash
+                      }, '*');
+                  }
+              }
+              window.addEventListener('hashchange', sendCurrentUrlToParent, false);
+              window.addEventListener('popstate', sendCurrentUrlToParent, false);
+              window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">appreg-frontend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content component">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Components</li>
+  <li class="breadcrumb-item"
+  >
+  WordingSectionComponent</li>
+</ol>
+
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/app/shared/components/wording-section/wording-section.component.ts</code>
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#api" class="nav-link"
+                role="tab" id="api-tab" data-bs-toggle="tab" data-link="api">API</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" class="nav-link"
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+        <li class="nav-item">
+            <a href="#templateData" class="nav-link"
+                role="tab" id="templateData-tab" data-bs-toggle="tab" data-link="template">Template</a>
+        </li>
+        <li class="nav-item">
+            <a href="#tree" class="nav-link"
+                role="tab" id="tree-tab" data-bs-toggle="tab" data-link="dom-tree">DOM Tree</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+
+
+
+
+<section data-compodoc="block-metadata">
+    <h3>Metadata</h3>
+    <table class="table table-sm table-hover metadata">
+        <tbody>
+
+            <tr>
+                <td class="col-md-3">changeDetection</td>
+                <td class="col-md-9"><code>ChangeDetectionStrategy.Eager</code></td>
+            </tr>
+
+
+
+
+
+
+
+
+
+
+
+            <tr>
+                <td class="col-md-3">selector</td>
+                <td class="col-md-9"><code>app-wording-section</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">standalone</td>
+                <td class="col-md-9"><code>true</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">imports</td>
+                <td class="col-md-9">
+                        <div>        <code><a href="../components/WordingParserComponent.html" target="_self" >WordingParserComponent</a></code>
+</div>
+                        <div>        <code><a href="../components/AlertComponent.html" target="_self" >AlertComponent</a></code>
+</div>
+                </td>
+            </tr>
+
+
+
+
+
+            <tr>
+                <td class="col-md-3">templateUrl</td>
+                <td class="col-md-9"><code>./wording-section.component.html</code></td>
+            </tr>
+
+
+
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+        <section data-compodoc="block-relationships">
+            <h3>Relationships</h3>
+
+            <div class="row pt-3">
+                <div class="col-sm-6">
+                    <h4>Used by</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/ApplicationsListEntryCreate.html" target="_self" >ApplicationsListEntryCreate</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ApplicationsListEntryDetail.html" target="_self" >ApplicationsListEntryDetail</a></code>
+                                </li>
+                        </ul>
+                </div>
+
+                <div class="col-sm-6">
+                    <h4>Depends on</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/WordingParserComponent.html" target="_self" >WordingParserComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/AlertComponent.html" target="_self" >AlertComponent</a></code>
+                                </li>
+                        </ul>
+                </div>
+            </div>
+        </section>
+</div>
+
+    <div class="tab-pane fade " id="api">    <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                    <span class="modifier">Optional</span>
+                                <a href="#wordingParser" >wordingParser</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#hasUnchangedContent" >hasUnchangedContent</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#onAppliedBannerDismissed" >onAppliedBannerDismissed</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#onWordingFieldErrors" >onWordingFieldErrors</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#onWordingFieldsDTO" >onWordingFieldsDTO</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#validateForSubmit" >validateForSubmit</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Inputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#showAppliedBanner" >showAppliedBanner</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#wordingObject" >wordingObject</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#wordingObjectValues" >wordingObjectValues</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#wordingSubmitAttempt" >wordingSubmitAttempt</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Outputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#appliedBannerDismissed" >appliedBannerDismissed</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#wordingFieldErrors" >wordingFieldErrors</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#wordingFieldsDTO" >wordingFieldsDTO</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+</section>
+
+
+    <section data-compodoc="block-inputs">
+    <h3 id="inputs">Inputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="showAppliedBanner"></a>
+                        <b>showAppliedBanner</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="34" class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:34</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="wordingObject"></a>
+                        <b>wordingObject</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>TemplateDetail</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Required : </i>&nbsp;<b>true</b>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:31</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="wordingObjectValues"></a>
+                        <b>wordingObjectValues</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>TemplateDetail</code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:32</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="wordingSubmitAttempt"></a>
+                        <b>wordingSubmitAttempt</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Required : </i>&nbsp;<b>true</b>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:33</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+</section>
+
+    <section data-compodoc="block-outputs">
+    <h3 id="outputs">Outputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="appliedBannerDismissed"></a>
+                        <b>appliedBannerDismissed</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="38" class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:38</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="wordingFieldErrors"></a>
+                        <b>wordingFieldErrors</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#ErrorItem" target="_self" >ErrorItem[]</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="36" class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:36</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="wordingFieldsDTO"></a>
+                        <b>wordingFieldsDTO</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>{ wordingFields: TemplateSubstitution[] }</code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="37" class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:37</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+</section>
+
+
+
+    <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="hasUnchangedContent"></a>
+                    <span class="name">
+                        <span ><b>hasUnchangedContent</b></span>
+                        <a href="#hasUnchangedContent"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>hasUnchangedContent()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="27"
+                                    class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:27</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="onAppliedBannerDismissed"></a>
+                    <span class="name">
+                        <span ><b>onAppliedBannerDismissed</b></span>
+                        <a href="#onAppliedBannerDismissed"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>onAppliedBannerDismissed()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="48"
+                                    class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:48</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="onWordingFieldErrors"></a>
+                    <span class="name">
+                        <span ><b>onWordingFieldErrors</b></span>
+                        <a href="#onWordingFieldErrors"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>onWordingFieldErrors(errors: <a href="../miscellaneous/typealiases.html#ErrorItem" target="_self">ErrorItem[]</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="44"
+                                    class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:44</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>errors</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#ErrorItem" target="_self" >ErrorItem[]</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="onWordingFieldsDTO"></a>
+                    <span class="name">
+                        <span ><b>onWordingFieldsDTO</b></span>
+                        <a href="#onWordingFieldsDTO"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] })</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="40"
+                                    class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:40</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>dto</td>
+                                            <td>
+                                                        <code>{ wordingFields: TemplateSubstitution[] }</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="validateForSubmit"></a>
+                    <span class="name">
+                        <span ><b>validateForSubmit</b></span>
+                        <a href="#validateForSubmit"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>validateForSubmit(opts?: <a href="../miscellaneous/typealiases.html#WordingValidationOptions" target="_self">WordingValidationOptions</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="52"
+                                    class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:52</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>opts</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#WordingValidationOptions" target="_self" >WordingValidationOptions</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../miscellaneous/typealiases.html#ErrorItem" target="_self" >ErrorItem[]</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="wordingParser"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                            <span class="modifier">Optional</span>
+                        <span ><b>wordingParser</b></span>
+                        <a href="#wordingParser"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../components/WordingParserComponent.html" target="_self" >WordingParserComponent</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <b>Decorators : </b>
+                        <br />
+                        <code>
+                            @ViewChild(WordingParserComponent)<br />
+                        </code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="25" class="link-to-prism">src/app/shared/components/wording-section/wording-section.component.ts:25</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+</div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import {
+  ChangeDetectionStrategy,
+  Component,
+  ViewChild,
+  input,
+  output,
+} from &#x27;@angular/core&#x27;;
+
+import { AlertComponent } from &#x27;@components/alert/alert.component&#x27;;
+import { ErrorItem } from &#x27;@components/error-summary/error-summary.component&#x27;;
+import {
+  WordingParserComponent,
+  WordingValidationOptions,
+} from &#x27;@components/wording-parser/wording-parser.component&#x27;;
+import { TemplateDetail, TemplateSubstitution } from &#x27;@openapi&#x27;;
+
+@Component({
+  selector: &#x27;app-wording-section&#x27;,
+  imports: [WordingParserComponent, AlertComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  templateUrl: &#x27;./wording-section.component.html&#x27;,
+})
+export class WordingSectionComponent {
+  @ViewChild(WordingParserComponent)
+  private readonly wordingParser?: WordingParserComponent;
+
+  hasUnchangedContent(): boolean {
+    return this.wordingParser?.hasUnchangedContent() ?? true;
+  }
+
+  wordingObject &#x3D; input.required&lt;TemplateDetail&gt;();
+  wordingObjectValues &#x3D; input&lt;TemplateDetail&gt;();
+  wordingSubmitAttempt &#x3D; input.required&lt;number&gt;();
+  showAppliedBanner &#x3D; input(false);
+
+  wordingFieldErrors &#x3D; output&lt;ErrorItem[]&gt;();
+  wordingFieldsDTO &#x3D; output&lt;{ wordingFields: TemplateSubstitution[] }&gt;();
+  appliedBannerDismissed &#x3D; output&lt;void&gt;();
+
+  onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
+    this.wordingFieldsDTO.emit(dto);
+  }
+
+  onWordingFieldErrors(errors: ErrorItem[]): void {
+    this.wordingFieldErrors.emit(errors);
+  }
+
+  onAppliedBannerDismissed(): void {
+    this.appliedBannerDismissed.emit();
+  }
+
+  validateForSubmit(opts?: WordingValidationOptions): ErrorItem[] {
+    return this.wordingParser?.validateForSubmit(opts) ?? [];
+  }
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="templateData">
+        <pre class="line-numbers"><code class="language-html">@if (showAppliedBanner()) {
+  &lt;app-alert
+    alertType&#x3D;&quot;success&quot;
+    message&#x3D;&quot;Wording applied to this entry. Save the entry to keep these changes.&quot;
+    [allowDismiss]&#x3D;&quot;true&quot;
+    (alertDismissed)&#x3D;&quot;onAppliedBannerDismissed()&quot;
+    id&#x3D;&quot;wording-local-banner&quot;
+  /&gt;
+}
+
+&lt;app-wording-parser
+  [wordingObject]&#x3D;&quot;wordingObject()&quot;
+  [wordingObjectValues]&#x3D;&quot;wordingObjectValues()&quot;
+  [wordingSubmitAttempt]&#x3D;&quot;wordingSubmitAttempt()&quot;
+  (wordingFieldsDTO)&#x3D;&quot;onWordingFieldsDTO($event)&quot;
+  (wordingFieldErrors)&#x3D;&quot;onWordingFieldErrors($event)&quot;
+/&gt;
+</code></pre>
+    </div>
+
+
+    <div class="tab-pane fade " id="tree">
+        <div id="tree-container"></div>
+        <div class="tree-legend">
+            <div class="title">
+                <b>Legend</b>
+            </div>
+            <div>
+                <div class="color htmlelement"></div><span>Html element</span>
+            </div>
+            <div>
+                <div class="color component"></div><span>Component</span>
+            </div>
+            <div>
+                <div class="color directive"></div><span>Html element with directive</span>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+<script src="../js/libs/vis-network.min.js"></script>
+<script src="../js/libs/htmlparser.js"></script>
+<script src="../js/libs/deep-iterator.js"></script>
+<script>
+        var COMPONENT_TEMPLATE = '<div>@if (showAppliedBanner()) {  <app-alert    alertType="success"    message="Wording applied to this entry. Save the entry to keep these changes."    [allowDismiss]="true"    (alertDismissed)="onAppliedBannerDismissed()"    id="wording-local-banner"  />}<app-wording-parser  [wordingObject]="wordingObject()"  [wordingObjectValues]="wordingObjectValues()"  [wordingSubmitAttempt]="wordingSubmitAttempt()"  (wordingFieldsDTO)="onWordingFieldsDTO($event)"  (wordingFieldErrors)="onWordingFieldErrors($event)"/></div>'
+    var COMPONENTS = [{'name': 'AccordionComponent', 'selector': 'app-accordion'},{'name': 'ActivityAuditSectionComponent', 'selector': 'app-activity-audit-section'},{'name': 'AlertComponent', 'selector': 'app-alert'},{'name': 'App', 'selector': 'app-root'},{'name': 'ApplicantSectionComponent', 'selector': 'app-applicant-section'},{'name': 'ApplicationCodeSearchComponent', 'selector': 'app-application-code-search'},{'name': 'Applications', 'selector': 'app-applications'},{'name': 'ApplicationsList', 'selector': 'app-applications-list'},{'name': 'ApplicationsListBulkUpload', 'selector': 'app-applications-list-bulk-upload'},{'name': 'ApplicationsListCloseComponent', 'selector': 'app-applications-list-close'},{'name': 'ApplicationsListCreate', 'selector': 'app-applications-list'},{'name': 'ApplicationsListDeleteComponent', 'selector': 'app-applications-list-delete'},{'name': 'ApplicationsListDetail', 'selector': 'app-application-detail'},{'name': 'ApplicationsListDetailBulkUpdateFeesComponent', 'selector': 'app-applications-list-detail-bulk-update-fees'},{'name': 'ApplicationsListDetailSearchComponent', 'selector': 'app-applications-list-detail-search'},{'name': 'ApplicationsListEntryCreate', 'selector': 'app-applications-list-entry-create'},{'name': 'ApplicationsListEntryDeleteComponent', 'selector': 'app-applications-list-entry-delete'},{'name': 'ApplicationsListEntryDetail', 'selector': 'app-applications-list-entry-detail'},{'name': 'ApplicationsListEntryMoveComponent', 'selector': 'app-applications-list-entry-move'},{'name': 'ApplicationsListFormComponent', 'selector': 'app-applications-list-form'},{'name': 'ApplicationsListUpdateComponent', 'selector': 'app-applications-list-update'},{'name': 'ApplicationsResultSelectedComponent', 'selector': 'app-applications-result-selected'},{'name': 'ApplicationWordingHelpComponent', 'selector': 'app-application-wording-help'},{'name': 'AsyncJobProgressComponent', 'selector': 'app-async-job-progress'},{'name': 'BreadcrumbsComponent', 'selector': 'app-breadcrumbs'},{'name': 'CivilFeeHelpComponent', 'selector': 'app-civil-fee-help'},{'name': 'CivilFeeSectionComponent', 'selector': 'app-civil-fee-section'},{'name': 'ConfirmationDialogComponent', 'selector': 'app-confirmation-dialog'},{'name': 'DateInputComponent', 'selector': 'app-date-input'},{'name': 'DurationInputComponent', 'selector': 'app-duration-input'},{'name': 'DurationSectionComponent', 'selector': 'app-duration-section'},{'name': 'ErrorSummaryComponent', 'selector': 'app-error-summary'},{'name': 'FeesSectionComponent', 'selector': 'app-fees-section'},{'name': 'FeeUpdateConfirmComponent', 'selector': 'app-fee-update-confirm'},{'name': 'FooterComponent', 'selector': 'app-footer'},{'name': 'ForbiddenComponent', 'selector': 'app-forbidden'},{'name': 'GovukTextareaComponent', 'selector': 'app-govuk-textarea'},{'name': 'HeaderComponent', 'selector': 'app-header'},{'name': 'HelpDetailsComponent', 'selector': 'app-help-details'},{'name': 'HomeComponent', 'selector': ''},{'name': 'InternalErrorComponent', 'selector': 'app-internal-error'},{'name': 'ListMaintenanceSectionComponent', 'selector': 'app-list-maintenance-section'},{'name': 'LoadingSpinner', 'selector': 'app-loading-spinner'},{'name': 'Login', 'selector': 'app-login'},{'name': 'MoveConfirmComponent', 'selector': 'app-move-confirm'},{'name': 'NavigationWarningComponent', 'selector': 'app-navigation-warning'},{'name': 'NotesSectionComponent', 'selector': 'app-notes-section'},{'name': 'NotFoundComponent', 'selector': 'app-not-found'},{'name': 'NotificationBannerComponent', 'selector': 'app-notification-banner'},{'name': 'OfficialsSectionComponent', 'selector': 'app-officials-section'},{'name': 'OrganisationSectionComponent', 'selector': 'app-organisation-section'},{'name': 'PageHeaderComponent', 'selector': 'app-page-header'},{'name': 'PaginationComponent', 'selector': 'app-pagination'},{'name': 'PaymentReferenceEditComponent', 'selector': 'app-payment-reference-edit'},{'name': 'PersonSectionComponent', 'selector': 'app-person-section'},{'name': 'PrivateProsecutorsIndexSectionComponent', 'selector': 'app-private-prosecutors-index-section'},{'name': 'RadioButtonComponent', 'selector': 'app-radio-group'},{'name': 'Reports', 'selector': 'app-reports'},{'name': 'ReportSelectorComponent', 'selector': 'app-report-selector'},{'name': 'ReportsSharedFormComponent', 'selector': 'app-reports-shared-form'},{'name': 'RespondentBulkApplicationComponent', 'selector': 'app-respondent-bulk-application'},{'name': 'RespondentSectionComponent', 'selector': 'app-respondent-section'},{'name': 'ResultSelected', 'selector': 'app-result-selected'},{'name': 'ResultWordingSectionComponent', 'selector': 'app-result-wording-section'},{'name': 'ReviewConfirmComponent', 'selector': 'app-review-confirm'},{'name': 'SearchBoxComponent', 'selector': 'app-search-box'},{'name': 'SearchWarrantsSectionComponent', 'selector': 'app-search-warrants-section'},{'name': 'SelectInputComponent', 'selector': 'app-select-input'},{'name': 'ServiceNavigationComponent', 'selector': 'app-service-navigation'},{'name': 'SortableTableComponent', 'selector': 'app-sortable-table'},{'name': 'StandardApplicants', 'selector': 'app-standard-applicants'},{'name': 'StandardApplicantSelectComponent', 'selector': 'app-standard-applicant-select'},{'name': 'StandardApplicantsViewComponent', 'selector': 'app-standard-applicants-view'},{'name': 'SuccessBannerComponent', 'selector': 'app-success-banner'},{'name': 'SuggestionsComponent', 'selector': 'app-suggestions'},{'name': 'SummaryListCardActionComponent', 'selector': 'app-summary-list-card-action'},{'name': 'TableComponent', 'selector': 'app-table'},{'name': 'TextInputComponent', 'selector': 'app-text-input'},{'name': 'UpdateNotesComponent', 'selector': 'app-update-notes'},{'name': 'UpdateOfficialsComponent', 'selector': 'app-update-officials'},{'name': 'UpdateOfficialsConfirmComponent', 'selector': 'app-update-officials-confirm'},{'name': 'WordingParserComponent', 'selector': 'app-wording-parser'},{'name': 'WordingSectionComponent', 'selector': 'app-wording-section'},{'name': 'WorkloadSectionComponent', 'selector': 'app-workload-section'}];
+    var DIRECTIVES = [{'name': 'MojButtonMenuDirective', 'selector': '[appMojButtonMenu]'},{'name': 'PlaceFieldsBase', 'selector': ''},{'name': 'ResultSelectedTableBase', 'selector': ''},{'name': 'UpdateOfficialsTableBase', 'selector': ''}];
+    var ACTUAL_COMPONENT = {'name': 'WordingSectionComponent'};
+</script>
+<script src="../js/tree.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'component';
+            var COMPODOC_CURRENT_PAGE_URL = 'WordingSectionComponent.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

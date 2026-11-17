@@ -1,0 +1,3812 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>appreg-frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+          <script>
+              // --- Iframe navigation tracking for Template Playground ---
+              function sendCurrentUrlToParent() {
+                  if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({
+                          type: 'compodoc-iframe-navigate',
+                          url: window.location.pathname + window.location.hash
+                      }, '*');
+                  }
+              }
+              window.addEventListener('hashchange', sendCurrentUrlToParent, false);
+              window.addEventListener('popstate', sendCurrentUrlToParent, false);
+              window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">appreg-frontend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content component">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Components</li>
+  <li class="breadcrumb-item"
+  >
+  SortableTableComponent</li>
+</ol>
+
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/app/core/components/sortable-table/sortable-table.component.ts</code>
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#api" class="nav-link"
+                role="tab" id="api-tab" data-bs-toggle="tab" data-link="api">API</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" class="nav-link"
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+        <li class="nav-item">
+            <a href="#templateData" class="nav-link"
+                role="tab" id="templateData-tab" data-bs-toggle="tab" data-link="template">Template</a>
+        </li>
+        <li class="nav-item">
+            <a href="#styleData" class="nav-link"
+                role="tab" id="styleData-tab" data-bs-toggle="tab" data-link="style">Styles</a>
+        </li>
+        <li class="nav-item">
+            <a href="#tree" class="nav-link"
+                role="tab" id="tree-tab" data-bs-toggle="tab" data-link="dom-tree">DOM Tree</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+
+
+    <p class="comment">
+        <h3>Implements</h3>
+    </p>
+    <p class="comment">
+                    <code><a href="https://angular.dev/api/core/AfterViewInit" target="_blank" >AfterViewInit</a></code>
+                    <code><a href="https://angular.dev/api/core/AfterViewChecked" target="_blank" >AfterViewChecked</a></code>
+                    <code><a href="https://angular.dev/api/core/OnDestroy" target="_blank" >OnDestroy</a></code>
+    </p>
+
+
+<section data-compodoc="block-metadata">
+    <h3>Metadata</h3>
+    <table class="table table-sm table-hover metadata">
+        <tbody>
+
+            <tr>
+                <td class="col-md-3">changeDetection</td>
+                <td class="col-md-9"><code>ChangeDetectionStrategy.Eager</code></td>
+            </tr>
+
+
+
+
+
+
+
+
+
+
+
+            <tr>
+                <td class="col-md-3">selector</td>
+                <td class="col-md-9"><code>app-sortable-table</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">standalone</td>
+                <td class="col-md-9"><code>true</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">imports</td>
+                <td class="col-md-9">
+                        <div>        <code><a href="https://angular.dev/api/common/CommonModule" target="_blank" >CommonModule</a></code>
+</div>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">styleUrls</td>
+                <td class="col-md-9"><code>./sortable-table.component.scss</code></td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-3">templateUrl</td>
+                <td class="col-md-9"><code>./sortable-table.component.html</code></td>
+            </tr>
+
+
+
+            <tr>
+                <td class="col-md-3">styleUrl</td>
+                <td class="col-md-9"><code>./sortable-table.component.scss</code></td>
+            </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+        <section data-compodoc="block-relationships">
+            <h3>Relationships</h3>
+
+            <div class="row pt-3">
+                <div class="col-sm-6">
+                    <h4>Used by</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/ApplicationCodeSearchComponent.html" target="_self" >ApplicationCodeSearchComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/Applications.html" target="_self" >Applications</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ApplicationsList.html" target="_self" >ApplicationsList</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ApplicationsListBulkUpload.html" target="_self" >ApplicationsListBulkUpload</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ApplicationsListDeleteComponent.html" target="_self" >ApplicationsListDeleteComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ApplicationsListDetail.html" target="_self" >ApplicationsListDetail</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ApplicationsListDetailBulkUpdateFeesComponent.html" target="_self" >ApplicationsListDetailBulkUpdateFeesComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ApplicationsListEntryMoveComponent.html" target="_self" >ApplicationsListEntryMoveComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/CivilFeeSectionComponent.html" target="_self" >CivilFeeSectionComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/FeeUpdateConfirmComponent.html" target="_self" >FeeUpdateConfirmComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/MoveConfirmComponent.html" target="_self" >MoveConfirmComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ResultWordingSectionComponent.html" target="_self" >ResultWordingSectionComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/StandardApplicants.html" target="_self" >StandardApplicants</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/StandardApplicantSelectComponent.html" target="_self" >StandardApplicantSelectComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/UpdateOfficialsComponent.html" target="_self" >UpdateOfficialsComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/UpdateOfficialsConfirmComponent.html" target="_self" >UpdateOfficialsConfirmComponent</a></code>
+                                </li>
+                        </ul>
+                </div>
+
+                <div class="col-sm-6">
+                    <h4>Depends on</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="https://angular.dev/api/common/CommonModule" target="_blank" >CommonModule</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="https://angular.dev/api/core/AfterViewInit" target="_blank" >AfterViewInit</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="https://angular.dev/api/core/AfterViewChecked" target="_blank" >AfterViewChecked</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="https://angular.dev/api/core/OnDestroy" target="_blank" >OnDestroy</a></code>
+                                </li>
+                        </ul>
+                </div>
+            </div>
+        </section>
+</div>
+
+    <div class="tab-pane fade " id="api">    <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Optional</span>
+                                <a href="#actionsTpl" >actionsTpl</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                <a href="#captionId" >captionId</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#cdr" >cdr</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#dateTpl" >dateTpl</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#isInitialisingSortable" >isInitialisingSortable</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#platformId" >platformId</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#selectedIdsState" >selectedIdsState</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#selectedIdsSync" >selectedIdsSync</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Optional</span>
+                                <a href="#sortableInstance" >sortableInstance</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#sortDirectionState" >sortDirectionState</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#sortKeyState" >sortKeyState</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#sortStateSync" >sortStateSync</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Optional</span>
+                                <a href="#tableRef" >tableRef</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                <a href="#trackRow" >trackRow</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#ariaSortFor" >ariaSortFor</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#coerceRowId" >coerceRowId</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#getRowId" >getRowId</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#getSelectedRows" >getSelectedRows</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#getSortValue" >getSortValue</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#isSelected" >isSelected</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#isSortableColumn" >isSortableColumn</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#isSortEnabled" >isSortEnabled</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#ngAfterViewChecked" >ngAfterViewChecked</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#ngAfterViewInit" >ngAfterViewInit</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#ngOnDestroy" >ngOnDestroy</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#onHeaderClick" >onHeaderClick</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#toggleOne" >toggleOne</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#toggleSelectAllVisible" >toggleSelectAllVisible</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#tryInitSortableTable" >tryInitSortableTable</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#updateSelection" >updateSelection</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Inputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#caption" >caption</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#captionSize" >captionSize</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#clientOrServerSort" >clientOrServerSort</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#columns" >columns</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#data" >data</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#dateFieldIdentifier" >dateFieldIdentifier</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#disabledSortColumns" >disabledSortColumns</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#hiddenCaption" >hiddenCaption</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#idField" >idField</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#idPrefix" >idPrefix</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#loading" >loading</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#noDataMessage" >noDataMessage</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#selectable" >selectable</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#selectAllScope" >selectAllScope</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#selectedIds" >selectedIds</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#singleSelect" >singleSelect</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#sortDirection" >sortDirection</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#sortKey" >sortKey</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#sortState" >sortState</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#trackBy" >trackBy</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Outputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#selectAllChange" >selectAllChange</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#selectedIdsChange" >selectedIdsChange</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#selectedRowsChange" >selectedRowsChange</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#sortChange" >sortChange</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Accessors</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--accessor" aria-hidden="true">A</span>
+                                <a href="#visibleIds" >visibleIds</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--accessor" aria-hidden="true">A</span>
+                                <a href="#allVisibleSelected" >allVisibleSelected</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--accessor" aria-hidden="true">A</span>
+                                <a href="#someVisibleSelected" >someVisibleSelected</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--accessor" aria-hidden="true">A</span>
+                                <a href="#firstColField" >firstColField</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+
+    <section data-compodoc="block-inputs">
+    <h3 id="inputs">Inputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="caption"></a>
+                        <b>caption</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:69</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="captionSize"></a>
+                        <b>captionSize</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>&quot;s&quot; | &quot;m&quot; | &quot;l&quot;</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;m&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="89" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:89</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="clientOrServerSort"></a>
+                        <b>clientOrServerSort</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>&quot;server&quot; | &quot;client&quot;</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;client&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="104" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:104</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="columns"></a>
+                        <b>columns</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#TableColumn" target="_self" >TableColumn[]</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>[]</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="91" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:91</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="data"></a>
+                        <b>data</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#Row" target="_self" >Row[]</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>[]</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="92" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:92</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="dateFieldIdentifier"></a>
+                        <b>dateFieldIdentifier</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;date&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="96" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:96</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="disabledSortColumns"></a>
+                        <b>disabledSortColumns</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>readonly string[]</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>[]</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="97" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:97</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="hiddenCaption"></a>
+                        <b>hiddenCaption</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="90" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:90</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="idField"></a>
+                        <b>idField</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | undefined</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>undefined</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="112" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:112</a></div>
+                            </td>
+                        </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>Optional id field / custom trackBy, kept from your original component</p>
+</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="idPrefix"></a>
+                        <b>idPrefix</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;apps-&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="122" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:122</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="loading"></a>
+                        <b>loading</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="94" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:94</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="noDataMessage"></a>
+                        <b>noDataMessage</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;No results found.&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="93" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:93</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="selectable"></a>
+                        <b>selectable</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="116" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:116</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="selectAllScope"></a>
+                        <b>selectAllScope</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>&quot;visible&quot; | &quot;external&quot;</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;visible&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="120" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:120</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="selectedIds"></a>
+                        <b>selectedIds</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>Set&lt;string&gt;</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>new Set&lt;string&gt;()</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="117" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:117</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="singleSelect"></a>
+                        <b>singleSelect</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="123" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:123</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="sortDirection"></a>
+                        <b>sortDirection</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>&quot;desc&quot; | &quot;asc&quot;</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;desc&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="102" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:102</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="sortKey"></a>
+                        <b>sortKey</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="101" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:101</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="sortState"></a>
+                        <b>sortState</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#SortState" target="_self" >SortState | null</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="103" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:103</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="trackBy"></a>
+                        <b>trackBy</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#Row" target="_self" >((index: number, row: Row) &#x3D;&gt; unknown) | undefined</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>undefined</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="113" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:113</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+</section>
+
+    <section data-compodoc="block-outputs">
+    <h3 id="outputs">Outputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="selectAllChange"></a>
+                        <b>selectAllChange</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="121" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:121</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="selectedIdsChange"></a>
+                        <b>selectedIdsChange</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>Set&lt;string&gt;</code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="118" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:118</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="selectedRowsChange"></a>
+                        <b>selectedRowsChange</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#Row" target="_self" >Row[]</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="119" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:119</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="sortChange"></a>
+                        <b>sortChange</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>{    key: string;    direction: &#x27;desc&#x27; | &#x27;asc&#x27;;  }</code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="106" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:106</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+</section>
+
+
+
+    <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ariaSortFor"></a>
+                    <span class="name">
+                        <span ><b>ariaSortFor</b></span>
+                        <a href="#ariaSortFor"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>ariaSortFor(key: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="358"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:358</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>key</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>&quot;ascending&quot; | &quot;descending&quot; | &quot;none&quot;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="coerceRowId"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>coerceRowId</b></span>
+                        <a href="#coerceRowId"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>coerceRowId(row: <a href="../miscellaneous/typealiases.html#Row" target="_self">Row</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="377"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:377</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>row</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#Row" target="_self" >Row</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>string | null</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getRowId"></a>
+                    <span class="name">
+                        <span ><b>getRowId</b></span>
+                        <a href="#getRowId"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getRowId(row: <a href="../miscellaneous/typealiases.html#Row" target="_self">Row</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="215"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:215</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>row</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#Row" target="_self" >Row</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getSelectedRows"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>getSelectedRows</b></span>
+                        <a href="#getSelectedRows"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>getSelectedRows()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="407"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:407</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../miscellaneous/typealiases.html#Row" target="_self" >Row[]</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getSortValue"></a>
+                    <span class="name">
+                        <span ><b>getSortValue</b></span>
+                        <a href="#getSortValue"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getSortValue(row: <a href="../miscellaneous/typealiases.html#Row" target="_self">Row</a>, col: <a href="../miscellaneous/typealiases.html#TableColumn" target="_self">TableColumn</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="163"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:163</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Supply a stable value for MoJ client-side sorting without leaking objects into the DOM.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>row</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#Row" target="_self" >Row</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>col</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#TableColumn" target="_self" >TableColumn</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>string | null</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="isSelected"></a>
+                    <span class="name">
+                        <span ><b>isSelected</b></span>
+                        <a href="#isSelected"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>isSelected(row: <a href="../miscellaneous/typealiases.html#Row" target="_self">Row</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="210"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:210</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>row</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#Row" target="_self" >Row</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="isSortableColumn"></a>
+                    <span class="name">
+                        <span ><b>isSortableColumn</b></span>
+                        <a href="#isSortableColumn"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>isSortableColumn(col: { field: string; sortable?: boolean })</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="366"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:366</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>col</td>
+                                            <td>
+                                                        <code>{ field: string; sortable?: boolean }</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="isSortEnabled"></a>
+                    <span class="name">
+                        <span ><b>isSortEnabled</b></span>
+                        <a href="#isSortEnabled"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>isSortEnabled(col: { field: string; sortable?: boolean })</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="370"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:370</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>col</td>
+                                            <td>
+                                                        <code>{ field: string; sortable?: boolean }</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ngAfterViewChecked"></a>
+                    <span class="name">
+                        <span ><b>ngAfterViewChecked</b></span>
+                        <a href="#ngAfterViewChecked"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>ngAfterViewChecked()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="271"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:271</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ngAfterViewInit"></a>
+                    <span class="name">
+                        <span ><b>ngAfterViewInit</b></span>
+                        <a href="#ngAfterViewInit"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>ngAfterViewInit()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="267"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:267</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Initialise the MoJ sortable table once the real DOM exists.
+Server mode deliberately skips MoJ JS so the rendered row order always matches
+the latest backend payload.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ngOnDestroy"></a>
+                    <span class="name">
+                        <span ><b>ngOnDestroy</b></span>
+                        <a href="#ngOnDestroy"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>ngOnDestroy()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="330"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:330</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="onHeaderClick"></a>
+                    <span class="name">
+                        <span ><b>onHeaderClick</b></span>
+                        <a href="#onHeaderClick"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>onHeaderClick(event: Event | null, col: { field: string; sortable?: boolean })</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="338"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:338</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Server mode owns the sort interaction in Angular so the table only ever
+renders rows in the exact order returned by the backend.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>event</td>
+                                            <td>
+                                                        <code>Event | null</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>col</td>
+                                            <td>
+                                                        <code>{ field: string; sortable?: boolean }</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="toggleOne"></a>
+                    <span class="name">
+                        <span ><b>toggleOne</b></span>
+                        <a href="#toggleOne"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>toggleOne(row: <a href="../miscellaneous/typealiases.html#Row" target="_self">Row</a>, checked: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank">boolean</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="238"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:238</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>row</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#Row" target="_self" >Row</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>checked</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="toggleSelectAllVisible"></a>
+                    <span class="name">
+                        <span ><b>toggleSelectAllVisible</b></span>
+                        <a href="#toggleSelectAllVisible"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>toggleSelectAllVisible(checked: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank">boolean</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="219"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:219</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>checked</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="tryInitSortableTable"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>tryInitSortableTable</b></span>
+                        <a href="#tryInitSortableTable"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>tryInitSortableTable()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="280"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:280</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Lazily initializes the MOJ sortable-table widget for browser-side sorting.
+Server sorting and repeated view checks skip initialization.
+Failed imports leave the table usable and allow a later attempt.</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="updateSelection"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>updateSelection</b></span>
+                        <a href="#updateSelection"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>updateSelection(next: Set<string>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="400"
+                                    class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:400</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>next</td>
+                                            <td>
+                                                        <code>Set&lt;string&gt;</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="actionsTpl"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier">Optional</span>
+                        <span ><b>actionsTpl</b></span>
+                        <a href="#actionsTpl"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>TemplateRef&lt;unknown&gt;</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <b>Decorators : </b>
+                        <br />
+                        <code>
+                            @ContentChild(&#x27;actionsTemplate&#x27;, {read: TemplateRef})<br />
+                        </code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="65" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:65</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="captionId"></a>
+                    <span class="name">
+                        <span ><b>captionId</b></span>
+                        <a href="#captionId"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
+    const text &#x3D; this.caption() ?? &#x27;&#x27;;
+
+    let s &#x3D; text
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, &#x27;-&#x27;)
+      .replace(/^-+/, &#x27;&#x27;);
+
+    while (s.endsWith(&#x27;-&#x27;)) {
+      s &#x3D; s.slice(0, -1);
+    }
+
+    if (s.length &amp;&amp; s[0] &gt;&#x3D; &#x27;0&#x27; &amp;&amp; s[0] &lt;&#x3D; &#x27;9&#x27;) {
+      s &#x3D; &#x60;a${s}&#x60;;
+    }
+
+    return s;
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="70" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:70</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="cdr"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>cdr</b></span>
+                        <a href="#cdr"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(ChangeDetectorRef)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="132" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:132</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="dateTpl"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>dateTpl</b></span>
+                        <a href="#dateTpl"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>contentChild&lt;TemplateRef&lt;unknown&gt;&gt;(&#x27;dateTemplate&#x27;)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="67" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:67</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="isInitialisingSortable"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>isInitialisingSortable</b></span>
+                        <a href="#isInitialisingSortable"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="129" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:129</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="platformId"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>platformId</b></span>
+                        <a href="#platformId"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(PLATFORM_ID)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="131" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:131</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="selectedIdsState"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>selectedIdsState</b></span>
+                        <a href="#selectedIdsState"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;Set&lt;string&gt;&gt;(new Set&lt;string&gt;())</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="135" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:135</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="selectedIdsSync"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>selectedIdsSync</b></span>
+                        <a href="#selectedIdsSync"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>effect(() &#x3D;&gt; {
+    this.selectedIdsState.set(this.selectedIds() ?? new Set&lt;string&gt;());
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="136" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:136</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="sortableInstance"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Optional</span>
+                        <span ><b>sortableInstance</b></span>
+                        <a href="#sortableInstance"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>{ init?: void; destroy?: void }</code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="128" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:128</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="sortDirectionState"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>sortDirectionState</b></span>
+                        <a href="#sortDirectionState"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;&#x27;desc&#x27; | &#x27;asc&#x27;&gt;(&#x27;desc&#x27;)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="134" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:134</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="sortKeyState"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>sortKeyState</b></span>
+                        <a href="#sortKeyState"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;string&gt;(&#x27;&#x27;)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="133" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:133</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="sortStateSync"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>sortStateSync</b></span>
+                        <a href="#sortStateSync"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>effect(() &#x3D;&gt; {
+    const sortState &#x3D; this.sortState();
+    this.sortKeyState.set(sortState?.key ?? this.sortKey() ?? &#x27;&#x27;);
+    this.sortDirectionState.set(
+      sortState?.direction ?? this.sortDirection() ?? &#x27;desc&#x27;,
+    );
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="140" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:140</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="tableRef"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier">Optional</span>
+                        <span ><b>tableRef</b></span>
+                        <a href="#tableRef"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>ElementRef&lt;HTMLTableElement&gt;</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <b>Decorators : </b>
+                        <br />
+                        <code>
+                            @ViewChild(&#x27;mojTable&#x27;)<br />
+                        </code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="126" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:126</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="trackRow"></a>
+                    <span class="name">
+                        <span ><b>trackRow</b></span>
+                        <a href="#trackRow"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>() &#x3D;&gt; {...}</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="149" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:149</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>trackBy helper retained for performance</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</section>
+
+    <section data-compodoc="block-accessors">
+    <h3 id="accessors">
+        Accessors
+    </h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="visibleIds"></a>
+                        <span class="name"><b>visibleIds</b><a href="#visibleIds"><span class="icon ion-ios-link"></span></a></span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <span class="accessor"><b>get</b><code>visibleIds()</code></span>
+                    </td>
+                </tr>
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="188" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:188</a></div>
+                                </td>
+                            </tr>
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="allVisibleSelected"></a>
+                        <span class="name"><b>allVisibleSelected</b><a href="#allVisibleSelected"><span class="icon ion-ios-link"></span></a></span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <span class="accessor"><b>get</b><code>allVisibleSelected()</code></span>
+                    </td>
+                </tr>
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="194" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:194</a></div>
+                                </td>
+                            </tr>
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="someVisibleSelected"></a>
+                        <span class="name"><b>someVisibleSelected</b><a href="#someVisibleSelected"><span class="icon ion-ios-link"></span></a></span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <span class="accessor"><b>get</b><code>someVisibleSelected()</code></span>
+                    </td>
+                </tr>
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="200" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:200</a></div>
+                                </td>
+                            </tr>
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="firstColField"></a>
+                        <span class="name"><b>firstColField</b><a href="#firstColField"><span class="icon ion-ios-link"></span></a></span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <span class="accessor"><b>get</b><code>firstColField()</code></span>
+                    </td>
+                </tr>
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="206" class="link-to-prism">src/app/core/components/sortable-table/sortable-table.component.ts:206</a></div>
+                                </td>
+                            </tr>
+
+            </tbody>
+        </table>
+</section>
+</div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { CommonModule, isPlatformBrowser } from &#x27;@angular/common&#x27;;
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ContentChild,
+  ElementRef,
+  OnDestroy,
+  PLATFORM_ID,
+  TemplateRef,
+  ViewChild,
+  computed,
+  contentChild,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from &#x27;@angular/core&#x27;;
+
+import { Row } from &#x27;@core-types/table/row.types&#x27;;
+import {
+  SortState,
+  ariaSortFor as ariaSortForUtil,
+  getNextSortState,
+  suppressSortEvent,
+} from &#x27;@util/table-sort&#x27;;
+
+/** The column contract for this table */
+export type TableColumn &#x3D; {
+  header: string;
+  field: string;
+  numeric?: boolean;
+  sortable?: boolean;
+  minWidth?: string;
+  maxWidth?: string;
+  wrap?: boolean;
+  sortValue?: (
+    row: Record&lt;string, unknown&gt;,
+  ) &#x3D;&gt; string | number | null | undefined;
+  defaultSort?: &#x27;ascending&#x27; | &#x27;descending&#x27; | &#x27;none&#x27;;
+};
+
+@Component({
+  selector: &#x27;app-sortable-table&#x27;,
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: &#x27;./sortable-table.component.html&#x27;,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: &#x27;./sortable-table.component.scss&#x27;,
+})
+export class SortableTableComponent
+  implements AfterViewInit, AfterViewChecked, OnDestroy
+{
+  @ContentChild(&#x27;actionsTemplate&#x27;, { read: TemplateRef })
+  actionsTpl?: TemplateRef&lt;unknown&gt;;
+
+  readonly dateTpl &#x3D; contentChild&lt;TemplateRef&lt;unknown&gt;&gt;(&#x27;dateTemplate&#x27;);
+
+  caption &#x3D; input(&#x27;&#x27;);
+  captionId &#x3D; computed(() &#x3D;&gt; {
+    const text &#x3D; this.caption() ?? &#x27;&#x27;;
+
+    let s &#x3D; text
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, &#x27;-&#x27;)
+      .replace(/^-+/, &#x27;&#x27;);
+
+    while (s.endsWith(&#x27;-&#x27;)) {
+      s &#x3D; s.slice(0, -1);
+    }
+
+    if (s.length &amp;&amp; s[0] &gt;&#x3D; &#x27;0&#x27; &amp;&amp; s[0] &lt;&#x3D; &#x27;9&#x27;) {
+      s &#x3D; &#x60;a${s}&#x60;;
+    }
+
+    return s;
+  });
+  captionSize &#x3D; input&lt;&#x27;s&#x27; | &#x27;m&#x27; | &#x27;l&#x27;&gt;(&#x27;m&#x27;);
+  hiddenCaption &#x3D; input(false);
+  columns &#x3D; input&lt;TableColumn[]&gt;([]);
+  data &#x3D; input&lt;Row[]&gt;([]);
+  noDataMessage &#x3D; input(&#x27;No results found.&#x27;);
+  loading &#x3D; input(false);
+
+  dateFieldIdentifier &#x3D; input&lt;string&gt;(&#x27;date&#x27;);
+  disabledSortColumns &#x3D; input&lt;readonly string[]&gt;([]);
+
+  // Table sort: server side
+  // Make sure to set default key and direction in page component
+  sortKey &#x3D; input&lt;string&gt;(&#x27;&#x27;);
+  sortDirection &#x3D; input&lt;&#x27;desc&#x27; | &#x27;asc&#x27;&gt;(&#x27;desc&#x27;);
+  sortState &#x3D; input&lt;SortState | null&gt;(null);
+  clientOrServerSort &#x3D; input&lt;&#x27;server&#x27; | &#x27;client&#x27;&gt;(&#x27;client&#x27;);
+
+  sortChange &#x3D; output&lt;{
+    key: string;
+    direction: &#x27;desc&#x27; | &#x27;asc&#x27;;
+  }&gt;();
+
+  /** Optional id field / custom trackBy, kept from your original component */
+  idField &#x3D; input&lt;string | undefined&gt;(undefined);
+  trackBy &#x3D; input&lt;((index: number, row: Row) &#x3D;&gt; unknown) | undefined&gt;(
+    undefined,
+  );
+  selectable &#x3D; input(false);
+  selectedIds &#x3D; input&lt;Set&lt;string&gt;&gt;(new Set&lt;string&gt;());
+  selectedIdsChange &#x3D; output&lt;Set&lt;string&gt;&gt;();
+  selectedRowsChange &#x3D; output&lt;Row[]&gt;();
+  selectAllScope &#x3D; input&lt;&#x27;visible&#x27; | &#x27;external&#x27;&gt;(&#x27;visible&#x27;);
+  selectAllChange &#x3D; output&lt;boolean&gt;();
+  idPrefix &#x3D; input(&#x27;apps-&#x27;);
+  singleSelect &#x3D; input(false);
+
+  @ViewChild(&#x27;mojTable&#x27;)
+  tableRef?: ElementRef&lt;HTMLTableElement&gt;;
+
+  private sortableInstance?: { init?: () &#x3D;&gt; void; destroy?: () &#x3D;&gt; void };
+  private isInitialisingSortable &#x3D; false;
+
+  private readonly platformId &#x3D; inject(PLATFORM_ID);
+  private readonly cdr &#x3D; inject(ChangeDetectorRef);
+  private readonly sortKeyState &#x3D; signal&lt;string&gt;(&#x27;&#x27;);
+  private readonly sortDirectionState &#x3D; signal&lt;&#x27;desc&#x27; | &#x27;asc&#x27;&gt;(&#x27;desc&#x27;);
+  private readonly selectedIdsState &#x3D; signal&lt;Set&lt;string&gt;&gt;(new Set&lt;string&gt;());
+  private readonly selectedIdsSync &#x3D; effect(() &#x3D;&gt; {
+    this.selectedIdsState.set(this.selectedIds() ?? new Set&lt;string&gt;());
+  });
+  // Keep the rendered server-side sort state aligned with the page state.
+  private readonly sortStateSync &#x3D; effect(() &#x3D;&gt; {
+    const sortState &#x3D; this.sortState();
+    this.sortKeyState.set(sortState?.key ?? this.sortKey() ?? &#x27;&#x27;);
+    this.sortDirectionState.set(
+      sortState?.direction ?? this.sortDirection() ?? &#x27;desc&#x27;,
+    );
+  });
+
+  /** trackBy helper retained for performance */
+  trackRow &#x3D; (index: number, row: Row): unknown &#x3D;&gt; {
+    const trackBy &#x3D; this.trackBy();
+    if (trackBy) {
+      return trackBy(index, row);
+    }
+    const idField &#x3D; this.idField();
+    if (idField &amp;&amp; idField in row) {
+      return row[idField];
+    }
+    return index;
+    // same behaviour you had before
+  };
+
+  /** Supply a stable value for MoJ client-side sorting without leaking objects into the DOM. */
+  getSortValue(row: Row, col: TableColumn): string | null {
+    const candidate: unknown &#x3D; col.sortValue
+      ? col.sortValue(row)
+      : row[col.field];
+
+    if (candidate &#x3D;&#x3D;&#x3D; null) {
+      return null; // nothing to sort on
+    }
+    if (typeof candidate &#x3D;&#x3D;&#x3D; &#x27;number&#x27;) {
+      return String(candidate);
+    }
+    if (typeof candidate &#x3D;&#x3D;&#x3D; &#x27;string&#x27;) {
+      return candidate;
+    }
+    if (candidate instanceof Date) {
+      return candidate.toISOString();
+    }
+    if (typeof candidate &#x3D;&#x3D;&#x3D; &#x27;boolean&#x27;) {
+      return candidate ? &#x27;1&#x27; : &#x27;0&#x27;;
+    }
+
+    // Any other object/array -&gt; don&#x27;t emit a sort value (avoids [object Object])
+    return null;
+  }
+
+  get visibleIds(): string[] {
+    return (this.data() ?? [])
+      .map((row) &#x3D;&gt; this.getRowId(row))
+      .filter((id): id is string &#x3D;&gt; !!id);
+  }
+
+  get allVisibleSelected(): boolean {
+    const ids &#x3D; this.visibleIds;
+    const selected &#x3D; this.selectedIdsState();
+    return ids.length &gt; 0 &amp;&amp; ids.every((id) &#x3D;&gt; selected.has(id));
+  }
+
+  get someVisibleSelected(): boolean {
+    const ids &#x3D; this.visibleIds;
+    const selected &#x3D; this.selectedIdsState();
+    return ids.some((id) &#x3D;&gt; selected.has(id));
+  }
+
+  get firstColField(): string {
+    return this.columns()[0]?.field ?? &#x27;&#x27;;
+  }
+
+  isSelected(row: Row): boolean {
+    const id &#x3D; this.getRowId(row);
+    return !!id &amp;&amp; this.selectedIdsState().has(id);
+  }
+
+  getRowId(row: Row): string {
+    return this.coerceRowId(row) ?? &#x27;&#x27;;
+  }
+
+  toggleSelectAllVisible(checked: boolean): void {
+    if (this.singleSelect()) {
+      return;
+    }
+    if (this.selectAllScope() &#x3D;&#x3D;&#x3D; &#x27;external&#x27;) {
+      this.selectAllChange.emit(checked);
+      return;
+    }
+    const next &#x3D; new Set(this.selectedIdsState());
+    for (const id of this.visibleIds) {
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+    }
+    this.updateSelection(next);
+  }
+
+  toggleOne(row: Row, checked: boolean): void {
+    const id &#x3D; this.getRowId(row);
+    if (!id) {
+      return;
+    }
+
+    let next: Set&lt;string&gt;;
+    if (this.singleSelect()) {
+      next &#x3D; new Set&lt;string&gt;();
+      if (checked) {
+        next.add(id);
+      }
+    } else {
+      next &#x3D; new Set(this.selectedIdsState());
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+    }
+
+    this.updateSelection(next);
+  }
+
+  /**
+   * Initialise the MoJ sortable table once the real DOM exists.
+   * Server mode deliberately skips MoJ JS so the rendered row order always matches
+   * the latest backend payload.
+   */
+  ngAfterViewInit(): void {
+    this.tryInitSortableTable();
+  }
+
+  ngAfterViewChecked(): void {
+    this.tryInitSortableTable();
+  }
+
+  /**
+   * Lazily initializes the MOJ sortable-table widget for browser-side sorting.
+   * Server sorting and repeated view checks skip initialization.
+   * Failed imports leave the table usable and allow a later attempt.
+   */
+  private tryInitSortableTable(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    if (this.clientOrServerSort() &#x3D;&#x3D;&#x3D; &#x27;server&#x27;) {
+      return;
+    }
+
+    if (!this.tableRef?.nativeElement) {
+      return;
+    }
+
+    if (this.sortableInstance || this.isInitialisingSortable) {
+      return;
+    }
+
+    this.isInitialisingSortable &#x3D; true;
+
+    void import(&#x27;@ministryofjustice/frontend&#x27;)
+      .then((mod) &#x3D;&gt; {
+        type SortableCtorT &#x3D; new (el: HTMLElement) &#x3D;&gt; {
+          init?: () &#x3D;&gt; void;
+          destroy?: () &#x3D;&gt; void;
+          sort?: (...args: unknown[]) &#x3D;&gt; unknown;
+          addRows?: (...args: unknown[]) &#x3D;&gt; void;
+        };
+
+        // Support both export shapes (named vs default)
+        const SortableCtor: SortableCtorT | undefined &#x3D;
+          (mod as { SortableTable?: SortableCtorT }).SortableTable ??
+          (mod as { default?: { SortableTable?: SortableCtorT } }).default
+            ?.SortableTable;
+
+        if (!SortableCtor) {
+          return;
+        }
+
+        const instance &#x3D; new SortableCtor(this.tableRef!.nativeElement);
+        instance.init?.();
+        this.sortableInstance &#x3D; instance;
+      })
+      .catch(() &#x3D;&gt; {
+        // no-op for non-browser/test environments
+      })
+      .finally(() &#x3D;&gt; {
+        this.isInitialisingSortable &#x3D; false;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.sortableInstance?.destroy?.();
+  }
+
+  /**
+   * Server mode owns the sort interaction in Angular so the table only ever
+   * renders rows in the exact order returned by the backend.
+   */
+  onHeaderClick(
+    event: Event | null,
+    col: { field: string; sortable?: boolean },
+  ): void {
+    if (this.clientOrServerSort() !&#x3D;&#x3D; &#x27;server&#x27; || !this.isSortEnabled(col)) {
+      return;
+    }
+
+    suppressSortEvent(event);
+
+    const next &#x3D; getNextSortState(
+      { key: this.sortKeyState(), direction: this.sortDirectionState() },
+      col.field,
+    );
+
+    this.sortKeyState.set(next.key);
+    this.sortDirectionState.set(next.direction);
+    this.sortChange.emit(next);
+  }
+
+  ariaSortFor(key: string): &#x27;ascending&#x27; | &#x27;descending&#x27; | &#x27;none&#x27; {
+    return ariaSortForUtil(
+      { key: this.sortKeyState(), direction: this.sortDirectionState() },
+      key,
+      &#x27;none&#x27;,
+    );
+  }
+
+  isSortableColumn(col: { field: string; sortable?: boolean }): boolean {
+    return col.sortable !&#x3D;&#x3D; false &amp;&amp; col.field !&#x3D;&#x3D; &#x27;actions&#x27;;
+  }
+
+  isSortEnabled(col: { field: string; sortable?: boolean }): boolean {
+    return (
+      this.isSortableColumn(col) &amp;&amp;
+      !this.disabledSortColumns().includes(col.field)
+    );
+  }
+
+  private coerceRowId(row: Row): string | null {
+    const idField &#x3D; this.idField();
+    if (!idField) {
+      return null;
+    }
+
+    const value &#x3D; row[idField];
+    if (typeof value &#x3D;&#x3D;&#x3D; &#x27;string&#x27;) {
+      return value;
+    }
+    if (typeof value &#x3D;&#x3D;&#x3D; &#x27;number&#x27;) {
+      return String(value);
+    }
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    if (typeof value &#x3D;&#x3D;&#x3D; &#x27;boolean&#x27;) {
+      return value ? &#x27;1&#x27; : &#x27;0&#x27;;
+    }
+
+    return null;
+  }
+
+  private updateSelection(next: Set&lt;string&gt;): void {
+    this.selectedIdsState.set(next);
+    this.selectedIdsChange.emit(next);
+    this.selectedRowsChange.emit(this.getSelectedRows());
+    this.cdr.markForCheck();
+  }
+
+  private getSelectedRows(): Row[] {
+    const ids &#x3D; Array.from(this.selectedIdsState());
+    return ids
+      .map((id) &#x3D;&gt; (this.data() ?? []).find((row) &#x3D;&gt; this.getRowId(row) &#x3D;&#x3D;&#x3D; id))
+      .filter((row): row is Row &#x3D;&gt; !!row);
+  }
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="templateData">
+        <pre class="line-numbers"><code class="language-html">@if (data() &amp;&amp; data().length) {
+  &lt;div
+    class&#x3D;&quot;app-sortable-table__frame&quot;
+    [class.app-sortable-table__frame--loading]&#x3D;&quot;loading()&quot;
+  &gt;
+    &lt;table
+      #mojTable
+      class&#x3D;&quot;govuk-table&quot;
+      [attr.data-module]&#x3D;&quot;
+        clientOrServerSort() &#x3D;&#x3D;&#x3D; &#x27;client&#x27; ? &#x27;moj-sortable-table&#x27; : null
+      &quot;
+      [attr.aria-describedby]&#x3D;&quot;caption() ? &#x27;sortable-&#x27; + captionId() : null&quot;
+    &gt;
+      &lt;ng-content select&#x3D;&quot;caption&quot;&gt;&lt;/ng-content&gt;
+
+      @if (caption()) {
+        &lt;caption
+          [class.govuk-visually-hidden]&#x3D;&quot;hiddenCaption()&quot;
+          class&#x3D;&quot;govuk-table__caption govuk-table__caption--{{ captionSize() }}&quot;
+          [id]&#x3D;&quot;&#x27;sortable-&#x27; + captionId()&quot;
+        &gt;
+          {{
+            caption()
+          }}
+        &lt;/caption&gt;
+      }
+
+      &lt;thead class&#x3D;&quot;govuk-table__head&quot;&gt;
+        &lt;tr class&#x3D;&quot;govuk-table__row&quot;&gt;
+          @if (selectable()) {
+            @if (!singleSelect()) {
+              &lt;th
+                class&#x3D;&quot;govuk-table__header moj-multi-select__select-all&quot;
+                scope&#x3D;&quot;col&quot;
+                aria-label&#x3D;&quot;Select rows&quot;
+              &gt;
+                &lt;span class&#x3D;&quot;govuk-visually-hidden&quot;&gt;Select rows&lt;/span&gt;
+
+                &lt;div class&#x3D;&quot;govuk-checkboxes govuk-checkboxes--small&quot;&gt;
+                  &lt;div
+                    class&#x3D;&quot;govuk-checkboxes__item moj-multi-select__checkbox&quot;
+                  &gt;
+                    &lt;input
+                      #selectAll
+                      type&#x3D;&quot;checkbox&quot;
+                      class&#x3D;&quot;govuk-checkboxes__input&quot;
+                      [id]&#x3D;&quot;idPrefix() + &#x27;select-all&#x27;&quot;
+                      [checked]&#x3D;&quot;allVisibleSelected&quot;
+                      [indeterminate]&#x3D;&quot;
+                        someVisibleSelected &amp;&amp; !allVisibleSelected
+                      &quot;
+                      (change)&#x3D;&quot;toggleSelectAllVisible(selectAll.checked)&quot;
+                    /&gt;
+                    &lt;label
+                      class&#x3D;&quot;govuk-label govuk-checkboxes__label&quot;
+                      [for]&#x3D;&quot;idPrefix() + &#x27;select-all&#x27;&quot;
+                    &gt;
+                      &lt;span class&#x3D;&quot;govuk-visually-hidden&quot;&gt;Select all&lt;/span&gt;
+                    &lt;/label&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+              &lt;/th&gt;
+            } @else {
+              &lt;th
+                class&#x3D;&quot;govuk-table__header&quot;
+                scope&#x3D;&quot;col&quot;
+                aria-label&#x3D;&quot;Select row&quot;
+              &gt;
+                &lt;span class&#x3D;&quot;govuk-visually-hidden&quot;&gt;Select row&lt;/span&gt;
+              &lt;/th&gt;
+            }
+          }
+
+          @for (col of columns(); track col.field) {
+            &lt;th
+              scope&#x3D;&quot;col&quot;
+              class&#x3D;&quot;govuk-table__header&quot;
+              [class.govuk-table__header--numeric]&#x3D;&quot;col.numeric&quot;
+              [style.min-width]&#x3D;&quot;col.minWidth ?? null&quot;
+              [style.max-width]&#x3D;&quot;col.maxWidth ?? null&quot;
+              [class.app-sortable-table__cell--wrap]&#x3D;&quot;
+                col.wrap !&#x3D;&#x3D; false &amp;&amp; col.field !&#x3D;&#x3D; &#x27;actions&#x27;
+              &quot;
+              [class.app-sortable-table__cell--nowrap]&#x3D;&quot;
+                col.wrap &#x3D;&#x3D;&#x3D; false || col.field &#x3D;&#x3D;&#x3D; &#x27;actions&#x27;
+              &quot;
+              [attr.aria-sort]&#x3D;&quot;
+                !isSortEnabled(col)
+                  ? null
+                  : clientOrServerSort() &#x3D;&#x3D;&#x3D; &#x27;server&#x27;
+                    ? ariaSortFor(col.field)
+                    : (col.defaultSort ?? &#x27;none&#x27;)
+              &quot;
+            &gt;
+              @if (clientOrServerSort() &#x3D;&#x3D;&#x3D; &#x27;server&#x27; &amp;&amp; isSortEnabled(col)) {
+                &lt;button
+                  type&#x3D;&quot;button&quot;
+                  class&#x3D;&quot;app-sortable-table__header-button&quot;
+                  (click)&#x3D;&quot;onHeaderClick($event, col)&quot;
+                &gt;
+                  &lt;span class&#x3D;&quot;app-sortable-table__header-label&quot;&gt;
+                    {{ col.header }}
+                  &lt;/span&gt;
+                  &lt;span
+                    class&#x3D;&quot;app-sortable-table__sort-indicator&quot;
+                    aria-hidden&#x3D;&quot;true&quot;
+                  &gt;&lt;/span&gt;
+                &lt;/button&gt;
+              } @else {
+                {{ col.header }}
+              }
+            &lt;/th&gt;
+          }
+        &lt;/tr&gt;
+      &lt;/thead&gt;
+
+      &lt;tbody class&#x3D;&quot;govuk-table__body&quot;&gt;
+        @for (row of data(); track trackRow($index, row)) {
+          &lt;tr
+            class&#x3D;&quot;govuk-table__row&quot;
+            [class.govuk-table__row--selected]&#x3D;&quot;selectable() &amp;&amp; isSelected(row)&quot;
+          &gt;
+            @if (selectable()) {
+              &lt;td class&#x3D;&quot;govuk-table__cell&quot;&gt;
+                &lt;div class&#x3D;&quot;govuk-checkboxes govuk-checkboxes--small&quot;&gt;
+                  &lt;div
+                    class&#x3D;&quot;govuk-checkboxes__item moj-multi-select__checkbox&quot;
+                  &gt;
+                    &lt;input
+                      #cb
+                      type&#x3D;&quot;checkbox&quot;
+                      class&#x3D;&quot;govuk-checkboxes__input&quot;
+                      name&#x3D;&quot;rows[]&quot;
+                      [id]&#x3D;&quot;idPrefix() + getRowId(row)&quot;
+                      [checked]&#x3D;&quot;isSelected(row)&quot;
+                      (change)&#x3D;&quot;toggleOne(row, cb.checked)&quot;
+                    /&gt;
+                    &lt;label
+                      class&#x3D;&quot;govuk-label govuk-checkboxes__label&quot;
+                      [for]&#x3D;&quot;idPrefix() + getRowId(row)&quot;
+                    &gt;
+                      &lt;span class&#x3D;&quot;govuk-visually-hidden&quot;&gt;
+                        Select {{ row[firstColField] }}
+                      &lt;/span&gt;
+                    &lt;/label&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+              &lt;/td&gt;
+            }
+
+            @for (col of columns(); track col.field; let ci &#x3D; $index) {
+              @if (ci &#x3D;&#x3D;&#x3D; 0) {
+                &lt;th
+                  scope&#x3D;&quot;row&quot;
+                  class&#x3D;&quot;govuk-table__header&quot;
+                  [class.govuk-table__cell--numeric]&#x3D;&quot;col.numeric&quot;
+                  [style.min-width]&#x3D;&quot;col.minWidth ?? null&quot;
+                  [style.max-width]&#x3D;&quot;col.maxWidth ?? null&quot;
+                  [class.app-sortable-table__cell--wrap]&#x3D;&quot;
+                    col.wrap !&#x3D;&#x3D; false &amp;&amp; col.field !&#x3D;&#x3D; &#x27;actions&#x27;
+                  &quot;
+                  [class.app-sortable-table__cell--nowrap]&#x3D;&quot;
+                    col.wrap &#x3D;&#x3D;&#x3D; false || col.field &#x3D;&#x3D;&#x3D; &#x27;actions&#x27;
+                  &quot;
+                  [attr.data-sort-value]&#x3D;&quot;
+                    clientOrServerSort() &#x3D;&#x3D;&#x3D; &#x27;client&#x27; &amp;&amp; col.sortable !&#x3D;&#x3D; false
+                      ? getSortValue(row, col)
+                      : null
+                  &quot;
+                &gt;
+                  @if (col.field &#x3D;&#x3D;&#x3D; dateFieldIdentifier() &amp;&amp; dateTpl()) {
+                    &lt;ng-container
+                      *ngTemplateOutlet&#x3D;&quot;dateTpl(); context: { $implicit: row }&quot;
+                    &gt;&lt;/ng-container&gt;
+                  } @else {
+                    {{ row[col.field] }}
+                  }
+                &lt;/th&gt;
+              } @else {
+                &lt;td
+                  class&#x3D;&quot;govuk-table__cell&quot;
+                  [class.govuk-table__cell--numeric]&#x3D;&quot;col.numeric&quot;
+                  [style.min-width]&#x3D;&quot;col.minWidth ?? null&quot;
+                  [style.max-width]&#x3D;&quot;col.maxWidth ?? null&quot;
+                  [class.app-sortable-table__cell--wrap]&#x3D;&quot;
+                    col.wrap !&#x3D;&#x3D; false &amp;&amp; col.field !&#x3D;&#x3D; &#x27;actions&#x27;
+                  &quot;
+                  [class.app-sortable-table__cell--nowrap]&#x3D;&quot;
+                    col.wrap &#x3D;&#x3D;&#x3D; false || col.field &#x3D;&#x3D;&#x3D; &#x27;actions&#x27;
+                  &quot;
+                  [attr.data-sort-value]&#x3D;&quot;
+                    clientOrServerSort() &#x3D;&#x3D;&#x3D; &#x27;client&#x27; &amp;&amp; col.sortable !&#x3D;&#x3D; false
+                      ? getSortValue(row, col)
+                      : null
+                  &quot;
+                &gt;
+                  @if (col.field &#x3D;&#x3D;&#x3D; &#x27;actions&#x27;) {
+                    &lt;ng-container
+                      *ngTemplateOutlet&#x3D;&quot;
+                        actionsTpl ?? null;
+                        context: { $implicit: row }
+                      &quot;
+                    &gt;&lt;/ng-container&gt;
+                  } @else if (
+                    col.field &#x3D;&#x3D;&#x3D; dateFieldIdentifier() &amp;&amp; dateTpl()
+                  ) {
+                    &lt;ng-container
+                      *ngTemplateOutlet&#x3D;&quot;dateTpl(); context: { $implicit: row }&quot;
+                    &gt;&lt;/ng-container&gt;
+                  } @else {
+                    {{ row[col.field] }}
+                  }
+                &lt;/td&gt;
+              }
+            }
+          &lt;/tr&gt;
+        }
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+
+    @if (loading()) {
+      &lt;div class&#x3D;&quot;app-sortable-table__loading&quot; aria-hidden&#x3D;&quot;true&quot;&gt;&lt;/div&gt;
+    }
+  &lt;/div&gt;
+} @else {
+  &lt;p
+    [attr.aria-label]&#x3D;&quot;noDataMessage()&quot;
+    class&#x3D;&quot;govuk-body app-sortable-table__empty&quot;
+  &gt;
+    {{ noDataMessage() }}
+  &lt;/p&gt;
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="styleData">
+                <p class="comment">
+                    <code>./sortable-table.component.scss</code>
+                </p>
+                <pre class="line-numbers"><code class="language-scss">:host ::ng-deep .govuk-table__body .govuk-table__cell,
+:host ::ng-deep .govuk-table__body .govuk-table__header {
+  vertical-align: top;
+}
+
+:host ::ng-deep .govuk-table__body .moj-multi-select__checkbox {
+  margin-top: 2px;
+}
+
+.govuk-checkboxes__label {
+  padding: 0;
+}
+
+.govuk-checkboxes--small {
+  // Keep the 10px GOV.UK hover halo inside the horizontally scrolling frame.
+  padding-left: 10px;
+}
+
+.app-sortable-table__frame {
+  position: relative;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-sortable-table__frame .govuk-table {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.app-sortable-table__frame--loading {
+  opacity: 0.7;
+  transition: opacity 150ms ease-in-out;
+}
+
+.app-sortable-table__loading {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+:host ::ng-deep tbody .app-sortable-table__cell--wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
+}
+
+.app-sortable-table__cell--nowrap {
+  white-space: nowrap;
+}
+
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort]
+  &gt; .app-sortable-table__header-button,
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort]
+  &gt; .app-sortable-table__header-button:hover {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  color: #005ea5;
+  background-color: transparent;
+  box-shadow: 0 0 0 0;
+  font-family: inherit;
+  font-weight: inherit;
+  text-align: inherit;
+  line-height: 1.25;
+  white-space: normal;
+  cursor: pointer;
+}
+
+:host ::ng-deep .app-sortable-table__header-label {
+  display: block;
+  min-width: 0;
+}
+
+:host ::ng-deep .app-sortable-table__sort-indicator {
+  position: relative;
+  flex: 0 0 0.75rem;
+  width: 0.75rem;
+  min-width: 0.75rem;
+  height: 0.9rem;
+}
+
+:host ::ng-deep .app-sortable-table__sort-indicator::before {
+  content: &#x27;&#x27;;
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 0.24rem);
+  width: 0;
+  height: 0;
+  border-right: 0.2rem solid transparent;
+  border-left: 0.2rem solid transparent;
+  border-top: 0.34rem solid currentColor;
+  transform: translate(-50%, -50%);
+}
+
+:host ::ng-deep .app-sortable-table__sort-indicator::after {
+  content: &#x27;&#x27;;
+  position: absolute;
+  left: 50%;
+  top: calc(50% - 0.24rem);
+  width: 0;
+  height: 0;
+  border-right: 0.2rem solid transparent;
+  border-bottom: 0.34rem solid currentColor;
+  border-left: 0.2rem solid transparent;
+  transform: translate(-50%, -50%);
+}
+
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort&#x3D;&#x27;ascending&#x27;]
+  .app-sortable-table__sort-indicator::before,
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort&#x3D;&#x27;descending&#x27;]
+  .app-sortable-table__sort-indicator::before {
+  content: none;
+}
+
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort&#x3D;&#x27;ascending&#x27;]
+  .app-sortable-table__sort-indicator::after {
+  content: &#x27;&#x27;;
+  top: 50%;
+  border-right-width: 0.36rem;
+  border-bottom-width: 0.61rem;
+  border-left-width: 0.36rem;
+  transform: translate(-50%, -50%);
+}
+
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort&#x3D;&#x27;descending&#x27;]
+  .app-sortable-table__sort-indicator::after {
+  content: &#x27;&#x27;;
+  top: 50%;
+  border-right-width: 0.36rem;
+  border-top-width: 0.61rem;
+  border-bottom-width: 0;
+  border-left-width: 0.36rem;
+  border-top-style: solid;
+  border-top-color: currentColor;
+  transform: translate(-50%, -50%);
+}
+
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort]
+  &gt; .app-sortable-table__header-button:focus {
+  outline: none;
+  color: #0b0c0c;
+  background-color: #ffdd00;
+  box-shadow:
+    0 -2px #ffdd00,
+    0 4px #0b0c0c;
+}
+
+:host ::ng-deep .app-sortable-table__cell--nowrap .moj-button-menu,
+:host ::ng-deep .app-sortable-table__cell--nowrap .moj-button-menu__toggle,
+:host ::ng-deep .app-sortable-table__cell--nowrap .moj-button-menu__item,
+:host ::ng-deep .app-sortable-table__cell--nowrap .govuk-button {
+  white-space: nowrap;
+}
+
+:host ::ng-deep .app-sortable-table__cell--nowrap .moj-button-menu__wrapper {
+  right: 0;
+}
+
+:host ::ng-deep .moj-button-menu {
+  position: relative;
+  z-index: 0;
+}
+
+:host ::ng-deep .app-moj-button-menu--open {
+  z-index: 1000;
+}
+
+:host ::ng-deep .app-moj-button-menu--open .moj-button-menu__wrapper {
+  z-index: 1001;
+}
+
+:host ::ng-deep th.govuk-table__header[aria-sort] &gt; button &gt; svg {
+  position: static;
+  top: auto;
+  right: auto;
+  transform: none;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  pointer-events: none;
+  margin-top: 2px;
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="tree">
+        <div id="tree-container"></div>
+        <div class="tree-legend">
+            <div class="title">
+                <b>Legend</b>
+            </div>
+            <div>
+                <div class="color htmlelement"></div><span>Html element</span>
+            </div>
+            <div>
+                <div class="color component"></div><span>Component</span>
+            </div>
+            <div>
+                <div class="color directive"></div><span>Html element with directive</span>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+<script src="../js/libs/vis-network.min.js"></script>
+<script src="../js/libs/htmlparser.js"></script>
+<script src="../js/libs/deep-iterator.js"></script>
+<script>
+        var COMPONENT_TEMPLATE = '<div>@if (data() && data().length) {  <div    class="app-sortable-table__frame"    [class.app-sortable-table__frame--loading]="loading()"  >    <table      #mojTable      class="govuk-table"      [attr.data-module]="        clientOrServerSort() === \'client\' ? \'moj-sortable-table\' : null      "      [attr.aria-describedby]="caption() ? \'sortable-\' + captionId() : null"    >      <ng-content select="caption"></ng-content>      @if (caption()) {        <caption          [class.govuk-visually-hidden]="hiddenCaption()"          class="govuk-table__caption govuk-table__caption--{{ captionSize() }}"          [id]="\'sortable-\' + captionId()"        >          {{            caption()          }}        </caption>      }      <thead class="govuk-table__head">        <tr class="govuk-table__row">          @if (selectable()) {            @if (!singleSelect()) {              <th                class="govuk-table__header moj-multi-select__select-all"                scope="col"                aria-label="Select rows"              >                <span class="govuk-visually-hidden">Select rows</span>                <div class="govuk-checkboxes govuk-checkboxes--small">                  <div                    class="govuk-checkboxes__item moj-multi-select__checkbox"                  >                    <input                      #selectAll                      type="checkbox"                      class="govuk-checkboxes__input"                      [id]="idPrefix() + \'select-all\'"                      [checked]="allVisibleSelected"                      [indeterminate]="                        someVisibleSelected && !allVisibleSelected                      "                      (change)="toggleSelectAllVisible(selectAll.checked)"                    />                    <label                      class="govuk-label govuk-checkboxes__label"                      [for]="idPrefix() + \'select-all\'"                    >                      <span class="govuk-visually-hidden">Select all</span>                    </label>                  </div>                </div>              </th>            } @else {              <th                class="govuk-table__header"                scope="col"                aria-label="Select row"              >                <span class="govuk-visually-hidden">Select row</span>              </th>            }          }          @for (col of columns(); track col.field) {            <th              scope="col"              class="govuk-table__header"              [class.govuk-table__header--numeric]="col.numeric"              [style.min-width]="col.minWidth ?? null"              [style.max-width]="col.maxWidth ?? null"              [class.app-sortable-table__cell--wrap]="                col.wrap !== false && col.field !== \'actions\'              "              [class.app-sortable-table__cell--nowrap]="                col.wrap === false || col.field === \'actions\'              "              [attr.aria-sort]="                !isSortEnabled(col)                  ? null                  : clientOrServerSort() === \'server\'                    ? ariaSortFor(col.field)                    : (col.defaultSort ?? \'none\')              "            >              @if (clientOrServerSort() === \'server\' && isSortEnabled(col)) {                <button                  type="button"                  class="app-sortable-table__header-button"                  (click)="onHeaderClick($event, col)"                >                  <span class="app-sortable-table__header-label">                    {{ col.header }}                  </span>                  <span                    class="app-sortable-table__sort-indicator"                    aria-hidden="true"                  ></span>                </button>              } @else {                {{ col.header }}              }            </th>          }        </tr>      </thead>      <tbody class="govuk-table__body">        @for (row of data(); track trackRow($index, row)) {          <tr            class="govuk-table__row"            [class.govuk-table__row--selected]="selectable() && isSelected(row)"          >            @if (selectable()) {              <td class="govuk-table__cell">                <div class="govuk-checkboxes govuk-checkboxes--small">                  <div                    class="govuk-checkboxes__item moj-multi-select__checkbox"                  >                    <input                      #cb                      type="checkbox"                      class="govuk-checkboxes__input"                      name="rows[]"                      [id]="idPrefix() + getRowId(row)"                      [checked]="isSelected(row)"                      (change)="toggleOne(row, cb.checked)"                    />                    <label                      class="govuk-label govuk-checkboxes__label"                      [for]="idPrefix() + getRowId(row)"                    >                      <span class="govuk-visually-hidden">                        Select {{ row[firstColField] }}                      </span>                    </label>                  </div>                </div>              </td>            }            @for (col of columns(); track col.field; let ci = $index) {              @if (ci === 0) {                <th                  scope="row"                  class="govuk-table__header"                  [class.govuk-table__cell--numeric]="col.numeric"                  [style.min-width]="col.minWidth ?? null"                  [style.max-width]="col.maxWidth ?? null"                  [class.app-sortable-table__cell--wrap]="                    col.wrap !== false && col.field !== \'actions\'                  "                  [class.app-sortable-table__cell--nowrap]="                    col.wrap === false || col.field === \'actions\'                  "                  [attr.data-sort-value]="                    clientOrServerSort() === \'client\' && col.sortable !== false                      ? getSortValue(row, col)                      : null                  "                >                  @if (col.field === dateFieldIdentifier() && dateTpl()) {                    <ng-container                      *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"                    ></ng-container>                  } @else {                    {{ row[col.field] }}                  }                </th>              } @else {                <td                  class="govuk-table__cell"                  [class.govuk-table__cell--numeric]="col.numeric"                  [style.min-width]="col.minWidth ?? null"                  [style.max-width]="col.maxWidth ?? null"                  [class.app-sortable-table__cell--wrap]="                    col.wrap !== false && col.field !== \'actions\'                  "                  [class.app-sortable-table__cell--nowrap]="                    col.wrap === false || col.field === \'actions\'                  "                  [attr.data-sort-value]="                    clientOrServerSort() === \'client\' && col.sortable !== false                      ? getSortValue(row, col)                      : null                  "                >                  @if (col.field === \'actions\') {                    <ng-container                      *ngTemplateOutlet="                        actionsTpl ?? null;                        context: { $implicit: row }                      "                    ></ng-container>                  } @else if (                    col.field === dateFieldIdentifier() && dateTpl()                  ) {                    <ng-container                      *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"                    ></ng-container>                  } @else {                    {{ row[col.field] }}                  }                </td>              }            }          </tr>        }      </tbody>    </table>    @if (loading()) {      <div class="app-sortable-table__loading" aria-hidden="true"></div>    }  </div>} @else {  <p    [attr.aria-label]="noDataMessage()"    class="govuk-body app-sortable-table__empty"  >    {{ noDataMessage() }}  </p>}</div>'
+    var COMPONENTS = [{'name': 'AccordionComponent', 'selector': 'app-accordion'},{'name': 'ActivityAuditSectionComponent', 'selector': 'app-activity-audit-section'},{'name': 'AlertComponent', 'selector': 'app-alert'},{'name': 'App', 'selector': 'app-root'},{'name': 'ApplicantSectionComponent', 'selector': 'app-applicant-section'},{'name': 'ApplicationCodeSearchComponent', 'selector': 'app-application-code-search'},{'name': 'Applications', 'selector': 'app-applications'},{'name': 'ApplicationsList', 'selector': 'app-applications-list'},{'name': 'ApplicationsListBulkUpload', 'selector': 'app-applications-list-bulk-upload'},{'name': 'ApplicationsListCloseComponent', 'selector': 'app-applications-list-close'},{'name': 'ApplicationsListCreate', 'selector': 'app-applications-list'},{'name': 'ApplicationsListDeleteComponent', 'selector': 'app-applications-list-delete'},{'name': 'ApplicationsListDetail', 'selector': 'app-application-detail'},{'name': 'ApplicationsListDetailBulkUpdateFeesComponent', 'selector': 'app-applications-list-detail-bulk-update-fees'},{'name': 'ApplicationsListDetailSearchComponent', 'selector': 'app-applications-list-detail-search'},{'name': 'ApplicationsListEntryCreate', 'selector': 'app-applications-list-entry-create'},{'name': 'ApplicationsListEntryDeleteComponent', 'selector': 'app-applications-list-entry-delete'},{'name': 'ApplicationsListEntryDetail', 'selector': 'app-applications-list-entry-detail'},{'name': 'ApplicationsListEntryMoveComponent', 'selector': 'app-applications-list-entry-move'},{'name': 'ApplicationsListFormComponent', 'selector': 'app-applications-list-form'},{'name': 'ApplicationsListUpdateComponent', 'selector': 'app-applications-list-update'},{'name': 'ApplicationsResultSelectedComponent', 'selector': 'app-applications-result-selected'},{'name': 'ApplicationWordingHelpComponent', 'selector': 'app-application-wording-help'},{'name': 'AsyncJobProgressComponent', 'selector': 'app-async-job-progress'},{'name': 'BreadcrumbsComponent', 'selector': 'app-breadcrumbs'},{'name': 'CivilFeeHelpComponent', 'selector': 'app-civil-fee-help'},{'name': 'CivilFeeSectionComponent', 'selector': 'app-civil-fee-section'},{'name': 'ConfirmationDialogComponent', 'selector': 'app-confirmation-dialog'},{'name': 'DateInputComponent', 'selector': 'app-date-input'},{'name': 'DurationInputComponent', 'selector': 'app-duration-input'},{'name': 'DurationSectionComponent', 'selector': 'app-duration-section'},{'name': 'ErrorSummaryComponent', 'selector': 'app-error-summary'},{'name': 'FeesSectionComponent', 'selector': 'app-fees-section'},{'name': 'FeeUpdateConfirmComponent', 'selector': 'app-fee-update-confirm'},{'name': 'FooterComponent', 'selector': 'app-footer'},{'name': 'ForbiddenComponent', 'selector': 'app-forbidden'},{'name': 'GovukTextareaComponent', 'selector': 'app-govuk-textarea'},{'name': 'HeaderComponent', 'selector': 'app-header'},{'name': 'HelpDetailsComponent', 'selector': 'app-help-details'},{'name': 'HomeComponent', 'selector': ''},{'name': 'InternalErrorComponent', 'selector': 'app-internal-error'},{'name': 'ListMaintenanceSectionComponent', 'selector': 'app-list-maintenance-section'},{'name': 'LoadingSpinner', 'selector': 'app-loading-spinner'},{'name': 'Login', 'selector': 'app-login'},{'name': 'MoveConfirmComponent', 'selector': 'app-move-confirm'},{'name': 'NavigationWarningComponent', 'selector': 'app-navigation-warning'},{'name': 'NotesSectionComponent', 'selector': 'app-notes-section'},{'name': 'NotFoundComponent', 'selector': 'app-not-found'},{'name': 'NotificationBannerComponent', 'selector': 'app-notification-banner'},{'name': 'OfficialsSectionComponent', 'selector': 'app-officials-section'},{'name': 'OrganisationSectionComponent', 'selector': 'app-organisation-section'},{'name': 'PageHeaderComponent', 'selector': 'app-page-header'},{'name': 'PaginationComponent', 'selector': 'app-pagination'},{'name': 'PaymentReferenceEditComponent', 'selector': 'app-payment-reference-edit'},{'name': 'PersonSectionComponent', 'selector': 'app-person-section'},{'name': 'PrivateProsecutorsIndexSectionComponent', 'selector': 'app-private-prosecutors-index-section'},{'name': 'RadioButtonComponent', 'selector': 'app-radio-group'},{'name': 'Reports', 'selector': 'app-reports'},{'name': 'ReportSelectorComponent', 'selector': 'app-report-selector'},{'name': 'ReportsSharedFormComponent', 'selector': 'app-reports-shared-form'},{'name': 'RespondentBulkApplicationComponent', 'selector': 'app-respondent-bulk-application'},{'name': 'RespondentSectionComponent', 'selector': 'app-respondent-section'},{'name': 'ResultSelected', 'selector': 'app-result-selected'},{'name': 'ResultWordingSectionComponent', 'selector': 'app-result-wording-section'},{'name': 'ReviewConfirmComponent', 'selector': 'app-review-confirm'},{'name': 'SearchBoxComponent', 'selector': 'app-search-box'},{'name': 'SearchWarrantsSectionComponent', 'selector': 'app-search-warrants-section'},{'name': 'SelectInputComponent', 'selector': 'app-select-input'},{'name': 'ServiceNavigationComponent', 'selector': 'app-service-navigation'},{'name': 'SortableTableComponent', 'selector': 'app-sortable-table'},{'name': 'StandardApplicants', 'selector': 'app-standard-applicants'},{'name': 'StandardApplicantSelectComponent', 'selector': 'app-standard-applicant-select'},{'name': 'StandardApplicantsViewComponent', 'selector': 'app-standard-applicants-view'},{'name': 'SuccessBannerComponent', 'selector': 'app-success-banner'},{'name': 'SuggestionsComponent', 'selector': 'app-suggestions'},{'name': 'SummaryListCardActionComponent', 'selector': 'app-summary-list-card-action'},{'name': 'TableComponent', 'selector': 'app-table'},{'name': 'TextInputComponent', 'selector': 'app-text-input'},{'name': 'UpdateNotesComponent', 'selector': 'app-update-notes'},{'name': 'UpdateOfficialsComponent', 'selector': 'app-update-officials'},{'name': 'UpdateOfficialsConfirmComponent', 'selector': 'app-update-officials-confirm'},{'name': 'WordingParserComponent', 'selector': 'app-wording-parser'},{'name': 'WordingSectionComponent', 'selector': 'app-wording-section'},{'name': 'WorkloadSectionComponent', 'selector': 'app-workload-section'}];
+    var DIRECTIVES = [{'name': 'MojButtonMenuDirective', 'selector': '[appMojButtonMenu]'},{'name': 'PlaceFieldsBase', 'selector': ''},{'name': 'ResultSelectedTableBase', 'selector': ''},{'name': 'UpdateOfficialsTableBase', 'selector': ''}];
+    var ACTUAL_COMPONENT = {'name': 'SortableTableComponent'};
+</script>
+<script src="../js/tree.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'component';
+            var COMPODOC_CURRENT_PAGE_URL = 'SortableTableComponent.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

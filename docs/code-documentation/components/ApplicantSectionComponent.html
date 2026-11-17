@@ -1,0 +1,1861 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>appreg-frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+          <script>
+              // --- Iframe navigation tracking for Template Playground ---
+              function sendCurrentUrlToParent() {
+                  if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({
+                          type: 'compodoc-iframe-navigate',
+                          url: window.location.pathname + window.location.hash
+                      }, '*');
+                  }
+              }
+              window.addEventListener('hashchange', sendCurrentUrlToParent, false);
+              window.addEventListener('popstate', sendCurrentUrlToParent, false);
+              window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">appreg-frontend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content component">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Components</li>
+  <li class="breadcrumb-item"
+  >
+  ApplicantSectionComponent</li>
+</ol>
+
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/app/shared/components/applicant-section/applicant-section.component.ts</code>
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#api" class="nav-link"
+                role="tab" id="api-tab" data-bs-toggle="tab" data-link="api">API</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" class="nav-link"
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+        <li class="nav-item">
+            <a href="#templateData" class="nav-link"
+                role="tab" id="templateData-tab" data-bs-toggle="tab" data-link="template">Template</a>
+        </li>
+        <li class="nav-item">
+            <a href="#tree" class="nav-link"
+                role="tab" id="tree-tab" data-bs-toggle="tab" data-link="dom-tree">DOM Tree</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+
+
+
+
+<section data-compodoc="block-metadata">
+    <h3>Metadata</h3>
+    <table class="table table-sm table-hover metadata">
+        <tbody>
+
+            <tr>
+                <td class="col-md-3">changeDetection</td>
+                <td class="col-md-9"><code>ChangeDetectionStrategy.Eager</code></td>
+            </tr>
+
+
+
+
+
+
+
+
+
+
+
+            <tr>
+                <td class="col-md-3">selector</td>
+                <td class="col-md-9"><code>app-applicant-section</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">standalone</td>
+                <td class="col-md-9"><code>true</code></td>
+            </tr>
+
+            <tr>
+                <td class="col-md-3">imports</td>
+                <td class="col-md-9">
+                        <div>        <code><a href="../components/StandardApplicantSelectComponent.html" target="_self" >StandardApplicantSelectComponent</a></code>
+</div>
+                        <div>        <code><a href="../components/OrganisationSectionComponent.html" target="_self" >OrganisationSectionComponent</a></code>
+</div>
+                        <div>        <code><a href="../components/PersonSectionComponent.html" target="_self" >PersonSectionComponent</a></code>
+</div>
+                        <div>        <code><a href="../components/SelectInputComponent.html" target="_self" >SelectInputComponent</a></code>
+</div>
+                        <div>        <code><a href="https://angular.dev/api/forms/ReactiveFormsModule" target="_blank" >ReactiveFormsModule</a></code>
+</div>
+                        <div>        <code><a href="../components/HelpDetailsComponent.html" target="_self" >HelpDetailsComponent</a></code>
+</div>
+                </td>
+            </tr>
+
+
+
+
+
+            <tr>
+                <td class="col-md-3">templateUrl</td>
+                <td class="col-md-9"><code>./applicant-section.component.html</code></td>
+            </tr>
+
+
+
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+        <section data-compodoc="block-relationships">
+            <h3>Relationships</h3>
+
+            <div class="row pt-3">
+                <div class="col-sm-6">
+                    <h4>Used by</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/ApplicationsListEntryCreate.html" target="_self" >ApplicationsListEntryCreate</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ApplicationsListEntryDetail.html" target="_self" >ApplicationsListEntryDetail</a></code>
+                                </li>
+                        </ul>
+                </div>
+
+                <div class="col-sm-6">
+                    <h4>Depends on</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/StandardApplicantSelectComponent.html" target="_self" >StandardApplicantSelectComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/OrganisationSectionComponent.html" target="_self" >OrganisationSectionComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/PersonSectionComponent.html" target="_self" >PersonSectionComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/SelectInputComponent.html" target="_self" >SelectInputComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="https://angular.dev/api/forms/ReactiveFormsModule" target="_blank" >ReactiveFormsModule</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/HelpDetailsComponent.html" target="_self" >HelpDetailsComponent</a></code>
+                                </li>
+                        </ul>
+                </div>
+            </div>
+        </section>
+</div>
+
+    <div class="tab-pane fade " id="api">    <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#applicantEntryTypeOptions" >applicantEntryTypeOptions</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#currentSelectionSummary" >currentSelectionSummary</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#entryTypeOptions" >entryTypeOptions</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#personTitleOptions" >personTitleOptions</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#savedStandardApplicantFallback" >savedStandardApplicantFallback</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#standardApplicantSummary" >standardApplicantSummary</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#onSelectedStandardApplicantSummaryChanged" >onSelectedStandardApplicantSummaryChanged</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#onStandardApplicantErrorsChanged" >onStandardApplicantErrorsChanged</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#onStandardChanged" >onStandardChanged</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#onUpdateClicked" >onUpdateClicked</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Inputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#applicantType" >applicantType</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#currentStandardApplicantSummary" >currentStandardApplicantSummary</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#errorItems" >errorItems</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#form" >form</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#initialStandardApplicantCodeFilter" >initialStandardApplicantCodeFilter</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#isUpdateDisabled" >isUpdateDisabled</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#organisationGroup" >organisationGroup</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#personGroup" >personGroup</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#savedStandardApplicantCode" >savedStandardApplicantCode</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#savedStandardApplicantDetailsUnavailable" >savedStandardApplicantDetailsUnavailable</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#savedStandardApplicantId" >savedStandardApplicantId</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#savedStandardApplicantName" >savedStandardApplicantName</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#selectedStandardApplicantCode" >selectedStandardApplicantCode</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#selectedStandardApplicantId" >selectedStandardApplicantId</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#showUpdateButton" >showUpdateButton</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#submitted" >submitted</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">I</span><a href="#updateButtonText" >updateButtonText</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Outputs</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#applicantErrorsChange" >applicantErrorsChange</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#standardApplicantCodeChange" >standardApplicantCodeChange</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#standardApplicantSummaryChange" >standardApplicantSummaryChange</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">O</span><a href="#updateClicked" >updateClicked</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+</section>
+
+
+    <section data-compodoc="block-inputs">
+    <h3 id="inputs">Inputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="applicantType"></a>
+                        <b>applicantType</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#ApplicantType" target="_self" >ApplicantType</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Required : </i>&nbsp;<b>true</b>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="45" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:45</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="currentStandardApplicantSummary"></a>
+                        <b>currentStandardApplicantSummary</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../components/App.html" target="_self" >SelectedStandardApplicantSummary | null</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="52" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:52</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="errorItems"></a>
+                        <b>errorItems</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#ErrorItem" target="_self" >ErrorItem[]</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>[]</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="48" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:48</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="form"></a>
+                        <b>form</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://angular.dev/api/forms/FormGroup" target="_blank" >FormGroup</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Required : </i>&nbsp;<b>true</b>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:42</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="initialStandardApplicantCodeFilter"></a>
+                        <b>initialStandardApplicantCodeFilter</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="51" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:51</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="isUpdateDisabled"></a>
+                        <b>isUpdateDisabled</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:58</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="organisationGroup"></a>
+                        <b>organisationGroup</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://angular.dev/api/forms/FormGroup" target="_blank" >FormGroup</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Required : </i>&nbsp;<b>true</b>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:44</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="personGroup"></a>
+                        <b>personGroup</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://angular.dev/api/forms/FormGroup" target="_blank" >FormGroup</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Required : </i>&nbsp;<b>true</b>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="43" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:43</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="savedStandardApplicantCode"></a>
+                        <b>savedStandardApplicantCode</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:54</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="savedStandardApplicantDetailsUnavailable"></a>
+                        <b>savedStandardApplicantDetailsUnavailable</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:57</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="savedStandardApplicantId"></a>
+                        <b>savedStandardApplicantId</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>number | null</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="55" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:55</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="savedStandardApplicantName"></a>
+                        <b>savedStandardApplicantName</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:56</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="selectedStandardApplicantCode"></a>
+                        <b>selectedStandardApplicantCode</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:49</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="selectedStandardApplicantId"></a>
+                        <b>selectedStandardApplicantId</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>number | null</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>null</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:50</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="showUpdateButton"></a>
+                        <b>showUpdateButton</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>true</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:60</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="submitted"></a>
+                        <b>submitted</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="47" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:47</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="updateButtonText"></a>
+                        <b>updateButtonText</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;Update applicant&#x27;</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:61</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+</section>
+
+    <section data-compodoc="block-outputs">
+    <h3 id="outputs">Outputs</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="applicantErrorsChange"></a>
+                        <b>applicantErrorsChange</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#ErrorItem" target="_self" >ErrorItem[]</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="66" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:66</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="standardApplicantCodeChange"></a>
+                        <b>standardApplicantCodeChange</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>string | null</code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="63" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:63</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="standardApplicantSummaryChange"></a>
+                        <b>standardApplicantSummaryChange</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../components/App.html" target="_self" >SelectedStandardApplicantSummary | null</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="64" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:64</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="updateClicked"></a>
+                        <b>updateClicked</b>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-2" colspan="2">
+                                    <div class="io-line">Defined in <a href="" data-line="67" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:67</a></div>
+                            </td>
+                        </tr>
+            </tbody>
+        </table>
+</section>
+
+
+
+    <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="onSelectedStandardApplicantSummaryChanged"></a>
+                    <span class="name">
+                        <span ><b>onSelectedStandardApplicantSummaryChanged</b></span>
+                        <a href="#onSelectedStandardApplicantSummaryChanged"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>onSelectedStandardApplicantSummaryChanged(summary: <a href="../components/App.html" target="_self">SelectedStandardApplicantSummary | null</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="126"
+                                    class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:126</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>summary</td>
+                                            <td>
+                                                            <code><a href="../components/App.html" target="_self" >SelectedStandardApplicantSummary | null</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="onStandardApplicantErrorsChanged"></a>
+                    <span class="name">
+                        <span ><b>onStandardApplicantErrorsChanged</b></span>
+                        <a href="#onStandardApplicantErrorsChanged"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>onStandardApplicantErrorsChanged(errors: <a href="../miscellaneous/typealiases.html#ErrorItem" target="_self">ErrorItem[]</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="132"
+                                    class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:132</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>errors</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#ErrorItem" target="_self" >ErrorItem[]</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="onStandardChanged"></a>
+                    <span class="name">
+                        <span ><b>onStandardChanged</b></span>
+                        <a href="#onStandardChanged"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>onStandardChanged(code: string | null)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="122"
+                                    class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:122</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>code</td>
+                                            <td>
+                                                        <code>string | null</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="onUpdateClicked"></a>
+                    <span class="name">
+                        <span ><b>onUpdateClicked</b></span>
+                        <a href="#onUpdateClicked"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>onUpdateClicked()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="136"
+                                    class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:136</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="applicantEntryTypeOptions"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>applicantEntryTypeOptions</b></span>
+                        <a href="#applicantEntryTypeOptions"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>APPLICANT_TYPE_OPTIONS</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:39</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="currentSelectionSummary"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>currentSelectionSummary</b></span>
+                        <a href="#currentSelectionSummary"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
+    const current &#x3D; this.currentStandardApplicantSummary();
+    const code &#x3D; current?.code?.trim() || null;
+    const name &#x3D; current?.name?.trim() || null;
+
+    if (!code || !name) {
+      return null;
+    }
+
+    const saved &#x3D; this.standardApplicantSummary();
+    if (
+      saved?.code &#x3D;&#x3D;&#x3D; code &amp;&amp;
+      saved.name &#x3D;&#x3D;&#x3D; name &amp;&amp;
+      (current?.standardApplicantId &#x3D;&#x3D;&#x3D; undefined ||
+        current.standardApplicantId &#x3D;&#x3D;&#x3D; this.savedStandardApplicantId())
+    ) {
+      return null;
+    }
+
+    return {
+      code,
+      name,
+      displayText: &#x60;${code} ${name}&#x60;,
+    };
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="96" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:96</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="entryTypeOptions"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>entryTypeOptions</b></span>
+                        <a href="#entryTypeOptions"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; this.applicantEntryTypeOptions)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:69</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="personTitleOptions"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>personTitleOptions</b></span>
+                        <a href="#personTitleOptions"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>PERSON_TITLE_OPTIONS</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="40" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:40</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="savedStandardApplicantFallback"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>savedStandardApplicantFallback</b></span>
+                        <a href="#savedStandardApplicantFallback"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
+    const code &#x3D; this.savedStandardApplicantCode()?.trim() || null;
+
+    if (!code || !this.savedStandardApplicantDetailsUnavailable()) {
+      return null;
+    }
+
+    return {
+      code,
+      displayText: code,
+    };
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="84" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:84</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="standardApplicantSummary"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>standardApplicantSummary</b></span>
+                        <a href="#standardApplicantSummary"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>computed(() &#x3D;&gt; {
+    const code &#x3D; this.savedStandardApplicantCode()?.trim() || null;
+    const name &#x3D; this.savedStandardApplicantName()?.trim() || null;
+
+    if (!code || !name) {
+      return null;
+    }
+
+    return {
+      code,
+      name,
+      displayText: &#x60;${code} ${name}&#x60;,
+    };
+  })</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="70" class="link-to-prism">src/app/shared/components/applicant-section/applicant-section.component.ts:70</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+</div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  output,
+} from &#x27;@angular/core&#x27;;
+import { FormGroup, ReactiveFormsModule } from &#x27;@angular/forms&#x27;;
+
+import { ErrorItem } from &#x27;@components/error-summary/error-summary.component&#x27;;
+import { HelpDetailsComponent } from &#x27;@components/help-details/help-details.component&#x27;;
+import { OrganisationSectionComponent } from &#x27;@components/organisation-section/organisation-section.component&#x27;;
+import { PersonSectionComponent } from &#x27;@components/person-section/person-section.component&#x27;;
+import { SelectInputComponent } from &#x27;@components/select-input/select-input.component&#x27;;
+import {
+  SelectedStandardApplicantSummary,
+  StandardApplicantSelectComponent,
+} from &#x27;@components/standard-applicant-select/standard-applicant-select.component&#x27;;
+import {
+  APPLICANT_TYPE_OPTIONS,
+  PERSON_TITLE_OPTIONS,
+} from &#x27;@constants/application-list-entry/columns-options&#x27;;
+import { ApplicantType } from &#x27;@shared-types/applications-list-entry-create/application-list-entry-form&#x27;;
+
+@Component({
+  selector: &#x27;app-applicant-section&#x27;,
+  imports: [
+    StandardApplicantSelectComponent,
+    OrganisationSectionComponent,
+    PersonSectionComponent,
+    SelectInputComponent,
+    ReactiveFormsModule,
+    HelpDetailsComponent,
+  ],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  templateUrl: &#x27;./applicant-section.component.html&#x27;,
+})
+export class ApplicantSectionComponent {
+  private readonly applicantEntryTypeOptions &#x3D; APPLICANT_TYPE_OPTIONS;
+  readonly personTitleOptions &#x3D; PERSON_TITLE_OPTIONS;
+
+  readonly form &#x3D; input.required&lt;FormGroup&gt;();
+  readonly personGroup &#x3D; input.required&lt;FormGroup&gt;();
+  readonly organisationGroup &#x3D; input.required&lt;FormGroup&gt;();
+  readonly applicantType &#x3D; input.required&lt;ApplicantType&gt;();
+
+  readonly submitted &#x3D; input(false);
+  readonly errorItems &#x3D; input&lt;ErrorItem[]&gt;([]);
+  readonly selectedStandardApplicantCode &#x3D; input&lt;string | null&gt;(null);
+  readonly selectedStandardApplicantId &#x3D; input&lt;number | null&gt;(null);
+  readonly initialStandardApplicantCodeFilter &#x3D; input&lt;string | null&gt;(null);
+  readonly currentStandardApplicantSummary &#x3D;
+    input&lt;SelectedStandardApplicantSummary | null&gt;(null);
+  readonly savedStandardApplicantCode &#x3D; input&lt;string | null&gt;(null);
+  readonly savedStandardApplicantId &#x3D; input&lt;number | null&gt;(null);
+  readonly savedStandardApplicantName &#x3D; input&lt;string | null&gt;(null);
+  readonly savedStandardApplicantDetailsUnavailable &#x3D; input(false);
+  readonly isUpdateDisabled &#x3D; input(false);
+
+  readonly showUpdateButton &#x3D; input(true);
+  readonly updateButtonText &#x3D; input(&#x27;Update applicant&#x27;);
+
+  readonly standardApplicantCodeChange &#x3D; output&lt;string | null&gt;();
+  readonly standardApplicantSummaryChange &#x3D;
+    output&lt;SelectedStandardApplicantSummary | null&gt;();
+  readonly applicantErrorsChange &#x3D; output&lt;ErrorItem[]&gt;();
+  readonly updateClicked &#x3D; output&lt;void&gt;();
+
+  readonly entryTypeOptions &#x3D; computed(() &#x3D;&gt; this.applicantEntryTypeOptions);
+  readonly standardApplicantSummary &#x3D; computed(() &#x3D;&gt; {
+    const code &#x3D; this.savedStandardApplicantCode()?.trim() || null;
+    const name &#x3D; this.savedStandardApplicantName()?.trim() || null;
+
+    if (!code || !name) {
+      return null;
+    }
+
+    return {
+      code,
+      name,
+      displayText: &#x60;${code} ${name}&#x60;,
+    };
+  });
+  readonly savedStandardApplicantFallback &#x3D; computed(() &#x3D;&gt; {
+    const code &#x3D; this.savedStandardApplicantCode()?.trim() || null;
+
+    if (!code || !this.savedStandardApplicantDetailsUnavailable()) {
+      return null;
+    }
+
+    return {
+      code,
+      displayText: code,
+    };
+  });
+  readonly currentSelectionSummary &#x3D; computed(() &#x3D;&gt; {
+    const current &#x3D; this.currentStandardApplicantSummary();
+    const code &#x3D; current?.code?.trim() || null;
+    const name &#x3D; current?.name?.trim() || null;
+
+    if (!code || !name) {
+      return null;
+    }
+
+    const saved &#x3D; this.standardApplicantSummary();
+    if (
+      saved?.code &#x3D;&#x3D;&#x3D; code &amp;&amp;
+      saved.name &#x3D;&#x3D;&#x3D; name &amp;&amp;
+      (current?.standardApplicantId &#x3D;&#x3D;&#x3D; undefined ||
+        current.standardApplicantId &#x3D;&#x3D;&#x3D; this.savedStandardApplicantId())
+    ) {
+      return null;
+    }
+
+    return {
+      code,
+      name,
+      displayText: &#x60;${code} ${name}&#x60;,
+    };
+  });
+
+  onStandardChanged(code: string | null): void {
+    this.standardApplicantCodeChange.emit(code);
+  }
+
+  onSelectedStandardApplicantSummaryChanged(
+    summary: SelectedStandardApplicantSummary | null,
+  ): void {
+    this.standardApplicantSummaryChange.emit(summary);
+  }
+
+  onStandardApplicantErrorsChanged(errors: ErrorItem[]): void {
+    this.applicantErrorsChange.emit(errors ?? []);
+  }
+
+  onUpdateClicked(): void {
+    this.updateClicked.emit();
+  }
+}
+</code></pre>
+    </div>
+
+    <div class="tab-pane fade " id="templateData">
+        <pre class="line-numbers"><code class="language-html">&lt;app-help-details summary&#x3D;&quot;Help with applicant details&quot;&gt;
+  &lt;p class&#x3D;&quot;govuk-body&quot;&gt;
+    Enter applicant details for a single applicant or organisation.
+  &lt;/p&gt;
+
+  &lt;p class&#x3D;&quot;govuk-body&quot;&gt;
+    If you select a standard applicant, you can choose a different standard
+    applicant, but you cannot edit the standard applicant’s details on this
+    page.
+  &lt;/p&gt;
+
+  &lt;p class&#x3D;&quot;govuk-body&quot;&gt;
+    The selected standard applicant is shown above the search results.
+  &lt;/p&gt;
+&lt;/app-help-details&gt;
+
+&lt;div [formGroup]&#x3D;&quot;form()&quot;&gt;
+  &lt;div class&#x3D;&quot;govuk-grid-row&quot;&gt;
+    &lt;app-select-input
+      formControlName&#x3D;&quot;applicantType&quot;
+      label&#x3D;&quot;Select applicant type&quot;
+      idPrefix&#x3D;&quot;application-entry-type&quot;
+      [options]&#x3D;&quot;entryTypeOptions()&quot;
+    &gt;&lt;/app-select-input&gt;
+  &lt;/div&gt;
+
+  &lt;hr
+    class&#x3D;&quot;govuk-section-break govuk-section-break--m govuk-section-break--visible&quot;
+  /&gt;
+
+  @switch (applicantType()) {
+    @case (&#x27;person&#x27;) {
+      &lt;app-person-section
+        scopeId&#x3D;&quot;applicant&quot;
+        [group]&#x3D;&quot;personGroup()&quot;
+        [titleOptions]&#x3D;&quot;personTitleOptions&quot;
+        [submitted]&#x3D;&quot;submitted()&quot;
+        [errors]&#x3D;&quot;errorItems()&quot;
+      /&gt;
+    }
+    @case (&#x27;org&#x27;) {
+      &lt;app-organisation-section
+        scopeId&#x3D;&quot;applicant&quot;
+        [group]&#x3D;&quot;organisationGroup()&quot;
+        [submitted]&#x3D;&quot;submitted()&quot;
+        [errors]&#x3D;&quot;errorItems()&quot;
+      /&gt;
+    }
+    @case (&#x27;standard&#x27;) {
+      @if (currentSelectionSummary(); as summary) {
+        &lt;p class&#x3D;&quot;govuk-body govuk-!-margin-bottom-4&quot;&gt;
+          &lt;strong class&#x3D;&quot;govuk-tag govuk-tag--turquoise govuk-!-margin-right-2&quot;&gt;
+            Currently selected
+          &lt;/strong&gt;
+          &lt;span class&#x3D;&quot;govuk-body govuk-!-font-weight-bold&quot;&gt;{{
+            summary.displayText
+          }}&lt;/span&gt;
+        &lt;/p&gt;
+      }
+
+      @if (standardApplicantSummary(); as summary) {
+        &lt;p class&#x3D;&quot;govuk-body govuk-!-margin-bottom-4&quot;&gt;
+          &lt;strong class&#x3D;&quot;govuk-tag govuk-tag--blue govuk-!-margin-right-2&quot;&gt;
+            Saved
+          &lt;/strong&gt;
+          &lt;span class&#x3D;&quot;govuk-body govuk-!-font-weight-bold&quot;&gt;{{
+            summary.displayText
+          }}&lt;/span&gt;
+        &lt;/p&gt;
+      }
+
+      @if (savedStandardApplicantFallback(); as fallback) {
+        &lt;div class&#x3D;&quot;govuk-warning-text govuk-!-margin-bottom-4&quot;&gt;
+          &lt;span class&#x3D;&quot;govuk-warning-text__icon&quot; aria-hidden&#x3D;&quot;true&quot;&gt;!&lt;/span&gt;
+          &lt;strong class&#x3D;&quot;govuk-warning-text__text&quot;&gt;
+            &lt;span class&#x3D;&quot;govuk-visually-hidden&quot;&gt;Warning&lt;/span&gt;
+            Only the saved Standard Applicant code is available:
+            {{ fallback.displayText }}
+          &lt;/strong&gt;
+        &lt;/div&gt;
+      }
+
+      &lt;app-standard-applicant-select
+        [initialCodeFilter]&#x3D;&quot;initialStandardApplicantCodeFilter()&quot;
+        [selectedCode]&#x3D;&quot;selectedStandardApplicantCode()&quot;
+        [selectedId]&#x3D;&quot;selectedStandardApplicantId()&quot;
+        (selectedCodeChange)&#x3D;&quot;onStandardChanged($event)&quot;
+        (selectedApplicantSummaryChange)&#x3D;&quot;
+          onSelectedStandardApplicantSummaryChanged($event)
+        &quot;
+        (searchErrorsChange)&#x3D;&quot;onStandardApplicantErrorsChanged($event)&quot;
+      /&gt;
+    }
+  }
+
+  @if (showUpdateButton()) {
+    &lt;button
+      type&#x3D;&quot;button&quot;
+      class&#x3D;&quot;govuk-button&quot;
+      id&#x3D;&quot;btn-update-applicant&quot;
+      [attr.data-applicant-type]&#x3D;&quot;applicantType()&quot;
+      [disabled]&#x3D;&quot;isUpdateDisabled()&quot;
+      (click)&#x3D;&quot;onUpdateClicked()&quot;
+    &gt;
+      {{ updateButtonText() }}
+    &lt;/button&gt;
+  }
+&lt;/div&gt;
+</code></pre>
+    </div>
+
+
+    <div class="tab-pane fade " id="tree">
+        <div id="tree-container"></div>
+        <div class="tree-legend">
+            <div class="title">
+                <b>Legend</b>
+            </div>
+            <div>
+                <div class="color htmlelement"></div><span>Html element</span>
+            </div>
+            <div>
+                <div class="color component"></div><span>Component</span>
+            </div>
+            <div>
+                <div class="color directive"></div><span>Html element with directive</span>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+<script src="../js/libs/vis-network.min.js"></script>
+<script src="../js/libs/htmlparser.js"></script>
+<script src="../js/libs/deep-iterator.js"></script>
+<script>
+        var COMPONENT_TEMPLATE = '<div><app-help-details summary="Help with applicant details">  <p class="govuk-body">    Enter applicant details for a single applicant or organisation.  </p>  <p class="govuk-body">    If you select a standard applicant, you can choose a different standard    applicant, but you cannot edit the standard applicant’s details on this    page.  </p>  <p class="govuk-body">    The selected standard applicant is shown above the search results.  </p></app-help-details><div [formGroup]="form()">  <div class="govuk-grid-row">    <app-select-input      formControlName="applicantType"      label="Select applicant type"      idPrefix="application-entry-type"      [options]="entryTypeOptions()"    ></app-select-input>  </div>  <hr    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"  />  @switch (applicantType()) {    @case (\'person\') {      <app-person-section        scopeId="applicant"        [group]="personGroup()"        [titleOptions]="personTitleOptions"        [submitted]="submitted()"        [errors]="errorItems()"      />    }    @case (\'org\') {      <app-organisation-section        scopeId="applicant"        [group]="organisationGroup()"        [submitted]="submitted()"        [errors]="errorItems()"      />    }    @case (\'standard\') {      @if (currentSelectionSummary(); as summary) {        <p class="govuk-body govuk-!-margin-bottom-4">          <strong class="govuk-tag govuk-tag--turquoise govuk-!-margin-right-2">            Currently selected          </strong>          <span class="govuk-body govuk-!-font-weight-bold">{{            summary.displayText          }}</span>        </p>      }      @if (standardApplicantSummary(); as summary) {        <p class="govuk-body govuk-!-margin-bottom-4">          <strong class="govuk-tag govuk-tag--blue govuk-!-margin-right-2">            Saved          </strong>          <span class="govuk-body govuk-!-font-weight-bold">{{            summary.displayText          }}</span>        </p>      }      @if (savedStandardApplicantFallback(); as fallback) {        <div class="govuk-warning-text govuk-!-margin-bottom-4">          <span class="govuk-warning-text__icon" aria-hidden="true">!</span>          <strong class="govuk-warning-text__text">            <span class="govuk-visually-hidden">Warning</span>            Only the saved Standard Applicant code is available:            {{ fallback.displayText }}          </strong>        </div>      }      <app-standard-applicant-select        [initialCodeFilter]="initialStandardApplicantCodeFilter()"        [selectedCode]="selectedStandardApplicantCode()"        [selectedId]="selectedStandardApplicantId()"        (selectedCodeChange)="onStandardChanged($event)"        (selectedApplicantSummaryChange)="          onSelectedStandardApplicantSummaryChanged($event)        "        (searchErrorsChange)="onStandardApplicantErrorsChanged($event)"      />    }  }  @if (showUpdateButton()) {    <button      type="button"      class="govuk-button"      id="btn-update-applicant"      [attr.data-applicant-type]="applicantType()"      [disabled]="isUpdateDisabled()"      (click)="onUpdateClicked()"    >      {{ updateButtonText() }}    </button>  }</div></div>'
+    var COMPONENTS = [{'name': 'AccordionComponent', 'selector': 'app-accordion'},{'name': 'ActivityAuditSectionComponent', 'selector': 'app-activity-audit-section'},{'name': 'AlertComponent', 'selector': 'app-alert'},{'name': 'App', 'selector': 'app-root'},{'name': 'ApplicantSectionComponent', 'selector': 'app-applicant-section'},{'name': 'ApplicationCodeSearchComponent', 'selector': 'app-application-code-search'},{'name': 'Applications', 'selector': 'app-applications'},{'name': 'ApplicationsList', 'selector': 'app-applications-list'},{'name': 'ApplicationsListBulkUpload', 'selector': 'app-applications-list-bulk-upload'},{'name': 'ApplicationsListCloseComponent', 'selector': 'app-applications-list-close'},{'name': 'ApplicationsListCreate', 'selector': 'app-applications-list'},{'name': 'ApplicationsListDeleteComponent', 'selector': 'app-applications-list-delete'},{'name': 'ApplicationsListDetail', 'selector': 'app-application-detail'},{'name': 'ApplicationsListDetailBulkUpdateFeesComponent', 'selector': 'app-applications-list-detail-bulk-update-fees'},{'name': 'ApplicationsListDetailSearchComponent', 'selector': 'app-applications-list-detail-search'},{'name': 'ApplicationsListEntryCreate', 'selector': 'app-applications-list-entry-create'},{'name': 'ApplicationsListEntryDeleteComponent', 'selector': 'app-applications-list-entry-delete'},{'name': 'ApplicationsListEntryDetail', 'selector': 'app-applications-list-entry-detail'},{'name': 'ApplicationsListEntryMoveComponent', 'selector': 'app-applications-list-entry-move'},{'name': 'ApplicationsListFormComponent', 'selector': 'app-applications-list-form'},{'name': 'ApplicationsListUpdateComponent', 'selector': 'app-applications-list-update'},{'name': 'ApplicationsResultSelectedComponent', 'selector': 'app-applications-result-selected'},{'name': 'ApplicationWordingHelpComponent', 'selector': 'app-application-wording-help'},{'name': 'AsyncJobProgressComponent', 'selector': 'app-async-job-progress'},{'name': 'BreadcrumbsComponent', 'selector': 'app-breadcrumbs'},{'name': 'CivilFeeHelpComponent', 'selector': 'app-civil-fee-help'},{'name': 'CivilFeeSectionComponent', 'selector': 'app-civil-fee-section'},{'name': 'ConfirmationDialogComponent', 'selector': 'app-confirmation-dialog'},{'name': 'DateInputComponent', 'selector': 'app-date-input'},{'name': 'DurationInputComponent', 'selector': 'app-duration-input'},{'name': 'DurationSectionComponent', 'selector': 'app-duration-section'},{'name': 'ErrorSummaryComponent', 'selector': 'app-error-summary'},{'name': 'FeesSectionComponent', 'selector': 'app-fees-section'},{'name': 'FeeUpdateConfirmComponent', 'selector': 'app-fee-update-confirm'},{'name': 'FooterComponent', 'selector': 'app-footer'},{'name': 'ForbiddenComponent', 'selector': 'app-forbidden'},{'name': 'GovukTextareaComponent', 'selector': 'app-govuk-textarea'},{'name': 'HeaderComponent', 'selector': 'app-header'},{'name': 'HelpDetailsComponent', 'selector': 'app-help-details'},{'name': 'HomeComponent', 'selector': ''},{'name': 'InternalErrorComponent', 'selector': 'app-internal-error'},{'name': 'ListMaintenanceSectionComponent', 'selector': 'app-list-maintenance-section'},{'name': 'LoadingSpinner', 'selector': 'app-loading-spinner'},{'name': 'Login', 'selector': 'app-login'},{'name': 'MoveConfirmComponent', 'selector': 'app-move-confirm'},{'name': 'NavigationWarningComponent', 'selector': 'app-navigation-warning'},{'name': 'NotesSectionComponent', 'selector': 'app-notes-section'},{'name': 'NotFoundComponent', 'selector': 'app-not-found'},{'name': 'NotificationBannerComponent', 'selector': 'app-notification-banner'},{'name': 'OfficialsSectionComponent', 'selector': 'app-officials-section'},{'name': 'OrganisationSectionComponent', 'selector': 'app-organisation-section'},{'name': 'PageHeaderComponent', 'selector': 'app-page-header'},{'name': 'PaginationComponent', 'selector': 'app-pagination'},{'name': 'PaymentReferenceEditComponent', 'selector': 'app-payment-reference-edit'},{'name': 'PersonSectionComponent', 'selector': 'app-person-section'},{'name': 'PrivateProsecutorsIndexSectionComponent', 'selector': 'app-private-prosecutors-index-section'},{'name': 'RadioButtonComponent', 'selector': 'app-radio-group'},{'name': 'Reports', 'selector': 'app-reports'},{'name': 'ReportSelectorComponent', 'selector': 'app-report-selector'},{'name': 'ReportsSharedFormComponent', 'selector': 'app-reports-shared-form'},{'name': 'RespondentBulkApplicationComponent', 'selector': 'app-respondent-bulk-application'},{'name': 'RespondentSectionComponent', 'selector': 'app-respondent-section'},{'name': 'ResultSelected', 'selector': 'app-result-selected'},{'name': 'ResultWordingSectionComponent', 'selector': 'app-result-wording-section'},{'name': 'ReviewConfirmComponent', 'selector': 'app-review-confirm'},{'name': 'SearchBoxComponent', 'selector': 'app-search-box'},{'name': 'SearchWarrantsSectionComponent', 'selector': 'app-search-warrants-section'},{'name': 'SelectInputComponent', 'selector': 'app-select-input'},{'name': 'ServiceNavigationComponent', 'selector': 'app-service-navigation'},{'name': 'SortableTableComponent', 'selector': 'app-sortable-table'},{'name': 'StandardApplicants', 'selector': 'app-standard-applicants'},{'name': 'StandardApplicantSelectComponent', 'selector': 'app-standard-applicant-select'},{'name': 'StandardApplicantsViewComponent', 'selector': 'app-standard-applicants-view'},{'name': 'SuccessBannerComponent', 'selector': 'app-success-banner'},{'name': 'SuggestionsComponent', 'selector': 'app-suggestions'},{'name': 'SummaryListCardActionComponent', 'selector': 'app-summary-list-card-action'},{'name': 'TableComponent', 'selector': 'app-table'},{'name': 'TextInputComponent', 'selector': 'app-text-input'},{'name': 'UpdateNotesComponent', 'selector': 'app-update-notes'},{'name': 'UpdateOfficialsComponent', 'selector': 'app-update-officials'},{'name': 'UpdateOfficialsConfirmComponent', 'selector': 'app-update-officials-confirm'},{'name': 'WordingParserComponent', 'selector': 'app-wording-parser'},{'name': 'WordingSectionComponent', 'selector': 'app-wording-section'},{'name': 'WorkloadSectionComponent', 'selector': 'app-workload-section'}];
+    var DIRECTIVES = [{'name': 'MojButtonMenuDirective', 'selector': '[appMojButtonMenu]'},{'name': 'PlaceFieldsBase', 'selector': ''},{'name': 'ResultSelectedTableBase', 'selector': ''},{'name': 'UpdateOfficialsTableBase', 'selector': ''}];
+    var ACTUAL_COMPONENT = {'name': 'ApplicantSectionComponent'};
+</script>
+<script src="../js/tree.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'component';
+            var COMPODOC_CURRENT_PAGE_URL = 'ApplicantSectionComponent.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

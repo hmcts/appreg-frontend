@@ -1,0 +1,1187 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>appreg-frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+          <script>
+              // --- Iframe navigation tracking for Template Playground ---
+              function sendCurrentUrlToParent() {
+                  if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({
+                          type: 'compodoc-iframe-navigate',
+                          url: window.location.pathname + window.location.hash
+                      }, '*');
+                  }
+              }
+              window.addEventListener('hashchange', sendCurrentUrlToParent, false);
+              window.addEventListener('popstate', sendCurrentUrlToParent, false);
+              window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">appreg-frontend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content interface">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Interfaces</li>
+  <li class="breadcrumb-item"
+  >
+  ErrorDescription</li>
+</ol>
+
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/app/pages/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component.ts</code>
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#api" 
+                class="nav-link"
+                
+                role="tab" id="api-tab" data-bs-toggle="tab" data-link="api">API</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+
+
+
+            </div>
+
+    <div class="tab-pane fade " id="api"><section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+            <tr>
+                <td class="col-md-3">
+                    <h6><b>Properties</b></h6>
+                </td>
+                <td class="col-md-9">
+                    <ul class="index-list">
+                        <li>
+                                <a href="#addressLine1" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">addressLine1</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#code" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">code</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#errorType" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">errorType</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#location" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">location</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#message" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">message</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#rejectedValue" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">rejectedValue</span>
+                                </a>
+                        </li>
+                        <li>
+                                <a href="#rowNumber" class="reference-link ">
+                                    <span class="reference-badge reference-badge--property" aria-hidden="true">P</span><span class="reference-link-label">rowNumber</span>
+                                </a>
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+
+
+    <section data-compodoc="block-properties">
+        <h3 id="inputs">Properties</h3>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="addressLine1"></a>
+                                <span class="name "><b>addressLine1</b>
+                                    <a href="#addressLine1">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>addressLine1:     <code>string | null</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>string | null</code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="95" class="link-to-prism">src/app/pages/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component.ts:95</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="code"></a>
+                                <span class="name "><b>code</b>
+                                    <a href="#code">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>code:     <code>string | null</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>string | null</code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="96" class="link-to-prism">src/app/pages/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component.ts:96</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="errorType"></a>
+                                <span class="name "><b>errorType</b>
+                                    <a href="#errorType">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>errorType:     <code>&quot;HEADER_ERROR&quot; | &quot;DATA_ERROR&quot;</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>&quot;HEADER_ERROR&quot; | &quot;DATA_ERROR&quot;</code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="97" class="link-to-prism">src/app/pages/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component.ts:97</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="location"></a>
+                                <span class="name "><b>location</b>
+                                    <a href="#location">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>location:     <code>string | null</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>string | null</code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="92" class="link-to-prism">src/app/pages/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component.ts:92</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="message"></a>
+                                <span class="name "><b>message</b>
+                                    <a href="#message">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>message:     <code>string | null</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>string | null</code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="94" class="link-to-prism">src/app/pages/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component.ts:94</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="rejectedValue"></a>
+                                <span class="name "><b>rejectedValue</b>
+                                    <a href="#rejectedValue">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>rejectedValue:     <code>string | null</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>string | null</code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="93" class="link-to-prism">src/app/pages/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component.ts:93</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered">
+                <tbody>
+                        <tr>
+                            <td class="col-md-4">
+                                <a name="rowNumber"></a>
+                                <span class="name "><b>rowNumber</b>
+                                    <a href="#rowNumber">
+                                        <span class="icon ion-ios-link"></span>
+                                    </a>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <code>rowNumber:     <code>number | null</code>
+</code>
+                            </td>
+                        </tr>
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <i>Type : </i>    <code>number | null</code>
+
+                                </td>
+                            </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="91" class="link-to-prism">src/app/pages/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component.ts:91</a></div>
+                                </td>
+                            </tr>
+
+                </tbody>
+            </table>
+    </section>
+</div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DOCUMENT } from &#x27;@angular/common&#x27;;
+import { HttpResponse } from &#x27;@angular/common/http&#x27;;
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  EnvironmentInjector,
+  OnInit,
+  PLATFORM_ID,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from &#x27;@angular/core&#x27;;
+import { takeUntilDestroyed } from &#x27;@angular/core/rxjs-interop&#x27;;
+import { FormsModule } from &#x27;@angular/forms&#x27;;
+import { ActivatedRoute, Router } from &#x27;@angular/router&#x27;;
+import { Observable, take } from &#x27;rxjs&#x27;;
+
+import {
+  ApplicationsListBulkUploadState,
+  BulkUploadFeedback,
+  InitialBulkUploadState,
+} from &#x27;./util/applications-list-bulk-upload.state&#x27;;
+
+import { AsyncJobProgressComponent } from &#x27;@components/async-job-progress/async-job-progress.component&#x27;;
+import { BreadcrumbsComponent } from &#x27;@components/breadcrumbs/breadcrumbs.component&#x27;;
+import { ErrorSummaryComponent } from &#x27;@components/error-summary/error-summary.component&#x27;;
+import { HelpDetailsComponent } from &#x27;@components/help-details/help-details.component&#x27;;
+import { NavigationWarningComponent } from &#x27;@components/navigation-warning/navigation-warning.component&#x27;;
+import { NotificationBannerComponent } from &#x27;@components/notification-banner/notification-banner.component&#x27;;
+import { PageHeaderComponent } from &#x27;@components/page-header/page-header.component&#x27;;
+import { PaginationComponent } from &#x27;@components/pagination/pagination.component&#x27;;
+import {
+  SortableTableComponent,
+  TableColumn,
+} from &#x27;@components/sortable-table/sortable-table.component&#x27;;
+import { Row } from &#x27;@core-types/table/row.types&#x27;;
+import {
+  ApplicationListEntriesApi,
+  BulkUploadApplicationListEntriesRequestParams,
+  JobAcknowledgement,
+  ReportsApi,
+} from &#x27;@openapi&#x27;;
+import {
+  JobPollingFacade,
+  PolledJobStatus,
+} from &#x27;@services/jobs/job-polling.facade&#x27;;
+import { getHttpStatus, getProblemText } from &#x27;@util/http-error-to-text&#x27;;
+import { saveCsv as saveCsvFile } from &#x27;@util/save-csv&#x27;;
+import { createSignalState, setupLoadEffect } from &#x27;@util/signal-state-helpers&#x27;;
+import { getDateStamp, trimToUndefined } from &#x27;@util/string-helpers&#x27;;
+import { sortRows } from &#x27;@util/table-sort&#x27;;
+
+const UPLOAD_IN_PROGRESS_FEEDBACK &#x3D; {
+  kind: &#x27;progress&#x27;,
+  heading: &#x27;Upload in progress&#x27;,
+  body: &#x27;Your bulk upload is being processed. This page will update automatically when it finishes.&#x27;,
+} as const;
+
+const BulkUploadErrorTableColumns: TableColumn[] &#x3D; [
+  { header: &#x27;Error type&#x27;, field: &#x27;errorType&#x27;, wrap: false },
+  { header: &#x27;Row&#x27;, field: &#x27;rowNumber&#x27; },
+  { header: &#x27;Affected column&#x27;, field: &#x27;location&#x27; },
+  { header: &#x27;Message&#x27;, field: &#x27;message&#x27;, minWidth: &#x27;10rem&#x27;, maxWidth: &#x27;28rem&#x27; },
+  { header: &#x27;Applicant&#x27;, field: &#x27;name&#x27; },
+  {
+    header: &#x27;Address line 1&#x27;,
+    field: &#x27;addressLine1&#x27;,
+    minWidth: &#x27;10rem&#x27;,
+    maxWidth: &#x27;28rem&#x27;,
+  },
+  {
+    header: &#x27;Rejected value&#x27;,
+    field: &#x27;rejectedValue&#x27;,
+    minWidth: &#x27;10rem&#x27;,
+    maxWidth: &#x27;28rem&#x27;,
+  },
+];
+
+interface ErrorDescription {
+  rowNumber: number | null;
+  location: string | null;
+  rejectedValue: string | null;
+  message: string | null;
+  addressLine1: string | null;
+  code: string | null;
+  errorType: &#x27;HEADER_ERROR&#x27; | &#x27;DATA_ERROR&#x27;;
+}
+
+const AffectedColumn: Record&lt;string, string&gt; &#x3D; {
+  standardApplicantCode: &#x27;Standard applicant code&#x27;,
+  applicationCode: &#x27;Application code&#x27;,
+  name: &#x27;Name&#x27;,
+  addressLine1: &#x27;Address line 1&#x27;,
+  addressLine2: &#x27;Address line 2&#x27;,
+  addressLine3: &#x27;Address line 3&#x27;,
+  addressLine4: &#x27;Address line 4&#x27;,
+  addressLine5: &#x27;Address line 5&#x27;,
+  postcode: &#x27;Postcode&#x27;,
+  email: &#x27;Respondent email&#x27;,
+  phone: &#x27;Respondent phone&#x27;,
+  mobile: &#x27;Respondent mobile&#x27;,
+  ACCOUNT_NUMBER: &#x27;Account number&#x27;,
+  APPLICATION_TEXT: &#x27;Application text&#x27;,
+  &#x27;RESP_NAME_ORG/RESP_FORENAME1/RESP_SURNAME/RESP_FIRST_NAME/RESP_LAST_NAME&#x27;:
+    &#x27;Respondent names&#x27;,
+  firstName: &#x27;Respondent first name&#x27;,
+  lastName: &#x27;Respondent last name&#x27;,
+  title: &#x27;Respondent title&#x27;,
+  RESPONDENT: &#x27;Respondent details&#x27;,
+};
+
+@Component({
+  selector: &#x27;app-applications-list-bulk-upload&#x27;,
+  imports: [
+    FormsModule,
+    BreadcrumbsComponent,
+    PageHeaderComponent,
+    ErrorSummaryComponent,
+    HelpDetailsComponent,
+    AsyncJobProgressComponent,
+    NotificationBannerComponent,
+    NavigationWarningComponent,
+    SortableTableComponent,
+    PaginationComponent,
+  ],
+  templateUrl: &#x27;./applications-list-bulk-upload.component.html&#x27;,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: &#x27;./applications-list-bulk-upload.component.scss&#x27;,
+})
+export class ApplicationsListBulkUpload implements OnInit {
+  private readonly actionsApi &#x3D; inject(ApplicationListEntriesApi);
+  private readonly destroyRef &#x3D; inject(DestroyRef);
+  private readonly jobPollingFacade &#x3D; inject(JobPollingFacade);
+  private readonly route &#x3D; inject(ActivatedRoute);
+  private readonly router &#x3D; inject(Router);
+  private readonly jobApi &#x3D; inject(ReportsApi);
+  private readonly componentDestroyRef &#x3D; inject(DestroyRef);
+  private readonly platformId &#x3D; inject(PLATFORM_ID);
+  private readonly document &#x3D; inject(DOCUMENT);
+  private readonly navigationWarning &#x3D; viewChild(NavigationWarningComponent);
+
+  // Initialise signal state
+  private readonly bulkUploadSignalState &#x3D;
+    createSignalState&lt;ApplicationsListBulkUploadState&gt;(InitialBulkUploadState);
+  private readonly bulkUploadState &#x3D; this.bulkUploadSignalState.state;
+  private readonly bulkUploadPatch &#x3D; this.bulkUploadSignalState.patch;
+  readonly vm &#x3D; this.bulkUploadSignalState.vm;
+
+  private readonly envInjector &#x3D; inject(EnvironmentInjector);
+  private readonly bulkUploadRequest &#x3D;
+    signal&lt;BulkUploadApplicationListEntriesRequestParams | null&gt;(null);
+  readonly submitAttempt &#x3D; signal(0);
+  readonly pendingJobId &#x3D; signal&lt;string | null&gt;(null);
+  readonly replacementFileSelected &#x3D; signal(false);
+  isJobPolling &#x3D; false;
+
+  columns &#x3D; BulkUploadErrorTableColumns;
+
+  jobId: string &#x3D; &#x27;&#x27;;
+  readonly errorRows &#x3D; signal&lt;Row[]&gt;([]);
+  readonly pageSize &#x3D; 10;
+  readonly errorSort &#x3D; signal&lt;{ key: string; direction: &#x27;asc&#x27; | &#x27;desc&#x27; }&gt;({
+    key: &#x27;&#x27;,
+    direction: &#x27;asc&#x27;,
+  });
+
+  readonly totalPages &#x3D; computed(() &#x3D;&gt;
+    Math.ceil(this.errorRows().length / this.pageSize),
+  );
+
+  // Sort all returned rows before paginating them.
+  readonly sortedErrorRows &#x3D; computed(() &#x3D;&gt; {
+    const { key, direction: sortDirection } &#x3D; this.errorSort();
+    return key
+      ? sortRows(this.errorRows(), { key, direction: sortDirection })
+      : this.errorRows();
+  });
+
+  readonly paginatedErrorRows &#x3D; computed(() &#x3D;&gt; {
+    const start &#x3D; this.vm().currentPage * this.pageSize;
+    return this.sortedErrorRows().slice(start, start + this.pageSize);
+  });
+
+  disableExportErrButton &#x3D; signal(false);
+
+  ngOnInit(): void {
+    const id &#x3D; this.route.snapshot.paramMap.get(&#x27;id&#x27;);
+    if (id) {
+      this.bulkUploadSignalState.patch({ listId: id });
+    }
+
+    this.setupEffects();
+
+    const jobId &#x3D; this.route.snapshot.queryParamMap.get(&#x27;bulkUploadJobId&#x27;);
+    if (jobId) {
+      this.startBulkUploadPolling(jobId);
+    }
+  }
+
+  private setupEffects(): void {
+    setupLoadEffect(
+      {
+        request: this.bulkUploadRequest,
+        load: (params) &#x3D;&gt;
+          this.actionsApi.bulkUploadApplicationListEntries(
+            params,
+            &#x27;response&#x27;,
+            false,
+            { transferCache: false },
+          ),
+        onSuccess: (res: HttpResponse&lt;JobAcknowledgement&gt;) &#x3D;&gt; {
+          this.handleUploadResponse(res);
+          this.bulkUploadRequest.set(null);
+        },
+        onError: (err) &#x3D;&gt; {
+          this.handleUploadError(err);
+          this.bulkUploadRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+  }
+
+  /**
+   * Watches a submitted upload job, avoiding duplicate subscriptions.
+   * Authorization and status failures update feedback and end the active
+   * polling state so the user can retry checking the job.
+   *
+   * @param jobId - Upload job whose status is requested.
+   */
+  private startBulkUploadPolling(jobId: string): void {
+    if (this.isJobPolling) {
+      return;
+    }
+    this.isJobPolling &#x3D; true;
+    this.pendingJobId.set(jobId);
+    this.bulkUploadPatch({
+      bulkUploadFeedback: UPLOAD_IN_PROGRESS_FEEDBACK,
+    });
+
+    this.jobPollingFacade
+      .watchJob(jobId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (job) &#x3D;&gt; this.handleBulkUploadStatus(job),
+        error: (err) &#x3D;&gt; {
+          this.isJobPolling &#x3D; false;
+          const status &#x3D; getHttpStatus(err);
+          this.bulkUploadPatch({
+            bulkUploadFeedback: {
+              kind: &#x27;error&#x27;,
+              title: &#x27;Error&#x27;,
+              heading: &#x27;Unable to load upload status&#x27;,
+              body:
+                status &#x3D;&#x3D;&#x3D; 401
+                  ? &#x27;You need to sign in to check the bulk upload status.&#x27;
+                  : status &#x3D;&#x3D;&#x3D; 403
+                    ? &#x27;You do not have permission to check the bulk upload status.&#x27;
+                    : &#x27;Please try again later.&#x27;,
+            },
+            isUploadInProgress: false,
+          });
+          this.submitAttempt.update((attempt) &#x3D;&gt; attempt + 1);
+        },
+      });
+  }
+
+  private handleBulkUploadStatus(job: PolledJobStatus): void {
+    if (!job.isTerminal) {
+      return;
+    }
+
+    if (!trimToUndefined(job.id)) {
+      return;
+    }
+
+    this.jobId &#x3D; job.id;
+    this.isJobPolling &#x3D; false;
+    if (job.state !&#x3D;&#x3D; &#x27;unknown&#x27;) {
+      this.pendingJobId.set(null);
+    }
+    // Clear progress before successful navigation so this page does not block itself.
+    this.bulkUploadPatch({ isUploadInProgress: false });
+    this.bulkUploadPatch({
+      bulkUploadFeedback: this.toBulkUploadFeedback(job),
+      uploadSuccessful: job.state &#x3D;&#x3D;&#x3D; &#x27;succeeded&#x27;,
+    });
+  }
+
+  /**
+   * Converts a terminal upload status into user feedback.
+   * Success navigates back with the job summary instead of returning feedback;
+   * failed and unknown states return an error message for this page.
+   *
+   * @param job - Normalized upload status.
+   * @returns Feedback for non-success states, or &#x60;void&#x60; after navigation.
+   */
+  private toBulkUploadFeedback(
+    job: PolledJobStatus,
+  ): BulkUploadFeedback | void {
+    switch (job.state) {
+      case &#x27;succeeded&#x27;:
+        void this.router.navigate([&#x27;../&#x27;], {
+          relativeTo: this.route,
+          queryParams: { bulkUploadSuccess: &#x27;true&#x27; },
+          state: {
+            msg:
+              job.createdCount &#x3D;&#x3D;&#x3D; null
+                ? &#x27;All records were uploaded successfully.&#x27;
+                : &#x60;${this.formatCount(job.createdCount, &#x27;application&#x27;)} imported successfully.&#x60;,
+            jobId: job.id,
+            totalFeeValue: job.raw[&#x27;totalFeeValue&#x27;],
+          },
+        });
+        return;
+
+      case &#x27;failed&#x27;:
+        return {
+          kind: &#x27;error&#x27;,
+          title: &#x27;Error&#x27;,
+          heading: &#x27;Bulk upload failed&#x27;,
+          body: this.formatErrorDescriptionFromError(job.message),
+        } as const;
+
+      case &#x27;unknown&#x27;:
+        return {
+          kind: &#x27;error&#x27;,
+          title: &#x27;Error&#x27;,
+          heading: &#x27;Bulk upload status unknown&#x27;,
+          body: job.message ?? &#x27;Please check again later.&#x27;,
+        } as const;
+
+      default:
+        return UPLOAD_IN_PROGRESS_FEEDBACK;
+    }
+  }
+
+  onRetryUploadStatus(): void {
+    const jobId &#x3D; this.pendingJobId();
+    if (jobId &amp;&amp; !this.isJobPolling) {
+      this.startBulkUploadPolling(jobId);
+    }
+  }
+
+  /**
+   * Converts a structured upload error description into readable table rows.
+   * Missing, invalid, or non-array JSON clears the rows and falls back to
+   * a plain error message.
+   *
+   * @param msg - Error description returned with the upload job.
+   * @returns Message to display above any parsed error rows.
+   */
+  private formatErrorDescriptionFromError(msg: string | null): string {
+    const formatMsg &#x3D; trimToUndefined(msg);
+
+    if (!formatMsg) {
+      this.errorRows.set([]);
+      return &#x27;The bulk upload could not be completed. Contact support for more guidance&#x27;;
+    }
+
+    try {
+      const errorsAsArrayObjects &#x3D; JSON.parse(formatMsg) as ErrorDescription[];
+
+      if (!Array.isArray(errorsAsArrayObjects)) {
+        this.errorRows.set([]);
+        return (
+          msg ??
+          &#x27;The bulk upload could not be completed. Contact support for more guidance&#x27;
+        );
+      }
+
+      if (!errorsAsArrayObjects.length) {
+        return &#x27;The bulk upload could not be completed. Contact support for more guidance&#x27;;
+      }
+
+      const rows: Row[] &#x3D; errorsAsArrayObjects.map(
+        ({
+          errorType,
+          rowNumber,
+          location,
+          message,
+          code,
+          addressLine1,
+          rejectedValue,
+        }) &#x3D;&gt; ({
+          errorType: errorType &#x3D;&#x3D;&#x3D; &#x27;DATA_ERROR&#x27; ? &#x27;Data error&#x27; : &#x27;Header error&#x27;,
+          rowNumber: rowNumber &#x3D;&#x3D;&#x3D; -1 ? &#x27;—&#x27; : (rowNumber ?? &#x27;—&#x27;),
+          location: this.errorColumnReadable(trimToUndefined(location) ?? &#x27;—&#x27;),
+          message: trimToUndefined(message) ?? &#x27;—&#x27;,
+          name: trimToUndefined(code) ?? &#x27;—&#x27;,
+          addressLine1: trimToUndefined(addressLine1) ?? &#x27;—&#x27;,
+          rejectedValue: trimToUndefined(rejectedValue) ?? &#x27;—&#x27;,
+        }),
+      );
+      this.errorRows.set(rows);
+
+      return &#x27;The bulk upload could not be completed. See the table below for more details. Please re-try the upload once these errors have been resolved&#x27;;
+    } catch {
+      this.errorRows.set([]);
+      return (
+        msg ??
+        &#x27;The bulk upload could not be completed. Contact support for more guidance&#x27;
+      );
+    }
+  }
+
+  private formatCount(count: number, noun: string): string {
+    return &#x60;${count} ${noun}${count &#x3D;&#x3D;&#x3D; 1 ? &#x27;&#x27; : &#x27;s&#x27;}&#x60;;
+  }
+
+  private handleUploadResponse(res: HttpResponse&lt;JobAcknowledgement&gt;): void {
+    const jobAcknowledgement &#x3D; res.body ?? null;
+    this.bulkUploadPatch({ jobAcknowledgement });
+
+    if (res.status &#x3D;&#x3D;&#x3D; 202 &amp;&amp; jobAcknowledgement?.id) {
+      this.bulkUploadPatch({
+        fileUploadStatus: null,
+      });
+      this.startBulkUploadPolling(jobAcknowledgement.id);
+      return;
+    }
+
+    this.bulkUploadPatch({
+      fileUploadStatus: &#x27;error&#x27;,
+      errorSummary: [
+        { text: &#x27;Unable to start bulk upload. Please try again.&#x27; },
+      ],
+      isUploadInProgress: false,
+    });
+  }
+
+  private handleUploadError(err: unknown): void {
+    this.bulkUploadPatch({
+      fileUploadStatus: &#x27;error&#x27;,
+      errorSummary: [{ text: getProblemText(err) }],
+      isUploadInProgress: false,
+    });
+  }
+
+  canLeave(): boolean | Observable&lt;boolean&gt; {
+    return this.navigationWarning()?.canLeave(this.hasPendingUpload()) ?? true;
+  }
+
+  hasPendingUpload(): boolean {
+    return this.vm().isUploadInProgress || !!this.pendingJobId();
+  }
+
+  onFileSelected(event: Event): void {
+    if (!this.pendingJobId()) {
+      this.bulkUploadPatch({
+        fileUploadStatus: null,
+        bulkUploadFeedback: null,
+      });
+    }
+    this.replacementFileSelected.set(false);
+    const input &#x3D; event.target as HTMLInputElement;
+
+    if (!input.files || input.files.length &#x3D;&#x3D;&#x3D; 0) {
+      // no file selected
+      return;
+    }
+
+    const file &#x3D; input.files[0];
+
+    // validate filename extension
+    const isCsvExtension &#x3D; file.name.toLowerCase().endsWith(&#x27;.csv&#x27;);
+
+    // validate MIME type
+    const allowedMimes &#x3D; new Set([
+      &#x27;text/csv&#x27;,
+      &#x27;application/csv&#x27;,
+      &#x27;application/vnd.ms-excel&#x27;,
+      &#x27;&#x27;,
+    ]);
+    const isCsvMime &#x3D; allowedMimes.has(file.type);
+
+    if (!isCsvExtension &amp;&amp; !isCsvMime) {
+      this.bulkUploadPatch({ isValidCSV: false });
+      return;
+    }
+
+    this.bulkUploadPatch({ isValidCSV: true });
+
+    if (file) {
+      this.bulkUploadPatch({ file });
+      this.replacementFileSelected.set(true);
+    }
+  }
+
+  onSubmit(): void {
+    if (
+      this.vm().isUploadInProgress ||
+      this.isJobPolling ||
+      (this.pendingJobId() &amp;&amp; !this.replacementFileSelected())
+    ) {
+      return;
+    }
+    this.submitAttempt.update((attempt) &#x3D;&gt; attempt + 1);
+    this.errorRows.set([]);
+    this.bulkUploadPatch({
+      isUploadInProgress: true,
+      bulkUploadFeedback: null,
+      uploadSuccessful: false,
+      currentPage: 0,
+    });
+
+    if (!this.bulkUploadState().file) {
+      // No file so return
+      this.bulkUploadPatch({ isUploadInProgress: false });
+      return;
+    }
+
+    this.pendingJobId.set(null);
+    this.replacementFileSelected.set(false);
+    this.bulkUploadPatch({ fileUploadStatus: null, errorSummary: [] });
+
+    const params: BulkUploadApplicationListEntriesRequestParams &#x3D; {
+      listId: this.bulkUploadState().listId,
+      file: this.bulkUploadState().file ?? undefined,
+    };
+
+    this.bulkUploadRequest.set(params);
+  }
+
+  onExportErrorFilesClick(): void {
+    if (!trimToUndefined(this.jobId)) {
+      this.bulkUploadPatch({
+        errorSummary: [
+          {
+            text: &#x27;Unable to export file. If you believe this was in error, please contact support.&#x27;,
+          },
+        ],
+      });
+      return;
+    }
+
+    this.disableExportErrButton.set(true);
+
+    this.jobApi
+      .downloadReport({ jobId: this.jobId }, &#x27;response&#x27;, false, {
+        httpHeaderAccept: &#x27;text/csv&#x27;,
+        transferCache: false,
+      })
+      .pipe(take(1), takeUntilDestroyed(this.componentDestroyRef))
+      .subscribe({
+        next: (response) &#x3D;&gt; {
+          this.saveCsv(response);
+          this.disableExportErrButton.set(false);
+        },
+        error: (err) &#x3D;&gt; {
+          this.submitAttempt.update((attempt) &#x3D;&gt; attempt + 1);
+          this.bulkUploadPatch({
+            fileUploadStatus: &#x27;error&#x27;,
+            errorSummary: [{ text: getProblemText(err) }],
+          });
+          this.disableExportErrButton.set(false);
+        },
+      });
+  }
+
+  onPageChange(page: number): void {
+    this.bulkUploadPatch({ currentPage: page });
+  }
+
+  onSortChange(sort: { key: string; direction: &#x27;desc&#x27; | &#x27;asc&#x27; }): void {
+    this.errorSort.set(sort);
+    this.bulkUploadPatch({ currentPage: 0 });
+  }
+
+  private saveCsv(response: HttpResponse&lt;Blob&gt;): void {
+    if (!response.body) {
+      this.bulkUploadPatch({
+        errorSummary: [
+          { text: &#x27;Failed to export CSV. Please try again later&#x27; },
+        ],
+      });
+      return;
+    }
+
+    saveCsvFile(
+      response,
+      &#x60;bulk-upload-export-error-csv-${getDateStamp()}.csv&#x60;,
+      this.document,
+      this.platformId,
+    );
+  }
+
+  private errorColumnReadable(column: string): string {
+    return AffectedColumn[column] ?? column ?? &#x27;—&#x27;;
+  }
+}
+</code></pre>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'interface';
+            var COMPODOC_CURRENT_PAGE_URL = 'ErrorDescription.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

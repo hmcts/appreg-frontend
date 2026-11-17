@@ -1,0 +1,1006 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>appreg-frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+          <script>
+              // --- Iframe navigation tracking for Template Playground ---
+              function sendCurrentUrlToParent() {
+                  if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({
+                          type: 'compodoc-iframe-navigate',
+                          url: window.location.pathname + window.location.hash
+                      }, '*');
+                  }
+              }
+              window.addEventListener('hashchange', sendCurrentUrlToParent, false);
+              window.addEventListener('popstate', sendCurrentUrlToParent, false);
+              window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">appreg-frontend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content injectable">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Injectables</li>
+  <li class="breadcrumb-item" >MojButtonMenu</li>
+</ol>
+
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/app/shared/util/moj-button-menu.ts</code>
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#api" 
+                class="nav-link"
+                
+                role="tab" id="api-tab" data-bs-toggle="tab" data-link="api">API</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+
+
+
+        <section data-compodoc="block-metadata">
+            <h3>Metadata</h3>
+            <table class="table table-sm table-hover metadata">
+                <tbody>
+                    <tr>
+                        <td class="col-md-3">providedIn</td>
+                        <td class="col-md-9"><code>root</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+
+            </div>
+
+    <div class="tab-pane fade " id="api">
+            <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Optional</span>
+                                <a href="#cachedCtor" >cachedCtor</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#failedNodes" >failedNodes</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#loadFailureLogged" >loadFailureLogged</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#telemetry" >telemetry</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#initAll" >initAll</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#loadCtor" >loadCtor</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#reportFailure" >reportFailure</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+
+
+</section>
+
+            <section data-compodoc="block-constructor">
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(platformId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/object" target="_blank">object</a>)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/app/shared/util/moj-button-menu.ts:32</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>platformId</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/object" target="_blank" >object</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+            <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="initAll"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>initAll</b></span>
+                        <a href="#initAll"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>initAll(root: ParentNode)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="70"
+                                    class="link-to-prism">src/app/shared/util/moj-button-menu.ts:70</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Initialise all menus under <code>root</code> (defaults to document), idempotently.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Default value</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>root</td>
+                                            <td>
+                                                        <code>ParentNode</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                                    <code>document</code>
+                                            </td>
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="loadCtor"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Async</span>
+                        <span ><b>loadCtor</b></span>
+                        <a href="#loadCtor"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>loadCtor()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="36"
+                                    class="link-to-prism">src/app/shared/util/moj-button-menu.ts:36</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../miscellaneous/typealiases.html#ButtonMenuCtor" target="_self" >Promise&lt;ButtonMenuCtor | undefined&gt;</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="reportFailure"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>reportFailure</b></span>
+                        <a href="#reportFailure"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>reportFailure(error: Error, phase: "load" | "init")</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="101"
+                                    class="link-to-prism">src/app/shared/util/moj-button-menu.ts:101</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>error</td>
+                                            <td>
+                                                        <code>Error</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>phase</td>
+                                            <td>
+                                                        <code>&quot;load&quot; | &quot;init&quot;</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+            <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="cachedCtor"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Optional</span>
+                        <span ><b>cachedCtor</b></span>
+                        <a href="#cachedCtor"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../miscellaneous/typealiases.html#ButtonMenuCtor" target="_self" >ButtonMenuCtor</a></code>
+
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/shared/util/moj-button-menu.ts:29</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="failedNodes"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>failedNodes</b></span>
+                        <a href="#failedNodes"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>new WeakSet&lt;HTMLElement&gt;()</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/app/shared/util/moj-button-menu.ts:31</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="loadFailureLogged"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>loadFailureLogged</b></span>
+                        <a href="#loadFailureLogged"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>false</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/app/shared/util/moj-button-menu.ts:32</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="telemetry"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>telemetry</b></span>
+                        <a href="#telemetry"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(TelemetryService)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/app/shared/util/moj-button-menu.ts:30</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { isPlatformBrowser } from &#x27;@angular/common&#x27;;
+import {
+  AfterViewInit,
+  Directive,
+  ElementRef,
+  Inject,
+  Injectable,
+  OnDestroy,
+  PLATFORM_ID,
+  inject,
+} from &#x27;@angular/core&#x27;;
+
+import { TelemetryService } from &#x27;@services/telemetry.service&#x27;;
+import { recoverFromModuleLoadError } from &#x27;@util/global-module-load-error-listener&#x27;;
+
+type ButtonMenuInstance &#x3D; { init?: () &#x3D;&gt; void; destroy?: () &#x3D;&gt; void };
+type ButtonMenuCtor &#x3D; new (el: HTMLElement) &#x3D;&gt; ButtonMenuInstance;
+
+interface MojInitEl extends HTMLElement {
+  __mojInit?: boolean;
+}
+
+const OPEN_MENU_CLASS &#x3D; &#x27;app-moj-button-menu--open&#x27;;
+const MENU_GAP_PX &#x3D; 8;
+const MENU_VIEWPORT_MARGIN_PX &#x3D; 8;
+
+@Injectable({ providedIn: &#x27;root&#x27; })
+export class MojButtonMenu {
+  private cachedCtor?: ButtonMenuCtor;
+  private readonly telemetry &#x3D; inject(TelemetryService);
+  private readonly failedNodes &#x3D; new WeakSet&lt;HTMLElement&gt;();
+  private loadFailureLogged &#x3D; false;
+
+  constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
+
+  private async loadCtor(): Promise&lt;ButtonMenuCtor | undefined&gt; {
+    if (!isPlatformBrowser(this.platformId)) {
+      return undefined;
+    }
+    if (this.cachedCtor) {
+      return this.cachedCtor;
+    }
+
+    try {
+      const mod: unknown &#x3D; await import(&#x27;@ministryofjustice/frontend&#x27;);
+      const root &#x3D; mod as Record&lt;string, unknown&gt;;
+      const def &#x3D; (root[&#x27;default&#x27;] ?? {}) as Record&lt;string, unknown&gt;;
+      const candidate &#x3D; root[&#x27;ButtonMenu&#x27;] ?? def[&#x27;ButtonMenu&#x27;];
+
+      if (typeof candidate &#x3D;&#x3D;&#x3D; &#x27;function&#x27;) {
+        this.cachedCtor &#x3D; candidate as ButtonMenuCtor;
+        return this.cachedCtor;
+      }
+    } catch (error) {
+      if (!this.loadFailureLogged) {
+        this.loadFailureLogged &#x3D; true;
+        this.reportFailure(
+          error instanceof Error
+            ? error
+            : new Error(&#x27;Failed to load MOJ button menu module&#x27;),
+          &#x27;load&#x27;,
+        );
+        recoverFromModuleLoadError(error);
+      }
+    }
+    return undefined;
+  }
+
+  /** Initialise all menus under &#x60;root&#x60; (defaults to document), idempotently. */
+  async initAll(root: ParentNode &#x3D; document): Promise&lt;void&gt; {
+    const Ctor &#x3D; await this.loadCtor();
+    if (!Ctor) {
+      return;
+    }
+
+    const nodes &#x3D; root.querySelectorAll&lt;HTMLElement&gt;(
+      &#x27;[data-module&#x3D;&quot;moj-button-menu&quot;]&#x27;,
+    );
+    for (const el of nodes) {
+      const flagged &#x3D; el as MojInitEl;
+      if (flagged.__mojInit || this.failedNodes.has(flagged)) {
+        continue;
+      }
+
+      try {
+        const instance &#x3D; new Ctor(flagged);
+        instance.init?.();
+        flagged.__mojInit &#x3D; true;
+      } catch (error) {
+        this.failedNodes.add(flagged);
+        this.reportFailure(
+          error instanceof Error
+            ? error
+            : new Error(&#x27;Failed to initialise MOJ button menu&#x27;),
+          &#x27;init&#x27;,
+        );
+      }
+    }
+  }
+
+  private reportFailure(error: Error, phase: &#x27;load&#x27; | &#x27;init&#x27;): void {
+    try {
+      this.telemetry.logException(error, { component: &#x27;MojButtonMenu&#x27;, phase });
+    } catch {
+      // Telemetry failures must not block recovery or later row menus.
+    }
+  }
+}
+
+@Directive({
+  selector: &#x27;[appMojButtonMenu]&#x27;,
+  standalone: true,
+})
+export class MojButtonMenuDirective implements AfterViewInit, OnDestroy {
+  private mo?: MutationObserver;
+  private readonly syncOpenMenus &#x3D; () &#x3D;&gt; {
+    this.syncOpenMenuClasses();
+  };
+
+  constructor(
+    private readonly el: ElementRef&lt;HTMLElement&gt;,
+    private readonly menus: MojButtonMenu,
+    @Inject(PLATFORM_ID) private readonly platformId: object,
+  ) {}
+
+  ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    // initial scan
+    void this.menus.initAll(this.el.nativeElement);
+    this.syncOpenMenuClasses();
+    window.addEventListener(&#x27;resize&#x27;, this.syncOpenMenus);
+    window.addEventListener(&#x27;scroll&#x27;, this.syncOpenMenus, true);
+
+    // observe future inserts (e.g., first page render, pagination, sorts)
+    this.mo &#x3D; new MutationObserver(() &#x3D;&gt; {
+      void this.menus.initAll(this.el.nativeElement);
+      this.syncOpenMenuClasses();
+    });
+    this.mo.observe(this.el.nativeElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: [&#x27;aria-expanded&#x27;],
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    this.mo?.disconnect();
+    window.removeEventListener(&#x27;resize&#x27;, this.syncOpenMenus);
+    window.removeEventListener(&#x27;scroll&#x27;, this.syncOpenMenus, true);
+  }
+
+  private syncOpenMenuClasses(): void {
+    const menus &#x3D; this.el.nativeElement.querySelectorAll&lt;HTMLElement&gt;(
+      &#x27;[data-module&#x3D;&quot;moj-button-menu&quot;]&#x27;,
+    );
+
+    for (const menu of menus) {
+      const toggle &#x3D; menu.querySelector&lt;HTMLElement&gt;(
+        &#x27;.moj-button-menu__toggle-button[aria-expanded&#x3D;&quot;true&quot;]&#x27;,
+      );
+      const isOpen &#x3D; !!toggle;
+      menu.classList.toggle(OPEN_MENU_CLASS, isOpen);
+      if (isOpen) {
+        this.applyOverlayPosition(menu, toggle);
+      } else {
+        this.resetOverlayPosition(menu);
+      }
+    }
+  }
+
+  /**
+   * Positions an open menu against its toggle within the current viewport.
+   * The menu moves above the toggle when it fits better there, and horizontal
+   * placement is clamped to viewport margins. Overflow becomes scrollable.
+   *
+   * @param menu - Menu containing the wrapper to position.
+   * @param toggle - Expanded button used as the position anchor.
+   */
+  private applyOverlayPosition(
+    menu: HTMLElement,
+    toggle: HTMLElement | null,
+  ): void {
+    const wrapper &#x3D; menu.querySelector&lt;HTMLElement&gt;(
+      &#x27;.moj-button-menu__wrapper&#x27;,
+    );
+    if (!wrapper || !toggle) {
+      return;
+    }
+
+    const toggleRect &#x3D; toggle.getBoundingClientRect();
+    const wrapperHeight &#x3D; wrapper.offsetHeight;
+    const wrapperWidth &#x3D; Math.max(wrapper.offsetWidth, toggleRect.width);
+    const viewportWidth &#x3D;
+      window.innerWidth || document.documentElement.clientWidth || 0;
+    const viewportHeight &#x3D;
+      window.innerHeight || document.documentElement.clientHeight || 0;
+    const spaceBelow &#x3D; viewportHeight - toggleRect.bottom - MENU_GAP_PX;
+    const spaceAbove &#x3D; toggleRect.top - MENU_GAP_PX;
+
+    let top &#x3D; toggleRect.bottom + MENU_GAP_PX;
+    if (
+      wrapperHeight &gt; spaceBelow &amp;&amp;
+      wrapperHeight &lt;&#x3D; spaceAbove - MENU_VIEWPORT_MARGIN_PX
+    ) {
+      top &#x3D; Math.max(
+        MENU_VIEWPORT_MARGIN_PX,
+        toggleRect.top - wrapperHeight - MENU_GAP_PX,
+      );
+    }
+
+    const alignedRight &#x3D; wrapper.classList.contains(
+      &#x27;moj-button-menu__wrapper--right&#x27;,
+    );
+    const preferredLeft &#x3D; alignedRight
+      ? toggleRect.right - wrapperWidth
+      : toggleRect.left;
+    const maxLeft &#x3D; Math.max(
+      MENU_VIEWPORT_MARGIN_PX,
+      viewportWidth - wrapperWidth - MENU_VIEWPORT_MARGIN_PX,
+    );
+    const left &#x3D; Math.min(
+      Math.max(MENU_VIEWPORT_MARGIN_PX, preferredLeft),
+      maxLeft,
+    );
+
+    wrapper.style.position &#x3D; &#x27;fixed&#x27;;
+    wrapper.style.top &#x3D; &#x60;${Math.round(top)}px&#x60;;
+    wrapper.style.bottom &#x3D; &#x27;auto&#x27;;
+    wrapper.style.left &#x3D; &#x60;${Math.round(left)}px&#x60;;
+    wrapper.style.right &#x3D; &#x27;auto&#x27;;
+    wrapper.style.width &#x3D; &#x60;${Math.round(wrapperWidth)}px&#x60;;
+    wrapper.style.marginTop &#x3D; &#x27;0&#x27;;
+    wrapper.style.marginBottom &#x3D; &#x27;0&#x27;;
+    wrapper.style.zIndex &#x3D; &#x27;2000&#x27;;
+    wrapper.style.maxHeight &#x3D; &#x60;${Math.round(
+      Math.max(120, viewportHeight - top - MENU_VIEWPORT_MARGIN_PX),
+    )}px&#x60;;
+    wrapper.style.overflowY &#x3D; &#x27;auto&#x27;;
+  }
+
+  private resetOverlayPosition(menu: HTMLElement): void {
+    const wrapper &#x3D; menu.querySelector&lt;HTMLElement&gt;(
+      &#x27;.moj-button-menu__wrapper&#x27;,
+    );
+    if (!wrapper) {
+      return;
+    }
+
+    wrapper.style.position &#x3D; &#x27;&#x27;;
+    wrapper.style.top &#x3D; &#x27;&#x27;;
+    wrapper.style.bottom &#x3D; &#x27;&#x27;;
+    wrapper.style.left &#x3D; &#x27;&#x27;;
+    wrapper.style.right &#x3D; &#x27;&#x27;;
+    wrapper.style.width &#x3D; &#x27;&#x27;;
+    wrapper.style.marginTop &#x3D; &#x27;&#x27;;
+    wrapper.style.marginBottom &#x3D; &#x27;&#x27;;
+    wrapper.style.zIndex &#x3D; &#x27;&#x27;;
+    wrapper.style.maxHeight &#x3D; &#x27;&#x27;;
+    wrapper.style.overflowY &#x3D; &#x27;&#x27;;
+  }
+}
+</code></pre>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'injectable';
+            var COMPODOC_CURRENT_PAGE_URL = 'MojButtonMenu.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

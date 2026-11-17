@@ -1,0 +1,662 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>appreg-frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+	   <link rel="stylesheet" href="./styles/style.css">
+        <link rel="stylesheet" href="./styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+          <script>
+              // --- Iframe navigation tracking for Template Playground ---
+              function sendCurrentUrlToParent() {
+                  if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({
+                          type: 'compodoc-iframe-navigate',
+                          url: window.location.pathname + window.location.hash
+                      }, '*');
+                  }
+              }
+              window.addEventListener('hashchange', sendCurrentUrlToParent, false);
+              window.addEventListener('popstate', sendCurrentUrlToParent, false);
+              window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="./" class="navbar-brand">appreg-frontend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content readme">
+                   <div class="content-data">
+
+
+<h1>AppregFrontend</h1>
+<p>This README contains a setup guide for setting up your dev environment (Copied from <a href="https://tools.hmcts.net/confluence/display/ARM/Frontend+development+setup+for+new+users">Confluence</a>).</p>
+<hr>
+<h2>Prerequisites</h2>
+<ul>
+<li>HMCTS.NET account</li>
+<li>GitHub account with HMCTS.NET account linked</li>
+<li>Git installed</li>
+<li>Access to repos in GitHub (see GitHub page)</li>
+<li>Code editor/IDE of choice installed (Eclipse, VS Code, IntelliJ, etc.)</li>
+<li>OpenJDK 21 (for this setup example we used Adoptium Temurin as our source but most JDKs should work)</li>
+<li>Azure CLI</li>
+<li>Certificate store in NPM (for ZScaler to work with yarn install). See <a href="https://intranet.ent.cgi.com/browse/cio/global/Documents/CGI-SASE_Wave1-FAQ_EN.pdf">https://intranet.ent.cgi.com/browse/cio/global/Documents/CGI-SASE_Wave1-FAQ_EN.pdf</a> Section 21.</li>
+</ul>
+<hr>
+<h2>MacOS &amp; Linux</h2>
+<p>You can either run a provided script or install manually.</p>
+<h3>Script installation</h3>
+<ol>
+<li>Clone the Git repo</li>
+<li>Run the <code>appreg-env-setup.sh</code> script in your terminal (ensure you are in the root directory of the repo)</li>
+</ol>
+<ul>
+<li>This script runs through the steps of the manual installation</li>
+<li>If the script fails, attempt installation manually</li>
+<li>If you get <code>permission denied</code> errors, run:</li>
+</ul>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">sudo chmod +x appreg-env-setup.sh</code></pre></div><h3>Manual Installation</h3>
+<ol>
+<li><p>Ensure Git repo is cloned</p>
+</li>
+<li><p>Install <strong>NVM</strong> from: <a href="https://github.com/nvm-sh/nvm">https://github.com/nvm-sh/nvm</a></p>
+</li>
+<li><p>After installation, add to your shell config:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">export NVM_DIR=&quot;$([ -z &quot;${XDG_CONFIG_HOME-}&quot; ] &amp;&amp; printf %s &quot;${HOME}/.nvm&quot; || printf %s &quot;${XDG_CONFIG_HOME}/nvm&quot;)&quot;
+[ -s &quot;$NVM_DIR/nvm.sh&quot; ] &amp;&amp; \. &quot;$NVM_DIR/nvm.sh&quot; # This loads nvm</code></pre></div></li>
+<li><p>Verify installation:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">nvm --version</code></pre></div></li>
+<li><p>Install Node.js version 20.19.4 and set it:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">nvm install 20.19.4
+nvm use 20.19.4</code></pre></div></li>
+<li><p>Check Node.js version:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">node --version  # should be v20.19.4</code></pre></div></li>
+<li><p>Navigate to root of <code>appreg-frontend</code> directory and run:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">corepack enable
+yarn install
+yarn build</code></pre></div></li>
+<li><p>Run a local dev version:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">yarn start:dev</code></pre></div></li>
+</ol>
+<hr>
+<h2>Troubleshooting</h2>
+<h3>Curl not found</h3>
+<ul>
+<li><p>Curl should come preinstalled on Linux and MacOS</p>
+</li>
+<li><p>Verify with:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">which curl</code></pre></div><p>It should return <code>/usr/bin/curl</code>. If missing, install manually:</p>
+<p><strong>Linux:</strong></p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">sudo apt-get update &amp;&amp; sudo apt-get upgrade
+sudo apt-get install curl</code></pre></div><p><strong>MacOS:</strong></p>
+<ul>
+<li><p>Install Homebrew from <a href="https://brew.sh/">brew.sh</a></p>
+</li>
+<li><p>Run:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">brew install curl
+echo &#39;export PATH=&quot;$(brew --prefix)/opt/curl/bin:$PATH&quot;&#39; &gt;&gt; ~/.zshrc
+source ~/.zshrc</code></pre></div></li>
+</ul>
+</li>
+</ul>
+<h3>NVM or Node issues</h3>
+<ul>
+<li><p>Restart terminal:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">exec $SHELL</code></pre></div></li>
+<li><p>See troubleshooting: <a href="https://github.com/nvm-sh/nvm">https://github.com/nvm-sh/nvm</a></p>
+</li>
+</ul>
+<h3>Yarn</h3>
+<ul>
+<li><p>Ensure you are inside the <code>appreg-frontend</code> directory</p>
+</li>
+<li><p>Restart terminal, then:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">exec $SHELL
+corepack enable</code></pre></div></li>
+<li><p>If <code>node_modules</code> and <code>yarn.lock</code> exist, delete them and run:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">yarn cache clear
+yarn install &amp;&amp; yarn build</code></pre></div></li>
+</ul>
+<hr>
+<h2>Windows</h2>
+<h3>Using WSL</h3>
+<ul>
+<li>Follow the <strong>MacOS &amp; Linux</strong> steps (since WSL is a Linux environment)</li>
+</ul>
+<h3>Native Windows</h3>
+<ol>
+<li>Clone Git repo</li>
+<li>Install Node.js version 20.19.4:</li>
+</ol>
+<ul>
+<li><strong>Option 1 (simpler):</strong> Install from <a href="https://nodejs.org/en/download">Node.js site</a></li>
+<li><strong>Option 2:</strong> Install <code>nvm-windows</code> from <a href="https://github.com/coreybutler/nvm-windows?tab=readme-ov-file">nvm-windows Github</a></li>
+</ul>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-powershell">nvm install 20.19.4
+nvm use 20.19.4</code></pre></div><ol start="3">
+<li><p>Verify installation:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-powershell">node --version</code></pre></div></li>
+<li><p>In the <code>appreg-frontend</code> directory, run:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-powershell">corepack enable
+yarn install &amp;&amp; yarn build</code></pre></div></li>
+</ol>
+<hr>
+<h3>Quick start guide</h3>
+<p>Once yarn/node has been installed, run below to generate openapi files</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-powershell">yarn api:all:force</code></pre></div><p>Run below to run code using Wiremock/Stub</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-powershell">yarn dev:stub</code></pre></div><p>If you do not have Azure SSO onboarding yet, run the local SSO bypass mode:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-powershell">yarn dev:stub:no-sso</code></pre></div><p>This mode also injects a local dummy bearer token for API proxy calls so WireMock auth-header matchers pass. You can override it with <code>DEV_BYPASS_BEARER_TOKEN</code>.</p>
+<p>Run below to run code using Staging connectivity (VPN required)</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-powershell">yarn dev:stg</code></pre></div><p>Run the following command to setup pre-commit &amp; pre-push checks</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-none">yarn prepare</code></pre></div><h4>Local SSR using staging</h4>
+<p>To reproduce staging SSR behaviour locally while using the staging API and Key
+Vault configuration, run:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">yarn dev:stg:ssr</code></pre></div><p>This starts the local SSR server at <code>http://localhost:4000</code>. It performs an
+initial production SSR build. An authenticated Azure CLI session with staging Key Vault access is
+required.</p>
+<p>Note: this does not actively watch and rebuild on any new changes. Use yarn dev:stg or yarn dev:stub for this instead.</p>
+<h2>Application Insights</h2>
+<p>Frontend browser telemetry is configured at runtime from <code>GET /app/config</code>.
+The browser SDK is enabled automatically outside local/test environments when
+<code>secrets.appreg.app-insights-connection-string-fe</code> is available.</p>
+<p>For local development, telemetry stays off by default even if the connection
+string exists. To opt in locally, set:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">APPINSIGHTS_ENABLED=true</code></pre></div><p>Implementation notes:</p>
+<ul>
+<li>Browser exceptions are sent through the Angular <code>ErrorHandler</code> override.</li>
+<li>Failed Angular <code>HttpClient</code> requests are logged from the error interceptor.</li>
+<li>Automatic browser dependency telemetry is sanitized to pathname-only values
+before emission.</li>
+<li>Route changes are logged as page views.</li>
+<li>Node Application Insights automatic incoming-request collection is disabled.</li>
+<li>Server proxy logs and telemetry payloads only include route and request
+paths, status data, and correlation IDs when present. Query strings and
+response bodies are excluded.</li>
+</ul>
+<h3>Troubleshooting (Windows)</h3>
+<h4>Node</h4>
+<ul>
+<li><p>Restart PowerShell</p>
+</li>
+<li><p>Verify install:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-powershell">node --version &amp;&amp; npm --version</code></pre></div></li>
+<li><p>If not found, add Node.js install path to PATH (usually <code>C:\Program Files\nodejs\</code>):</p>
+<ul>
+<li>Press <code>Win + R</code>, type <code>sysdm.cpl</code>, press Enter</li>
+<li>Go to <strong>Advanced → Environment Variables</strong></li>
+<li>Under <strong>System variables</strong>, edit <code>Path</code> → Add new entry: <code>C:\Program Files\nodejs\</code></li>
+<li>Restart PowerShell</li>
+</ul>
+</li>
+</ul>
+<h4>Yarn (Windows)</h4>
+<ul>
+<li><p>Ensure you are inside <code>appreg-frontend</code> directory</p>
+</li>
+<li><p>Restart PowerShell, then:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-powershell">corepack enable</code></pre></div></li>
+<li><p>If <code>node_modules</code> and <code>yarn.lock</code> exist, delete them and run:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-powershell">yarn cache clear
+yarn install &amp;&amp; yarn build</code></pre></div></li>
+</ul>
+<h2>WireMock Service</h2>
+<p>This mock service simulates the AppReg API so you can run the UI and SSR server without a live backend.
+It ships with hand-crafted fixtures and generated mappings, plus easy ways to force specific error codes for each endpoint.</p>
+<h3>Start &amp; stop the container</h3>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">yarn start:mock</code></pre></div><b>Example :</b><div><pre class="line-numbers"><code class="language-bash">yarn stop:mock</code></pre></div><ul>
+<li><strong>Start:</strong> <code>yarn start:mock</code> (exposes WireMock at <a href="http://localhost:4550">http://localhost:4550</a>)</li>
+<li><strong>Stop:</strong> <code>yarn stop:mock</code></li>
+</ul>
+<h3>Where fixtures live</h3>
+<p>Curated JSON &amp; CSV fixtures used by mappings are under:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-none">wiremock/__files/fixtures/**        # JSON bodies per endpoint/status
+wiremock/__files/reports/sample.csv # CSV used by report download endpoint
+wiremock/__files/errors/**</code></pre></div><p>Fixture files are named:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-none">wiremock/__files/fixtures/&lt;group&gt;/&lt;kebab(operationId)&gt;-&lt;status&gt;.json</code></pre></div><p>Mappings will automatically use these when available. Feel free to update or add new ones as needed.</p>
+<h3>Scripts that generate stuff</h3>
+<h4>Generate error bodies (shared JSON payloads for 4xx/5xx)</h4>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">yarn mock:gen:errors
+# -&gt; runs: node scripts/gen-error-bodies.cjs
+# Writes wiremock/__files/errors/*.json (hard-coded JSON, no templating)</code></pre></div><h4>Generate endpoint mappings (success + error scenarios)</h4>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">yarn mock:gen
+# -&gt; runs: node scripts/gen-wiremock-mappings.mjs
+# Reads the OpenAPI spec, creates one 2xx mapping per endpoint,
+# and one mapping per error code (401/403/404/… as defined).
+# If a curated fixture exists, it’s used via &quot;bodyFileName&quot;.
+# Error mappings are emitted as WireMock &quot;scenarios&quot; for forcing errors.</code></pre></div><h4>Keep everything in sync (pull spec, build errors, then mappings)</h4>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">yarn mock:sync
+# -&gt; runs: yarn api:fetch-unpack:force &amp;&amp; yarn mock:gen:errors &amp;&amp; yarn mock:gen</code></pre></div><h3>How the generator scripts work</h3>
+<ul>
+<li><strong>OpenAPI ingest:</strong> <code>gen-wiremock-mappings.mjs</code> reads <code>tools/openapi/vendor/openapi/openapi.yaml</code> (and local <code>$refs</code>).</li>
+<li><strong>Grouping:</strong> Each operation is grouped by its first OpenAPI tag (e.g., <code>court-locations</code>).</li>
+<li><strong>One success mapping per endpoint:</strong><ul>
+<li>Prefers the curated fixture at <code>wiremock/__files/fixtures/&lt;group&gt;/&lt;opId-kebab&gt;-&lt;2xx&gt;.json</code>.</li>
+<li>Otherwise, generates a JSON body from the response schema.</li>
+<li>Special-case: if the OpenAPI <code>content-type</code> is <code>text/csv</code>, it serves <code>wiremock/__files/reports/sample.csv</code>.</li>
+</ul>
+</li>
+<li><strong>Error mappings:</strong><ul>
+<li>For each 4xx/5xx listed in the spec, a mapping is emitted with a scenario named after the operationId (or a readable fallback) and a <code>requiredScenarioState</code> like <code>FORCE_401</code>, <code>FORCE_403</code>, <code>FORCE_500</code>, etc.</li>
+<li>Body payloads are reused from <code>wiremock/__files/errors/*.json</code>.</li>
+</ul>
+</li>
+</ul>
+<h3>Increase (mocked) load times</h3>
+<p>Two options:</p>
+<ol>
+<li>Global delay at generation time</li>
+</ol>
+<p>Set <code>STUB_DELAY_MS</code> before running <code>yarn mock:gen</code>:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">STUB_DELAY_MS=250 yarn mock:gen</code></pre></div><p>This adds <code>fixedDelayMilliseconds: 250</code> to all generated mappings.</p>
+<ol start="2">
+<li>Per-mapping tweak</li>
+</ol>
+<p>Manually add <code>&quot;fixedDelayMilliseconds&quot;</code>: <ms> to any mapping JSON under <code>wiremock/mappings/**</code>.</p>
+<h3>Forcing errors with scenarios</h3>
+<p>Every endpoint’s error mappings are part of a WireMock scenario. To make a specific endpoint return (say) HTTP 500, set the scenario state to <code>FORCE_500</code>.</p>
+<h4>Example (GET /court-locations):</h4>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">Put scenario into a 500 state
+curl -i -X PUT http://localhost:4550/__admin/scenarios/getCourtLocations/state \
+-H &#39;Content-Type: application/json&#39; \
+-d &#39;{&quot;state&quot;:&quot;FORCE_500&quot;}&#39;</code></pre></div><p>Verify it took:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">curl -s http://localhost:4550/__admin/scenarios \
+| jq &#39;.scenarios[] | select(.id==&quot;getCourtLocations&quot; or .name==&quot;getCourtLocations&quot;) | {id, name, state, possibleStates}&#39;</code></pre></div><p>Now any request that matches that mapping (correct method, path, and headers) will return 500 until you reset the scenario.</p>
+<h3>Resetting to normal</h3>
+<ul>
+<li><strong>Reset a single scenario to Started:</strong></li>
+</ul>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">curl -i -X PUT http://localhost:4550/__admin/scenarios/&lt;ScenarioName&gt;/state \
+  -H &#39;Content-Type: application/json&#39; \
+  -d &#39;{&quot;state&quot;:&quot;Started&quot;}&#39;</code></pre></div><ul>
+<li><strong>Reset all scenarios:</strong></li>
+</ul>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">curl -i -X POST http://localhost:4550/__admin/scenarios/reset</code></pre></div><ul>
+<li><strong>Full reset:</strong></li>
+</ul>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">curl -i -X POST http://localhost:4550/__admin/reset</code></pre></div><h2>Testing</h2>
+<p>This section documents all test types, how to run them, and how to add new cases.<br>Tests live under <code>test/</code> and are split by purpose to keep suites fast and focused.</p>
+<h3>Scripts Overview</h3>
+<table class="table table-bordered compodoc-table">
+<thead>
+<tr><th>Script</th><th>What it runs</th><th>Config</th></tr>
+</thead>
+<tbody>
+<tr><td><code>yarn test</code></td><td>Alias for unit tests locally. In CI (<code>CI=true</code>) this script no-ops (exits 0) because CI jobs invoke suites explicitly.</td><td>—</td></tr>
+<tr><td><code>yarn test:unit</code></td><td>Jest unit tests under <code>test/unit</code>. Fast, isolated.</td><td><code>jest.config.js</code> (default)</td></tr>
+<tr><td><code>yarn test:coverage</code></td><td>Same as unit, with coverage output.</td><td><code>jest.config.js</code></td></tr>
+<tr><td><code>yarn test:routes</code></td><td>Route-render checks under <code>test/routes</code>.</td><td><code>jest.routes.config.js</code></td></tr>
+<tr><td><code>yarn test:a11y</code></td><td>Accessibility tests with Pa11y under <code>test/a11y</code>. Spins up a temp HTTP server.</td><td><code>jest.a11y.config.js</code></td></tr>
+<tr><td><code>yarn test:smoke</code></td><td>High-level smoke tests under <code>test/smoke</code>. Disables TLS verification for test envs that use self-signed certs.</td><td><code>jest.smoke.config.js</code></td></tr>
+</tbody>
+</table>
+<h3>Unit Tests</h3>
+<ul>
+<li><strong>Location:</strong> <code>test/unit/</code></li>
+<li><strong>Purpose:</strong> Validate functions, components, and services in isolation.</li>
+<li><strong>Run:</strong><b>Example :</b><div><pre class="line-numbers"><code class="language-bash">yarn test:unit</code></pre></div></li>
+<li><strong>With coverage:</strong></li>
+<li><b>Example :</b><div><pre class="line-numbers"><code class="language-bash">yarn test:coverage</code></pre></div></li>
+<li><strong>Tips:</strong><ul>
+<li><p>Prefer pure tests without network or timers.</p>
+</li>
+<li><p>Use jest.mock(...) for dependencies.</p>
+</li>
+<li><p>Keep them fast (&lt;100ms each).</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Route Tests</h3>
+<ul>
+<li><strong>Location:</strong> <code>test/routes/</code></li>
+<li><strong>Purpose:</strong> Verifies that key application routes <strong>function correctly</strong> within the <strong>Server-Side Rendering (SSR)</strong> layer.</li>
+<li><strong>Run:</strong></li>
+</ul>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">  yarn test:routes</code></pre></div><h3>Accessibility Tests</h3>
+<p>Accessibility checks run against the built app served via a temporary local server. This is required to support Angular’s client-side routing (e.g., /applications-list/:id).</p>
+<ul>
+<li><strong>Location:</strong> <code>test/a11y/</code></li>
+<li><strong>Key files:</strong><ul>
+<li><code>a11y.server.ts</code> – starts a static SPA server that:</li>
+<li>serves <code>dist/appreg-frontend/browser</code></li>
+<li>falls back to index.html for unknown paths</li>
+<li><code>a11y.spec.ts</code> – defines the list of routes and Pa11y expectations</li>
+</ul>
+</li>
+<li><strong>Run:</strong><b>Example :</b><div><pre class="line-numbers"><code class="language-bash">yarn build
+yarn test:a11y</code></pre></div></li>
+</ul>
+<h4>Add/Update Routes</h4>
+<p>Edit <code>test/a11y/a11y.spec.ts</code> and append routes:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-jest">  describe(&#39;Accessibility&#39;, () =&gt; {
+    testAccessibility(&#39;/login&#39;);
+    testAccessibility(&#39;/applications-list&#39;);
+    testAccessibility(&#39;/applications-list/123&#39;); // dynamic route example (use a stable test ID)
+  });</code></pre></div><h3>Smoke Tests</h3>
+<ul>
+<li><strong>Location:</strong> <code>test/smoke/</code></li>
+<li><strong>Purpose:</strong> High-level end-to-end tests simulating user journeys.</li>
+<li><strong>Run:</strong></li>
+</ul>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">  yarn test:smoke</code></pre></div><ul>
+<li><strong>Note:</strong> <code>NODE_TLS_REJECT_UNAUTHORIZED=0</code> is set in the script to allow self-signed local certs; do not rely on this outside test environments.</li>
+</ul>
+<h2>Cypress E2E Testing</h2>
+<p>End-to-end tests using <strong>Cypress 15.11.0</strong> with <strong>Cucumber BDD</strong>. Tests are organized in <code>cypress/e2e/features/</code> by type: <code>smoke/</code>, <code>regression/</code>, <code>apiTests/</code>.</p>
+<h3>Quick Start</h3>
+<ol>
+<li><p><strong>Configure credentials</strong> in <code>config/development.json</code>:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-json">{
+  &quot;secrets&quot;: {
+    &quot;rpx&quot;: {
+      &quot;test&quot;: {
+        &quot;user1&quot;: { &quot;email&quot;: &quot;...&quot;, &quot;password&quot;: &quot;...&quot; },
+        &quot;admin1&quot;: { &quot;email&quot;: &quot;...&quot;, &quot;password&quot;: &quot;...&quot; }
+      }
+    }
+  }
+}</code></pre></div></li>
+<li><p><strong>Run tests:</strong></p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash"># Interactive mode
+yarn cypress:open
+
+# Headless (all tests)
+yarn cypress:run
+
+# Smoke tests
+yarn cypress:run:smoke:chrome
+
+# Regression (parallel, recommended)
+yarn test:parallel:regression:chrome</code></pre></div></li>
+<li><p><strong>Target an environment:</strong></p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">TEST_URL=&#39;https://appreg.demo.apps.hmcts.net&#39; yarn cypress:run</code></pre></div></li>
+</ol>
+<h3>Common Commands</h3>
+<table class="table table-bordered compodoc-table">
+<thead>
+<tr><th>Command</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>yarn cypress:open</code></td><td>Open Cypress UI</td></tr>
+<tr><td><code>yarn cypress:run</code></td><td>Run all tests headlessly</td></tr>
+<tr><td><code>yarn cypress:run:smoke:chrome</code></td><td>Run smoke tests</td></tr>
+<tr><td><code>yarn cypress:run:regression:chrome</code></td><td>Run regression tests</td></tr>
+<tr><td><code>yarn test:parallel:regression:chrome</code></td><td>Run regression in parallel (4 threads)</td></tr>
+<tr><td><code>yarn cypress:clean:reports</code></td><td>Clean test reports</td></tr>
+</tbody>
+</table>
+<h3>Tags</h3>
+<p>Filter tests using <code>TAGS</code> environment variable:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">TAGS=&#39;&#64;smoke&#39; yarn cypress:run
+TAGS=&#39;&#64;regression and &#64;applicationsList&#39; yarn cypress:run
+TAGS=&#39;&#64;regression and not &#64;ignore and not &#64;broken&#39; yarn cypress:run
+TEST_URL=&#39;https://appreg.demo.apps.hmcts.net&#39; TAGS=&#39;(&#64;applicationsList or &#64;referenceData or &#64;authentication) and not &#64;ignore and not &#64;broken&#39; yarn test:parallel:regression:chrome</code></pre></div><p><strong>Note:</strong> Use <code>TAGS</code> (not <code>CYPRESS_TAGS</code>) with the scripts above, as they pass tags via <code>--env TAGS</code> which overrides <code>CYPRESS_TAGS</code>. For interactive mode without tags, use:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash">CYPRESS_TAGS=&#39;&#64;smoke&#39; yarn cypress:open</code></pre></div><p>Available tags: <code>@smoke</code>, <code>@regression</code>, <code>@ignore</code>, <code>@broken</code>, feature tags (<code>@applicationsList</code>), story tags (<code>@ARCPOC-214</code>)</p>
+<h3>Reports</h3>
+<p>After execution, reports are in:</p>
+<ul>
+<li><code>cypress/reports/cucumber-html/</code> – HTML reports</li>
+<li><code>cypress/reports/screenshots/</code> – Failure screenshots</li>
+<li><code>functional-output/</code> – CI artifacts</li>
+</ul>
+<h2>OpenAPI</h2>
+<p>In this section, we will document how you generate the required services and models using <a href="https://www.npmjs.com/package/@openapitools/openapi-generator-cli/v/2.9.0?activeTab=readme">@openapitools/openapi-generator-cli</a>.</p>
+<h3>Scripts</h3>
+<p>These are the scripts needed:</p>
+<ul>
+<li><code>yarn api:fetch-unpack</code> - Fetches and decompresses OpenAPI spec held in Azure Artifacts (<code>scripts/fetch-unpack-openapi.cjs</code>). Skips fetch if there is a spec exists and is less than a week old.</li>
+<li><code>yarn api:fetch-unpack:force</code> - Force fetches and decompresses OpenAPI spec held in Azure Artifacts. Use this command if you want to fetch the current latest spec file in Azure Artifacts.</li>
+<li><code>yarn api:validate</code> - Validates the OpenAPI spec (<code>tools/openapi/vendor/openapi/openapi.yaml</code>)</li>
+<li><code>yarn api:clear</code> - Recursively deletes current OpenAPI generated files held at <code>src/generated/openapi</code></li>
+<li><code>yarn api:generate</code> - Generates files based on the OpenAPI spec and the config file at <code>tools/openapi/generator-config.yaml</code></li>
+<li><code>yarn api:all</code> - Runs all API scripts (api:validate -&gt; api:clear -&gt; api:generate)</li>
+<li><code>yarn api:all:force</code> - Force fetch spec and runs all API scripts (api:validate -&gt; api:clear -&gt; api:generate)</li>
+<li><code>yarn api:all:local-be</code> - Copies <code>../appreg-api/openapi.yaml</code> into the frontend vendor-spec location and then runs <code>api:validate</code>, <code>api:clear</code>, and <code>api:generate</code>. Use this when you want to generate against local backend changes instead of the latest published artifact.</li>
+</ul>
+<p>If you want to use a specific OpenAPI spec version, you can edit <code>scripts/fetch-unpack-openapi.cjs</code> and change the following:</p>
+<p><code>let SPEC_VERSION = envOr(&#39;SPEC_VERSION&#39;, &#39;**ENTER SPEC VERSION HERE AS A STRING**&#39;);</code></p>
+<h2>Pairing a frontend PR with a backend PR</h2>
+<p>By default, frontend PR previews use the staging API. To use a backend PR instead:</p>
+<ol>
+<li>Add <code>enable_keep_helm</code> to the backend PR and deploy it successfully.</li>
+<li>Add exactly one label such as <code>backend-pr:1234</code> to the frontend PR, using the backend PR number.</li>
+<li>Add <code>enable_keep_helm</code> to the frontend PR for manual browser testing, then rebuild its Jenkins PR job.</li>
+</ol>
+<p>The frontend preview and Cypress API setup will both use <code>https://appreg-api-pr-1234.dev.platform.hmcts.net</code>
+and that backend&#39;s PR database. The override is applied in the Jenkins workspace only; staging deployment
+configuration is unchanged. The backend PR database must contain the reference data required by the tests.
+Malformed or multiple backend labels fail deployment. Do not combine this with a <code>pr-values:*</code> override that
+sets <code>APPREG_API_BASE_URL</code>, because those Helm values are applied later and take precedence.</p>
+<p>Remove the <code>backend-pr:*</code> label and rebuild to return to staging. Label changes alone may not trigger a build.</p>
+<h2>Branch Retention (auto-cleanup)</h2>
+<p>This repository includes an automated policy to keep old/inactive branches tidy. It runs in two stages:</p>
+<ol>
+<li><strong>Dry Run:</strong> scans branches and opens a GitHub Issue with candidates, no deletions.</li>
+<li><strong>Enforce:</strong> re-checks eligibility and deletes branches that still qualify; then comments on and closes the Issue.</li>
+</ol>
+<h3>How it works (high level)</h3>
+<ul>
+<li>A Node script scans via the GitHub API, excluding protected names and branches with open PRs or a “do-not-delete” marker.</li>
+<li><strong>Run</strong> creates an Issue labeled <code>branch-cleanup</code> + a marker label (default <code>dry-run</code>) containing a table and a machine-readable ```json block.</li>
+<li><strong>Enforce</strong> reads that Issue’s JSON (not the runner artifacts), applies the grace period and re-checks exclusions, then deletes eligible branches and posts a deletion summary.</li>
+</ul>
+<h3>Files &amp; paths</h3>
+<ul>
+<li><strong>Policy (config):</strong> <code>.github/branch-retention/branch-retention.yml</code></li>
+<li><strong>Script:</strong> <code>.github/branch-retention/branch-retention.mjs</code></li>
+<li><strong>Workflow:</strong> <code>.github/workflows/branch-retention.yml</code></li>
+<li><strong>Artifacts (optional, for download):</strong> <code>.github/branch-retention/out/*.json</code></li>
+</ul>
+<h3>Configuring the policy</h3>
+<p>Edit <code>.github/branch-retention/branch-retention.yml</code>:</p>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-json"># Example production-ish values (adjust to taste)
+inactivityDays: 60         # candidates must be inactive for &gt;= this many days
+graceDays: 7               # wait this many days after “Run” before deletion
+protectedPatterns: - &#39;master&#39;
+- &#39;develop&#39;
+- &#39;release/*&#39;
+doNotDelete: label: &#39;do-not-delete&#39;   # if an open PR has this label, branch is skipped
+namePatterns: [&#39;do-not-delete/*&#39;, &#39;*[do-not-delete]*&#39;]  # name-based skip
+notify: githubIssueLabel: &#39;branch-cleanup&#39;
+# (optional) markerLabels: [&#39;dry-run&#39;, &#39;run&#39;, &#39;pending&#39;]  # accepted markers</code></pre></div><h3>Developer commands (local)</h3>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-bash"># Authenticate with GitHub CLI (if not already done):
+gh auth login
+
+# Preview run (creates batch Issue):
+yarn branch:run
+
+# Enforce (deletes eligible branches for the latest batch):
+yarn branch:enforce</code></pre></div><h1>Code documentation</h1>
+<p>We use <a href="https://compodoc.app/">Compodoc</a> to generate code documentation:</p>
+<ul>
+<li><code>yarn doc</code> - Generates documentation at <code>docs/code-documentation</code></li>
+<li><code>yarn doc:server</code> - Serves documentation at <code>http://127.0.0.1:8080</code>. You must have run the previous command first.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 0;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'readme';
+            var COMPODOC_CURRENT_PAGE_URL = 'index.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="./js/libs/custom-elements.min.js"></script>
+       <script src="./js/libs/lit-html.js"></script>
+
+       <script src="./js/menu-wc.js" defer></script>
+
+       <script src="./js/libs/bootstrap-native.js"></script>
+
+       <script src="./js/libs/es6-shim.min.js"></script>
+       <script src="./js/libs/EventDispatcher.js"></script>
+       <script src="./js/libs/promise.min.js"></script>
+
+       <script src="./js/compodoc.js"></script>
+
+       <script src="./js/tabs.js"></script>
+       <script src="./js/menu.js"></script>
+       <script src="./js/libs/clipboard.min.js"></script>
+       <script src="./js/libs/prism.js"></script>
+       <script src="./js/sourceCode.js"></script>
+          <script src="./js/search/search.js"></script>
+          <script src="./js/search/lunr.min.js"></script>
+          <script src="./js/search/search-lunr.js"></script>
+          <script src="./js/search/search_index.js"></script>
+       <script src="./js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

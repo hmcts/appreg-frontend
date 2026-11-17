@@ -1,0 +1,4295 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>appreg-frontend documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+          <script>
+               // Blocking script to avoid flickering dark mode
+               // Dark mode toggle button
+               var useDark = window.matchMedia('(prefers-color-scheme: dark)');
+               var darkModeState = useDark.matches;
+               var $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var $darkModeToggles = document.querySelectorAll('.dark-mode-switch');
+               var darkModeStateLocal = localStorage.getItem('compodoc_darkmode-state');
+
+               function checkToggle(check) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].checked = check;
+                    }
+               }
+
+               function toggleDarkMode(state) {
+                    if (window.localStorage) {
+                         localStorage.setItem('compodoc_darkmode-state', state);
+                    }
+
+                    checkToggle(state);
+
+                    const hasClass = document.body.classList.contains('dark');
+
+                    if (state) {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.add('dark');
+                         }
+                         if (!hasClass) {
+                              document.body.classList.add('dark');
+                         }
+                    } else {
+                         for (var i = 0; i < $darkModeToggles.length; i++) {
+                              $darkModeToggles[i].classList.remove('dark');
+                         }
+                         if (hasClass) {
+                              document.body.classList.remove('dark');
+                         }
+                    }
+               }
+
+               useDark.addEventListener('change', function (evt) {
+                    toggleDarkMode(evt.matches);
+               });
+               if (darkModeStateLocal) {
+                    darkModeState = darkModeStateLocal === 'true';
+               }
+               toggleDarkMode(darkModeState);
+          </script>
+          <script>
+              // --- Iframe navigation tracking for Template Playground ---
+              function sendCurrentUrlToParent() {
+                  if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({
+                          type: 'compodoc-iframe-navigate',
+                          url: window.location.pathname + window.location.hash
+                      }, '*');
+                  }
+              }
+              window.addEventListener('hashchange', sendCurrentUrlToParent, false);
+              window.addEventListener('popstate', sendCurrentUrlToParent, false);
+              window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
+          </script>
+
+        <div class="navbar navbar-default navbar-fixed-top d-md-none p-0">
+               <div class="d-flex">
+                    <a href="../" class="navbar-brand">appreg-frontend documentation</a>
+                    <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+               </div>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="d-none d-md-block menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content injectable">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li class="breadcrumb-item">Injectables</li>
+  <li class="breadcrumb-item" >ApplicationListEntryResultsFacade</li>
+</ol>
+
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts</code>
+</div>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a href="#info" 
+                class="nav-link"
+                class="nav-link active"
+                role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#api" 
+                class="nav-link"
+                
+                role="tab" id="api-tab" data-bs-toggle="tab" data-link="api">API</a>
+        </li>
+        <li class="nav-item">
+            <a href="#source" 
+                class="nav-link"
+                
+                role="tab" id="source-tab" data-bs-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="info">
+
+
+
+
+
+                <section data-compodoc="block-relationships">
+            <h3>Relationships</h3>
+
+            <div class="row pt-3">
+                <div class="col-sm-6">
+                    <h4>Used by</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../components/ApplicationsListEntryDetail.html" target="_self" >ApplicationsListEntryDetail</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ApplicationsResultSelectedComponent.html" target="_self" >ApplicationsResultSelectedComponent</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../components/ResultSelected.html" target="_self" >ResultSelected</a></code>
+                                </li>
+                        </ul>
+                </div>
+
+                <div class="col-sm-6">
+                    <h4>Depends on</h4>
+                        <p class="comment"><i>No results matching.</i></p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="tab-pane fade " id="api">
+            <section data-compodoc="block-index">
+    <h3 id="index">Index</h3>
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#clearPendingToken" >clearPendingToken</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#destroyRef" >destroyRef</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#entryResults" >entryResults</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#entryResultsApi" >entryResultsApi</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#entryResultsLoading" >entryResultsLoading</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#newlyCreatedEntryResults" >newlyCreatedEntryResults</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#pendingRows" >pendingRows</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#resultCodeDetailCache" >resultCodeDetailCache</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#resultCodesApi" >resultCodesApi</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#resultCodesSignal" >resultCodesSignal</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#resultCodeTemplateByCode" >resultCodeTemplateByCode</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#resultCodeWordingByCode" >resultCodeWordingByCode</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#savedResultDetailsError" >savedResultDetailsError</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier">Readonly</span>
+                                <a href="#savedResultTitles" >savedResultTitles</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
+                <tr>
+                    <td class="col-md-3">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                    <td class="col-md-9">
+                        <ul class="index-list">
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#addCreatedEntryResults" >addCreatedEntryResults</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#areLogicallyEquivalentResults" >areLogicallyEquivalentResults</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#buildCreateRequests" >buildCreateRequests</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#buildUpdateRequests" >buildUpdateRequests</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#bulkRemoveCreatedEntryResults" >bulkRemoveCreatedEntryResults</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#bulkRemoveResult" >bulkRemoveResult</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#clearCreatedEntryResults" >clearCreatedEntryResults</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#displayWording" >displayWording</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#ensureResultWording" >ensureResultWording</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#isBulkResultUpdate" >isBulkResultUpdate</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#isResultGetDto" >isResultGetDto</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#isTemplateDetail" >isTemplateDetail</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#loadEntryResults" >loadEntryResults</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#mergeCreatedEntryResults" >mergeCreatedEntryResults</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#normalizedWordingTemplate" >normalizedWordingTemplate</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#normalizeTemplateDetail" >normalizeTemplateDetail</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#normCode" >normCode</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#removeCreatedEntryResultGroup" >removeCreatedEntryResultGroup</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#removeCreatedEntryResults" >removeCreatedEntryResults</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#removeResult" >removeResult</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#reset" >reset</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#setPending" >setPending</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#submitCombinedRequests" >submitCombinedRequests</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#submitResultChanges" >submitResultChanges</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#submitResultChangesForEntries" >submitResultChangesForEntries</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                <a href="#submitResultsWithManyListIds" >submitResultsWithManyListIds</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#toResultGetDtos" >toResultGetDtos</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#toTemplateDetail" >toTemplateDetail</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#toUniqueEntryIds" >toUniqueEntryIds</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#unescapeTemplatePlaceholders" >unescapeTemplatePlaceholders</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+
+
+</section>
+
+            <section data-compodoc="block-constructor">
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor()</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="68" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:68</a></div>
+                            </td>
+                        </tr>
+
+            </tbody>
+        </table>
+</section>
+
+            <section data-compodoc="block-methods">
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="addCreatedEntryResults"></a>
+                    <span class="name">
+                        <span ><b>addCreatedEntryResults</b></span>
+                        <a href="#addCreatedEntryResults"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>addCreatedEntryResults(results: ResultGetDto[])</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="130"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:130</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>results</td>
+                                            <td>
+                                                        <code>ResultGetDto[]</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="areLogicallyEquivalentResults"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>areLogicallyEquivalentResults</b></span>
+                        <a href="#areLogicallyEquivalentResults"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>areLogicallyEquivalentResults(left: ResultGetDto, right: ResultGetDto)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="580"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:580</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>left</td>
+                                            <td>
+                                                        <code>ResultGetDto</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>right</td>
+                                            <td>
+                                                        <code>ResultGetDto</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="buildCreateRequests"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>buildCreateRequests</b></span>
+                        <a href="#buildCreateRequests"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>buildCreateRequests(selectedEntryIds: string[], payload: <a href="../miscellaneous/typealiases.html#ResultSectionSubmitPayload" target="_self">ResultSectionSubmitPayload</a>, requestFactory: (item: <a href="../miscellaneous/typealiases.html#PendingResultRow">PendingResultRow</a>, selectedEntryIds: string[]) => void)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="599"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:599</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>selectedEntryIds</td>
+                                            <td>
+                                                        <code>string[]</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>payload</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#ResultSectionSubmitPayload" target="_self" >ResultSectionSubmitPayload</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>requestFactory</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Observable[]</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="buildUpdateRequests"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>buildUpdateRequests</b></span>
+                        <a href="#buildUpdateRequests"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>buildUpdateRequests(payload: <a href="../miscellaneous/typealiases.html#ResultSectionSubmitPayload" target="_self">ResultSectionSubmitPayload</a>, entryGroups: <a href="../miscellaneous/typealiases.html#EntryGroupByListId" target="_self">EntryGroupByListId[]</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="686"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:686</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Builds one update per selected entry whose created result matches the edited
+result&#39;s original code and wording template. The entry groups supply the list
+ID needed by each update endpoint.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>payload</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#ResultSectionSubmitPayload" target="_self" >ResultSectionSubmitPayload</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <ul>
+<li>Existing results to update, alongside any pending creates.</li>
+</ul>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>entryGroups</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#EntryGroupByListId" target="_self" >EntryGroupByListId[]</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <ul>
+<li>Selected entry IDs grouped by their parent list ID.</li>
+</ul>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Observable[]</code>
+
+                        </div>
+                            <div class="io-description">
+                                <p>Update requests that report API failures as unsuccessful results.</p>
+
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="bulkRemoveCreatedEntryResults"></a>
+                    <span class="name">
+                        <span ><b>bulkRemoveCreatedEntryResults</b></span>
+                        <a href="#bulkRemoveCreatedEntryResults"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>bulkRemoveCreatedEntryResults(resultsToRemove: BulkDeleteResultItemDto[], onSuccess?: (results?: <a href="../miscellaneous/typealiases.html#BulkResultRemoval">BulkResultRemoval[]</a>) => void, onError?: (err?: unknown) => void)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="242"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:242</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>resultsToRemove</td>
+                                            <td>
+                                                        <code>BulkDeleteResultItemDto[]</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onSuccess</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onError</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="bulkRemoveResult"></a>
+                    <span class="name">
+                        <span ><b>bulkRemoveResult</b></span>
+                        <a href="#bulkRemoveResult"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>bulkRemoveResult(resultsToRemove: BulkDeleteResultItemDto[], onSuccess?: () => void, onError?: (err?: unknown) => void)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="343"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:343</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>resultsToRemove</td>
+                                            <td>
+                                                        <code>BulkDeleteResultItemDto[]</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onSuccess</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onError</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="clearCreatedEntryResults"></a>
+                    <span class="name">
+                        <span ><b>clearCreatedEntryResults</b></span>
+                        <a href="#clearCreatedEntryResults"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>clearCreatedEntryResults()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="134"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:134</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="displayWording"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>displayWording</b></span>
+                        <a href="#displayWording"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>displayWording(wording: string | TemplateDetail | null | undefined)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="535"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:535</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>wording</td>
+                                            <td>
+                                                        <code>string | TemplateDetail | null | undefined</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ensureResultWording"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>ensureResultWording</b></span>
+                        <a href="#ensureResultWording"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>ensureResultWording(code: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="456"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:456</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>code</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="isBulkResultUpdate"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>isBulkResultUpdate</b></span>
+                        <a href="#isBulkResultUpdate"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>isBulkResultUpdate(value: unknown)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="791"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:791</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>value</td>
+                                            <td>
+                                                        <code>unknown</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../miscellaneous/typealiases.html#BulkResultUpdate" target="_self" >BulkResultUpdate</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="isResultGetDto"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>isResultGetDto</b></span>
+                        <a href="#isResultGetDto"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>isResultGetDto(value: unknown)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="767"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:767</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>value</td>
+                                            <td>
+                                                        <code>unknown</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>ResultGetDto</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="isTemplateDetail"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>isTemplateDetail</b></span>
+                        <a href="#isTemplateDetail"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>isTemplateDetail(value: unknown)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="541"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:541</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>value</td>
+                                            <td>
+                                                        <code>unknown</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>TemplateDetail</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="loadEntryResults"></a>
+                    <span class="name">
+                        <span ><b>loadEntryResults</b></span>
+                        <a href="#loadEntryResults"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>loadEntryResults(listId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, entryId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="301"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:301</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>listId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>entryId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="mergeCreatedEntryResults"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>mergeCreatedEntryResults</b></span>
+                        <a href="#mergeCreatedEntryResults"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>mergeCreatedEntryResults(results: ResultGetDto[])</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="555"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:555</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>results</td>
+                                            <td>
+                                                        <code>ResultGetDto[]</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="normalizedWordingTemplate"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>normalizedWordingTemplate</b></span>
+                        <a href="#normalizedWordingTemplate"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>normalizedWordingTemplate(result: ResultGetDto)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="591"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:591</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>result</td>
+                                            <td>
+                                                        <code>ResultGetDto</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="normalizeTemplateDetail"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>normalizeTemplateDetail</b></span>
+                        <a href="#normalizeTemplateDetail"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>normalizeTemplateDetail(wording: string | TemplateDetail | null | undefined)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="511"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:511</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>wording</td>
+                                            <td>
+                                                        <code>string | TemplateDetail | null | undefined</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>TemplateDetail</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="normCode"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>normCode</b></span>
+                        <a href="#normCode"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>normCode(code: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="507"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:507</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>code</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="removeCreatedEntryResultGroup"></a>
+                    <span class="name">
+                        <span ><b>removeCreatedEntryResultGroup</b></span>
+                        <a href="#removeCreatedEntryResultGroup"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>removeCreatedEntryResultGroup(listId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, anchorResultId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, onSuccess?: (results?: <a href="../miscellaneous/typealiases.html#BulkResultRemoval">BulkResultRemoval[]</a>) => void, onError?: (err?: unknown) => void)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="274"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:274</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>listId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>anchorResultId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onSuccess</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onError</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="removeCreatedEntryResults"></a>
+                    <span class="name">
+                        <span ><b>removeCreatedEntryResults</b></span>
+                        <a href="#removeCreatedEntryResults"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>removeCreatedEntryResults(listId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, resultIds: string[], onSuccess?: (results?: <a href="../miscellaneous/typealiases.html#BulkResultRemoval">BulkResultRemoval[]</a>) => void, onError?: (err?: unknown) => void)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="212"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:212</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>listId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>resultIds</td>
+                                            <td>
+                                                        <code>string[]</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onSuccess</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onError</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="removeResult"></a>
+                    <span class="name">
+                        <span ><b>removeResult</b></span>
+                        <a href="#removeResult"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>removeResult(listId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, entryId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, resultId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, onSuccess?: () => void, onError?: (err?: unknown) => void)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="322"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:322</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>listId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>entryId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>resultId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onSuccess</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onError</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="reset"></a>
+                    <span class="name">
+                        <span ><b>reset</b></span>
+                        <a href="#reset"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>reset()</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="120"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:120</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="setPending"></a>
+                    <span class="name">
+                        <span ><b>setPending</b></span>
+                        <a href="#setPending"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>setPending(rows: PendingResultRow[])</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="438"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:438</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>rows</td>
+                                            <td>
+                                                        <code>PendingResultRow[]</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="submitCombinedRequests"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>submitCombinedRequests</b></span>
+                        <a href="#submitCombinedRequests"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>submitCombinedRequests(updateRequests: <a href="../miscellaneous/typealiases.html#BulkResultUpdate" target="_self">Observable&lt;BulkResultUpdate&gt;[]</a>, createRequests: Observable<ResultGetDto[]>[], onSuccess?: () => void, onError?: (err?: unknown) => void)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="627"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:627</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Runs updates before creates, stopping after the first failed update.
+Results returned before a failure are retained; newly created pending rows
+are cleared only after every request succeeds. An empty request set invokes
+neither callback.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>updateRequests</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#BulkResultUpdate" target="_self" >Observable&lt;BulkResultUpdate&gt;[]</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <ul>
+<li>Updates for results already created on selected entries.</li>
+</ul>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>createRequests</td>
+                                            <td>
+                                                        <code>Observable&lt;ResultGetDto[]&gt;[]</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <ul>
+<li>New results to add after the updates.</li>
+</ul>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>onSuccess</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                            <td>
+                                                    <ul>
+<li>Called after all requests succeed.</li>
+</ul>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>onError</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                            <td>
+                                                    <ul>
+<li>Called with the first failed update or request error.</li>
+</ul>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="submitResultChanges"></a>
+                    <span class="name">
+                        <span ><b>submitResultChanges</b></span>
+                        <a href="#submitResultChanges"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>submitResultChanges(listId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, entryId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, payload: <a href="../miscellaneous/typealiases.html#ResultSectionSubmitPayload" target="_self">ResultSectionSubmitPayload</a>, onSuccess?: () => void, onError?: (err?: unknown) => void)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="376"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:376</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Applies edits to one entry&#39;s existing results before creating pending ones.
+Successful completion reloads results and clears pending rows only when
+creates were sent; an empty payload invokes neither callback.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>listId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <ul>
+<li>Parent list ID.</li>
+</ul>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>entryId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <ul>
+<li>Entry whose results are being changed.</li>
+</ul>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>payload</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#ResultSectionSubmitPayload" target="_self" >ResultSectionSubmitPayload</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <ul>
+<li>Existing updates and pending creates.</li>
+</ul>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>onSuccess</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                            <td>
+                                                    <ul>
+<li>Called after every request succeeds.</li>
+</ul>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>onError</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                            <td>
+                                                    <ul>
+<li>Called on the first request failure.</li>
+</ul>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="submitResultChangesForEntries"></a>
+                    <span class="name">
+                        <span ><b>submitResultChangesForEntries</b></span>
+                        <a href="#submitResultChangesForEntries"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>submitResultChangesForEntries(listId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, entryIds: string[], payload: <a href="../miscellaneous/typealiases.html#ResultSectionSubmitPayload" target="_self">ResultSectionSubmitPayload</a>, onSuccess?: () => void, onError?: (err?: unknown) => void)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="138"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:138</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>listId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>entryIds</td>
+                                            <td>
+                                                        <code>string[]</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>payload</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#ResultSectionSubmitPayload" target="_self" >ResultSectionSubmitPayload</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onSuccess</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onError</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="submitResultsWithManyListIds"></a>
+                    <span class="name">
+                        <span ><b>submitResultsWithManyListIds</b></span>
+                        <a href="#submitResultsWithManyListIds"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>submitResultsWithManyListIds(entryGroups: <a href="../miscellaneous/typealiases.html#EntryGroupByListId" target="_self">EntryGroupByListId[]</a>, payload: <a href="../miscellaneous/typealiases.html#ResultSectionSubmitPayload" target="_self">ResultSectionSubmitPayload</a>, onSuccess?: () => void, onError?: (err?: unknown) => void)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="176"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:176</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>entryGroups</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#EntryGroupByListId" target="_self" >EntryGroupByListId[]</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>payload</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#ResultSectionSubmitPayload" target="_self" >ResultSectionSubmitPayload</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onSuccess</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>onError</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function" target="_blank" >function</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="toResultGetDtos"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>toResultGetDtos</b></span>
+                        <a href="#toResultGetDtos"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>toResultGetDtos(value: unknown)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="777"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:777</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>value</td>
+                                            <td>
+                                                        <code>unknown</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>ResultGetDto[]</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="toTemplateDetail"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>toTemplateDetail</b></span>
+                        <a href="#toTemplateDetail"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>toTemplateDetail(wording: string | TemplateDetail | null | undefined)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="450"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:450</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>wording</td>
+                                            <td>
+                                                        <code>string | TemplateDetail | null | undefined</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>TemplateDetail</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="toUniqueEntryIds"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>toUniqueEntryIds</b></span>
+                        <a href="#toUniqueEntryIds"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>toUniqueEntryIds(entryIds: string[])</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="595"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:595</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>entryIds</td>
+                                            <td>
+                                                        <code>string[]</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>string[]</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="unescapeTemplatePlaceholders"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>unescapeTemplatePlaceholders</b></span>
+                        <a href="#unescapeTemplatePlaceholders"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>unescapeTemplatePlaceholders(template: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="549"
+                                    class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:549</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>template</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+            <section data-compodoc="block-properties">
+    
+    <h3 id="inputs">
+        Properties
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="clearPendingToken"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>clearPendingToken</b></span>
+                        <a href="#clearPendingToken"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal(0)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="108" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:108</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="destroyRef"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>destroyRef</b></span>
+                        <a href="#destroyRef"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(DestroyRef)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:57</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="entryResults"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>entryResults</b></span>
+                        <a href="#entryResults"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;ResultGetDto[]&gt;([])</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="63" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:63</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="entryResultsApi"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>entryResultsApi</b></span>
+                        <a href="#entryResultsApi"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(ApplicationListEntryResultsApi)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:58</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="entryResultsLoading"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>entryResultsLoading</b></span>
+                        <a href="#entryResultsLoading"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal(false)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="64" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:64</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="newlyCreatedEntryResults"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>newlyCreatedEntryResults</b></span>
+                        <a href="#newlyCreatedEntryResults"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;ResultGetDto[]&gt;([])</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="66" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:66</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="pendingRows"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>pendingRows</b></span>
+                        <a href="#pendingRows"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;PendingResultRow[]&gt;([])</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="107" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:107</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="resultCodeDetailCache"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>resultCodeDetailCache</b></span>
+                        <a href="#resultCodeDetailCache"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>new Map&lt;
+    string,
+    ResultCodeGetDetailDto
+  &gt;()</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="115" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:115</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="resultCodesApi"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Readonly</span>
+                        <span ><b>resultCodesApi</b></span>
+                        <a href="#resultCodesApi"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>inject(ResultCodesApi)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:59</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="resultCodesSignal"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>resultCodesSignal</b></span>
+                        <a href="#resultCodesSignal"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>getAllResultCodes(this.resultCodesApi)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:61</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="resultCodeTemplateByCode"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>resultCodeTemplateByCode</b></span>
+                        <a href="#resultCodeTemplateByCode"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;Record&lt;string, TemplateDetail&gt;&gt;(
+    {},
+  )</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="111" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:111</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="resultCodeWordingByCode"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>resultCodeWordingByCode</b></span>
+                        <a href="#resultCodeWordingByCode"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;Record&lt;string, string&gt;&gt;({})</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="110" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:110</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="savedResultDetailsError"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>savedResultDetailsError</b></span>
+                        <a href="#savedResultDetailsError"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal(&#x27;&#x27;)</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="68" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:68</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="savedResultTitles"></a>
+                    <span class="name">
+                            <span class="modifier">Readonly</span>
+                        <span ><b>savedResultTitles</b></span>
+                        <a href="#savedResultTitles"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>unknown</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>signal&lt;Record&lt;number, string | undefined&gt;&gt;({})</code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="67" class="link-to-prism">src/app/shared/services/applications-list-entry/application-list-entry-results.facade.ts:67</a></div>
+                        </td>
+                    </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { DestroyRef, Injectable, effect, inject, signal } from &#x27;@angular/core&#x27;;
+import { takeUntilDestroyed } from &#x27;@angular/core/rxjs-interop&#x27;;
+import {
+  Observable,
+  catchError,
+  concat,
+  forkJoin,
+  map,
+  of,
+  takeWhile,
+  toArray,
+} from &#x27;rxjs&#x27;;
+
+import {
+  ApplicationListEntryResultsApi,
+  BulkDeleteResultEntriesRequestParams,
+  BulkDeleteResultItemDto,
+  ResultCodeGetDetailDto,
+  ResultCodesApi,
+  ResultGetDto,
+  TemplateDetail,
+} from &#x27;@openapi&#x27;;
+import { PendingResultRow } from &#x27;@shared-types/result-code/result-code-row&#x27;;
+import type { ResultSectionSubmitPayload } from &#x27;@shared-types/result-wording-section/result-section.types&#x27;;
+import { getAllResultCodes, getEntryResults$ } from &#x27;@util/result-code-helpers&#x27;;
+
+export type BulkResultRemoval &#x3D;
+  | {
+      entryId: string;
+      resultId: string;
+      success: true;
+    }
+  | {
+      entryId: string;
+      resultId: string;
+      success: false;
+      error: unknown;
+    };
+
+type BulkResultUpdate &#x3D;
+  | {
+      result: ResultGetDto;
+      success: true;
+    }
+  | {
+      error: unknown;
+      success: false;
+    };
+
+type EntryGroupByListId &#x3D; {
+  listId: string;
+  entryIds: string[];
+};
+
+@Injectable()
+export class ApplicationListEntryResultsFacade {
+  private readonly destroyRef &#x3D; inject(DestroyRef);
+  private readonly entryResultsApi &#x3D; inject(ApplicationListEntryResultsApi);
+  private readonly resultCodesApi &#x3D; inject(ResultCodesApi);
+
+  readonly resultCodesSignal &#x3D; getAllResultCodes(this.resultCodesApi);
+
+  readonly entryResults &#x3D; signal&lt;ResultGetDto[]&gt;([]);
+  readonly entryResultsLoading &#x3D; signal(false);
+
+  readonly newlyCreatedEntryResults &#x3D; signal&lt;ResultGetDto[]&gt;([]);
+  readonly savedResultTitles &#x3D; signal&lt;Record&lt;number, string | undefined&gt;&gt;({});
+  readonly savedResultDetailsError &#x3D; signal(&#x27;&#x27;);
+
+  constructor() {
+    effect((onCleanup) &#x3D;&gt; {
+      const ids &#x3D; [
+        ...new Set(
+          [...this.entryResults(), ...this.newlyCreatedEntryResults()].map(
+            (result) &#x3D;&gt; result.resultCodeId,
+          ),
+        ),
+      ];
+      this.savedResultTitles.set({});
+      this.savedResultDetailsError.set(&#x27;&#x27;);
+      if (!ids.length) {
+        return;
+      }
+
+      // Saved titles use the persisted reference ID, never a current code/date match.
+      const subscription &#x3D; forkJoin(
+        ids.map((id) &#x3D;&gt;
+          Number.isSafeInteger(id) &amp;&amp; id &gt; 0
+            ? this.resultCodesApi.getResultCodeById({ id }).pipe(
+                map((detail) &#x3D;&gt; [id, detail.title] as const),
+                catchError(() &#x3D;&gt; of([id, undefined] as const)),
+              )
+            : of([id, undefined] as const),
+        ),
+      ).subscribe((titles) &#x3D;&gt; {
+        this.savedResultTitles.set(Object.fromEntries(titles));
+        if (titles.some(([, title]) &#x3D;&gt; title &#x3D;&#x3D;&#x3D; undefined)) {
+          this.savedResultDetailsError.set(
+            &#x27;Some saved result code details could not be loaded. No alternative version has been used. Reload the page to try again.&#x27;,
+          );
+        }
+      });
+      onCleanup(() &#x3D;&gt; subscription.unsubscribe());
+    });
+  }
+
+  readonly pendingRows &#x3D; signal&lt;PendingResultRow[]&gt;([]);
+  readonly clearPendingToken &#x3D; signal(0);
+
+  readonly resultCodeWordingByCode &#x3D; signal&lt;Record&lt;string, string&gt;&gt;({});
+  readonly resultCodeTemplateByCode &#x3D; signal&lt;Record&lt;string, TemplateDetail&gt;&gt;(
+    {},
+  );
+
+  private readonly resultCodeDetailCache &#x3D; new Map&lt;
+    string,
+    ResultCodeGetDetailDto
+  &gt;();
+
+  reset(): void {
+    this.entryResults.set([]);
+    this.entryResultsLoading.set(false);
+    this.pendingRows.set([]);
+    this.clearPendingToken.set(0);
+    this.resultCodeWordingByCode.set({});
+    this.resultCodeTemplateByCode.set({});
+    this.resultCodeDetailCache.clear();
+  }
+
+  addCreatedEntryResults(results: ResultGetDto[]): void {
+    this.newlyCreatedEntryResults.set(results ?? []);
+  }
+
+  clearCreatedEntryResults(): void {
+    this.newlyCreatedEntryResults.set([]);
+  }
+
+  submitResultChangesForEntries(
+    listId: string,
+    entryIds: string[],
+    payload: ResultSectionSubmitPayload,
+    onSuccess?: () &#x3D;&gt; void,
+    onError?: (err: unknown) &#x3D;&gt; void,
+  ): void {
+    if (!listId || !payload) {
+      return;
+    }
+
+    const updateRequests &#x3D; this.buildUpdateRequests(payload, [
+      { listId, entryIds },
+    ]);
+    const createRequests &#x3D; this.buildCreateRequests(
+      this.toUniqueEntryIds(entryIds),
+      payload,
+      (item, selectedEntryIds) &#x3D;&gt;
+        this.entryResultsApi.bulkResultApplicationListEntries({
+          listId,
+          bulkResultDto: {
+            entryIds: selectedEntryIds,
+            result: {
+              resultCode: item.resultCode.trim(),
+              wordingFields: item.wordingFields ?? [],
+            },
+          },
+        }),
+    );
+
+    this.submitCombinedRequests(
+      updateRequests,
+      createRequests,
+      onSuccess,
+      onError,
+    );
+  }
+
+  submitResultsWithManyListIds(
+    entryGroups: EntryGroupByListId[],
+    payload: ResultSectionSubmitPayload,
+    onSuccess?: () &#x3D;&gt; void,
+    onError?: (err: unknown) &#x3D;&gt; void,
+  ): void {
+    if (!payload || !entryGroups.length) {
+      return;
+    }
+
+    const updateRequests &#x3D; this.buildUpdateRequests(payload, entryGroups);
+    const createRequests &#x3D; this.buildCreateRequests(
+      this.toUniqueEntryIds(
+        entryGroups.flatMap((group) &#x3D;&gt; group.entryIds ?? []),
+      ),
+      payload,
+      (item, selectedEntryIds) &#x3D;&gt;
+        this.entryResultsApi.bulkResultEntries({
+          bulkResultDto: {
+            entryIds: selectedEntryIds,
+            result: {
+              resultCode: item.resultCode.trim(),
+              wordingFields: item.wordingFields ?? [],
+            },
+          },
+        }),
+    );
+
+    this.submitCombinedRequests(
+      updateRequests,
+      createRequests,
+      onSuccess,
+      onError,
+    );
+  }
+
+  removeCreatedEntryResults(
+    listId: string,
+    resultIds: string[],
+    onSuccess?: (results: BulkResultRemoval[]) &#x3D;&gt; void,
+    onError?: (err: unknown) &#x3D;&gt; void,
+  ): void {
+    if (!listId) {
+      return;
+    }
+
+    const targets &#x3D; (this.newlyCreatedEntryResults() ?? []).filter(
+      (result) &#x3D;&gt;
+        !!result.id &amp;&amp;
+        !!result.entryId &amp;&amp;
+        (resultIds.length &#x3D;&#x3D;&#x3D; 0 || resultIds.includes(result.id)),
+    );
+
+    if (targets.length &#x3D;&#x3D;&#x3D; 0) {
+      return;
+    }
+
+    const removals &#x3D; targets.map((result) &#x3D;&gt; ({
+      listId,
+      entryId: result.entryId,
+      resultId: result.id,
+    }));
+
+    this.bulkRemoveCreatedEntryResults(removals, onSuccess, onError);
+  }
+
+  bulkRemoveCreatedEntryResults(
+    resultsToRemove: BulkDeleteResultItemDto[],
+    onSuccess?: (results: BulkResultRemoval[]) &#x3D;&gt; void,
+    onError?: (err: unknown) &#x3D;&gt; void,
+  ): void {
+    if (resultsToRemove.length &#x3D;&#x3D;&#x3D; 0) {
+      return;
+    }
+
+    this.bulkRemoveResult(
+      resultsToRemove,
+      () &#x3D;&gt; {
+        const deletedIds &#x3D; new Set(
+          resultsToRemove.map((result) &#x3D;&gt; result.resultId),
+        );
+
+        this.newlyCreatedEntryResults.update((current) &#x3D;&gt;
+          current.filter((result) &#x3D;&gt; !deletedIds.has(result.id ?? &#x27;&#x27;)),
+        );
+
+        onSuccess?.(
+          resultsToRemove.map(({ entryId, resultId }) &#x3D;&gt; ({
+            entryId,
+            resultId,
+            success: true,
+          })),
+        );
+      },
+      onError,
+    );
+  }
+
+  removeCreatedEntryResultGroup(
+    listId: string,
+    anchorResultId: string,
+    onSuccess?: (results: BulkResultRemoval[]) &#x3D;&gt; void,
+    onError?: (err: unknown) &#x3D;&gt; void,
+  ): void {
+    if (!listId || !anchorResultId) {
+      return;
+    }
+
+    const createdResults &#x3D; this.newlyCreatedEntryResults() ?? [];
+    const anchor &#x3D; createdResults.find(
+      (result) &#x3D;&gt; result.id &#x3D;&#x3D;&#x3D; anchorResultId,
+    );
+
+    if (!anchor) {
+      return;
+    }
+
+    const matchingIds &#x3D; createdResults
+      .filter((result) &#x3D;&gt; this.areLogicallyEquivalentResults(result, anchor))
+      .map((result) &#x3D;&gt; result.id)
+      .filter((id): id is string &#x3D;&gt; !!id);
+
+    this.removeCreatedEntryResults(listId, matchingIds, onSuccess, onError);
+  }
+
+  loadEntryResults(listId: string, entryId: string): void {
+    if (!listId || !entryId) {
+      return;
+    }
+
+    this.entryResultsLoading.set(true);
+
+    getEntryResults$(this.entryResultsApi, { listId, entryId })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (results) &#x3D;&gt; {
+          this.entryResults.set(results);
+          this.entryResultsLoading.set(false);
+        },
+        error: () &#x3D;&gt; {
+          this.entryResults.set([]);
+          this.entryResultsLoading.set(false);
+        },
+      });
+  }
+
+  removeResult(
+    listId: string,
+    entryId: string,
+    resultId: string,
+    onSuccess?: () &#x3D;&gt; void,
+    onError?: (err: unknown) &#x3D;&gt; void,
+  ): void {
+    if (!listId || !entryId || !resultId) {
+      return;
+    }
+
+    this.bulkRemoveResult(
+      [{ listId, entryId, resultId }],
+      () &#x3D;&gt; {
+        this.loadEntryResults(listId, entryId);
+        onSuccess?.();
+      },
+      onError,
+    );
+  }
+
+  bulkRemoveResult(
+    resultsToRemove: BulkDeleteResultItemDto[],
+    onSuccess?: () &#x3D;&gt; void,
+    onError?: (err: unknown) &#x3D;&gt; void,
+  ): void {
+    if (resultsToRemove.length &#x3D;&#x3D;&#x3D; 0) {
+      return;
+    }
+
+    const params: BulkDeleteResultEntriesRequestParams &#x3D; {
+      bulkDeleteResultsDto: { results: resultsToRemove },
+    };
+
+    this.entryResultsApi
+      .bulkDeleteResultEntries(params)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () &#x3D;&gt; onSuccess?.(),
+        error: (err) &#x3D;&gt; onError?.(err),
+      });
+  }
+
+  /**
+   * Applies edits to one entry&#x27;s existing results before creating pending ones.
+   * Successful completion reloads results and clears pending rows only when
+   * creates were sent; an empty payload invokes neither callback.
+   *
+   * @param listId - Parent list ID.
+   * @param entryId - Entry whose results are being changed.
+   * @param payload - Existing updates and pending creates.
+   * @param onSuccess - Called after every request succeeds.
+   * @param onError - Called on the first request failure.
+   */
+  submitResultChanges(
+    listId: string,
+    entryId: string,
+    payload: ResultSectionSubmitPayload,
+    onSuccess?: () &#x3D;&gt; void,
+    onError?: (err: unknown) &#x3D;&gt; void,
+  ): void {
+    if (!listId || !entryId || !payload) {
+      return;
+    }
+
+    // PUT
+    const existingRequests &#x3D; (payload.existingToUpdate ?? [])
+      .filter((item) &#x3D;&gt; !!item.resultId &amp;&amp; !!item.resultCode)
+      .map((item) &#x3D;&gt;
+        this.entryResultsApi.updateApplicationListEntryResult({
+          listId,
+          entryId,
+          resultId: item.resultId,
+          resultUpdateDto: {
+            resultCode: item.resultCode.trim(),
+            wordingFields: item.wordingFields ?? [],
+          },
+        }),
+      );
+
+    // POST
+    const pendingRequests &#x3D; (payload.pendingToCreate ?? [])
+      .filter((row) &#x3D;&gt; !!row.resultCode)
+      .map((row) &#x3D;&gt;
+        this.entryResultsApi.createApplicationListEntryResult({
+          listId,
+          entryId,
+          resultCreateDto: {
+            resultCode: row.resultCode.trim(),
+            wordingFields: row.wordingFields ?? [],
+          },
+        }),
+      );
+
+    const allRequests &#x3D; [...existingRequests, ...pendingRequests];
+    if (allRequests.length &#x3D;&#x3D;&#x3D; 0) {
+      return;
+    }
+
+    concat(...allRequests)
+      .pipe(toArray(), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () &#x3D;&gt; {
+          this.loadEntryResults(listId, entryId);
+
+          if (pendingRequests.length &gt; 0) {
+            this.clearPendingToken.update((n) &#x3D;&gt; n + 1);
+            this.pendingRows.set([]);
+          }
+
+          onSuccess?.();
+        },
+        error: (err) &#x3D;&gt; onError?.(err),
+      });
+  }
+
+  setPending(rows: PendingResultRow[]): void {
+    this.pendingRows.set(rows ?? []);
+
+    // Get result wording for each pending code
+    const codes &#x3D; rows?.map((row) &#x3D;&gt; row.resultCode);
+    codes.forEach((code) &#x3D;&gt; {
+      if (code) {
+        this.ensureResultWording(code);
+      }
+    });
+  }
+
+  private toTemplateDetail(
+    wording: string | TemplateDetail | null | undefined,
+  ): TemplateDetail {
+    return this.normalizeTemplateDetail(wording);
+  }
+
+  private ensureResultWording(code: string): void {
+    const date &#x3D; new Date().toISOString().slice(0, 10);
+    const c &#x3D; this.normCode(code);
+    if (!c || !date) {
+      return;
+    }
+
+    if (this.resultCodeWordingByCode()[c]) {
+      return;
+    }
+
+    const key &#x3D; &#x60;${c}|${date}&#x60;;
+    const cached &#x3D; this.resultCodeDetailCache.get(key);
+    if (cached) {
+      const wording &#x3D; this.displayWording(cached.wording);
+
+      this.resultCodeWordingByCode.update((m) &#x3D;&gt; ({ ...m, [c]: wording }));
+      this.resultCodeTemplateByCode.update((m) &#x3D;&gt; ({
+        ...m,
+        [c]: this.toTemplateDetail(cached.wording),
+      }));
+      return;
+    }
+
+    this.resultCodesApi
+      .getResultCodeByCodeAndDate({ code: c, date }, &#x27;body&#x27;, false, {
+        transferCache: true,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (detail) &#x3D;&gt; {
+          this.resultCodeDetailCache.set(key, detail);
+          this.resultCodeWordingByCode.update((m) &#x3D;&gt; ({
+            ...m,
+            [c]: this.displayWording(detail.wording),
+          }));
+          this.resultCodeTemplateByCode.update((m) &#x3D;&gt; ({
+            ...m,
+            [c]: this.toTemplateDetail(detail.wording),
+          }));
+        },
+        error: () &#x3D;&gt; {
+          this.resultCodeWordingByCode.update((m) &#x3D;&gt; ({ ...m, [c]: &#x27;-&#x27; }));
+          this.resultCodeTemplateByCode.update((m) &#x3D;&gt; ({
+            ...m,
+            [c]: this.toTemplateDetail(&#x27;&#x27;),
+          }));
+        },
+      });
+  }
+
+  private normCode(code: string): string {
+    return (code ?? &#x27;&#x27;).trim().toUpperCase();
+  }
+
+  private normalizeTemplateDetail(
+    wording: string | TemplateDetail | null | undefined,
+  ): TemplateDetail {
+    if (typeof wording &#x3D;&#x3D;&#x3D; &#x27;string&#x27;) {
+      return {
+        template: this.unescapeTemplatePlaceholders(wording),
+        &#x27;substitution-key-constraints&#x27;: [],
+      };
+    }
+
+    if (this.isTemplateDetail(wording)) {
+      return {
+        template: this.unescapeTemplatePlaceholders(wording.template ?? &#x27;&#x27;),
+        &#x27;substitution-key-constraints&#x27;:
+          wording[&#x27;substitution-key-constraints&#x27;] ?? [],
+      };
+    }
+
+    return {
+      template: &#x27;&#x27;,
+      &#x27;substitution-key-constraints&#x27;: [],
+    };
+  }
+
+  private displayWording(
+    wording: string | TemplateDetail | null | undefined,
+  ): string {
+    return this.normalizeTemplateDetail(wording).template || &#x27;-&#x27;;
+  }
+
+  private isTemplateDetail(value: unknown): value is TemplateDetail {
+    if (typeof value !&#x3D;&#x3D; &#x27;object&#x27; || value &#x3D;&#x3D;&#x3D; null) {
+      return false;
+    }
+
+    return &#x27;template&#x27; in value;
+  }
+
+  private unescapeTemplatePlaceholders(template: string): string {
+    return template
+      .replaceAll(String.raw&#x60;\{\{&#x60;, &#x27;{{&#x27;)
+      .replaceAll(String.raw&#x60;\}\}&#x60;, &#x27;}}&#x27;);
+  }
+
+  private mergeCreatedEntryResults(results: ResultGetDto[]): void {
+    if (results.length &#x3D;&#x3D;&#x3D; 0) {
+      return;
+    }
+
+    this.newlyCreatedEntryResults.update((current) &#x3D;&gt; {
+      const next &#x3D; [...current];
+
+      results.forEach((result) &#x3D;&gt; {
+        const existingIndex &#x3D; next.findIndex(
+          (currentResult) &#x3D;&gt; currentResult.id &#x3D;&#x3D;&#x3D; result.id,
+        );
+
+        if (existingIndex &gt;&#x3D; 0) {
+          next[existingIndex] &#x3D; result;
+          return;
+        }
+
+        next.push(result);
+      });
+
+      return next;
+    });
+  }
+
+  private areLogicallyEquivalentResults(
+    left: ResultGetDto,
+    right: ResultGetDto,
+  ): boolean {
+    return (
+      (left.resultCode ?? &#x27;&#x27;).trim() &#x3D;&#x3D;&#x3D; (right.resultCode ?? &#x27;&#x27;).trim() &amp;&amp;
+      this.normalizedWordingTemplate(left) &#x3D;&#x3D;&#x3D;
+        this.normalizedWordingTemplate(right)
+    );
+  }
+
+  private normalizedWordingTemplate(result: ResultGetDto): string {
+    return (result.wording?.template ?? &#x27;&#x27;).trim();
+  }
+
+  private toUniqueEntryIds(entryIds: string[]): string[] {
+    return [...new Set((entryIds ?? []).filter((entryId) &#x3D;&gt; !!entryId))];
+  }
+
+  private buildCreateRequests(
+    selectedEntryIds: string[],
+    payload: ResultSectionSubmitPayload,
+    requestFactory: (
+      item: PendingResultRow,
+      selectedEntryIds: string[],
+    ) &#x3D;&gt; Observable&lt;ResultGetDto[]&gt;,
+  ): Observable&lt;ResultGetDto[]&gt;[] {
+    if (selectedEntryIds.length &#x3D;&#x3D;&#x3D; 0) {
+      return [];
+    }
+
+    return (payload.pendingToCreate ?? [])
+      .filter((item) &#x3D;&gt; !!item.resultCode)
+      .map((item) &#x3D;&gt; requestFactory(item, selectedEntryIds));
+  }
+
+  /**
+   * Runs updates before creates, stopping after the first failed update.
+   * Results returned before a failure are retained; newly created pending rows
+   * are cleared only after every request succeeds. An empty request set invokes
+   * neither callback.
+   *
+   * @param updateRequests - Updates for results already created on selected entries.
+   * @param createRequests - New results to add after the updates.
+   * @param onSuccess - Called after all requests succeed.
+   * @param onError - Called with the first failed update or request error.
+   */
+  private submitCombinedRequests(
+    updateRequests: Observable&lt;BulkResultUpdate&gt;[],
+    createRequests: Observable&lt;ResultGetDto[]&gt;[],
+    onSuccess?: () &#x3D;&gt; void,
+    onError?: (err: unknown) &#x3D;&gt; void,
+  ): void {
+    const allRequests: Observable&lt;BulkResultUpdate | ResultGetDto[]&gt;[] &#x3D; [
+      ...updateRequests,
+      ...createRequests,
+    ];
+    if (allRequests.length &#x3D;&#x3D;&#x3D; 0) {
+      return;
+    }
+
+    concat(...allRequests)
+      .pipe(
+        takeWhile(
+          (result) &#x3D;&gt; !(this.isBulkResultUpdate(result) &amp;&amp; !result.success),
+          true,
+        ),
+        toArray(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (results) &#x3D;&gt; {
+          this.mergeCreatedEntryResults(
+            results.flatMap((result) &#x3D;&gt; this.toResultGetDtos(result)),
+          );
+
+          const failedUpdate &#x3D; results.find(
+            (result): result is Extract&lt;BulkResultUpdate, { success: false }&gt; &#x3D;&gt;
+              this.isBulkResultUpdate(result) &amp;&amp; !result.success,
+          );
+
+          if (failedUpdate) {
+            onError?.(failedUpdate.error);
+            return;
+          }
+
+          if (createRequests.length &gt; 0) {
+            this.clearPendingToken.update((n) &#x3D;&gt; n + 1);
+            this.pendingRows.set([]);
+          }
+
+          onSuccess?.();
+        },
+        error: (err) &#x3D;&gt; onError?.(err),
+      });
+  }
+
+  /**
+   * Builds one update per selected entry whose created result matches the edited
+   * result&#x27;s original code and wording template. The entry groups supply the list
+   * ID needed by each update endpoint.
+   *
+   * @param payload - Existing results to update, alongside any pending creates.
+   * @param entryGroups - Selected entry IDs grouped by their parent list ID.
+   * @returns Update requests that report API failures as unsuccessful results.
+   */
+  private buildUpdateRequests(
+    payload: ResultSectionSubmitPayload,
+    entryGroups: EntryGroupByListId[],
+  ): Observable&lt;BulkResultUpdate&gt;[] {
+    const currentCreatedResults &#x3D; this.newlyCreatedEntryResults() ?? [];
+    const createdById &#x3D; new Map(
+      currentCreatedResults
+        .filter((result) &#x3D;&gt; !!result.id)
+        .map((result) &#x3D;&gt; [result.id, result]),
+    );
+    const entryIdToListId &#x3D; new Map&lt;string, string&gt;();
+
+    (entryGroups ?? [])
+      .filter((group) &#x3D;&gt; !!group.listId)
+      .forEach((group) &#x3D;&gt; {
+        [
+          ...new Set((group.entryIds ?? []).filter((entryId) &#x3D;&gt; !!entryId)),
+        ].forEach((entryId) &#x3D;&gt; {
+          entryIdToListId.set(entryId, group.listId);
+        });
+      });
+
+    const updateRequests: Observable&lt;BulkResultUpdate&gt;[] &#x3D; [];
+
+    (payload.existingToUpdate ?? [])
+      .filter((item) &#x3D;&gt; !!item.resultId &amp;&amp; !!item.resultCode)
+      .forEach((item) &#x3D;&gt; {
+        const anchor &#x3D; createdById.get(item.resultId);
+        if (!anchor?.entryId) {
+          return;
+        }
+
+        currentCreatedResults
+          .filter(
+            (result) &#x3D;&gt;
+              this.areLogicallyEquivalentResults(result, anchor) &amp;&amp;
+              !!result.entryId &amp;&amp;
+              !!entryIdToListId.get(result.entryId),
+          )
+          .forEach((result) &#x3D;&gt; {
+            if (!result.entryId || !result.id) {
+              return;
+            }
+
+            const listId &#x3D; entryIdToListId.get(result.entryId);
+            if (!listId) {
+              return;
+            }
+
+            updateRequests.push(
+              this.entryResultsApi
+                .updateApplicationListEntryResult({
+                  listId,
+                  entryId: result.entryId,
+                  resultId: result.id,
+                  resultUpdateDto: {
+                    resultCode: item.resultCode.trim(),
+                    wordingFields: item.wordingFields ?? [],
+                  },
+                })
+                .pipe(
+                  map(
+                    (updatedResult): BulkResultUpdate &#x3D;&gt; ({
+                      result: updatedResult,
+                      success: true,
+                    }),
+                  ),
+                  catchError((error: unknown) &#x3D;&gt;
+                    of({
+                      error,
+                      success: false,
+                    } as BulkResultUpdate),
+                  ),
+                ),
+            );
+          });
+      });
+
+    return updateRequests;
+  }
+
+  private isResultGetDto(value: unknown): value is ResultGetDto {
+    return (
+      typeof value &#x3D;&#x3D;&#x3D; &#x27;object&#x27; &amp;&amp;
+      value !&#x3D;&#x3D; null &amp;&amp;
+      &#x27;id&#x27; in value &amp;&amp;
+      &#x27;entryId&#x27; in value &amp;&amp;
+      &#x27;resultCode&#x27; in value
+    );
+  }
+
+  private toResultGetDtos(value: unknown): ResultGetDto[] {
+    if (this.isBulkResultUpdate(value)) {
+      return value.success ? [value.result] : [];
+    }
+
+    if (Array.isArray(value)) {
+      return value.filter((item): item is ResultGetDto &#x3D;&gt;
+        this.isResultGetDto(item),
+      );
+    }
+
+    return this.isResultGetDto(value) ? [value] : [];
+  }
+
+  private isBulkResultUpdate(value: unknown): value is BulkResultUpdate {
+    if (typeof value !&#x3D;&#x3D; &#x27;object&#x27; || value &#x3D;&#x3D;&#x3D; null || !(&#x27;success&#x27; in value)) {
+      return false;
+    }
+
+    const update &#x3D; value as Partial&lt;BulkResultUpdate&gt;;
+
+    if (update.success &#x3D;&#x3D;&#x3D; true) {
+      return this.isResultGetDto(update.result);
+    }
+
+    return update.success &#x3D;&#x3D;&#x3D; false &amp;&amp; &#x27;error&#x27; in value;
+  }
+}
+</code></pre>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'injectable';
+            var COMPODOC_CURRENT_PAGE_URL = 'ApplicationListEntryResultsFacade.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script>
+               $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
+               checkToggle(darkModeState);
+               if ($darkModeToggleSwitchers.length > 0) {
+                    for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
+                         $darkModeToggleSwitchers[i].addEventListener('change', function (event) {
+                              darkModeState = !darkModeState;
+                              toggleDarkMode(darkModeState);
+                         });
+                    }
+               }
+          </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>
