@@ -4,10 +4,9 @@ import {
   Validators,
 } from '@angular/forms';
 
-import { PERSON_TITLE_OPTIONS } from './entry-detail.constants';
-
 import { toOptionalTrimmed } from '@components/applications-list-entry-create/util';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
+import { PERSON_TITLE_OPTIONS } from '@constants/application-list-entry/columns-options';
 import {
   ADDRESS_REGEX,
   APPLICATION_CODE_REGEX,
@@ -46,17 +45,12 @@ import {
   mapTitleToOptionValue,
   toNullableInteger,
   trimToNull,
-  trimToString,
-  trimToUndefined,
 } from '@util/string-helpers';
 import {
   getEntryWordingFields,
   toTemplateSubstitutions,
 } from '@util/template-substitution-utils';
-import {
-  ContactFormRaw,
-  OrganisationFormRaw,
-} from '@util/types/applications-list-entry/types';
+import { ContactFormRaw } from '@util/types/applications-list-entry/types';
 import { accountReferenceRequiredForApplicationCode } from '@validators/account-reference.validator';
 import { officialRowRequiredValidator } from '@validators/official-row-required.validator';
 import { isEmpty, optional } from '@validators/optional.validator';
@@ -120,6 +114,14 @@ const WHOLE_NUMBER: ValidatorFn = optional((c) =>
   Validators.pattern(/^\d+$/)(c),
 );
 
+/**
+ * Creates the entry form with field and cross-field validation rules.
+ * Official rows and the account reference depend on related form values,
+ * so their validators are attached to the group rather than individual fields.
+ *
+ * @param fb - Builder used to create non-nullable Angular form controls.
+ * @returns The initial application entry form.
+ */
 export function buildStandardApplicationForm(
   fb: NonNullableFormBuilder,
 ): ApplicationsListEntryForm {
@@ -153,6 +155,7 @@ export function buildStandardApplicationForm(
       applicationTitle: fb.control<string | null>(null),
       applicantType: fb.control<ApplicantType>('person'),
       applicant: fb.control<Applicant | null>(null),
+      standardApplicantId: fb.control<number | null>(null),
       standardApplicantCode: fb.control<string | null>(null, [
         Validators.pattern(STANDARD_APPLICANT_CODE_REGEX),
         standardApplicantCodeConditionalRequired,
@@ -160,6 +163,7 @@ export function buildStandardApplicationForm(
       applicationCode: fb.control<string | null>(null, {
         validators: [REQUIRED, Validators.pattern(APPLICATION_CODE_REGEX)],
       }),
+      applicationCodeId: fb.control<number | null>(null),
       respondentEntryType: fb.control<RespondentEntryType | null>('person'),
       respondent: fb.control<Respondent | null>(null),
       numberOfRespondents: fb.control<number | null>(null, {
@@ -322,6 +326,20 @@ export function buildOrganisationForm(
 // Preserve stable fallback keys for wording values that may arrive without keys.
 const LEGACY_WORDING_KEYS = ['courtName', 'organisationName'] as const;
 
+/**
+ * Builds a full entry update from the saved detail and the current form values.
+ * Unedited server fields are preserved, while cleared notes, respondent mode, and
+ * applicant mode are represented explicitly in the request. An application code
+ * ID comes from the form, or from the saved detail when the code is unchanged.
+ *
+ * @param detail - Current server detail used as the base of the update.
+ * @param formValue - Main entry form values.
+ * @param applicantPersonValue - Applicant person form values.
+ * @param applicantOrgValue - Applicant organisation form values.
+ * @param respondentPersonValue - Respondent person form values.
+ * @param respondentOrgValue - Respondent organisation form values.
+ * @returns Complete update DTO for the selected applicant and respondent modes.
+ */
 export function buildEntryUpdateDtoFromForm(
   detail: EntryGetDetailDto,
   formValue: ApplicationsListEntryFormValue,
@@ -366,6 +384,11 @@ export function buildEntryUpdateDtoFromForm(
   const dto: EntryUpdateDtoWithClears = {
     ...base,
     ...patch,
+    applicationCodeId:
+      formValue.applicationCodeId ??
+      (patch.applicationCode === detail.applicationCode
+        ? detail.applicationCodeId
+        : undefined),
   };
 
   dto.caseReference = trimToNull(formValue.applicationNotes.caseReference);
@@ -392,26 +415,13 @@ export function buildEntryUpdateDtoFromForm(
 
   if (formValue.applicantType === 'standard') {
     dto.standardApplicantCode = (formValue.standardApplicantCode ?? '').trim();
+    dto.standardApplicantId = formValue.standardApplicantId ?? undefined;
     normalizeApplicantSelection(dto, 'standard');
     return dto as EntryUpdateDto;
   }
 
   normalizeApplicantSelection(dto, 'applicant');
   return dto as EntryUpdateDto;
-}
-
-export function buildContactDetailsFromRaw(v: ContactFormRaw): ContactDetails {
-  return {
-    addressLine1: trimToString(v.addressLine1),
-    addressLine2: trimToUndefined(v.addressLine2),
-    addressLine3: trimToUndefined(v.addressLine3),
-    addressLine4: trimToUndefined(v.addressLine4),
-    addressLine5: trimToUndefined(v.addressLine5),
-    postcode: trimToUndefined(v.postcode),
-    phone: trimToUndefined(v.phoneNumber),
-    mobile: trimToUndefined(v.mobileNumber),
-    email: trimToUndefined(v.emailAddress),
-  };
 }
 
 export function contactDetailsToFormPatch(cd: ContactDetails): ContactFormRaw {
@@ -426,17 +436,6 @@ export function contactDetailsToFormPatch(cd: ContactDetails): ContactFormRaw {
     mobileNumber: cd.mobile ?? '',
     emailAddress: cd.email ?? '',
   };
-}
-
-export function buildOrganisationApplicantFromRaw(
-  raw: OrganisationFormRaw,
-): Applicant {
-  const organisation: Organisation = {
-    name: trimToString(raw.name),
-    contactDetails: buildContactDetailsFromRaw(raw),
-  };
-
-  return { organisation };
 }
 
 export function personToFormPatch(
@@ -527,6 +526,18 @@ export function officialsToFormPatch(
   return patch;
 }
 
+/**
+ * Builds a full entry update while replacing one field of the saved detail.
+ * Changing a code drops its saved lookup ID, and applicant selection is
+ * normalized so standard-applicant fields and inline applicant data do not
+ * appear together.
+ *
+ * @param detail - Saved entry detail used as the base of the update.
+ * @param key - Entry field to replace.
+ * @param value - Replacement value for that field.
+ * @returns Full update DTO with the requested field change.
+ * @throws If the entry detail has not been loaded.
+ */
 export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
   detail: EntryGetDetailDto | null | undefined,
   key: K,
@@ -538,7 +549,15 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
 
   const base: EntryUpdateDto = {
     standardApplicantCode: detail.standardApplicantCode,
+    standardApplicantId:
+      key === 'standardApplicantCode' && value !== detail.standardApplicantCode
+        ? undefined
+        : (detail.standardApplicantId ?? undefined),
     applicationCode: detail.applicationCode,
+    applicationCodeId:
+      key === 'applicationCode' && value !== detail.applicationCode
+        ? undefined
+        : detail.applicationCodeId,
     applicant: detail.applicant,
     respondent: detail.respondent,
     numberOfRespondents: detail.numberOfRespondents ?? undefined,
@@ -584,6 +603,11 @@ export function buildEntryUpdateDtoForFeeChange<K extends keyof EntryUpdateDto>(
   if (applicationCode) {
     dto.applicationCode = applicationCode;
   }
+  dto.applicationCodeId =
+    formValue.applicationCodeId ??
+    (dto.applicationCode === detail?.applicationCode
+      ? detail?.applicationCodeId
+      : undefined);
 
   if (stagedWordingFields?.length) {
     dto.wordingFields = stagedWordingFields;
@@ -596,6 +620,7 @@ function normalizeApplicantSelection(
   dto: {
     applicant?: Applicant;
     standardApplicantCode?: string | null;
+    standardApplicantId?: number;
   },
   mode: 'standard' | 'applicant',
 ): void {
@@ -605,6 +630,7 @@ function normalizeApplicantSelection(
   }
 
   delete dto.standardApplicantCode;
+  delete dto.standardApplicantId;
 }
 
 //  TODO: temp backend/mock shape whilst type is not finalised

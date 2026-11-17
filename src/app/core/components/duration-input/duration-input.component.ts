@@ -23,6 +23,16 @@ export interface Duration {
 
 export type DurationMode = 'clock' | 'duration';
 
+/**
+ * DurationInputComponent
+ *
+ * Functionality:
+ * - Displays a duration input.
+ * - Integrates hours and minutes with Angular forms.
+ * - Validation rules:
+ *   - Clock mode accepts whole hours 0–23 and minutes 0–59; both parts are needed when required or when either part is entered.
+ *   - Duration mode accepts whole hours 0–99 and minutes 0–59; blank parts are allowed.
+ */
 @Component({
   selector: 'app-duration-input',
   standalone: true,
@@ -43,22 +53,15 @@ export type DurationMode = 'clock' | 'duration';
   ],
 })
 export class DurationInputComponent implements ControlValueAccessor, Validator {
-  // @Input() idPrefix!: string;
   idPrefix = input.required<string>();
-  // @Input() label?: string;
   label = input<string>();
-  // @Input() hint?: string;
   hint = input<string>();
-  // @Input() disabled = false;
   readonly disabled = input(false);
-  // @Input() submitted = false;
   submitted = input(false);
   showError = input(false);
   errorTextOverride = input('');
-  // @Input() required = true;
   required = input(true);
-  // @Input() mode: DurationMode = 'clock'; // One for 24 hour clock and one for duration
-  mode = input<DurationMode>('clock');
+  mode = input<DurationMode>('clock'); // One for 24 hour clock and one for duration
 
   // single source of truth: numbers
   hours: number | null = null;

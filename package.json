@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "sideEffects": false,
   "engines": {
-    "node": ">=24.15.0"
+    "node": ">=24.22.1"
   },
   "scripts": {
     "ng": "ng",
@@ -29,6 +29,8 @@
     "dev:stg:ssr": "APPREG_API_BASE_URL=https://appreg-api.staging.platform.hmcts.net yarn build:ssr && NODE_ENV=development ALLOW_CONFIG_MUTATIONS=true APPREG_API_BASE_URL=https://appreg-api.staging.platform.hmcts.net yarn start",
     "lint": "yarn api:all && stylelint \"**/*.scss\" -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .",
     "lint:fix": "prettier --write . && eslint --fix . && stylelint \"**/*.scss\" -q --fix",
+    "doc": "yarn compodoc -p tsconfig.doc.json -d docs/code-documentation",
+    "doc:serve": "yarn compodoc -s -d ./docs/code-documentation",
     "build": "ng build",
     "build:ssr": "ng build --configuration production",
     "verify-stg-access": "ts-node -P ./tsconfig.json scripts/verify-stg-access.ts",
@@ -133,6 +135,7 @@
     "@apidevtools/json-schema-ref-parser": "^15.1.2",
     "@badeball/cypress-cucumber-preprocessor": "^24.0.0",
     "@bahmutov/cypress-esbuild-preprocessor": "^2.2.5",
+    "@compodoc/compodoc": "^2.0.0",
     "@eslint/compat": "^1.3.2",
     "@openapitools/openapi-generator-cli": "^2.23.4",
     "@types/adm-zip": "^0",
@@ -226,7 +229,8 @@
     "winston@npm:^2.4.5": "patch:winston@npm%3A2.4.7#~/.yarn/patches/winston-npm-2.4.7-f6df5db564.patch",
     "zod": "^4.6.6",
     "@azure/msal-node": "^7.1.0",
-    "minimatch": "^11.0.1"
+    "minimatch": "^11.0.1",
+    "@opentelemetry/instrumentation-http": "^0.222.0"
   },
   "packageManager": "yarn@4.10.3"
 }

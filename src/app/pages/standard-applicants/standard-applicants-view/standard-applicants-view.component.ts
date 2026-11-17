@@ -1,14 +1,3 @@
-/**
- * View Standard Applicant
- * Main Component for page /standard-applicants/:id
- *
- * Functionality:
- * ngOnInit():
- * - GET request to retrieve the selected Standard Applicant
- * - Maps the response into summary list values for display
- * - Redirects back to the Standard Applicants search page if loading fails
- */
-
 import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -36,6 +25,16 @@ interface StandardApplicantSummaryListValues {
   useTo?: string | null;
 }
 
+/**
+ * View Standard Applicant
+ * Main Component for page /standard-applicants/:id
+ *
+ * Functionality:
+ * ngOnInit():
+ * - GET request to retrieve the selected Standard Applicant
+ * - Maps the response into summary list values for display
+ * - Redirects back to the Standard Applicants search page if loading fails
+ */
 @Component({
   selector: 'app-standard-applicants-view',
   standalone: true,

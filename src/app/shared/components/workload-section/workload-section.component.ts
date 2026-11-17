@@ -6,6 +6,14 @@ import type { ErrorItem } from '@components/error-summary/error-summary.componen
 import { ReportsSharedFormComponent } from '@components/reports-shared-form/reports-shared-form.component';
 import type { ErrorMessageMap } from '@util/error-summary';
 
+/**
+ * WorkloadSectionComponent
+ *
+ * Functionality:
+ * - Displays workload form fields.
+ * - Shows validation errors for workload details.
+ * - Uses the parent form, suggestions, and external errors in the shared report form.
+ */
 @Component({
   selector: 'app-workload-section',
   standalone: true,

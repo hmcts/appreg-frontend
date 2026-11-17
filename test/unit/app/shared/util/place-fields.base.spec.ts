@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 
+import { toCourtSuggestionItem } from '@components/suggestions/suggestions.types';
 import {
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
@@ -10,8 +11,8 @@ import {
 import { PlaceFieldsBase, PlaceFieldsState } from '@util/place-fields.base';
 
 const COURTS: CourtLocationGetSummaryDto[] = [
-  { name: 'Alpha Court', locationCode: 'A1' },
-  { name: 'Beta Court', locationCode: 'B2' },
+  { courtId: 1, name: 'Alpha Court', locationCode: 'A1' },
+  { courtId: 2, name: 'Beta Court', locationCode: 'B2' },
 ];
 
 const CJAS: CriminalJusticeAreaGetDto[] = [
@@ -236,7 +237,11 @@ describe('PlaceFieldsBase', () => {
 
   it('finds an edited and restored court label without automatically selecting it', () => {
     component.init();
-    const court = { locationCode: 'A1', name: 'Alpha-Central Court' };
+    const court = {
+      courtId: 1,
+      locationCode: 'A1',
+      name: 'Alpha-Central Court',
+    };
     component.emitCourts([court, ...COURTS.slice(1)]);
     component.selectCourthouse(court);
     const label = component.getPlaceState().courthouseSearch;
@@ -293,10 +298,14 @@ describe('PlaceFieldsBase', () => {
 
     // seed suggestions so we can verify they are cleared
     component.setPlaceState({
-      filteredCourthouses: [...COURTS],
+      filteredCourthouses: COURTS.map(toCourtSuggestionItem),
     });
 
-    const pick: CourtLocationGetSummaryDto = { name: 'X', locationCode: 'X1' };
+    const pick: CourtLocationGetSummaryDto = {
+      courtId: 3,
+      name: 'X',
+      locationCode: 'X1',
+    };
     component.selectCourthouse(pick);
 
     const st = component.getPlaceState();

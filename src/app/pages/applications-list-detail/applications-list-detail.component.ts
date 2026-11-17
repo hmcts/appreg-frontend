@@ -1,49 +1,3 @@
-/**
- * Application List Detail
- * Main Component for page /applications-list/:id
- *
- * Note:
- * Bulk preview endpoint contains a BE limit of 1050 max selected applications
- *
- * Functionality:
- * ngOnInit():
- * - Loads the Application List details and Application List Entries
- * - Initialises the update form and restores navigation state
- *
- * onSearchStarted()/onSearchResult():
- * - GET request to search and filter Application List Entries
- * - Updates server-side pagination and selection state
- *
- * onUpdateOfficialsButtonClick():
- * - Retrieves eligible entries using the Bulk Action Preview endpoint
- * - Navigates to Bulk Update Officials
- *
- * onResultButtonClick():
- * - Retrieves eligible entries using the Bulk Action Preview endpoint
- * - Navigates to Bulk Result Selected
- *
- * onUpdateFeeButtonClick():
- * - Retrieves eligible entries using the Bulk Action Preview endpoint
- * - Navigates to Bulk Update Fees
- *
- * onMoveButtonClick():
- * - Retrieves eligible entries using the Bulk Action Preview endpoint
- * - Navigates to Move Application List Entries
- *
- * onPrintContinuousClick()/onPrintPageClick():
- * - Retrieves eligible entries using the Bulk Action Preview endpoint
- * - Generates Continuous or Page print PDFs
- *
- * openUpdate():
- * - Navigates to the selected Application List Entry
- *
- * onUndoClick():
- * - Navigates to undo application list creation page
- *
- * onDeleteButtonClick()
- * - Navigates to delete an application list entry
- */
-
 import { isPlatformBrowser } from '@angular/common';
 import {
   HttpContext,
@@ -108,7 +62,6 @@ import {
 } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import {
-  CourtSuggestionSource,
   toCjaSuggestionItem,
   toCourtSuggestionItem,
 } from '@components/suggestions/suggestions.types';
@@ -131,6 +84,7 @@ import {
   BulkActionPreviewResponseDto,
   BulkActionSelectionType,
   BulkActionType,
+  CourtLocationGetSummaryDto,
   EntryPage,
   PrintApplicationListsRequestParams,
 } from '@openapi';
@@ -185,6 +139,51 @@ const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
   resulted: 'resulted',
 };
 
+/**
+ * Application List Detail
+ * Main Component for page /applications-list/:id
+ *
+ * Note:
+ * Bulk preview endpoint contains a BE limit of 1050 max selected applications
+ *
+ * Functionality:
+ * ngOnInit():
+ * - Loads the Application List details and Application List Entries
+ * - Initialises the update form and restores navigation state
+ *
+ * onSearchStarted()/onSearchResult():
+ * - GET request to search and filter Application List Entries
+ * - Updates server-side pagination and selection state
+ *
+ * onUpdateOfficialsButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Bulk Update Officials
+ *
+ * onResultButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Bulk Result Selected
+ *
+ * onUpdateFeeButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Bulk Update Fees
+ *
+ * onMoveButtonClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Navigates to Move Application List Entries
+ *
+ * onPrintContinuousClick()/onPrintPageClick():
+ * - Retrieves eligible entries using the Bulk Action Preview endpoint
+ * - Generates Continuous or Page print PDFs
+ *
+ * openUpdate():
+ * - Navigates to the selected Application List Entry
+ *
+ * onUndoClick():
+ * - Navigates to undo application list creation page
+ *
+ * onDeleteButtonClick()
+ * - Navigates to delete an application list entry
+ */
 @Component({
   selector: 'app-application-detail',
   standalone: true,
@@ -222,7 +221,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   // Only the court already persisted on this list may supplement current choices.
   private readonly retainedCourt$ =
-    new BehaviorSubject<CourtSuggestionSource | null>(null);
+    new BehaviorSubject<CourtLocationGetSummaryDto | null>(null);
+  private selectedCourt: CourtLocationGetSummaryDto | null = null;
+  originalCourtId: number | undefined;
+  readonly selectedCourtId = (): number | undefined =>
+    this.selectedCourt?.courtId;
 
   id!: string;
   listRow: ApplicationListRow | undefined = undefined;
@@ -288,6 +291,26 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   suggestionsFacade = buildSuggestionsFacade(this);
 
+  // set/reset local vars
+  override onCourthouseInputChange(): void {
+    this.selectedCourt = null;
+    super.onCourthouseInputChange();
+  }
+
+  override selectCourthouse(c: CourtLocationGetSummaryDto): void {
+    this.selectedCourt = c;
+    super.selectCourthouse(c);
+  }
+
+  protected override findCourtForDisplay(
+    items: CourtLocationGetSummaryDto[],
+    code: string,
+  ): CourtLocationGetSummaryDto | undefined {
+    return this.selectedCourt?.locationCode === code
+      ? this.selectedCourt
+      : super.findCourtForDisplay(items, code);
+  }
+
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
@@ -318,9 +341,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         this.retainedCourt$,
       ]).pipe(
         map(([courts, retained]) =>
-          retained &&
-          !courts.some((c) => c.locationCode === retained.locationCode)
-            ? [...courts, retained]
+          retained
+            ? [
+                retained,
+                ...courts.filter((court) => court.courtId !== retained.courtId),
+              ]
             : courts,
         ),
       ),
@@ -333,7 +358,14 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.setDeleteErrorFromNavigation();
 
     //Attach validators
-    addLocationValidatorsToForm(this.form, () => this.state());
+    addLocationValidatorsToForm(
+      this.form,
+      () => this.state(),
+      () =>
+        this.originalCourtId === undefined
+          ? this.originalListDetail?.court
+          : undefined,
+    );
     this.form.addValidators([closePermitted()]);
 
     this.setupEffects();
@@ -420,6 +452,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  /**
+   * Restores one-time success banners from route parameters and navigation state.
+   * Bulk-upload details are read only in the browser. Consumed query parameters
+   * are then removed with a replacement navigation to avoid stale banners.
+   */
   setSuccessBanner(): void {
     if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
       this.vm().createDone = true;
@@ -603,6 +640,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  /**
+   * Registers list, entry, update, and print effects for this detail page.
+   * Responses synchronize the form, selection, ETag, and loading state; failed
+   * requests clear stale rows or expose actionable errors before the trigger
+   * signal is reset.
+   */
   private setupEffects(): void {
     // GET /application-lists/{listId} for list details info
     setupLoadEffect(
@@ -793,7 +836,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           if (newDetails) {
             this.prefillFromApi(newDetails);
           } else {
-            this.syncFormAndOriginalListDetail();
+            this.syncFormAndOriginalListDetail(
+              this.form.getRawValue(),
+              this.selectedCourt?.name,
+              this.selectedCourt?.courtId,
+            );
           }
         },
         onError: (err: unknown) => {
@@ -1516,6 +1563,18 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.selectAllRequestVersion += 1;
   }
 
+  /**
+   * Previews a bulk action using either the active filter selection or explicit IDs.
+   * Filter selections include excluded entry IDs; `forceIds` bypasses that mode.
+   * A successful preview is stored in component state. Failures return `null` and
+   * optionally add an error summary for the user.
+   *
+   * @param action - Bulk action whose eligible entries are requested.
+   * @param entryIds - Explicit IDs, defaulting to the current selected IDs.
+   * @param forceIds - Use explicit IDs even when filter selection is active.
+   * @param showError - Whether to show API failures in the error summary.
+   * @returns Preview response, or `null` if the request fails.
+   */
   private async getBulkPreview(
     action: BulkActionType,
     entryIds?: Set<string>,
@@ -1611,6 +1670,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {
+    this.originalCourtId = dto.courtId;
     this.listStatus.set(dto.status);
     const duration =
       dto.durationHours !== null || dto.durationMinutes !== null
@@ -1638,13 +1698,17 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     this.syncFormAndOriginalListDetail(listDetails, dto.courtName, dto.courtId);
 
-    if (dto.courtCode) {
+    if (dto.courtCode && dto.courtId !== undefined) {
       this.selectCourthouse(
         toCourtSuggestionItem({
           locationCode: dto.courtCode,
-          name: dto.courtName ?? '',
+          name: dto.courtName || 'Court details unavailable',
           courtId: dto.courtId,
         }),
+      );
+    } else if (dto.courtCode) {
+      this.setCourthouseSearch(
+        `${dto.courtCode} - ${dto.courtName || 'Court details unavailable'}`,
       );
     } else if (dto.cjaCode) {
       const area =
@@ -1676,18 +1740,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.form.patchValue(listDetails);
     this.originalListDetail = this.form.getRawValue();
     const code = listDetails.court;
-    const existing = this.state().courtLocations.find(
-      (c) => c.locationCode === code,
-    );
     this.retainedCourt$.next(
-      code
+      code && courtId !== undefined
         ? {
             locationCode: code,
-            name: courtName ?? existing?.name ?? '',
-            courtId: courtId ?? existing?.courtId,
+            name: courtName || 'Court details unavailable',
+            courtId,
           }
         : null,
     );
+    this.originalCourtId = code ? courtId : undefined;
     this.form.updateValueAndValidity({ emitEvent: false });
   }
 

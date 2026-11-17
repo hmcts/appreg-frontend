@@ -37,6 +37,11 @@ export type PaymentRefReturn = {
 };
 
 export type EntryDetailSnapshot = {
+  standardApplicantSummary?: {
+    code: string;
+    name: string;
+    standardApplicantId?: number;
+  } | null;
   expandedSections?: {
     applicant: boolean;
     applicationCode: boolean;

@@ -310,6 +310,48 @@ describe('ApplicationsList - open list scroll position', () => {
   });
 });
 
+describe('ApplicationsList - delete navigation', () => {
+  it('shows a rejected navigation error in the summary', async () => {
+    const { comp, fixture, navigateSpy } = createInstanceWithQuery({});
+    const row = makeApplicationListRow();
+    navigateSpy.mockRejectedValue(new Error('Delete confirmation unavailable'));
+
+    await comp.onDeleteClick(row);
+    fixture.detectChanges();
+
+    expect(navigateSpy).toHaveBeenCalledWith(
+      ['/applications-list', row.id, 'delete'],
+      { state: { listRow: row } },
+    );
+    expect(comp.vm().deleteInvalid).toBe(true);
+    expect(comp.vm().errorSummary).toEqual([
+      { text: 'Delete confirmation unavailable' },
+    ]);
+    expect(fixture.nativeElement.textContent).toContain(
+      'Delete confirmation unavailable',
+    );
+    expect(comp.submitAttempt()).toBe(1);
+  });
+
+  it('shows a summary when navigation is cancelled', async () => {
+    const { comp, fixture, navigateSpy } = createInstanceWithQuery({});
+    navigateSpy.mockResolvedValue(false);
+
+    await comp.onDeleteClick(makeApplicationListRow());
+    fixture.detectChanges();
+
+    expect(comp.vm().deleteInvalid).toBe(true);
+    expect(comp.vm().errorSummary).toEqual([
+      {
+        text: 'Unable to open the delete confirmation. Please refresh your page and try again.',
+      },
+    ]);
+    expect(fixture.nativeElement.textContent).toContain(
+      'Unable to open the delete confirmation. Please refresh your page and try again.',
+    );
+  });
+});
+
 describe('ApplicationsList - delete flash query param', () => {
   it('shows a reference data error summary and refreshes after rendering', async () => {
     const { fixture, refFacade } = createInstance('browser', [], true);

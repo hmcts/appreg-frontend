@@ -20,10 +20,12 @@ export type ApplicationListEntryForms = {
 };
 
 export type ApplicationsListEntryForm = FormGroup<{
+  applicationCodeId?: FormControl<number | null>;
   applicationTitle?: FormControl<string | null>;
   applicantType: FormControl<ApplicantType>;
   applicant: FormControl<Applicant | null>;
   standardApplicantCode: FormControl<string | null>;
+  standardApplicantId?: FormControl<number | null>;
   applicationCode: FormControl<string | null>;
   respondent: FormControl<Respondent | null>;
   numberOfRespondents: FormControl<number | null>;

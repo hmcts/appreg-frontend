@@ -10,6 +10,14 @@ import { RouterLink } from '@angular/router';
 
 type BannerVariant = 'default' | 'success' | 'warning';
 
+/**
+ * NotificationBannerComponent
+ *
+ * Functionality:
+ * - Displays a configurable notification banner.
+ * - Supports links and focus management.
+ * - Supports success or other banner variants and optional link actions.
+ */
 @Component({
   selector: 'app-notification-banner',
   standalone: true,

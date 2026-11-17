@@ -34,12 +34,14 @@ import { trimStringToLowerCase } from './string-helpers';
 import {
   CjaSuggestionItem,
   CourtSuggestionItem,
-  CourtSuggestionSource,
   toCjaSuggestionItem,
   toCourtSuggestionItem,
 } from '@components/suggestions/suggestions.types';
 import { FormRaw } from '@core-types/forms/forms.types';
-import { CriminalJusticeAreaGetDto } from '@openapi';
+import {
+  CourtLocationGetSummaryDto,
+  CriminalJusticeAreaGetDto,
+} from '@openapi';
 
 export interface LocationControls {
   court: AbstractControl;
@@ -86,7 +88,7 @@ export function attachLocationDisabler({
 export function onCourthouseInputChange(
   form: FormGroup,
   courthouseSearch: string,
-  courtLocations: CourtSuggestionSource[],
+  courtLocations: CourtLocationGetSummaryDto[],
 ): CourtSuggestionItem[] {
   form.controls['court'].setValue(courthouseSearch || '');
   const filtered = filterSuggestions(
@@ -109,7 +111,7 @@ export function onCjaInputChange(
 
 export function selectCourthouse(
   form: FormGroup,
-  c: CourtSuggestionSource | CourtSuggestionItem,
+  c: CourtLocationGetSummaryDto,
 ): {
   courthouseSearch: string;
   filteredCourthouses: CourtSuggestionItem[];
@@ -157,7 +159,7 @@ function filterSuggestions<T>(
 // Both location filters also match the displayed "code - name/description"
 // label so editing a selected label does not make its suggestion disappear.
 // Filtering alone does not select an entry or restore its stored code.
-const courtMatches = (c: CourtSuggestionSource, q: string): boolean =>
+const courtMatches = (c: CourtLocationGetSummaryDto, q: string): boolean =>
   (c.name ?? '').toLowerCase().includes(q) ||
   (c.locationCode ?? '').toLowerCase().includes(q) ||
   toCourtSuggestionItem(c).label.toLowerCase().includes(q);

@@ -47,11 +47,32 @@ describe('addLocationValidatorsToForm', () => {
     addLocationValidatorsToForm(form, () =>
       mkState({
         courthouseSearch: 'UNKNOWN - Missing court',
-        courtLocations: [{ locationCode: 'COURT1', name: 'Known court' }],
+        courtLocations: [
+          { courtId: 1, locationCode: 'COURT1', name: 'Known court' },
+        ],
       }),
     );
     validate(form);
 
+    expect(form.controls.court.errors).toEqual({ courtNotFound: true });
+  });
+
+  it('allows only the explicitly saved court code outside current reference data', () => {
+    const form = mkForm();
+    const state = mkState({ courthouseSearch: 'ENDED - Saved court' });
+    addLocationValidatorsToForm(
+      form,
+      () => state,
+      () => 'ENDED',
+    );
+
+    form.controls.court.setValue('ENDED');
+    validate(form);
+    expect(form.controls.court.errors).toBeNull();
+    expect(state.courtLocations).toEqual([]);
+
+    form.controls.court.setValue('UNKNOWN');
+    validate(form);
     expect(form.controls.court.errors).toEqual({ courtNotFound: true });
   });
 
@@ -80,7 +101,9 @@ describe('addLocationValidatorsToForm', () => {
     form.controls.court.setValue('UNKNOWN');
     state = mkState({
       courthouseSearch: 'UNKNOWN - Missing court',
-      courtLocations: [{ locationCode: 'COURT1', name: 'Known court' }],
+      courtLocations: [
+        { courtId: 1, locationCode: 'COURT1', name: 'Known court' },
+      ],
     });
     validate(form);
 
@@ -88,7 +111,9 @@ describe('addLocationValidatorsToForm', () => {
 
     state = mkState({
       courthouseSearch: 'COURT1 - Known court',
-      courtLocations: [{ locationCode: 'COURT1', name: 'Known court' }],
+      courtLocations: [
+        { courtId: 1, locationCode: 'COURT1', name: 'Known court' },
+      ],
     });
     form.controls.court.setValue('COURT1');
     validate(form);

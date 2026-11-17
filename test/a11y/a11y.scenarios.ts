@@ -1,6 +1,6 @@
 import type { Page } from 'puppeteer';
 
-import { entryId, list, listId } from './a11y.fixtures';
+import { entry, entryId, list, listId } from './a11y.fixtures';
 
 export interface Scenario {
   name: string;
@@ -79,9 +79,45 @@ export const scenarios: Scenario[] = [
   {
     name: 'Delete list',
     path: `${root}/delete`,
-    heading: 'Are you sure you want to delete this application list?',
-    ready: 'app-review-confirm button',
-    state: { listRow: list },
+    heading: 'Check the application list and entries before deleting',
+    ready: 'app-applications-list-delete app-sortable-table tbody tr',
+    responses: {
+      [`/application-lists/${listId}/entries`]: {
+        status: 200,
+        body: {
+          content: [
+            {
+              ...entry,
+              sequenceNumber: 1,
+              applicationTitle: 'Synthetic title ' + 'SYNTHETIC'.repeat(12),
+            },
+          ],
+          pageNumber: 0,
+          pageSize: 100,
+          totalElements: 1,
+          elementsOnPage: 1,
+        },
+      },
+    },
+    exercise: async (page) => {
+      await page.setViewport({ width: 320, height: 900 });
+      expect(
+        await page.$eval(
+          'app-applications-list-delete tbody tr',
+          (row) => row.getBoundingClientRect().height,
+        ),
+      ).toBeLessThan(300);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth),
+      ).toBe(320);
+    },
+    state: {
+      listRow: {
+        ...list,
+        location: list.courtName,
+        entries: list.entriesCount,
+      },
+    },
   },
   ...['create-entry', `update-entry/${entryId}`].map((segment) => ({
     name: `Payment reference (${segment})`,
@@ -120,6 +156,61 @@ export const scenarios: Scenario[] = [
     ready: '#report-duration',
   },
 ];
+const deleteListScenario = scenarios.find(
+  (item) => item.name === 'Delete list',
+)!;
+const entriesPath = `/application-lists/${listId}/entries`;
+scenarios.push(
+  {
+    ...deleteListScenario,
+    name: 'Delete list: empty list',
+    ready: 'app-applications-list-delete .govuk-button--warning:not(:disabled)',
+    responses: {
+      [entriesPath]: {
+        status: 200,
+        body: {
+          content: [],
+          pageNumber: 0,
+          pageSize: 100,
+          totalElements: 0,
+          elementsOnPage: 0,
+        },
+      },
+    },
+    exercise: async (page) => {
+      expect(await page.$('app-applications-list-delete table')).toBeNull();
+      expect(
+        await page.$eval('[role="status"]', (element) => element.textContent),
+      ).toContain('This application list has no entries.');
+    },
+  },
+  {
+    ...deleteListScenario,
+    name: 'Delete list: entries load failure',
+    ready: '#retry-entries',
+    responses: {
+      [entriesPath]: {
+        status: 500,
+        body: { detail: 'Synthetic entries load failure' },
+      },
+    },
+    error: '.govuk-error-summary',
+    exercise: async (page) => {
+      expect(await page.$('app-applications-list-delete table')).toBeNull();
+      expect(
+        await page.$eval(
+          '.govuk-button--warning',
+          (element) => (element as HTMLButtonElement).disabled,
+        ),
+      ).toBe(true);
+      await page.focus('.govuk-error-summary a');
+      await page.keyboard.press('Enter');
+      expect(await page.evaluate(() => document.activeElement?.id)).toBe(
+        'retry-entries',
+      );
+    },
+  },
+);
 for (const [name, button] of [
   ['Create list', 'app-applications-list #create'],
   [

@@ -130,18 +130,35 @@ export class TextboxHelper {
       .scrollIntoView()
       .type(text, { force: true });
 
-    const listbox = TextboxElement.findTextbox(selector)
-      .closest('.app-autocomplete')
-      .find('[role="listbox"]')
-      .should('be.visible');
+    const autocomplete =
+      TextboxElement.findTextbox(selector).closest('.app-autocomplete');
 
     if (optionText) {
-      listbox
+      autocomplete.should(($autocomplete) => {
+        if ($autocomplete.text().includes('No results found')) {
+          throw new Error(
+            `Autocomplete "${selector}" has no result matching "${optionText}" after typing "${text}"`,
+          );
+        }
+
+        const matchingOptions = $autocomplete
+          .find('[role="option"]')
+          .filter((_, option) =>
+            Cypress.$(option)
+              .text()
+              .toLowerCase()
+              .includes(optionText.toLowerCase()),
+          );
+
+        expect(matchingOptions.length).to.be.greaterThan(0);
+      });
+
+      autocomplete
         .contains('[role="option"]', optionText, { matchCase: false })
         .should('be.visible')
         .click();
     } else {
-      listbox.find('[role="option"]').first().should('be.visible').click();
+      autocomplete.find('[role="option"]').first().should('be.visible').click();
     }
 
     TextboxElement.findTextbox(selector).should(

@@ -1,0 +1,11 @@
+{
+  "id": {{request.pathSegments.[2]}},
+  "resultCode": "{{#eq request.pathSegments.[2] '20003'}}ADJ{{else}}{{#eq request.pathSegments.[2] '20004'}}HRD{{else}}HEARD{{/eq}}{{/eq}}",
+  "title": "{{#eq request.pathSegments.[2] '20003'}}Historical adjourned title{{else}}{{#eq request.pathSegments.[2] '20004'}}Historical heard title{{else}}Historical result title{{/eq}}{{/eq}}",
+  "wording": {
+    "template": "Historical reference wording",
+    "substitution-key-constraints": []
+  },
+  "startDate": "2000-01-01",
+  "endDate": "2001-01-01"
+}

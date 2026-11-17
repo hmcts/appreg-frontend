@@ -1,22 +1,28 @@
-<app-help-details summary="Help with application codes">
-  <p class="govuk-body">
-    Select the application code that matches the nature of the application being
-    recorded.
+@if (disabledReason()) {
+  <p class="govuk-body" id="application-code-lock-hint">
+    {{ disabledReason() }}
   </p>
+} @else {
+  <app-help-details summary="Help with application codes">
+    <p class="govuk-body">
+      Select the application code that matches the nature of the application
+      being recorded.
+    </p>
 
-  <p class="govuk-body">
-    The lodgement date is the date the court office received the application.
-  </p>
+    <p class="govuk-body">
+      The lodgement date is the date the court office received the application.
+    </p>
 
-  <p class="govuk-body">
-    The lodgement date is used to find the correct fee for the date the
-    application was received.
-  </p>
+    <p class="govuk-body">
+      The lodgement date is used to find the correct fee for the date the
+      application was received.
+    </p>
 
-  <p class="govuk-body">
-    Once the lodgement date is saved it cannot be changed.
-  </p>
-</app-help-details>
+    <p class="govuk-body">
+      Once the lodgement date is saved it cannot be changed.
+    </p>
+  </app-help-details>
+}
 
 <fieldset class="govuk-fieldset">
   <legend class="govuk-fieldset__legend govuk-visually-hidden">
@@ -64,12 +70,18 @@
   </div>
 
   <div class="govuk-button-group">
-    <button class="govuk-button" type="button" (click)="search()">
+    <button
+      class="govuk-button"
+      type="button"
+      [disabled]="!!disabledReason()"
+      (click)="search()"
+    >
       Search
     </button>
     <button
       class="govuk-button govuk-button--secondary"
       type="button"
+      [disabled]="!!disabledReason()"
       (click)="clear()"
     >
       Clear
@@ -112,7 +124,12 @@
       >
         <ng-template #actionsTemplate let-row>
           <div class="govuk-button-group">
-            <button type="button" class="govuk-button" (click)="onAddCode(row)">
+            <button
+              type="button"
+              class="govuk-button"
+              [disabled]="!!disabledReason()"
+              (click)="onAddCode(row)"
+            >
               Add code
             </button>
           </div>

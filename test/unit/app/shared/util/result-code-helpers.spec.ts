@@ -168,9 +168,32 @@ describe('result-code helpers', () => {
   });
 
   describe('toExistingRows', () => {
-    it('maps wording "-" when there are no substitution constraints', () => {
-      const codes = [makeCode({ resultCode: 'RC1', title: 'One' })];
+    it('uses each saved reference ID and never matches another version by code', () => {
+      const rows = toExistingRows(
+        [
+          makeResult({ id: 'old-result', resultCode: 'RC1', resultCodeId: 10 }),
+          makeResult({ id: 'new-result', resultCode: 'RC1', resultCodeId: 20 }),
+          makeResult({
+            id: 'missing-result',
+            resultCode: 'RC1',
+            resultCodeId: 30,
+          }),
+        ],
+        { 10: 'Historical title', 20: 'Current title' },
+      );
+      expect(rows.map((row) => row.display)).toEqual([
+        'RC1 - Historical title',
+        'RC1 - Current title',
+        'RC1',
+      ]);
+      expect(rows.map((row) => row.id)).toEqual([
+        'old-result',
+        'new-result',
+        'missing-result',
+      ]);
+    });
 
+    it('maps wording "-" when there are no substitution constraints', () => {
       const rows1 = toExistingRows(
         [
           makeResult({
@@ -182,14 +205,12 @@ describe('result-code helpers', () => {
             },
           }),
         ],
-        codes,
+        {},
       );
       expect(rows1[0].wording).toBe('-');
     });
 
     it('maps substitution constraints to wording and preserves key/value pairs', () => {
-      const codes = [makeCode({ resultCode: 'RC1', title: 'One' })];
-
       const rows = toExistingRows(
         [
           makeResult({
@@ -204,7 +225,7 @@ describe('result-code helpers', () => {
             } as unknown as TemplateDetail,
           }),
         ],
-        codes,
+        {},
       );
 
       expect(rows[0].wording).toBe('2026-03-02, London');

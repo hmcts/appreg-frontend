@@ -28,6 +28,8 @@
   [resultApplicantContext]="paginatedRows()"
   [resultCodesList]="resultsFacade.resultCodesSignal()"
   [existingResults]="createdEntryResults()"
+  [savedResultTitles]="resultsFacade.savedResultTitles()"
+  [savedResultDetailsError]="resultsFacade.savedResultDetailsError()"
   [clearPendingToken]="resultsFacade.clearPendingToken()"
   [wordingByCode]="resultsFacade.resultCodeWordingByCode()"
   [resultCodeTemplateByCode]="resultsFacade.resultCodeTemplateByCode()"

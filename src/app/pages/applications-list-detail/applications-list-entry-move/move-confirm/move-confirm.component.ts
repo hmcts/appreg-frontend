@@ -1,18 +1,3 @@
-/**
- * Move Application List Entries Confirmation
- * Main Component for page /applications-list/:id/move/confirm
- *
- * Functionality:
- * onConfirm():
- * - POST request to move the selected Application List Entries
- * - Redirects to the destination Application List on success
- * - Redirects back to the source Application List on failure
- *
- * goBack():
- * - Navigates back to the Move Application List Entries page
- * - Restores the selected Application List Entries
- */
-
 import { Location, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -25,12 +10,12 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { ApplicationEntriesMoveContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { TableComponent } from '@components/table/table.component';
+import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@constants/application-list-detail-bulk-operations/bulk-action';
 import { APPLICATIONS_LIST_COLUMNS } from '@constants/applications-list/applications-list.constants';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
@@ -47,6 +32,20 @@ type MoveConfirmNavState = {
   targetList?: ApplicationListRow;
 };
 
+/**
+ * Move Application List Entries Confirmation
+ * Main Component for page /applications-list/:id/move/confirm
+ *
+ * Functionality:
+ * onConfirm():
+ * - POST request to move the selected Application List Entries
+ * - Redirects to the destination Application List on success
+ * - Redirects back to the source Application List on failure
+ *
+ * goBack():
+ * - Navigates back to the Move Application List Entries page
+ * - Restores the selected Application List Entries
+ */
 @Component({
   selector: 'app-move-confirm',
   imports: [

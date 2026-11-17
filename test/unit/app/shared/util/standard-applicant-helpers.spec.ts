@@ -58,12 +58,14 @@ describe('buildStandardApplicantRows', () => {
   it('accepts a future flat name without depending on the nested applicant', () => {
     expect(
       mapSaToRow({
+        standardApplicantId: 123,
         code: 'SA-FLAT',
         name: 'Synthetic organisation',
         startDate: '2026-01-01',
         endDate: null,
       }),
     ).toEqual({
+      standardApplicantId: 123,
       code: 'SA-FLAT',
       name: 'Synthetic organisation',
       useFrom: '1 Jan 2026',

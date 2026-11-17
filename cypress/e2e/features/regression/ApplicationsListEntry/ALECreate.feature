@@ -1,6 +1,6 @@
 Feature: Applications List Entry Create
 
-      @applicationListEntry @regression @core @ARCPOC-222 @ARCPOC-427 @ARCPOC-635 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1748 @ARCPOC-1822 @SC1
+      @applicationListEntry @regression @core @ARCPOC-222 @ARCPOC-427 @ARCPOC-635 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1748 @ARCPOC-1822 @ARCPOC-1846 @SC1
       Scenario: Create and Open an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
             Given User Authenticates Via API As "user1"
             # Create Application List
@@ -17,7 +17,21 @@ Feature: Applications List Entry Create
             When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
                   | Date         | Time  | Location                          | Description                                  | Entries | Status |
                   | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 0       | OPEN   |
-            ## Create Application under Application List
+            # Create Application under Application List
+            Then User Clicks On The Link "Create application"
+            When User Clicks On The "Show all sections" Button
+            Then User Should See The Button "Hide all sections"
+            # Applicant Details
+            When User Fills In The Applicant Details
+                  | First name | John |
+            # Show unsaved changes warning
+            When User Clicks On The "Cancel" Button
+            Then User Should See The Modal Dialog With Heading "Leave without saving?"
+            Then User Should See The Text "Your changes to this application list entry have not been saved. If you leave, your changes will be discarded." In The Modal Dialog
+            Then User Should See The Modal Dialog With Button "Stay on this page"
+            Then User Should See The Modal Dialog With Button "Leave this page"
+            When User Clicks On The "Leave this page" Button
+            # Create Application under Application List
             Then User Clicks On The Link "Create application"
             When User Clicks On The "Show all sections" Button
             Then User Should See The Button "Hide all sections"
@@ -119,6 +133,13 @@ Feature: Applications List Entry Create
             Then User Verifies Textbox With Placeholder "Enter a Describe Seized Food" Contains "Test Sample Wording" In The Accordion "Wording"
             Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Describe Seized Food" and Enters "Test Sample Wording"
             When User Clicks On The "Apply wording" Button In The Accordion "Wording"
+            # Show unsaved changes warning
+            When User Clicks On The "Cancel" Button
+            Then User Should See The Modal Dialog With Heading "Leave without saving?"
+            Then User Should See The Text "Your changes to this application list entry have not been saved. If you leave, your changes will be discarded." In The Modal Dialog
+            Then User Should See The Modal Dialog With Button "Stay on this page"
+            Then User Should See The Modal Dialog With Button "Leave this page"
+            When User Clicks On The "Stay on this page" Button
             Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
             When User Clicks On The "Create entry" Button
             Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
@@ -423,8 +444,8 @@ Feature: Applications List Entry Create
             # Civil Fee Details
             When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
             Then User Should See The Text "Selecting this will apply the off site fee to the entry." In The Accordion "Civil fee"
-            Then User Should See The Text "Fee Reference: —" In The Accordion "Civil fee"
-            Then User Should See The Text "Amount: £0.00" In The Accordion "Civil fee"
+            Then User Should See The Text "Fee Reference: CO10.1" In The Accordion "Civil fee"
+            Then User Should See The Text "Amount: £218.00" In The Accordion "Civil fee"
             Then User Verifies The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee" Is Unchecked
             Then User Checks The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee"
             # Bug ARCPOC-1241 is raised
@@ -440,7 +461,7 @@ Feature: Applications List Entry Create
             Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
             # Submit Application
             When User Clicks On The "Create entry" Button
-            Then User Sees Validation Error Banner "There is a problem" Containing "Fee details are missing or incomplete, please contact Crime IT Support."
+            Then User Sees Success Banner "Application list entry created" Containing "The application list entry has been created successfully."
 
       @applicationListEntry @regression @ARCPOC-1297 @ARCPOC-1841
       Scenario Outline: Verify Application Codes sorting behaviour

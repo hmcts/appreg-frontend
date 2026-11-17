@@ -17,6 +17,14 @@ export interface ReportOption {
   disabled?: boolean;
 }
 
+/**
+ * ReportSelectorComponent
+ *
+ * Functionality:
+ * - Displays report selection options.
+ * - Integrates the selection with Angular forms.
+ * - Propagates selected values, touched state, and disabled state to Angular forms.
+ */
 @Component({
   selector: 'app-report-selector',
   standalone: true,

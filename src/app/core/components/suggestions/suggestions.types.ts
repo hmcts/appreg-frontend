@@ -5,13 +5,7 @@ import {
   ResultCodeGetSummaryDto,
 } from '@openapi';
 
-export type CourtSuggestionSource = Pick<
-  CourtLocationGetSummaryDto,
-  'locationCode' | 'name'
-> &
-  Partial<Pick<CourtLocationGetSummaryDto, 'courtId'>>;
-
-export type CourtSuggestionItem = CourtSuggestionSource & {
+export type CourtSuggestionItem = CourtLocationGetSummaryDto & {
   kind: 'court';
   label: string;
   value: string;
@@ -54,7 +48,7 @@ export type SuggestionsItem =
  */
 
 export const toCourtSuggestionItem = (
-  court: CourtSuggestionSource,
+  court: CourtLocationGetSummaryDto,
 ): CourtSuggestionItem => ({
   ...court,
   kind: 'court',

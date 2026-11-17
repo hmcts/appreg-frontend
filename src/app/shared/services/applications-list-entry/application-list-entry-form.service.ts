@@ -53,6 +53,15 @@ export class ApplicationListEntryFormService {
 
   private readonly emptyOrganisation: Organisation = createEmptyOrganisation();
 
+  /**
+   * Captures the user-editable content used for change detection.
+   * Cached title and respondent DTO values are excluded; empty applicant and
+   * respondent sections are treated as UI state unless a bulk count is entered.
+   * The result is cloned so later form edits cannot mutate the snapshot.
+   *
+   * @param forms - Entry and party forms to snapshot.
+   * @returns Normalized editable values for comparison with a saved snapshot.
+   */
   editableContent(forms: ApplicationListEntryForms): {
     form: Omit<
       ReturnType<ApplicationListEntryForms['form']['getRawValue']>,
@@ -192,6 +201,7 @@ export class ApplicationListEntryFormService {
       {
         lodgementDate: dto.lodgementDate ?? null,
         applicationCode: dto.applicationCode ?? null,
+        applicationCodeId: dto.applicationCodeId ?? null,
         respondent: dto.respondent ?? null,
         numberOfRespondents: dto.numberOfRespondents ?? null,
         wordingFields: getEntryWordingFields(dto) ?? null,
@@ -214,6 +224,10 @@ export class ApplicationListEntryFormService {
     if (standardCode) {
       this.setApplicantType(forms, 'standard', { emitEvent });
       this.setStandardApplicantCode(forms, standardCode, { emitEvent });
+      forms.form.controls.standardApplicantId?.setValue(
+        dto.standardApplicantId ?? null,
+        { emitEvent },
+      );
 
       // reset subforms
       forms.personForm.reset();
@@ -336,6 +350,14 @@ export class ApplicationListEntryFormService {
     opts?: { emitEvent?: boolean },
   ): void {
     const trimmed = code?.trim() || null;
+    if (
+      !trimmed ||
+      forms.form.controls.standardApplicantCode.value !== trimmed
+    ) {
+      forms.form.controls.standardApplicantId?.setValue(null, {
+        emitEvent: opts?.emitEvent !== false,
+      });
+    }
     forms.form.controls.standardApplicantCode.setValue(trimmed, {
       emitEvent: opts?.emitEvent !== false,
     });

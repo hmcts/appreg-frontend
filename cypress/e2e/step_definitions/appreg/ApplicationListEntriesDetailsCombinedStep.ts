@@ -10,6 +10,14 @@ When('User Searches Application List Entries With:', (dataTable: DataTable) => {
   });
 });
 
+When('User Starts Listening For Application List Entries Load', () => {
+  ApplicationListEntriesSearchHelper.startListeningForEntriesLoad();
+});
+
+Then('User Waits For Application List Entries Load', () => {
+  ApplicationListEntriesSearchHelper.waitForEntriesLoad();
+});
+
 When('User Captures The Fees For Application Code {string}', (code: string) => {
   CivilFeeHelper.captureApplicationCodeFees(code);
 });

@@ -140,6 +140,16 @@ function buildApplicant(
   return undefined;
 }
 
+/**
+ * Builds a respondent from the selected or inferred person/organisation mode.
+ * Missing required party fields produce no respondent instead of an incomplete
+ * API object; a bulk respondent count is handled by the calling mapper.
+ *
+ * @param formValue - Main entry form containing the respondent mode.
+ * @param personForm - Respondent person fields.
+ * @param organisationForm - Respondent organisation fields.
+ * @returns A valid party object, or `undefined` when details are incomplete.
+ */
 function buildRespondent(
   formValue: ApplicationsListEntryFormValue,
   personForm: RespondentPersonFormValue,

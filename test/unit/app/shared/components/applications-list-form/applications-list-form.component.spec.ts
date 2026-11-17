@@ -179,6 +179,7 @@ describe('ApplicationsListFormComponent (Jest)', () => {
     const suggestions = { selectCourthouse: jest.fn(), selectCja: jest.fn() };
     fixture.componentRef.setInput('suggestions', suggestions);
     const court = toCourtSuggestionItem({
+      courtId: 1,
       locationCode: 'TEST',
       name: 'Test court',
     });

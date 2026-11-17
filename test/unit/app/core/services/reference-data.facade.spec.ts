@@ -80,7 +80,7 @@ describe('ReferenceDataFacade', () => {
         of(
           makePage(
             0,
-            [{ locationCode: 'A1', name: 'Alpha Court' }],
+            [{ courtId: 1, locationCode: 'A1', name: 'Alpha Court' }],
             true,
           ) as unknown as CourtLocationPage,
         ),
@@ -126,14 +126,14 @@ describe('ReferenceDataFacade', () => {
     });
     expect(facade.cja()).toEqual([{ code: 'C1', description: 'Area One' }]);
     expect(facade.courtLocations()).toEqual([
-      { locationCode: 'A1', name: 'Alpha Court' },
+      { courtId: 1, locationCode: 'A1', name: 'Alpha Court' },
     ]);
     expect(facade.applicationCodeTitles()).toEqual(['Application title']);
     expect(cjaEmissions.at(-1)).toEqual([
       { code: 'C1', description: 'Area One' },
     ]);
     expect(courtEmissions.at(-1)).toEqual([
-      { locationCode: 'A1', name: 'Alpha Court' },
+      { courtId: 1, locationCode: 'A1', name: 'Alpha Court' },
     ]);
 
     cjaSubscription.unsubscribe();
@@ -157,7 +157,13 @@ describe('ReferenceDataFacade', () => {
         of(
           makePage(
             pageNumber,
-            [{ locationCode: `A${pageNumber}`, name: `Court ${pageNumber}` }],
+            [
+              {
+                courtId: pageNumber + 1,
+                locationCode: `A${pageNumber}`,
+                name: `Court ${pageNumber}`,
+              },
+            ],
             pageNumber === 1,
             2,
           ) as unknown as CourtLocationPage,
@@ -199,8 +205,8 @@ describe('ReferenceDataFacade', () => {
       { code: 'C1', description: 'Area 1' },
     ]);
     expect(facade.courtLocations()).toEqual([
-      { locationCode: 'A0', name: 'Court 0' },
-      { locationCode: 'A1', name: 'Court 1' },
+      { courtId: 1, locationCode: 'A0', name: 'Court 0' },
+      { courtId: 2, locationCode: 'A1', name: 'Court 1' },
     ]);
     expect(facade.applicationCodeTitles()).toHaveLength(500);
     expect(facade.applicationCodeTitles()[0]).toBe('Title 0');
@@ -236,7 +242,7 @@ describe('ReferenceDataFacade', () => {
         expect(facade.courtLocations()).toEqual(
           failedResource === 'court locations'
             ? []
-            : [{ locationCode: 'A1', name: 'Alpha Court' }],
+            : [{ courtId: 1, locationCode: 'A1', name: 'Alpha Court' }],
         );
         expect(facade.applicationCodeTitles()).toEqual(
           failedResource === 'application code titles'
@@ -297,7 +303,7 @@ describe('ReferenceDataFacade', () => {
     expect(facade.hasLoadError()).toBe(false);
     expect(facade.hasPlaceLoadError()).toBe(false);
     expect(facade.courtLocations()).toEqual([
-      { locationCode: 'A1', name: 'Alpha Court' },
+      { courtId: 1, locationCode: 'A1', name: 'Alpha Court' },
     ]);
   }));
 

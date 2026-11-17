@@ -7,6 +7,14 @@ import { ReportsSharedFormComponent } from '@components/reports-shared-form/repo
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import type { ErrorMessageMap } from '@util/error-summary';
 
+/**
+ * ListMaintenanceSectionComponent
+ *
+ * Functionality:
+ * - Displays list maintenance form fields.
+ * - Shows validation errors for maintenance details.
+ * - Uses the parent form and external errors for maintenance fields.
+ */
 @Component({
   selector: 'app-list-maintenance-section',
   standalone: true,

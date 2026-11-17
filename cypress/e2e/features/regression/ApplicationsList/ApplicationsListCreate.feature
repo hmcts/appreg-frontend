@@ -24,7 +24,7 @@ Feature: Applications List Create
       | Date          | Time   | Location     | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
     Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
-    Then User See "Are you sure you want to delete this application list?" On The Page
+    Then User Sees Page Heading "Check the application list and entries before deleting"
     When User Clicks On The "Yes - delete" Button
     Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
 
@@ -54,7 +54,7 @@ Feature: Applications List Create
       | Date          | Time   | Location     | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
     Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
-    Then User See "Are you sure you want to delete this application list?" On The Page
+    Then User Sees Page Heading "Check the application list and entries before deleting"
     When User Clicks On The "Yes - delete" Button
     Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
     Examples:
@@ -111,7 +111,7 @@ Feature: Applications List Create
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <CJA>    | <Description> | <Entries> | <Status> |
     Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
-    Then User See "Are you sure you want to delete this application list?" On The Page
+    Then User Sees Page Heading "Check the application list and entries before deleting"
     When User Clicks On The "Yes - delete" Button
     Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
 

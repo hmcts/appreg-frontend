@@ -39,6 +39,21 @@ Then(
 );
 
 Then(
+  'User Verifies Each Item In Response Body Array Property {string} Has Non-Empty String Fields:',
+  (arrayPropertyPath: string, dataTable: DataTable) => {
+    const fields = dataTable
+      .raw()
+      .flat()
+      .map((field) => field.trim())
+      .filter(Boolean);
+    ApiResponseHelper.verifyResponseBodyArrayPropertyItemsHaveNonEmptyStringFields(
+      arrayPropertyPath,
+      fields,
+    );
+  },
+);
+
+Then(
   'User Verify Response Body Array Property {string} At Field {string} Should Contain Values:',
   (arrayPropertyPath: string, fieldPath: string, dataTable: DataTable) => {
     const values = dataTable

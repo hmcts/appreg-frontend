@@ -1,6 +1,7 @@
 import { StandardApplicantGetSummaryDto } from '@openapi';
 
 export type StandardApplicantRow = {
+  standardApplicantId?: number;
   code: StandardApplicantGetSummaryDto['code'];
   name: string;
   useFrom: string; // formatted date

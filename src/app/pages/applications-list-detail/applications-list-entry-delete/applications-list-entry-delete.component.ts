@@ -11,6 +11,14 @@ import { appListDetailColumns } from '@constants/application-list-detail-update/
 import { ApplicationListEntriesApi } from '@openapi';
 import { getProblemText } from '@util/http-error-to-text';
 
+/**
+ * ApplicationsListEntryDeleteComponent
+ *
+ * Functionality:
+ * - Shows the entry deletion confirmation.
+ * - Deletes the entry or returns to the previous page.
+ * - Shows the entry being removed before the deletion action.
+ */
 @Component({
   selector: 'app-applications-list-entry-delete',
   imports: [AlertComponent, ReviewConfirmComponent, TableComponent],

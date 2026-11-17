@@ -230,6 +230,45 @@ export class ApiResponseHelper {
     });
   }
 
+  static verifyResponseBodyArrayPropertyItemsHaveNonEmptyStringFields(
+    arrayPropertyPath: string,
+    fields: string[],
+  ): void {
+    cy.get('@lastApiResponse').then((response) => {
+      const apiResponse = response as unknown as Cypress.Response<unknown>;
+      if (!apiResponse) {
+        throw new Error('No API response found to verify.');
+      }
+
+      const body = apiResponse.body as Record<string, unknown>;
+      const current = ApiResponseHelper.resolvePath(body, arrayPropertyPath);
+      if (!Array.isArray(current) || current.length === 0) {
+        throw new Error(
+          `Expected non-empty array for property ${arrayPropertyPath}`,
+        );
+      }
+
+      current.forEach((item, index) => {
+        if (!item || typeof item !== 'object') {
+          throw new TypeError(
+            `Expected object at ${arrayPropertyPath}[${index}]`,
+          );
+        }
+
+        const record = item as Record<string, unknown>;
+        fields.forEach((field) => {
+          const value = record[field];
+          expect(value, `${arrayPropertyPath}[${index}].${field}`).to.be.a(
+            'string',
+          );
+          expect(value, `${arrayPropertyPath}[${index}].${field}`).not.to.equal(
+            '',
+          );
+        });
+      });
+    });
+  }
+
   static verifyResponseBodyArrayPropertyShouldContainObjects(
     arrayPropertyPath: string,
     expectedObjects: Record<string, string>[],

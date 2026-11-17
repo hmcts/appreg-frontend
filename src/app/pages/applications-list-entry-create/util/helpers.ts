@@ -38,13 +38,6 @@ export const toOptionalInteger = (input: unknown): number | undefined => {
   return n === 0 ? undefined : n;
 };
 
-export const compactStrings = (
-  values: (string | null | undefined)[],
-): string[] | undefined => {
-  const out = values.map((v) => v?.trim()).filter((v): v is string => !!v);
-  return out.length ? out : undefined;
-};
-
 export function hasRequiredPerson(p: {
   firstName?: string | null;
   surname?: string | null;

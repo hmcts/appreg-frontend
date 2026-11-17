@@ -155,6 +155,13 @@ function shouldGoToUi(req: Request): boolean {
   return false;
 }
 
+/**
+ * Starts the local SSR development gateway and its UI and API proxies.
+ * Session, SSO bypass, CSRF checks, and route selection are configured here;
+ * SSO bypass is permitted only in development mode. You must have docker open.
+ *
+ * @throws If development-only bypass is requested outside development or startup fails.
+ */
 async function bootstrap(): Promise<void> {
   const app = express();
 

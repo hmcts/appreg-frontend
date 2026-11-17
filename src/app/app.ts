@@ -20,6 +20,14 @@ import { ServiceNavigationComponent } from '@components/service-navigation/servi
 type GovUkInitAll = (opts?: { scope?: Element | Document | null }) => void;
 type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };
 
+/**
+ * App
+ *
+ * Functionality:
+ * - Hosts the application shell.
+ * - Initialises GOV.UK frontend interactions after rendering.
+ * - Provides the root view for routed pages and shared layout.
+ */
 @Component({
   selector: 'app-root',
   imports: [

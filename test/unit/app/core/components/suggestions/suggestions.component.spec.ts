@@ -35,6 +35,7 @@ describe('SuggestionsComponent', () => {
     label: string,
     overrides: Partial<CourtSuggestionItem> = {},
   ): CourtSuggestionItem => ({
+    courtId: 1,
     kind: 'court',
     value,
     label,

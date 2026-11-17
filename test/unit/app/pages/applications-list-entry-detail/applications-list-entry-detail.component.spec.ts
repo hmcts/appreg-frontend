@@ -127,6 +127,27 @@ const makeResultPayload = (
 });
 
 describe('ApplicationsListEntryDetail', () => {
+  it('restores a staged same-code record and summary after payment navigation', () => {
+    component.form.patchValue({
+      applicantType: 'standard',
+      standardApplicantCode: 'SA1',
+    });
+    component.onSelectedStandardApplicantSummaryChanged({
+      code: 'SA1',
+      name: 'Replacement',
+      standardApplicantId: 20,
+    });
+    const snapshot = component['buildEntryDetailSnapshot']();
+    component.form.controls.standardApplicantId?.setValue(10);
+    component.onSelectedStandardApplicantSummaryChanged(null);
+    component['applyEntryDetailSnapshot'](snapshot);
+    expect(component.form.controls.standardApplicantId?.value).toBe(20);
+    expect(component['pendingStandardApplicantSummary']).toEqual({
+      code: 'SA1',
+      name: 'Replacement',
+      standardApplicantId: 20,
+    });
+  });
   let fixture: ComponentFixture<ApplicationsListEntryDetail>;
   let component: ApplicationsListEntryDetail;
   const locationStub = {
@@ -277,6 +298,142 @@ describe('ApplicationsListEntryDetail', () => {
     component = fixture.componentInstance;
 
     fixture.detectChanges();
+  });
+
+  it.each([PaymentStatus.PAID, PaymentStatus.REMITTED])(
+    'keeps the code layout but disables its fields and buttons for saved %s, even before a later Due status',
+    (paymentStatus) => {
+      component.entryDetail = {
+        ...component.entryDetail!,
+        feeStatuses: [
+          { paymentStatus, statusDate: '2025-10-31' },
+          { paymentStatus: PaymentStatus.DUE, statusDate: '2025-11-01' },
+        ],
+      };
+      component.openApplicationCodeSection.set(true);
+      fixture.detectChanges();
+
+      expect(component.hasBlockingFeeStatuses).toBe(true);
+      const codeSearch: HTMLElement = fixture.nativeElement.querySelector(
+        'app-application-code-search',
+      );
+      expect(codeSearch).not.toBeNull();
+      expect(codeSearch.querySelector('app-help-details')).toBeNull();
+      expect(
+        codeSearch.querySelector('#application-code-lock-hint')?.textContent,
+      ).toContain(
+        'Cannot change the application code because a fee has been paid or remitted for this entry.',
+      );
+      expect(codeSearch.closest('fieldset')?.disabled).toBe(true);
+      expect(
+        codeSearch.closest('fieldset')?.getAttribute('aria-describedby'),
+      ).toBe('application-code-lock-hint');
+      const inputs = codeSearch.querySelectorAll('input');
+      const buttons = codeSearch.querySelectorAll('button');
+      expect(inputs.length).toBeGreaterThan(0);
+      expect(buttons.length).toBeGreaterThan(0);
+      [...inputs, ...buttons].forEach((control) => {
+        // Inputs inherit fieldset disabling; buttons also need the attribute for GOV.UK styling.
+        expect(control.matches(':disabled')).toBe(true);
+      });
+      buttons.forEach((button) => {
+        expect(button.disabled).toBe(true);
+        expect(button.hasAttribute('disabled')).toBe(true);
+      });
+      expect(inputs[0].value).toBe(
+        component.form.controls.applicationCode.value,
+      );
+      mockGetApplicationCodes.mockClear();
+      buttons.forEach((button) => button.click());
+      expect(mockGetApplicationCodes).not.toHaveBeenCalled();
+      expect(fixture.nativeElement.textContent).toContain(
+        'Cannot change the application code because a fee has been paid or remitted for this entry.',
+      );
+      expect(component.applicationCodeSaveDisabled).toBe(false);
+    },
+  );
+
+  it.each([
+    { feeStatuses: null },
+    { feeStatuses: [] },
+    {
+      feeStatuses: [
+        { paymentStatus: PaymentStatus.DUE, statusDate: '2025-11-01' },
+      ],
+    },
+    {
+      feeStatuses: [
+        { paymentStatus: PaymentStatus.UNDERTAKEN, statusDate: '2025-11-01' },
+      ],
+    },
+    {
+      feeStatuses: [
+        { paymentStatus: PaymentStatus.DUE, statusDate: '2025-11-01' },
+        { paymentStatus: PaymentStatus.UNDERTAKEN, statusDate: '2025-11-01' },
+      ],
+    },
+  ])(
+    'keeps code search available without blocking saved fee statuses ($feeStatuses), even with unsaved Paid statuses',
+    ({ feeStatuses }) => {
+      component.entryDetail = {
+        ...component.entryDetail!,
+        feeStatuses,
+      };
+      component.form.controls.feeStatuses.setValue([
+        { paymentStatus: PaymentStatus.PAID, statusDate: '2025-11-01' },
+      ]);
+      component.openApplicationCodeSection.set(true);
+      fixture.detectChanges();
+
+      expect(component.hasBlockingFeeStatuses).toBe(false);
+      const codeSearch: HTMLElement = fixture.nativeElement.querySelector(
+        'app-application-code-search',
+      );
+      expect(codeSearch).not.toBeNull();
+      expect(codeSearch.querySelector('app-help-details')).not.toBeNull();
+      expect(
+        codeSearch.querySelector('#application-code-lock-hint'),
+      ).toBeNull();
+      expect(codeSearch.closest('fieldset')?.disabled).toBe(false);
+      expect(codeSearch.querySelector('input')?.matches(':disabled')).toBe(
+        false,
+      );
+      const searchButtons = [...codeSearch.querySelectorAll('button')].filter(
+        (button) =>
+          ['Search', 'Clear'].includes(button.textContent?.trim() ?? ''),
+      );
+      expect(searchButtons).toHaveLength(2);
+      // Lodgement-date buttons remain disabled independently of the fee-status lock.
+      searchButtons.forEach((button) => {
+        expect(button.matches(':disabled')).toBe(false);
+      });
+      expect(fixture.nativeElement.textContent).not.toContain(
+        'Cannot change the application code because a fee has been paid or remitted for this entry.',
+      );
+    },
+  );
+
+  it('does not lock the code before an entry has loaded', () => {
+    component.entryDetail = null;
+    expect(component.hasBlockingFeeStatuses).toBe(false);
+  });
+
+  it('displays the API fee-lock error from a stale edit page', () => {
+    component['applyMappedError']({
+      status: 400,
+      error: {
+        type: 'ALE-57',
+        detail:
+          'Cannot change the application code because a fee has been paid or remitted for this entry.',
+      },
+    });
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('app-error-summary').textContent,
+    ).toContain(
+      'Cannot change the application code because a fee has been paid or remitted for this entry.',
+    );
   });
 
   it('warns about unsaved changes and supports staying or discarding', async () => {
@@ -721,6 +878,128 @@ describe('ApplicationsListEntryDetail', () => {
     );
   });
 
+  it('uses entry fees on initial load, then uses code fees after a code selection', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      of({
+        ...component.entryDetail,
+        fees: [
+          {
+            offsite: true,
+            reference: 'OFF-ENTRY',
+            description: 'Entry offsite fee',
+            value: 30,
+          },
+          {
+            offsite: false,
+            reference: 'MAIN-ENTRY',
+            description: 'Entry main fee',
+            value: 11,
+          },
+        ],
+      } as EntryGetDetailDto),
+    );
+    mockGetApplicationCodeById.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        feeReference: 'MAIN-CODE',
+        feeAmount: { value: 1000, currency: 'GBP' },
+      } as ApplicationCodeGetDetailDto),
+    );
+
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    expect(component.feeMeta).toEqual({
+      feeReference: 'MAIN-ENTRY',
+      feeDescription: 'Entry main fee',
+      feeAmount: { value: 1100, currency: 'GBP' },
+      offsiteFeeReference: 'OFF-ENTRY',
+      offsiteFeeDescription: 'Entry offsite fee',
+      offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+    });
+    expect(
+      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
+    ).toContain('Total Fee Amount: £41.00');
+
+    mockGetApplicationCodeByCodeAndDate.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        feeReference: 'NEW-CODE',
+        feeDescription: 'New code fee',
+        feeAmount: { value: 4000, currency: 'GBP' },
+      } as ApplicationCodeGetDetailDto),
+    );
+    component.onCodeSelected({ code: 'APP-200', date: '2025-11-01' });
+
+    expect(component.feeMeta?.feeReference).toBe('NEW-CODE');
+    expect(component.feeMeta?.feeAmount).toEqual({
+      value: 4000,
+      currency: 'GBP',
+    });
+  });
+
+  it.each([null, undefined])(
+    'uses application-code fee metadata when entry fees are %s',
+    (fees) => {
+      mockGetApplicationListEntry.mockReturnValue(
+        of({ ...component.entryDetail, fees } as EntryGetDetailDto),
+      );
+      mockGetApplicationCodeById.mockReturnValue(
+        of({
+          ...component.vm().appCodeDetail,
+          feeReference: 'CODE-FEE',
+          feeAmount: { value: 1500, currency: 'GBP' },
+        } as ApplicationCodeGetDetailDto),
+      );
+
+      component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+      expect(component.feeMeta?.feeReference).toBe('CODE-FEE');
+      expect(component.feeMeta?.feeAmount).toEqual({
+        value: 1500,
+        currency: 'GBP',
+      });
+    },
+  );
+
+  it('falls back to application-code fees when the entry fee list is empty', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      of({ ...component.entryDetail, fees: [] } as EntryGetDetailDto),
+    );
+    mockGetApplicationCodeById.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        feeReference: 'CODE-FEE',
+      } as ApplicationCodeGetDetailDto),
+    );
+    mockGetApplicationCodeById.mockClear();
+
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    expect(mockGetApplicationCodeById).toHaveBeenCalledTimes(1);
+    expect(component.feeMeta?.feeReference).toBe('CODE-FEE');
+    expect(component.feeMeta?.offsiteFeeReference).toBeNull();
+  });
+
+  it('maps a single entry fee and leaves offsite metadata empty', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      of({
+        ...component.entryDetail,
+        fees: [{ reference: 'MAIN-ENTRY', description: 'Entry fee', value: 0 }],
+      } as EntryGetDetailDto),
+    );
+
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    expect(component.feeMeta).toEqual({
+      feeReference: 'MAIN-ENTRY',
+      feeDescription: 'Entry fee',
+      feeAmount: { value: 0, currency: 'GBP' },
+      offsiteFeeReference: null,
+      offsiteFeeDescription: null,
+      offsiteFeeAmount: null,
+    });
+  });
+
   it('uses the linked historical record even when code/date resolves a newer duplicate', () => {
     const linked = {
       applicationCode: 'APP-100',
@@ -816,6 +1095,19 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component.applicationCodeSaveDisabled).toBe(true);
     component.onUpdateApplication();
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+  });
+
+  it('treats entry retrieval failure as fatal and skips linked code retrieval', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      throwError(() => ({ status: 500 })),
+    );
+    mockGetApplicationCodeById.mockClear();
+
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.submitAttempt()).toBeGreaterThan(0);
+    expect(mockGetApplicationCodeById).not.toHaveBeenCalled();
   });
 
   it('allows validation after clearing the code without saving an empty selection', () => {
@@ -1519,6 +1811,193 @@ describe('ApplicationsListEntryDetail', () => {
     expect(spy).toHaveBeenCalledWith(true, false);
   });
 
+  it('shows the offsite fee after enabling it on an entry loaded with only a main fee', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      of({
+        ...component.entryDetail,
+        hasOffsiteFee: false,
+        fees: [{ reference: 'MAIN', description: 'Main fee', value: 11 }],
+      } as EntryGetDetailDto),
+    );
+    mockGetApplicationCodeById.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        isFeeDue: true,
+        offsiteFeeReference: 'OFF',
+        offsiteFeeDescription: 'Offsite fee',
+        offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+      } as ApplicationCodeGetDetailDto),
+    );
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    expect(component.feeMeta?.offsiteFeeAmount).toBeNull();
+    component.form.controls.hasOffsiteFee.setValue(true);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: true }),
+    );
+
+    component.onOffsiteFeeChanged(true);
+
+    expect(component.feeMeta?.offsiteFeeReference).toBe('OFF');
+    expect(component.feeMeta?.offsiteFeeAmount).toEqual({
+      value: 3000,
+      currency: 'GBP',
+    });
+    expect(
+      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
+    ).toContain('Total Fee Amount: £41.00');
+
+    component.form.controls.hasOffsiteFee.setValue(false);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: false }),
+    );
+    component.onOffsiteFeeChanged(false);
+
+    expect(component.feeMeta?.offsiteFeeAmount).toBeNull();
+  });
+
+  it('uses the saved offsite fee details when the toggle response includes them', () => {
+    component.feeMeta = {
+      feeReference: 'MAIN',
+      feeAmount: { value: 1100, currency: 'GBP' },
+      offsiteFeeAmount: null,
+    };
+    component.form.controls.hasOffsiteFee.setValue(true);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({
+        hasOffsiteFee: true,
+        fees: [
+          { offsite: false, reference: 'MAIN', value: 11 },
+          {
+            offsite: true,
+            reference: 'OFF-SAVED',
+            description: 'Saved offsite fee',
+            value: 30,
+          },
+        ],
+      }),
+    );
+
+    component.onOffsiteFeeChanged(true);
+
+    expect(component.feeMeta?.offsiteFeeReference).toBe('OFF-SAVED');
+    expect(component.feeMeta?.offsiteFeeAmount).toEqual({
+      value: 3000,
+      currency: 'GBP',
+    });
+  });
+
+  it('restores the saved offsite fee after disabling and re-enabling it', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      of({
+        ...component.entryDetail,
+        hasOffsiteFee: true,
+        fees: [
+          { offsite: false, reference: 'MAIN', value: 11 },
+          {
+            offsite: true,
+            reference: 'OFF-SAVED',
+            description: 'Saved offsite fee',
+            value: 42,
+          },
+        ],
+      } as EntryGetDetailDto),
+    );
+    mockGetApplicationCodeById.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        isFeeDue: true,
+        offsiteFeeReference: 'OFF-CODE',
+        offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+      } as ApplicationCodeGetDetailDto),
+    );
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    component.form.controls.hasOffsiteFee.setValue(false);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: false }),
+    );
+    component.onOffsiteFeeChanged(false);
+    expect(component.feeMeta?.offsiteFeeAmount).toBeNull();
+
+    component.form.controls.hasOffsiteFee.setValue(true);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: true }),
+    );
+    component.onOffsiteFeeChanged(true);
+
+    expect(component.feeMeta?.offsiteFeeReference).toBe('OFF-SAVED');
+    expect(component.feeMeta?.offsiteFeeDescription).toBe('Saved offsite fee');
+    expect(component.feeMeta?.offsiteFeeAmount).toEqual({
+      value: 4200,
+      currency: 'GBP',
+    });
+    expect(
+      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
+    ).toContain('Total Fee Amount: £53.00');
+  });
+
+  it("does not reuse the previous code's offsite fee after selecting a replacement code", () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      of({
+        ...component.entryDetail,
+        hasOffsiteFee: false,
+        fees: [
+          { offsite: false, reference: 'OLD-MAIN', value: 11 },
+          { offsite: true, reference: 'OLD-OFF', value: 42 },
+        ],
+      } as EntryGetDetailDto),
+    );
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+    mockGetApplicationCodeByCodeAndDate.mockReturnValue(
+      of({
+        ...component.vm().appCodeDetail,
+        applicationCode: 'APP-200',
+        feeReference: 'NEW-MAIN',
+        feeAmount: { value: 2500, currency: 'GBP' },
+        offsiteFeeReference: 'NEW-OFF',
+        offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+      } as ApplicationCodeGetDetailDto),
+    );
+    component.onCodeSelected({ code: 'APP-200', date: '2025-11-01' });
+
+    component.form.controls.hasOffsiteFee.setValue(true);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: true }),
+    );
+    component.onOffsiteFeeChanged(true);
+
+    expect(
+      mockUpdateApplicationListEntry.mock.calls.at(-1)?.[0].entryUpdateDto
+        .applicationCode,
+    ).toBe('APP-200');
+    expect(component.entryDetail?.applicationCode).toBe('APP-200');
+    expect(component.entryDetail?.fees).toBeUndefined();
+    expect(component.feeMeta?.feeReference).toBe('NEW-MAIN');
+    expect(component.feeMeta?.offsiteFeeReference).toBe('NEW-OFF');
+    expect(component.feeMeta?.offsiteFeeAmount).toEqual({
+      value: 3000,
+      currency: 'GBP',
+    });
+
+    component.form.controls.hasOffsiteFee.setValue(false);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: false }),
+    );
+    component.onOffsiteFeeChanged(false);
+    component.form.controls.hasOffsiteFee.setValue(true);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      of({ hasOffsiteFee: true }),
+    );
+    component.onOffsiteFeeChanged(true);
+
+    expect(component.feeMeta?.offsiteFeeReference).toBe('NEW-OFF');
+    expect(component.feeMeta?.offsiteFeeAmount).toEqual({
+      value: 3000,
+      currency: 'GBP',
+    });
+  });
+
   it('onUpdateApplication returns early when validation fails (no submit called)', () => {
     component['form'].controls.applicantType.setValue('person');
 
@@ -2125,6 +2604,50 @@ describe('ApplicationsListEntryDetail', () => {
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
   });
 
+  it.each([100, 101])(
+    'selects exact version %s for the same code and only resets wording for a different ID',
+    (selectedId) => {
+      const wordingFields = [{ key: 'field', value: 'saved value' }];
+      component.form.patchValue({
+        applicationCode: 'APP-100',
+        applicationCodeId: 100,
+        lodgementDate: '2026-03-26',
+        wordingFields,
+      });
+      mockGetApplicationCodeById.mockReturnValue(
+        of({
+          applicationCode: 'APP-100',
+          applicationCodeId: selectedId,
+          title: 'Selected version',
+          wording: {
+            template: 'New template',
+            'substitution-key-constraints': [],
+          },
+          isFeeDue: false,
+          requiresRespondent: false,
+        }),
+      );
+      mockGetApplicationCodeById.mockClear();
+
+      component.onCodeSelected({
+        code: 'APP-100',
+        date: '2026-03-26',
+        applicationCodeId: selectedId,
+      });
+
+      expect(mockGetApplicationCodeById).toHaveBeenCalledWith(
+        { id: selectedId, date: '2026-03-26' },
+        'body',
+        false,
+        { transferCache: true },
+      );
+      expect(component.form.getRawValue().applicationCodeId).toBe(selectedId);
+      expect(component.form.controls.wordingFields.value).toEqual(
+        selectedId === 100 ? wordingFields : null,
+      );
+    },
+  );
+
   it('onCodeSelected calls codes API and patches form when date is provided', () => {
     component['form'].patchValue({ lodgementDate: '' });
 
@@ -2160,6 +2683,49 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['form'].controls.lodgementDate.value).toBe('2025-11-01');
 
     expect(component['appListEntryDetailState']().errorFound).toBe(false);
+  });
+
+  it('restores a same-code version selection after payment-reference navigation', () => {
+    const entry = { ...component.entryDetail!, applicationCodeId: 100 };
+    mockGetApplicationListEntry.mockReturnValue(of(entry));
+    const savedCodeDetail = component.vm().appCodeDetail!;
+    mockGetApplicationCodeById.mockReturnValueOnce(
+      of({
+        ...savedCodeDetail,
+        applicationCodeId: 101,
+        title: 'Selected newer version',
+      }),
+    );
+    component.onCodeSelected({
+      code: entry.applicationCode,
+      date: entry.lodgementDate,
+      applicationCodeId: 101,
+    });
+    mockGetApplicationCodeById.mockReturnValue(
+      of({
+        ...savedCodeDetail,
+        applicationCodeId: 100,
+      }),
+    );
+    const state = component.buildChangePaymentReferenceState(0);
+    const readNavStateSpy = jest
+      .spyOn(routingStateUtil, 'readNavState')
+      .mockReturnValue({
+        ...state,
+        entryDetailRowState: undefined,
+      });
+
+    const snapshotFixture = TestBed.createComponent(
+      ApplicationsListEntryDetail,
+    );
+    snapshotFixture.detectChanges();
+    const restored = snapshotFixture.componentInstance;
+
+    expect(restored.form.getRawValue().applicationCodeId).toBe(101);
+    expect(restored.vm().appCodeDetail?.applicationCodeId).toBe(101);
+    expect(restored.vm().appCodeDetail?.title).toBe('Selected newer version');
+    snapshotFixture.destroy();
+    readNavStateSpy.mockRestore();
   });
 
   it('onCodeSelected fetches code detail, sets appCodeDetail and resets sections when code changed', () => {

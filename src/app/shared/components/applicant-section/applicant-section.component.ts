@@ -7,10 +7,6 @@ import {
 } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import {
-  APPLICANT_TYPE_OPTIONS,
-  PERSON_TITLE_OPTIONS,
-} from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
@@ -20,8 +16,20 @@ import {
   SelectedStandardApplicantSummary,
   StandardApplicantSelectComponent,
 } from '@components/standard-applicant-select/standard-applicant-select.component';
+import {
+  APPLICANT_TYPE_OPTIONS,
+  PERSON_TITLE_OPTIONS,
+} from '@constants/application-list-entry/columns-options';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
+/**
+ * ApplicantSectionComponent
+ *
+ * Functionality:
+ * - Displays applicant details and standard applicant selection.
+ * - Emits applicant selection, errors, and update actions.
+ * - Keeps the selected standard applicant code and summary in sync with the parent.
+ */
 @Component({
   selector: 'app-applicant-section',
   imports: [
@@ -47,10 +55,12 @@ export class ApplicantSectionComponent {
   readonly submitted = input(false);
   readonly errorItems = input<ErrorItem[]>([]);
   readonly selectedStandardApplicantCode = input<string | null>(null);
+  readonly selectedStandardApplicantId = input<number | null>(null);
   readonly initialStandardApplicantCodeFilter = input<string | null>(null);
   readonly currentStandardApplicantSummary =
     input<SelectedStandardApplicantSummary | null>(null);
   readonly savedStandardApplicantCode = input<string | null>(null);
+  readonly savedStandardApplicantId = input<number | null>(null);
   readonly savedStandardApplicantName = input<string | null>(null);
   readonly savedStandardApplicantDetailsUnavailable = input(false);
   readonly isUpdateDisabled = input(false);
@@ -101,7 +111,12 @@ export class ApplicantSectionComponent {
     }
 
     const saved = this.standardApplicantSummary();
-    if (saved?.code === code && saved.name === name) {
+    if (
+      saved?.code === code &&
+      saved.name === name &&
+      (current?.standardApplicantId === undefined ||
+        current.standardApplicantId === this.savedStandardApplicantId())
+    ) {
       return null;
     }
 

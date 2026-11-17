@@ -93,7 +93,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
     'courtLocations$' | 'cja$' | 'hasPlaceLoadError' | 'refresh'
   > = {
     courtLocations$: of<CourtLocationGetSummaryDto[]>([
-      { locationCode: 'A1', name: 'Alpha Court' },
+      { courtId: 1, locationCode: 'A1', name: 'Alpha Court' },
     ]),
     cja$: of<CriminalJusticeAreaGetDto[]>([
       { code: 'C1', description: 'Area One' },
@@ -216,7 +216,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
     ).state();
 
     expect(placeState.courtLocations).toEqual([
-      { locationCode: 'A1', name: 'Alpha Court' },
+      { courtId: 1, locationCode: 'A1', name: 'Alpha Court' },
     ]);
     expect(placeState.cja).toEqual([{ code: 'C1', description: 'Area One' }]);
   });
@@ -687,12 +687,16 @@ describe('ApplicationsListEntryMoveComponent', () => {
       component as unknown as {
         patch: (patch: {
           filteredCja: { code: string; description: string }[];
-          filteredCourthouses: { locationCode: string; name: string }[];
+          filteredCourthouses: {
+            courtId: number;
+            locationCode: string;
+            name: string;
+          }[];
         }) => void;
       }
     ).patch({
       filteredCja: [{ code: 'CJA', description: 'Area' }],
-      filteredCourthouses: [{ locationCode: 'CRT', name: 'Court' }],
+      filteredCourthouses: [{ courtId: 2, locationCode: 'CRT', name: 'Court' }],
     });
 
     component.clearSearch();

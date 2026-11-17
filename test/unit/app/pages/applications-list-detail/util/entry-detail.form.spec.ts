@@ -348,6 +348,75 @@ describe('applications-list entry form builders', () => {
   });
 
   describe('buildEntryUpdateDtoFromForm', () => {
+    it.each([
+      { selectedId: 2, storedId: 1, code: 'APP100', expectedId: 2 },
+      { selectedId: 1, storedId: 1, code: 'APP100', expectedId: 1 },
+      { selectedId: null, storedId: 1, code: 'APP100', expectedId: 1 },
+      {
+        selectedId: null,
+        storedId: undefined,
+        code: 'APP100',
+        expectedId: undefined,
+      },
+      { selectedId: null, storedId: 1, code: 'APP200', expectedId: undefined },
+    ])(
+      'sends version $expectedId for selection $selectedId and code $code',
+      ({ selectedId, storedId, code, expectedId }) => {
+        const detail = {
+          applicationCode: 'APP100',
+          applicationCodeId: storedId,
+        } as EntryGetDetailDto;
+        const form = buildStandardApplicationForm(fb);
+        form.patchValue({
+          applicationCode: code,
+          applicationCodeId: selectedId,
+        });
+        const value = form.getRawValue();
+        const fullUpdate = buildEntryUpdateDtoFromForm(
+          detail,
+          value,
+          buildPersonForm(fb).getRawValue(),
+          buildOrganisationForm(fb).getRawValue(),
+          buildPersonForm(fb, true).getRawValue(),
+          buildOrganisationForm(fb).getRawValue(),
+        );
+        const feeUpdate = buildEntryUpdateDtoForFeeChange(
+          detail,
+          value,
+          'hasOffsiteFee',
+          true,
+        );
+
+        for (const update of [fullUpdate, feeUpdate]) {
+          expect(update.applicationCodeId).toBe(expectedId);
+          const request = JSON.parse(JSON.stringify(update)) as Record<
+            string,
+            unknown
+          >;
+          if (expectedId === undefined) {
+            expect(request).not.toHaveProperty('applicationCodeId');
+          } else {
+            expect(request.applicationCodeId).toBe(expectedId);
+          }
+        }
+      },
+    );
+
+    it('keeps the stored version on unrelated changes but not a different code', () => {
+      const detail = {
+        applicationCode: 'APP100',
+        applicationCodeId: 7,
+      } as EntryGetDetailDto;
+      expect(
+        buildEntryUpdateDtoWithChange(detail, 'notes', 'updated')
+          .applicationCodeId,
+      ).toBe(7);
+      expect(
+        buildEntryUpdateDtoWithChange(detail, 'applicationCode', 'APP200')
+          .applicationCodeId,
+      ).toBeUndefined();
+    });
+
     const personApplicant = {
       person: {
         name: {
@@ -636,6 +705,29 @@ describe('applications-list entry form builders', () => {
   });
 
   describe('buildEntryUpdateDtoWithChange', () => {
+    it('retains the saved record on unrelated edits but drops its ID when changing code', () => {
+      const detail = {
+        standardApplicantCode: 'SA1',
+        standardApplicantId: 10,
+        applicationCode: 'AC1',
+      } as EntryGetDetailDto;
+      expect(
+        buildEntryUpdateDtoWithChange(detail, 'notes', 'changed')
+          .standardApplicantId,
+      ).toBe(10);
+      expect(
+        buildEntryUpdateDtoWithChange(detail, 'standardApplicantCode', 'SA2')
+          .standardApplicantId,
+      ).toBeUndefined();
+      expect(
+        buildEntryUpdateDtoForFeeChange(
+          detail,
+          buildStandardApplicationForm(fb).getRawValue(),
+          'hasOffsiteFee',
+          true,
+        ).standardApplicantId,
+      ).toBe(10);
+    });
     it('clears applicant when detail uses standardApplicantCode', () => {
       const dto = buildEntryUpdateDtoWithChange(
         {

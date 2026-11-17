@@ -18,6 +18,14 @@ export type RadioOption = {
 
 type StringBoolNull = string | boolean | null;
 
+/**
+ * RadioButtonComponent
+ *
+ * Functionality:
+ * - Displays a radio button group.
+ * - Integrates selection and disabled state with Angular forms.
+ * - Supports legends, hints, errors, and configurable option size.
+ */
 @Component({
   selector: 'app-radio-group',
   standalone: true,

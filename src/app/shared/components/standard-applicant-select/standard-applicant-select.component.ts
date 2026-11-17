@@ -1,7 +1,3 @@
-/**
- * Standard Applicant table selection
- */
-
 import {
   ChangeDetectionStrategy,
   Component,
@@ -48,6 +44,7 @@ import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
 export type SelectedStandardApplicantSummary = {
+  standardApplicantId?: number;
   code: string;
   name: string;
 };
@@ -57,6 +54,17 @@ type StandardApplicantFilters = Pick<
   'code' | 'name'
 >;
 
+/**
+ * Standard Applicant table selection
+ *
+ * Functionality:
+ * - Searches standard applicants by code or name.
+ * - Displays paginated, sortable search results.
+ * - Tracks the selected applicant and reports changes to the parent component.
+ * - Reports search and loading errors to the parent component.
+ * - Validation rules:
+ *   - Code is limited to 10 characters and name to 100 characters.
+ */
 @Component({
   selector: 'app-standard-applicant-select',
   standalone: true,
@@ -74,6 +82,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   private readonly envInjector = inject(EnvironmentInjector);
 
   selectedCode = input<string | null>(null);
+  readonly selectedId = input<number | null>(null);
   readonly initialCodeFilter = input<string | null>(null);
   readonly selectedCodeChange = output<string | null>();
   readonly selectedApplicantSummaryChange =
@@ -98,6 +107,8 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   private readonly errorMap: ErrorMessageMap =
     STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
   private appliedFilters: StandardApplicantFilters = {};
+  private initialLookupPending = false;
+  private selectedRowCode: string | null = null;
 
   form = new FormGroup({
     code: new FormControl<string>('', {
@@ -119,27 +130,43 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
       this.form.controls.code.setValue(code);
       this.appliedFilters = { code };
     }
-    this.syncSelectedIdsFromCode();
+    this.initialLookupPending = !!code;
+    this.syncSelectedIds();
     this.setupEffects();
     this.saSignalState.patch({ hasSearched: true });
     this.loadPage(0);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if ('selectedCode' in changes) {
-      this.syncSelectedIdsFromCode();
+    if ('selectedId' in changes || 'selectedCode' in changes) {
+      // Preserve an explicit click when the parent echoes its code back.
+      if (
+        !this.selectedCode() ||
+        ('selectedId' in changes && this.selectedId() !== null) ||
+        this.selectedRowCode !== this.selectedCode()
+      ) {
+        this.syncSelectedIds();
+      }
     }
   }
 
   onSelectedIdsChange(ids: Set<string>): void {
-    this.selectedIds = ids;
-
     const first = ids.values().next().value;
-    const code = first ?? null;
     const selectedRow =
-      code === null
+      first === undefined
         ? null
-        : (this.rows.find((row) => row.code === code) ?? null);
+        : (this.rows.find(
+            (row) =>
+              typeof row.standardApplicantId === 'number' &&
+              String(row.standardApplicantId) === first,
+          ) ?? null);
+    // Missing IDs must never fall back to code identity or clear saved data.
+    if (first !== undefined && !selectedRow) {
+      return;
+    }
+    this.selectedIds = ids;
+    const code = selectedRow?.code ?? null;
+    this.selectedRowCode = code;
 
     if (code !== this.selectedCode()) {
       this.selectedCodeChange.emit(code);
@@ -149,6 +176,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
       selectedRow
         ? {
             code: selectedRow.code ?? '',
+            standardApplicantId: selectedRow.standardApplicantId,
             name: selectedRow.name ?? '',
           }
         : null,
@@ -156,6 +184,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   }
 
   onPageChange(page: number): void {
+    this.initialLookupPending = false;
     if (!this.saState().hasSearched) {
       return;
     }
@@ -163,6 +192,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.initialLookupPending = false;
     if (!this.saState().hasSearched) {
       return;
     }
@@ -171,6 +201,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   }
 
   onSubmit(event: SubmitEvent): void {
+    this.initialLookupPending = false;
     event.preventDefault();
     this.submitted.set(true);
     this.form.markAllAsTouched();
@@ -194,6 +225,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   }
 
   clearSearch(): void {
+    this.initialLookupPending = false;
     this.loadRequest.set(null);
     this.form.reset();
     this.appliedFilters = {};
@@ -228,19 +260,38 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
           });
           this.searchErrorsChange.emit([]);
 
-          // Keep selection consistent when page changes
-          this.syncSelectedIdsFromCode();
-
           this.loadRequest.set(null);
+          if (this.initialLookupPending) {
+            this.initialLookupPending = false;
+            if (
+              !this.rows.some(
+                (row) =>
+                  typeof row.standardApplicantId === 'number' &&
+                  row.standardApplicantId === this.selectedId(),
+              )
+            ) {
+              // Only the initial successful lookup can trigger this fallback.
+              this.selectedIds = new Set();
+              this.clearSearch();
+            }
+          }
         },
         onError: () => {
+          this.initialLookupPending = false;
           this.rows = [];
+          const errors: ErrorItem[] = [
+            {
+              id: 'standard-applicant-code',
+              text: 'Unable to load standard applicants. Please try again.',
+              href: '#standard-applicant-code',
+            },
+          ];
           this.saSignalState.patch({
             totalPages: 0,
             loading: false,
-            searchErrors: [],
+            searchErrors: errors,
           });
-          this.searchErrorsChange.emit([]);
+          this.searchErrorsChange.emit(errors);
           this.loadRequest.set(null);
         },
       },
@@ -290,12 +341,10 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     });
   }
 
-  private syncSelectedIdsFromCode(): void {
-    const code = this.selectedCode();
-    if (code) {
-      this.selectedIds = new Set<string>([code]);
-    } else {
-      this.selectedIds = new Set<string>();
-    }
+  private syncSelectedIds(): void {
+    const id = this.selectedId();
+    this.selectedIds =
+      id === null || !this.selectedCode() ? new Set() : new Set([String(id)]);
+    this.selectedRowCode = null;
   }
 }
