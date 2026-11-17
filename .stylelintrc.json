@@ -6,7 +6,8 @@
     "cypress/reports/**",
     "tools/**",
     "functional-output/**",
-    "wiremock/**"
+    "wiremock/**",
+    "docs/**"
   ],
   "rules": {
     "selector-class-pattern": null,
