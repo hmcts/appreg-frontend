@@ -2,3 +2,4 @@ name: 'CodeQL config'
 
 paths-ignore:
   - '.pnp.cjs'
+  - 'docs/code-documentation/**'
