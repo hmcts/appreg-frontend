@@ -676,4 +676,4 @@ yarn branch:enforce
 We use [Compodoc](https://compodoc.app/) to generate code documentation:
 
 - `yarn doc` - Generates documentation at `docs/code-documentation`
-- `yarn doc:server` - Serves documentation at `http://127.0.0.1:8080`. You must have run the previous command first.
+- `yarn doc:serve` - Serves documentation at `http://127.0.0.1:8080`. You must have run the previous command first.

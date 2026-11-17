@@ -6,4 +6,4 @@ tools/
 src/generated
 functional-output/
 wiremock/
-docs/
+docs/code-documentation
