@@ -16,6 +16,7 @@ import { EMPTY, Observable, Subject, from, of, throwError } from 'rxjs';
 
 import { ApplicationsListBulkUpload } from '@components/applications-list-detail/applications-list-bulk-upload/applications-list-bulk-upload.component';
 import { ApplicationsListBulkUploadState } from '@components/applications-list-detail/applications-list-bulk-upload/util/applications-list-bulk-upload.state';
+import { parseUploadCsv } from '@components/applications-list-detail/applications-list-bulk-upload/util/bulk-upload-csv';
 import { ConfirmationDialogComponent } from '@components/confirmation-dialog/confirmation-dialog.component';
 import {
   ApplicationListEntriesApi,
@@ -333,27 +334,27 @@ describe('ApplicationsListBulkUpload', () => {
   });
 
   describe('onFileSelected', () => {
-    it('sets the selected file and validCSV to true', () => {
+    it('sets the selected file and validCSV to true', async () => {
       const event = {
         target: {
           files: [file],
         },
       } as unknown as Event;
 
-      component.onFileSelected(event);
+      await component.onFileSelected(event);
 
       expect(getState(component).file).toBe(file);
       expect(getState(component).isValidCSV).toBe(true);
     });
 
-    it('does not set the selected file and validCSV to false for an invalid upload', () => {
+    it('does not set the selected file and validCSV to false for an invalid upload', async () => {
       const event = {
         target: {
           files: [incorrectFile],
         },
       } as unknown as Event;
 
-      component.onFileSelected(event);
+      await component.onFileSelected(event);
 
       expect(getState(component).file).toBeNull();
       expect(getState(component).isValidCSV).toBe(false);
@@ -363,13 +364,13 @@ describe('ApplicationsListBulkUpload', () => {
   describe('onSubmit', () => {
     it('blocks another upload while an existing job is being polled', async () => {
       startBulkUploadPolling();
-      component.onFileSelected({
+      await component.onFileSelected({
         target: { files: [file] },
       } as unknown as Event);
       await flushSignalEffects(fixture);
 
       expect(component.vm().isUploadInProgress).toBe(false);
-      expect(component.replacementFileSelected()).toBe(true);
+      expect(component.replacementFileSelected()).toBe(false);
       expect(
         fixture.debugElement.query(By.css('button[type="submit"]'))
           .nativeElement.disabled,
@@ -894,7 +895,7 @@ describe('ApplicationsListBulkUpload', () => {
       expect(component.pendingJobId()).toBeNull();
     });
 
-    it('keeps the unknown status visible until a replacement file is uploaded', async () => {
+    it('keeps the unknown status visible and blocks replacement uploads until the outcome is known', async () => {
       const replacementFile = new File(['replacement'], 'replacement.csv', {
         type: 'text/csv',
       });
@@ -920,7 +921,7 @@ describe('ApplicationsListBulkUpload', () => {
         errorSummary: [{ text: 'Previous upload error' }],
       });
 
-      component.onFileSelected({
+      await component.onFileSelected({
         target: { files: [replacementFile] },
       } as unknown as Event);
       await flushSignalEffects(fixture);
@@ -939,7 +940,7 @@ describe('ApplicationsListBulkUpload', () => {
       const uploadButton = fixture.debugElement.query(
         By.css('button[type="submit"]'),
       ).nativeElement as HTMLButtonElement;
-      expect(uploadButton.disabled).toBe(false);
+      expect(uploadButton.disabled).toBe(true);
       expect(
         actionsApiMock.bulkUploadApplicationListEntries,
       ).not.toHaveBeenCalled();
@@ -947,18 +948,126 @@ describe('ApplicationsListBulkUpload', () => {
       uploadButton.click();
       await flushSignalEffects(fixture);
 
-      expect(component.pendingJobId()).toBeNull();
-      expect(component.vm().fileUploadStatus).toBeNull();
-      expect(component.vm().bulkUploadFeedback).toBeNull();
-      expect(component.vm().errorSummary).toEqual([]);
+      expect(component.pendingJobId()).toBe('job-1');
+      expect(component.vm().file).toBe(file);
+      expect(component.vm().bulkUploadFeedback).toMatchObject({
+        body: 'Status unknown',
+      });
+      expect(
+        actionsApiMock.bulkUploadApplicationListEntries,
+      ).not.toHaveBeenCalled();
+    });
+  });
+  describe('on-screen correction journey', () => {
+    const source =
+      'APPLICANT_CODE|APPLICATION_CODE|EXTRA\n0001|BAD|keep\n0002|GOOD|unchanged';
+    const validationErrors = [
+      {
+        rowNumber: 2,
+        location: 'applicationCode',
+        message: 'Check the code',
+        errorType: 'DATA_ERROR' as const,
+      },
+    ];
+
+    const prepareCorrection = (): void => {
+      component.corrections.reset(parseUploadCsv(source));
+      component.corrections.setErrors(validationErrors);
+      patchState(component, { file, isValidCSV: true });
+      fixture.detectChanges();
+    };
+
+    it('opens a focused editor, saves corrections and submits the full corrected dataset', async () => {
+      prepareCorrection();
+      const corrected = new File(['corrected content'], 'corrected.csv', {
+        type: 'text/csv',
+      });
+      const fileSpy = jest
+        .spyOn(component.corrections, 'file')
+        .mockReturnValue(corrected);
+      actionsApiMock.bulkUploadApplicationListEntries.mockReturnValue(EMPTY);
+      component.editRecord(2);
+      fixture.detectChanges();
+      expect(
+        fixture.nativeElement.querySelector('#correct-record-heading')
+          .textContent,
+      ).toContain('CSV row 2');
+      component.saveRecord(new Map([[1, 'FIXED']]));
+      await flushSignalEffects(fixture);
+      expect(component.editingRow()).toBeNull();
+      expect(component.corrections.fields(2)[1].value).toBe('FIXED');
+      expect(component.corrections.fields(3)[1].value).toBe('GOOD');
+      component.uploadCorrectedFile();
+      await flushSignalEffects(fixture);
+      expect(fileSpy).toHaveBeenCalled();
       expect(
         actionsApiMock.bulkUploadApplicationListEntries,
       ).toHaveBeenCalledWith(
-        { listId: 'list-123', file: replacementFile },
+        { listId: component.vm().listId, file: corrected },
         'response',
         false,
         { transferCache: false },
       );
+      fileSpy.mockRestore();
+    });
+
+    it('preserves corrections and replaces errors after a subsequent failed job', async () => {
+      prepareCorrection();
+      component.corrections.save(2, new Map([[1, 'FIXED']]));
+      jobPollingFacadeMock.watchJob.mockReturnValue(
+        of(
+          terminalJob({
+            state: 'failed',
+            rawStatus: 'FAILED',
+            message: JSON.stringify([{ ...validationErrors[0], rowNumber: 3 }]),
+          }),
+        ),
+      );
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+      expect(component.corrections.fields(2)[1].value).toBe('FIXED');
+      expect(
+        component.corrections.records().map((row) => row.rowNumber),
+      ).toEqual([3]);
+      expect(component.corrections.hasChangesSinceValidation()).toBe(false);
+    });
+
+    it('retains saved corrections when replacing the file is cancelled', async () => {
+      prepareCorrection();
+      component.corrections.save(2, new Map([[1, 'FIXED']]));
+      fixture.detectChanges();
+      const dialog = fixture.debugElement.query(
+        By.directive(ConfirmationDialogComponent),
+      ).componentInstance as ConfirmationDialogComponent;
+      jest.spyOn(dialog, 'confirm').mockReturnValue(of(false));
+      await component.onFileSelected({
+        target: { files: [new File(['new'], 'new.csv')] },
+      } as unknown as Event);
+      expect(component.corrections.fields(2)[1].value).toBe('FIXED');
+      expect(component.vm().file).toBe(file);
+    });
+
+    it('keeps an unsaved editor open when discard is declined', async () => {
+      prepareCorrection();
+      component.editRecord(2);
+      component.editorDirty.set(true);
+      fixture.detectChanges();
+      const dialog = fixture.debugElement.query(
+        By.directive(ConfirmationDialogComponent),
+      ).componentInstance as ConfirmationDialogComponent;
+      jest.spyOn(dialog, 'confirm').mockReturnValue(of(false));
+      await component.cancelEdit();
+      expect(component.editingRow()).toBe(2);
+      expect(component.editorDirty()).toBe(true);
+    });
+
+    it('warns on browser unload for saved corrections, even with no pending job', () => {
+      prepareCorrection();
+      component.corrections.save(2, new Map([[1, 'FIXED']]));
+      fixture.detectChanges();
+      expect(
+        window.dispatchEvent(new Event('beforeunload', { cancelable: true })),
+      ).toBe(false);
     });
   });
 });
