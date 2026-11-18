@@ -51,6 +51,9 @@ export class Helmet {
             styleSrc: [self, "'unsafe-inline'"],
             baseUri: ["'self'"],
             frameAncestors: ["'none'"],
+            // Safari upgrades localhost assets to HTTPS but localhost only serves http
+            // so localhost fails to render page.
+            upgradeInsecureRequests: this.developmentMode ? null : [],
           },
         },
         referrerPolicy: {
