@@ -162,6 +162,7 @@ export class ApplicationsListBulkUpload implements OnInit {
   readonly submitAttempt = signal(0);
   readonly pendingJobId = signal<string | null>(null);
   readonly replacementFileSelected = signal(false);
+  readonly selectedFileName = signal<string | null>(null);
   isJobPolling = false;
 
   columns = BulkUploadErrorTableColumns;
@@ -471,7 +472,7 @@ export class ApplicationsListBulkUpload implements OnInit {
     }
 
     const file = input.files[0];
-
+    this.selectedFileName.set(file?.name ?? null);
     // validate filename extension
     const isCsvExtension = file.name.toLowerCase().endsWith('.csv');
 

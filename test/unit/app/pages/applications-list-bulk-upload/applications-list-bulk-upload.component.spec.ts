@@ -333,6 +333,54 @@ describe('ApplicationsListBulkUpload', () => {
   });
 
   describe('onFileSelected', () => {
+    it('associates a visually hidden filename with the file input', () => {
+      const input: HTMLInputElement =
+        fixture.nativeElement.querySelector('#file-upload-1');
+
+      const description: HTMLElement = fixture.nativeElement.querySelector(
+        '#file-upload-1-selection',
+      );
+      expect(input.getAttribute('aria-describedby')).toBe(description.id);
+      expect(description.classList.contains('govuk-visually-hidden')).toBe(
+        true,
+      );
+      expect(description.hasAttribute('aria-hidden')).toBe(false);
+      component.onFileSelected({
+        target: { files: [file] },
+      } as unknown as Event);
+      fixture.detectChanges();
+      expect(description.textContent?.trim()).toBe('test.csv');
+    });
+
+    it('updates the selected file when a different file is selected', () => {
+      const replacement = new File(['new'], 'replacement.csv', {
+        type: 'text/csv',
+      });
+
+      component.onFileSelected({
+        target: { files: [file] },
+      } as unknown as Event);
+      component.onFileSelected({
+        target: { files: [replacement] },
+      } as unknown as Event);
+      fixture.detectChanges();
+
+      expect(getState(component).file).toBe(replacement);
+    });
+
+    it('keeps the previous selection when no replacement file is provided', () => {
+      component.onFileSelected({
+        target: { files: [file] },
+      } as unknown as Event);
+      component.onFileSelected({
+        target: { files: [] },
+      } as unknown as Event);
+      fixture.detectChanges();
+
+      expect(getState(component).file).toBe(file);
+      expect(getState(component).isValidCSV).toBe(true);
+    });
+
     it('sets the selected file and validCSV to true', () => {
       const event = {
         target: {
@@ -346,16 +394,20 @@ describe('ApplicationsListBulkUpload', () => {
       expect(getState(component).isValidCSV).toBe(true);
     });
 
-    it('does not set the selected file and validCSV to false for an invalid upload', () => {
+    it('shows an invalid selection while retaining the previous file', () => {
       const event = {
         target: {
           files: [incorrectFile],
         },
       } as unknown as Event;
 
+      component.onFileSelected({
+        target: { files: [file] },
+      } as unknown as Event);
       component.onFileSelected(event);
+      fixture.detectChanges();
 
-      expect(getState(component).file).toBeNull();
+      expect(getState(component).file).toBe(file);
       expect(getState(component).isValidCSV).toBe(false);
     });
   });

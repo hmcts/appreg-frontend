@@ -112,7 +112,17 @@
             name="fileUpload1"
             type="file"
             aria-labelledby="file-upload-1-label"
+            aria-describedby="file-upload-1-selection"
           />
+        </div>
+        <div
+          id="file-upload-1-selection"
+          class="govuk-visually-hidden"
+          aria-hidden="true"
+        >
+          @if (selectedFileName()) {
+            Selected file: {{ selectedFileName() }}
+          }
         </div>
         <button
           type="submit"
