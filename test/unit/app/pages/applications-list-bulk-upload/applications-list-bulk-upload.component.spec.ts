@@ -344,7 +344,7 @@ describe('ApplicationsListBulkUpload', () => {
       expect(description.classList.contains('govuk-visually-hidden')).toBe(
         true,
       );
-      expect(description.hasAttribute('aria-hidden')).toBe(false);
+      expect(description.hasAttribute('aria-hidden')).toBe(true);
       component.onFileSelected({
         target: { files: [file] },
       } as unknown as Event);
