@@ -57,6 +57,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: ':id/preview',
+        data: { preview: true },
+        canActivate: [applicationListGuard],
+        loadComponent: () =>
+          import('@components/applications-list/applications-list-preview/applications-list-preview.component').then(
+            (m) => m.ApplicationsListPreview,
+          ),
+      },
+      {
         path: ':id',
         canActivate: [applicationListGuard],
         loadComponent: () =>

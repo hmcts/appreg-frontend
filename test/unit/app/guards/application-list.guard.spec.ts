@@ -109,16 +109,18 @@ describe('applicationListGuard', () => {
     expectRedirect(await runGuard(listId, true));
   });
 
-  it('marks only the detail and closed-entry notes routes as accessible without an open list', () => {
+  it('allows detail, preview and closed-entry notes routes without an open list', () => {
     const listRoutes =
       routes.find((item) => item.path === 'applications-list')?.children ?? [];
     const existingListRoutes = listRoutes.filter((route) =>
       route.path?.startsWith(':id'),
     );
-    expect(existingListRoutes).toHaveLength(18);
+    expect(existingListRoutes).toHaveLength(19);
     for (const route of existingListRoutes) {
       const viewOrNotes =
-        route.path === ':id' || route.path === ':id/update-notes/:entryId';
+        route.path === ':id' ||
+        route.path === ':id/preview' ||
+        route.path === ':id/update-notes/:entryId';
       expect(route.data?.['requiresOpenList'] === true).toBe(!viewOrNotes);
     }
   });

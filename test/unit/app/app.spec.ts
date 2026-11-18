@@ -1,8 +1,11 @@
 import { Component, PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import { App } from '../../../src/app/app';
+import { FooterComponent } from '../../../src/app/core/components/footer/footer.component';
+import { HeaderComponent } from '../../../src/app/core/components/header/header.component';
+import { ServiceNavigationComponent } from '../../../src/app/shared/components/service-navigation/service-navigation.component';
 
 const nextTick = () => new Promise<void>((r) => setTimeout(r, 0));
 
@@ -11,6 +14,12 @@ const nextTick = () => new Promise<void>((r) => setTimeout(r, 0));
   template: '',
 })
 class DummyRouteComponent {}
+
+@Component({
+  selector: 'app-header, app-service-navigation, app-footer',
+  template: '',
+})
+class LayoutStub {}
 
 /* ---------------------- Mocks ---------------------- */
 const { initAll: govukInitAll } = jest.requireMock('govuk-frontend');
@@ -156,4 +165,63 @@ describe('App (root)', () => {
     // (optional) restore your default mock for subsequent tests
     jest.dontMock('govuk-frontend');
   });
+});
+
+describe('Preview layout', () => {
+  it.each(['browser', 'server'])(
+    'renders a direct preview URL without app navigation or branding on %s',
+    async (platform) => {
+      await TestBed.configureTestingModule({
+        imports: [App],
+        providers: [
+          { provide: PLATFORM_ID, useValue: platform },
+          provideRouter([
+            {
+              path: 'applications-list',
+              children: [
+                {
+                  path: ':id/preview',
+                  data: { preview: true },
+                  component: DummyRouteComponent,
+                },
+                { path: '', component: DummyRouteComponent },
+              ],
+            },
+          ]),
+        ],
+      })
+        .overrideComponent(App, {
+          remove: {
+            imports: [
+              HeaderComponent,
+              ServiceNavigationComponent,
+              FooterComponent,
+            ],
+          },
+          add: { imports: [LayoutStub] },
+        })
+        .compileComponents();
+
+      const router = TestBed.inject(Router);
+      await router.navigateByUrl('/applications-list/example/preview');
+      const fixture = TestBed.createComponent(App);
+      fixture.detectChanges();
+      const layout = () =>
+        fixture.nativeElement.querySelectorAll(
+          'app-header, app-service-navigation, app-footer',
+        );
+      expect(layout()).toHaveLength(0);
+      expect(
+        fixture.nativeElement.querySelector('main router-outlet'),
+      ).not.toBeNull();
+
+      await router.navigateByUrl('/applications-list');
+      fixture.detectChanges();
+      expect(layout()).toHaveLength(3);
+
+      await router.navigateByUrl('/applications-list/another/preview');
+      fixture.detectChanges();
+      expect(layout()).toHaveLength(0);
+    },
+  );
 });
