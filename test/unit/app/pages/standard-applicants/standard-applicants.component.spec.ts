@@ -379,6 +379,19 @@ describe('StandardApplicantsComponent', () => {
     component.onSubmit(new SubmitEvent('submit'));
     await flushSignalEffects(fixture);
 
+    const caption = fixture.nativeElement.querySelector('caption');
+    expect(caption.textContent.trim()).toBe('Standard applicants');
+    expect(caption.classList.contains('govuk-visually-hidden')).toBe(true);
+    expect(caption.querySelector('button')).toBeNull();
+    const actions = fixture.nativeElement.querySelector('[tableActions]');
+    expect(actions).not.toBeNull();
+    expect(actions.closest('table')).toBeNull();
+    expect(actions.textContent).toContain('Export CSV');
+    expect(actions.querySelector('h2').textContent.trim()).toBe(
+      'Standard applicants',
+    );
+    expect(actions.querySelector('.table-caption__actions')).not.toBeNull();
+
     getStandardApplicantsMock.mockReturnValueOnce(inFlightResponse);
 
     component.onSortChange({ key: 'name', direction: 'desc' });
