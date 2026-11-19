@@ -45,7 +45,7 @@ type DateField = 'day' | 'month' | 'year';
  *   - A partial date requires every missing part; a complete date must exist on the calendar, including leap-day checks.
  *   - Dates must fall between 1900 and 3000.
  *   - Past-only mode excludes today and future dates; no-future mode permits today but excludes future dates.
- * - Shows field and group errors after interaction or submission; empty search dates remain optional.
+ * - Shows field and group errors after submission; empty search dates remain optional.
  * - Keeps manual entry and date picker selection in the same form value.
  */
 @Component({
@@ -313,42 +313,18 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   }
 
   fieldError(name: DateField, submitted: boolean): boolean {
-    if (this.disabled) {
+    if (this.disabled || !submitted) {
       return false;
     }
     const c = this.ctrl(name);
-    const base = !!(c?.invalid && (c?.touched || c?.dirty));
+    const base = !!c?.invalid;
     const miss = this.missing(name);
     const dateInvalid = !!this.dateForm.errors?.['dateInvalid'];
     const externalError = this.hasExternalError(submitted);
-    if (!submitted) {
-      return base;
-    }
     if (!this.isSearch()) {
       return base || miss || dateInvalid || externalError;
     }
     return base || (this.hasAny() && (miss || dateInvalid || externalError));
-  }
-
-  private isInteractedInvalid(name: DateField): boolean {
-    const c = this.ctrl(name);
-    return !!(c?.invalid && (c.touched || c.dirty));
-  }
-
-  ariaInvalidLive(name: DateField): 'true' | null {
-    return this.isInteractedInvalid(name) ? 'true' : null;
-  }
-
-  ariaInvalidAfterSubmit(name: DateField): 'true' | null {
-    const missingFieldIsInvalid = this.isSearch()
-      ? this.hasAny() && this.missing(name)
-      : this.missing(name);
-
-    return this.isInteractedInvalid(name) ||
-      missingFieldIsInvalid ||
-      this.hasExternalError(true)
-      ? 'true'
-      : null;
   }
 
   writeValue(value: string | null): void {
