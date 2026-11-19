@@ -171,7 +171,7 @@ export class TableElement {
   }
 
   /**
-   * Gets the toggle button for the Actions menu in the table caption
+   * Gets the Actions toggle from the toolbar belonging to the named table
    * @param tableCaption Caption of the table
    * @param toggleButtonText Text of the toggle button (e.g. "Actions")
    */
@@ -181,6 +181,8 @@ export class TableElement {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
       .contains('caption', tableCaption, { matchCase: false })
+      .closest('app-sortable-table')
+      .find('[tableActions]')
       .find(this.captionMenuToggleSelector)
       .filter((_, el) =>
         StringUtils.normalizeText(Cypress.$(el).text()).includes(
@@ -191,7 +193,7 @@ export class TableElement {
   }
 
   /**
-   * Gets a menu item button from the open caption Actions menu
+   * Gets a menu item from the open toolbar belonging to the named table
    * @param tableCaption Caption of the table
    * @param menuItemText Text of the menu item to find (e.g. "Result selected")
    */
@@ -201,6 +203,8 @@ export class TableElement {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
       .contains('caption', tableCaption, { matchCase: false })
+      .closest('app-sortable-table')
+      .find('[tableActions]')
       .find(this.captionMenuItemSelector)
       .filter(
         (_, el) =>
