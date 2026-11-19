@@ -85,6 +85,17 @@ withNightlyPipeline(type, product, component) {
       stage('Regression Tests') {
         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed') {
           try {
+            sh '''
+              set +x
+              echo "=== Cypress runtime diagnostics ==="
+              echo "Workspace: $PWD"
+              echo "TEST_URL: $TEST_URL"
+              node --version
+              corepack --version
+              yarn --version
+              yarn cypress --version
+              yarn cypress-parallel --version
+            '''
             yarnBuilder.yarn('test:parallel:regression:chrome')
           } finally {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
