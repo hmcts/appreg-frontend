@@ -444,7 +444,7 @@ describe('ApplicationsComponent', () => {
     });
   });
 
-  it('configures the results table for server-side sorting', () => {
+  it('renders table actions outside the caption and configures server-side sorting', () => {
     appStateSignal(component).update((s) => ({
       ...s,
       rows: [makeEntry({ id: 'row-1' })],
@@ -456,6 +456,18 @@ describe('ApplicationsComponent', () => {
     ).componentInstance as SortableTableComponent;
 
     expect(table.clientOrServerSort()).toBe('server');
+    const caption = fixture.nativeElement.querySelector('caption');
+    expect(caption.textContent.trim()).toBe('Application list entries');
+    expect(caption.classList.contains('govuk-visually-hidden')).toBe(true);
+    expect(caption.querySelector('button')).toBeNull();
+    const actions = fixture.nativeElement.querySelector('[tableActions]');
+    expect(actions).not.toBeNull();
+    expect(actions.closest('table')).toBeNull();
+    expect(actions.textContent).toContain('Actions');
+    expect(actions.querySelector('h2').textContent.trim()).toBe(
+      'Application list entries',
+    );
+    expect(actions.querySelector('.table-caption__actions')).not.toBeNull();
   });
 
   it('renders errorSummary when action-level errors are present', () => {

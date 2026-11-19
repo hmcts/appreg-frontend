@@ -135,13 +135,15 @@
     (sortChange)="onSortChange($event)"
     appMojButtonMenu
   >
-    <caption
-      class="govuk-table__caption govuk-table__caption--m"
-      id="sa-sortable-table-caption"
-    >
+    <caption class="govuk-visually-hidden" id="sa-sortable-table-caption">
       <span class="table-caption__text"> Standard applicants </span>
+    </caption>
 
-      <span class="table-caption__actions" aria-label="Table export action">
+    <div tableActions class="table-header">
+      <h2 class="govuk-heading-m govuk-!-margin-bottom-0">
+        Standard applicants
+      </h2>
+      <div class="table-caption__actions">
         <div
           class="moj-button-menu"
           data-module="moj-button-menu"
@@ -167,8 +169,8 @@
             Print PDF
           </button>
         </div>
-      </span>
-    </caption>
+      </div>
+    </div>
 
     <!-- actions slot -->
     <ng-template #actionsTemplate let-row>
