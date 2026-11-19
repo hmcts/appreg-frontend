@@ -36,10 +36,16 @@ jest.mock('@ministryofjustice/frontend', () => ({
       <caption class="govuk-table__caption">
         Projected caption
       </caption>
+      <div tableActions>
+        <button type="button" (click)="actionCount = actionCount + 1">
+          Actions
+        </button>
+      </div>
     </app-sortable-table>
   `,
 })
 class HostWithProjectedCaptionComponent {
+  actionCount = 0;
   columns: TableColumn[] = [{ header: 'Name', field: 'name' }];
   data: Row[] = [{ name: 'Everest' }];
 }
@@ -315,6 +321,17 @@ describe('SortableTableComponent', () => {
       expect(captions[0].nativeElement.textContent.trim()).toBe(
         'Projected caption',
       );
+      const actions = hostFixture.nativeElement.querySelector('[tableActions]');
+      expect(actions).not.toBeNull();
+      expect(actions.closest('table')).toBeNull();
+      actions.querySelector('button').click();
+      expect(hostFixture.componentInstance.actionCount).toBe(1);
+
+      hostFixture.componentInstance.data = [];
+      hostFixture.detectChanges();
+      expect(
+        hostFixture.nativeElement.querySelector('[tableActions]'),
+      ).toBeNull();
     });
   });
 

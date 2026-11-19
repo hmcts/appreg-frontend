@@ -292,13 +292,15 @@
       {{ row.date | dateTime }}
     </ng-template>
 
-    <caption
-      class="govuk-table__caption govuk-table__caption--m"
-      id="sortable-Lists"
-    >
+    <caption class="govuk-visually-hidden" id="sortable-Lists">
       <span class="table-caption__text">Application list entries</span>
+    </caption>
 
-      <span class="table-caption__actions" aria-label="Table actions">
+    <div tableActions class="table-header">
+      <h2 class="govuk-heading-m govuk-!-margin-bottom-0">
+        Application list entries
+      </h2>
+      <div class="table-caption__actions">
         @if (!canUseBulkActions) {
           <button
             type="button"
@@ -341,8 +343,8 @@
             </button>
           </div>
         }
-      </span>
-    </caption>
+      </div>
+    </div>
 
     <ng-template #actionsTemplate let-row>
       <!-- Show button menu if row is open -->
