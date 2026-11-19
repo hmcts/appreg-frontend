@@ -66,6 +66,8 @@ export class SortableTableComponent
   readonly dateTpl = contentChild<TemplateRef<unknown>>('dateTemplate');
 
   caption = input('');
+  retainEmptyTable = input(false);
+  captionStatus = input<string | null>(null);
   captionId = computed(() => {
     const text = this.caption() ?? '';
 

@@ -1,4 +1,4 @@
-@if (data() && data().length) {
+@if (retainEmptyTable() || (data() && data().length)) {
   <ng-content select="[tableActions]"></ng-content>
   <div
     class="app-sortable-table__frame"
@@ -23,6 +23,9 @@
           {{
             caption()
           }}
+          @if (captionStatus() !== null) {
+            <span role="status" aria-atomic="true">{{ captionStatus() }}</span>
+          }
         </caption>
       }
 
@@ -116,6 +119,16 @@
       </thead>
 
       <tbody class="govuk-table__body">
+        @if (!data().length) {
+          <tr class="govuk-table__row">
+            <td
+              class="govuk-table__cell"
+              [attr.colspan]="columns().length + (selectable() ? 1 : 0)"
+            >
+              {{ noDataMessage() }}
+            </td>
+          </tr>
+        }
         @for (row of data(); track trackRow($index, row)) {
           <tr
             class="govuk-table__row"

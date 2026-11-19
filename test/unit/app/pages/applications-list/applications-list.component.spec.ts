@@ -656,6 +656,23 @@ describe('ApplicationsList – search', () => {
     expect(legend?.textContent?.trim()).toBe('Lists to show');
   });
 
+  it('announces total matches and then no results without focusing the empty banner', async () => {
+    service.getApplicationLists.mockReturnValue(
+      of(pageStub([], { totalElements: 134 })),
+    );
+    component.loadApplicationsLists();
+    await flushSignalEffects(fixture);
+    expect(component.searchStatus()).toBe('134 results found.');
+    service.getApplicationLists.mockReturnValue(
+      of(pageStub([], { totalElements: 0 })),
+    );
+    component.loadApplicationsLists();
+    await flushSignalEffects(fixture);
+    expect(component.searchStatus()).toBe('No results found.');
+    component.clearSearch();
+    expect(component.searchStatus()).toBe('');
+  });
+
   it('merges filter when hasParams=true', async () => {
     jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
       status: ApplicationListStatus.OPEN,

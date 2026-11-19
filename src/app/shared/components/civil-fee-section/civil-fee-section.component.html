@@ -42,6 +42,8 @@
     <app-sortable-table
       id="civil-fee-table"
       caption="Current fee statuses table"
+      [retainEmptyTable]="feeAdditionStatus() !== null"
+      [captionStatus]="feeAdditionStatus()"
       [hiddenCaption]="true"
       [columns]="civilFeeColumnsWithChangeLink()"
       [data]="feeStatusRows()"
