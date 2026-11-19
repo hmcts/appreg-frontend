@@ -54,12 +54,21 @@
     <h2 class="govuk-heading-m">Application list entries to be deleted</h2>
     <app-sortable-table
       [columns]="childColumns"
-      [data]="childRows()"
+      [data]="paginatedRows()"
       caption="Application list entries to be deleted"
       [hiddenCaption]="true"
       [selectable]="false"
       clientOrServerSort="server"
+      [sortState]="childSort()"
+      (sortChange)="onSortChange($event)"
       idField="id"
     />
+    @if (totalPages() > 1) {
+      <app-pagination
+        [currentPage]="currentPage()"
+        [totalPages]="totalPages()"
+        (pageChange)="onPageChange($event)"
+      />
+    }
   }
 </app-review-confirm>
