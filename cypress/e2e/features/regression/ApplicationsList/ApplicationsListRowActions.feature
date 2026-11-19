@@ -480,7 +480,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                                  | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037 @ARCPOC-1688
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037 @ARCPOC-1688 @ARCPOC-1046
     Scenario Outline: Verify application list is deleted successfully for applications list NO entries
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -512,6 +512,15 @@ Feature: Application List Row Actions
         Then User Clicks On The Link "Delete list"
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
         Then User Sees Page Heading "Check the application list and entries before deleting"
+        # 1046 - Verify Details of applications list with No entries before deleting
+        Then User See "This application list has no entries." On The Page
+        Then User See "Application list" On The Page
+        Then User Should See Summary List Row With Key "Date" And Value "<DisplayDate>"
+        Then User Should See Summary List Row With Key "Time" And Value "<Time>"
+        Then User Should See Summary List Row With Key "Location" And Value "<Court>"
+        Then User Should See Summary List Row With Key "Description" And Value "<Description>"
+        Then User Should See Summary List Row With Key "Status" And Value "<Status>"
+        # Continue with Deletion
         When User Clicks On The "Yes - delete" Button
         Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Then User Should See The Link "Create new list"
@@ -527,7 +536,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                                  | Status | SelectButtonText |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | OPEN   | Select           |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037 @ARCPOC-1046
     Scenario Outline: Verify application list is deleted successfully for applications list 1 entry
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -597,12 +606,18 @@ Feature: Application List Row Actions
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
         Then User Sees Page Heading "Check the application list and entries before deleting"
+        # 1046 - Verify Details of applications list with 1 entry before deleting
+        Then User See "<Entries> application list entry will be deleted" On The Page
+        Then User See "Application list" On The Page
         Then User Should See Summary List Row With Key "Date" And Value "<DisplayDate>"
         Then User Should See Summary List Row With Key "Time" And Value "<Time>"
         Then User Should See Summary List Row With Key "Location" And Value "<Court>"
         Then User Should See Summary List Row With Key "Description" And Value "<Description>"
         Then User Should See Summary List Row With Key "Status" And Value "<Status>"
-        Then User See "<Entries> application list" On The Page
+        Then User See "Application list entries to be deleted" On The Page
+        Then User Should See Row In Table "Application list entries to be deleted" With Values:
+            | Sequence number | Account number | Applicant                  | Respondent                | Title                 |
+            | 1               | ACC-{RANDOM}   | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | Appeal to Crown Court |
         When User Clicks On The "Yes - delete" Button
         Then User Should See The Link "Create new list"
         Then User Sees Success Banner "Application list deleted successfully" Containing "If you believe this was in error, please contact support."
