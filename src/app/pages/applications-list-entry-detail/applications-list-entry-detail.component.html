@@ -1,3 +1,11 @@
+<p
+  class="govuk-visually-hidden"
+  role="status"
+  aria-live="polite"
+  aria-atomic="true"
+>
+  {{ feeSaveStatus() }}
+</p>
 <app-breadcrumbs [items]="breadcrumbs()" />
 <app-navigation-warning
   [active]="!hasUnchangedContent()"
@@ -13,6 +21,8 @@
 />
 @if (!vm().errorFound && vm().successBanner; as successBanner) {
   <app-success-banner
+    [bannerRole]="isFeeSaveBanner() ? 'region' : 'alert'"
+    [autoFocus]="!isFeeSaveBanner()"
     [heading]="successBanner.heading"
     [body]="successBanner.body"
   />

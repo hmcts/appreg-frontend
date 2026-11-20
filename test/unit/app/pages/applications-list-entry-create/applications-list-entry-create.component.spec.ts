@@ -774,6 +774,9 @@ describe('ApplicationsListEntryCreate (submission + error flow)', () => {
     } as unknown as AddFeeDetailsPayload;
 
     component.onAddFeeDetails(payload);
+    expect(component.feeAdditionStatus()).toContain(
+      'Changes will be saved when you create the entry.',
+    );
 
     expect(updateFeeStatusesControlSpy).toHaveBeenCalledTimes(1);
     expect(updateFeeStatusesControlSpy).toHaveBeenCalledWith(
@@ -782,6 +785,29 @@ describe('ApplicationsListEntryCreate (submission + error flow)', () => {
     );
 
     expect(api.createApplicationListEntry).not.toHaveBeenCalled();
+  });
+
+  it('announces accepted additions with a changing count and ignores rejected additions', () => {
+    const payload = {
+      feeStatus: 'P',
+      statusDate: '2026-01-10',
+      paymentReference: null,
+    } as unknown as AddFeeDetailsPayload;
+    updateFeeStatusesControlSpy.mockReturnValue({ next: [{}], changed: true });
+    component.onAddFeeDetails(payload);
+    expect(component.feeAdditionStatus()).toContain(
+      '1 fee status in the table',
+    );
+    updateFeeStatusesControlSpy.mockReturnValue({
+      next: [{}, {}],
+      changed: true,
+    });
+    component.onAddFeeDetails(payload);
+    expect(component.feeAdditionStatus()).toContain('2 fee statuses');
+    const previous = component.feeAdditionStatus();
+    updateFeeStatusesControlSpy.mockReturnValue({ next: [], changed: false });
+    component.onAddFeeDetails(payload);
+    expect(component.feeAdditionStatus()).toBe(previous);
   });
 
   it('onOffsiteFeeChanged: updates hasOffsiteFee without emitting, and marks control dirty', () => {

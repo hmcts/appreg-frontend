@@ -102,6 +102,7 @@
       [feeStatusOptions]="feeStatusOptions"
       [feeForm]="civilFeeForm"
       [feeMeta]="feeMeta"
+      [feeAdditionStatus]="feeAdditionStatus()"
       (addFeeDetails)="onAddFeeDetails($event)"
       (civilFeeErrors)="onChildErrors('civilFee', $event)"
       (submitAttempted)="onCivilFeeSubmitAttempt()"
