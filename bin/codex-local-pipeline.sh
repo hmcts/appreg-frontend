@@ -10,7 +10,8 @@ Runs the checks that matter before a PR is opened. The shared Codex workflows
 run fast mode to verify Codex changes without credentials.
 
 Modes:
-  checks-only  Validate workflow/script syntax and repository PR guardrails only.
+  checks-only  Validate workflow/script syntax, test workflow scripts and check
+               repository PR guardrails only.
   fast         Run checks-only plus yarn install and yarn cichecks. Default.
   full         Run fast mode plus Cypress smoke tests.
 
@@ -110,6 +111,17 @@ log "Validating shell scripts"
 bash -n bin/*.sh
 if compgen -G ".github/scripts/*.sh" >/dev/null; then
   bash -n .github/scripts/*.sh
+fi
+
+if compgen -G ".github/scripts/*.test.sh" >/dev/null; then
+  if command -v jq >/dev/null 2>&1; then
+    log "Testing workflow scripts"
+    for test_script in .github/scripts/*.test.sh; do
+      bash "${test_script}"
+    done
+  else
+    warn "jq is not installed; skipping workflow script tests"
+  fi
 fi
 
 log "Validating workflow YAML syntax"
