@@ -19,8 +19,7 @@
 .app-sortable-table__frame {
   position: relative;
   max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: auto hidden;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -99,7 +98,7 @@
   height: 0;
   border-right: 0.2rem solid transparent;
   border-left: 0.2rem solid transparent;
-  border-top: 0.34rem solid currentColor;
+  border-top: 0.34rem solid currentcolor;
   transform: translate(-50%, -50%);
 }
 
@@ -111,7 +110,7 @@
   width: 0;
   height: 0;
   border-right: 0.2rem solid transparent;
-  border-bottom: 0.34rem solid currentColor;
+  border-bottom: 0.34rem solid currentcolor;
   border-left: 0.2rem solid transparent;
   transform: translate(-50%, -50%);
 }
@@ -145,12 +144,9 @@
   .app-sortable-table__sort-indicator::after {
   content: '';
   top: 50%;
-  border-right-width: 0.36rem;
-  border-top-width: 0.61rem;
-  border-bottom-width: 0;
-  border-left-width: 0.36rem;
+  border-width: 0.61rem 0.36rem 0;
   border-top-style: solid;
-  border-top-color: currentColor;
+  border-top-color: currentcolor;
   transform: translate(-50%, -50%);
 }
 
@@ -160,10 +156,15 @@
   > .app-sortable-table__header-button:focus {
   outline: none;
   color: #0b0c0c;
-  background-color: #ffdd00;
+  background-color: #fd0;
   box-shadow:
-    0 -2px #ffdd00,
+    0 -2px #fd0,
     0 4px #0b0c0c;
+}
+
+:host ::ng-deep .moj-button-menu {
+  position: relative;
+  z-index: 0;
 }
 
 :host ::ng-deep .app-sortable-table__cell--nowrap .moj-button-menu,
@@ -175,11 +176,6 @@
 
 :host ::ng-deep .app-sortable-table__cell--nowrap .moj-button-menu__wrapper {
   right: 0;
-}
-
-:host ::ng-deep .moj-button-menu {
-  position: relative;
-  z-index: 0;
 }
 
 :host ::ng-deep .app-moj-button-menu--open {

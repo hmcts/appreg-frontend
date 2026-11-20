@@ -13,10 +13,6 @@
   align-items: baseline;
 }
 
-:host ::ng-deep .app-sortable-table__frame .moj-button-menu {
-  position: relative;
-}
-
 .table-caption__actions {
   display: flex;
   gap: 1rem;
@@ -27,4 +23,8 @@
 .table-caption__actions .moj-button-menu,
 .table-caption__action-button {
   margin-bottom: 1.75rem;
+}
+
+:host ::ng-deep .app-sortable-table__frame .moj-button-menu {
+  position: relative;
 }
