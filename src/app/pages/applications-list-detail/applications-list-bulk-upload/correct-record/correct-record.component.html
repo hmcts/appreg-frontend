@@ -1,0 +1,74 @@
+<button class="govuk-back-link" type="button" (click)="cancelEdit.emit()">
+  Back to upload errors
+</button>
+<h1 class="govuk-heading-l" id="correct-record-heading" tabindex="-1">
+  Correct record — CSV row {{ rowNumber() }}
+</h1>
+<p class="govuk-body">
+  Saving changes does not upload any applications. Return to the error list and
+  upload the corrected file to validate all records again.
+</p>
+<app-error-summary
+  [title]="
+    localErrors().length ? 'There is a problem' : 'Errors from the last upload'
+  "
+  [items]="localErrors().length ? localErrors() : errorItems()"
+  [focusKey]="submitAttempt()"
+/>
+<form (submit)="$event.preventDefault(); save()">
+  @for (field of fields(); track field.column) {
+    @if (field.messages.length) {
+      <div
+        class="govuk-form-group"
+        [class.govuk-form-group--error]="!draft().has(field.column)"
+      >
+        <label class="govuk-label" [for]="'csv-field-' + field.column">{{
+          field.label
+        }}</label>
+        <div class="govuk-hint" [id]="'csv-hint-' + field.column">
+          CSV column: {{ field.header }}
+        </div>
+        <p class="govuk-error-message" [id]="'csv-error-' + field.column">
+          <span class="govuk-visually-hidden">Error from the last upload:</span>
+          {{ field.messages.join(' ') }}
+        </p>
+        <textarea
+          class="govuk-textarea"
+          [class.govuk-textarea--error]="!draft().has(field.column)"
+          [id]="'csv-field-' + field.column"
+          [name]="'csv-field-' + field.column"
+          [attr.aria-describedby]="
+            'csv-hint-' + field.column + ' csv-error-' + field.column
+          "
+          [rows]="
+            field.header.startsWith('APPLICATION_TEXT') ||
+            field.value.includes('\n')
+              ? 3
+              : 1
+          "
+          [value]="value(field)"
+          (input)="change(field, $event)"
+        ></textarea>
+      </div>
+    } @else {
+      <dl class="govuk-summary-list">
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">{{ field.label }}</dt>
+          <dd class="govuk-summary-list__value">
+            {{ field.value || 'Not provided' }}
+          </dd>
+        </div>
+      </dl>
+    }
+  }
+  <div class="govuk-button-group">
+    <button type="submit" class="govuk-button">Save changes</button>
+    <button
+      type="button"
+      class="govuk-button govuk-button--secondary"
+      (click)="cancelEdit.emit()"
+    >
+      Cancel
+    </button>
+  </div>
+</form>

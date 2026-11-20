@@ -1,4 +1,4 @@
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -15,13 +15,20 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, take } from 'rxjs';
+import { Observable, firstValueFrom, take } from 'rxjs';
 
+import { CorrectRecordComponent } from './correct-record/correct-record.component';
 import {
   ApplicationsListBulkUploadState,
   BulkUploadFeedback,
   InitialBulkUploadState,
 } from './util/applications-list-bulk-upload.state';
+import { BulkUploadCorrections } from './util/bulk-upload-corrections';
+import {
+  MAX_UPLOAD_BYTES,
+  decodeUploadCsv,
+  parseUploadCsv,
+} from './util/bulk-upload-csv';
 
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -123,6 +130,7 @@ Functionality:
   selector: 'app-applications-list-bulk-upload',
   imports: [
     FormsModule,
+    CorrectRecordComponent,
     BreadcrumbsComponent,
     PageHeaderComponent,
     ErrorSummaryComponent,
@@ -133,6 +141,7 @@ Functionality:
     SortableTableComponent,
     PaginationComponent,
   ],
+  providers: [BulkUploadCorrections],
   templateUrl: './applications-list-bulk-upload.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './applications-list-bulk-upload.component.scss',
@@ -163,6 +172,26 @@ export class ApplicationsListBulkUpload implements OnInit {
   readonly pendingJobId = signal<string | null>(null);
   readonly replacementFileSelected = signal(false);
   isJobPolling = false;
+
+  readonly corrections = inject(BulkUploadCorrections);
+  readonly editingRow = signal<number | null>(null);
+  readonly editorDirty = signal(false);
+  readonly returningFromEditor = signal(false);
+  readonly isReadingFile = signal(false);
+  readonly correctionPage = signal(0);
+  readonly correctionNotice = signal('');
+  readonly correctionRows = computed(() =>
+    this.corrections
+      .records()
+      .slice(
+        this.correctionPage() * this.pageSize,
+        (this.correctionPage() + 1) * this.pageSize,
+      ),
+  );
+  readonly correctionPages = computed(() =>
+    Math.ceil(this.corrections.records().length / this.pageSize),
+  );
+  private fileSelectionVersion = 0;
 
   columns = BulkUploadErrorTableColumns;
 
@@ -310,6 +339,7 @@ export class ApplicationsListBulkUpload implements OnInit {
   ): BulkUploadFeedback | void {
     switch (job.state) {
       case 'succeeded':
+        this.corrections.reset();
         void this.router.navigate(['../'], {
           relativeTo: this.route,
           queryParams: { bulkUploadSuccess: 'true' },
@@ -361,6 +391,8 @@ export class ApplicationsListBulkUpload implements OnInit {
    * @returns Message to display above any parsed error rows.
    */
   private formatErrorDescriptionFromError(msg: string | null): string {
+    this.corrections.setErrors([]);
+    this.correctionPage.set(0);
     const formatMsg = trimToUndefined(msg);
 
     if (!formatMsg) {
@@ -383,6 +415,18 @@ export class ApplicationsListBulkUpload implements OnInit {
         return 'The bulk upload could not be completed. Contact support for more guidance';
       }
 
+      const actionable = errorsAsArrayObjects.filter(
+        (error): error is ErrorDescription =>
+          !!error &&
+          typeof error === 'object' &&
+          (error.errorType === 'DATA_ERROR' ||
+            error.errorType === 'HEADER_ERROR') &&
+          (error.location === null || typeof error.location === 'string') &&
+          (error.message === null || typeof error.message === 'string'),
+      );
+      if (actionable.length === errorsAsArrayObjects.length) {
+        this.corrections.setErrors(actionable);
+      }
       const rows: Row[] = errorsAsArrayObjects.map(
         ({
           errorType,
@@ -406,6 +450,7 @@ export class ApplicationsListBulkUpload implements OnInit {
 
       return 'The bulk upload could not be completed. See the table below for more details. Please re-try the upload once these errors have been resolved';
     } catch {
+      this.corrections.setErrors([]);
       this.errorRows.set([]);
       return (
         msg ??
@@ -448,65 +493,194 @@ export class ApplicationsListBulkUpload implements OnInit {
   }
 
   canLeave(): boolean | Observable<boolean> {
-    return this.navigationWarning()?.canLeave(this.hasPendingUpload()) ?? true;
+    return (
+      this.navigationWarning()?.canLeave(this.hasPendingWork()) ??
+      !this.hasPendingWork()
+    );
   }
 
   hasPendingUpload(): boolean {
     return this.vm().isUploadInProgress || !!this.pendingJobId();
   }
 
-  onFileSelected(event: Event): void {
-    if (!this.pendingJobId()) {
-      this.bulkUploadPatch({
-        fileUploadStatus: null,
-        bulkUploadFeedback: null,
-      });
-    }
-    this.replacementFileSelected.set(false);
-    const input = event.target as HTMLInputElement;
+  hasPendingWork(): boolean {
+    return (
+      this.hasPendingUpload() ||
+      this.corrections.hasChanges() ||
+      this.corrections.hasChangesSinceValidation() ||
+      this.editorDirty()
+    );
+  }
 
-    if (!input.files || input.files.length === 0) {
-      // no file selected
+  async onFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || this.hasPendingUpload() || this.isReadingFile()) {
+      input.value = '';
       return;
     }
-
-    const file = input.files[0];
-
-    // validate filename extension
-    const isCsvExtension = file.name.toLowerCase().endsWith('.csv');
-
-    // validate MIME type
+    if (
+      (this.corrections.hasChanges() ||
+        this.corrections.hasChangesSinceValidation()) &&
+      !(await this.confirmDiscard())
+    ) {
+      input.value = '';
+      return;
+    }
+    this.returningFromEditor.set(false);
+    const version = ++this.fileSelectionVersion;
+    this.corrections.reset();
+    this.correctionNotice.set('');
+    this.errorRows.set([]);
+    this.replacementFileSelected.set(false);
+    this.bulkUploadPatch({
+      file: null,
+      isValidCSV: false,
+      fileUploadStatus: null,
+      bulkUploadFeedback: null,
+    });
     const allowedMimes = new Set([
       'text/csv',
       'application/csv',
       'application/vnd.ms-excel',
       '',
     ]);
-    const isCsvMime = allowedMimes.has(file.type);
-
-    if (!isCsvExtension && !isCsvMime) {
-      this.bulkUploadPatch({ isValidCSV: false });
-      return;
-    }
-
-    this.bulkUploadPatch({ isValidCSV: true });
-
-    if (file) {
-      this.bulkUploadPatch({ file });
-      this.replacementFileSelected.set(true);
-    }
-  }
-
-  onSubmit(): void {
     if (
-      this.vm().isUploadInProgress ||
-      this.isJobPolling ||
-      (this.pendingJobId() && !this.replacementFileSelected())
+      !file.name.toLowerCase().endsWith('.csv') ||
+      !allowedMimes.has(file.type)
     ) {
       return;
     }
+    this.bulkUploadPatch({ file, isValidCSV: true });
+    this.replacementFileSelected.set(true);
+    if (file.size > MAX_UPLOAD_BYTES || !isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    this.isReadingFile.set(true);
+    try {
+      const csv = parseUploadCsv(decodeUploadCsv(await file.arrayBuffer()));
+      if (version === this.fileSelectionVersion && !this.destroyRef.destroyed) {
+        this.corrections.reset(csv);
+      }
+    } catch {
+      // Parsing here only enables remediation. The API still validates the upload.
+      if (version === this.fileSelectionVersion) {
+        this.correctionNotice.set(
+          'On-screen correction is not available for this file format. If validation fails, correct the source CSV and upload it again.',
+        );
+      }
+    } finally {
+      if (version === this.fileSelectionVersion) {
+        this.isReadingFile.set(false);
+      }
+    }
+  }
+
+  editRecord(rowNumber: number): void {
+    if (
+      this.hasPendingUpload() ||
+      !this.corrections
+        .records()
+        .some((row) => row.rowNumber === rowNumber && row.editable)
+    ) {
+      return;
+    }
+    this.editorDirty.set(false);
+    this.editingRow.set(rowNumber);
+  }
+
+  saveRecord(values: ReadonlyMap<number, string>): void {
+    const row = this.editingRow();
+    if (row === null) {
+      return;
+    }
+    this.corrections.save(row, values);
+    this.closeEditor(row);
+  }
+
+  async cancelEdit(): Promise<void> {
+    if (this.editorDirty() && !(await this.confirmDiscard())) {
+      return;
+    }
+    this.closeEditor(this.editingRow());
+  }
+
+  private closeEditor(row: number | null): void {
+    this.returningFromEditor.set(true);
+    this.editorDirty.set(false);
+    this.editingRow.set(null);
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() =>
+        this.document.getElementById(`edit-csv-row-${row}`)?.focus(),
+      );
+    }
+  }
+
+  private async confirmDiscard(): Promise<boolean> {
+    const decision = this.navigationWarning()?.canLeave(true) ?? false;
+    return typeof decision === 'boolean' ? decision : firstValueFrom(decision);
+  }
+
+  downloadCorrectedFile(): void {
+    const file = this.corrections.file();
+    if (file) {
+      saveCsvFile(
+        new HttpResponse({ body: file }),
+        'corrected-bulk-upload.csv',
+        this.document,
+        this.platformId,
+      );
+    }
+  }
+
+  uploadCorrectedFile(): void {
+    if (
+      this.hasPendingUpload() ||
+      this.isReadingFile() ||
+      !this.corrections.hasChangesSinceValidation()
+    ) {
+      return;
+    }
+    const file = this.corrections.file();
+    if (!file) {
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      this.bulkUploadPatch({
+        fileUploadStatus: 'error',
+        errorSummary: [
+          {
+            text: 'The corrected file exceeds 5 MB. Download it and split it into smaller files.',
+          },
+        ],
+      });
+      this.submitAttempt.update((attempt) => attempt + 1);
+      return;
+    }
+    this.bulkUploadPatch({ file, isValidCSV: true });
+    this.onSubmit(true);
+  }
+
+  onSubmit(corrected = false): void {
+    if (
+      !corrected &&
+      (this.corrections.hasChanges() ||
+        this.corrections.hasChangesSinceValidation())
+    ) {
+      return;
+    }
+    if (
+      this.vm().isUploadInProgress ||
+      this.isJobPolling ||
+      this.isReadingFile() ||
+      !!this.pendingJobId()
+    ) {
+      return;
+    }
+    this.returningFromEditor.set(false);
     this.submitAttempt.update((attempt) => attempt + 1);
     this.errorRows.set([]);
+    this.corrections.errors.set([]);
     this.bulkUploadPatch({
       isUploadInProgress: true,
       bulkUploadFeedback: null,
