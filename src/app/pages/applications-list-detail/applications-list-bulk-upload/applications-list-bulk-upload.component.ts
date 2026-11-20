@@ -472,7 +472,7 @@ export class ApplicationsListBulkUpload implements OnInit {
     }
 
     const file = input.files[0];
-    this.selectedFileName.set(file?.name ?? null);
+    this.selectedFileName.set(file.name);
     // validate filename extension
     const isCsvExtension = file.name.toLowerCase().endsWith('.csv');
 
