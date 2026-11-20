@@ -194,6 +194,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
   readonly submitAttempt = signal(0);
+  readonly feeAdditionStatus = signal('');
 
   respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
   personTitleOptions = PERSON_TITLE_OPTIONS;
@@ -726,7 +727,15 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
-    updateFeeStatusesControl(this.form.controls.feeStatuses, payload);
+    const { next, changed } = updateFeeStatusesControl(
+      this.form.controls.feeStatuses,
+      payload,
+    );
+    if (changed) {
+      this.feeAdditionStatus.set(
+        `Fee details added. ${next.length} ${next.length === 1 ? 'fee status' : 'fee statuses'} in the table. Changes will be saved when you create the entry.`,
+      );
+    }
   }
 
   onCivilFeeSubmitAttempt(): void {

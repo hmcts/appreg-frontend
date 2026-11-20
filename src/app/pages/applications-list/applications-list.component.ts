@@ -118,6 +118,7 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
   styleUrl: './applications-list.component.scss',
 })
 export class ApplicationsList extends PlaceFieldsBase implements OnInit {
+  readonly searchStatus = signal('');
   // APIs
   private readonly platformId = inject(PLATFORM_ID);
   private readonly appListsApi = inject(ApplicationListsApi);
@@ -230,6 +231,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   clearSearch(): void {
+    this.searchStatus.set('');
     this.appListSignalState.patch(clearNotificationsPatch());
     this.appListSignalState.patch({ isSearch: false, appliedFilters: {} });
     this.storedRecordsState.patch({ submitted: false, rows: [] });
@@ -263,6 +265,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           }),
         onSuccess: (page) => {
           const content: ApplicationListGetSummaryDto[] = page.content ?? [];
+          const count = page.totalElements ?? content.length;
+          this.searchStatus.set(
+            count === 0
+              ? 'No results found.'
+              : `${count} ${count === 1 ? 'result' : 'results'} found.`,
+          );
           this.appListSignalState.patch({
             searchErrors: [],
             isLoading: false,
@@ -276,6 +284,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           this.disableSearchButton.set(false);
         },
         onError: (err) => {
+          this.searchStatus.set('');
           const msg = getProblemText(err);
           this.appListSignalState.patch({
             isLoading: false,
@@ -643,6 +652,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       filter,
     };
 
+    this.searchStatus.set('Searching…');
     this.appListSignalState.patch({ isLoading: true });
     this.loadRequest.set(params);
   }

@@ -507,6 +507,7 @@ describe('ApplicationsComponent', () => {
     component.form.patchValue({ applicantOrg: RESTORED_APPLICANT_ORG });
 
     component.loadApplications();
+    expect(component.searchStatus()).toBe('21 results found.');
 
     const freshFixture = TestBed.createComponent(Applications);
     const freshComponent = freshFixture.componentInstance;
@@ -680,6 +681,28 @@ describe('ApplicationsComponent', () => {
       expect(button.disabled).toBe(false);
     });
 
+    it('updates the persistent status for repeated searches returning the same count', () => {
+      const response = new Subject<EntryPage>();
+      getEntriesMock.mockReturnValue(response);
+      fixture.detectChanges();
+      const status = fixture.nativeElement.querySelector('[role="status"]');
+      for (let attempt = 0; attempt < 2; attempt++) {
+        component.loadApplications();
+        fixture.detectChanges();
+        expect(status.textContent).toContain('Searching');
+        response.next({
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+        } as EntryPage);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('[role="status"]')).toBe(
+          status,
+        );
+        expect(status.textContent).toContain('No results found.');
+      }
+    });
+
     it('keeps Search disabled until the entries request succeeds', () => {
       const response = new Subject<HttpResponse<EntryPage>>();
       getEntriesMock.mockReturnValue(response);
@@ -714,6 +737,7 @@ describe('ApplicationsComponent', () => {
       response.error(new Error('Search failed'));
 
       expect(component.vm().isLoading).toBe(false);
+      expect(component.searchStatus()).toBe('');
     });
 
     it('when submitted with no params: sets invalid search criteria error and does not call API', () => {

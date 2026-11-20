@@ -7,6 +7,7 @@ import {
   PLATFORM_ID,
   ViewChild,
   afterEveryRender,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -280,6 +281,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
   readonly submitAttempt = signal(0);
+  readonly feeSaveStatus = signal('');
+  readonly isFeeSaveBanner = computed(
+    () => this.vm().successBanner === ENTRY_SUCCESS_MESSAGES.feeStatusUpdated,
+  );
   readonly savedApplicationCodeLoaded = signal(false);
 
   resultAppliedBannerVisible = signal(false);
@@ -984,6 +989,7 @@ export class ApplicationsListEntryDetail implements OnInit {
    */
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
+    this.feeSaveStatus.set('');
     if (this.blockSaveWithoutApplicationCode()) {
       return;
     }
@@ -1069,7 +1075,11 @@ export class ApplicationsListEntryDetail implements OnInit {
         this.appListEntryDetailPatch({
           successBanner: bannerText,
         });
-        focusSuccessBanner(this.platformId);
+        if (bannerText === ENTRY_SUCCESS_MESSAGES.feeStatusUpdated) {
+          this.feeSaveStatus.set('Fee details saved.');
+        } else {
+          focusSuccessBanner(this.platformId);
+        }
       },
       error: (err) => {
         this.form.controls.feeStatuses.setValue(previousFeeStatuses, {

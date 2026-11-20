@@ -30,6 +30,7 @@ export type BannerSegment =
 })
 export class SuccessBannerComponent implements AfterViewInit {
   heading = input('Done');
+  bannerRole = input<'alert' | 'region'>('alert');
   body = input('');
   linkText = input<string | undefined>(undefined);
   linkHref = input<string | undefined>(undefined);
