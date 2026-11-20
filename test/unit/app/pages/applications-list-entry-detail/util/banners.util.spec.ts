@@ -25,14 +25,17 @@ describe('focusSuccessBanner', () => {
 
   it('focuses and scrolls the success banner on the browser platform', () => {
     jest.useFakeTimers();
-    const banner = document.createElement('app-success-banner');
+    const host = document.createElement('app-success-banner');
+    const banner = document.createElement('div');
+    banner.tabIndex = -1;
+    host.appendChild(banner);
     const focusSpy = jest.spyOn(banner, 'focus');
     const scrollIntoView = jest.fn<
       void,
       Parameters<HTMLElement['scrollIntoView']>
     >();
     banner.scrollIntoView = scrollIntoView;
-    document.body.appendChild(banner);
+    document.body.appendChild(host);
 
     focusSuccessBanner(BROWSER_PLATFORM_ID);
     expect(focusSpy).not.toHaveBeenCalled();
@@ -40,6 +43,7 @@ describe('focusSuccessBanner', () => {
     jest.runOnlyPendingTimers();
 
     expect(focusSpy).toHaveBeenCalledTimes(1);
+    expect(document.activeElement).toBe(banner);
     expect(scrollIntoView).toHaveBeenCalledWith({
       behavior: 'smooth',
       block: 'start',

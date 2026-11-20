@@ -84,6 +84,42 @@ describe('CivilFeeSectionComponent', () => {
     fixture.detectChanges();
   });
 
+  it('keeps the addition announcement outside the table as fee rows appear', () => {
+    fixture.componentRef.setInput('feeAdditionStatus', '');
+    fixture.detectChanges();
+    const status: HTMLElement =
+      fixture.nativeElement.querySelector('[role="status"]');
+    expect(status).not.toBeNull();
+    expect(status.closest('table')).toBeNull();
+    expect(status.getAttribute('aria-live')).toBe('polite');
+    expect(status.getAttribute('aria-atomic')).toBe('true');
+    expect(fixture.nativeElement.querySelector('table')).toBeNull();
+    component
+      .feeForm()
+      .controls.feeStatuses.setValue([
+        { paymentStatus: 'P' as PaymentStatus, statusDate: '2026-01-10' },
+      ]);
+    fixture.componentRef.setInput(
+      'feeAdditionStatus',
+      'Fee details added. 1 fee status in the table.',
+    );
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('table')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[role="status"]')).toBe(status);
+    expect(status.textContent).toContain('1 fee status');
+    fixture.componentRef.setInput(
+      'feeAdditionStatus',
+      'Fee details added. 2 fee statuses in the table.',
+    );
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="status"]')).toBe(status);
+    expect(status.textContent).toContain('2 fee statuses');
+  });
+
+  it('does not render a local addition announcement for saved fee updates', () => {
+    expect(fixture.nativeElement.querySelector('[role="status"]')).toBeNull();
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
     expect(component.entryId).toBe('EN-1');

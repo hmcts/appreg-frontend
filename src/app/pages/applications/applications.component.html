@@ -7,11 +7,16 @@
 } @else {
   @if (vm().isSearch && !vm().isLoading && !vm().rows.length) {
     <app-notification-banner
+      [autoFocus]="false"
       heading="No application list entries found"
       body="Try different filters"
     />
   }
 }
+
+<p class="govuk-visually-hidden" role="status" aria-atomic="true">
+  {{ searchStatus() }}
+</p>
 
 <h1 class="govuk-heading-xl">Applications</h1>
 
