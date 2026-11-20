@@ -344,6 +344,97 @@ describe('ErrorMessageService', () => {
       );
     });
 
+    describe('AI endpoints', () => {
+      const aiEndpoints = [
+        '/ai/capabilities',
+        '/application-list-entries/search-interpretations',
+        '/application-codes/suggestions',
+      ];
+      const pageStatuses = [0, 400, 403, 404, 422, 429, 500, 502, 503, 504];
+
+      it.each(
+        aiEndpoints.flatMap((endpoint) =>
+          pageStatuses.map((status) => [status, endpoint] as const),
+        ),
+      )('keeps a %i from %s on the page', (status, endpoint) => {
+        const err = makeErr({ status, url: `https://local${endpoint}` });
+
+        svc.handleErrorMessage(err);
+
+        expect(router.navigateByUrl).not.toHaveBeenCalled();
+        expect(svc.errorMessage()?.status).toBe(status);
+      });
+
+      it.each(aiEndpoints)(
+        'keeps errors from %s on the page when the url is relative',
+        (endpoint) => {
+          const err = makeErr({ status: 503, url: endpoint });
+
+          svc.handleErrorMessage(err);
+
+          expect(router.navigateByUrl).not.toHaveBeenCalled();
+        },
+      );
+
+      it.each([
+        '/ai',
+        '/ai/capabilities/extra',
+        '/application-list-entries',
+        '/application-list-entries/search-interpretations/extra',
+        '/application-list-entries/search-interpretations-preview',
+        '/api/ai/capabilities',
+      ])('still navigates to /internal-error for a 500 from %s', (path) => {
+        const err = makeErr({ status: 500, url: `https://local${path}` });
+
+        svc.handleErrorMessage(err);
+
+        expect(router.navigateByUrl).toHaveBeenCalledWith('/internal-error');
+      });
+
+      // Existing /application-codes rules already keep 400, 403, 404, 500 and
+      // 504 on the page for some of these paths, so only the statuses the
+      // suggestions rule adds show that its regex matches the exact path only.
+      const suggestionsOnlyStatuses = [0, 422, 429, 502, 503];
+      const applicationCodesNeighbours = [
+        '/application-codes',
+        '/application-codes/ABC123',
+        '/application-codes/suggestionsX',
+        '/application-codes/suggestions/extra',
+      ];
+
+      it.each(
+        applicationCodesNeighbours.flatMap((path) =>
+          suggestionsOnlyStatuses.map((status) => [status, path] as const),
+        ),
+      )(
+        'still navigates to /internal-error for a %i from %s',
+        (status, path) => {
+          const err = makeErr({ status, url: `https://local${path}` });
+
+          svc.handleErrorMessage(err);
+
+          expect(router.navigateByUrl).toHaveBeenCalledWith('/internal-error');
+        },
+      );
+
+      it.each([
+        [403, '/forbidden'],
+        [404, '/page-not-found'],
+      ])(
+        'still navigates for a %i from an endpoint next to the AI endpoints',
+        (status, route) => {
+          const err = makeErr({
+            status,
+            url: 'https://local/application-list-entries',
+          });
+
+          svc.handleErrorMessage(err);
+
+          expect(router.navigateByUrl).toHaveBeenCalledWith(route);
+        },
+      );
+    });
+
     it('handles invalid url strings safely for endpoint matching (fallback pathname parsing)', () => {
       const err = makeErr({
         status: 400,
