@@ -1,3 +1,23 @@
+<app-help-details summary="Help with respondent details">
+  <p class="govuk-body">
+    Enter respondent details for person, organisation or number of bulk
+    respondents (if allowed by the application code). This section is usually
+    optional but can be required by the application code.
+  </p>
+
+  <p class="govuk-body">
+    If respondent details are required, person respondent required fields are
+    first name, surname & address line 1. For organisation respondent, the
+    required fields are name & address line 1.
+  </p>
+
+  <p class="govuk-body">
+    Bulk respondent type can only be selected if the application code allows for
+    bulk respondents. If it is not allowed, you will not see an option for this
+    type.
+  </p>
+</app-help-details>
+
 <div class="govuk-grid-row" [formGroup]="form()">
   <app-select-input
     formControlName="respondentEntryType"
