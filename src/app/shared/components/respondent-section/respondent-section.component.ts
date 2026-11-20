@@ -8,6 +8,7 @@ import {
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '@components/person-section/person-section.component';
 import { RespondentBulkApplicationComponent } from '@components/respondent-bulk-application/respondent-bulk-application.component';
@@ -50,6 +51,7 @@ type Option<T extends string> = { value: T; label: string };
     PersonSectionComponent,
     OrganisationSectionComponent,
     RespondentBulkApplicationComponent,
+    HelpDetailsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './respondent-section.component.html',
