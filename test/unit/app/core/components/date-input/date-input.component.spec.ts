@@ -38,6 +38,29 @@ describe('DateInputComponent', () => {
     expect(component.dateForm.value).toEqual({ day: '', month: '', year: '' });
   });
 
+  it.each(['Date', 'Date of birth', 'List date from'])(
+    'labels the date fieldset "%s" without adding a heading',
+    (label) => {
+      fixture.componentRef.setInput('label', label);
+      fixture.detectChanges();
+
+      expect(element('fieldset > legend').textContent?.trim()).toBe(label);
+      expect(
+        element('fieldset > legend').querySelector(
+          'h1, h2, h3, h4, h5, h6, [role="heading"]',
+        ),
+      ).toBeNull();
+      for (const field of ['day', 'month', 'year']) {
+        expect(element(`label[for="date-${field}"]`).textContent?.trim()).toBe(
+          field[0].toUpperCase() + field.slice(1),
+        );
+      }
+      expect(element('fieldset').getAttribute('aria-describedby')).toContain(
+        'date-hint',
+      );
+    },
+  );
+
   it.each(['day', 'month', 'year'] as const)(
     'only presents %s errors after submission, even after typing and blur',
     (field) => {
