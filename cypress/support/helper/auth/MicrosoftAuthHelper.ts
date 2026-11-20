@@ -7,8 +7,6 @@ import { NavigationPage } from '../../pageobjects/pageelements/NavigationPage';
 
 export class MicrosoftAuthHelper {
   static performLogin(email: string, password: string): void {
-    cy.screenshot('03-Microsoft-Login-Page');
-
     cy.origin(
       'https://login.microsoftonline.com',
       { args: { email, password } },
@@ -123,6 +121,10 @@ export class MicrosoftAuthHelper {
             });
         };
 
+        // Wait in the Microsoft origin before capturing the page during SSO navigation.
+        getVisible(emailSel).should('be.visible');
+        cy.screenshot('03-Microsoft-Login-Page');
+
         // Enter email
         cy.log('Entering email...');
         typeExact(emailSel, innerEmail, 'email');
@@ -141,6 +143,11 @@ export class MicrosoftAuthHelper {
     cy.location('hostname', {
       timeout: TIMEOUT_CONSTANTS.LONG_TIMEOUT,
     }).should('not.include', AUTH_CONSTANTS.MICROSOFT_LOGIN_DOMAIN);
+    cy.url({ timeout: TIMEOUT_CONSTANTS.LONG_TIMEOUT }).should(
+      'include',
+      '/applications-list',
+    );
+    NavigationPage.signOutLink().should('be.visible');
     cy.screenshot('04-After-Microsoft-Auth');
   }
 

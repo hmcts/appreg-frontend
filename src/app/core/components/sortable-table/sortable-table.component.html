@@ -1,4 +1,5 @@
 @if (data() && data().length) {
+  <ng-content select="[tableActions]"></ng-content>
   <div
     class="app-sortable-table__frame"
     [class.app-sortable-table__frame--loading]="loading()"
