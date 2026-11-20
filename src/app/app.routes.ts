@@ -206,7 +206,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-officials/confirm',
-        title: 'Update officials - HMCTS Applications register - GOV.UK',
+        title:
+          'Check officials before updating - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -226,7 +227,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/move/confirm',
-        title: 'Move applications - HMCTS Applications register - GOV.UK',
+        title:
+          'Move applications confirmation - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -246,7 +248,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-update-fee/confirm',
-        title: 'Update fee details - HMCTS Applications register - GOV.UK',
+        title:
+          'Update fee details confirmation - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -256,7 +259,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-update-fee/change-payment-reference',
-        title: 'Update fee details - HMCTS Applications register - GOV.UK',
+        title:
+          'Change payment reference - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
