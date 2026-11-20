@@ -2,6 +2,7 @@ import type { Server } from 'node:http';
 
 import { Browser, Page, launch } from 'puppeteer';
 
+import { fixtures } from './a11y.fixtures';
 import { startStaticSpaServer } from './a11y.server';
 
 describe('Date legends and navigation focus in a browser', () => {
@@ -30,7 +31,7 @@ describe('Date legends and navigation focus in a browser', () => {
       if (['fetch', 'xhr'].includes(request.resourceType())) {
         void request.respond({
           contentType: 'application/json',
-          body: new URL(request.url()).pathname === '/app/config' ? '{}' : '[]',
+          body: JSON.stringify(fixtures[new URL(request.url()).pathname] ?? {}),
         });
       } else {
         void request.continue();
@@ -93,6 +94,9 @@ describe('Date legends and navigation focus in a browser', () => {
     const signOut = 'form[action="/sso/logout"] button';
     const reports = 'a[routerlink="/reports"]';
     await page.waitForSelector(signOut, { visible: true });
+    // Finish startup requests before testing keyboard focus.
+    await page.waitForNetworkIdle();
+    expect(await page.$('[data-component="error-summary"]')).toBeNull();
     const background = await page.$eval(
       signOut,
       (button) => getComputedStyle(button).backgroundColor,
@@ -113,8 +117,11 @@ describe('Date legends and navigation focus in a browser', () => {
     const expected = await focusStyles(reports);
     await page.keyboard.press('Tab');
     expect(
-      await page.$eval(signOut, (button) => button === document.activeElement),
-    ).toBe(true);
+      await page.$eval(signOut, (button) => ({
+        signOutFocused: button === document.activeElement,
+        activeElement: document.activeElement?.outerHTML,
+      })),
+    ).toEqual(expect.objectContaining({ signOutFocused: true }));
     expect(expected.background).toBe('rgb(255, 221, 0)');
     expect(expected.boxShadow).not.toBe('none');
     expect(await focusStyles(signOut)).toEqual(expected);
