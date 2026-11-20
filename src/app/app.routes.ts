@@ -10,14 +10,17 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    title: 'Home - HMCTS Applications register - GOV.UK',
     component: HomeComponent,
   },
   {
     path: 'login',
+    title: 'Sign in - HMCTS Applications register - GOV.UK',
     component: Login,
   },
   {
     path: 'forbidden',
+    title: 'Forbidden - HMCTS Applications register - GOV.UK',
     loadComponent: () =>
       import('@components/global-error/forbidden/forbidden.component').then(
         (m) => m.ForbiddenComponent,
@@ -25,6 +28,7 @@ export const routes: Routes = [
   },
   {
     path: 'internal-error',
+    title: 'Internal error - HMCTS Applications register - GOV.UK',
     loadComponent: () =>
       import('@components/global-error/internal-error/internal-error.component').then(
         (m) => m.InternalErrorComponent,
@@ -32,6 +36,7 @@ export const routes: Routes = [
   },
   {
     path: 'page-not-found',
+    title: 'Page not found - HMCTS Applications register - GOV.UK',
     loadComponent: () =>
       import('@components/global-error/not-found/not-found.component').then(
         (m) => m.NotFoundComponent,
@@ -44,6 +49,7 @@ export const routes: Routes = [
       {
         path: '',
         data: { preload: true },
+        title: 'Applications list - HMCTS Applications register - GOV.UK',
         loadComponent: () =>
           import('@components/applications-list/applications-list.component').then(
             (m) => m.ApplicationsList,
@@ -51,6 +57,8 @@ export const routes: Routes = [
       },
       {
         path: 'create',
+        title:
+          'Create new applications list - HMCTS Applications register - GOV.UK',
         loadComponent: () =>
           import('@components/applications-list/applications-list-create/applications-list-create.component').then(
             (m) => m.ApplicationsListCreate,
@@ -67,6 +75,8 @@ export const routes: Routes = [
       },
       {
         path: ':id',
+        title:
+          'Applications list details - HMCTS Applications register - GOV.UK',
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-detail.component').then(
@@ -75,6 +85,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/delete',
+        title:
+          'Applications list delete - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -84,6 +96,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/close',
+        title: 'Applications list close - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -93,6 +106,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/create-entry',
+        title: 'Create new entry - HMCTS Applications register - GOV.UK',
         canDeactivate: [canLeavePageGuard],
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
@@ -103,6 +117,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-entry/:entryId',
+        title:
+          'Applications list entry update - HMCTS Applications register - GOV.UK',
         canDeactivate: [canLeavePageGuard],
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
@@ -113,6 +129,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/:entryId/delete',
+        title:
+          'Applications list entry delete - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -122,6 +140,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/create-entry/change-payment-reference',
+        title:
+          'Entry change payment reference - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         canDeactivate: [canLeavePageGuard],
@@ -132,6 +152,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-entry/:entryId/change-payment-reference',
+        title:
+          'Entry change payment reference - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         canDeactivate: [canLeavePageGuard],
@@ -142,6 +164,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-upload',
+        title:
+          'Bulk upload applications - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         canDeactivate: [canLeavePageGuard],
@@ -152,6 +176,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/result-selected',
+        title: 'Result applications - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -161,6 +186,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-officials',
+        title: 'Update officials - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -170,6 +196,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-notes/:entryId',
+        title:
+          'Update application notes - HMCTS Applications register - GOV.UK',
         canActivate: [applicationListGuard],
         loadComponent: () =>
           import('@components/applications/update-notes/update-notes.component').then(
@@ -178,6 +206,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/update-officials/confirm',
+        title:
+          'Check officials before updating - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -187,6 +217,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/move',
+        title: 'Move applications - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -196,6 +227,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/move/confirm',
+        title:
+          'Move applications confirmation - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -205,6 +238,7 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-update-fee',
+        title: 'Update fee details - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -214,6 +248,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-update-fee/confirm',
+        title:
+          'Update fee details confirmation - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -223,6 +259,8 @@ export const routes: Routes = [
       },
       {
         path: ':id/bulk-update-fee/change-payment-reference',
+        title:
+          'Change payment reference - HMCTS Applications register - GOV.UK',
         data: { requiresOpenList: true },
         canActivate: [applicationListGuard],
         loadComponent: () =>
@@ -234,6 +272,7 @@ export const routes: Routes = [
   },
   {
     path: 'applications/result-selected',
+    title: 'Result applications - HMCTS Applications register - GOV.UK',
     loadComponent: () =>
       import('@components/applications/applications-result-selected/applications-result-selected.component').then(
         (m) => m.ApplicationsResultSelectedComponent,
@@ -242,6 +281,7 @@ export const routes: Routes = [
   },
   {
     path: 'applications',
+    title: 'Applications - HMCTS Applications register - GOV.UK',
     loadComponent: () =>
       import('@components/applications/applications.component').then(
         (m) => m.Applications,
@@ -254,6 +294,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
+        title: 'Standard applicants - HMCTS Applications register - GOV.UK',
         loadComponent: () =>
           import('@components/standard-applicants/standard-applicants.component').then(
             (m) => m.StandardApplicants,
@@ -261,6 +302,8 @@ export const routes: Routes = [
       },
       {
         path: ':id',
+        title:
+          'Standard applicants details - HMCTS Applications register - GOV.UK',
         loadComponent: () =>
           import('@components/standard-applicants/standard-applicants-view/standard-applicants-view.component').then(
             (m) => m.StandardApplicantsViewComponent,
@@ -270,6 +313,7 @@ export const routes: Routes = [
   },
   {
     path: 'reports',
+    title: 'Reports - HMCTS Applications register - GOV.UK',
     canDeactivate: [canLeavePageGuard],
     loadComponent: () =>
       import('@components/reports/reports.component').then((m) => m.Reports),
