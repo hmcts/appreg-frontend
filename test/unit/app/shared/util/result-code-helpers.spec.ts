@@ -14,6 +14,7 @@ import {
   formatResultCodeLabel,
   getAllResultCodes,
   getEntryResults$,
+  loadAllResultCodes$,
   mapPreviousResults,
   toExistingRows,
 } from '@util/result-code-helpers';
@@ -40,8 +41,139 @@ function makeResult(overrides: Partial<ResultGetDto>): ResultGetDto {
 function makeResultsPage(overrides: Partial<ResultPage>): ResultPage {
   return { content: [], ...overrides } as unknown as ResultPage;
 }
+function makeNumberedCodesApi(lastPage: number, perPage = 2) {
+  const getResultCodes = jest.fn(
+    ({ pageNumber = 0 }: { pageNumber?: number }) =>
+      of(
+        makeCodesPage({
+          pageNumber,
+          last: pageNumber === lastPage,
+          content: Array.from({ length: perPage }, (_, index) =>
+            makeCode({
+              resultCode: `RC${pageNumber * perPage + index}`,
+              title: `Result ${pageNumber * perPage + index}`,
+            }),
+          ),
+        }),
+      ) as unknown,
+  );
+  return {
+    getResultCodes,
+    codesApi: { getResultCodes } as unknown as ResultCodesApi,
+  };
+}
 
 describe('result-code helpers', () => {
+  describe('loadAllResultCodes$', () => {
+    it('requests pages in order until the last page and emits every code once', async () => {
+      const { codesApi, getResultCodes } = makeNumberedCodesApi(2);
+
+      const codes = await firstValueFrom(loadAllResultCodes$(codesApi, 2));
+
+      expect(getResultCodes.mock.calls).toEqual(
+        [0, 1, 2].map((pageNumber) => [{ pageNumber, pageSize: 2 }]),
+      );
+      expect(codes.map((code) => code.resultCode)).toEqual([
+        'RC0',
+        'RC1',
+        'RC2',
+        'RC3',
+        'RC4',
+        'RC5',
+      ]);
+    });
+
+    it('uses a page size of 100 by default', async () => {
+      const { codesApi, getResultCodes } = makeNumberedCodesApi(0);
+
+      await firstValueFrom(loadAllResultCodes$(codesApi));
+
+      expect(getResultCodes).toHaveBeenCalledWith({
+        pageNumber: 0,
+        pageSize: 100,
+      });
+    });
+
+    it('makes one request when the response has no last flag and the server ignores pageNumber', async () => {
+      const page = makeCodesPage({
+        pageNumber: 0,
+        pageSize: 10,
+        totalPages: 5,
+        content: [
+          makeCode({ resultCode: 'RC1', title: 'One' }),
+          makeCode({ resultCode: 'RC2', title: 'Two' }),
+        ],
+      });
+      const getResultCodes = jest.fn(() => of(page) as unknown);
+      const codesApi = { getResultCodes } as unknown as ResultCodesApi;
+
+      const codes = await firstValueFrom(loadAllResultCodes$(codesApi));
+
+      expect(getResultCodes).toHaveBeenCalledTimes(1);
+      expect(codes).toEqual(page.content);
+    });
+
+    it('counts pages itself and stops at totalPages when the server ignores pageNumber', async () => {
+      const page = makeCodesPage({
+        pageNumber: 0,
+        totalPages: 3,
+        last: false,
+        content: [makeCode({ resultCode: 'RC1', title: 'One' })],
+      });
+      const getResultCodes = jest.fn(() => of(page) as unknown);
+      const codesApi = { getResultCodes } as unknown as ResultCodesApi;
+
+      const codes = await firstValueFrom(loadAllResultCodes$(codesApi, 1));
+
+      expect(getResultCodes.mock.calls).toEqual(
+        [0, 1, 2].map((pageNumber) => [{ pageNumber, pageSize: 1 }]),
+      );
+      expect(codes).toHaveLength(3);
+    });
+
+    it('stops at an empty page even when last is false', async () => {
+      const getResultCodes = jest.fn(
+        ({ pageNumber = 0 }: { pageNumber?: number }) =>
+          of(
+            makeCodesPage({
+              pageNumber,
+              last: false,
+              content:
+                pageNumber === 0
+                  ? [makeCode({ resultCode: 'RC1', title: 'One' })]
+                  : [],
+            }),
+          ) as unknown,
+      );
+      const codesApi = { getResultCodes } as unknown as ResultCodesApi;
+
+      const codes = await firstValueFrom(loadAllResultCodes$(codesApi));
+
+      expect(getResultCodes).toHaveBeenCalledTimes(2);
+      expect(codes).toEqual([makeCode({ resultCode: 'RC1', title: 'One' })]);
+    });
+
+    it('passes on an error from a later page', async () => {
+      const getResultCodes = jest.fn(
+        ({ pageNumber = 0 }: { pageNumber?: number }) =>
+          (pageNumber === 0
+            ? of(
+                makeCodesPage({
+                  pageNumber: 0,
+                  last: false,
+                  content: [makeCode({ resultCode: 'RC1', title: 'One' })],
+                }),
+              )
+            : throwError(() => new Error('page failed'))) as unknown,
+      );
+      const codesApi = { getResultCodes } as unknown as ResultCodesApi;
+
+      await expect(
+        firstValueFrom(loadAllResultCodes$(codesApi)),
+      ).rejects.toThrow('page failed');
+    });
+  });
+
   describe('getAllResultCodes', () => {
     it('returns content when API succeeds', () => {
       const page = makeCodesPage({
@@ -58,11 +190,27 @@ describe('result-code helpers', () => {
         getAllResultCodes(codesApi),
       );
 
+      expect(getResultCodesMock).toHaveBeenCalledTimes(1);
       expect(getResultCodesMock).toHaveBeenCalledWith({
         pageNumber: 0,
         pageSize: 100,
       });
       expect(sig()).toEqual(page.content);
+    });
+
+    it('returns codes from every page, not just the first 100', () => {
+      const { codesApi, getResultCodes } = makeNumberedCodesApi(1, 100);
+
+      const sig = TestBed.runInInjectionContext(() =>
+        getAllResultCodes(codesApi),
+      );
+
+      expect(getResultCodes.mock.calls).toEqual([
+        [{ pageNumber: 0, pageSize: 100 }],
+        [{ pageNumber: 1, pageSize: 100 }],
+      ]);
+      expect(sig()).toHaveLength(200);
+      expect(sig()[199]).toEqual({ resultCode: 'RC199', title: 'Result 199' });
     });
 
     const boomError = new Error('boom');
@@ -79,6 +227,31 @@ describe('result-code helpers', () => {
         getAllResultCodes(codesApi),
       );
 
+      expect(sig()).toEqual([]);
+    });
+
+    it('returns [] when a later page errors', () => {
+      const getResultCodesMock = jest.fn(
+        ({ pageNumber = 0 }: { pageNumber?: number }) =>
+          (pageNumber === 0
+            ? of(
+                makeCodesPage({
+                  pageNumber: 0,
+                  last: false,
+                  content: [makeCode({ resultCode: 'RC1', title: 'One' })],
+                }),
+              )
+            : throwError(() => boomError)) as unknown,
+      );
+      const codesApi = {
+        getResultCodes: getResultCodesMock,
+      } as unknown as ResultCodesApi;
+
+      const sig = TestBed.runInInjectionContext(() =>
+        getAllResultCodes(codesApi),
+      );
+
+      expect(getResultCodesMock).toHaveBeenCalledTimes(2);
       expect(sig()).toEqual([]);
     });
 
