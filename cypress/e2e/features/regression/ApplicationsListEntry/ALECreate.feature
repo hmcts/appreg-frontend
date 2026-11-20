@@ -159,17 +159,17 @@ Feature: Applications List Entry Create
                   | Select type      | Person                             |
                   | Select title     | Dr                                 |
                   | First name       | John                               |
-                  | Middle name(s)   | Michael                            |
+                  | Middle name(s) (optional)   | Michael                            |
                   | Surname          | Smith {SCENARIO_ID}                |
-                  | Address line 1   | {SCENARIO_ID} High Street          |
-                  | Address line 2   | Apartment 4B                       |
-                  | Town or city     | Leeds                              |
-                  | County or region | West Yorkshire                     |
-                  | Post town        | Leeds                              |
-                  | Postcode         | LS10 1PJ                           |
-                  | Phone number     | 01632960001                        |
-                  | Mobile number    | 07700900001                        |
-                  | Email address    | applicant{SCENARIO_ID}@example.com |
+                  | Address line 1 (optional)   | {SCENARIO_ID} High Street          |
+                  | Address line 2 (optional)   | Apartment 4B                       |
+                  | Town or city (optional)     | Leeds                              |
+                  | County or region (optional) | West Yorkshire                     |
+                  | Post town (optional)        | Leeds                              |
+                  | Postcode (optional)         | LS10 1PJ                           |
+                  | Phone number (optional)     | 01632960001                        |
+                  | Mobile number (optional)    | 07700900001                        |
+                  | Email address (optional)    | applicant{SCENARIO_ID}@example.com |
 
             # Verify Application Codes Details
             Then User Verifies The Textbox "Application code" Contains "MX99006" In The Accordion "Application codes"
@@ -184,18 +184,18 @@ Feature: Applications List Entry Create
                   | Select type      | Person                              |
                   | Select title     | Mrs                                 |
                   | First name       | Jane                                |
-                  | Middle name(s)   | Elizabeth                           |
-                  | Surname          | Doe {SCENARIO_ID}                   |
-                  | Date of birth    | today-30y                           |
+                  | Middle name(s) (optional)   | Elizabeth                           |
+                  | Surname (optional)         | Doe {SCENARIO_ID}                   |
+                  | Date of birth (optional)    | today-30y                           |
                   | Address line 1   | {SCENARIO_ID} Park Road             |
-                  | Address line 2   | Building C                          |
-                  | Town or city     | Leeds                               |
-                  | County or region | West Yorkshire                      |
-                  | Post town        | Leeds                               |
-                  | Postcode         | LS10 1PJ                            |
-                  | Phone number     | 01632960002                         |
-                  | Mobile number    | 07700900002                         |
-                  | Email address    | respondent{SCENARIO_ID}@example.com |
+                  | Address line 2 (optional)   | Building C                          |
+                  | Town or city (optional)     | Leeds                               |
+                  | County or region (optional) | West Yorkshire                      |
+                  | Post town (optional)        | Leeds                               |
+                  | Postcode (optional)         | LS10 1PJ                            |
+                  | Phone number (optional)     | 01632960002                         |
+                  | Mobile number (optional)    | 07700900002                         |
+                  | Email address (optional)    | respondent{SCENARIO_ID}@example.com |
             # Verify Civil Fee Details
             Then User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Checked
             Then User Should See The Text "Selecting this will automatically apply the off site fee to the entry. This change is saved immediately." In The Accordion "Civil fee"
