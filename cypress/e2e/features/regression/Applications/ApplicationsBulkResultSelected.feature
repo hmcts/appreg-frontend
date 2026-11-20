@@ -251,7 +251,7 @@ Feature: Applications Bulk Result Selected
             | todaydisplay | British Gas Trading Limited       | John Smith {SCENARIO_ID}       | Copy documents                                                                                                    | Yes | Yes      | OPEN   |
             | todaydisplay | Sarah Johnson {SCENARIO_ID}       | Finance Corp LTD {SCENARIO_ID} | Rights of Entry Warrant - Electricity Operator - Rights of Entry (Gas and Electricity Boards) Act 1954, section 2 | Yes | Yes      | OPEN   |
             | todaydisplay | ACME Industries LTD {SCENARIO_ID} | Emma Williams {SCENARIO_ID}    | Condemnation of Unfit Food                                                                                        | Yes | Yes      | OPEN   |
-        When User Clicks "Open" Button In Row Of Table "Application list entries" With:
+        When User Clicks "Open" Link In Row Of Table "Application list entries" With:
             | Applicant                   | Respondent               |
             | British Gas Trading Limited | John Smith {SCENARIO_ID} |
         Then User Sees Page Heading "Applications list entry update"
@@ -259,7 +259,7 @@ Feature: Applications Bulk Result Selected
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications"
-        When User Clicks "Open" Button In Row Of Table "Application list entries" With:
+        When User Clicks "Open" Link In Row Of Table "Application list entries" With:
             | Applicant                   | Respondent                     |
             | Sarah Johnson {SCENARIO_ID} | Finance Corp LTD {SCENARIO_ID} |
         Then User Sees Page Heading "Applications list entry update"
@@ -267,7 +267,7 @@ Feature: Applications Bulk Result Selected
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications"
-        When User Clicks "Open" Button In Row Of Table "Application list entries" With:
+        When User Clicks "Open" Link In Row Of Table "Application list entries" With:
             | Applicant                         | Respondent                  |
             | ACME Industries LTD {SCENARIO_ID} | Emma Williams {SCENARIO_ID} |
         Then User Sees Page Heading "Applications list entry update"
