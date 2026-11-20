@@ -1,6 +1,6 @@
 <div
   class="govuk-notification-banner govuk-notification-banner--success"
-  role="alert"
+  [attr.role]="bannerRole()"
   aria-labelledby="govuk-notification-banner-title"
   data-module="govuk-notification-banner"
   tabindex="-1"

@@ -98,24 +98,6 @@ describe('SortableTableComponent', () => {
     document.body.innerHTML = '';
   });
 
-  it('preserves the caption status region from empty state through fee additions', async () => {
-    await create('browser', []);
-    setInput('retainEmptyTable', true);
-    setInput('captionStatus', '');
-    const status = fixture.nativeElement.querySelector(
-      'caption [role="status"]',
-    );
-    expect(status).not.toBeNull();
-    expect(status.getAttribute('aria-atomic')).toBe('true');
-    expect(fixture.nativeElement.querySelector('tbody td').colSpan).toBe(3);
-    setInput('data', [{ id: 'one', name: 'Fee' }]);
-    setInput('captionStatus', 'Fee details added.');
-    expect(fixture.nativeElement.querySelector('caption [role="status"]')).toBe(
-      status,
-    );
-    expect(status.textContent).toContain('Fee details added.');
-  });
-
   it('creates with the real template', async () => {
     await create('browser');
     expect(comp).toBeTruthy();

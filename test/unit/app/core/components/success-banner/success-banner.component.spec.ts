@@ -218,6 +218,14 @@ describe('SuccessBannerComponent (external template)', () => {
     expect(focusSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('can present success visually without a competing alert', () => {
+    setInput('bannerRole', 'region');
+    expect(
+      fixture.nativeElement.querySelector('[role="region"]'),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+  });
+
   it('does not focus when autoFocus is false', () => {
     jest.useFakeTimers();
     setInput('heading', 'Any', false);

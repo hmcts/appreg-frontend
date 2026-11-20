@@ -32,6 +32,17 @@
     </div>
   }
 
+  @if (feeAdditionStatus() !== null) {
+    <p
+      class="govuk-visually-hidden"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {{ feeAdditionStatus() }}
+    </p>
+  }
+
   <section id="civil-fee-section">
     @if (!noFeeMeta()) {
       <h2 class="govuk-heading-s">
@@ -42,8 +53,6 @@
     <app-sortable-table
       id="civil-fee-table"
       caption="Current fee statuses table"
-      [retainEmptyTable]="feeAdditionStatus() !== null"
-      [captionStatus]="feeAdditionStatus()"
       [hiddenCaption]="true"
       [columns]="civilFeeColumnsWithChangeLink()"
       [data]="feeStatusRows()"
