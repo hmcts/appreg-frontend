@@ -3,7 +3,7 @@ Feature: Applications Register Portal Access
   @smoke @authentication @ARCPOC-294 @ARCPOC-426
   Scenario: Verify portal access and SSO login flow
     Given User Is On The Portal Page
-    Then User Verify The Page Title Is "HMCTS Applications Register - Home - GOV.UK"
+    Then User Verify The Page Title Is "Sign in - HMCTS Applications register - GOV.UK"
     And User See "Applications register" On The Page
     And User See "Sign in" On The Page
     And User See "To access this service, you now must use the Ministry of Justice Modernisation Platform’s Single Sign On (SSO):" On The Page
