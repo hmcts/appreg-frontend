@@ -349,6 +349,7 @@ describe('ApplicationsListBulkUpload', () => {
         target: { files: [file] },
       } as unknown as Event);
       fixture.detectChanges();
+      expect(component.selectedFileName()).toBe('test.csv');
       expect(description.textContent?.trim()).toBe('Selected file: test.csv');
     });
 
