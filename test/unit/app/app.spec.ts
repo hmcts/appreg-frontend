@@ -26,7 +26,11 @@ const { initAll: govukInitAll } = jest.requireMock('govuk-frontend');
 
 /* requestAnimationFrame: make it immediate and typed */
 let rafSpy: jest.SpyInstance<number, [FrameRequestCallback]>;
+let scrollSpy: jest.SpyInstance;
 beforeAll(() => {
+  scrollSpy = jest
+    .spyOn(window, 'scrollTo')
+    .mockImplementation(() => undefined);
   rafSpy = jest.spyOn(window, 'requestAnimationFrame');
   rafSpy.mockImplementation((cb: FrameRequestCallback): number => {
     cb(0);
@@ -34,6 +38,7 @@ beforeAll(() => {
   });
 });
 afterAll(() => {
+  scrollSpy.mockRestore();
   rafSpy.mockRestore();
 });
 
@@ -70,6 +75,31 @@ describe('App (root)', () => {
     await create('browser');
     fixture.detectChanges();
     expect(comp).toBeTruthy();
+  });
+
+  it('resets focus only between pages and preserves the body tabindex', async () => {
+    await create('browser');
+    const router = TestBed.inject(Router);
+    const focus = jest.spyOn(document.body, 'focus');
+    fixture.detectChanges();
+    await router.navigateByUrl('/');
+    expect(focus).not.toHaveBeenCalled();
+
+    await router.navigateByUrl('/next');
+    expect(focus).toHaveBeenCalledTimes(1);
+    expect(document.body.hasAttribute('tabindex')).toBe(false);
+    expect(scrollSpy).toHaveBeenCalledWith(0, 0);
+
+    await router.navigateByUrl('/next?sort=date');
+    await router.navigateByUrl('/next?sort=date#main-content');
+    expect(focus).toHaveBeenCalledTimes(1);
+
+    document.body.setAttribute('tabindex', '-1');
+    await router.navigateByUrl('/');
+    expect(focus).toHaveBeenCalledTimes(2);
+    expect(document.body.getAttribute('tabindex')).toBe('-1');
+    document.body.removeAttribute('tabindex');
+    focus.mockRestore();
   });
 
   describe('ngOnInit', () => {

@@ -90,14 +90,34 @@ export class App implements OnInit, AfterViewInit {
       this.didGlobalInit = true;
     }
 
+    let previousPath = this.router.navigated
+      ? this.router.url.split(/[?#]/)[0]
+      : undefined;
+
     // Re-init only the dynamic area on each navigation (after view swaps)
     this.router.events
       .pipe(
         filter((e): e is NavigationEnd => e instanceof NavigationEnd),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => {
+      .subscribe((event) => {
+        const path = event.urlAfterRedirects.split(/[?#]/)[0];
+        const resetFocus = previousPath !== undefined && previousPath !== path;
+        previousPath = path;
         requestAnimationFrame(() => {
+          if (resetFocus) {
+            // ARCPOC-1976: emulate a page load; the next Tab reaches the GOV.UK skip link.
+            // Query/fragment updates are not new pages and must not steal focus.
+            const tabindex = document.body.getAttribute('tabindex');
+            document.body.setAttribute('tabindex', '-1');
+            document.body.focus();
+            if (tabindex === null) {
+              document.body.removeAttribute('tabindex');
+            } else {
+              document.body.setAttribute('tabindex', tabindex);
+            }
+            window.scrollTo(0, 0);
+          }
           const main =
             document.querySelector<HTMLElement>('main.govuk-main-wrapper') ??
             document.querySelector<HTMLElement>('main');

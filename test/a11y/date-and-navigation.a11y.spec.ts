@@ -81,13 +81,20 @@ describe('Date legends and navigation focus in a browser', () => {
     await page.click('a[routerlink="/reports"]');
     await page.waitForSelector('app-reports');
     await page.waitForNetworkIdle();
-    // Restart keyboard traversal without reloading the SPA.
-    await page.evaluate(() => {
-      document.body.tabIndex = -1;
-      document.body.focus();
-      document.body.removeAttribute('tabindex');
-    });
+    expect(
+      await page.evaluate(() => ({
+        focused: document.activeElement === document.body,
+        tabindex: document.body.getAttribute('tabindex'),
+        scrollY: window.scrollY,
+      })),
+    ).toEqual({ focused: true, tabindex: null, scrollY: 0 });
     await skipToMain('/reports');
+    // Skip-link activation adds a fragment history entry before the page entry.
+    await page.goBack();
+    await page.goBack();
+    await page.waitForSelector('app-applications');
+    await page.waitForNetworkIdle();
+    await skipToMain('/applications');
   });
 
   it.each([375, 1280])(
