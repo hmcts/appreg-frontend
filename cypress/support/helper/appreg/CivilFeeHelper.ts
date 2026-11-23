@@ -1,4 +1,5 @@
 import { AccordionHelper } from '../forms/accordion/accordion/AccordionHelper';
+import { SummaryListHelper } from '../forms/summarylist/SummaryListHelper';
 
 import type { ApplicationCodeGetDetailDto } from '@openapi';
 
@@ -40,19 +41,17 @@ export class CivilFeeHelper {
             currency: 'GBP',
           });
           const expected = [
-            `Fee Reference: ${code.feeReference?.trim() || '—'}`,
-            `Amount: ${gbp.format(base / 100)}`,
-            `Off Site Fee Reference: ${code.offsiteFeeReference?.trim() || '—'}`,
-            `Off Site Fee Amount: ${gbp.format(offsite / 100)}`,
-            `Total Fee Amount: ${gbp.format((base + offsite) / 100)}`,
-          ].join(' ');
+            ['Fee reference', code.feeReference?.trim() || '—'],
+            ['Amount', gbp.format(base / 100)],
+            ['Off site fee reference', code.offsiteFeeReference?.trim() || '—'],
+            ['Off site fee amount', gbp.format(offsite / 100)],
+            ['Total fee amount', gbp.format((base + offsite) / 100)],
+          ];
 
           AccordionHelper.within('Civil fee', () => {
-            cy.contains('h2', 'Fee Reference:')
-              .invoke('text')
-              .invoke('replace', /\s+/g, ' ')
-              .invoke('trim')
-              .should('equal', expected);
+            expected.forEach(([key, value]) => {
+              SummaryListHelper.verifySummaryListRow(key, value);
+            });
           });
         },
       );

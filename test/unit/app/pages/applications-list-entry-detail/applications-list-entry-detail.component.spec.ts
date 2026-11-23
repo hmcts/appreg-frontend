@@ -922,8 +922,8 @@ describe('ApplicationsListEntryDetail', () => {
       offsiteFeeAmount: { value: 3000, currency: 'GBP' },
     });
     expect(
-      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
-    ).toContain('Total Fee Amount: £41.00');
+      civilFeeUtils.buildCivilFeeSummary(component.feeMeta!, true),
+    ).toContainEqual({ key: 'Total fee amount', value: '£41.00' });
 
     mockGetApplicationCodeByCodeAndDate.mockReturnValue(
       of({
@@ -1849,8 +1849,8 @@ describe('ApplicationsListEntryDetail', () => {
       currency: 'GBP',
     });
     expect(
-      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
-    ).toContain('Total Fee Amount: £41.00');
+      civilFeeUtils.buildCivilFeeSummary(component.feeMeta!, true),
+    ).toContainEqual({ key: 'Total fee amount', value: '£41.00' });
 
     component.form.controls.hasOffsiteFee.setValue(false);
     mockUpdateApplicationListEntry.mockReturnValueOnce(
@@ -1938,8 +1938,8 @@ describe('ApplicationsListEntryDetail', () => {
       currency: 'GBP',
     });
     expect(
-      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
-    ).toContain('Total Fee Amount: £53.00');
+      civilFeeUtils.buildCivilFeeSummary(component.feeMeta!, true),
+    ).toContainEqual({ key: 'Total fee amount', value: '£53.00' });
   });
 
   it("does not reuse the previous code's offsite fee after selecting a replacement code", () => {
