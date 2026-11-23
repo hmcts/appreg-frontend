@@ -35,6 +35,7 @@ export type PageHeaderAction = {
 export class PageHeaderComponent {
   title = input.required<string>();
   actions = input<PageHeaderAction[]>([]);
+  headingTag = input<'h1' | 'h2' | 'h3' | 'h4'>('h1');
 
   /** GOV.UK heading size: xl | l | m | s */
   size = input<'xl' | 'l' | 'm' | 's'>('xl');
