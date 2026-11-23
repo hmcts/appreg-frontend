@@ -45,9 +45,18 @@
 
   <section id="civil-fee-section">
     @if (!noFeeMeta()) {
-      <h2 class="govuk-heading-s">
-        {{ feeRequired() ? feeHeadingText() : 'No fee required' }}
-      </h2>
+      @if (feeRequired()) {
+        <dl class="govuk-summary-list">
+          @for (row of feeSummaryRows(); track row.key) {
+            <div class="govuk-summary-list__row">
+              <dt class="govuk-summary-list__key">{{ row.key }}</dt>
+              <dd class="govuk-summary-list__value">{{ row.value }}</dd>
+            </div>
+          }
+        </dl>
+      } @else {
+        <h2 class="govuk-heading-s">No fee required</h2>
+      }
     }
 
     <app-sortable-table

@@ -219,7 +219,7 @@ Feature: Applications List Entry Update
         Then User Should See The Accordion "Wording" Expanded
         Then User Should See The Accordion "Civil fee" Expanded
         Then User Should See The Text "Attends to make a statutory declaration that henceforth the applicant will be known as " In The Accordion "Wording"
-        Then User Should See The Text "Fee Reference: CO7.2 " In The Accordion "Civil fee"
+        Then User Should See Summary List Row With Key "Fee reference" And Value "CO7.2"
         Examples:
             | paymentStatus | statusDate | paymentReference |
             | DUE           | todayiso   |                  |
@@ -291,7 +291,7 @@ Feature: Applications List Entry Update
         Then User Should See The Accordion "Wording" Expanded
         Then User Should See The Accordion "Civil fee" Expanded
         Then User Should See The Text "Application for the condemnation of food, namely" In The Accordion "Wording"
-        Then User Should See The Text "Fee Reference: CO8.1 " In The Accordion "Civil fee"
+        Then User Should See Summary List Row With Key "Fee reference" And Value "CO8.1"
         Then User Enters "Updated Notes {RANDOM}" Into The Textbox "Application details" In The Accordion "Notes"
         When User Clicks On The "Save complete application" Button
         Then User Sees Success Banner "Application list entry updated" Containing "The application list entry has been updated successfully."
@@ -460,5 +460,5 @@ Feature: Applications List Entry Update
         Then User Should See The Accordion "Wording" Expanded
         Then User Should See The Accordion "Civil fee" Expanded
         Then User Should See The Text "Attends to make a statutory declaration that henceforth the applicant will be known as " In The Accordion "Wording"
-        Then User Should See The Text "Fee Reference: CO7.2 " In The Accordion "Civil fee"
+        Then User Should See Summary List Row With Key "Fee reference" And Value "CO7.2"
         Then User Should See The Button "Apply wording"

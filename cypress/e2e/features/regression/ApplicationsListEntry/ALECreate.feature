@@ -87,10 +87,10 @@ Feature: Applications List Entry Create
             # Civil Fee Details
             When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
             Then User Should See The Text "Selecting this will apply the off site fee to the entry." In The Accordion "Civil fee"
-            Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
+            Then User Should See Summary List Row With Key "Fee reference" And Value "CO8.1"
             Then User Verifies The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee" Is Unchecked
             Then User Checks The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
+            Then User Should See Summary List Row With Key "Off site fee reference" And Value "CO1.1"
             Then User Verifies The Civil Fee Amounts Against The Application Code
             Then User Should See The Text "Update fee status" In The Accordion "Civil fee"
             Then User Selects "Undertaken" From The Dropdown "Fee status" In The Accordion "Civil fee"
@@ -199,8 +199,8 @@ Feature: Applications List Entry Create
             # Verify Civil Fee Details
             Then User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Checked
             Then User Should See The Text "Selecting this will automatically apply the off site fee to the entry. This change is saved immediately." In The Accordion "Civil fee"
-            Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
+            Then User Should See Summary List Row With Key "Fee reference" And Value "CO8.1"
+            Then User Should See Summary List Row With Key "Off site fee reference" And Value "CO1.1"
             Then User Verifies The Civil Fee Amounts Against The Application Code
             Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
                   | Fee Status | Status Date  | Payment Ref       |
@@ -444,12 +444,12 @@ Feature: Applications List Entry Create
             # Civil Fee Details
             When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
             Then User Should See The Text "Selecting this will apply the off site fee to the entry." In The Accordion "Civil fee"
-            Then User Should See The Text "Fee Reference: CO10.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Amount: £218.00" In The Accordion "Civil fee"
+            Then User Should See Summary List Row With Key "Fee reference" And Value "CO10.1"
+            Then User Should See Summary List Row With Key "Amount" And Value "£218.00"
             Then User Verifies The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee" Is Unchecked
             Then User Checks The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee"
             # Bug ARCPOC-1241 is raised
-            Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
+            Then User Should See Summary List Row With Key "Off site fee reference" And Value "CO1.1"
             Then User Verifies The Civil Fee Amounts Against The Application Code
             Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
             Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
@@ -564,4 +564,4 @@ Feature: Applications List Entry Create
             Then User Should See The Accordion "Wording" Expanded
             Then User Should See The Accordion "Civil fee" Expanded
             Then User Should See The Text "Attends to make a statutory declaration that henceforth the applicant will be known as " In The Accordion "Wording"
-            Then User Should See The Text "Fee Reference: CO7.2 " In The Accordion "Civil fee"
+            Then User Should See Summary List Row With Key "Fee reference" And Value "CO7.2"
