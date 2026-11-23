@@ -2658,6 +2658,53 @@ describe('ApplicationsListDetail', () => {
     expect(component.vm().updateOfficialsDone).toBe(true);
   });
 
+  it.each([ApplicationListStatus.OPEN, ApplicationListStatus.CLOSED])(
+    'renders entry navigation as links for %s lists',
+    (status) => {
+      component.id = 'list-9';
+      component.listStatus.set(status);
+      patchDetailState({
+        rows: [{ id: 'entry-123', title: 'Synthetic entry' }],
+      });
+      fixture.detectChanges();
+      const root: HTMLElement = fixture.nativeElement;
+      const links = [...root.querySelectorAll('tbody a[href]')];
+      const open = links.find((link) => link.textContent?.trim() === 'Open');
+      expect(open?.getAttribute('href')).toBe(
+        `/applications-list/list-9/${status === ApplicationListStatus.CLOSED ? 'update-notes' : 'update-entry'}/entry-123`,
+      );
+      expect(open?.hasAttribute('role')).toBe(false);
+      const remove = links.find(
+        (link) => link.textContent?.trim() === 'Delete',
+      );
+      if (status === ApplicationListStatus.OPEN) {
+        expect(remove?.getAttribute('href')).toBe(
+          '/applications-list/list-9/entry-123/delete',
+        );
+      } else {
+        expect(remove).toBeUndefined();
+      }
+    },
+  );
+
+  it.each(['ctrlKey', 'metaKey', 'shiftKey', 'altKey'])(
+    'preserves native entry link navigation for %s',
+    async (modifier) => {
+      const navigate = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      navigate.mockClear();
+      const event = new MouseEvent('click', {
+        [modifier]: true,
+        cancelable: true,
+      });
+      await component.openUpdate({ id: 'entry-123' }, event);
+      await component.onDeleteButtonClick({ id: 'entry-123' }, event);
+      expect(event.defaultPrevented).toBe(false);
+      expect(navigate).not.toHaveBeenCalled();
+    },
+  );
+
   it('openUpdate: navigates with state & queryParams', async () => {
     const router = TestBed.inject(Router);
     const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);

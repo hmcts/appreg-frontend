@@ -2,6 +2,7 @@ import { Location } from '@angular/common';
 import {
   HttpContext,
   HttpErrorResponse,
+  HttpHeaders,
   HttpResponse,
 } from '@angular/common/http';
 import { PLATFORM_ID } from '@angular/core';
@@ -28,7 +29,10 @@ describe('ApplicationsListDeleteComponent', () => {
   let fixture: ComponentFixture<ApplicationsListDeleteComponent>;
   let component: ApplicationsListDeleteComponent;
 
-  let api: Pick<ApplicationListsApi, 'deleteApplicationList'>;
+  let api: Pick<
+    ApplicationListsApi,
+    'deleteApplicationList' | 'getApplicationList'
+  >;
   let entriesApi: Pick<ApplicationListEntriesApi, 'getApplicationListEntries'>;
   let router: Pick<Router, 'navigate'>;
   let location: Pick<Location, 'getState'>;
@@ -55,6 +59,9 @@ describe('ApplicationsListDeleteComponent', () => {
     routeId?: string | null;
     entriesResponse?: (pageNumber: number) => Observable<EntryPage1>;
     realTemplate?: boolean;
+    listResponse?: Observable<
+      HttpResponse<import('@openapi').ApplicationListGetDetailDto>
+    >;
   }) => {
     const platformId = opts?.platformId ?? 'browser';
     const navStateRow = opts?.navStateRow;
@@ -62,6 +69,11 @@ describe('ApplicationsListDeleteComponent', () => {
 
     api = {
       deleteApplicationList: jest.fn(),
+      getApplicationList: jest
+        .fn()
+        .mockReturnValue(
+          opts?.listResponse ?? throwError(() => new Error('Load failed')),
+        ),
     };
     entriesApi = {
       getApplicationListEntries: jest.fn(
@@ -396,7 +408,7 @@ describe('ApplicationsListDeleteComponent', () => {
       expect(confirm().disabled).toBe(true);
       expect(
         fixture.nativeElement.querySelector('.govuk-error-summary').textContent,
-      ).toContain('Could not load all');
+      ).toContain('Could not load the application list and all its entries.');
       component.onDelete();
       expect(api.deleteApplicationList).not.toHaveBeenCalled();
 
@@ -441,14 +453,68 @@ describe('ApplicationsListDeleteComponent', () => {
     },
   );
 
+  it.each(['browser', 'server'] as const)(
+    'loads a direct URL on %s and retains concurrency metadata',
+    async (platformId) => {
+      const response = new Subject<
+        HttpResponse<import('@openapi').ApplicationListGetDetailDto>
+      >();
+      await setup({ platformId, listResponse: response, realTemplate: true });
+      component.onDelete();
+      expect(api.deleteApplicationList).not.toHaveBeenCalled();
+      expect(component.entriesLoading()).toBe(true);
+      response.next(
+        new HttpResponse({
+          body: {
+            id: 'abc-123',
+            date: '2025-10-01',
+            time: '09:30',
+            description: 'Synthetic list',
+            status: ApplicationListStatus.OPEN,
+            courtName: 'Synthetic court',
+            version: 7,
+            entriesCount: 0,
+          },
+          headers: new HttpHeaders({ ETag: '"7"' }),
+        }),
+      );
+      fixture.detectChanges();
+      expect(component.listToDelete?.rowVersion).toBe('7');
+      expect(component.listToDelete?.etag).toBe('"7"');
+      expect(component.entriesLoaded()).toBe(true);
+      expect(fixture.nativeElement.textContent).toContain('Synthetic list');
+      expect(router.navigate).not.toHaveBeenCalled();
+    },
+  );
+
+  it('blocks a direct URL for a closed list', async () => {
+    await setup({
+      listResponse: of(
+        new HttpResponse({
+          body: {
+            id: 'abc-123',
+            date: '2025-10-01',
+            time: '09:30',
+            description: 'Synthetic list',
+            status: ApplicationListStatus.CLOSED,
+            version: 7,
+          },
+        }),
+      ),
+    });
+    component.onDelete();
+    expect(component.entriesLoadError()).toBe(true);
+    expect(api.deleteApplicationList).not.toHaveBeenCalled();
+  });
+
   it('should create', async () => {
     await setup({ navStateRow: makeRow() });
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInit: when no listRow but id exists -> navigates back', async () => {
+  it('keeps deletion blocked when loading a direct URL fails', async () => {
     await setup({ navStateRow: undefined, routeId: 'abc-123' });
-    expect(router.navigate).toHaveBeenCalledWith(['/applications-list']);
+    expect(component.entriesLoadError()).toBe(true);
     expect(entriesApi.getApplicationListEntries).not.toHaveBeenCalled();
   });
 
@@ -588,14 +654,14 @@ describe('ApplicationsListDeleteComponent', () => {
     );
   });
 
-  it('server platform: listRow is undefined even if state exists -> navigates back when id exists', async () => {
+  it('server platform: attempts URL-based loading without browser navigation state', async () => {
     await setup({
       platformId: 'server',
       navStateRow: makeRow(),
       routeId: 'abc-123',
     });
 
-    expect(router.navigate).toHaveBeenCalledWith(['/applications-list']);
+    expect(component.entriesLoadError()).toBe(true);
     expect(entriesApi.getApplicationListEntries).not.toHaveBeenCalled();
   });
 });

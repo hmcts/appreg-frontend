@@ -91,6 +91,7 @@ import {
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
+import { handleActionLink } from '@util/action-link';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
@@ -1435,7 +1436,28 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  async openUpdate(row: Partial<selectedRow>): Promise<void> {
+  entryActionUrl(row: Partial<selectedRow>, action: 'open' | 'delete'): string {
+    const commands =
+      action === 'delete'
+        ? ['/applications-list', this.id, row.id, 'delete']
+        : [
+            '/applications-list',
+            this.id,
+            this.listStatus() === ApplicationListStatus.CLOSED
+              ? 'update-notes'
+              : 'update-entry',
+            row.id,
+          ];
+    return this.router.serializeUrl(this.router.createUrlTree(commands));
+  }
+
+  async openUpdate(
+    row: Partial<selectedRow>,
+    event?: MouseEvent,
+  ): Promise<void> {
+    if (!handleActionLink(event)) {
+      return;
+    }
     if (this.listStatus() === ApplicationListStatus.CLOSED) {
       const navigated = await this.router.navigate([
         '/applications-list',
@@ -1469,7 +1491,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     }
   }
 
-  async onDeleteButtonClick(row: Partial<selectedRow>): Promise<void> {
+  async onDeleteButtonClick(
+    row: Partial<selectedRow>,
+    event?: MouseEvent,
+  ): Promise<void> {
+    if (!handleActionLink(event)) {
+      return;
+    }
     if (!this.canModifyList() || !this.id || !row?.id) {
       return;
     }

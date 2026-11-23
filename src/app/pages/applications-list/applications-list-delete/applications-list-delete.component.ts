@@ -15,6 +15,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { EMPTY, expand, map, reduce } from 'rxjs';
 
 import { AlertComponent } from '@components/alert/alert.component';
+import { toRow } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
@@ -26,6 +27,7 @@ import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
   ApplicationListEntriesApi,
+  ApplicationListStatus,
   ApplicationListsApi,
   EntryGetSummaryDto,
 } from '@openapi';
@@ -96,7 +98,7 @@ export class ApplicationsListDeleteComponent implements OnInit {
     Math.ceil(this.childEntries().length / this.pageSize),
   );
 
-  readonly listSummary = computed(() => {
+  listSummary(): { key: string; value: string }[] {
     const row = this.listToDelete;
     return [
       {
@@ -108,7 +110,7 @@ export class ApplicationsListDeleteComponent implements OnInit {
       { key: 'Description', value: row?.description || 'Not provided' },
       { key: 'Status', value: row?.status || 'Not provided' },
     ];
-  });
+  }
 
   readonly childColumns: TableColumn[] = [
     { header: 'Sequence number', field: 'sequenceNumber' },
@@ -147,16 +149,52 @@ export class ApplicationsListDeleteComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (
-      !this.listToDelete ||
-      !this.idFromUrl ||
-      this.listToDelete.id !== this.idFromUrl
-    ) {
+    if (!this.idFromUrl) {
       this.goBack();
       return;
     }
-
+    if (!this.listToDelete || this.listToDelete.id !== this.idFromUrl) {
+      this.listToDelete = undefined;
+      this.loadList();
+      return;
+    }
     this.loadChildEntries();
+  }
+
+  private loadList(): void {
+    if (!this.idFromUrl || this.entriesLoading()) {
+      return;
+    }
+    this.entriesLoading.set(true);
+    this.entriesLoadError.set(false);
+    this.appListsApi
+      .getApplicationList({ listId: this.idFromUrl }, 'response', false, {
+        transferCache: false,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.entriesLoading.set(false);
+          const dto = response.body;
+          if (
+            !dto ||
+            dto.id !== this.idFromUrl ||
+            dto.status !== ApplicationListStatus.OPEN
+          ) {
+            this.entriesLoadError.set(true);
+            return;
+          }
+          this.listToDelete = {
+            ...toRow(dto),
+            etag: response.headers.get('ETag'),
+          };
+          this.loadChildEntries();
+        },
+        error: () => {
+          this.entriesLoading.set(false);
+          this.entriesLoadError.set(true);
+        },
+      });
   }
 
   /**
@@ -166,6 +204,10 @@ export class ApplicationsListDeleteComponent implements OnInit {
    * Any incomplete response leaves deletion blocked.
    */
   loadChildEntries(): void {
+    if (!this.listToDelete) {
+      this.loadList();
+      return;
+    }
     if (
       !this.listToDelete ||
       this.listToDelete.id !== this.idFromUrl ||
