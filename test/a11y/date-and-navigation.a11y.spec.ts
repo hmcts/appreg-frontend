@@ -43,6 +43,30 @@ describe('Date legends and navigation focus in a browser', () => {
     await page?.close();
   });
 
+  it.each(['/applications', '/reports'])(
+    'keeps decorative separators out of the accessibility tree on %s',
+    async (path) => {
+      await page.goto(`${baseUrl}${path}`);
+      await page.waitForSelector('hr.govuk-section-break');
+      await page.waitForNetworkIdle();
+      expect(
+        await page.$$eval('hr', (separators) =>
+          separators.every(
+            (separator) => separator.getAttribute('aria-hidden') === 'true',
+          ),
+        ),
+      ).toBe(true);
+      const session = await page.createCDPSession();
+      const { nodes } = await session.send('Accessibility.getFullAXTree');
+      expect(
+        nodes.filter(
+          (node) => !node.ignored && node.role?.value === 'separator',
+        ),
+      ).toEqual([]);
+      await session.detach();
+    },
+  );
+
   it('skips navigation with the keyboard on initial load and after SPA navigation', async () => {
     await page.goto(`${baseUrl}/applications`);
     const skipLink = '.govuk-skip-link';
