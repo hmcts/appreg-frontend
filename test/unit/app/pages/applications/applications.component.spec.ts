@@ -7,7 +7,12 @@ import {
 } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router,
+  RouterLink,
+  convertToParamMap,
+} from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
@@ -442,6 +447,26 @@ describe('ApplicationsComponent', () => {
         ).value,
       ).toBe('');
     });
+  });
+
+  it('renders Open as a link to the entry with its navigation state', () => {
+    appStateSignal(component).update((s) => ({
+      ...s,
+      rows: [makeEntry({ id: 'row-1', listId: 'list-1' })],
+    }));
+    fixture.detectChanges();
+    const link: HTMLAnchorElement =
+      fixture.nativeElement.querySelector('tbody a');
+    expect(link).not.toBeNull();
+    expect(link.textContent?.trim()).toBe('Open');
+    expect(link.getAttribute('href')).toBe(
+      '/applications-list/list-1/update-entry/row-1',
+    );
+    expect(link.hasAttribute('role')).toBe(false);
+    expect(
+      fixture.debugElement.query(By.css('tbody a')).injector.get(RouterLink)
+        .state,
+    ).toEqual({ fromApplicationsPage: true });
   });
 
   it('renders table actions outside the caption and configures server-side sorting', () => {
