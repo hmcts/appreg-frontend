@@ -101,15 +101,48 @@ export const scenarios: Scenario[] = [
     },
     exercise: async (page) => {
       await page.setViewport({ width: 320, height: 900 });
+
       expect(
         await page.$eval(
           'app-applications-list-delete tbody tr',
           (row) => row.getBoundingClientRect().height,
         ),
       ).toBeLessThan(300);
+
+      const frameSelector = 
+        'app-applications-list-delete .app-sortable-table__frame';
+
+      const sizes = await page.$eval(frameSelector, (frame) => ({
+        scrollWidth: frame.scrollWidth,
+        clientWidth: frame.clientWidth,
+      }));
+      expect(sizes.scrollWidth).toBeGreaterThan(sizes.clientWidth);
+
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth),
       ).toBe(320);
+
+      await page.focus(frameSelector);
+      await page.keyboard.press('ArrowRight');
+      await page.waitForFunction(
+        (selector) => 
+          ((document.querySelector(selector) as HTMLElement | null)?.scrollLeft ??
+          0) > 0,
+        {},
+        frameSelector,
+      );
+
+      const lastCellVisible = await page.$eval(frameSelector, (frame) => {
+        frame.scrollLeft = frame.scrollWidth;
+        const lastCell = frame.querySelector(
+          'tbody tr:first-child > :last-child',
+        )!;
+        return (
+          lastCell.getBoundingClientRect().right <=
+          frame.getBoundingClientRect().right + 1
+        );
+      });
+      expect(lastCellVisible).toBe(true);
     },
     state: {
       listRow: {

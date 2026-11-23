@@ -114,3 +114,16 @@ table {
 .govuk-error-summary {
   margin-top: 1.5rem;
 }
+
+.app-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.app-table-scroll > .govuk-table {
+  width: 100%;
+}
+
+.app-table-scroll thead .govuk-table__header {
+  white-space: nowrap;
+}

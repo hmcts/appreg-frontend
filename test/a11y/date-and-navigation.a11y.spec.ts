@@ -43,6 +43,45 @@ describe('Date legends and navigation focus in a browser', () => {
     await page?.close();
   });
 
+  it('keeps date fields and calendar button visible when controls wrap', async () => {
+    await page.setViewport({ width: 320, height: 900 });
+    await page.goto(`${baseUrl}/applications`);
+    await page.waitForSelector('app-date-input .moj-datepicker__toggle', {
+      visible: true,
+    });
+
+    const layout = await page.$eval('app-date-input', (component) => {
+      const fields = [
+        ...component.querySelectorAll<HTMLElement>('.govuk-date-input__item'),
+      ];
+      const date = component.querySelector('.govuk-date-input__input')!;
+      const button = component.querySelector('.moj-datepicker__toggle')!;
+      const dateBox = date.getBoundingClientRect();
+      const buttonBox = button.getBoundingClientRect();
+      const viewportWidth = document.documentElement.clientWidth;
+
+      return {
+        fieldCount: fields.length,
+        fieldsVisible: fields.every((field) => {
+          const box = field.getBoundingClientRect();
+          return box.width > 0 && box.left >= 0 && box.right <= viewportWidth;
+        }),
+        buttonVisible:
+          buttonBox.width > 0 &&
+          buttonBox.left >= 0 &&
+          buttonBox.right <= viewportWidth,
+        buttonWrapped: buttonBox.top >= dateBox.bottom - 1,
+      };
+    });
+
+    expect(layout).toEqual({
+      fieldCount: 3,
+      fieldsVisible: true,
+      buttonVisible: true,
+      buttonWrapped: true,
+    });
+  });
+
   it.each([375, 1280])(
     'preserves date label typography and layout at %ipx without a heading',
     async (width) => {

@@ -24,6 +24,11 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.app-sortable-table__frame thead .govuk-table__header,
+:host ::ng-deep .app-sortable-table__header-button {
+  white-space: nowrap;
+}
+
 .app-sortable-table__frame .govuk-table {
   width: 100%;
   margin-bottom: 0;
