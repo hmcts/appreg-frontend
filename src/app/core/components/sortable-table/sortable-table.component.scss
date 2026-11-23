@@ -24,8 +24,7 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.app-sortable-table__frame thead .govuk-table__header,
-:host ::ng-deep .app-sortable-table__header-button {
+.app-sortable-table__frame thead .govuk-table__header {
   white-space: nowrap;
 }
 
@@ -78,7 +77,7 @@
   font-weight: inherit;
   text-align: inherit;
   line-height: 1.25;
-  white-space: normal;
+  white-space: nowrap;
   cursor: pointer;
 }
 
