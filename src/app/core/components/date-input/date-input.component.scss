@@ -9,12 +9,15 @@
 .app-date-controls {
   position: relative;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: flex-end;
   gap: 8px 0;
 }
 
-.govuk-date-input,
+.govuk-date-input {
+  min-width: 0;
+}
+
 .app-date-calendar {
   flex-shrink: 0;
 }
