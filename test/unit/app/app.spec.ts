@@ -206,6 +206,17 @@ describe('Preview layout', () => {
       await router.navigateByUrl('/applications-list/example/preview');
       const fixture = TestBed.createComponent(App);
       fixture.detectChanges();
+      const skipLink = () =>
+        fixture.nativeElement.querySelector('a.govuk-skip-link');
+      expect(fixture.nativeElement.firstElementChild).toBe(skipLink());
+      expect(skipLink().getAttribute('href')).toBe(
+        '/applications-list/example/preview#main-content',
+      );
+      expect(skipLink().getAttribute('data-module')).toBe('govuk-skip-link');
+      expect(skipLink().textContent.trim()).toBe('Skip to main content');
+      expect(
+        fixture.nativeElement.querySelector('main#main-content'),
+      ).not.toBeNull();
       const layout = () =>
         fixture.nativeElement.querySelectorAll(
           'app-header, app-service-navigation, app-footer',
@@ -215,9 +226,12 @@ describe('Preview layout', () => {
         fixture.nativeElement.querySelector('main router-outlet'),
       ).not.toBeNull();
 
-      await router.navigateByUrl('/applications-list');
+      await router.navigateByUrl('/applications-list?sort=date#previous');
       fixture.detectChanges();
       expect(layout()).toHaveLength(3);
+      expect(skipLink().getAttribute('href')).toBe(
+        '/applications-list?sort=date#main-content',
+      );
 
       await router.navigateByUrl('/applications-list/another/preview');
       fixture.detectChanges();

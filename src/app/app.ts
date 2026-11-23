@@ -1,4 +1,4 @@
-import { isPlatformBrowser } from '@angular/common';
+import { Location, isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -44,6 +44,7 @@ export class App implements OnInit, AfterViewInit {
 
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly isPreview = toSignal(
@@ -62,6 +63,11 @@ export class App implements OnInit, AfterViewInit {
   );
 
   private didGlobalInit = false;
+
+  protected get skipLinkHref(): string {
+    // Include the current route because <base href="/"> resolves bare fragments to home.
+    return `${this.location.path()}#main-content`;
+  }
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) {

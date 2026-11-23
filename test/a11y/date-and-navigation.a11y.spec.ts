@@ -43,6 +43,53 @@ describe('Date legends and navigation focus in a browser', () => {
     await page?.close();
   });
 
+  it('skips navigation with the keyboard on initial load and after SPA navigation', async () => {
+    await page.goto(`${baseUrl}/applications`);
+    const skipLink = '.govuk-skip-link';
+    await page.waitForSelector(`${skipLink}[data-govuk-skip-link-init]`);
+    await page.waitForNetworkIdle();
+
+    const skipToMain = async (path: string) => {
+      await page.keyboard.press('Tab');
+      expect(
+        await page.$eval(skipLink, (link) => {
+          const rect = link.getBoundingClientRect();
+          return {
+            focused: document.activeElement === link,
+            visible: rect.width > 0 && rect.height > 0 && rect.top >= 0,
+            href: link.getAttribute('href'),
+          };
+        }),
+      ).toEqual({ focused: true, visible: true, href: `${path}#main-content` });
+      await page.keyboard.press('Enter');
+      expect(
+        await page.$eval(
+          '#main-content',
+          (main) => main === document.activeElement,
+        ),
+      ).toBe(true);
+      expect(new URL(page.url()).pathname).toBe(path);
+      await page.keyboard.press('Tab');
+      expect(
+        await page.$eval('#main-content', (main) =>
+          main.contains(document.activeElement),
+        ),
+      ).toBe(true);
+    };
+
+    await skipToMain('/applications');
+    await page.click('a[routerlink="/reports"]');
+    await page.waitForSelector('app-reports');
+    await page.waitForNetworkIdle();
+    // Restart keyboard traversal without reloading the SPA.
+    await page.evaluate(() => {
+      document.body.tabIndex = -1;
+      document.body.focus();
+      document.body.removeAttribute('tabindex');
+    });
+    await skipToMain('/reports');
+  });
+
   it.each([375, 1280])(
     'preserves date label typography and layout at %ipx without a heading',
     async (width) => {
