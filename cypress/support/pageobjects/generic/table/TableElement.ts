@@ -105,11 +105,15 @@ export class TableElement {
       .find(this.menuContainerSelector)
       .should('be.visible')
       .find('button, a')
-      .filter(
-        (_, el) =>
-          StringUtils.normalizeText(Cypress.$(el).text()) ===
-          StringUtils.normalizeText(menuButtonText),
-      )
+      .filter((_, el) => {
+        const actualText = StringUtils.normalizeText(Cypress.$(el).text());
+        const expectedText = StringUtils.normalizeText(menuButtonText);
+
+        return (
+          actualText === expectedText ||
+          actualText.startsWith(`${expectedText} `)
+        );
+      })
       .first();
   }
 

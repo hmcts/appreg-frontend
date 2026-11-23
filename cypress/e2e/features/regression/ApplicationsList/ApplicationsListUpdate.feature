@@ -210,7 +210,7 @@ Feature: Applications List Update
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description        | Status     | BeforeUpdateStatus | durationHours | durationMinutes |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {SCENARIO_ID} | Close list | OPEN               | 3             | 3               |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567 @ARCPOC-1759 @ARCPOC-1843 @ARCPOC-1769
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567 @ARCPOC-1759 @ARCPOC-1843 @ARCPOC-1769 @ARCPOC-1956
     Scenario Outline: Close application list with One ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -413,6 +413,7 @@ Feature: Applications List Update
         When User Clicks On The "Actions" Button
         Then User Should See The Button "Print continuous"
         Then User Should See The Button "Print page"
+        Then User Should See The Button "Prview print cont"
         # ARCPOC-1437 Verify Closed ALE cannot be opened
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
