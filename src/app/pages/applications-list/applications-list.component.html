@@ -153,14 +153,14 @@
             data-button-text="Select"
             data-button-classes="govuk-button"
           >
-            <!-- Open button (only when open) -->
-            <button
-              type="button"
+            <!-- Open link (only when open) -->
+            <a
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onOpenList(row)"
+              [href]="listActionUrl(row, '')"
+              (click)="onOpenList(row, $event)"
             >
               Open
-            </button>
+            </a>
 
             <!-- Print page button -->
             <button
@@ -181,15 +181,16 @@
               Print continuous
             </button>
 
-            <button
-              type="button"
+            <a
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onPreviewPrintContinuous(row)"
+              [href]="listActionUrl(row, 'preview')"
+              target="appreg-print-cont-preview"
+              (click)="onPreviewPrintContinuous(row, $event)"
             >
               Preview print cont<span class="govuk-visually-hidden">
                 (opens in a new window)</span
               >
-            </button>
+            </a>
 
             <!-- Delete button (only when open) -->
             <button
@@ -207,13 +208,13 @@
             data-button-text="Select"
             data-button-classes="govuk-button"
           >
-            <button
-              type="button"
+            <a
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onOpenList(row)"
+              [href]="listActionUrl(row, '')"
+              (click)="onOpenList(row, $event)"
             >
               Open
-            </button>
+            </a>
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--warning"
@@ -247,15 +248,16 @@
             >
               Print continuous
             </button>
-            <button
-              type="button"
+            <a
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onPreviewPrintContinuous(row)"
+              [href]="listActionUrl(row, 'preview')"
+              target="appreg-print-cont-preview"
+              (click)="onPreviewPrintContinuous(row, $event)"
             >
               Preview print cont<span class="govuk-visually-hidden">
                 (opens in a new window)</span
               >
-            </button>
+            </a>
           </div>
         }
       </div>

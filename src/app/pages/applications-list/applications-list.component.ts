@@ -429,7 +429,36 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.onCjaInputChange();
   }
 
-  async onOpenList(row: ApplicationListRow): Promise<void> {
+  listActionUrl(row: ApplicationListRow, action: string): string {
+    const commands = ['/applications-list', row.id];
+    if (action) {
+      commands.push(action);
+    }
+    return this.router.serializeUrl(this.router.createUrlTree(commands));
+  }
+
+  private handleActionLink(event?: MouseEvent): boolean {
+    if (!event) {
+      return true;
+    }
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return false;
+    }
+    event.preventDefault();
+    return true;
+  }
+
+  async onOpenList(row: ApplicationListRow, event?: MouseEvent): Promise<void> {
+    if (!this.handleActionLink(event)) {
+      return;
+    }
     const navigated = await this.router.navigate(
       ['/applications-list', row.id],
       {
@@ -522,7 +551,10 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  onPreviewPrintContinuous(row: ApplicationListRow): void {
+  onPreviewPrintContinuous(row: ApplicationListRow, event?: MouseEvent): void {
+    if (!this.handleActionLink(event)) {
+      return;
+    }
     if (!isPlatformBrowser(this.platformId) || this.vm().pdfLoading) {
       return;
     }

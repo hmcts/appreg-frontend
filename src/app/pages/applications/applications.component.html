@@ -361,8 +361,7 @@
           data-button-classes="govuk-button"
         >
           <!-- Open -->
-          <button
-            type="button"
+          <a
             class="govuk-button moj-button-menu__item govuk-button--secondary"
             [routerLink]="[
               '/applications-list',
@@ -371,10 +370,9 @@
               row.id,
             ]"
             [state]="{ fromApplicationsPage: true }"
-            [disabled]="row.status === 'CLOSED'"
           >
             Open
-          </button>
+          </a>
         </div>
       } @else {
         <div data-module="moj-button-menu">
