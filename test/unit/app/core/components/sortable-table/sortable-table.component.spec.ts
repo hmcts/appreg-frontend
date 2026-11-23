@@ -207,6 +207,24 @@ describe('SortableTableComponent', () => {
   });
 
   describe('selection', () => {
+    it('labels selection controls without redundant header text or row whitespace', async () => {
+      await create('browser');
+      setInput('selectable', true);
+
+      const header = fixture.nativeElement.querySelector(
+        'th.moj-multi-select__select-all',
+      ) as HTMLTableCellElement;
+      const selectAll = header.querySelector('label') as HTMLLabelElement;
+      const rowLabel = fixture.nativeElement.querySelector(
+        'label[for="row-abc"] .govuk-visually-hidden',
+      ) as HTMLSpanElement;
+
+      expect(header.hasAttribute('aria-label')).toBe(false);
+      expect(header.querySelectorAll('.govuk-visually-hidden')).toHaveLength(1);
+      expect(selectAll.textContent).toBe('Select all');
+      expect(rowLabel.textContent).toBe('Select Everest');
+    });
+
     it('renders checkbox column when selectable is enabled', async () => {
       await create('browser');
       setInput('selectable', true);
