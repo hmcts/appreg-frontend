@@ -126,7 +126,7 @@ export const scenarios: Scenario[] = [
       await page.keyboard.press('ArrowRight');
       await page.waitForFunction(
         (selector) => 
-          ((document.querySelector(selector) as HTMLElement | null)?.scrollLeft ??
+          (document.querySelector(selector)?.scrollLeft ??
           0) > 0,
         {},
         frameSelector,
