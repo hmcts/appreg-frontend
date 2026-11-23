@@ -20,13 +20,25 @@
       [attr.aria-invalid]="isInvalid() ? 'true' : null"
       [formControl]="control()"
       (input)="onInput($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
       [maxlength]="maxCharacterLimit()"
       [class.govuk-textarea--error]="isInvalid()"
     ></textarea>
 
     @if (characterCountEnabled()) {
-      <div [id]="id() + '-hint'" class="govuk-hint">
+      <div [id]="id() + '-hint'" class="govuk-visually-hidden">
+        You can enter up to {{ maxCharacterLimit() }} characters.
+      </div>
+      <div class="govuk-hint" aria-hidden="true">
         {{ charLimitText }}
+      </div>
+      <div
+        class="govuk-visually-hidden"
+        [attr.aria-live]="isFocused() ? 'polite' : 'off'"
+        aria-atomic="true"
+      >
+        {{ announcedCount() }}
       </div>
     }
   </div>
