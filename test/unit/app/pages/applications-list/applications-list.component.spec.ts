@@ -97,6 +97,62 @@ class PdfServiceStub implements Pick<
 }
 
 describe('List row actions', () => {
+  it.each([0, 1])(
+    'uses links for navigation and buttons for printing with %i entries',
+    async (entries) => {
+      const row = makeApplicationListRow({ entries });
+      const { fixture } = createInstance('browser', [row]);
+      await flushSignalEffects(fixture);
+      const menu: HTMLElement = fixture.nativeElement.querySelector(
+        'tbody .moj-button-menu',
+      );
+      const links = Array.from(menu.querySelectorAll('a'));
+      expect(links.map((link) => link.getAttribute('href'))).toEqual(
+        entries
+          ? ['/applications-list/abc-123', '/applications-list/abc-123/preview']
+          : ['/applications-list/abc-123'],
+      );
+      expect(links.every((link) => !link.hasAttribute('role'))).toBe(true);
+      expect(
+        Array.from(menu.querySelectorAll('button'), (button) =>
+          button.textContent?.trim(),
+        ),
+      ).toEqual(
+        entries ? ['Print page', 'Print continuous', 'Delete'] : ['Delete'],
+      );
+    },
+  );
+
+  it.each(['ctrlKey', 'metaKey', 'shiftKey', 'altKey'])(
+    'preserves native link behaviour with %s',
+    async (modifier) => {
+      const { comp, navigateSpy } = createInstanceWithQuery({});
+      navigateSpy.mockClear();
+      const event = new MouseEvent('click', {
+        [modifier]: true,
+        cancelable: true,
+      });
+      const row = makeApplicationListRow();
+      await comp.onOpenList(row, event);
+      comp.onPreviewPrintContinuous(row, event);
+      expect(event.defaultPrevented).toBe(false);
+      expect(navigateSpy).not.toHaveBeenCalled();
+    },
+  );
+
+  it('handles an ordinary link click once using the existing navigation', async () => {
+    const { comp, navigateSpy } = createInstanceWithQuery({});
+    const event = new MouseEvent('click', { cancelable: true });
+    const scroll = jest
+      .spyOn(window, 'scrollTo')
+      .mockImplementation(() => undefined);
+    navigateSpy.mockClear();
+    await comp.onOpenList(makeApplicationListRow(), event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(navigateSpy).toHaveBeenCalledTimes(1);
+    scroll.mockRestore();
+  });
+
   it('replaces the whole menu when entry availability changes after MOJ enhancement', async () => {
     const row = makeApplicationListRow({ entries: 0 });
     const { fixture, comp } = createInstance('browser', [row]);
@@ -117,7 +173,8 @@ describe('List row actions', () => {
       'tbody .moj-button-menu',
     );
     expect(updated).not.toBe(original);
-    expect(updated.querySelectorAll('button')).toHaveLength(5);
+    expect(updated.querySelectorAll('button')).toHaveLength(3);
+    expect(updated.querySelectorAll('a[href]')).toHaveLength(2);
     expect(updated.querySelector('ul')).toBeNull();
   });
 

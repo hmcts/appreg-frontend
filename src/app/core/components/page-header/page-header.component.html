@@ -1,6 +1,19 @@
 <div class="moj-page-header-actions">
   <div class="moj-page-header-actions__title">
-    <h1 [ngClass]="headingClass">{{ title() }}</h1>
+    @switch (headingTag()) {
+      @case ('h2') {
+        <h2 [ngClass]="headingClass">{{ title() }}</h2>
+      }
+      @case ('h3') {
+        <h3 [ngClass]="headingClass">{{ title() }}</h3>
+      }
+      @case ('h4') {
+        <h4 [ngClass]="headingClass">{{ title() }}</h4>
+      }
+      @default {
+        <h1 [ngClass]="headingClass">{{ title() }}</h1>
+      }
+    }
   </div>
 
   <div class="moj-page-header-actions__actions">

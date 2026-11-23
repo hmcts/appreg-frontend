@@ -106,7 +106,7 @@ Feature: Applications Search
             | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
 
-        When User Clicks "Open" Button In Row Of Table "<TableName>" With:
+        When User Clicks "Open" Link In Row Of Table "<TableName>" With:
             | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
         Then User Sees Page Heading "Applications list entry update"
@@ -191,7 +191,7 @@ Feature: Applications Search
             | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
 
-        When User Clicks "Open" Button In Row Of Table "<TableName>" With:
+        When User Clicks "Open" Link In Row Of Table "<TableName>" With:
             | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
         Then User Sees Page Heading "Applications list entry update"
