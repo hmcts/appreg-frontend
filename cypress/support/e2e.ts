@@ -58,5 +58,15 @@ afterEach(function () {
   const title = (this.currentTest?.title ?? 'unnamed')
     .replace(/[^a-zA-Z0-9-_]/g, '_')
     .slice(0, 80);
-  cy.screenshot(`${state}/${title}`, { overwrite: true });
+  cy.window({ log: false }).then((window) => {
+    if (window.innerHeight <= 0) {
+      cy.log('Skipping automatic screenshot: browser has no visible viewport');
+      return;
+    }
+
+    cy.screenshot(`${state}/${title}`, {
+      capture: 'viewport',
+      overwrite: true,
+    });
+  });
 });
