@@ -109,7 +109,7 @@ export const scenarios: Scenario[] = [
         ),
       ).toBeLessThan(300);
 
-      const frameSelector = 
+      const frameSelector =
         'app-applications-list-delete .app-sortable-table__frame';
 
       const sizes = await page.$eval(frameSelector, (frame) => ({
@@ -125,9 +125,7 @@ export const scenarios: Scenario[] = [
       await page.focus(frameSelector);
       await page.keyboard.press('ArrowRight');
       await page.waitForFunction(
-        (selector) => 
-          (document.querySelector(selector)?.scrollLeft ??
-          0) > 0,
+        (selector) => (document.querySelector(selector)?.scrollLeft ?? 0) > 0,
         {},
         frameSelector,
       );
