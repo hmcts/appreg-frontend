@@ -11,7 +11,7 @@ import {
 import {
   addFeeStatus,
   applyPaymentReferenceUpdateToFeeStatuses,
-  buildCivilFeeHeading,
+  buildCivilFeeSummary,
   feeStatusRowId,
   readPaymentRefReturnState,
   toFeeStatus,
@@ -136,45 +136,43 @@ describe('addFeeStatus', () => {
   });
 });
 
-describe('buildCivilFeeHeading', () => {
-  it('builds heading without offsite fee', () => {
-    const heading = buildCivilFeeHeading(mkMeta(), false);
+describe('buildCivilFeeSummary', () => {
+  it('builds summary without offsite fee', () => {
+    const rows = buildCivilFeeSummary(mkMeta(), false);
 
-    expect(heading).toContain('Fee Reference: CO7.2');
-    expect(heading).toContain('Amount: £25.00');
-    expect(heading).not.toContain('Off Site Fee Amount:');
-    expect(heading).not.toContain('Total Fee Amount:');
+    expect(rows).toContainEqual({ key: 'Fee reference', value: 'CO7.2' });
+    expect(rows).toContainEqual({ key: 'Amount', value: '£25.00' });
+    expect(rows.map((row) => row.key)).not.toContain('Off site fee amount');
+    expect(rows.map((row) => row.key)).not.toContain('Total fee amount');
   });
 
-  it('builds heading with offsite fee and total', () => {
-    const heading = buildCivilFeeHeading(mkMeta(), true);
+  it('builds summary with offsite fee and total', () => {
+    const rows = buildCivilFeeSummary(mkMeta(), true);
 
-    expect(heading).toContain('Fee Reference: CO7.2');
-    expect(heading).toContain('Amount: £25.00');
-    expect(heading).toContain('Off Site Fee Reference: CO1.1');
-    expect(heading).toContain('Off Site Fee Amount: £30.00');
-    expect(heading).toContain('Total Fee Amount: £55.00');
-  });
-
-  it('uses em spaces between parts', () => {
-    const heading = buildCivilFeeHeading(mkMeta(), true);
-    expect(heading).toContain(' \u2003 ');
+    expect(rows).toContainEqual({ key: 'Fee reference', value: 'CO7.2' });
+    expect(rows).toContainEqual({ key: 'Amount', value: '£25.00' });
+    expect(rows).toContainEqual({
+      key: 'Off site fee reference',
+      value: 'CO1.1',
+    });
+    expect(rows).toContainEqual({
+      key: 'Off site fee amount',
+      value: '£30.00',
+    });
+    expect(rows).toContainEqual({
+      key: 'Total fee amount',
+      value: '£55.00',
+    });
   });
 
   it('uses dashes when feeReference is empty/whitespace', () => {
-    const heading = buildCivilFeeHeading(
-      mkMeta({ feeReference: '   ' }),
-      false,
-    );
-    expect(heading).toContain('Fee Reference: —');
+    const rows = buildCivilFeeSummary(mkMeta({ feeReference: '   ' }), false);
+    expect(rows).toContainEqual({ key: 'Fee reference', value: '—' });
   });
 
   it('uses dash for offsite amount when offsiteFeeAmount is null', () => {
-    const heading = buildCivilFeeHeading(
-      mkMeta({ offsiteFeeAmount: null }),
-      true,
-    );
-    expect(heading).toContain('Off Site Fee Amount: —');
+    const rows = buildCivilFeeSummary(mkMeta({ offsiteFeeAmount: null }), true);
+    expect(rows).toContainEqual({ key: 'Off site fee amount', value: '—' });
   });
 
   it('uses dash for total when either fee amount value is null', () => {
@@ -183,7 +181,7 @@ describe('buildCivilFeeHeading', () => {
       value: null as unknown as number,
     };
 
-    const heading = buildCivilFeeHeading(
+    const rows = buildCivilFeeSummary(
       mkMeta({
         feeAmount: feeAmountWithNullValue,
         offsiteFeeAmount: money(3000),
@@ -191,16 +189,19 @@ describe('buildCivilFeeHeading', () => {
       true,
     );
 
-    expect(heading).toContain('Total Fee Amount: —');
+    expect(rows).toContainEqual({ key: 'Total fee amount', value: '—' });
   });
 
   it('uses dash for offsite reference when it is blank', () => {
-    const heading = buildCivilFeeHeading(
+    const rows = buildCivilFeeSummary(
       mkMeta({ offsiteFeeReference: '   ' }),
       true,
     );
 
-    expect(heading).toContain('Off Site Fee Reference: —');
+    expect(rows).toContainEqual({
+      key: 'Off site fee reference',
+      value: '—',
+    });
   });
 });
 
