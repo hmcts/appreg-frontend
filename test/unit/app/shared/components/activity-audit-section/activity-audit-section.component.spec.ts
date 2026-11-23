@@ -118,7 +118,7 @@ describe('ActivityAuditSectionComponent (with template)', () => {
 
   it('renders the "Activity audit" heading', () => {
     const el: HTMLElement = fixture.nativeElement;
-    const heading = el.querySelector('h1.govuk-heading-l');
+    const heading = el.querySelector('h2.govuk-heading-l');
     expect(heading).toBeTruthy();
     expect(heading?.textContent?.trim()).toBe('Activity audit');
   });
