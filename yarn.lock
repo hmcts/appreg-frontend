@@ -13478,11 +13478,11 @@ __metadata:
   linkType: hard
 
 "json-schema-faker@npm:^0.6.0":
-  version: 0.6.3
-  resolution: "json-schema-faker@npm:0.6.3"
+  version: 0.6.4
+  resolution: "json-schema-faker@npm:0.6.4"
   bin:
     jsf: dist/bin/cli.js
-  checksum: 10/36b9a98eb4e201dd780a4adbe0219314d52b21349e78785178973e28fded5948295e6b37a51f5ee1091030936a5da50277c5c6e158d600c9d09a08f71e020149
+  checksum: 10/9a913faf3c217d7a7f330a04e962ed425fd902861e6eaa0edbe9b8a5e12db26352172b624bdfbe9eb1d6ca01883d88c6a095d773bbdcd25e01c8601bbc8e353d
   languageName: node
   linkType: hard
 
