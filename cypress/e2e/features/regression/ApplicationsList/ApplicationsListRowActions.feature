@@ -1,6 +1,6 @@
 Feature: Application List Row Actions
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-799 @ARCPOC-802 @ARCPOC-449
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-799 @ARCPOC-802 @ARCPOC-449 @ARCPOC-1956 @tp
     Scenario Outline: Verify PDF download for 0 entries
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -13,11 +13,15 @@ Feature: Application List Row Actions
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
             | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
-        # Click Print continuous to download PDF
-        When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+        # ARCPOC-1956 Verify that the "Print continuous" and "Print page" buttons are not displayed for 0 entries
+        When User Clicks "Select" Button In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
-        Then User Sees Validation Error Banner "There is a problem No entries available to print"
+        Then User Should See The Link "Open"
+        Then User Should See The Button "Delete"
+        Then User Should Not See The Button "Print continuous"
+        Then User Should Not See The Button "Print page"
+        Then User Should Not See The Button "Preview print cont"
         Then User Clears The "List description" Textbox
         Then User Enters "past" Into The "List description" Textbox
         When User Clicks On The "Search" Button
@@ -26,12 +30,11 @@ Feature: Application List Row Actions
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                                   | Entries | Status | SelectButtonText | ButtonName       |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1     | Test_{SCENARIO_ID} for Applications to review | 0       | OPEN   | Select           | Print continuous |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Test_{SCENARIO_ID} for Leeds applications     | 0       | OPEN   | Select           | Print page       |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                         | Description                                   | Entries | Status | SelectButtonText |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1 | Test_{SCENARIO_ID} for Applications to review | 0       | OPEN   | Select           |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803 @ARCPOC-1371
-    Scenario Outline: Verify PDF download for print continuous and print page with entries for Court
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803 @ARCPOC-1371 @ARCPOC-1956
+    Scenario Outline: Verify PDF download for print continuous; print page and preview print cont with entries for Court
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date      | time   | status   | description   | durationHours   | durationMinutes   | courtLocationCode   |
@@ -240,12 +243,39 @@ Feature: Application List Row Actions
             | Dated                  | <DisplayDateLong>                                                                                                                                             |
             | Produced on            | <DisplayDate>                                                                                                                                                 |
         Then User Clears Downloaded PDFs
+        # Preview print continuous pop up window verification
+        Given User Starts Capturing Pop Up Windows
+        When User Clicks "<SelectButtonText>" Then "Preview print cont" From Menu In Row Of Table "<TableName>" With:
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+        Then User Should See Pop Up Window URL Contains "/preview"
+        Then User Should See Pop Up Window Named "appreg-print-cont-preview"
+        When User Opens The Captured Pop Up Window
+        Then User Should See Pop Up Window With Title "Application List - <Description>"
+        Then User Should See Pop Up Window Heading "<Description>"
+        When User Should See Pop Up Window Contain The Following Values:
+            | Date & Time            | <DisplayDate> <Time>                                                                                                                                          |
+            | Duration               | <durationHours> Hours, <durationMinutes> Minutes                                                                                                              |
+            | Location               | <Court>                                                                                                                                                       |
+            | Applicant              | Mr Henry James Taylor {SCENARIO_ID}                                                                                                                           |
+            | Respondent             | Ms Emily Rose Clark {SCENARIO_ID}                                                                                                                             |
+            | Application            | Application Code: AP99001 Application Title: Appeal to Crown Court                                                                                            |
+            | Result                 | —                                                                                                                                                             |
+            | Notes                  | Case noted with ref {SCENARIO_ID} Account Reference: ACC-{RANDOM} Case Reference: CASE-{RANDOM}                                                               |
+            | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
+            | Applicant              | Mr John A B Smith {SCENARIO_ID}                                                                                                                               |
+            | Respondent             | —                                                                                                                                                             |
+            | Application            | Application Code: AD99002 Application Title: Copy documents (electronic)                                                                                      |
+            | Result                 | —                                                                                                                                                             |
+            | Notes                  | Application discussion ref {SCENARIO_ID} Account Reference: ACC-{RANDOM} Case Reference: CASE-{RANDOM}                                                        |
+            | This matter was before | Mr Smith {SCENARIO_ID} John MAGISTRATE                                                                                                                        |
+        Then User Closes The Pop Up Window
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                                  | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 2     |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-1823
-    Scenario Outline: Verify PDF download for print page with entries for CJA
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-1823 @ARCPOC-1956
+    Scenario Outline: Verify PDF download for print continuous; print page and preview print cont with entries for CJA
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date      | time   | status   | description   | cjaCode   | otherLocationDescription   |
@@ -342,13 +372,34 @@ Feature: Application List Row Actions
             | Dated                  | <DisplayDateLong>                                                                                                                                             |
             | Produced on            | <DisplayDate>                                                                                                                                                 |
         Then User Clears Downloaded PDFs
+        # Preview print continuous pop up window verification
+        Given User Starts Capturing Pop Up Windows
+        When User Clicks "<SelectButtonText>" Then "Preview print cont" From Menu In Row Of Table "<TableName>" With:
+            | Date          | Time   | Location     | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
+        Then User Should See Pop Up Window URL Contains "/preview"
+        Then User Should See Pop Up Window Named "appreg-print-cont-preview"
+        When User Opens The Captured Pop Up Window
+        Then User Should See Pop Up Window With Title "Application List - <Description>"
+        Then User Should See Pop Up Window Heading "<Description>"
+        When User Should See Pop Up Window Contain The Following Values:
+            | Date & Time            | <DisplayDate> <Time>                                                                                                                                          |
+            | Duration               | -                                                                                                                                                             |
+            | Location               | <otherLocationDescription> A8 - Derby                                                                                                                         |
+            | Applicant              | British Gas Trading Limited                                                                                                                                   |
+            | Respondent             | -                                                                                                                                                             |
+            | Application            | Application Code: AD99004                                                                                                                                     |
+            | Result                 | —                                                                                                                                                             |
+            | Notes                  | Case noted with ref {SCENARIO_ID}                                                                                                                             |
+            | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
+        Then User Closes The Pop Up Window
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | cjaCode | OptionText | otherLocationDescription                     | Description                    | Entries | Status | SelectButtonText | PDFNameContinuous         | PDFNamePage               | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-1h | A8      | Derby      | This is a location description {SCENARIO_ID} | ENFORCEMENT LIST-{SCENARIO_ID} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
 
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803 @ARCPOC-1717
-    Scenario Outline: Verify PDF download for print continuous and print page with entries for Court and Status Closed
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803 @ARCPOC-1717 @ARCPOC-1956
+    Scenario Outline: Verify PDF download for print continuous; print page and preview print cont with entries for Court and Status Closed
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date      | time   | status | description   | durationHours   | durationMinutes   | courtLocationCode   |
@@ -472,6 +523,27 @@ Feature: Application List Row Actions
             | This matter was before | Ms Patel {SCENARIO_ID} Anita MAGISTRATE                                                                                                                         |
             | Dated                  | <DisplayDateLong>                                                                                                                                               |
             | Produced on            | <DisplayDate>                                                                                                                                                   |
+        Then User Clears Downloaded PDFs
+        # Preview print continuous pop up window verification
+        Given User Starts Capturing Pop Up Windows
+        When User Clicks "<SelectButtonText>" Then "Preview print cont" From Menu In Row Of Table "<TableName>" With:
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+        Then User Should See Pop Up Window URL Contains "/preview"
+        Then User Should See Pop Up Window Named "appreg-print-cont-preview"
+        When User Opens The Captured Pop Up Window
+        Then User Should See Pop Up Window With Title "Application List - <Description>"
+        Then User Should See Pop Up Window Heading "<Description>"
+        When User Should See Pop Up Window Contain The Following Values:
+            | Date & Time            | <DisplayDate> <Time>                                                                            |
+            | Duration               | <durationMinutes> Minutes                                                                       |
+            | Location               | <Court>                                                                                         |
+            | Applicant              | ACME Industries LTD {SCENARIO_ID} Downing Street, Westminster, London,                          |
+            | Respondent             | Beta Solutions Inc {SCENARIO_ID} Fleet Street, London, EC4Y 1AA                                 |
+            | Application            | Application Code: MS99006 Application Title: Condemnation of Unfit Food                         |
+            | Result                 | Authorised                                                                                      |
+            | Notes                  | Case noted with ref {SCENARIO_ID} Account Reference: ACC-{RANDOM} Case Reference: CASE-{RANDOM} |
+            | This matter was before | Ms Patel {SCENARIO_ID} Anita MAGISTRATE                                                         |
         Then User Clears Downloaded PDFs
         # Application list cannot be deleted if it is CLOSED
         When User Makes DELETE API Request To "/application-lists/:listId"
