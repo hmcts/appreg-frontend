@@ -43,6 +43,84 @@ describe('Date legends and navigation focus in a browser', () => {
     await page?.close();
   });
 
+  it.each(['/applications', '/reports'])(
+    'keeps decorative separators out of the accessibility tree on %s',
+    async (path) => {
+      await page.goto(`${baseUrl}${path}`);
+      await page.waitForSelector('hr.govuk-section-break');
+      await page.waitForNetworkIdle();
+      expect(
+        await page.$$eval('hr', (separators) =>
+          separators.every(
+            (separator) => separator.getAttribute('aria-hidden') === 'true',
+          ),
+        ),
+      ).toBe(true);
+      const session = await page.createCDPSession();
+      const { nodes } = await session.send('Accessibility.getFullAXTree');
+      expect(
+        nodes.filter(
+          (node) => !node.ignored && node.role?.value === 'separator',
+        ),
+      ).toEqual([]);
+      await session.detach();
+    },
+  );
+
+  it('skips navigation with the keyboard on initial load and after SPA navigation', async () => {
+    await page.goto(`${baseUrl}/applications`);
+    const skipLink = '.govuk-skip-link';
+    await page.waitForSelector(`${skipLink}[data-govuk-skip-link-init]`);
+    await page.waitForNetworkIdle();
+
+    const skipToMain = async (path: string) => {
+      await page.keyboard.press('Tab');
+      expect(
+        await page.$eval(skipLink, (link) => {
+          const rect = link.getBoundingClientRect();
+          return {
+            focused: document.activeElement === link,
+            visible: rect.width > 0 && rect.height > 0 && rect.top >= 0,
+            href: link.getAttribute('href'),
+          };
+        }),
+      ).toEqual({ focused: true, visible: true, href: `${path}#main-content` });
+      await page.keyboard.press('Enter');
+      expect(
+        await page.$eval(
+          '#main-content',
+          (main) => main === document.activeElement,
+        ),
+      ).toBe(true);
+      expect(new URL(page.url()).pathname).toBe(path);
+      await page.keyboard.press('Tab');
+      expect(
+        await page.$eval('#main-content', (main) =>
+          main.contains(document.activeElement),
+        ),
+      ).toBe(true);
+    };
+
+    await skipToMain('/applications');
+    await page.click('a[routerlink="/reports"]');
+    await page.waitForSelector('app-reports');
+    await page.waitForNetworkIdle();
+    expect(
+      await page.evaluate(() => ({
+        focused: document.activeElement === document.body,
+        tabindex: document.body.getAttribute('tabindex'),
+        scrollY: window.scrollY,
+      })),
+    ).toEqual({ focused: true, tabindex: null, scrollY: 0 });
+    await skipToMain('/reports');
+    // Skip-link activation adds a fragment history entry before the page entry.
+    await page.goBack();
+    await page.goBack();
+    await page.waitForSelector('app-applications');
+    await page.waitForNetworkIdle();
+    await skipToMain('/applications');
+  });
+
   it('keeps date fields and calendar button visible when controls wrap', async () => {
     await page.setViewport({ width: 320, height: 900 });
     await page.goto(`${baseUrl}/applications`);
