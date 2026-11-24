@@ -1596,7 +1596,11 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
     }
     warning.subscribe((leave) => answers.push(leave));
     expect(dialog.open).toBe(true);
-    (dialog.querySelector('button[autofocus]') as HTMLButtonElement).click();
+    (
+      dialog.querySelector(
+        '.govuk-button-group .govuk-button',
+      ) as HTMLButtonElement
+    ).click();
     expect(answers).toEqual([false]);
     expect(notes.value).toBe('Unsaved draft');
     const secondWarning = component.canLeave();
@@ -1625,7 +1629,10 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
       hasUnchangedContent: wordingUnchanged,
     } as WordingSectionComponent;
     const paymentAnswers: boolean[] = [];
-    for (const button of ['button[autofocus]', '.govuk-button--secondary']) {
+    for (const button of [
+      '.govuk-button-group .govuk-button',
+      '.govuk-button--secondary',
+    ]) {
       const warning = component.canLeave();
       if (typeof warning === 'boolean') {
         throw new Error('Expected a warning for unapplied wording');

@@ -29,7 +29,7 @@ describe('ConfirmationDialogComponent', () => {
     });
   });
 
-  it('renders an accessible name, description and safe initial focus', () => {
+  it('renders an accessible name, description and a programmatically focusable heading', () => {
     expect(
       dialog.querySelector(`#${dialog.getAttribute('aria-labelledby')}`)
         ?.textContent,
@@ -38,9 +38,23 @@ describe('ConfirmationDialogComponent', () => {
       dialog.querySelector(`#${dialog.getAttribute('aria-describedby')}`)
         ?.textContent,
     ).toContain('You will not receive your report.');
-    expect(dialog.querySelector('[autofocus]')?.textContent).toContain(
-      'Stay on this page',
-    );
+    expect(dialog.querySelector('h2')?.getAttribute('tabindex')).toBe('-1');
+    expect(dialog.querySelector('[autofocus]')).toBeNull();
+  });
+
+  it('focuses the heading after opening, including when reopened', () => {
+    const heading = dialog.querySelector('h2')!;
+    const focus = jest.spyOn(heading, 'focus');
+    const showModal = jest.spyOn(dialog, 'showModal');
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const subscription = component.confirm().subscribe();
+      expect(focus).toHaveBeenCalledTimes(attempt + 1);
+      expect(showModal).toHaveBeenCalledTimes(attempt + 1);
+      expect(showModal.mock.invocationCallOrder[attempt]).toBeLessThan(
+        focus.mock.invocationCallOrder[attempt],
+      );
+      subscription.unsubscribe();
+    }
   });
 
   it.each([false, true])('resolves the button decision once: %s', (leave) => {

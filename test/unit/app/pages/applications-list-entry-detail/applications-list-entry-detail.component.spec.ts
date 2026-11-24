@@ -468,7 +468,11 @@ describe('ApplicationsListEntryDetail', () => {
     }
     warning.subscribe((leave) => answers.push(leave));
     expect(dialog.open).toBe(true);
-    (dialog.querySelector('button[autofocus]') as HTMLButtonElement).click();
+    (
+      dialog.querySelector(
+        '.govuk-button-group .govuk-button',
+      ) as HTMLButtonElement
+    ).click();
     expect(answers).toEqual([false]);
     expect(notes.value).toBe('Unsaved');
     const secondWarning = component.canLeave();
@@ -524,7 +528,10 @@ describe('ApplicationsListEntryDetail', () => {
       dialog.showModal = showModal;
       dialog.close = jest.fn();
       const answers: boolean[] = [];
-      for (const button of ['button[autofocus]', '.govuk-button--secondary']) {
+      for (const button of [
+        '.govuk-button-group .govuk-button',
+        '.govuk-button--secondary',
+      ]) {
         const warning = component.canLeave();
         if (typeof warning === 'boolean') {
           throw new Error(
