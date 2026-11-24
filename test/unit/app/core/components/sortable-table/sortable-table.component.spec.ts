@@ -106,6 +106,41 @@ describe('SortableTableComponent', () => {
     ).toBeTruthy();
   });
 
+  it('provides accessible text for dash placeholders in row headers and cells', async () => {
+    await create('browser', [{ id: 'empty', name: '—', elevation: '—' }]);
+
+    const row = fixture.nativeElement.querySelector(
+      'tbody tr',
+    ) as HTMLTableRowElement;
+    for (const cell of [row.querySelector('th'), row.querySelector('td')]) {
+      expect(cell?.querySelector('[aria-hidden="true"]')?.textContent).toBe(
+        '—',
+      );
+      expect(cell?.querySelector('.govuk-visually-hidden')?.textContent).toBe(
+        'Not provided',
+      );
+    }
+    expect(row.querySelectorAll('.govuk-visually-hidden')).toHaveLength(2);
+    expect(row.cells[2].textContent?.trim()).toBe('');
+    expect(comp.data()[0]).toEqual({ id: 'empty', name: '—', elevation: '—' });
+  });
+
+  it('preserves populated values, including zero and text containing a dash', async () => {
+    await create('browser', [
+      { id: 'populated', name: 'Example — organisation', elevation: 0 },
+    ]);
+
+    const row = fixture.nativeElement.querySelector(
+      'tbody tr',
+    ) as HTMLTableRowElement;
+    expect(row.querySelector('th')?.textContent?.trim()).toBe(
+      'Example — organisation',
+    );
+    expect(row.querySelector('td')?.textContent?.trim()).toBe('0');
+    expect(row.querySelector('[aria-hidden="true"]')).toBeNull();
+    expect(row.querySelector('.govuk-visually-hidden')).toBeNull();
+  });
+
   it('renders no-data message and no table when data is empty', async () => {
     await create('browser', []);
 
