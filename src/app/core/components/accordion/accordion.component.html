@@ -25,10 +25,9 @@
         </h2>
       </div>
 
-      <section
+      <div
         class="govuk-accordion__section-content"
         [id]="panelId(i)"
-        [attr.aria-labelledby]="headingId(i)"
         [hidden]="!item.expanded"
       >
         @if (item.tpl) {
@@ -38,7 +37,7 @@
             <p class="govuk-body">{{ item.content }}</p>
           }
         }
-      </section>
+      </div>
     </div>
   }
 </div>
