@@ -181,7 +181,8 @@
           (click)="onViewClick(row)"
         >
           View
-          <span class="govuk-visually-hidden">{{ row.name }}</span>
+          <!-- Row name can be null, fallback to code -->
+          <span class="govuk-visually-hidden">{{ row.name ?? row.code }}</span>
         </button>
       </div>
     </ng-template>
