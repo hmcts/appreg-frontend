@@ -5,8 +5,12 @@ export function focusSuccessBanner(platformId: object): void {
     return;
   }
   setTimeout(() => {
-    const el = document.querySelector<HTMLElement>('app-success-banner');
-    el?.focus?.();
+    const el = document.querySelector<HTMLElement>(
+      'app-success-banner [tabindex="-1"]',
+    );
+    if (el && document.activeElement !== el) {
+      el.focus();
+    }
     el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
   });
 }

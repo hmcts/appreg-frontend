@@ -1,4 +1,5 @@
 @if (data() && data().length) {
+  <ng-content select="[tableActions]"></ng-content>
   <div
     class="app-sortable-table__frame"
     [class.app-sortable-table__frame--loading]="loading()"
@@ -32,10 +33,7 @@
               <th
                 class="govuk-table__header moj-multi-select__select-all"
                 scope="col"
-                aria-label="Select rows"
               >
-                <span class="govuk-visually-hidden">Select rows</span>
-
                 <div class="govuk-checkboxes govuk-checkboxes--small">
                   <div
                     class="govuk-checkboxes__item moj-multi-select__checkbox"
@@ -139,9 +137,9 @@
                       class="govuk-label govuk-checkboxes__label"
                       [for]="idPrefix() + getRowId(row)"
                     >
-                      <span class="govuk-visually-hidden">
-                        Select {{ row[firstColField] }}
-                      </span>
+                      <span class="govuk-visually-hidden"
+                        >Select {{ row[firstColField] }}</span
+                      >
                     </label>
                   </div>
                 </div>

@@ -16,6 +16,7 @@ import { EMPTY, expand, map, reduce } from 'rxjs';
 
 import { AlertComponent } from '@components/alert/alert.component';
 import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import {
   SortableTableComponent,
@@ -30,6 +31,7 @@ import {
 } from '@openapi';
 import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import { formatPartyName } from '@util/string-helpers';
+import { SortState, sortRows } from '@util/table-sort';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
 /**
@@ -52,6 +54,7 @@ import { ApplicationListRow } from '@util/types/application-list/types';
     AlertComponent,
     ErrorSummaryComponent,
     SortableTableComponent,
+    PaginationComponent,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-delete.component.html',
@@ -83,6 +86,15 @@ export class ApplicationsListDeleteComponent implements OnInit {
   readonly entriesLoaded = signal(false);
   readonly entriesLoadError = signal(false);
   readonly deleting = signal(false);
+  private readonly pageSize = 10;
+  readonly currentPage = signal(0);
+  readonly childSort = signal<SortState>({
+    key: 'sequenceNumber',
+    direction: 'asc',
+  });
+  readonly totalPages = computed(() =>
+    Math.ceil(this.childEntries().length / this.pageSize),
+  );
 
   readonly listSummary = computed(() => {
     const row = this.listToDelete;
@@ -99,11 +111,11 @@ export class ApplicationsListDeleteComponent implements OnInit {
   });
 
   readonly childColumns: TableColumn[] = [
-    { header: 'Sequence number', field: 'sequenceNumber', sortable: false },
-    { header: 'Account number', field: 'accountNumber', sortable: false },
-    { header: 'Applicant', field: 'applicant', sortable: false },
-    { header: 'Respondent', field: 'respondent', sortable: false },
-    { header: 'Title', field: 'title', sortable: false, minWidth: '15em' },
+    { header: 'Sequence number', field: 'sequenceNumber' },
+    { header: 'Account number', field: 'accountNumber' },
+    { header: 'Applicant', field: 'applicant' },
+    { header: 'Respondent', field: 'respondent' },
+    { header: 'Title', field: 'title', minWidth: '15em' },
   ];
 
   readonly childRows = computed(() =>
@@ -116,6 +128,23 @@ export class ApplicationsListDeleteComponent implements OnInit {
       title: entry.applicationTitle?.trim() || 'Not provided',
     })),
   );
+
+  readonly sortedRows = computed(() =>
+    sortRows(this.childRows(), this.childSort()),
+  );
+  readonly paginatedRows = computed(() => {
+    const start = this.currentPage() * this.pageSize;
+    return this.sortedRows().slice(start, start + this.pageSize);
+  });
+
+  onSortChange(sort: SortState): void {
+    this.childSort.set(sort);
+    this.currentPage.set(0);
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+  }
 
   ngOnInit(): void {
     if (
@@ -148,6 +177,7 @@ export class ApplicationsListDeleteComponent implements OnInit {
 
     const listId = this.listToDelete.id;
     let totalElements: number | undefined;
+    this.currentPage.set(0);
     this.childEntries.set([]);
     this.entriesLoaded.set(false);
     this.entriesLoadError.set(false);

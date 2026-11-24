@@ -118,6 +118,7 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
   styleUrl: './applications-list.component.scss',
 })
 export class ApplicationsList extends PlaceFieldsBase implements OnInit {
+  readonly searchStatus = signal('');
   // APIs
   private readonly platformId = inject(PLATFORM_ID);
   private readonly appListsApi = inject(ApplicationListsApi);
@@ -230,6 +231,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   clearSearch(): void {
+    this.searchStatus.set('');
     this.appListSignalState.patch(clearNotificationsPatch());
     this.appListSignalState.patch({ isSearch: false, appliedFilters: {} });
     this.storedRecordsState.patch({ submitted: false, rows: [] });
@@ -263,6 +265,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           }),
         onSuccess: (page) => {
           const content: ApplicationListGetSummaryDto[] = page.content ?? [];
+          const count = page.totalElements ?? content.length;
+          this.searchStatus.set(
+            count === 0
+              ? 'No results found.'
+              : `${count} ${count === 1 ? 'result' : 'results'} found.`,
+          );
           this.appListSignalState.patch({
             searchErrors: [],
             isLoading: false,
@@ -276,6 +284,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           this.disableSearchButton.set(false);
         },
         onError: (err) => {
+          this.searchStatus.set('');
           const msg = getProblemText(err);
           this.appListSignalState.patch({
             isLoading: false,
@@ -420,7 +429,36 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.onCjaInputChange();
   }
 
-  async onOpenList(row: ApplicationListRow): Promise<void> {
+  listActionUrl(row: ApplicationListRow, action: string): string {
+    const commands = ['/applications-list', row.id];
+    if (action) {
+      commands.push(action);
+    }
+    return this.router.serializeUrl(this.router.createUrlTree(commands));
+  }
+
+  private handleActionLink(event?: MouseEvent): boolean {
+    if (!event) {
+      return true;
+    }
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return false;
+    }
+    event.preventDefault();
+    return true;
+  }
+
+  async onOpenList(row: ApplicationListRow, event?: MouseEvent): Promise<void> {
+    if (!this.handleActionLink(event)) {
+      return;
+    }
     const navigated = await this.router.navigate(
       ['/applications-list', row.id],
       {
@@ -511,6 +549,35 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       body: params,
       mode: 'continuous',
     });
+  }
+
+  onPreviewPrintContinuous(row: ApplicationListRow, event?: MouseEvent): void {
+    if (!this.handleActionLink(event)) {
+      return;
+    }
+    if (!isPlatformBrowser(this.platformId) || this.vm().pdfLoading) {
+      return;
+    }
+    this.appListSignalState.patch(clearNotificationsPatch());
+    if (!row?.id || !row.entries) {
+      this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
+      return;
+    }
+
+    const url = this.router.serializeUrl(
+      this.router.createUrlTree(['/applications-list', row.id, 'preview']),
+    );
+    // The route loads its own data; the named window is reused across lists.
+    const preview = window.open(
+      url,
+      'appreg-print-cont-preview',
+      'popup,width=1000,height=800,resizable=yes,scrollbars=yes',
+    );
+    if (!preview) {
+      this.showInline('Allow popups for this site to preview print cont.');
+      return;
+    }
+    preview.focus();
   }
 
   async onDeleteClick(row: ApplicationListRow): Promise<void> {
@@ -617,6 +684,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       filter,
     };
 
+    this.searchStatus.set('Searching…');
     this.appListSignalState.patch({ isLoading: true });
     this.loadRequest.set(params);
   }

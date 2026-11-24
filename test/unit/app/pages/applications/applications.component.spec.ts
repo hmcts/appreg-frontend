@@ -7,7 +7,12 @@ import {
 } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router,
+  RouterLink,
+  convertToParamMap,
+} from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
@@ -444,7 +449,27 @@ describe('ApplicationsComponent', () => {
     });
   });
 
-  it('configures the results table for server-side sorting', () => {
+  it('renders Open as a link to the entry with its navigation state', () => {
+    appStateSignal(component).update((s) => ({
+      ...s,
+      rows: [makeEntry({ id: 'row-1', listId: 'list-1' })],
+    }));
+    fixture.detectChanges();
+    const link: HTMLAnchorElement =
+      fixture.nativeElement.querySelector('tbody a');
+    expect(link).not.toBeNull();
+    expect(link.textContent?.trim()).toBe('Open');
+    expect(link.getAttribute('href')).toBe(
+      '/applications-list/list-1/update-entry/row-1',
+    );
+    expect(link.hasAttribute('role')).toBe(false);
+    expect(
+      fixture.debugElement.query(By.css('tbody a')).injector.get(RouterLink)
+        .state,
+    ).toEqual({ fromApplicationsPage: true });
+  });
+
+  it('renders table actions outside the caption and configures server-side sorting', () => {
     appStateSignal(component).update((s) => ({
       ...s,
       rows: [makeEntry({ id: 'row-1' })],
@@ -456,6 +481,18 @@ describe('ApplicationsComponent', () => {
     ).componentInstance as SortableTableComponent;
 
     expect(table.clientOrServerSort()).toBe('server');
+    const caption = fixture.nativeElement.querySelector('caption');
+    expect(caption.textContent.trim()).toBe('Application list entries');
+    expect(caption.classList.contains('govuk-visually-hidden')).toBe(true);
+    expect(caption.querySelector('button')).toBeNull();
+    const actions = fixture.nativeElement.querySelector('[tableActions]');
+    expect(actions).not.toBeNull();
+    expect(actions.closest('table')).toBeNull();
+    expect(actions.textContent).toContain('Actions');
+    expect(actions.querySelector('h2').textContent.trim()).toBe(
+      'Application list entries',
+    );
+    expect(actions.querySelector('.table-caption__actions')).not.toBeNull();
   });
 
   it('renders errorSummary when action-level errors are present', () => {
@@ -495,6 +532,7 @@ describe('ApplicationsComponent', () => {
     component.form.patchValue({ applicantOrg: RESTORED_APPLICANT_ORG });
 
     component.loadApplications();
+    expect(component.searchStatus()).toBe('21 results found.');
 
     const freshFixture = TestBed.createComponent(Applications);
     const freshComponent = freshFixture.componentInstance;
@@ -668,6 +706,28 @@ describe('ApplicationsComponent', () => {
       expect(button.disabled).toBe(false);
     });
 
+    it('updates the persistent status for repeated searches returning the same count', () => {
+      const response = new Subject<EntryPage>();
+      getEntriesMock.mockReturnValue(response);
+      fixture.detectChanges();
+      const status = fixture.nativeElement.querySelector('[role="status"]');
+      for (let attempt = 0; attempt < 2; attempt++) {
+        component.loadApplications();
+        fixture.detectChanges();
+        expect(status.textContent).toContain('Searching');
+        response.next({
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+        } as EntryPage);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('[role="status"]')).toBe(
+          status,
+        );
+        expect(status.textContent).toContain('No results found.');
+      }
+    });
+
     it('keeps Search disabled until the entries request succeeds', () => {
       const response = new Subject<HttpResponse<EntryPage>>();
       getEntriesMock.mockReturnValue(response);
@@ -702,6 +762,7 @@ describe('ApplicationsComponent', () => {
       response.error(new Error('Search failed'));
 
       expect(component.vm().isLoading).toBe(false);
+      expect(component.searchStatus()).toBe('');
     });
 
     it('when submitted with no params: sets invalid search criteria error and does not call API', () => {

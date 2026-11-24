@@ -4,7 +4,12 @@ import { Location } from '@angular/common';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { PLATFORM_ID } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  TestBed,
+  fakeAsync,
+  tick,
+} from '@angular/core/testing';
 import {
   ActivatedRoute,
   Router,
@@ -917,8 +922,8 @@ describe('ApplicationsListEntryDetail', () => {
       offsiteFeeAmount: { value: 3000, currency: 'GBP' },
     });
     expect(
-      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
-    ).toContain('Total Fee Amount: £41.00');
+      civilFeeUtils.buildCivilFeeSummary(component.feeMeta!, true),
+    ).toContainEqual({ key: 'Total fee amount', value: '£41.00' });
 
     mockGetApplicationCodeByCodeAndDate.mockReturnValue(
       of({
@@ -1844,8 +1849,8 @@ describe('ApplicationsListEntryDetail', () => {
       currency: 'GBP',
     });
     expect(
-      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
-    ).toContain('Total Fee Amount: £41.00');
+      civilFeeUtils.buildCivilFeeSummary(component.feeMeta!, true),
+    ).toContainEqual({ key: 'Total fee amount', value: '£41.00' });
 
     component.form.controls.hasOffsiteFee.setValue(false);
     mockUpdateApplicationListEntry.mockReturnValueOnce(
@@ -1933,8 +1938,8 @@ describe('ApplicationsListEntryDetail', () => {
       currency: 'GBP',
     });
     expect(
-      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
-    ).toContain('Total Fee Amount: £53.00');
+      civilFeeUtils.buildCivilFeeSummary(component.feeMeta!, true),
+    ).toContainEqual({ key: 'Total fee amount', value: '£53.00' });
   });
 
   it("does not reuse the previous code's offsite fee after selecting a replacement code", () => {
@@ -3318,7 +3323,7 @@ describe('ApplicationsListEntryDetail', () => {
     spy.mockRestore();
   });
 
-  it('onAddFeeDetails: when helper returns changed=true, uses current app code without persisting unrelated drafts', () => {
+  it('onAddFeeDetails: when helper returns changed=true, uses current app code without persisting unrelated drafts', fakeAsync(() => {
     const next: FeeStatus[] = [
       {
         paymentStatus: 'Paid',
@@ -3353,8 +3358,17 @@ describe('ApplicationsListEntryDetail', () => {
       { emitEvent: false },
     );
 
-    component.onAddFeeDetails(payload);
+    const originalClone = globalThis.structuredClone;
+    globalThis.structuredClone ??= cloneDeep;
+    try {
+      component.onAddFeeDetails(payload);
+      tick();
+    } finally {
+      globalThis.structuredClone = originalClone;
+    }
 
+    expect(component.feeSaveStatus()).toBe('Fee details saved.');
+    expect(component.isFeeSaveBanner()).toBe(true);
     expect(spy).toHaveBeenCalledTimes(1);
 
     expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
@@ -3372,7 +3386,7 @@ describe('ApplicationsListEntryDetail', () => {
     );
 
     spy.mockRestore();
-  });
+  }));
 
   it('onAddFeeDetails rolls back feeStatuses when update API errors', () => {
     const previous: FeeStatus[] = [
@@ -3412,7 +3426,9 @@ describe('ApplicationsListEntryDetail', () => {
       paymentReference: 'NEW',
     };
 
+    component.feeSaveStatus.set('Fee details saved.');
     component.onAddFeeDetails(payload);
+    expect(component.feeSaveStatus()).toBe('');
 
     expect(component.form.controls.feeStatuses.value).toEqual(previous);
     expect(component.form.controls.feeStatuses.pristine).toBe(true);

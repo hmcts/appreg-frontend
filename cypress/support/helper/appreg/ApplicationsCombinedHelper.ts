@@ -278,7 +278,7 @@ export class ApplicationListEntriesCombinedHelper {
         continue;
       }
 
-      switch (fieldLabel) {
+      switch (fieldLabel.replace(/(?: \(optional\))+$/, '')) {
         case 'Select applicant type':
         case 'Applicant type':
         case 'Select respondent type':
@@ -321,7 +321,7 @@ export class ApplicationListEntriesCombinedHelper {
         case 'Middle name':
         case 'Middle names':
           AccordionHelper.within(accordionTitle, () =>
-            TextboxHelper.typeInTextbox('Middle name(s)', value),
+            TextboxHelper.typeInTextbox('Middle name(s) (optional)', value),
           );
           break;
 
@@ -333,7 +333,7 @@ export class ApplicationListEntriesCombinedHelper {
 
         case 'Date of birth':
           AccordionHelper.within(accordionTitle, () =>
-            DateTimeHelper.setDateValue('Date of birth', value),
+            DateTimeHelper.setDateValue('Date of birth (optional)', value),
           );
           break;
 
@@ -363,7 +363,7 @@ export class ApplicationListEntriesCombinedHelper {
         continue;
       }
 
-      switch (fieldLabel) {
+      switch (fieldLabel.replace(/(?: \(optional\))+$/, '')) {
         case 'Address line 1':
           AccordionHelper.within(accordionTitle, () =>
             TextboxHelper.typeInTextbox('Address line 1', value),
@@ -372,7 +372,7 @@ export class ApplicationListEntriesCombinedHelper {
 
         case 'Address line 2':
           AccordionHelper.within(accordionTitle, () =>
-            TextboxHelper.typeInTextbox('Address line 2', value),
+            TextboxHelper.typeInTextbox('Address line 2 (optional)', value),
           );
           break;
 
@@ -380,7 +380,7 @@ export class ApplicationListEntriesCombinedHelper {
         case 'Town':
         case 'City':
           AccordionHelper.within(accordionTitle, () =>
-            TextboxHelper.typeInTextbox('Town or city', value),
+            TextboxHelper.typeInTextbox('Town or city (optional)', value),
           );
           break;
 
@@ -388,20 +388,20 @@ export class ApplicationListEntriesCombinedHelper {
         case 'County':
         case 'Region':
           AccordionHelper.within(accordionTitle, () =>
-            TextboxHelper.typeInTextbox('County or region', value),
+            TextboxHelper.typeInTextbox('County or region (optional)', value),
           );
           break;
 
         case 'Post town':
           AccordionHelper.within(accordionTitle, () =>
-            TextboxHelper.typeInTextbox('Post town', value),
+            TextboxHelper.typeInTextbox('Post town (optional)', value),
           );
           break;
 
         case 'Postcode':
         case 'Post code':
           AccordionHelper.within(accordionTitle, () =>
-            TextboxHelper.typeInTextbox('Postcode', value),
+            TextboxHelper.typeInTextbox('Postcode (optional)', value),
           );
           break;
 
@@ -431,25 +431,25 @@ export class ApplicationListEntriesCombinedHelper {
         continue;
       }
 
-      switch (fieldLabel) {
+      switch (fieldLabel.replace(/(?: \(optional\))+$/, '')) {
         case 'Phone number':
         case 'Phone':
           AccordionHelper.within(accordionTitle, () =>
-            TextboxHelper.typeInTextbox('Phone number', value),
+            TextboxHelper.typeInTextbox('Phone number (optional)', value),
           );
           break;
 
         case 'Mobile number':
         case 'Mobile':
           AccordionHelper.within(accordionTitle, () =>
-            TextboxHelper.typeInTextbox('Mobile number', value),
+            TextboxHelper.typeInTextbox('Mobile number (optional)', value),
           );
           break;
 
         case 'Email address':
         case 'Email':
           AccordionHelper.within(accordionTitle, () =>
-            TextboxHelper.typeInTextbox('Email address', value),
+            TextboxHelper.typeInTextbox('Email address (optional)', value),
           );
           break;
 

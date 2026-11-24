@@ -87,10 +87,10 @@ Feature: Applications List Entry Create
             # Civil Fee Details
             When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
             Then User Should See The Text "Selecting this will apply the off site fee to the entry." In The Accordion "Civil fee"
-            Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
+            Then User Should See Summary List Row With Key "Fee reference" And Value "CO8.1"
             Then User Verifies The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee" Is Unchecked
             Then User Checks The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
+            Then User Should See Summary List Row With Key "Off site fee reference" And Value "CO1.1"
             Then User Verifies The Civil Fee Amounts Against The Application Code
             Then User Should See The Text "Update fee status" In The Accordion "Civil fee"
             Then User Selects "Undertaken" From The Dropdown "Fee status" In The Accordion "Civil fee"
@@ -159,17 +159,17 @@ Feature: Applications List Entry Create
                   | Select type      | Person                             |
                   | Select title     | Dr                                 |
                   | First name       | John                               |
-                  | Middle name(s)   | Michael                            |
+                  | Middle name(s) (optional)   | Michael                            |
                   | Surname          | Smith {SCENARIO_ID}                |
-                  | Address line 1   | {SCENARIO_ID} High Street          |
-                  | Address line 2   | Apartment 4B                       |
-                  | Town or city     | Leeds                              |
-                  | County or region | West Yorkshire                     |
-                  | Post town        | Leeds                              |
-                  | Postcode         | LS10 1PJ                           |
-                  | Phone number     | 01632960001                        |
-                  | Mobile number    | 07700900001                        |
-                  | Email address    | applicant{SCENARIO_ID}@example.com |
+                  | Address line 1 (optional)   | {SCENARIO_ID} High Street          |
+                  | Address line 2 (optional)   | Apartment 4B                       |
+                  | Town or city (optional)     | Leeds                              |
+                  | County or region (optional) | West Yorkshire                     |
+                  | Post town (optional)        | Leeds                              |
+                  | Postcode (optional)         | LS10 1PJ                           |
+                  | Phone number (optional)     | 01632960001                        |
+                  | Mobile number (optional)    | 07700900001                        |
+                  | Email address (optional)    | applicant{SCENARIO_ID}@example.com |
 
             # Verify Application Codes Details
             Then User Verifies The Textbox "Application code" Contains "MX99006" In The Accordion "Application codes"
@@ -184,23 +184,23 @@ Feature: Applications List Entry Create
                   | Select type      | Person                              |
                   | Select title     | Mrs                                 |
                   | First name       | Jane                                |
-                  | Middle name(s)   | Elizabeth                           |
-                  | Surname          | Doe {SCENARIO_ID}                   |
-                  | Date of birth    | today-30y                           |
+                  | Middle name(s) (optional)   | Elizabeth                           |
+                  | Surname (optional)         | Doe {SCENARIO_ID}                   |
+                  | Date of birth (optional)    | today-30y                           |
                   | Address line 1   | {SCENARIO_ID} Park Road             |
-                  | Address line 2   | Building C                          |
-                  | Town or city     | Leeds                               |
-                  | County or region | West Yorkshire                      |
-                  | Post town        | Leeds                               |
-                  | Postcode         | LS10 1PJ                            |
-                  | Phone number     | 01632960002                         |
-                  | Mobile number    | 07700900002                         |
-                  | Email address    | respondent{SCENARIO_ID}@example.com |
+                  | Address line 2 (optional)   | Building C                          |
+                  | Town or city (optional)     | Leeds                               |
+                  | County or region (optional) | West Yorkshire                      |
+                  | Post town (optional)        | Leeds                               |
+                  | Postcode (optional)         | LS10 1PJ                            |
+                  | Phone number (optional)     | 01632960002                         |
+                  | Mobile number (optional)    | 07700900002                         |
+                  | Email address (optional)    | respondent{SCENARIO_ID}@example.com |
             # Verify Civil Fee Details
             Then User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Checked
             Then User Should See The Text "Selecting this will automatically apply the off site fee to the entry. This change is saved immediately." In The Accordion "Civil fee"
-            Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
+            Then User Should See Summary List Row With Key "Fee reference" And Value "CO8.1"
+            Then User Should See Summary List Row With Key "Off site fee reference" And Value "CO1.1"
             Then User Verifies The Civil Fee Amounts Against The Application Code
             Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
                   | Fee Status | Status Date  | Payment Ref       |
@@ -444,12 +444,12 @@ Feature: Applications List Entry Create
             # Civil Fee Details
             When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
             Then User Should See The Text "Selecting this will apply the off site fee to the entry." In The Accordion "Civil fee"
-            Then User Should See The Text "Fee Reference: CO10.1" In The Accordion "Civil fee"
-            Then User Should See The Text "Amount: £218.00" In The Accordion "Civil fee"
+            Then User Should See Summary List Row With Key "Fee reference" And Value "CO10.1"
+            Then User Should See Summary List Row With Key "Amount" And Value "£218.00"
             Then User Verifies The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee" Is Unchecked
             Then User Checks The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee"
             # Bug ARCPOC-1241 is raised
-            Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
+            Then User Should See Summary List Row With Key "Off site fee reference" And Value "CO1.1"
             Then User Verifies The Civil Fee Amounts Against The Application Code
             Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
             Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
@@ -564,4 +564,4 @@ Feature: Applications List Entry Create
             Then User Should See The Accordion "Wording" Expanded
             Then User Should See The Accordion "Civil fee" Expanded
             Then User Should See The Text "Attends to make a statutory declaration that henceforth the applicant will be known as " In The Accordion "Wording"
-            Then User Should See The Text "Fee Reference: CO7.2 " In The Accordion "Civil fee"
+            Then User Should See Summary List Row With Key "Fee reference" And Value "CO7.2"

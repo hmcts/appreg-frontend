@@ -215,10 +215,110 @@ describe('ApplicationsListDeleteComponent', () => {
       'Synthetic application',
     ]);
     expect(root.querySelector('.govuk-summary-card')).toBeNull();
-    expect(table.querySelector('input, button, a')).toBeNull();
+    expect(table.querySelector('input, a')).toBeNull();
+    expect(table.querySelectorAll('thead button')).toHaveLength(5);
+    expect(root.querySelector('app-pagination')).toBeNull();
     expect(root.querySelector('.govuk-summary-list__actions')).toBeNull();
     expect(api.deleteApplicationList).not.toHaveBeenCalled();
   });
+
+  it.each([
+    ['Sequence number', 'sequenceNumber'],
+    ['Account number', 'accountNumber'],
+    ['Applicant', 'applicant'],
+    ['Respondent', 'respondent'],
+    ['Title', 'title'],
+  ])(
+    'sorts %s across all pages and resets to the first page',
+    async (header, key) => {
+      await setup({
+        navStateRow: makeRow(),
+        realTemplate: true,
+        entriesResponse: (page) => {
+          const number = page + 1;
+          const response = makePage([`entry-${number}`], page, 12);
+          const party = {
+            organisation: {
+              name: `Synthetic ${number}`,
+              contactDetails: { addressLine1: 'Synthetic test address' },
+            },
+          };
+          response.content[0] = {
+            ...response.content[0],
+            sequenceNumber: number,
+            accountNumber: `Synthetic ${number}`,
+            applicant: party,
+            respondent: party,
+            applicationTitle: `Synthetic ${number}`,
+          };
+          return of(response);
+        },
+      });
+      const root = fixture.nativeElement as HTMLElement;
+      const sequenceNumbers = () =>
+        Array.from(root.querySelectorAll('tbody tr'), (row) =>
+          Number(row.querySelector('th, td')?.textContent?.trim()),
+        );
+      const clickPage = (selector: string) => {
+        (root.querySelector(selector) as HTMLAnchorElement).click();
+        fixture.detectChanges();
+      };
+      const heading = Array.from(root.querySelectorAll('thead th')).find(
+        (cell) => cell.textContent?.trim() === header,
+      )!;
+      const clickSort = () => {
+        heading.querySelector('button')!.click();
+        fixture.detectChanges();
+      };
+
+      expect(sequenceNumbers()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      expect(
+        root
+          .querySelector('[aria-label="Page 1"]')
+          ?.getAttribute('aria-current'),
+      ).toBe('page');
+      expect(root.querySelector('[rel="prev"]')).toBeNull();
+      clickPage('[rel="next"]');
+      expect(sequenceNumbers()).toEqual([11, 12]);
+      expect(
+        root
+          .querySelector('[aria-label="Page 2"]')
+          ?.getAttribute('aria-current'),
+      ).toBe('page');
+      expect(root.querySelector('[rel="next"]')).toBeNull();
+      clickPage('[rel="prev"]');
+      expect(sequenceNumbers()).toHaveLength(10);
+      clickPage('[aria-label="Page 2"]');
+
+      if (key !== 'sequenceNumber') {
+        clickSort();
+        expect(component.currentPage()).toBe(0);
+        expect(heading.getAttribute('aria-sort')).toBe('ascending');
+        expect(sequenceNumbers()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        clickPage('[rel="next"]');
+      }
+      clickSort();
+      expect(component.currentPage()).toBe(0);
+      expect(heading.getAttribute('aria-sort')).toBe('descending');
+      expect(sequenceNumbers()).toEqual([12, 11, 10, 9, 8, 7, 6, 5, 4, 3]);
+      clickPage('[rel="next"]');
+      expect(sequenceNumbers()).toEqual([2, 1]);
+      clickSort();
+      expect(heading.getAttribute('aria-sort')).toBe('ascending');
+      expect(sequenceNumbers()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      expect(
+        component.childEntries().map((entry) => entry.sequenceNumber),
+      ).toEqual(Array.from({ length: 12 }, (_, index) => index + 1));
+      expect(
+        root
+          .querySelector('[role="status"]')
+          ?.textContent?.replace(/\s+/g, ' ')
+          .trim(),
+      ).toBe('12 application list entries will be deleted.');
+      expect(entriesApi.getApplicationListEntries).toHaveBeenCalledTimes(12);
+      expect(api.deleteApplicationList).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([false, true])(
     'cancels the rendered review with fromListDetails=%s without deleting',

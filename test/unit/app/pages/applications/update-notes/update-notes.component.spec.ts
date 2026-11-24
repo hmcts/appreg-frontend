@@ -379,6 +379,10 @@ describe('UpdateNotesComponent', () => {
     expect(additionalNotes?.maxLength).toBe(2973);
     expect(
       element.querySelector('#additional-notes-hint')?.textContent,
+    ).toContain('You can enter up to 2973 characters');
+    expect(
+      element.querySelector('#additional-notes-hint + .govuk-hint')
+        ?.textContent,
     ).toContain('You have 2973 characters remaining');
   });
 

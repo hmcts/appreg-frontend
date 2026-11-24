@@ -36,7 +36,7 @@ describe('ReportSelectorComponent', () => {
 
   it('renders the legend heading', () => {
     const el: HTMLElement = fixture.nativeElement;
-    const heading = el.querySelector('.govuk-fieldset__heading');
+    const heading = el.querySelector('legend.govuk-fieldset__legend');
     expect(heading).toBeTruthy();
     expect(heading?.textContent?.trim()).toBe('Select a report');
   });

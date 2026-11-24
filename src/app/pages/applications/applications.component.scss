@@ -5,12 +5,15 @@
   max-width: 175px;
 }
 
-.govuk-table__caption--m {
-  margin-bottom: 0;
+.table-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: baseline;
 }
 
 .table-caption__actions {
-  float: right;
   display: flex;
   gap: 1rem;
   justify-content: flex-end;

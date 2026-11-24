@@ -52,7 +52,7 @@ describe('GovukTextareaComponent', () => {
     expect(textarea.classList).toContain('govuk-textarea--error');
     expect(textarea.getAttribute('aria-invalid')).toBe('true');
     expect(textarea.getAttribute('aria-describedby')).toBe(
-      'change-reason change-reason-error',
+      'change-reason change-reason-hint change-reason-error',
     );
   });
 
@@ -66,7 +66,100 @@ describe('GovukTextareaComponent', () => {
     expect(group.classList).not.toContain('govuk-form-group--error');
     expect(textarea.classList).not.toContain('govuk-textarea--error');
     expect(textarea.getAttribute('aria-invalid')).toBeNull();
-    expect(textarea.getAttribute('aria-describedby')).toBe('change-reason');
+    expect(textarea.getAttribute('aria-describedby')).toBe(
+      'change-reason change-reason-hint',
+    );
+  });
+
+  it('announces the remaining count after typing while focused and stops on blur', () => {
+    jest.useFakeTimers();
+    try {
+      const element = fixture.nativeElement as HTMLElement;
+      const textarea = element.querySelector('textarea') as HTMLTextAreaElement;
+      const liveRegion = element.querySelector('[aria-live]') as HTMLElement;
+      const description = element.querySelector(
+        '#change-reason-hint',
+      ) as HTMLElement;
+
+      expect(liveRegion.getAttribute('aria-live')).toBe('off');
+      expect(description.textContent).toContain(
+        'You can enter up to 2000 characters',
+      );
+      expect(
+        element.querySelector('.govuk-hint')?.getAttribute('aria-hidden'),
+      ).toBe('true');
+      textarea.dispatchEvent(new Event('focus'));
+      fixture.detectChanges();
+      expect(liveRegion.getAttribute('aria-live')).toBe('polite');
+
+      textarea.value = 'First';
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      jest.advanceTimersByTime(500);
+      textarea.value = 'First second';
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      jest.advanceTimersByTime(999);
+      fixture.detectChanges();
+      expect(liveRegion.textContent?.trim()).toBe('');
+      jest.advanceTimersByTime(1);
+      fixture.detectChanges();
+      expect(liveRegion.textContent).toContain(
+        'You have 1988 characters remaining',
+      );
+      expect(description.textContent).toContain(
+        'You can enter up to 2000 characters',
+      );
+
+      textarea.dispatchEvent(new Event('blur'));
+      fixture.detectChanges();
+      expect(liveRegion.getAttribute('aria-live')).toBe('off');
+      expect(liveRegion.textContent?.trim()).toBe('');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('announces the current remaining count when a prefilled textarea receives focus', () => {
+    jest.useFakeTimers();
+    try {
+      fixture.componentRef.setInput(
+        'control',
+        new FormControl<string | null>('Existing notes'),
+      );
+      fixture.detectChanges();
+
+      const element = fixture.nativeElement as HTMLElement;
+      const textarea = element.querySelector('textarea') as HTMLTextAreaElement;
+      const liveRegion = element.querySelector('[aria-live]') as HTMLElement;
+
+      expect(textarea.value).toBe('Existing notes');
+      textarea.dispatchEvent(new Event('focus'));
+      fixture.detectChanges();
+      expect(liveRegion.getAttribute('aria-live')).toBe('polite');
+      expect(liveRegion.textContent?.trim()).toBe('');
+
+      jest.advanceTimersByTime(999);
+      fixture.detectChanges();
+      expect(liveRegion.textContent?.trim()).toBe('');
+
+      jest.advanceTimersByTime(1);
+      fixture.detectChanges();
+      expect(liveRegion.textContent).toContain(
+        'You have 1986 characters remaining',
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not render a count or live region when character counting is disabled', () => {
+    fixture.componentRef.setInput('characterCountEnabled', false);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('#change-reason-hint')).toBeNull();
+    expect(element.querySelector('[aria-live]')).toBeNull();
+    expect(
+      element.querySelector('textarea')?.getAttribute('aria-describedby'),
+    ).toBe('change-reason');
   });
 
   it('should get the remaining character count', () => {
@@ -129,7 +222,7 @@ describe('GovukTextareaComponent', () => {
     fixture.detectChanges();
 
     expect(
-      fixture.nativeElement.querySelector('#change-reason-hint')?.textContent,
+      fixture.nativeElement.querySelector('.govuk-hint')?.textContent,
     ).toContain('You have 184 characters remaining');
   });
 
