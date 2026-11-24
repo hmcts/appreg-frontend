@@ -38,7 +38,7 @@ import {
   AddFeeDetailsPayload,
   CivilFeeMeta,
 } from '@shared-types/civil-fee/civil-fee';
-import { buildCivilFeeHeading, feeStatusRowId } from '@util/civil-fee-utils';
+import { buildCivilFeeSummary, feeStatusRowId } from '@util/civil-fee-utils';
 import {
   buildFormErrorSummary,
   getControlErrorItem,
@@ -303,8 +303,8 @@ export class CivilFeeSectionComponent implements OnInit {
     );
   }
 
-  feeHeadingText(): string {
-    return buildCivilFeeHeading(this.feeMeta() ?? {}, this.offSiteFee());
+  feeSummaryRows(): { key: string; value: string }[] {
+    return buildCivilFeeSummary(this.feeMeta() ?? {}, this.offSiteFee());
   }
 
   civilFeeColumnsWithChangeLink = (): TableColumn[] =>

@@ -109,17 +109,19 @@ describe('List row actions', () => {
       const links = Array.from(menu.querySelectorAll('a'));
       expect(links.map((link) => link.getAttribute('href'))).toEqual(
         entries
-          ? ['/applications-list/abc-123', '/applications-list/abc-123/preview']
-          : ['/applications-list/abc-123'],
+          ? [
+              '/applications-list/abc-123',
+              '/applications-list/abc-123/preview',
+              '/applications-list/abc-123/delete',
+            ]
+          : ['/applications-list/abc-123', '/applications-list/abc-123/delete'],
       );
       expect(links.every((link) => !link.hasAttribute('role'))).toBe(true);
       expect(
         Array.from(menu.querySelectorAll('button'), (button) =>
           button.textContent?.trim(),
         ),
-      ).toEqual(
-        entries ? ['Print page', 'Print continuous', 'Delete'] : ['Delete'],
-      );
+      ).toEqual(entries ? ['Print page', 'Print continuous'] : []);
     },
   );
 
@@ -134,6 +136,7 @@ describe('List row actions', () => {
       });
       const row = makeApplicationListRow();
       await comp.onOpenList(row, event);
+      await comp.onDeleteClick(row, event);
       comp.onPreviewPrintContinuous(row, event);
       expect(event.defaultPrevented).toBe(false);
       expect(navigateSpy).not.toHaveBeenCalled();
@@ -173,8 +176,8 @@ describe('List row actions', () => {
       'tbody .moj-button-menu',
     );
     expect(updated).not.toBe(original);
-    expect(updated.querySelectorAll('button')).toHaveLength(3);
-    expect(updated.querySelectorAll('a[href]')).toHaveLength(2);
+    expect(updated.querySelectorAll('button')).toHaveLength(2);
+    expect(updated.querySelectorAll('a[href]')).toHaveLength(3);
     expect(updated.querySelector('ul')).toBeNull();
   });
 

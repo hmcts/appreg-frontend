@@ -194,14 +194,14 @@
               >
             </a>
 
-            <!-- Delete button (only when open) -->
-            <button
-              type="button"
+            <!-- Delete link (only when open) -->
+            <a
               class="govuk-button moj-button-menu__item govuk-button--warning"
-              (click)="onDeleteClick(row)"
+              [href]="listActionUrl(row, 'delete')"
+              (click)="onDeleteClick(row, $event)"
             >
               Delete
-            </button>
+            </a>
           </div>
         } @else if (isOpen(row)) {
           <div
@@ -217,13 +217,13 @@
             >
               Open
             </a>
-            <button
-              type="button"
+            <a
               class="govuk-button moj-button-menu__item govuk-button--warning"
-              (click)="onDeleteClick(row)"
+              [href]="listActionUrl(row, 'delete')"
+              (click)="onDeleteClick(row, $event)"
             >
               Delete
-            </button>
+            </a>
           </div>
         } @else if (row.entries > 0) {
           <div

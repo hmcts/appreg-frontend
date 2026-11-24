@@ -63,6 +63,7 @@ import {
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
+import { handleActionLink } from '@util/action-link';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
@@ -437,26 +438,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     return this.router.serializeUrl(this.router.createUrlTree(commands));
   }
 
-  private handleActionLink(event?: MouseEvent): boolean {
-    if (!event) {
-      return true;
-    }
-    if (
-      event.defaultPrevented ||
-      event.button !== 0 ||
-      event.ctrlKey ||
-      event.metaKey ||
-      event.shiftKey ||
-      event.altKey
-    ) {
-      return false;
-    }
-    event.preventDefault();
-    return true;
-  }
-
   async onOpenList(row: ApplicationListRow, event?: MouseEvent): Promise<void> {
-    if (!this.handleActionLink(event)) {
+    if (!handleActionLink(event)) {
       return;
     }
     const navigated = await this.router.navigate(
@@ -552,7 +535,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   onPreviewPrintContinuous(row: ApplicationListRow, event?: MouseEvent): void {
-    if (!this.handleActionLink(event)) {
+    if (!handleActionLink(event)) {
       return;
     }
     if (!isPlatformBrowser(this.platformId) || this.vm().pdfLoading) {
@@ -580,7 +563,13 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     preview.focus();
   }
 
-  async onDeleteClick(row: ApplicationListRow): Promise<void> {
+  async onDeleteClick(
+    row: ApplicationListRow,
+    event?: MouseEvent,
+  ): Promise<void> {
+    if (!handleActionLink(event)) {
+      return;
+    }
     if (!row) {
       return;
     }

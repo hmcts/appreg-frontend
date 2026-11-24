@@ -6,8 +6,26 @@
 <app-review-confirm
   (confirm)="onDelete()"
   (cancelled)="goBack()"
+  [disabled]="!entryRow || loading() || loadError()"
   confirmButtonTxt="Yes - delete"
   title="Are you sure you want to delete this application?"
 >
-  <app-table [rows]="[entryRow]" [columns]="columns" />
+  @if (loading()) {
+    <p class="govuk-body" role="status">Loading application…</p>
+  }
+  @if (loadError()) {
+    <p class="govuk-body" role="alert">
+      Could not load the application for deletion. Try again.
+    </p>
+    <button
+      type="button"
+      class="govuk-button govuk-button--secondary"
+      (click)="loadEntry()"
+    >
+      Try again
+    </button>
+  }
+  @if (entryRow) {
+    <app-table [rows]="[entryRow]" [columns]="columns" />
+  }
 </app-review-confirm>

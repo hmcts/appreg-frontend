@@ -12,7 +12,7 @@ import { TableColumn } from '@components/sortable-table/sortable-table.component
 import { FeeStatus, PaymentStatus } from '@openapi';
 
 jest.mock('@util/civil-fee-utils', () => ({
-  buildCivilFeeHeading: jest.fn(() => 'MOCK_HEADING'),
+  ...jest.requireActual('@util/civil-fee-utils'),
   feeStatusRowId: jest.fn(
     (fs: FeeStatus, index?: number) =>
       `row-${fs.paymentStatus}-${fs.statusDate}-${index ?? 'none'}`,
@@ -432,9 +432,64 @@ describe('CivilFeeSectionComponent', () => {
     });
   });
 
-  it('feeHeadingText uses util (mocked) and returns heading string', () => {
-    // We mocked buildCivilFeeHeading -> "MOCK_HEADING"
-    expect(component.feeHeadingText()).toBe('MOCK_HEADING');
+  it('renders fee labels and values as summary rows and updates offsite rows', () => {
+    fixture.componentRef.setInput('feeMeta', {
+      feeReference: 'CO3.3',
+      feeAmount: { value: 1500, currency: 'GBP' },
+      offsiteFeeReference: 'CO1.1',
+      offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+    });
+    const readRows = (): string[][] => {
+      const host: HTMLElement = fixture.nativeElement;
+      return Array.from(
+        host.querySelectorAll('#civil-fee-section dl > div'),
+      ).map((row) => [
+        row.querySelector('dt')!.textContent.trim(),
+        row.querySelector('dd')!.textContent.trim(),
+      ]);
+    };
+    fixture.detectChanges();
+    const baseRows = [
+      ['Fee reference', 'CO3.3'],
+      ['Amount', '£15.00'],
+    ];
+    expect(readRows()).toEqual(baseRows);
+    expect(
+      fixture.nativeElement.querySelector('#civil-fee-section h2'),
+    ).toBeNull();
+    component.feeForm().controls.hasOffsiteFee.setValue(true);
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges();
+    expect(readRows()).toEqual([
+      ...baseRows,
+      ['Off site fee reference', 'CO1.1'],
+      ['Off site fee amount', '£30.00'],
+      ['Total fee amount', '£45.00'],
+    ]);
+    component.feeForm().controls.hasOffsiteFee.setValue(false);
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges();
+    expect(readRows()).toEqual(baseRows);
+  });
+
+  it('preserves no-fee messaging and hides metadata for bulk updates', () => {
+    fixture.componentRef.setInput('feeRequired', false);
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('#civil-fee-section dl'),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('#civil-fee-section h2').textContent,
+    ).toContain('No fee required');
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.componentRef.setInput('noFeeMeta', true);
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('#civil-fee-section dl'),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('#civil-fee-section h2'),
+    ).toBeNull();
   });
 
   it('feeStatusRows maps FeeStatus array into RowLike rows (date formatted in template using DateTimePipe)', () => {

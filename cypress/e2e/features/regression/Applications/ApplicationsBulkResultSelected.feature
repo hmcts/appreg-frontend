@@ -1,6 +1,6 @@
 Feature: Applications Bulk Result Selected
 
-    @regression @ARCPOC-214 @ARCPOC-1335 @ARCPOC-1495 @ARCPOC-1512 @ARCPOC-1360 @ARCPOC-1228
+    @regression @ARCPOC-214 @ARCPOC-1335 @ARCPOC-1495 @ARCPOC-1512 @ARCPOC-1360 @ARCPOC-1228 @ARCPOC-1957
     Scenario Outline: Bulk result selected applications from Applications search page
         # Setup: Create Application List and Entry via API
         Given User Authenticates Via API As "<User>"

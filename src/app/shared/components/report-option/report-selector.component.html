@@ -13,6 +13,9 @@
             [name]="name()"
             type="radio"
             [value]="r.id"
+            [attr.aria-describedby]="
+              r.hint ? idPrefix() + '-' + r.id + '-hint' : null
+            "
             [disabled]="formDisabled || selectorDisabled() || !!r.disabled"
             [attr.disabled]="
               formDisabled || selectorDisabled() || !!r.disabled ? true : null
