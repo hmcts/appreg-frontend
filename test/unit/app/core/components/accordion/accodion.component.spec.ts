@@ -43,6 +43,28 @@ describe('AccordionComponent', () => {
     expect(headings).toEqual(['First section', 'Second section']);
   });
 
+  it('uses neutral panels without region labels while preserving button targets', () => {
+    const panels = fixture.debugElement.queryAll(
+      By.css('.govuk-accordion__section-content'),
+    );
+    const buttons = fixture.debugElement.queryAll(
+      By.css('.govuk-accordion__section-button'),
+    );
+
+    expect(panels).toHaveLength(2);
+    panels.forEach((panel, index) => {
+      const content = panel.nativeElement as HTMLElement;
+      const button = buttons[index].nativeElement as HTMLButtonElement;
+
+      expect(content.tagName).toBe('DIV');
+      expect(content.hasAttribute('role')).toBe(false);
+      expect(content.hasAttribute('aria-labelledby')).toBe(false);
+      expect(content.hasAttribute('aria-label')).toBe(false);
+      expect(content.id).toBe(`my-accordion-content-${index + 1}`);
+      expect(button.getAttribute('aria-controls')).toBe(content.id);
+    });
+  });
+
   it('sets aria-expanded and hidden based on item.expanded', () => {
     const buttons = fixture.debugElement.queryAll(
       By.css('.govuk-accordion__section-button'),
