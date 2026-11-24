@@ -26,7 +26,11 @@ const { initAll: govukInitAll } = jest.requireMock('govuk-frontend');
 
 /* requestAnimationFrame: make it immediate and typed */
 let rafSpy: jest.SpyInstance<number, [FrameRequestCallback]>;
+let scrollSpy: jest.SpyInstance;
 beforeAll(() => {
+  scrollSpy = jest
+    .spyOn(window, 'scrollTo')
+    .mockImplementation(() => undefined);
   rafSpy = jest.spyOn(window, 'requestAnimationFrame');
   rafSpy.mockImplementation((cb: FrameRequestCallback): number => {
     cb(0);
@@ -34,6 +38,7 @@ beforeAll(() => {
   });
 });
 afterAll(() => {
+  scrollSpy.mockRestore();
   rafSpy.mockRestore();
 });
 
@@ -70,6 +75,31 @@ describe('App (root)', () => {
     await create('browser');
     fixture.detectChanges();
     expect(comp).toBeTruthy();
+  });
+
+  it('resets focus only between pages and preserves the body tabindex', async () => {
+    await create('browser');
+    const router = TestBed.inject(Router);
+    const focus = jest.spyOn(document.body, 'focus');
+    fixture.detectChanges();
+    await router.navigateByUrl('/');
+    expect(focus).not.toHaveBeenCalled();
+
+    await router.navigateByUrl('/next');
+    expect(focus).toHaveBeenCalledTimes(1);
+    expect(document.body.hasAttribute('tabindex')).toBe(false);
+    expect(scrollSpy).toHaveBeenCalledWith(0, 0);
+
+    await router.navigateByUrl('/next?sort=date');
+    await router.navigateByUrl('/next?sort=date#main-content');
+    expect(focus).toHaveBeenCalledTimes(1);
+
+    document.body.setAttribute('tabindex', '-1');
+    await router.navigateByUrl('/');
+    expect(focus).toHaveBeenCalledTimes(2);
+    expect(document.body.getAttribute('tabindex')).toBe('-1');
+    document.body.removeAttribute('tabindex');
+    focus.mockRestore();
   });
 
   describe('ngOnInit', () => {
@@ -206,6 +236,17 @@ describe('Preview layout', () => {
       await router.navigateByUrl('/applications-list/example/preview');
       const fixture = TestBed.createComponent(App);
       fixture.detectChanges();
+      const skipLink = () =>
+        fixture.nativeElement.querySelector('a.govuk-skip-link');
+      expect(fixture.nativeElement.firstElementChild).toBe(skipLink());
+      expect(skipLink().getAttribute('href')).toBe(
+        '/applications-list/example/preview#main-content',
+      );
+      expect(skipLink().getAttribute('data-module')).toBe('govuk-skip-link');
+      expect(skipLink().textContent.trim()).toBe('Skip to main content');
+      expect(
+        fixture.nativeElement.querySelector('main#main-content'),
+      ).not.toBeNull();
       const layout = () =>
         fixture.nativeElement.querySelectorAll(
           'app-header, app-service-navigation, app-footer',
@@ -215,9 +256,12 @@ describe('Preview layout', () => {
         fixture.nativeElement.querySelector('main router-outlet'),
       ).not.toBeNull();
 
-      await router.navigateByUrl('/applications-list');
+      await router.navigateByUrl('/applications-list?sort=date#previous');
       fixture.detectChanges();
       expect(layout()).toHaveLength(3);
+      expect(skipLink().getAttribute('href')).toBe(
+        '/applications-list?sort=date#main-content',
+      );
 
       await router.navigateByUrl('/applications-list/another/preview');
       fixture.detectChanges();
