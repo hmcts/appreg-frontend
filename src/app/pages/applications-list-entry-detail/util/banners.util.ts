@@ -19,12 +19,16 @@ export function focusSuccessBanner(platformId: object): void {
 export function focusLocalBanner(
   platformId: object,
   bannerId = 'app-alert',
+  canFocus: () => boolean = () => true,
 ): void {
   if (!isPlatformBrowser(platformId)) {
     return;
   }
 
   setTimeout(() => {
+    if (!canFocus()) {
+      return;
+    }
     const el = document.querySelector<HTMLElement>(bannerId);
     el?.focus?.({ preventScroll: true });
     el?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });

@@ -212,6 +212,9 @@ test('Edit entry: Enter applies wording without submitting the entry', async () 
     await page.type('#KeyboardValue', 'Test value');
     await page.keyboard.press('Enter');
     await page.waitForSelector('#wording-local-banner', { visible: true });
+    await page.waitForFunction(
+      () => document.activeElement?.id === 'wording-local-banner',
+    );
     expect(await submissions.jsonValue()).toEqual({
       submits: 0,
       primaryClicks: 0,

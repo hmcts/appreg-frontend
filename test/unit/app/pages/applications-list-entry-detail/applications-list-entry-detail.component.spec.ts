@@ -305,6 +305,105 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
   });
 
+  it.each(['applicant', 'officials'] as const)(
+    'focuses the %s confirmation after saving, including repeated saves',
+    fakeAsync((section: 'applicant' | 'officials') => {
+      component.openApplicantSection.set(true);
+      component.openOfficialSection.set(true);
+      component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+      fixture.detectChanges();
+      const host: HTMLElement = fixture.nativeElement;
+      const sectionHost = host.querySelector(`app-${section}-section`)!;
+      const trigger = sectionHost.querySelector<HTMLButtonElement>('button')!;
+      const save = () =>
+        section === 'applicant'
+          ? component.onUpdateApplicant()
+          : component.onSaveOfficials();
+
+      for (let attempt = 0; attempt < 2; attempt++) {
+        trigger.focus();
+        save();
+        fixture.detectChanges();
+        tick();
+        const banner = host.querySelector(`#${section}-save-banner`)!;
+        expect(banner).not.toBeNull();
+        expect(document.activeElement).toBe(banner);
+        expect(
+          banner
+            .closest('.govuk-accordion__section-content')
+            ?.hasAttribute('hidden'),
+        ).toBe(false);
+        expect(host.querySelector('app-success-banner')).toBeNull();
+        expect(component.sectionSaveStatus()).toBe('');
+      }
+    }),
+  );
+
+  it('announces a delayed section save without taking focus from another section', fakeAsync(() => {
+    component.openOfficialSection.set(true);
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    fixture.detectChanges();
+    const response = new Subject<unknown>();
+    mockUpdateApplicationListEntry.mockReturnValueOnce(response);
+    const host: HTMLElement = fixture.nativeElement;
+    host
+      .querySelector<HTMLButtonElement>('app-officials-section button')!
+      .focus();
+    component.onSaveOfficials();
+    component.openOfficialSection.set(false);
+    fixture.detectChanges();
+    const other = host.querySelector<HTMLButtonElement>(
+      '.govuk-accordion__section-button',
+    )!;
+    other.focus();
+    response.next({});
+    response.complete();
+    fixture.detectChanges();
+    tick();
+    expect(document.activeElement).toBe(other);
+    expect(component.openOfficialSection()).toBe(false);
+    expect(component.sectionSaveStatus()).toContain('Officials updated');
+  }));
+
+  it('does not show a section success message when the save fails', fakeAsync(() => {
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      throwError(() => new Error('Save failed')),
+    );
+    component.onSaveOfficials();
+    fixture.detectChanges();
+    tick();
+    expect(component.sectionConfirmation()).toBeNull();
+    expect(component.sectionSaveStatus()).toBe('');
+    expect(component.vm().errorFound).toBe(true);
+  }));
+
+  it('retains page-level confirmation and focus for a complete application save', async () => {
+    // Use valid applicant data: the wording submit effect also rebuilds form
+    // errors, so bypassing only runFullSubmitValidation leaves this fixture invalid.
+    component['form'].controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-999');
+    component['form'].controls.standardApplicantCode.setValue('SA-999', {
+      emitEvent: false,
+    });
+    fixture.detectChanges();
+
+    component.onUpdateApplication();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+    expect(component.vm().summaryErrors).toEqual([]);
+    expect(component.sectionConfirmation()).toBeNull();
+    expect(component.vm().successBanner).toEqual(
+      ENTRY_SUCCESS_MESSAGES.listUpdated,
+    );
+    const banner = fixture.nativeElement.querySelector(
+      'app-success-banner [tabindex="-1"]',
+    );
+    expect(banner).not.toBeNull();
+    expect(document.activeElement).toBe(banner);
+  });
+
   it.each([PaymentStatus.PAID, PaymentStatus.REMITTED])(
     'keeps the code layout but disables its fields and buttons for saved %s, even before a later Due status',
     (paymentStatus) => {
@@ -596,7 +695,7 @@ describe('ApplicationsListEntryDetail', () => {
       warning.mockRestore();
       expect(component.form.getRawValue()).toMatchObject(draft);
 
-      const response = new Subject<EntryGetDetailDto>();
+      const response = new Subject<unknown>();
       mockUpdateApplicationListEntry.mockReturnValue(response.asObservable());
       component['civilFeeSection']!.onAddFeeDetailsClick();
       expect(
@@ -612,7 +711,7 @@ describe('ApplicationsListEntryDetail', () => {
       const originalClone = globalThis.structuredClone;
       globalThis.structuredClone ??= cloneDeep;
       try {
-        response.next({} as EntryGetDetailDto);
+        response.next({});
       } finally {
         globalThis.structuredClone = originalClone;
       }
@@ -1739,10 +1838,11 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['form'].controls.hasOffsiteFee.pristine).toBe(true);
 
     const state = component['appListEntryDetailState']();
-    expect(state.successBanner).toBeTruthy();
+    expect(state.successBanner).toBeNull();
+    expect(component.sectionConfirmation()?.section).toBe('fees');
   });
 
-  it('onRemoveResult sets successBanner when removeResult succeeds', () => {
+  it('onRemoveResult shows local confirmation when removeResult succeeds', () => {
     component['appListEntryDetailPatch']({ appListId: 'AL-1' });
 
     const removeSpy = jest
@@ -1763,8 +1863,11 @@ describe('ApplicationsListEntryDetail', () => {
     expect(resultId).toBe('R-1');
 
     const state = component['appListEntryDetailState']();
-    expect(state.successBanner).toBeTruthy();
-    expect(state.successBanner?.heading).toBe('Result removed');
+    expect(state.successBanner).toBeNull();
+    expect(component.sectionConfirmation()).toEqual({
+      section: 'results',
+      message: ENTRY_SUCCESS_MESSAGES.resultRemoved,
+    });
 
     removeSpy.mockRestore();
   });
@@ -2895,9 +2998,11 @@ describe('ApplicationsListEntryDetail', () => {
     expect(reportProgress).toBe(false);
     expect(options).toEqual(expect.objectContaining({ transferCache: false }));
 
-    expect(component['appListEntryDetailState']().successBanner?.heading).toBe(
-      'Applicant updated',
-    );
+    expect(component['appListEntryDetailState']().successBanner).toBeNull();
+    expect(component.sectionConfirmation()).toEqual({
+      section: 'applicant',
+      message: ENTRY_SUCCESS_MESSAGES.applicantUpdated,
+    });
   });
 
   it('onUpdateApplicant sends an update payload without lodgementDate or detail-only fields', () => {

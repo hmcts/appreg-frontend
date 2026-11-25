@@ -4,6 +4,14 @@
   aria-live="polite"
   aria-atomic="true"
 >
+  {{ sectionSaveStatus() }}
+</p>
+<p
+  class="govuk-visually-hidden"
+  role="status"
+  aria-live="polite"
+  aria-atomic="true"
+>
   {{ feeSaveStatus() }}
 </p>
 <app-breadcrumbs [items]="breadcrumbs()" />
@@ -41,6 +49,17 @@
 
 <form [formGroup]="form">
   <ng-template #applicantTpl>
+    @if (!vm().errorFound && sectionConfirmation()?.section === 'applicant') {
+      <app-alert
+        id="applicant-save-banner"
+        tabindex="-1"
+        role="region"
+        [attr.aria-label]="sectionConfirmation()!.message.heading"
+        alertType="success"
+        [title]="sectionConfirmation()!.message.heading"
+        [message]="sectionConfirmation()!.message.body"
+      />
+    }
     <app-applicant-section
       [form]="form"
       [applicantType]="applicantType"
@@ -132,6 +151,17 @@
   </ng-template>
 
   <ng-template #civilFeeTpl>
+    @if (!vm().errorFound && sectionConfirmation()?.section === 'fees') {
+      <app-alert
+        id="fees-save-banner"
+        tabindex="-1"
+        role="region"
+        [attr.aria-label]="sectionConfirmation()!.message.heading"
+        alertType="success"
+        [title]="sectionConfirmation()!.message.heading"
+        [message]="sectionConfirmation()!.message.body"
+      />
+    }
     <app-civil-fee-help />
 
     <app-civil-fee-section
@@ -159,6 +189,17 @@
   </ng-template>
 
   <ng-template #resultWordingTpl>
+    @if (!vm().errorFound && sectionConfirmation()?.section === 'results') {
+      <app-alert
+        id="results-save-banner"
+        tabindex="-1"
+        role="region"
+        [attr.aria-label]="sectionConfirmation()!.message.heading"
+        alertType="success"
+        [title]="sectionConfirmation()!.message.heading"
+        [message]="sectionConfirmation()!.message.body"
+      />
+    }
     <app-result-wording-section
       [resultApplicantContext]="resultApplicantContext"
       [resultCodesList]="resultsFacade.resultCodesSignal()"
@@ -179,6 +220,17 @@
   </ng-template>
 
   <ng-template #officialsTpl>
+    @if (!vm().errorFound && sectionConfirmation()?.section === 'officials') {
+      <app-alert
+        id="officials-save-banner"
+        tabindex="-1"
+        role="region"
+        [attr.aria-label]="sectionConfirmation()!.message.heading"
+        alertType="success"
+        [title]="sectionConfirmation()!.message.heading"
+        [message]="sectionConfirmation()!.message.body"
+      />
+    }
     <app-officials-section
       [group]="form"
       [errors]="vm().summaryErrors"

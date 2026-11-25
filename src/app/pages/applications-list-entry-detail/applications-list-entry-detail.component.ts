@@ -30,6 +30,7 @@ import { buildResultApplicantContext } from './util/result-context.util';
 import { getEntryId } from './util/routing.util';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
+import { AlertComponent } from '@components/alert/alert.component';
 import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import {
@@ -134,6 +135,8 @@ import {
   withWordingFieldValues,
 } from '@util/template-substitution-utils';
 
+type ConfirmationSection = 'applicant' | 'officials' | 'fees' | 'results';
+
 type ChildErrorSource = ChildErrorSourceALEDetail;
 
 const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
@@ -180,6 +183,7 @@ export const ERROR_HREFS = {
     BreadcrumbsComponent,
     NavigationWarningComponent,
     AccordionComponent,
+    AlertComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
     NotesSectionComponent,
@@ -281,6 +285,11 @@ export class ApplicationsListEntryDetail implements OnInit {
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
   readonly submitAttempt = signal(0);
+  readonly sectionConfirmation = signal<{
+    section: ConfirmationSection;
+    message: SuccessBanner;
+  } | null>(null);
+  readonly sectionSaveStatus = signal('');
   readonly feeSaveStatus = signal('');
   readonly isFeeSaveBanner = computed(
     () => this.vm().successBanner === ENTRY_SUCCESS_MESSAGES.feeStatusUpdated,
@@ -937,15 +946,17 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    const showSuccess = this.prepareSectionConfirmation(
+      'results',
+      ENTRY_SUCCESS_MESSAGES.resultRemoved,
+    );
     this.resultsFacade.removeResult(
       listId,
       entryId,
       resultId,
       () => {
-        this.appListEntryDetailPatch({
-          successBanner: ENTRY_SUCCESS_MESSAGES.resultRemoved,
-        });
-        focusSuccessBanner(this.platformId);
+        this.resultAppliedBannerVisible.set(false);
+        showSuccess();
       },
       (err) => this.applyMappedError(err),
     );
@@ -1051,6 +1062,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    const showSuccess = this.prepareSectionConfirmation('fees', bannerText);
     const { entryUpdateDto, response } = this.feeSaveFacade.save(
       this.appListEntryDetailState().appListId,
       entryId,
@@ -1072,13 +1084,11 @@ export class ApplicationsListEntryDetail implements OnInit {
           );
         }
 
-        this.appListEntryDetailPatch({
-          successBanner: bannerText,
-        });
         if (bannerText === ENTRY_SUCCESS_MESSAGES.feeStatusUpdated) {
+          this.appListEntryDetailPatch({ successBanner: bannerText });
           this.feeSaveStatus.set('Fee details saved.');
         } else {
-          focusSuccessBanner(this.platformId);
+          showSuccess();
         }
       },
       error: (err) => {
@@ -1108,6 +1118,12 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    const showSuccess = this.prepareSectionConfirmation(
+      'fees',
+      nextValue
+        ? ENTRY_SUCCESS_MESSAGES.offSiteFeeApplied
+        : ENTRY_SUCCESS_MESSAGES.offSiteFeeRemoved,
+    );
     const { entryUpdateDto, response } = this.feeSaveFacade.save(
       this.appListEntryDetailState().appListId,
       entryId,
@@ -1132,12 +1148,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         }
         this.form.controls.hasOffsiteFee.markAsPristine();
 
-        this.appListEntryDetailPatch({
-          successBanner: nextValue
-            ? ENTRY_SUCCESS_MESSAGES.offSiteFeeApplied
-            : ENTRY_SUCCESS_MESSAGES.offSiteFeeRemoved,
-        });
-        focusSuccessBanner(this.platformId);
+        showSuccess();
       },
       error: (err) => {
         // rollback UI state
@@ -1198,6 +1209,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.submitEntryUpdate(
       this.buildEntryUpdateDto(),
       ENTRY_SUCCESS_MESSAGES.applicantUpdated,
+      'applicant',
     );
   }
 
@@ -1277,6 +1289,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.submitEntryUpdate(
       this.buildEntryUpdateDto(),
       ENTRY_SUCCESS_MESSAGES.officialsUpdated,
+      'officials',
     );
   }
 
@@ -1284,8 +1297,12 @@ export class ApplicationsListEntryDetail implements OnInit {
   private submitEntryUpdate(
     entryUpdateDto: EntryUpdateDto,
     successBanner: SuccessBanner,
-    onComplete?: () => void,
+    destination: ConfirmationSection | 'page' = 'page',
   ): void {
+    const showSuccess =
+      destination === 'page'
+        ? () => this.appListEntryDetailPatch({ successBanner })
+        : this.prepareSectionConfirmation(destination, successBanner);
     const submittedContent = this.saveFacade.prepareSubmittedContent(
       this.forms,
       this.savedContent,
@@ -1304,7 +1321,6 @@ export class ApplicationsListEntryDetail implements OnInit {
           { text: 'Entry is not loaded. Reload the page and try again.' },
         ],
       });
-      onComplete?.();
       this.setEntrySaveButtonsDisabled(false);
       return;
     }
@@ -1326,7 +1342,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
           this.savedContent = savedContent;
           this.applySavedStandardApplicantSummary();
-          this.appListEntryDetailPatch({ successBanner });
+          showSuccess();
 
           if (this.applicantType === 'person') {
             markFormGroupClean(this.personGroup);
@@ -1335,13 +1351,11 @@ export class ApplicationsListEntryDetail implements OnInit {
           } else {
             this.form.controls.standardApplicantCode.markAsPristine();
           }
-          onComplete?.();
           this.setEntrySaveButtonsDisabled(false);
         },
         error: (err) => {
           this.appListEntryDetailPatch({ formSubmitted: false });
           this.applyMappedError(err);
-          onComplete?.();
           this.setEntrySaveButtonsDisabled(false);
         },
       });
@@ -1580,7 +1594,47 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
   }
 
+  /** Capture the originating section before an asynchronous save disables its button. */
+  private prepareSectionConfirmation(
+    section: ConfirmationSection,
+    message: SuccessBanner,
+  ): () => void {
+    const origin = isPlatformBrowser(this.platformId)
+      ? document.activeElement?.closest('.govuk-accordion__section-content')
+      : null;
+    this.resetSuccessBanner();
+    return () => {
+      if (this.destroyRef.destroyed) {
+        return;
+      }
+      this.appListEntryDetailPatch({ successBanner: null });
+      const confirmation = { section, message };
+      this.sectionConfirmation.set(confirmation);
+      focusLocalBanner(this.platformId, `#${section}-save-banner`, () => {
+        if (
+          this.destroyRef.destroyed ||
+          this.sectionConfirmation() !== confirmation
+        ) {
+          return false;
+        }
+        const active = document.activeElement;
+        if (
+          origin?.isConnected &&
+          !origin.hasAttribute('hidden') &&
+          (origin.contains(active) || active === document.body)
+        ) {
+          return true;
+        }
+        // The user has moved on: announce completion without reopening a section.
+        this.sectionSaveStatus.set(`${message.heading}. ${message.body}`);
+        return false;
+      });
+    };
+  }
+
   resetSuccessBanner(): void {
+    this.sectionConfirmation.set(null);
+    this.sectionSaveStatus.set('');
     this.appListEntryDetailPatch({ successBanner: null });
   }
 

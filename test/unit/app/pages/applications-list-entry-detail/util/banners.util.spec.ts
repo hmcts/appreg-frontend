@@ -102,6 +102,20 @@ describe('focusLocalBanner', () => {
     });
   });
 
+  it('does not focus or scroll when the caller reports that the user has moved on', () => {
+    jest.useFakeTimers();
+    const banner = document.createElement('app-alert');
+    banner.tabIndex = -1;
+    const focusSpy = jest.spyOn(banner, 'focus');
+    const scrollSpy = jest.fn();
+    banner.scrollIntoView = scrollSpy;
+    document.body.appendChild(banner);
+    focusLocalBanner(BROWSER_PLATFORM_ID, 'app-alert', () => false);
+    jest.runOnlyPendingTimers();
+    expect(focusSpy).not.toHaveBeenCalled();
+    expect(scrollSpy).not.toHaveBeenCalled();
+  });
+
   it('uses app-alert as the default selector when no banner id is provided', () => {
     jest.useFakeTimers();
     const banner = document.createElement('app-alert');
