@@ -7,7 +7,6 @@ import {
   PLATFORM_ID,
   ViewChild,
   afterEveryRender,
-  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -291,10 +290,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   } | null>(null);
   readonly sectionSaveStatus = signal('');
   private sectionSaveTrigger: HTMLElement | null = null;
-  readonly feeSaveStatus = signal('');
-  readonly isFeeSaveBanner = computed(
-    () => this.vm().successBanner === ENTRY_SUCCESS_MESSAGES.feeStatusUpdated,
-  );
   readonly savedApplicationCodeLoaded = signal(false);
 
   resultAppliedBannerVisible = signal(false);
@@ -1001,7 +996,7 @@ export class ApplicationsListEntryDetail implements OnInit {
    */
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
-    this.feeSaveStatus.set('');
+    this.sectionSaveStatus.set('');
     if (this.blockSaveWithoutApplicationCode()) {
       return;
     }
@@ -1064,9 +1059,13 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    const isFeeAddition =
+      bannerText === ENTRY_SUCCESS_MESSAGES.feeStatusUpdated;
     const showSuccess = this.prepareSectionConfirmation(
       'fees',
-      bannerText,
+      isFeeAddition
+        ? { ...bannerText, body: 'Fee details saved.' }
+        : bannerText,
       returningFromPaymentReference,
     );
     const { entryUpdateDto, response } = this.feeSaveFacade.save(
@@ -1090,12 +1089,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           );
         }
 
-        if (bannerText === ENTRY_SUCCESS_MESSAGES.feeStatusUpdated) {
-          this.appListEntryDetailPatch({ successBanner: bannerText });
-          this.feeSaveStatus.set('Fee details saved.');
-        } else {
-          showSuccess();
-        }
+        showSuccess();
       },
       error: (err) => {
         this.form.controls.feeStatuses.setValue(previousFeeStatuses, {

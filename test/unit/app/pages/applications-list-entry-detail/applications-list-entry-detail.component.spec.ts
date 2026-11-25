@@ -3440,70 +3440,108 @@ describe('ApplicationsListEntryDetail', () => {
     spy.mockRestore();
   });
 
-  it('onAddFeeDetails: when helper returns changed=true, uses current app code without persisting unrelated drafts', fakeAsync(() => {
-    const next: FeeStatus[] = [
-      {
-        paymentStatus: 'Paid',
+  it.each([false, true])(
+    'onAddFeeDetails saves isolated fee changes and respects moved focus: %s',
+    fakeAsync((movedFocus: boolean) => {
+      const next: FeeStatus[] = [
+        {
+          paymentStatus: 'Paid',
+          statusDate: '2026-01-10',
+          paymentReference: 'REF1',
+        } as unknown as FeeStatus,
+      ];
+
+      const spy = jest
+        .spyOn(civilFeeUtils, 'updateFeeStatusesControl')
+        .mockReturnValue({ next, changed: true });
+
+      const payload: AddFeeDetailsPayload = {
+        feeStatus: PaymentStatus.PAID,
         statusDate: '2026-01-10',
         paymentReference: 'REF1',
-      } as unknown as FeeStatus,
-    ];
+      };
 
-    const spy = jest
-      .spyOn(civilFeeUtils, 'updateFeeStatusesControl')
-      .mockReturnValue({ next, changed: true });
-
-    const payload: AddFeeDetailsPayload = {
-      feeStatus: PaymentStatus.PAID,
-      statusDate: '2026-01-10',
-      paymentReference: 'REF1',
-    };
-
-    component['entryDetail'] = {
-      id: 'EN-1',
-      listId: 'AL-1',
-      applicationCode: 'APP-100',
-      notes: 'persisted note',
-      numberOfRespondents: 0,
-      lodgementDate: '2025-11-01',
-    };
-    component['form'].controls.applicationCode.setValue('APP-200', {
-      emitEvent: false,
-    });
-    component['form'].controls.applicationNotes.controls.notes.setValue(
-      'draft note',
-      { emitEvent: false },
-    );
-
-    const originalClone = globalThis.structuredClone;
-    globalThis.structuredClone ??= cloneDeep;
-    try {
-      component.onAddFeeDetails(payload);
-      tick();
-    } finally {
-      globalThis.structuredClone = originalClone;
-    }
-
-    expect(component.feeSaveStatus()).toBe('Fee details saved.');
-    expect(component.isFeeSaveBanner()).toBe(true);
-    expect(spy).toHaveBeenCalledTimes(1);
-
-    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
-    const call = mockUpdateApplicationListEntry.mock.calls[0];
-    const params = call[0];
-
-    expect(params.listId).toBe('AL-1');
-    expect(params.entryId).toBe('EN-1');
-    expect(params.entryUpdateDto).toEqual(
-      expect.objectContaining({
-        applicationCode: 'APP-200',
+      component['entryDetail'] = {
+        id: 'EN-1',
+        listId: 'AL-1',
+        applicationCode: 'APP-100',
         notes: 'persisted note',
-        feeStatuses: next,
-      }),
-    );
+        numberOfRespondents: 0,
+        lodgementDate: '2025-11-01',
+      };
+      component['form'].controls.applicationCode.setValue('APP-200', {
+        emitEvent: false,
+      });
+      component['form'].controls.applicationNotes.controls.notes.setValue(
+        'draft note',
+        { emitEvent: false },
+      );
 
-    spy.mockRestore();
-  }));
+      component['form'].controls.applicantType.setValue('standard');
+      component.onStandardApplicantCodeChanged('SA-999');
+      component['appListEntryDetailPatch']({ isFeeRequired: true });
+      component.openCivilFeeSection.set(true);
+      fixture.detectChanges();
+      const addButton = fixture.nativeElement.querySelector(
+        'app-civil-fee-section button.govuk-button',
+      );
+      addButton.focus();
+      const otherControl = fixture.nativeElement.querySelector(
+        '.govuk-accordion__section-button',
+      );
+      const response = new Subject<unknown>();
+      mockUpdateApplicationListEntry.mockReturnValueOnce(response);
+      const originalClone = globalThis.structuredClone;
+      globalThis.structuredClone ??= cloneDeep;
+      try {
+        component.onAddFeeDetails(payload);
+        expect(component.sectionConfirmation()).toBeNull();
+        if (movedFocus) {
+          otherControl.focus();
+        }
+        response.next({});
+        response.complete();
+        fixture.detectChanges();
+        tick();
+      } finally {
+        globalThis.structuredClone = originalClone;
+      }
+
+      if (movedFocus) {
+        expect(component.sectionSaveStatus()).toContain('Fee details saved.');
+      } else {
+        expect(component.sectionSaveStatus()).toBe('');
+      }
+      expect(component.vm().successBanner).toBeNull();
+      const banner = fixture.nativeElement.querySelector('#fees-save-banner');
+      expect(banner.textContent).toContain('Fee details saved.');
+      expect(banner.querySelector('.moj-alert__heading')).toBeNull();
+      expect(document.activeElement).toBe(movedFocus ? otherControl : banner);
+      const dismiss = banner.querySelector('.moj-alert__dismiss');
+      dismiss.focus();
+      dismiss.click();
+      fixture.detectChanges();
+      expect(component.sectionConfirmation()).toBeNull();
+      expect(document.activeElement).toBe(addButton);
+      expect(spy).toHaveBeenCalledTimes(1);
+
+      expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+      const call = mockUpdateApplicationListEntry.mock.calls[0];
+      const params = call[0];
+
+      expect(params.listId).toBe('AL-1');
+      expect(params.entryId).toBe('EN-1');
+      expect(params.entryUpdateDto).toEqual(
+        expect.objectContaining({
+          applicationCode: 'APP-200',
+          notes: 'persisted note',
+          feeStatuses: next,
+        }),
+      );
+
+      spy.mockRestore();
+    }),
+  );
 
   it('onAddFeeDetails rolls back feeStatuses when update API errors', () => {
     const previous: FeeStatus[] = [
@@ -3543,9 +3581,10 @@ describe('ApplicationsListEntryDetail', () => {
       paymentReference: 'NEW',
     };
 
-    component.feeSaveStatus.set('Fee details saved.');
+    component.sectionSaveStatus.set('Fee details saved.');
     component.onAddFeeDetails(payload);
-    expect(component.feeSaveStatus()).toBe('');
+    expect(component.sectionSaveStatus()).toBe('');
+    expect(component.sectionConfirmation()).toBeNull();
 
     expect(component.form.controls.feeStatuses.value).toEqual(previous);
     expect(component.form.controls.feeStatuses.pristine).toBe(true);
