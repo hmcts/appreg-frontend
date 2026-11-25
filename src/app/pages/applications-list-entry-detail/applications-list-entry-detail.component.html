@@ -54,9 +54,10 @@
         id="applicant-save-banner"
         tabindex="-1"
         role="region"
-        [attr.aria-label]="sectionConfirmation()!.message.heading"
+        [attr.aria-label]="sectionConfirmation()!.message.body"
         alertType="success"
-        [title]="sectionConfirmation()!.message.heading"
+        [allowDismiss]="true"
+        (alertDismissed)="onSectionConfirmationDismissed()"
         [message]="sectionConfirmation()!.message.body"
       />
     }
@@ -156,9 +157,10 @@
         id="fees-save-banner"
         tabindex="-1"
         role="region"
-        [attr.aria-label]="sectionConfirmation()!.message.heading"
+        [attr.aria-label]="sectionConfirmation()!.message.body"
         alertType="success"
-        [title]="sectionConfirmation()!.message.heading"
+        [allowDismiss]="true"
+        (alertDismissed)="onSectionConfirmationDismissed()"
         [message]="sectionConfirmation()!.message.body"
       />
     }
@@ -194,9 +196,10 @@
         id="results-save-banner"
         tabindex="-1"
         role="region"
-        [attr.aria-label]="sectionConfirmation()!.message.heading"
+        [attr.aria-label]="sectionConfirmation()!.message.body"
         alertType="success"
-        [title]="sectionConfirmation()!.message.heading"
+        [allowDismiss]="true"
+        (alertDismissed)="onSectionConfirmationDismissed()"
         [message]="sectionConfirmation()!.message.body"
       />
     }
@@ -225,9 +228,10 @@
         id="officials-save-banner"
         tabindex="-1"
         role="region"
-        [attr.aria-label]="sectionConfirmation()!.message.heading"
+        [attr.aria-label]="sectionConfirmation()!.message.body"
         alertType="success"
-        [title]="sectionConfirmation()!.message.heading"
+        [allowDismiss]="true"
+        (alertDismissed)="onSectionConfirmationDismissed()"
         [message]="sectionConfirmation()!.message.body"
       />
     }

@@ -314,7 +314,9 @@ describe('ApplicationsListEntryDetail', () => {
       fixture.detectChanges();
       const host: HTMLElement = fixture.nativeElement;
       const sectionHost = host.querySelector(`app-${section}-section`)!;
-      const trigger = sectionHost.querySelector<HTMLButtonElement>('button')!;
+      const trigger = sectionHost.querySelector<HTMLButtonElement>(
+        'button.govuk-button',
+      )!;
       const save = () =>
         section === 'applicant'
           ? component.onUpdateApplicant()
@@ -335,6 +337,16 @@ describe('ApplicationsListEntryDetail', () => {
         ).toBe(false);
         expect(host.querySelector('app-success-banner')).toBeNull();
         expect(component.sectionSaveStatus()).toBe('');
+        expect(banner.querySelector('.moj-alert__heading')).toBeNull();
+        const dismiss = banner.querySelector<HTMLButtonElement>(
+          '.moj-alert__dismiss',
+        )!;
+        expect(dismiss.hidden).toBe(false);
+        dismiss.focus();
+        dismiss.click();
+        fixture.detectChanges();
+        expect(host.querySelector(`#${section}-save-banner`)).toBeNull();
+        expect(document.activeElement).toBe(trigger);
       }
     }),
   );

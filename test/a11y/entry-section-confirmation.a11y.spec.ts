@@ -95,6 +95,7 @@ test.each(['Applicant', 'Officials'])(
           bannerId,
         );
         expect(await page.$('app-success-banner')).toBeNull();
+        expect(await page.$(`#${bannerId} .moj-alert__heading`)).toBeNull();
         await page.keyboard.press('Tab');
         expect(
           await page.evaluate((id) => {
@@ -108,6 +109,13 @@ test.each(['Applicant', 'Officials'])(
             );
           }, bannerId),
         ).toBe(true);
+        await page.keyboard.press('Enter');
+        await page.waitForSelector(`#${bannerId}`, { hidden: true });
+        expect(
+          await page.evaluate(() =>
+            document.activeElement?.textContent?.trim(),
+          ),
+        ).toBe(buttonText);
       }
       assertNoBrowserFailures(failures);
     } finally {

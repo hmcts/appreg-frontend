@@ -290,6 +290,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     message: SuccessBanner;
   } | null>(null);
   readonly sectionSaveStatus = signal('');
+  private sectionSaveTrigger: HTMLElement | null = null;
   readonly feeSaveStatus = signal('');
   readonly isFeeSaveBanner = computed(
     () => this.vm().successBanner === ENTRY_SUCCESS_MESSAGES.feeStatusUpdated,
@@ -1599,9 +1600,10 @@ export class ApplicationsListEntryDetail implements OnInit {
     section: ConfirmationSection,
     message: SuccessBanner,
   ): () => void {
-    const origin = isPlatformBrowser(this.platformId)
-      ? document.activeElement?.closest('.govuk-accordion__section-content')
+    const trigger = isPlatformBrowser(this.platformId)
+      ? document.activeElement
       : null;
+    const origin = trigger?.closest('.govuk-accordion__section-content');
     this.resetSuccessBanner();
     return () => {
       if (this.destroyRef.destroyed) {
@@ -1609,6 +1611,10 @@ export class ApplicationsListEntryDetail implements OnInit {
       }
       this.appListEntryDetailPatch({ successBanner: null });
       const confirmation = { section, message };
+      this.sectionSaveTrigger =
+        isPlatformBrowser(this.platformId) && trigger instanceof HTMLElement
+          ? trigger
+          : null;
       this.sectionConfirmation.set(confirmation);
       focusLocalBanner(this.platformId, `#${section}-save-banner`, () => {
         if (
@@ -1632,7 +1638,45 @@ export class ApplicationsListEntryDetail implements OnInit {
     };
   }
 
+  onSectionConfirmationDismissed(): void {
+    const confirmation = this.sectionConfirmation();
+    if (confirmation && isPlatformBrowser(this.platformId)) {
+      const banner = document.getElementById(
+        `${confirmation.section}-save-banner`,
+      );
+      if (banner?.contains(document.activeElement)) {
+        const panel = banner.closest('.govuk-accordion__section-content');
+        const section = confirmation.section;
+        const saveButton =
+          section === 'applicant' || section === 'officials'
+            ? panel?.querySelector<HTMLElement>(
+                section === 'applicant'
+                  ? '#btn-update-applicant:not(:disabled)'
+                  : 'app-officials-section button.govuk-button:not(:disabled)',
+              )
+            : null;
+        const trigger = this.sectionSaveTrigger;
+        const availableTrigger =
+          trigger?.isConnected &&
+          panel?.contains(trigger) &&
+          trigger.matches(
+            'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled)',
+          )
+            ? trigger
+            : null;
+        const heading = panel
+          ?.closest('.govuk-accordion__section')
+          ?.querySelector<HTMLElement>('.govuk-accordion__section-button');
+        (saveButton ?? availableTrigger ?? heading)?.focus();
+      }
+    }
+    this.sectionSaveTrigger = null;
+    this.sectionConfirmation.set(null);
+    this.sectionSaveStatus.set('');
+  }
+
   resetSuccessBanner(): void {
+    this.sectionSaveTrigger = null;
     this.sectionConfirmation.set(null);
     this.sectionSaveStatus.set('');
     this.appListEntryDetailPatch({ successBanner: null });
