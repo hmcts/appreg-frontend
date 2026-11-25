@@ -70,6 +70,7 @@ import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { SubmittedFieldErrors } from '@util/submitted-field-errors';
 import { withDisabledColumnSort } from '@util/table-column-sort';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
@@ -160,6 +161,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     signal<GetApplicationListsRequestParams | null>(null);
   private readonly printRequest = signal<BulkPrintRequest | null>(null);
 
+  readonly submittedFieldErrors = new SubmittedFieldErrors();
   readonly submitAttempt = signal(0);
   readonly listIsClosed = signal(false);
 
@@ -232,6 +234,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   clearSearch(): void {
+    this.submittedFieldErrors.clear(this.form);
     this.searchStatus.set('');
     this.appListSignalState.patch(clearNotificationsPatch());
     this.appListSignalState.patch({ isSearch: false, appliedFilters: {} });
@@ -399,6 +402,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.form.updateValueAndValidity({ emitEvent: false });
 
     const validationErrors = buildErrorSummary(this.form, this.errorMap);
+    this.submittedFieldErrors.capture(validationErrors, this.form);
     if (validationErrors.length) {
       this.storedRecordsState.patch({ submitted: true });
       this.appListSignalState.patch({ searchErrors: validationErrors });

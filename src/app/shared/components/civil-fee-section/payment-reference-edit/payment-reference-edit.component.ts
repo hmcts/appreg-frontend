@@ -17,6 +17,7 @@ import { Observable, tap } from 'rxjs';
 import { NavigationWarningComponent } from '@components/navigation-warning/navigation-warning.component';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { Row } from '@core-types/table/row.types';
+import { SubmittedFieldErrors } from '@util/submitted-field-errors';
 
 function isRowLike(value: unknown): value is Row {
   return typeof value === 'object' && value !== null;
@@ -74,6 +75,7 @@ export class PaymentReferenceEditComponent implements OnInit {
   );
 
   submitted = signal(false);
+  private readonly submittedFieldErrors = new SubmittedFieldErrors();
 
   get statusDateRaw(): string | undefined {
     const value = this.row?.['statusDateRaw'];
@@ -163,23 +165,11 @@ export class PaymentReferenceEditComponent implements OnInit {
   }
 
   isPaymentReferenceInvalid(): boolean {
-    const c = this.paymentReference;
-    return c.invalid && (c.touched || c.dirty || this.submitted());
+    return this.submittedFieldErrors.hasError('paymentReference');
   }
 
   getPaymentReferenceError(): string | null {
-    const errors = this.paymentReference.errors;
-    if (!errors) {
-      return null;
-    }
-
-    const map = PAYMENT_REF_EDIT_ERRORS.paymentReference;
-
-    if (errors['maxlength']) {
-      return map.maxlength;
-    }
-
-    return null;
+    return this.submittedFieldErrors.errorFor('paymentReference')?.text ?? null;
   }
 
   save(): void {
@@ -187,6 +177,16 @@ export class PaymentReferenceEditComponent implements OnInit {
 
     this.paymentReference.markAsTouched();
     this.paymentReference.updateValueAndValidity({ emitEvent: false });
+    this.submittedFieldErrors.capture(
+      this.paymentReference.hasError('maxlength')
+        ? [
+            {
+              id: 'paymentReference',
+              text: PAYMENT_REF_EDIT_ERRORS.paymentReference.maxlength,
+            },
+          ]
+        : [],
+    );
 
     if (!this.row || this.paymentReference.invalid) {
       return;

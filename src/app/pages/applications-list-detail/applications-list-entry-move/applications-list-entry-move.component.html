@@ -75,6 +75,7 @@
 
 <form [formGroup]="form" (ngSubmit)="onSearch($event)">
   <app-applications-list-form
+    [submittedErrors]="submittedFieldErrors"
     [form]="form"
     [mode]="'search'"
     [showStatusField]="false"

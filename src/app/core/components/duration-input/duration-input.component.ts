@@ -1,7 +1,9 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   forwardRef,
+  inject,
   input,
   signal,
 } from '@angular/core';
@@ -15,6 +17,9 @@ import {
   ValidationErrors,
   Validator,
 } from '@angular/forms';
+
+import type { ErrorItem } from '@components/error-summary/error-summary.component';
+import { registerCompositeError } from '@util/submitted-field-errors';
 
 export interface Duration {
   hours: number | null;
@@ -62,6 +67,10 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   errorTextOverride = input('');
   required = input(true);
   mode = input<DurationMode>('clock'); // One for 24 hour clock and one for duration
+  protected readonly submittedError = signal<string | null | undefined>(
+    undefined,
+  );
+  private readonly destroyRef = inject(DestroyRef);
 
   // single source of truth: numbers
   hours: number | null = null;
@@ -98,12 +107,26 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
 
   // Validation
   validate(control: AbstractControl): ValidationErrors | null {
-    // Looks like a redundant param but needed to bypass eslint and sonarqube
-    if (control === null) {
-      return this.computeErrors();
+    if (control) {
+      registerCompositeError(control, this.captureError, this.destroyRef);
     }
     return this.computeErrors();
   }
+
+  private readonly captureError = (
+    error: ErrorItem | undefined,
+    clear = false,
+  ): void => {
+    const errors = this.computeErrors();
+    const text: unknown = errors?.['durationErrorText'];
+    this.submittedError.set(
+      clear || this.isDisabled
+        ? null
+        : typeof text === 'string'
+          ? text
+          : (error?.text ?? null),
+    );
+  };
   registerOnValidatorChange(fn: () => void): void {
     this.onValidatorChange = fn;
   }
@@ -283,7 +306,13 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   }
 
   get displayErrors(): boolean {
-    return this.submitted() && (this.showErrors || this.showError());
+    const saved = this.submittedError();
+    return (
+      this.submitted() &&
+      (saved === undefined
+        ? this.showErrors || this.showError()
+        : !!saved || this.showError())
+    );
   }
 
   get showErrors(): boolean {

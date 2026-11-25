@@ -29,6 +29,8 @@
           <span class="govuk-visually-hidden">Error:</span>
           @if (showError() && errorTextOverride()) {
             {{ errorText }}
+          } @else if (submittedError(); as error) {
+            {{ error }}
           } @else if (mode() === 'clock' && anyEntered && (missH || missM)) {
             @if (missH && missM && required()) {
               Enter hours and minutes
@@ -65,6 +67,7 @@
           maxlength="2"
           autocomplete="off"
           [attr.aria-label]="'Hours'"
+          [attr.aria-invalid]="displayErrors ? 'true' : null"
         />
         <div
           class="govuk-input__suffix govuk-!-margin-right-3"
@@ -94,6 +97,7 @@
           maxlength="2"
           autocomplete="off"
           [attr.aria-label]="'Minutes'"
+          [attr.aria-invalid]="displayErrors ? 'true' : null"
         />
         <div
           class="govuk-input__suffix govuk-!-margin-right-3"

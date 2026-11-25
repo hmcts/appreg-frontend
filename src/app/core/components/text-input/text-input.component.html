@@ -29,6 +29,7 @@
     <input
       class="govuk-input"
       [ngClass]="[widthClass(), errorState ? 'govuk-input--error' : '']"
+      [attr.aria-invalid]="errorState ? 'true' : null"
       [id]="idPrefix()"
       [name]="idPrefix()"
       [attr.type]="inputType()"

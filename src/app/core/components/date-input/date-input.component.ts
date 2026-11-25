@@ -8,6 +8,7 @@ import {
   forwardRef,
   inject,
   input,
+  signal,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -25,6 +26,9 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
+
+import type { ErrorItem } from '@components/error-summary/error-summary.component';
+import { registerCompositeError } from '@util/submitted-field-errors';
 
 type DateForm = FormGroup<{
   day: FormControl<string>;
@@ -77,6 +81,14 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   disallowFutureDates = input(false);
   pastDatesOnly = input(false);
   externalErrorText = input('');
+  protected readonly submittedError = signal<
+    | {
+        text: string;
+        fields: readonly DateField[];
+      }
+    | null
+    | undefined
+  >(undefined);
 
   containerWidthClass = input('govuk-grid-column-one-half');
 
@@ -303,6 +315,9 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     if (!submitted) {
       return false;
     }
+    if (this.submittedError() !== undefined) {
+      return !!this.submittedError();
+    }
     const miss =
       this.missing('day') || this.missing('month') || this.missing('year');
     const externalError = this.hasExternalError(submitted);
@@ -315,6 +330,10 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   fieldError(name: DateField, submitted: boolean): boolean {
     if (this.disabled || !submitted) {
       return false;
+    }
+    const saved = this.submittedError();
+    if (saved !== undefined) {
+      return saved?.fields.includes(name) ?? false;
     }
     const c = this.ctrl(name);
     const base = !!c?.invalid;
@@ -380,12 +399,47 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
 
   // Validator
   validate(control: AbstractControl): ValidationErrors | null {
-    // Looks like a redundant param but needed to bypass eslint and sonarqube
-    if (control === null) {
-      return this.dateForm.errors;
+    if (control) {
+      registerCompositeError(control, this.captureError, this.destroyRef);
     }
-    return this.dateForm.errors;
+    return (
+      this.dateForm.errors ?? (this.dateForm.invalid ? this.dateError() : null)
+    );
   }
+
+  private readonly captureError = (
+    error: ErrorItem | undefined,
+    clear = false,
+  ): void => {
+    const fields = ['day', 'month', 'year'] as const;
+    const { day, month, year } = this.dateForm.getRawValue();
+    const missing = this.findMissing(day, month, year);
+    const errors = this.dateForm.errors;
+    const hasMissing =
+      missing.length > 0 && (!this.isSearch() || this.hasAny());
+    if (clear || this.disabled || (!error && !this.dateForm.invalid)) {
+      this.submittedError.set(null);
+      return;
+    }
+
+    const dateErrorText: unknown = errors?.['dateErrorText'];
+    this.submittedError.set({
+      text: hasMissing
+        ? this.missingMsg(missing)
+        : typeof dateErrorText === 'string'
+          ? dateErrorText
+          : this.dateForm.invalid
+            ? 'Enter a valid date'
+            : (error?.text ?? 'Enter day, month and year'),
+      fields: fields.filter(
+        (field) =>
+          this.dateForm.controls[field].invalid ||
+          missing.includes(field) ||
+          !!errors?.['dateInvalid'] ||
+          (!this.dateForm.invalid && !!error),
+      ),
+    });
+  };
 
   registerOnValidatorChange(fn: () => void): void {
     this.onValidatorChange = fn;

@@ -33,6 +33,7 @@ import {
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
 import { formatPartyName, returnOrgName } from '@util/string-helpers';
+import { SubmittedFieldErrors } from '@util/submitted-field-errors';
 
 export type UpdateNotesApplicationContext = {
   id: string;
@@ -102,6 +103,7 @@ export class UpdateNotesComponent implements OnInit {
 
   readonly context = signal<UpdateNotesApplicationContext | null>(null);
   readonly errorSummaryItems = signal<ErrorItem[]>([]);
+  private readonly submittedFieldErrors = new SubmittedFieldErrors();
   readonly successMessage = signal<string | null>(null);
   readonly isSubmitting = signal(false);
   readonly hasLoadedEntry = signal(false);
@@ -203,18 +205,11 @@ export class UpdateNotesComponent implements OnInit {
   }
 
   isAdditionalNotesInvalid(): boolean {
-    const control = this.form.controls.additionalNotes;
-    return control.invalid && (control.dirty || control.touched);
+    return this.submittedFieldErrors.hasError('additional-notes');
   }
 
   additionalNotesError(): string | null {
-    const control = this.form.controls.additionalNotes;
-
-    if (control.hasError('maxlength')) {
-      return `Additional notes must be ${this.additionalNotesCharacterLimit()} characters or fewer`;
-    }
-
-    return null;
+    return this.submittedFieldErrors.errorFor('additional-notes')?.text ?? null;
   }
 
   onSaveAdditionalNotes(): void {
@@ -227,14 +222,20 @@ export class UpdateNotesComponent implements OnInit {
     control.updateValueAndValidity();
     this.successMessage.set(null);
 
-    if (control.invalid) {
-      this.errorSummaryItems.set([
-        {
-          id: 'additional-notes',
-          href: '#additional-notes',
-          text: this.additionalNotesError() ?? 'Enter valid additional notes',
-        },
-      ]);
+    const localErrors = control.invalid
+      ? [
+          {
+            id: 'additional-notes',
+            href: '#additional-notes',
+            text: control.hasError('maxlength')
+              ? `Additional notes must be ${this.additionalNotesCharacterLimit()} characters or fewer`
+              : 'Enter valid additional notes',
+          },
+        ]
+      : [];
+    this.submittedFieldErrors.capture(localErrors);
+    if (localErrors.length) {
+      this.errorSummaryItems.set(localErrors);
       focusErrorSummary(this.platformId);
       return;
     }

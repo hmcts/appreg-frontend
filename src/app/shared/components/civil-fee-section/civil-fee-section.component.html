@@ -104,6 +104,7 @@
         id="feeStatus"
         [options]="feeStatusOptionsWithPlaceholder()"
         [submitted]="showErrors()"
+        [submittedError]="getControlError('feeStatus')?.text ?? null"
       />
 
       <!-- Status date -->

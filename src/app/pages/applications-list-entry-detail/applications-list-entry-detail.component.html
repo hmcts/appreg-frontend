@@ -126,7 +126,7 @@
       [respondentEntryTypeOptions]="respondentEntryTypeOptions"
       [bulkAllowed]="vm().bulkApplicationsAllowed"
       [personTitleOptions]="personTitleOptions"
-      [submitted]="vm().formSubmitted"
+      [submitted]="respondentValidationSubmitted()"
       [errorItems]="respondentErrorItems"
     />
   </ng-template>
@@ -153,6 +153,7 @@
 
   <ng-template #notesTpl>
     <app-notes-section
+      [submittedErrors]="vm().summaryErrors"
       [form]="applicationNotesForm"
       (notesErrors)="onChildErrors('notes', $event)"
     />

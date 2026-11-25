@@ -59,6 +59,15 @@ export class SelectInputComponent implements ControlValueAccessor {
   submitted = input(false);
   showError = input(false);
   errorText = input('');
+  submittedError = input<string | null>();
+
+  get displaysError(): boolean {
+    const saved = this.submittedError();
+    return (
+      this.submitted() &&
+      (saved === undefined ? !this.value || this.showError() : !!saved)
+    );
+  }
 
   private onTouched: () => void = () => {};
   private onChange: (v: string | null) => void = () => {};

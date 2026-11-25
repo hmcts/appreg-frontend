@@ -36,6 +36,12 @@
         [submitted]="updateInvalid()"
         [showError]="hasCloseErrors()"
         [errorText]="closeErrorText()"
+        [submittedError]="
+          submittedErrors() === undefined
+            ? undefined
+            : (hasCloseErrors() ? closeErrorText() : errorText('status')) ||
+              null
+        "
       />
     </div>
   }

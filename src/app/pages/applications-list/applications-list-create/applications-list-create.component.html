@@ -20,6 +20,7 @@
 />
 <form [formGroup]="form" (ngSubmit)="onSubmit($event)" autocomplete="off">
   <app-applications-list-form
+    [submittedErrors]="submittedFieldErrors"
     [form]="form"
     [mode]="'create'"
     [submitted]="vm().submitted"

@@ -48,7 +48,7 @@ export class ActivityAuditSectionComponent {
   readonly submitted = input(false);
 
   readonly errorMap = input.required<ErrorMessageMap>();
-  readonly externalErrors = input<readonly ErrorItem[]>([]);
+  readonly externalErrors = input<readonly ErrorItem[]>();
 
   readonly activitySearch = signal('');
   readonly activityOptions = Object.values(ActivityType);
@@ -134,18 +134,13 @@ export class ActivityAuditSectionComponent {
   }
 
   getControlError(id: string): ErrorItem | undefined {
-    const currentError = getControlErrorItem(
-      this.group().get(id),
-      id,
-      this.errorMap(),
+    const submitted = this.externalErrors();
+    return (
+      submitted?.find((item) => item.id === id) ??
+      (submitted === undefined
+        ? getControlErrorItem(this.group().get(id), id, this.errorMap())
+        : undefined)
     );
-
-    // Date fields must not redisplay errors from a previous submission.
-    if (id === 'dateFrom' || id === 'dateTo') {
-      return currentError;
-    }
-
-    return currentError ?? this.externalErrors().find((item) => item.id === id);
   }
 
   private setSelectedActivities(activities: ActivityType[]): void {

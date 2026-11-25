@@ -89,7 +89,6 @@ import {
   titleInputChange,
 } from '@util/application-title-suggestions';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
-import { getControlErrorItem } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { handlePrintContinuous, handlePrintPage } from '@util/pdf-utils';
@@ -97,6 +96,7 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
 import { isAllMatchingSelected } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { trimStringToLowerCase, trimToUndefined } from '@util/string-helpers';
+import { SubmittedFieldErrors } from '@util/submitted-field-errors';
 import { withDisabledColumnSort } from '@util/table-column-sort';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { atLeastOneRequiredValidator } from '@validators/at-least-one-value.validator';
@@ -213,6 +213,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   private readonly printRequest = signal<BulkPrintRequest | null>(null);
 
+  readonly submittedFieldErrors = new SubmittedFieldErrors();
   readonly submitAttempt = signal(0);
 
   disableSearchButton = signal(false);
@@ -266,8 +267,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
-
-  getControlErrorItem = getControlErrorItem;
 
   get selectedCount(): number {
     const vm = this.vm();
@@ -418,6 +417,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.form.updateValueAndValidity({ emitEvent: false });
 
     const validationErrors = buildErrorSummary(this.form, this.errorMap);
+    this.submittedFieldErrors.capture(validationErrors, this.form);
     this.persistFormState();
 
     if (validationErrors.length) {
@@ -736,6 +736,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   clearSearch(): void {
+    this.submittedFieldErrors.clear(this.form);
     this.searchStatus.set('');
     this.appState.state.set({
       ...initialApplicationsState,

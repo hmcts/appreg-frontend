@@ -91,6 +91,7 @@
 />
 <form [formGroup]="form" (ngSubmit)="onSubmit($event)">
   <app-applications-list-form
+    [submittedErrors]="submittedFieldErrors"
     [form]="form"
     [mode]="'search'"
     [submitted]="storedRecordsVm().submitted"

@@ -48,6 +48,7 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { SubmittedFieldErrors } from '@util/submitted-field-errors';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
@@ -107,6 +108,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
   suggestionsFacade = buildSuggestionsFacade(this);
 
   fromMoveApplications = signal(false);
+  readonly submittedFieldErrors = new SubmittedFieldErrors();
   readonly submitAttempt = signal(0);
   breadcrumbs = signal([
     { label: 'Applications list', link: '/applications-list' },
@@ -239,6 +241,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
         date: ['dateInvalid', 'required'],
       },
     });
+    this.submittedFieldErrors.capture(errors, this.form);
 
     if (errors.length) {
       this.appListCreatesignalState.patch({

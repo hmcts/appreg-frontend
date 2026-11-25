@@ -14,7 +14,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Observable, map } from 'rxjs';
+import { Observable, distinctUntilChanged, map } from 'rxjs';
 
 import { EntryDetailFeeSaveFacade } from './facades/entry-detail-fee-save.facade';
 import { EntryDetailLoadFacade } from './facades/entry-detail-load.facade';
@@ -129,6 +129,7 @@ import { getProblemText } from '@util/http-error-to-text';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
 import { returnOrgName } from '@util/string-helpers';
+import { captureCompositeErrors } from '@util/submitted-field-errors';
 import {
   createWordingObjectValuesResolver,
   withWordingFieldValues,
@@ -199,6 +200,8 @@ export const ERROR_HREFS = {
 export class ApplicationsListEntryDetail implements OnInit {
   @ViewChild('wordingSection')
   private readonly wordingSection?: WordingSectionComponent;
+  @ViewChild(ApplicationCodeSearchComponent)
+  private readonly applicationCodeSearch?: ApplicationCodeSearchComponent;
   @ViewChild('civilFeeSection')
   private readonly civilFeeSection?: CivilFeeSectionComponent;
   @ViewChild(ResultWordingSectionComponent)
@@ -368,7 +371,13 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // Watch applicantType changes
     this.bindApplicantTypeChanges();
-    this.bindPartyValidationChanges();
+    this.form.controls.respondentEntryType.valueChanges
+      .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.respondentValidationSubmitted.set(false);
+        this.childErrors.respondent = [];
+        this.updateAllErrors({ focusSummary: false });
+      });
 
     if (!isPlatformBrowser(this.platformId)) {
       return;
@@ -549,7 +558,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     applicationCodeId?: number;
   }): void {
     this.resetSuccessBanner();
-    this.resetErrors();
+    if (codeAndLodgementDate.code) {
+      this.resetErrors();
+    }
 
     const prevSelection = {
       code: this.form.controls.applicationCode.value,
@@ -811,9 +822,11 @@ export class ApplicationsListEntryDetail implements OnInit {
         map((type): ApplicantType => type ?? 'person'),
       )
       .subscribe((t) => {
-        this.appListEntryDetailPatch({ formSubmitted: false });
-
-        this.resetErrors();
+        this.childErrors.applicant = [];
+        this.parentErrors = this.parentErrors.filter(
+          ({ id }) => id !== 'standardApplicantCode',
+        );
+        this.updateAllErrors({ focusSummary: false });
 
         // keep UI state in sync
         this.selectedStandardApplicantCode =
@@ -994,7 +1007,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    this.resetErrors();
+    this.childErrors.civilFee = [];
+    this.updateAllErrors({ focusSummary: false });
     const previousFeeStatuses = [
       ...(this.form.controls.feeStatuses.value ?? []),
     ];
@@ -1399,6 +1413,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.childErrors.applicant = [];
   }
 
+  readonly respondentValidationSubmitted = signal(false);
+
   private updateRespondentErrors(): void {
     // Validate selected Bulk applications even when respondents are optional.
     const isRespondentRequired =
@@ -1415,6 +1431,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       isRespondentRequired ||
       respondentFormHasValues;
 
+    this.respondentValidationSubmitted.set(shouldValidateRespondent);
     if (shouldValidateRespondent) {
       this.childErrors.respondent = buildRespondentErrors({
         respondentEntryType: this.form.controls.respondentEntryType.value,
@@ -1427,17 +1444,25 @@ export class ApplicationsListEntryDetail implements OnInit {
         respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
         bulkCountRequired: true,
       });
+      captureCompositeErrors(
+        this.forms.respondentPersonForm,
+        this.childErrors.respondent,
+      );
+
       return;
     }
 
     this.childErrors.respondent = [];
   }
 
-  private updateAllErrors(opts: { focusSummary?: boolean } = {}): void {
-    this.updateApplicantErrors();
-    this.updateRespondentErrors();
-
-    this.parentErrors = this.buildErrorSummary();
+  private updateAllErrors(
+    opts: { focusSummary?: boolean; validateOtherSections?: boolean } = {},
+  ): void {
+    if (opts.validateOtherSections) {
+      this.updateApplicantErrors();
+      this.updateRespondentErrors();
+      this.parentErrors = this.buildErrorSummary();
+    }
     const allChildErrors = Object.values(this.childErrors).flat();
 
     const summaryErrors = [
@@ -1502,6 +1527,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
     this.form.updateValueAndValidity({ emitEvent: false });
 
+    this.applicationCodeSearch?.validateForEntrySubmit();
     const submitErrors = collectChildSubmitErrors<ChildErrorSource>([
       { source: 'wording', section: this.wordingSection },
       { source: 'civilFee', section: this.civilFeeSection },
@@ -1521,7 +1547,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.childErrors.wording = submitErrors.wording ?? [];
     this.childErrors.civilFee = submitErrors.civilFee ?? [];
 
-    this.updateAllErrors();
+    this.updateAllErrors({ validateOtherSections: true });
     return this.appListEntryDetailState().errorFound;
   }
 
@@ -1535,20 +1561,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     return this.childErrors.wording.length > 0;
   }
 
-  private bindPartyValidationChanges(): void {
-    this.formSvc
-      .partyValidationChanges(this.forms)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        if (!this.vm().formSubmitted) {
-          return;
-        }
-
-        this.updateAllErrors({ focusSummary: false });
-      });
-  }
-
   private resetErrors(): void {
+    this.respondentValidationSubmitted.set(false);
     this.appListEntryDetailPatch({
       errorHint: 'There is a problem',
       summaryErrors: [],

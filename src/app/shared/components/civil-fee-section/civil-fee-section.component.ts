@@ -44,6 +44,7 @@ import {
   getControlErrorItem,
 } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
+import { SubmittedFieldErrors } from '@util/submitted-field-errors';
 
 export type CivilFeeForm = FormGroup<{
   hasOffsiteFee: FormControl<boolean | null>;
@@ -103,6 +104,7 @@ export class CivilFeeSectionComponent implements OnInit {
   submitAttempted = output<void>();
 
   submitted = signal(false);
+  private readonly submittedFieldErrors = new SubmittedFieldErrors();
   parentSubmitted = input(false);
 
   // Application code returns whether a fee is required
@@ -237,16 +239,20 @@ export class CivilFeeSectionComponent implements OnInit {
     this.addFeeDetails.emit(payload);
 
     this.submitted.set(false);
+    this.submittedFieldErrors.clear(this.feeForm());
     this.clearCivilFeeInputsAndErrors();
   }
 
   private emitCivilFeeErrors(allowOffsiteOnly = false): void {
-    this.civilFeeErrors.emit(this.buildCivilFeeErrors(allowOffsiteOnly));
+    const errors = this.buildCivilFeeErrors(allowOffsiteOnly);
+    this.submittedFieldErrors.capture(errors, this.feeForm());
+    this.civilFeeErrors.emit(errors);
   }
 
   validateForSubmit(): ErrorItem[] {
     this.attachValidatorsForSubmitAttempt();
     const errors = this.buildCivilFeeErrors(true);
+    this.submittedFieldErrors.capture(errors, this.feeForm());
     this.civilFeeErrors.emit(errors);
     return errors;
   }
@@ -282,7 +288,11 @@ export class CivilFeeSectionComponent implements OnInit {
         }
       }
 
-      const paymentRefError = this.getControlError('paymentRef');
+      const paymentRefError = getControlErrorItem(
+        f.paymentRef,
+        'paymentRef',
+        CIVIL_FEE_FIELD_MESSAGES,
+      );
       if (paymentRefError) {
         entries.push(paymentRefError);
       }
@@ -296,11 +306,7 @@ export class CivilFeeSectionComponent implements OnInit {
   getControlError(
     controlName: keyof typeof CIVIL_FEE_FIELD_MESSAGES,
   ): ErrorItem | undefined {
-    return getControlErrorItem(
-      this.feeForm().controls[controlName],
-      controlName,
-      CIVIL_FEE_FIELD_MESSAGES,
-    );
+    return this.submittedFieldErrors.errorFor(controlName);
   }
 
   feeSummaryRows(): { key: string; value: string }[] {
@@ -399,6 +405,7 @@ export class CivilFeeSectionComponent implements OnInit {
       f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
       f.paymentRef.updateValueAndValidity({ emitEvent: false });
 
+      this.submittedFieldErrors.clear(this.feeForm());
       this.civilFeeErrors.emit([]);
       return;
     }

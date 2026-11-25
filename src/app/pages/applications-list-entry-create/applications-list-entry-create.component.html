@@ -116,6 +116,7 @@
 
   <ng-template #notesTpl>
     <app-notes-section
+      [submittedErrors]="vm().summaryErrors"
       [form]="form.controls.applicationNotes"
       (notesErrors)="onChildErrors('notes', $event)"
     />

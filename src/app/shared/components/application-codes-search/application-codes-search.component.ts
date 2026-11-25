@@ -34,6 +34,7 @@ import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry
 import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
 import { toApplicationCodeSortKey } from '@util/application-code-sort-map';
 import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
+import { SubmittedFieldErrors } from '@util/submitted-field-errors';
 
 const APPLICATION_CODE_SEARCH_ERROR_MESSAGES = {
   code: {
@@ -104,6 +105,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   codesRows: CodeRow[] = [];
 
   submitted = signal(false);
+  private readonly submittedFieldErrors = new SubmittedFieldErrors();
   hasSearched = signal(false);
   loading = signal(false);
   errored = signal(false);
@@ -133,8 +135,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
         return;
       }
 
-      this.form.updateValueAndValidity({ emitEvent: false });
-      this.emitValidationErrors();
+      this.validateForEntrySubmit();
     });
   }
 
@@ -246,6 +247,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
   onAddCode(row: CodeRow): void {
     this.submitted.set(false);
+    this.submittedFieldErrors.clear(this.form);
     this.hasSearched.set(false);
     this.codesRows = [];
 
@@ -296,17 +298,9 @@ export class ApplicationCodeSearchComponent implements OnInit {
       return null;
     }
 
-    const errors = this.getValidationErrors();
-    const localError = errors.find((error) => error.id === 'code')?.text;
+    const localError = this.submittedFieldErrors.errorFor('code')?.text;
     if (localError) {
       return localError;
-    }
-
-    if (
-      this.parentSubmitted() &&
-      this.patchedFormData()?.controls.applicationCode.hasError('required')
-    ) {
-      return 'Enter an application code';
     }
 
     return null;
@@ -324,10 +318,13 @@ export class ApplicationCodeSearchComponent implements OnInit {
     );
     this.codesRows = [];
     this.errored.set(false);
-    this.submitted.set(false);
     this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
-    this.resetParentErrors.emit();
-    this.codeSearchErrors.emit([]);
+    if (options?.emitEvent !== false) {
+      this.submitted.set(false);
+      this.submittedFieldErrors.clear(this.form);
+      this.resetParentErrors.emit();
+      this.codeSearchErrors.emit([]);
+    }
     this.totalPages.set(0);
     this.currentPage.set(0);
     this.sortField.set({ key: 'code', direction: 'asc' });
@@ -345,6 +342,11 @@ export class ApplicationCodeSearchComponent implements OnInit {
     });
   }
 
+  validateForEntrySubmit(): void {
+    this.form.updateValueAndValidity({ emitEvent: false });
+    this.emitValidationErrors(true);
+  }
+
   private canSearch(): boolean {
     this.form.updateValueAndValidity({ emitEvent: false });
     return this.emitValidationErrors().length === 0;
@@ -358,8 +360,27 @@ export class ApplicationCodeSearchComponent implements OnInit {
     });
   }
 
-  private emitValidationErrors(): ErrorItem[] {
+  private emitValidationErrors(forEntry = false): ErrorItem[] {
     const errors = this.getValidationErrors();
+    const parentControls = this.patchedFormData()?.controls;
+    const requiredErrors: ErrorItem[] = [];
+    if (
+      forEntry &&
+      parentControls?.applicationCode?.hasError('required') &&
+      !errors.some(({ id }) => id === 'code')
+    ) {
+      requiredErrors.push({ id: 'code', text: 'Enter an application code' });
+    }
+    if (forEntry && parentControls?.lodgementDate?.hasError('required')) {
+      requiredErrors.push({
+        id: 'lodgementDate',
+        text: 'Enter day, month and year',
+      });
+    }
+    this.submittedFieldErrors.capture(
+      [...errors, ...requiredErrors],
+      this.form,
+    );
     this.codeSearchErrors.emit(errors);
     return errors;
   }

@@ -84,6 +84,7 @@ import {
   getDateStamp,
   getTrimmedStringOrNullFromGroup,
 } from '@util/string-helpers';
+import { captureCompositeErrors } from '@util/submitted-field-errors';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { dateToOnOrAfterDateFromValidator } from '@validators/date-range.validator';
 
@@ -492,6 +493,9 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     selectedGroup?.updateValueAndValidity({ emitEvent: false });
 
     const validationErrors = this.buildErrorSummary();
+    if (selectedGroup) {
+      captureCompositeErrors(selectedGroup, validationErrors);
+    }
 
     if (validationErrors.length) {
       this.reportStatePatch({ errorSummary: validationErrors });

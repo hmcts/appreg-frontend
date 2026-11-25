@@ -38,12 +38,19 @@ export class NotesSectionComponent {
   form = input.required<ApplicationNotesForm>();
   // signal output
   notesErrors = output<ErrorItem[]>();
+  submittedErrors = input<readonly ErrorItem[]>();
 
   readonly errorMap = NOTES_ERROR_MESSAGES;
 
   getControlError(
     controlName: keyof ApplicationNotesForm['controls'],
   ): ErrorItem | undefined {
+    const submitted = this.submittedErrors();
+    if (submitted) {
+      return submitted.find(
+        ({ id }) => id === `applicationNotes.${controlName}`,
+      );
+    }
     return getControlErrorItem(
       this.form().controls[controlName],
       controlName,
@@ -55,10 +62,15 @@ export class NotesSectionComponent {
     controlName: keyof ApplicationNotesForm['controls'],
   ): boolean {
     const ctrl = this.form().controls[controlName];
-    return !!this.getControlError(controlName) && (ctrl.dirty || ctrl.touched);
+    return (
+      !!this.getControlError(controlName) &&
+      (this.submittedErrors() !== undefined || ctrl.dirty || ctrl.touched)
+    );
   }
 
   emitNotesErrors(): void {
-    this.notesErrors.emit(buildFormErrorSummary(this.form(), this.errorMap));
+    if (this.submittedErrors() === undefined) {
+      this.notesErrors.emit(buildFormErrorSummary(this.form(), this.errorMap));
+    }
   }
 }
