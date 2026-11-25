@@ -1,5 +1,5 @@
 Feature: Applications List Create
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-801
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-801 @ARCPOC-1967
   Scenario Outline: Create applications list using CJA and other location
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
@@ -20,7 +20,7 @@ Feature: Applications List Create
     When User Searches Application List With:
       | Date   | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | <Date> |      | <Description>    |             |       | <Status>           |                            |                       |           |
-    When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+    When User Clicks "<SelectButtonText>" Then "Delete" Link From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location     | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
     Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
@@ -32,7 +32,7 @@ Feature: Applications List Create
       | User  | Date  | Time           | Description        | Status | OtherLocation                | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
       | user1 | today | timenowhhmm-2h | Test_{SCENARIO_ID} | Open   | Other Location_{SCENARIO_ID} | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
 
-  @regression @core @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-801 @ARCPOC-1748 @ARCPOC-1822
+  @regression @core @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-801 @ARCPOC-1748 @ARCPOC-1822 @ARCPOC-1967
   Scenario Outline: Create applications list using Court Autocomplete
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
@@ -50,7 +50,7 @@ Feature: Applications List Create
     When User Searches Application List With:
       | Date   | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | <Date> |      | <Description>    |             |       | <Status>           |                            |                       |           |
-    When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+    When User Clicks "<SelectButtonText>" Then "Delete" Link From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location     | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
     Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
@@ -61,7 +61,7 @@ Feature: Applications List Create
       | User  | Date  | Time           | Description        | Status | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
       | user1 | today | timenowhhmm-2h | Test_{SCENARIO_ID} | Open   | royal      | Royal Courts of Justice Set 1 | Lists     | todaydisplay | 0       | Select           | Open       |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792 @ARCPOC-1012 @ARCPOC-801
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792 @ARCPOC-1012 @ARCPOC-801 @ARCPOC-1967
   Scenario Outline: Verify validation messages on creating applications list with No Input
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
@@ -107,7 +107,7 @@ Feature: Applications List Create
     When User Searches Application List With:
       | Date   | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | <Date> |      | <Description>    |             |       | <Status>           |                            |                       |           |
-    When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+    When User Clicks "<SelectButtonText>" Then "Delete" Link From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <CJA>    | <Description> | <Entries> | <Status> |
     Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."

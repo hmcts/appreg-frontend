@@ -77,7 +77,7 @@ Feature: Applications List Search
     Then User Verifies The Date field "Date" Has Value "today"
     When User Submits The Application List Search
     Then User Should See Row In Table "Lists" With Values:
-      | Date        | Entries | Status |
+      | Date         | Entries | Status |
       | todaydisplay | 1       | OPEN   |
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452
@@ -118,7 +118,7 @@ Feature: Applications List Search
       | User   |
       | admin1 |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-977 @ARCPOC-1769
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-977 @ARCPOC-1769 @ARCPOC-1967
   Scenario: Verify applications list table is displayed with search results and values retained
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
@@ -133,7 +133,7 @@ Feature: Applications List Search
     Then User Should See Row In Table "Lists" With Values:
       | Date         | Location                          | Entries | Status |
       | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
-    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+    When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
       | Date         | Location                          | Entries | Status |
       | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
     Then User Should See The Link "List details"
@@ -248,7 +248,7 @@ Feature: Applications List Search
     Then User Should See Table "Lists" Header "Status" Is Not Sortable
     Then User Should See Table "Lists" Has Sortable Headers "Time, Description, Entries"
     Then User Should See Table "Lists" Header "Actions" Is Not Sortable
-    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+    When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
       | Date         | Location                          | Entries | Status |
       | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
     Then User Should See The Link "List details"
@@ -259,12 +259,12 @@ Feature: Applications List Search
     When User Searches Application List With:
       | Date  | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | today | @listDescription | LCCC065     |       | OPEN               |                            |                       |           |
-    When User Clicks "Select" In Row Of Table "Lists" And Verify Menu Options "Open, Print page,  Print continuous, Delete"
+    When User Clicks "Select" In Row Of Table "Lists" And Verify Menu Options "Open, Preview print cont, Delete, Print page, Print continuous"
       | Date         | Location                          | Entries | Status |
       | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-417
-  Scenario Outline: Verify application list row menu options for CLOSED list
+  Scenario Outline: Verify application list row menu options for CLOSED list With No ALEs
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Body:
       | date     | time           | status | description   | courtLocationCode |
@@ -280,7 +280,7 @@ Feature: Applications List Search
     When User Searches Application List With:
       | Date  | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | today | <Description>    | <CourtCode> |       | CLOSED             |                            |                       |           |
-    When User Clicks "Select" In Row Of Table "Lists" And Verify Menu Options "Print page,  Print continuous"
+    Then User Verify "Select" Button Is Not Present In Row Of Table "Lists" With:
       | Date         | Location    | Entries | Status |
       | todaydisplay | <CourtName> | 0       | CLOSED |
     Examples:

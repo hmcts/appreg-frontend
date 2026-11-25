@@ -50,11 +50,11 @@ Feature: Applications List Entry Update
         When User Searches Application List With:
             | Date  | Time | List description                             | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
             | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date         | Time  | Location                          | Description                                  | Entries | Status |
             | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   |
         # Search and Open Created Application List Entry
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number | Applicant                  | Respondent                | Postcode | Title                      | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
         When User Clicks On The "Show all sections" Button
@@ -71,7 +71,7 @@ Feature: Applications List Entry Update
         Then User Should See The Modal Dialog With Button "Leave this page"
         When User Clicks On The "Leave this page" Button
         # Search and Open Created Application List Entry
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number | Applicant                  | Respondent                | Postcode | Title                      | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
         When User Clicks On The "Show all sections" Button
@@ -201,11 +201,11 @@ Feature: Applications List Entry Update
         When User Searches Application List With:
             | Date  | Time | List description                             | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
             | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date         | Time  | Location                          | Description                                  | Entries | Status |
             | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   |
         # Search and Open Created Application List Entry
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number | Applicant                  | Respondent                | Postcode | Title                      | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
         Then User Sees Page Heading "Applications list entry update"
@@ -274,11 +274,11 @@ Feature: Applications List Entry Update
         When User Searches Application List With:
             | Date  | Time | List description                             | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
             | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date         | Time  | Location                          | Description                                  | Entries | Status |
             | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   |
         # Search and Open Created Application List Entry
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number | Applicant                    | Respondent              | Postcode | Title                      | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Ashley Simmons {SCENARIO_ID} | Will Dean {SCENARIO_ID} | BS15 5AA | Condemnation of Unfit Food | Yes |          |
         Then User Sees Page Heading "Applications list entry update"
@@ -352,11 +352,11 @@ Feature: Applications List Entry Update
         When User Searches Application List With:
             | Date  | Time | List description                             | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
             | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date         | Time  | Location                          | Description                                  | Entries | Status |
             | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   |
         # Search and Open Created Application List Entry
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number | Applicant                       | Respondent                                 | Postcode | Title                                                                     | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Test Organisation {SCENARIO_ID} | Test Respondent Organisation {SCENARIO_ID} | BS15 5AA | Issue of warrant of arrest in commitment proceedings - council tax (bulk) | Yes |          |
         Then User Sees Page Heading "Applications list entry update"
@@ -441,11 +441,11 @@ Feature: Applications List Entry Update
         When User Searches Application List With:
             | Date  | Time | List description                             | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
             | today |      | Applications to review at Test_{SCENARIO_ID} |             |       | OPEN               |                            |                       |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date         | Time  | Location                          | Description                                  | Entries | Status |
             | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{SCENARIO_ID} | 1       | OPEN   |
         # Search and Open Created Application List Entry
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number | Applicant                       | Respondent                                 | Postcode | Title                                                  | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Test Organisation {SCENARIO_ID} | Test Respondent Organisation {SCENARIO_ID} | BS15 5AA | Order for the disposal of uncollected controlled goods | No  |          |
         # Update application code by highlighting and replacing code

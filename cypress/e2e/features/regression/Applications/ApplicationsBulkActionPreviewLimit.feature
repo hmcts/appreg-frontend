@@ -15,7 +15,7 @@ Feature: Applications Details Bulk Action Preview Limit Validation
         When User Searches Application List With:
             | Date  | Time | Description                            | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | today |      | Test Data List 1051 ALEs {SCENARIO_ID} |             |       | OPEN   |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date         | Time           | Location                          | Description                            | Entries | Status |
             | todaydisplay | timenowhhmm-2h | Leeds Combined Court Centre Set 7 | Test Data List 1051 ALEs {SCENARIO_ID} | 0       | OPEN   |
         Then User See "Applications" On The Page
@@ -30,7 +30,7 @@ Feature: Applications Details Bulk Action Preview Limit Validation
         When User Searches Application List With:
             | Date  | Time | Description                            | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | today |      | Test Data List 1051 ALEs {SCENARIO_ID} |             |       | OPEN   |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date         | Time           | Location                          | Description                            | Status |
             | todaydisplay | timenowhhmm-2h | Leeds Combined Court Centre Set 7 | Test Data List 1051 ALEs {SCENARIO_ID} | OPEN   |
         Then User Should See The Table "Entries"

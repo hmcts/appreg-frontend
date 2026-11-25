@@ -1,6 +1,6 @@
 Feature: Applications List  - Bulk Result Selected
 
-    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @ARCPOC-1444 @ARCPOC-1360 @ARCPOC-1748 @ARCPOC-1822 @ARCPOC-1228 @ARCPOC-1957
+    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @ARCPOC-1444 @ARCPOC-1360 @ARCPOC-1748 @ARCPOC-1822 @ARCPOC-1228 @ARCPOC-1957 @tp
     Scenario Outline: Application List - Result Selected - 8 ALEs Mixed Applicant Types
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -275,7 +275,7 @@ Feature: Applications List  - Bulk Result Selected
         When User Searches Application List With:
             | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      |             | <courtLocationCode> | <Court> |        |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
