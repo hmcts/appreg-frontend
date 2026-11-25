@@ -112,7 +112,7 @@ Feature: Application List Entries - Move
         When User Searches Application List With:
             | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      |             | <courtLocationCode> | <Court> |        |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date          | Time   | Location | Description         | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <SourceDescription> | <Entries> | <Status> |
         Then User See "Applications" On The Page
@@ -153,13 +153,13 @@ Feature: Application List Entries - Move
             | 1               | ACC-E1-{RANDOM} | Henry Taylor {SCENARIO_ID}  | Emily Clark {SCENARIO_ID}           | BS15 5AA | Appeal to Crown Court                        | No  |          |
             | 2               | ACC-E2-{RANDOM} | Sarah Johnson {SCENARIO_ID} | Greenfield Consulting {SCENARIO_ID} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
         # ── Notes Updated After Move ────────────────────────────────────────────
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant                  | Respondent                | Postcode | Title                 | Fee | Resulted |
             | 1               | ACC-E1-{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Appeal to Crown Court | No  |          |
         When User Clicks On The "Show all sections" Button
         Then User Verifies The Textbox "Application details" Contains "Case noted with ref {SCENARIO_ID} <APIDate> : List details amended from <APIDate> :sourceListTime:00 <Court> " In The Accordion "Notes"
         Then User Clicks On The Breadcrumb Link "Applications list details"
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant                   | Respondent                          | Postcode | Title                                        | Fee | Resulted |
             | 2               | ACC-E2-{RANDOM} | Sarah Johnson {SCENARIO_ID} | Greenfield Consulting {SCENARIO_ID} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
         When User Clicks On The "Show all sections" Button
@@ -280,7 +280,7 @@ Feature: Application List Entries - Move
         When User Searches Application List With:
             | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      |             | <courtLocationCode> | <Court> |        |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date          | Time         | Location | Description         | Entries   | Status   |
             | <DisplayDate> | <SourceTime> | <Court>  | <SourceDescription> | <Entries> | <Status> |
         Then User See "Applications" On The Page
@@ -343,13 +343,13 @@ Feature: Application List Entries - Move
             | Sequence number | Account number  | Applicant                   | Respondent                          | Postcode | Title                                        | Fee | Resulted |
             | 1               | ACC-E1-{RANDOM} | Henry Taylor {SCENARIO_ID}  | Emily Clark {SCENARIO_ID}           | BS15 5AA | Appeal to Crown Court                        | No  |          |
             | 2               | ACC-E2-{RANDOM} | Sarah Johnson {SCENARIO_ID} | Greenfield Consulting {SCENARIO_ID} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant                  | Respondent                | Postcode | Title                 | Fee | Resulted |
             | 1               | ACC-E1-{RANDOM} | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Appeal to Crown Court | No  |          |
         When User Clicks On The "Show all sections" Button
         Then User Verifies The Textbox "Application details" Contains "Case noted with ref {SCENARIO_ID} <APIDate> : List details amended from <APIDate> :sourceListTime:00 <Court> " In The Accordion "Notes"
         Then User Clicks On The Breadcrumb Link "Applications list details"
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant                   | Respondent                          | Postcode | Title                                        | Fee | Resulted |
             | 2               | ACC-E2-{RANDOM} | Sarah Johnson {SCENARIO_ID} | Greenfield Consulting {SCENARIO_ID} | B1 1AA   | Collection Order - Financial Penalty Account | No  |          |
         When User Clicks On The "Show all sections" Button

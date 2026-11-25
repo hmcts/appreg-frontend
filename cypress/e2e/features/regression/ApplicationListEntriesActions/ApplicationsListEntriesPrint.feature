@@ -132,7 +132,7 @@ Feature: Application List Entries Print
         When User Searches Application List With:
             | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      |             | <courtLocationCode> | <Court> |        |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page

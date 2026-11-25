@@ -15,7 +15,7 @@ Feature: Applications List Entry Create Regex Validations
     When User Searches Application List With:
       | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | <SearchDate> |      |                  |             |       | <Status>           |                            |                       |           |
-    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+    When User Clicks "<SelectButtonText>" Then "<ButtonName>" Link From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
     ## Create Application under Application List
@@ -245,7 +245,7 @@ Feature: Applications List Entry Create Regex Validations
     When User Searches Application List With:
       | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | <SearchDate> |      |                  |             |       | <Status>           |                            |                       |           |
-    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+    When User Clicks "<SelectButtonText>" Then "<ButtonName>" Link From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
     ## Create Application under Application List
@@ -380,7 +380,7 @@ Feature: Applications List Entry Create Regex Validations
     When User Searches Application List With:
       | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | <SearchDate> |      |                  |             |       | <Status>           |                            |                       |           |
-    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+    When User Clicks "<SelectButtonText>" Then "<ButtonName>" Link From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
     ## Create Application under Application List

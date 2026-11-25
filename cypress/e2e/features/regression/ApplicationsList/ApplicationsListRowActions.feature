@@ -1,6 +1,6 @@
 Feature: Application List Row Actions
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-799 @ARCPOC-802 @ARCPOC-449 @ARCPOC-1956 @tp
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-799 @ARCPOC-802 @ARCPOC-449 @ARCPOC-1956
     Scenario Outline: Verify PDF download for 0 entries
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -18,10 +18,10 @@ Feature: Application List Row Actions
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User Should See The Link "Open"
-        Then User Should See The Button "Delete"
+        Then User Should See The Link "Delete"
         Then User Should Not See The Button "Print continuous"
         Then User Should Not See The Button "Print page"
-        Then User Should Not See The Button "Preview print cont"
+        Then User Should Not See The Link "Preview print cont"
         Then User Clears The "List description" Textbox
         Then User Enters "past" Into The "List description" Textbox
         When User Clicks On The "Search" Button
@@ -33,7 +33,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                         | Description                                   | Entries | Status | SelectButtonText |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1 | Test_{SCENARIO_ID} for Applications to review | 0       | OPEN   | Select           |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803 @ARCPOC-1371 @ARCPOC-1956
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803 @ARCPOC-1371 @ARCPOC-1956 @ARCPOC-1967
     Scenario Outline: Verify PDF download for print continuous; print page and preview print cont with entries for Court
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -188,7 +188,7 @@ Feature: Application List Row Actions
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      | <Description> |             |       |        |                |     |           |
-        When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Print continuous" Button From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         # Verify PDF was downloaded and contains expected content
@@ -220,7 +220,7 @@ Feature: Application List Row Actions
             | Notes                  | Application discussion ref {SCENARIO_ID}                                                                                                                      |
             | This matter was before | Mr Smith {SCENARIO_ID} John MAGISTRATE                                                                                                                        |
         Then User Clears Downloaded PDFs
-        When User Clicks "<SelectButtonText>" Then "Print page" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Print page" Button From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         # Verify PDF was downloaded and contains expected content
@@ -245,7 +245,7 @@ Feature: Application List Row Actions
         Then User Clears Downloaded PDFs
         # Preview print continuous pop up window verification
         Given User Starts Capturing Pop Up Windows
-        When User Clicks "<SelectButtonText>" Then "Preview print cont" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Preview print cont" Link From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User Should See Pop Up Window URL Contains "/preview"
@@ -274,7 +274,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                                  | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 2     |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-1823 @ARCPOC-1956
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-1823 @ARCPOC-1956 @ARCPOC-1967
     Scenario Outline: Verify PDF download for print continuous; print page and preview print cont with entries for CJA
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -335,7 +335,7 @@ Feature: Application List Row Actions
         When User Searches Application List With:
             | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
             | <SearchDate> |      |                  |             |       | <Status>           |                            | <OptionText>          | <cjaCode> |
-        When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Print continuous" Button From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location     | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
         Then User Verifies PDF "<PDFNameContinuous>" Is Downloaded
@@ -356,7 +356,7 @@ Feature: Application List Row Actions
             | Notes                  | Case noted with ref {SCENARIO_ID}                                                                                                                             |
             | This matter was before | Mr Turner {SCENARIO_ID} Graham MAGISTRATE Ms Hayes {SCENARIO_ID} Laura MAGISTRATE Mr Miller {SCENARIO_ID} Peter CLERK Ms Patel {SCENARIO_ID} Anita MAGISTRATE |
         Then User Clears Downloaded PDFs
-        When User Clicks "<SelectButtonText>" Then "Print page" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Print page" Button From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location     | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
         # Verify PDF was downloaded and contains expected content
@@ -374,7 +374,7 @@ Feature: Application List Row Actions
         Then User Clears Downloaded PDFs
         # Preview print continuous pop up window verification
         Given User Starts Capturing Pop Up Windows
-        When User Clicks "<SelectButtonText>" Then "Preview print cont" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Preview print cont" Link From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location     | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
         Then User Should See Pop Up Window URL Contains "/preview"
@@ -398,7 +398,7 @@ Feature: Application List Row Actions
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-1h | A8      | Derby      | This is a location description {SCENARIO_ID} | ENFORCEMENT LIST-{SCENARIO_ID} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
 
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803 @ARCPOC-1717 @ARCPOC-1956
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803 @ARCPOC-1717 @ARCPOC-1956 @ARCPOC-1967
     Scenario Outline: Verify PDF download for print continuous; print page and preview print cont with entries for Court and Status Closed
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -485,7 +485,7 @@ Feature: Application List Row Actions
         When User Searches Application List With:
             | Date         | Time | List description | CourtSearch         | Court   | Select list status | Other location description | Criminal justice area | CJASearch |
             | <SearchDate> |      |                  | <courtLocationCode> | <Court> |                    |                            |                       |           |
-        When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Print continuous" Button From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         # Verify PDF was downloaded and contains expected content
@@ -508,7 +508,7 @@ Feature: Application List Row Actions
             | Notes                  | Case noted with ref {SCENARIO_ID}                                      |
             | This matter was before | Ms Patel {SCENARIO_ID} Anita MAGISTRATE                                |
         Then User Clears Downloaded PDFs
-        When User Clicks "<SelectButtonText>" Then "Print page" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Print page" Button From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         # Verify PDF was downloaded and contains expected content
@@ -526,7 +526,7 @@ Feature: Application List Row Actions
         Then User Clears Downloaded PDFs
         # Preview print continuous pop up window verification
         Given User Starts Capturing Pop Up Windows
-        When User Clicks "<SelectButtonText>" Then "Preview print cont" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Preview print cont" Link From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User Should See Pop Up Window URL Contains "/preview"
@@ -552,7 +552,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                                  | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037 @ARCPOC-1688 @ARCPOC-1046
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037 @ARCPOC-1688 @ARCPOC-1046 @ARCPOC-1967
     Scenario Outline: Verify application list is deleted successfully for applications list NO entries
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -564,7 +564,7 @@ Feature: Application List Row Actions
         When User Searches Application List With:
             | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
             | <SearchDate> |      | <Description>    |             |       |                    |                            |                       |           |
-        When User Clicks "<SelectButtonText>" Then "Open" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Open" Link From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
         Then User Clicks On The Tab "List details"
@@ -608,7 +608,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                                  | Status | SelectButtonText |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{SCENARIO_ID} | OPEN   | Select           |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037 @ARCPOC-1046
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037 @ARCPOC-1046 @ARCPOC-1967
     Scenario Outline: Verify application list is deleted successfully for applications list 1 entry
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -673,7 +673,7 @@ Feature: Application List Row Actions
         When User Searches Application List With:
             | Date         | Time | List description | CourtSearch         | Court   | Select list status | Other location description | Criminal justice area | CJASearch |
             | <SearchDate> |      |                  | <courtLocationCode> | <Court> |                    |                            |                       |           |
-        When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Delete" Link From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."

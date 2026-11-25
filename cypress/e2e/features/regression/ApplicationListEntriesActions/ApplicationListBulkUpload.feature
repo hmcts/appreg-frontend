@@ -12,7 +12,7 @@ Feature: Application List Bulk Upload
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
             | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
@@ -53,7 +53,7 @@ Feature: Application List Bulk Upload
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
             | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
@@ -93,7 +93,7 @@ Feature: Application List Bulk Upload
         Then User See "Are you sure you want to add these fees to the following applications?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Fees updated" Containing "Fees have been successfully updated"
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Entries" With:
             | Sequence number | Account number     | Applicant                   | Respondent                           | Postcode | Fee |
             | 1               | AC-{SCENARIO_ID}-1 | British Gas Trading Limited | Globex Corporation {SCENARIO_ID} Ltd | WS1 1SY  | Yes |
         Then User Sees Page Heading "Applications list entry update"
@@ -121,7 +121,7 @@ Feature: Application List Bulk Upload
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
             | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
@@ -163,7 +163,7 @@ Feature: Application List Bulk Upload
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
             | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
@@ -207,7 +207,7 @@ Feature: Application List Bulk Upload
         When User Searches Application List With:
             | Date  | Time | Description                        | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | today |      | BulkFailSortingTable_{SCENARIO_ID} |             |       | OPEN   |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date         | Time           | Location                      | Description                        | Entries | Status |
             | todaydisplay | timenowhhmm-2h | Royal Courts of Justice Set 1 | BulkFailSortingTable_{SCENARIO_ID} | 0       | OPEN   |
         Then User See "Applications" On The Page
@@ -299,7 +299,7 @@ Feature: Application List Bulk Upload
         When User Searches Application List With:
             | Date  | Time | Description                        | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | today |      | BulkFailSortingTable_{SCENARIO_ID} |             |       | OPEN   |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date         | Time           | Location                      | Description                        | Entries | Status |
             | todaydisplay | timenowhhmm-2h | Royal Courts of Justice Set 1 | BulkFailSortingTable_{SCENARIO_ID} | 0       | OPEN   |
         Then User See "Applications" On The Page
