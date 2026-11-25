@@ -123,3 +123,49 @@ test.each(['Applicant', 'Officials'])(
     }
   },
 );
+
+test('returning from payment reference editing focuses the Civil fee confirmation', async () => {
+  const context = await browser.createBrowserContext();
+  const page = await context.newPage();
+  page.setDefaultTimeout(10_000);
+  const scenario = {
+    ...scenarios.find((item) => item.name === 'Edit entry')!,
+    state: {
+      paymentRefReturn: {
+        updatedRowId: 'Paid|2026-01-01|0',
+        newPaymentReference: 'UPDATED',
+      },
+    },
+    responses: {
+      [`/application-lists/${listId}/entries/${entryId}`]: {
+        status: 200,
+        body: {
+          ...entry,
+          feeStatuses: [
+            {
+              paymentStatus: 'Paid',
+              statusDate: '2026-01-01',
+              paymentReference: 'ORIGINAL',
+            },
+          ],
+        },
+      },
+    },
+  };
+  try {
+    const failures = await preparePage(page, scenario);
+    await openScenario(page, baseUrl, scenario);
+    await page.waitForFunction(
+      () => document.activeElement?.id === 'fees-save-banner',
+    );
+    expect(
+      await page.$eval('#fees-save-banner', (banner) => {
+        const panel = banner.closest('.govuk-accordion__section-content');
+        return !!panel && !panel.hasAttribute('hidden');
+      }),
+    ).toBe(true);
+    assertNoBrowserFailures(failures);
+  } finally {
+    await context.close();
+  }
+});

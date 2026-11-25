@@ -3568,7 +3568,7 @@ describe('ApplicationsListEntryDetail', () => {
     spy.mockRestore();
   });
 
-  it('applyPaymentRefReturn: when helper returns changed=true, persists feeStatuses via update API', () => {
+  it('applyPaymentRefReturn: when helper returns changed=true, persists feeStatuses via update API and focuses the Civil fee confirmation on return', fakeAsync(() => {
     const next: FeeStatus[] = [
       {
         paymentStatus: 'Paid',
@@ -3581,8 +3581,18 @@ describe('ApplicationsListEntryDetail', () => {
       .spyOn(civilFeeUtils, 'updatePaymentReferenceInFeeStatusesControl')
       .mockReturnValue({ next, changed: true });
 
+    component['form'].controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-999');
+    component.openCivilFeeSection.set(false);
+    (document.activeElement as HTMLElement)?.blur();
     const subject = component as unknown as PaymentRefApplier;
-    subject.applyPaymentRefReturn('ROW-1', '  NEW  ');
+    const originalClone = globalThis.structuredClone;
+    globalThis.structuredClone ??= cloneDeep;
+    try {
+      subject.applyPaymentRefReturn('ROW-1', '  NEW  ');
+    } finally {
+      globalThis.structuredClone = originalClone;
+    }
 
     expect(spy).toHaveBeenCalledTimes(1);
 
@@ -3598,8 +3608,14 @@ describe('ApplicationsListEntryDetail', () => {
       }),
     );
 
+    fixture.detectChanges();
+    tick();
+    const banner = fixture.nativeElement.querySelector('#fees-save-banner');
+    expect(banner).not.toBeNull();
+    expect(component.openCivilFeeSection()).toBe(true);
+    expect(document.activeElement).toBe(banner);
     spy.mockRestore();
-  });
+  }));
 
   it('applyPaymentRefReturn rolls back feeStatuses when update API errors', () => {
     const previous: FeeStatus[] = [

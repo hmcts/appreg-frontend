@@ -1046,6 +1046,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     previousFeeStatuses: FeeStatus[],
     feeStatuses: FeeStatus[],
     bannerText: SuccessBanner,
+    returningFromPaymentReference = false,
   ): void {
     if (this.blockSaveWithoutApplicationCode()) {
       return;
@@ -1063,7 +1064,11 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    const showSuccess = this.prepareSectionConfirmation('fees', bannerText);
+    const showSuccess = this.prepareSectionConfirmation(
+      'fees',
+      bannerText,
+      returningFromPaymentReference,
+    );
     const { entryUpdateDto, response } = this.feeSaveFacade.save(
       this.appListEntryDetailState().appListId,
       entryId,
@@ -1180,7 +1185,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.paymentRefUpdated;
-    this.persistFeeStatuses(previousFeeStatuses, next, bannerText);
+    this.openCivilFeeSection.set(true);
+    this.persistFeeStatuses(previousFeeStatuses, next, bannerText, true);
   }
 
   /**
@@ -1599,6 +1605,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   private prepareSectionConfirmation(
     section: ConfirmationSection,
     message: SuccessBanner,
+    returningFromPaymentReference = false,
   ): () => void {
     const trigger = isPlatformBrowser(this.platformId)
       ? document.activeElement
@@ -1624,6 +1631,19 @@ export class ApplicationsListEntryDetail implements OnInit {
           return false;
         }
         const active = document.activeElement;
+        // A return navigation starts at the document body, not inside an accordion.
+        // Only move to the confirmation if the user has not started working elsewhere.
+        const destinationPanel = document
+          .getElementById(`${section}-save-banner`)
+          ?.closest('.govuk-accordion__section-content');
+        if (
+          returningFromPaymentReference &&
+          active === document.body &&
+          destinationPanel &&
+          !destinationPanel.hasAttribute('hidden')
+        ) {
+          return true;
+        }
         if (
           origin?.isConnected &&
           !origin.hasAttribute('hidden') &&

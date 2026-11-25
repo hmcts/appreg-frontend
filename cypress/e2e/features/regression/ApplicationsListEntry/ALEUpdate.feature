@@ -87,7 +87,7 @@ Feature: Applications List Entry Update
         Then User Clears The "Payment reference" Textbox
         Then User Enters "PAYUPD-{RANDOM}" Into The "Payment reference" Textbox
         When User Clicks On The "Save" Button
-        Then User Sees Success Banner "Payment reference updated" Containing "The payment reference has been updated for the selected fee status."
+        Then User Sees Success Alert "The payment reference has been updated for the selected fee status."
         Then User Should See The Accordion "Civil fee" Expanded
         Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
             | Fee Status | Status Date  | Payment Ref     |
