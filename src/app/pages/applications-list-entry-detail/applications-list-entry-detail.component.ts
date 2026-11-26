@@ -298,6 +298,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   readonly sectionSaveStatus = signal('');
   private sectionSaveTrigger: HTMLElement | null = null;
   readonly savedApplicationCodeLoaded = signal(false);
+  readonly newerApplicationCodeVersionExists = signal(false);
 
   resultAppliedBannerVisible = signal(false);
 
@@ -567,6 +568,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     applicationCodeId?: number;
   }): void {
     this.resetSuccessBanner();
+    this.resetErrors();
+    this.newerApplicationCodeVersionExists.set(false);
+
     const prevSelection = {
       code: this.form.controls.applicationCode.value,
       date: this.form.controls.lodgementDate.value,

@@ -2,11 +2,16 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
+  inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { EMPTY, expand, reduce } from 'rxjs';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
@@ -20,6 +25,10 @@ import {
   APPLICANT_TYPE_OPTIONS,
   PERSON_TITLE_OPTIONS,
 } from '@constants/application-list-entry/columns-options';
+import {
+  StandardApplicantGetSummaryDto,
+  StandardApplicantsApi,
+} from '@openapi';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 /**
@@ -33,6 +42,7 @@ import { ApplicantType } from '@shared-types/applications-list-entry-create/appl
 @Component({
   selector: 'app-applicant-section',
   imports: [
+    AlertComponent,
     StandardApplicantSelectComponent,
     OrganisationSectionComponent,
     PersonSectionComponent,
@@ -44,6 +54,7 @@ import { ApplicantType } from '@shared-types/applications-list-entry-create/appl
   templateUrl: './applicant-section.component.html',
 })
 export class ApplicantSectionComponent {
+  private readonly standardApplicantsApi = inject(StandardApplicantsApi);
   private readonly applicantEntryTypeOptions = APPLICANT_TYPE_OPTIONS;
   readonly personTitleOptions = PERSON_TITLE_OPTIONS;
 
@@ -75,6 +86,8 @@ export class ApplicantSectionComponent {
   readonly updateClicked = output<void>();
 
   readonly entryTypeOptions = computed(() => this.applicantEntryTypeOptions);
+  readonly historicalSavedApplicantCode = signal<string | null>(null);
+  private readonly standardApplicantLookupFailed = signal(false);
   readonly standardApplicantSummary = computed(() => {
     const code = this.savedStandardApplicantCode()?.trim() || null;
     const name = this.savedStandardApplicantName()?.trim() || null;
@@ -92,7 +105,11 @@ export class ApplicantSectionComponent {
   readonly savedStandardApplicantFallback = computed(() => {
     const code = this.savedStandardApplicantCode()?.trim() || null;
 
-    if (!code || !this.savedStandardApplicantDetailsUnavailable()) {
+    if (
+      !code ||
+      !this.savedStandardApplicantDetailsUnavailable() ||
+      this.standardApplicantLookupFailed()
+    ) {
       return null;
     }
 
@@ -101,6 +118,7 @@ export class ApplicantSectionComponent {
       displayText: code,
     };
   });
+
   readonly currentSelectionSummary = computed(() => {
     const current = this.currentStandardApplicantSummary();
     const code = current?.code?.trim() || null;
@@ -126,6 +144,64 @@ export class ApplicantSectionComponent {
       displayText: `${code} ${name}`,
     };
   });
+
+  constructor() {
+    effect((onCleanup) => {
+      const code = this.savedStandardApplicantCode()?.trim();
+      const savedId = this.savedStandardApplicantId();
+      this.historicalSavedApplicantCode.set(null);
+      this.standardApplicantLookupFailed.set(false);
+
+      if (!code || savedId === null) {
+        return;
+      }
+
+      const request = { code, pageSize: 100 };
+      const subscription = this.standardApplicantsApi
+        .getStandardApplicants({ ...request, pageNumber: 0 }, 'body', false, {
+          transferCache: true,
+        })
+        .pipe(
+          expand((page) => {
+            const nextPage = page.pageNumber + 1;
+            const totalPages =
+              page.totalPages ?? Math.ceil(page.totalElements / page.pageSize);
+            return nextPage < totalPages
+              ? this.standardApplicantsApi.getStandardApplicants(
+                  { ...request, pageNumber: nextPage },
+                  'body',
+                  false,
+                  { transferCache: true },
+                )
+              : EMPTY;
+          }),
+          reduce(
+            (applicants, page) => applicants.concat(page.content ?? []),
+            [] as StandardApplicantGetSummaryDto[],
+          ),
+        )
+        .subscribe({
+          next: (applicants) => {
+            const current = applicants.find(
+              (applicant) =>
+                applicant.code.trim().toUpperCase() === code.toUpperCase(),
+            );
+            if (
+              !current ||
+              (current.standardApplicantId !== undefined &&
+                current.standardApplicantId !== savedId)
+            ) {
+              this.historicalSavedApplicantCode.set(code);
+            }
+          },
+          error: () => {
+            this.historicalSavedApplicantCode.set(null);
+            this.standardApplicantLookupFailed.set(true);
+          },
+        });
+      onCleanup(() => subscription.unsubscribe());
+    });
+  }
 
   onStandardChanged(code: string | null): void {
     this.standardApplicantCodeChange.emit(code);

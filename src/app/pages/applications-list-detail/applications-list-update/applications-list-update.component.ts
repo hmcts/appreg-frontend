@@ -3,6 +3,7 @@ import {
   Component,
   OnChanges,
   SimpleChanges,
+  computed,
   inject,
   input,
   signal,
@@ -19,6 +20,7 @@ import {
   clearUpdateNotificationsPatch,
 } from '../util';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
@@ -29,7 +31,11 @@ import {
   CLOSE_MESSAGES,
   DETAIL_FIELD_MESSAGES,
 } from '@constants/application-list-detail-update/error-messages';
-import { ApplicationListStatus, ApplicationListUpdateDto } from '@openapi';
+import {
+  ApplicationListStatus,
+  ApplicationListUpdateDto,
+  CourtLocationGetSummaryDto,
+} from '@openapi';
 import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { buildFormErrorSummary } from '@util/error-summary';
@@ -60,6 +66,7 @@ import { closeDurationError } from '@validators/applications-list-close.validato
     HelpDetailsComponent,
     PageHeaderComponent,
     MojButtonMenuDirective,
+    AlertComponent,
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-update.component.html',
@@ -96,9 +103,33 @@ export class ApplicationsListUpdateComponent implements OnChanges {
   // Court id for original court to ensure the full replacement does not repalce the
   // original court
   readonly originalCourtId = input<number | undefined>(undefined);
+  readonly currentCourtLocations = input<CourtLocationGetSummaryDto[]>([]);
+  readonly courtLocationsLoaded = input(false);
   readonly selectedCourtId = input<number | undefined>(undefined);
   readonly updatePending = input(false);
   readonly canModifyList = input(false);
+
+  readonly historicalCourtSaved = computed(() => {
+    const savedCode = this.originalListDetails()?.court?.trim().toUpperCase();
+    if (!savedCode || !this.courtLocationsLoaded()) {
+      return false;
+    }
+
+    const currentCourt = this.currentCourtLocations().find(
+      (court) => court.locationCode.trim().toUpperCase() === savedCode,
+    );
+
+    return (
+      !currentCourt ||
+      (this.originalCourtId() !== undefined &&
+        currentCourt.courtId !== this.originalCourtId())
+    );
+  });
+
+  readonly historicalCourtMessage = computed(
+    () =>
+      `The saved court ${this.originalListDetails()?.court?.trim()} shown here may have been updated or removed.`,
+  );
 
   private readonly hrefs = {
     date: `#${DETAIL_ERROR_ANCHORS.date}`,
