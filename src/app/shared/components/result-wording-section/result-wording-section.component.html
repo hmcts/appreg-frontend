@@ -7,6 +7,10 @@
   <p class="govuk-body">Fixed wording cannot be edited on this page.</p>
 </app-help-details>
 
+@if (historicalResultCodes().length) {
+  <app-alert alertType="information" [message]="historicalResultsMessage()" />
+}
+
 @if (savedResultDetailsError()) {
   <p class="govuk-error-message" role="alert">
     {{ savedResultDetailsError() }}

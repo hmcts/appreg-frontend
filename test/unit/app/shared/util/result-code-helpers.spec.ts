@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { firstValueFrom, of, throwError } from 'rxjs';
+import { Subject, firstValueFrom, of, throwError } from 'rxjs';
 
 import {
   ApplicationListEntryResultsApi,
@@ -13,6 +13,7 @@ import {
 import {
   formatResultCodeLabel,
   getAllResultCodes,
+  getAllResultCodesState,
   getEntryResults$,
   mapPreviousResults,
   toExistingRows,
@@ -22,6 +23,7 @@ function makeCode(
   overrides: Partial<ResultCodeGetSummaryDto>,
 ): ResultCodeGetSummaryDto {
   return {
+    id: 1,
     resultCode: '',
     title: '',
     ...overrides,
@@ -97,6 +99,77 @@ describe('result-code helpers', () => {
       );
 
       expect(sig()).toEqual([]);
+    });
+  });
+
+  describe('getAllResultCodesState', () => {
+    it('loads all pages before marking the list as complete', () => {
+      const secondPage = new Subject<ResultCodePage>();
+      const getResultCodes = jest.fn(
+        ({ pageNumber }: { pageNumber: number }) =>
+          pageNumber === 0
+            ? of(
+                makeCodesPage({
+                  pageNumber: 0,
+                  totalPages: 2,
+                  content: [makeCode({ id: 1, resultCode: 'RC1' })],
+                }),
+              )
+            : secondPage,
+      );
+      const codesApi = { getResultCodes } as unknown as ResultCodesApi;
+      const state = TestBed.runInInjectionContext(() =>
+        getAllResultCodesState(codesApi),
+      );
+
+      expect(getResultCodes).toHaveBeenCalledWith({
+        pageNumber: 1,
+        pageSize: 100,
+      });
+      expect(state().loaded).toBe(false);
+
+      secondPage.next(
+        makeCodesPage({
+          pageNumber: 1,
+          totalPages: 2,
+          content: [makeCode({ id: 2, resultCode: 'RC2' })],
+        }),
+      );
+      secondPage.complete();
+
+      expect(state()).toEqual({
+        codes: [
+          makeCode({ id: 1, resultCode: 'RC1' }),
+          makeCode({ id: 2, resultCode: 'RC2' }),
+        ],
+        loaded: true,
+      });
+    });
+
+    it('marks a successful response as loaded, including an empty list', () => {
+      const response = new Subject<ResultCodePage>();
+      const codesApi = {
+        getResultCodes: jest.fn(() => response),
+      } as unknown as ResultCodesApi;
+      const state = TestBed.runInInjectionContext(() =>
+        getAllResultCodesState(codesApi),
+      );
+
+      expect(state()).toEqual({ codes: [], loaded: false });
+      response.next(makeCodesPage({ content: [] }));
+      response.complete();
+      expect(state()).toEqual({ codes: [], loaded: true });
+    });
+
+    it('does not mark an API error as a loaded empty list', () => {
+      const codesApi = {
+        getResultCodes: jest.fn(() => throwError(() => new Error('failed'))),
+      } as unknown as ResultCodesApi;
+      const state = TestBed.runInInjectionContext(() =>
+        getAllResultCodesState(codesApi),
+      );
+
+      expect(state()).toEqual({ codes: [], loaded: false });
     });
   });
 

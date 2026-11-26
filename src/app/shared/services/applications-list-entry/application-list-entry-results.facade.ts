@@ -1,4 +1,11 @@
-import { DestroyRef, Injectable, effect, inject, signal } from '@angular/core';
+import {
+  DestroyRef,
+  Injectable,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Observable,
@@ -22,7 +29,10 @@ import {
 } from '@openapi';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import type { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
-import { getAllResultCodes, getEntryResults$ } from '@util/result-code-helpers';
+import {
+  getAllResultCodesState,
+  getEntryResults$,
+} from '@util/result-code-helpers';
 
 export type BulkResultRemoval =
   | {
@@ -58,7 +68,11 @@ export class ApplicationListEntryResultsFacade {
   private readonly entryResultsApi = inject(ApplicationListEntryResultsApi);
   private readonly resultCodesApi = inject(ResultCodesApi);
 
-  readonly resultCodesSignal = getAllResultCodes(this.resultCodesApi);
+  private readonly resultCodesState = getAllResultCodesState(
+    this.resultCodesApi,
+  );
+  readonly resultCodesSignal = computed(() => this.resultCodesState().codes);
+  readonly resultCodesLoaded = computed(() => this.resultCodesState().loaded);
 
   readonly entryResults = signal<ResultGetDto[]>([]);
   readonly entryResultsLoading = signal(false);

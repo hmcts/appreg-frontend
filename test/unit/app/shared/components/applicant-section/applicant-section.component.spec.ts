@@ -2,10 +2,13 @@ import { Component, input, output } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
+import { Subject, of, throwError } from 'rxjs';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
+import { StandardApplicantPage, StandardApplicantsApi } from '@openapi';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 @Component({ selector: 'app-person-section', standalone: true, template: '' })
@@ -47,6 +50,7 @@ describe('ApplicantSectionComponent', () => {
   let component: ApplicantSectionComponent;
   let fixture: ComponentFixture<ApplicantSectionComponent>;
   let fb: FormBuilder;
+  let getStandardApplicants: jest.Mock;
 
   const buildForm = (fb: FormBuilder) =>
     fb.group({
@@ -55,13 +59,35 @@ describe('ApplicantSectionComponent', () => {
     });
 
   beforeEach(async () => {
+    getStandardApplicants = jest.fn().mockReturnValue(
+      of({
+        pageNumber: 0,
+        pageSize: 100,
+        totalElements: 1,
+        totalPages: 1,
+        elementsOnPage: 1,
+        content: [
+          {
+            standardApplicantId: 10,
+            code: 'SA-123',
+            name: 'Current organisation',
+            startDate: '2025-01-01',
+            endDate: null,
+          },
+        ],
+      } satisfies StandardApplicantPage),
+    );
     await TestBed.configureTestingModule({
       imports: [ReactiveFormsModule, ApplicantSectionComponent],
+      providers: [
+        { provide: StandardApplicantsApi, useValue: { getStandardApplicants } },
+      ],
     })
       .overrideComponent(ApplicantSectionComponent, {
         set: {
           imports: [
             ReactiveFormsModule,
+            AlertComponent,
             SelectInputComponent,
             HelpDetailsComponent,
             MockPersonSectionComponent,
@@ -214,7 +240,7 @@ describe('ApplicantSectionComponent', () => {
     expect(fixture.debugElement.query(By.css('.govuk-tag'))).toBeNull();
   });
 
-  it('renders a warning with the raw saved standard applicant code when details are unavailable', () => {
+  it('keeps lookup failures separate from historical-version notices', () => {
     fixture.componentRef.setInput('applicantType', 'standard');
     fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
     fixture.componentRef.setInput(
@@ -223,13 +249,169 @@ describe('ApplicantSectionComponent', () => {
     );
     fixture.detectChanges();
 
-    const warning = fixture.debugElement.query(By.css('.govuk-warning-text'));
+    const alert = fixture.debugElement.query(By.directive(AlertComponent));
 
-    expect(warning).toBeTruthy();
-    expect(warning.nativeElement.textContent).toContain(
+    expect(alert).toBeTruthy();
+    expect(alert.componentInstance.alertType()).toBe('warning');
+    expect(
+      alert.nativeElement.querySelector('.moj-alert--warning'),
+    ).toBeTruthy();
+    expect(alert.nativeElement.textContent).toContain(
+      'Only the saved Standard Applicant code is available: SA-123',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'may have been removed or a new version exists',
+    );
+  });
+
+  it.each([
+    ['a newer current version', 11, true],
+    ['the same saved version', 10, false],
+  ])('checks the saved applicant against %s', (_, currentId, historical) => {
+    getStandardApplicants.mockReturnValue(
+      of({
+        pageNumber: 0,
+        pageSize: 100,
+        totalElements: 1,
+        totalPages: 1,
+        elementsOnPage: 1,
+        content: [
+          {
+            standardApplicantId: currentId,
+            code: 'SA-123',
+            name: 'Current organisation',
+            startDate: '2025-01-01',
+            endDate: null,
+          },
+        ],
+      } satisfies StandardApplicantPage),
+    );
+    fixture.componentRef.setInput('applicantType', 'standard');
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
+    fixture.componentRef.setInput('savedStandardApplicantId', 10);
+    fixture.componentRef.setInput(
+      'savedStandardApplicantName',
+      'Saved organisation',
+    );
+    fixture.detectChanges();
+
+    expect(getStandardApplicants).toHaveBeenCalledWith(
+      { code: 'SA-123', pageNumber: 0, pageSize: 100 },
+      'body',
+      false,
+      { transferCache: true },
+    );
+    expect(component.historicalSavedApplicantCode()).toBe(
+      historical ? 'SA-123' : null,
+    );
+    expect(
+      fixture.nativeElement.textContent.includes('may have been removed'),
+    ).toBe(historical);
+  });
+
+  it('shows a historical notice when no current applicant has the saved code', () => {
+    getStandardApplicants.mockReturnValue(
+      of({
+        pageNumber: 0,
+        pageSize: 100,
+        totalElements: 0,
+        totalPages: 0,
+        elementsOnPage: 0,
+        content: [],
+      } satisfies StandardApplicantPage),
+    );
+    fixture.componentRef.setInput('applicantType', 'standard');
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
+    fixture.componentRef.setInput('savedStandardApplicantId', 10);
+    fixture.detectChanges();
+
+    expect(component.historicalSavedApplicantCode()).toBe('SA-123');
+  });
+
+  it('waits for every page before deciding the saved applicant was removed', () => {
+    const secondPage = new Subject<StandardApplicantPage>();
+    getStandardApplicants
+      .mockReturnValueOnce(
+        of({
+          pageNumber: 0,
+          pageSize: 100,
+          totalElements: 101,
+          elementsOnPage: 100,
+          content: [],
+        } satisfies StandardApplicantPage),
+      )
+      .mockReturnValueOnce(secondPage);
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
+    fixture.componentRef.setInput('savedStandardApplicantId', 10);
+    fixture.detectChanges();
+    expect(component.historicalSavedApplicantCode()).toBeNull();
+
+    secondPage.next({
+      pageNumber: 1,
+      pageSize: 100,
+      totalElements: 101,
+      elementsOnPage: 1,
+      content: [
+        {
+          standardApplicantId: 10,
+          code: 'SA-123',
+          startDate: '2025-01-01',
+          endDate: null,
+        },
+      ],
+    });
+    secondPage.complete();
+    fixture.detectChanges();
+
+    expect(component.historicalSavedApplicantCode()).toBeNull();
+  });
+
+  it('does not infer a historical version when the current lookup fails', () => {
+    getStandardApplicants.mockReturnValue(
+      throwError(() => new Error('lookup failed')),
+    );
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
+    fixture.componentRef.setInput('savedStandardApplicantId', 10);
+    fixture.detectChanges();
+
+    expect(component.historicalSavedApplicantCode()).toBeNull();
+  });
+
+  it('clears the saved code fallback when the current lookup fails', () => {
+    getStandardApplicants.mockReturnValue(
+      throwError(() => new Error('lookup failed')),
+    );
+    fixture.componentRef.setInput('applicantType', 'standard');
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
+    fixture.componentRef.setInput('savedStandardApplicantId', 10);
+    fixture.componentRef.setInput(
+      'savedStandardApplicantDetailsUnavailable',
+      true,
+    );
+    fixture.detectChanges();
+
+    expect(component.savedStandardApplicantFallback()).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain(
       'Only the saved Standard Applicant code is available',
     );
-    expect(warning.nativeElement.textContent).toContain('SA-123');
+
+    getStandardApplicants.mockReturnValue(
+      of({
+        pageNumber: 0,
+        pageSize: 100,
+        totalElements: 0,
+        totalPages: 0,
+        elementsOnPage: 0,
+        content: [],
+      } satisfies StandardApplicantPage),
+    );
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-456');
+    fixture.detectChanges();
+
+    expect(component.savedStandardApplicantFallback()).toEqual({
+      code: 'SA-456',
+      displayText: 'SA-456',
+    });
   });
 
   it('emits updateClicked when the update button is clicked', () => {

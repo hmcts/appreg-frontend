@@ -128,6 +128,7 @@ describe('ReferenceDataFacade', () => {
     expect(facade.courtLocations()).toEqual([
       { courtId: 1, locationCode: 'A1', name: 'Alpha Court' },
     ]);
+    expect(facade.courtLocationsLoaded()).toBe(true);
     expect(facade.applicationCodeTitles()).toEqual(['Application title']);
     expect(cjaEmissions.at(-1)).toEqual([
       { code: 'C1', description: 'Area One' },
@@ -244,6 +245,9 @@ describe('ReferenceDataFacade', () => {
             ? []
             : [{ courtId: 1, locationCode: 'A1', name: 'Alpha Court' }],
         );
+        expect(facade.courtLocationsLoaded()).toBe(
+          failedResource !== 'court locations',
+        );
         expect(facade.applicationCodeTitles()).toEqual(
           failedResource === 'application code titles'
             ? []
@@ -296,6 +300,7 @@ describe('ReferenceDataFacade', () => {
     expect(facade.hasLoadError()).toBe(true);
     expect(facade.hasPlaceLoadError()).toBe(true);
     expect(facade.courtLocations()).toEqual([]);
+    expect(facade.courtLocationsLoaded()).toBe(false);
 
     facade.refresh();
     tick();
@@ -305,6 +310,7 @@ describe('ReferenceDataFacade', () => {
     expect(facade.courtLocations()).toEqual([
       { courtId: 1, locationCode: 'A1', name: 'Alpha Court' },
     ]);
+    expect(facade.courtLocationsLoaded()).toBe(true);
   }));
 
   it('reloads all three resources when refreshed', fakeAsync(() => {
