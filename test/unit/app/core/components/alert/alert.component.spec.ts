@@ -76,6 +76,7 @@ describe('AlertComponent', () => {
 
     dismissButton = fixture.debugElement.query(By.css('.moj-alert__dismiss'));
     expect(dismissButton.nativeElement.hidden).toBe(false);
+    expect(dismissButton.nativeElement.type).toBe('button');
   });
 
   it('dismisses the alert when the dismiss button is clicked', () => {

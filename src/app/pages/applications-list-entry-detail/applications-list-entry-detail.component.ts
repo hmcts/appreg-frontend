@@ -7,7 +7,6 @@ import {
   PLATFORM_ID,
   ViewChild,
   afterEveryRender,
-  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -30,6 +29,7 @@ import { buildResultApplicantContext } from './util/result-context.util';
 import { getEntryId } from './util/routing.util';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
+import { AlertComponent } from '@components/alert/alert.component';
 import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import {
@@ -134,6 +134,8 @@ import {
   withWordingFieldValues,
 } from '@util/template-substitution-utils';
 
+type ConfirmationSection = 'applicant' | 'officials' | 'fees' | 'results';
+
 type ChildErrorSource = ChildErrorSourceALEDetail;
 
 const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
@@ -180,6 +182,7 @@ export const ERROR_HREFS = {
     BreadcrumbsComponent,
     NavigationWarningComponent,
     AccordionComponent,
+    AlertComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
     NotesSectionComponent,
@@ -281,10 +284,12 @@ export class ApplicationsListEntryDetail implements OnInit {
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
   readonly submitAttempt = signal(0);
-  readonly feeSaveStatus = signal('');
-  readonly isFeeSaveBanner = computed(
-    () => this.vm().successBanner === ENTRY_SUCCESS_MESSAGES.feeStatusUpdated,
-  );
+  readonly sectionConfirmation = signal<{
+    section: ConfirmationSection;
+    message: SuccessBanner;
+  } | null>(null);
+  readonly sectionSaveStatus = signal('');
+  private sectionSaveTrigger: HTMLElement | null = null;
   readonly savedApplicationCodeLoaded = signal(false);
 
   resultAppliedBannerVisible = signal(false);
@@ -937,15 +942,17 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    const showSuccess = this.prepareSectionConfirmation(
+      'results',
+      ENTRY_SUCCESS_MESSAGES.resultRemoved,
+    );
     this.resultsFacade.removeResult(
       listId,
       entryId,
       resultId,
       () => {
-        this.appListEntryDetailPatch({
-          successBanner: ENTRY_SUCCESS_MESSAGES.resultRemoved,
-        });
-        focusSuccessBanner(this.platformId);
+        this.resultAppliedBannerVisible.set(false);
+        showSuccess();
       },
       (err) => this.applyMappedError(err),
     );
@@ -989,7 +996,7 @@ export class ApplicationsListEntryDetail implements OnInit {
    */
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
-    this.feeSaveStatus.set('');
+    this.sectionSaveStatus.set('');
     if (this.blockSaveWithoutApplicationCode()) {
       return;
     }
@@ -1034,6 +1041,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     previousFeeStatuses: FeeStatus[],
     feeStatuses: FeeStatus[],
     bannerText: SuccessBanner,
+    returningFromPaymentReference = false,
   ): void {
     if (this.blockSaveWithoutApplicationCode()) {
       return;
@@ -1051,6 +1059,15 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    const isFeeAddition =
+      bannerText === ENTRY_SUCCESS_MESSAGES.feeStatusUpdated;
+    const showSuccess = this.prepareSectionConfirmation(
+      'fees',
+      isFeeAddition
+        ? { ...bannerText, body: 'Fee details saved.' }
+        : bannerText,
+      returningFromPaymentReference,
+    );
     const { entryUpdateDto, response } = this.feeSaveFacade.save(
       this.appListEntryDetailState().appListId,
       entryId,
@@ -1072,14 +1089,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           );
         }
 
-        this.appListEntryDetailPatch({
-          successBanner: bannerText,
-        });
-        if (bannerText === ENTRY_SUCCESS_MESSAGES.feeStatusUpdated) {
-          this.feeSaveStatus.set('Fee details saved.');
-        } else {
-          focusSuccessBanner(this.platformId);
-        }
+        showSuccess();
       },
       error: (err) => {
         this.form.controls.feeStatuses.setValue(previousFeeStatuses, {
@@ -1108,6 +1118,12 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    const showSuccess = this.prepareSectionConfirmation(
+      'fees',
+      nextValue
+        ? ENTRY_SUCCESS_MESSAGES.offSiteFeeApplied
+        : ENTRY_SUCCESS_MESSAGES.offSiteFeeRemoved,
+    );
     const { entryUpdateDto, response } = this.feeSaveFacade.save(
       this.appListEntryDetailState().appListId,
       entryId,
@@ -1132,12 +1148,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         }
         this.form.controls.hasOffsiteFee.markAsPristine();
 
-        this.appListEntryDetailPatch({
-          successBanner: nextValue
-            ? ENTRY_SUCCESS_MESSAGES.offSiteFeeApplied
-            : ENTRY_SUCCESS_MESSAGES.offSiteFeeRemoved,
-        });
-        focusSuccessBanner(this.platformId);
+        showSuccess();
       },
       error: (err) => {
         // rollback UI state
@@ -1168,7 +1179,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.paymentRefUpdated;
-    this.persistFeeStatuses(previousFeeStatuses, next, bannerText);
+    this.openCivilFeeSection.set(true);
+    this.persistFeeStatuses(previousFeeStatuses, next, bannerText, true);
   }
 
   /**
@@ -1198,6 +1210,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.submitEntryUpdate(
       this.buildEntryUpdateDto(),
       ENTRY_SUCCESS_MESSAGES.applicantUpdated,
+      'applicant',
     );
   }
 
@@ -1277,6 +1290,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.submitEntryUpdate(
       this.buildEntryUpdateDto(),
       ENTRY_SUCCESS_MESSAGES.officialsUpdated,
+      'officials',
     );
   }
 
@@ -1284,8 +1298,12 @@ export class ApplicationsListEntryDetail implements OnInit {
   private submitEntryUpdate(
     entryUpdateDto: EntryUpdateDto,
     successBanner: SuccessBanner,
-    onComplete?: () => void,
+    destination: ConfirmationSection | 'page' = 'page',
   ): void {
+    const showSuccess =
+      destination === 'page'
+        ? () => this.appListEntryDetailPatch({ successBanner })
+        : this.prepareSectionConfirmation(destination, successBanner);
     const submittedContent = this.saveFacade.prepareSubmittedContent(
       this.forms,
       this.savedContent,
@@ -1304,7 +1322,6 @@ export class ApplicationsListEntryDetail implements OnInit {
           { text: 'Entry is not loaded. Reload the page and try again.' },
         ],
       });
-      onComplete?.();
       this.setEntrySaveButtonsDisabled(false);
       return;
     }
@@ -1326,7 +1343,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
           this.savedContent = savedContent;
           this.applySavedStandardApplicantSummary();
-          this.appListEntryDetailPatch({ successBanner });
+          showSuccess();
 
           if (this.applicantType === 'person') {
             markFormGroupClean(this.personGroup);
@@ -1335,13 +1352,11 @@ export class ApplicationsListEntryDetail implements OnInit {
           } else {
             this.form.controls.standardApplicantCode.markAsPristine();
           }
-          onComplete?.();
           this.setEntrySaveButtonsDisabled(false);
         },
         error: (err) => {
           this.appListEntryDetailPatch({ formSubmitted: false });
           this.applyMappedError(err);
-          onComplete?.();
           this.setEntrySaveButtonsDisabled(false);
         },
       });
@@ -1580,7 +1595,104 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
   }
 
+  /** Capture the originating section before an asynchronous save disables its button. */
+  private prepareSectionConfirmation(
+    section: ConfirmationSection,
+    message: SuccessBanner,
+    returningFromPaymentReference = false,
+  ): () => void {
+    const trigger = isPlatformBrowser(this.platformId)
+      ? document.activeElement
+      : null;
+    const origin = trigger?.closest('.govuk-accordion__section-content');
+    this.resetSuccessBanner();
+    return () => {
+      if (this.destroyRef.destroyed) {
+        return;
+      }
+      this.appListEntryDetailPatch({ successBanner: null });
+      const confirmation = { section, message };
+      this.sectionSaveTrigger =
+        isPlatformBrowser(this.platformId) && trigger instanceof HTMLElement
+          ? trigger
+          : null;
+      this.sectionConfirmation.set(confirmation);
+      focusLocalBanner(this.platformId, `#${section}-save-banner`, () => {
+        if (
+          this.destroyRef.destroyed ||
+          this.sectionConfirmation() !== confirmation
+        ) {
+          return false;
+        }
+        const active = document.activeElement;
+        // A return navigation starts at the document body, not inside an accordion.
+        // Only move to the confirmation if the user has not started working elsewhere.
+        const destinationPanel = document
+          .getElementById(`${section}-save-banner`)
+          ?.closest('.govuk-accordion__section-content');
+        if (
+          returningFromPaymentReference &&
+          active === document.body &&
+          destinationPanel &&
+          !destinationPanel.hasAttribute('hidden')
+        ) {
+          return true;
+        }
+        if (
+          origin?.isConnected &&
+          !origin.hasAttribute('hidden') &&
+          (origin.contains(active) || active === document.body)
+        ) {
+          return true;
+        }
+        // The user has moved on: announce completion without reopening a section.
+        this.sectionSaveStatus.set(`${message.heading}. ${message.body}`);
+        return false;
+      });
+    };
+  }
+
+  onSectionConfirmationDismissed(): void {
+    const confirmation = this.sectionConfirmation();
+    if (confirmation && isPlatformBrowser(this.platformId)) {
+      const banner = document.getElementById(
+        `${confirmation.section}-save-banner`,
+      );
+      if (banner?.contains(document.activeElement)) {
+        const panel = banner.closest('.govuk-accordion__section-content');
+        const section = confirmation.section;
+        const saveButton =
+          section === 'applicant' || section === 'officials'
+            ? panel?.querySelector<HTMLElement>(
+                section === 'applicant'
+                  ? '#btn-update-applicant:not(:disabled)'
+                  : 'app-officials-section button.govuk-button:not(:disabled)',
+              )
+            : null;
+        const trigger = this.sectionSaveTrigger;
+        const availableTrigger =
+          trigger?.isConnected &&
+          panel?.contains(trigger) &&
+          trigger.matches(
+            'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled)',
+          )
+            ? trigger
+            : null;
+        const heading = panel
+          ?.closest('.govuk-accordion__section')
+          ?.querySelector<HTMLElement>('.govuk-accordion__section-button');
+        (saveButton ?? availableTrigger ?? heading)?.focus();
+      }
+    }
+    this.sectionSaveTrigger = null;
+    this.sectionConfirmation.set(null);
+    this.sectionSaveStatus.set('');
+  }
+
   resetSuccessBanner(): void {
+    this.sectionSaveTrigger = null;
+    this.sectionConfirmation.set(null);
+    this.sectionSaveStatus.set('');
     this.appListEntryDetailPatch({ successBanner: null });
   }
 
