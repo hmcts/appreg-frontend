@@ -2646,42 +2646,104 @@ describe('ApplicationsListEntryDetail', () => {
     ).toBeTruthy();
   });
 
-  it('persistHasOffsiteFee blocks the partial save when wording is invalid', () => {
-    component['entryDetail'] = {
-      id: 'EN-1',
-      listId: 'AL-1',
-      applicationCode: 'APP-100',
-      numberOfRespondents: 0,
-      lodgementDate: '2025-11-01',
-    };
-    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
-    component['form'].controls.hasOffsiteFee.setValue(true, {
-      emitEvent: false,
-    });
+  it.each(['full save', 'add fee details'])(
+    'ticks and unticks the offsite fee without showing cached errors from %s',
+    (validationSource) => {
+      component.appListEntryDetailPatch({ isFeeRequired: true });
+      component.openCivilFeeSection.set(true);
+      fixture.detectChanges();
 
-    (component as never)['wordingSection'] = {
-      validateForSubmit: () => [
+      const page: HTMLElement = fixture.nativeElement;
+      const addFeeButton = page.querySelector<HTMLButtonElement>(
+        'app-civil-fee-section .govuk-button-group button',
+      )!;
+      const summaryItems = () =>
+        Array.from(
+          page.querySelectorAll(
+            'app-error-summary .govuk-error-summary__list li',
+          ),
+          (item) => item.textContent?.trim(),
+        );
+      const feeErrors = ['Select a fee status', 'Enter a valid status date'];
+      if (validationSource === 'full save') {
+        page.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
+        fixture.detectChanges();
+        expect(summaryItems()).toEqual(expect.arrayContaining(feeErrors));
+      }
+
+      component.form.patchValue({
+        feeStatus: PaymentStatus.PAID,
+        feeStatusDate: '2026-03-10',
+        paymentRef: 'EXAMPLE',
+      });
+      const response = new Subject<unknown>();
+      mockUpdateApplicationListEntry.mockReturnValueOnce(
+        response.asObservable(),
+      );
+      addFeeButton.click();
+      const originalClone = globalThis.structuredClone;
+      globalThis.structuredClone ??= cloneDeep;
+      try {
+        response.next({});
+      } finally {
+        globalThis.structuredClone = originalClone;
+      }
+      response.complete();
+      fixture.detectChanges();
+      expect(component.entryDetail?.feeStatuses).toEqual([
         {
-          text: 'Enter a value for “Court” in the wording section',
-          href: '#Court',
+          paymentStatus: PaymentStatus.PAID,
+          statusDate: '2026-03-10',
+          paymentReference: 'EXAMPLE',
         },
-      ],
-    } as never;
+      ]);
 
-    mockUpdateApplicationListEntry.mockClear();
+      if (validationSource === 'add fee details') {
+        addFeeButton.click();
+        fixture.detectChanges();
+        expect(component.form.controls.feeStatus.hasError('required')).toBe(
+          true,
+        );
+        expect(component.form.controls.feeStatusDate.hasError('required')).toBe(
+          true,
+        );
+        expect(summaryItems()).toEqual([]);
+      }
 
-    component['persistHasOffsiteFee'](false, true);
+      const otherErrors = summaryItems().filter(
+        (item) => !feeErrors.includes(item ?? ''),
+      );
+      const checkbox = page.querySelector<HTMLInputElement>('#offSiteFee')!;
+      mockUpdateApplicationListEntry.mockClear();
+
+      for (const checked of [true, false]) {
+        checkbox.click();
+        fixture.detectChanges();
+
+        expect(checkbox.checked).toBe(checked);
+        expect(component.entryDetail?.hasOffsiteFee).toBe(checked);
+        expect(summaryItems()).toEqual(otherErrors);
+      }
+      expect(
+        mockUpdateApplicationListEntry.mock.calls.map(
+          ([request]) => request.entryUpdateDto.hasOffsiteFee,
+        ),
+      ).toEqual([true, false]);
+    },
+  );
+
+  it('still blocks the offsite fee save when wording is invalid', () => {
+    const wordingError = { text: 'Enter a value for “Court”', href: '#Court' };
+    jest
+      .spyOn(component['wordingSection']!, 'validateForSubmit')
+      .mockReturnValue([wordingError]);
+    component.form.controls.hasOffsiteFee.setValue(true);
+
+    component.onOffsiteFeeChanged(true);
 
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
-    expect(component['form'].controls.hasOffsiteFee.value).toBe(true);
-    expect(component['form'].controls.hasOffsiteFee.pristine).toBe(true);
-    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          text: 'Enter a value for “Court” in the wording section',
-        }),
-      ]),
-    );
+    expect(component.form.controls.hasOffsiteFee.value).toBe(false);
+    expect(component.vm().summaryErrors).toContainEqual(wordingError);
   });
 
   it('shows list-created success banner when listCreated=true query param is present', () => {

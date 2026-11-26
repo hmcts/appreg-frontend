@@ -72,6 +72,7 @@ import {
 } from '@constants/application-list-entry/columns-options';
 import {
   APPLICANT_ENTRY_ERROR_MESSAGES,
+  CIVIL_FEE_FIELD_MESSAGES,
   ChildErrorSourceALEDetail,
   ENTRY_ERROR_MESSAGES,
   RESPONDENT_ENTRY_ERROR_MESSAGES,
@@ -276,6 +277,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   codesHasSearched = false;
 
   private parentErrors: ErrorItem[] = [];
+  private suppressCivilFeeSummary = false;
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
     codes: [],
     fee: [],
@@ -1123,7 +1125,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    if (this.runWordingValidationForPartialSave()) {
+    if (this.runWordingValidationForPartialSave(true)) {
       this.feeSaveFacade.rollbackOffsiteFee(
         this.form.controls.hasOffsiteFee,
         prevValue,
@@ -1483,14 +1485,24 @@ export class ApplicationsListEntryDetail implements OnInit {
         ),
       );
     }
-    const summaryErrors = this.collectSummaryErrors();
+    const parentErrors = this.suppressCivilFeeSummary
+      ? this.parentErrors.filter(
+          ({ id }) => !id || !Object.hasOwn(CIVIL_FEE_FIELD_MESSAGES, id),
+        )
+      : this.parentErrors;
+    const childErrors = this.suppressCivilFeeSummary
+      ? { ...this.childErrors, civilFee: [] }
+      : this.childErrors;
+    const summaryErrors = this.collectSummaryErrors(
+      getUniqueErrors(parentErrors, Object.values(childErrors).flat()),
+    );
     const errorFound = summaryErrors.length > 0;
 
     this.appListEntryDetailPatch({
       summaryErrors,
       errorFound,
     });
-    this.openSectionsWithErrors();
+    this.openSectionsWithErrors(childErrors, parentErrors);
 
     if (errorFound && opts.focusSummary !== false) {
       this.submitAttempt.update((attempt) => attempt + 1);
@@ -1586,14 +1598,23 @@ export class ApplicationsListEntryDetail implements OnInit {
     return this.appListEntryDetailState().errorFound;
   }
 
-  private runWordingValidationForPartialSave(): boolean {
-    this.childErrors.wording =
-      this.wordingSection?.validateForSubmit({
-        enforceSavedWording: false,
-      }) ?? [];
+  private runWordingValidationForPartialSave(
+    suppressCivilFeeSummary = false,
+  ): boolean {
+    // Wording validation emits an error event that can refresh the summary synchronously.
+    const previousSuppression = this.suppressCivilFeeSummary;
+    this.suppressCivilFeeSummary = suppressCivilFeeSummary;
+    try {
+      this.childErrors.wording =
+        this.wordingSection?.validateForSubmit({
+          enforceSavedWording: false,
+        }) ?? [];
 
-    this.updateAllErrors();
-    return this.childErrors.wording.length > 0;
+      this.updateAllErrors();
+      return this.childErrors.wording.length > 0;
+    } finally {
+      this.suppressCivilFeeSummary = previousSuppression;
+    }
   }
 
   private resetErrors(): void {
@@ -1746,7 +1767,10 @@ export class ApplicationsListEntryDetail implements OnInit {
     sections[event.index]?.set(event.expanded);
   }
 
-  private openSectionsWithErrors(): void {
+  private openSectionsWithErrors(
+    childErrors: Record<ChildErrorSource, ErrorItem[]>,
+    parentErrors: ErrorItem[],
+  ): void {
     const submitted = this.vm().formSubmitted;
 
     if (!submitted) {
@@ -1754,8 +1778,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     const sectionsWithErrors = getApplicationListEntryErrorSections(
-      this.childErrors,
-      this.parentErrors,
+      childErrors,
+      parentErrors,
     );
     const sections = [
       this.openApplicantSection,
