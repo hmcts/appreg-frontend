@@ -1414,6 +1414,9 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   readonly respondentValidationSubmitted = signal(false);
+  readonly notesSubmittedErrors = signal<readonly ErrorItem[] | undefined>(
+    undefined,
+  );
 
   private updateRespondentErrors(): void {
     // Validate selected Bulk applications even when respondents are optional.
@@ -1462,6 +1465,11 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.updateApplicantErrors();
       this.updateRespondentErrors();
       this.parentErrors = this.buildErrorSummary();
+      this.notesSubmittedErrors.set(
+        this.parentErrors.filter(({ id }) =>
+          id?.startsWith('applicationNotes.'),
+        ),
+      );
     }
     const allChildErrors = Object.values(this.childErrors).flat();
 
@@ -1479,6 +1487,12 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (errorFound && opts.focusSummary !== false) {
       this.submitAttempt.update((attempt) => attempt + 1);
     }
+  }
+
+  resetParentErrorsFromCodeSearch(): void {
+    this.parentErrors = this.parentErrors.filter(
+      ({ id }) => id !== 'applicationCode' && id !== 'lodgementDate',
+    );
   }
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
@@ -1562,6 +1576,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private resetErrors(): void {
+    this.notesSubmittedErrors.set(undefined);
     this.respondentValidationSubmitted.set(false);
     this.appListEntryDetailPatch({
       errorHint: 'There is a problem',

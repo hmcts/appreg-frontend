@@ -248,14 +248,24 @@ describe('ApplicationsListUpdateComponent', () => {
     expect(component.closeErrorText()).toBe('List cannot be closed.');
   });
 
-  it('detects duration close errors and text', () => {
-    component.form().get('duration')?.setErrors({
-      closeDurationMissing: true,
-      durationErrorText: 'Duration required',
+  it('keeps the submitted close duration message after the draft is edited', () => {
+    fixture.componentRef.setInput('originalListDetails', {
+      date: '2026-02-10',
+      time: { hours: 10, minutes: 30 },
+      description: 'original list',
+      status: ApplicationListStatus.OPEN,
+      court: 'ABC',
+      location: '',
+      cja: '',
+      duration: { hours: 0, minutes: 0 },
     });
+    component.onCloseListClick();
+    component.form().controls.duration.setValue({ hours: 1, minutes: 0 });
 
     expect(component.hasDurationCloseError()).toBe(true);
-    expect(component.durationCloseErrorText()).toBe('Duration required');
+    expect(component.durationCloseErrorText()).toBe(
+      CLOSE_MESSAGES.durationNonPositive,
+    );
   });
 
   it('onCloseListClick uses saved list details, including duration, and sets the close payload status to CLOSED', () => {

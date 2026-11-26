@@ -91,6 +91,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
   });
 
   it('onSubmit: blocks create call when EF application code has no account reference', () => {
+    expect(component.notesSubmittedErrors()).toBeUndefined();
     component.form.patchValue({
       applicationCode: 'EF123',
       lodgementDate: '2026-02-01',
@@ -105,6 +106,9 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
 
     expect(createApplicationListEntryMock).not.toHaveBeenCalled();
     expect(component.vm().errorFound).toBe(true);
+    expect(component.notesSubmittedErrors()).toEqual([
+      expect.objectContaining({ id: 'applicationNotes.accountReference' }),
+    ]);
     expect(component.vm().summaryErrors).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -361,7 +365,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     ],
     ['respondentOrganisationForm', 'org', 'name', '#respondent-org-name'],
   ] as const)(
-    'refreshes %s field errors after a failed save without submitting again',
+    'keeps %s field errors until the next save',
     (formName, applicantType, field, href) => {
       component.form.patchValue({
         applicantType,
@@ -387,17 +391,22 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
       const errors = formName.startsWith('respondent')
         ? component.respondentErrorItems
         : component.applicantErrorItems;
-      expect(errors).not.toContainEqual(error);
-      expect(errors.length).toBeGreaterThan(0);
-      expect(component.vm().summaryErrors).not.toContainEqual(error);
-      group.get(field)!.setValue('   ');
+      expect(group.get(field)?.valid).toBe(true);
+      expect(errors).toContainEqual(error);
       expect(component.vm().summaryErrors).toContainEqual(error);
       expect(component.submitAttempt()).toBe(submitAttempt);
+
+      component.onSubmit(new Event('submit'));
+      expect(component.vm().summaryErrors).not.toContainEqual(error);
+      group.get(field)!.setValue('   ');
+      expect(component.vm().summaryErrors).not.toContainEqual(error);
+      component.onSubmit(new Event('submit'));
+      expect(component.vm().summaryErrors).toContainEqual(error);
       expect(createApplicationListEntryMock).not.toHaveBeenCalled();
     },
   );
 
-  it('rebuilds optional respondent errors immediately when populated after submit', () => {
+  it('waits until the next save to show errors for a newly populated optional respondent', () => {
     (
       component as unknown as {
         appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
@@ -419,6 +428,9 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
 
     component.forms.respondentPersonForm.patchValue({ firstName: 'Jane' });
 
+    expect(component.respondentSubmittedAndRequired).toBe(false);
+    expect(component.respondentErrorItems).toEqual([]);
+    component.onSubmit(new Event('submit'));
     expect(component.respondentSubmittedAndRequired).toBe(true);
     expect(component.respondentErrorItems).toEqual(
       expect.arrayContaining([
@@ -1705,7 +1717,7 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
     },
   );
 
-  it('keeps focus in first name when the last error clears and returns during editing', async () => {
+  it('keeps focus in first name while the submitted error stays visible during editing', async () => {
     await TestBed.configureTestingModule({
       imports: [ApplicationsListEntryCreate],
       providers: [
@@ -1760,8 +1772,9 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
       expect(fixture.nativeElement.querySelector('app-error-summary')).toBe(
         summary,
       );
-      expect(summary.hidden).toBe(value !== '');
-      expect(component.vm().summaryErrors).toHaveLength(value === '' ? 1 : 0);
+      expect(summary.hidden).toBe(false);
+      expect(component.vm().summaryErrors).toHaveLength(1);
+      expect(field.getAttribute('aria-invalid')).toBe('true');
       expect(document.activeElement).toBe(field);
       expect(scroll).not.toHaveBeenCalled();
     }

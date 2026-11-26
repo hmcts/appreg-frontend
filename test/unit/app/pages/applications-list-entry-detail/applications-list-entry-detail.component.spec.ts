@@ -305,6 +305,40 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
   });
 
+  it('shows live reference errors before the first save and retains submitted errors until the next save', () => {
+    component.openNotesSection.set(true);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const caseReference =
+      element.querySelector<HTMLInputElement>('#caseReference')!;
+    const accountReference =
+      element.querySelector<HTMLInputElement>('#accountReference')!;
+    const edit = (input: HTMLInputElement, value: string) => {
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      fixture.detectChanges();
+    };
+
+    edit(caseReference, 'x'.repeat(300));
+    edit(accountReference, 'x'.repeat(300));
+    expect(caseReference.getAttribute('aria-invalid')).toBe('true');
+    expect(accountReference.getAttribute('aria-invalid')).toBe('true');
+
+    edit(caseReference, 'CASE-1');
+    expect(caseReference.hasAttribute('aria-invalid')).toBe(false);
+    component.onUpdateApplication();
+    fixture.detectChanges();
+    edit(accountReference, 'ACCOUNT-1');
+    edit(caseReference, 'x'.repeat(300));
+    expect(accountReference.getAttribute('aria-invalid')).toBe('true');
+    expect(caseReference.hasAttribute('aria-invalid')).toBe(false);
+
+    component.onUpdateApplication();
+    fixture.detectChanges();
+    expect(accountReference.hasAttribute('aria-invalid')).toBe(false);
+    expect(caseReference.getAttribute('aria-invalid')).toBe('true');
+  });
+
   it.each([PaymentStatus.PAID, PaymentStatus.REMITTED])(
     'keeps the code layout but disables its fields and buttons for saved %s, even before a later Due status',
     (paymentStatus) => {
@@ -3046,7 +3080,7 @@ describe('ApplicationsListEntryDetail', () => {
     ],
     ['respondentOrganisationForm', 'org', 'name', '#respondent-org-name'],
   ] as const)(
-    'refreshes %s field errors after a failed save without submitting again',
+    'keeps %s field errors until the next save',
     (formName, applicantType, field, href) => {
       component['form'].patchValue({
         applicantType,
@@ -3074,17 +3108,30 @@ describe('ApplicationsListEntryDetail', () => {
       const errors = formName.startsWith('respondent')
         ? component.respondentErrorItems
         : component.applicantErrorItems;
-      expect(errors).not.toContainEqual(error);
-      expect(errors.length).toBeGreaterThan(0);
-      expect(component.vm().summaryErrors).not.toContainEqual(error);
-      group.get(field)!.setValue('   ');
+      expect(group.get(field)?.valid).toBe(true);
+      expect(errors).toContainEqual(error);
       expect(component.vm().summaryErrors).toContainEqual(error);
       expect(component.submitAttempt()).toBe(submitAttempt);
+
+      const feeError = {
+        id: 'paymentRef',
+        text: 'Enter a valid payment reference',
+      };
+      component.onChildErrors('civilFee', [feeError]);
+      expect(component.vm().summaryErrors).toContainEqual(feeError);
+      expect(component.vm().summaryErrors).toContainEqual(error);
+
+      component.onUpdateApplication();
+      expect(component.vm().summaryErrors).not.toContainEqual(error);
+      group.get(field)!.setValue('   ');
+      expect(component.vm().summaryErrors).not.toContainEqual(error);
+      component.onUpdateApplication();
+      expect(component.vm().summaryErrors).toContainEqual(error);
       expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
     },
   );
 
-  it('rebuilds optional respondent errors immediately when populated after submit', () => {
+  it('waits until the next save to show errors for a newly populated optional respondent', () => {
     component['forms'].respondentPersonForm.reset();
     component['forms'].respondentOrganisationForm.reset();
     component['form'].patchValue({
@@ -3104,6 +3151,8 @@ describe('ApplicationsListEntryDetail', () => {
       firstName: 'Jane',
     });
 
+    expect(component.respondentErrorItems).toEqual([]);
+    component.onUpdateApplication();
     expect(component.respondentErrorItems).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ href: '#respondent-person-surname' }),

@@ -57,6 +57,28 @@ describe('WordingParserComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('retains a wording field error until Apply wording is retried', () => {
+    component.submitWordingFields();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const name = root.querySelector<HTMLInputElement>('#name')!;
+    expect(name.getAttribute('aria-invalid')).toBe('true');
+
+    name.value = 'Updated wording';
+    name.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    expect(component.form.get('name')?.value).toBe('Updated wording');
+    expect(name.getAttribute('aria-invalid')).toBe('true');
+    expect(root.querySelector('#name-error')?.textContent).toContain(
+      'Enter a value',
+    );
+
+    component.submitWordingFields();
+    fixture.detectChanges();
+    expect(name.hasAttribute('aria-invalid')).toBe(false);
+    expect(root.querySelector('#name-error')).toBeNull();
+  });
+
   it('compares wording with its initial values even after applying or reverting', () => {
     fixture.componentRef.setInput('wordingObject', {
       template: 'Hello {{Name}}',

@@ -153,14 +153,14 @@ describe('OrganisationSectionComponent (signals)', () => {
       By.css('app-text-input[formControlName="emailAddress"]'),
     ).componentInstance as TextInputLike;
 
-    // Name/address required fields: suppressError = false
+    // Required fields use the supplied validation errors.
     expect(nameCmp.submitted?.()).toBe(true);
     expect(nameCmp.error?.()).toBe('Enter organisation name');
-    expect(nameCmp.suppressError?.()).toBe(false);
+    expect(nameCmp.suppressError?.()).toBe(true);
 
     expect(addr1Cmp.submitted?.()).toBe(true);
     expect(addr1Cmp.error?.()).toBe('Enter address line 1');
-    expect(addr1Cmp.suppressError?.()).toBe(false);
+    expect(addr1Cmp.suppressError?.()).toBe(true);
 
     // postcode: suppressError = true
     expect(postcodeCmp.submitted?.()).toBe(true);

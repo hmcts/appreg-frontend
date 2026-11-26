@@ -75,7 +75,7 @@ describe('ReportsSharedFormComponent', () => {
   });
 
   it.each(['dateFrom', 'dateTo'])(
-    'clears the inline %s year error after correction despite a stale summary',
+    'retains the submitted %s year error until errors are replaced',
     (field) => {
       const dateInput = fixture.debugElement.query(
         By.css(`app-date-input[formControlName="${field}"]`),
@@ -99,6 +99,11 @@ describe('ReportsSharedFormComponent', () => {
       fixture.detectChanges();
 
       expect(group.get(field)?.valid).toBe(true);
+      expect(
+        fieldElement.querySelector('.govuk-error-message')?.textContent,
+      ).toContain('Date must be between 1900 and 3000');
+      fixture.componentRef.setInput('externalErrors', []);
+      fixture.detectChanges();
       expect(fieldElement.querySelector('.govuk-error-message')).toBeNull();
       expect(fieldElement.querySelector('.govuk-form-group--error')).toBeNull();
       expect(fieldElement.querySelector('.govuk-input--error')).toBeNull();
@@ -108,7 +113,7 @@ describe('ReportsSharedFormComponent', () => {
   it.each([
     ['dateFrom', '2001-01-01'],
     ['dateTo', '2001-01-15'],
-  ])('clears the date-range error when %s is corrected', (field, value) => {
+  ])('retains the date-range error after correcting %s', (field, value) => {
     group.addValidators(dateToOnOrAfterDateFromValidator());
     group.patchValue({ dateFrom: '2001-01-10', dateTo: '2001-01-05' });
     const message = 'Date to must be on or after Date from';
@@ -137,6 +142,11 @@ describe('ReportsSharedFormComponent', () => {
     fixture.detectChanges();
 
     expect(group.get('dateTo')?.hasError('dateRange')).toBe(false);
+    expect(
+      dateToElement.querySelector('.govuk-error-message')?.textContent,
+    ).toContain(message);
+    fixture.componentRef.setInput('externalErrors', []);
+    fixture.detectChanges();
     expect(dateToElement.querySelector('.govuk-error-message')).toBeNull();
     expect(dateToElement.querySelector('.govuk-input--error')).toBeNull();
   });
@@ -271,11 +281,13 @@ describe('ReportsSharedFormComponent', () => {
     expect(details.open).toBe(true);
   });
 
-  it('shows mapped control errors and external errors after submit', () => {
+  it('renders the submitted errors for suggestions and text inputs', () => {
     fixture.componentRef.setInput('submitted', true);
     group.controls.court.setErrors({ courtNotFound: true });
     group.controls.cja.setErrors({ cjaNotFound: true });
     fixture.componentRef.setInput('externalErrors', [
+      { id: 'court', text: 'Court location not found' },
+      { id: 'cja', text: 'Criminal justice area not found' },
       {
         id: 'otherLocation',
         text: 'Other location has an error',

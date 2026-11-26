@@ -106,6 +106,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
   submitted = signal(false);
   private readonly submittedFieldErrors = new SubmittedFieldErrors();
+  private readonly entryRequiredErrors = signal<readonly ErrorItem[]>([]);
   hasSearched = signal(false);
   loading = signal(false);
   errored = signal(false);
@@ -267,6 +268,8 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
     this.form.patchValue({ code, title });
 
+    this.entryRequiredErrors.set([]);
+    this.resetParentErrors.emit();
     this.selectCodeAndLodgementDate.emit({
       code,
       applicationCodeId: row.applicationCodeId,
@@ -298,12 +301,11 @@ export class ApplicationCodeSearchComponent implements OnInit {
       return null;
     }
 
-    const localError = this.submittedFieldErrors.errorFor('code')?.text;
-    if (localError) {
-      return localError;
-    }
-
-    return null;
+    return (
+      this.entryRequiredErrors().find(({ id }) => id === 'code')?.text ??
+      this.submittedFieldErrors.errorFor('code')?.text ??
+      null
+    );
   }
 
   hasSearchFilter(): boolean {
@@ -321,6 +323,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
     if (options?.emitEvent !== false) {
       this.submitted.set(false);
+      this.entryRequiredErrors.set([]);
       this.submittedFieldErrors.clear(this.form);
       this.resetParentErrors.emit();
       this.codeSearchErrors.emit([]);
@@ -344,12 +347,45 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
   validateForEntrySubmit(): void {
     this.form.updateValueAndValidity({ emitEvent: false });
-    this.emitValidationErrors(true);
+    const errors = this.getValidationErrors();
+    const parentControls = this.patchedFormData()?.controls;
+    const requiredErrors: ErrorItem[] = [];
+
+    if (
+      parentControls?.applicationCode?.hasError('required') &&
+      !errors.some(({ id }) => id === 'code')
+    ) {
+      requiredErrors.push({ id: 'code', text: 'Enter an application code' });
+    }
+
+    if (parentControls?.lodgementDate?.hasError('required')) {
+      requiredErrors.push({
+        id: 'lodgementDate',
+        text: 'Enter day, month and year',
+      });
+    }
+
+    this.entryRequiredErrors.set(requiredErrors);
+    this.submittedFieldErrors.capture(
+      [...errors, ...requiredErrors],
+      this.form,
+    );
+    this.codeSearchErrors.emit(errors);
   }
 
   private canSearch(): boolean {
     this.form.updateValueAndValidity({ emitEvent: false });
-    return this.emitValidationErrors().length === 0;
+    const errors = this.getValidationErrors();
+    // Keep the saved date message and highlighted parts from the entry submit.
+    const hasRequiredDateError = this.entryRequiredErrors().some(
+      ({ id }) => id === 'lodgementDate',
+    );
+    this.submittedFieldErrors.capture(
+      errors,
+      hasRequiredDateError ? undefined : this.form,
+    );
+    this.codeSearchErrors.emit(errors);
+    return errors.length === 0;
   }
 
   private getValidationErrors(): ErrorItem[] {
@@ -358,30 +394,5 @@ export class ApplicationCodeSearchComponent implements OnInit {
         code: '#applicationCode',
       },
     });
-  }
-
-  private emitValidationErrors(forEntry = false): ErrorItem[] {
-    const errors = this.getValidationErrors();
-    const parentControls = this.patchedFormData()?.controls;
-    const requiredErrors: ErrorItem[] = [];
-    if (
-      forEntry &&
-      parentControls?.applicationCode?.hasError('required') &&
-      !errors.some(({ id }) => id === 'code')
-    ) {
-      requiredErrors.push({ id: 'code', text: 'Enter an application code' });
-    }
-    if (forEntry && parentControls?.lodgementDate?.hasError('required')) {
-      requiredErrors.push({
-        id: 'lodgementDate',
-        text: 'Enter day, month and year',
-      });
-    }
-    this.submittedFieldErrors.capture(
-      [...errors, ...requiredErrors],
-      this.form,
-    );
-    this.codeSearchErrors.emit(errors);
-    return errors;
   }
 }

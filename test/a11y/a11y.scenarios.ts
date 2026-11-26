@@ -292,6 +292,17 @@ scenarios.push({
       visible: true,
     });
     await page.click('app-reports > .govuk-button-group button');
+    await page.waitForSelector('#list-date-from-error', { visible: true });
+    await page.type('#list-date-from-day', '1');
+    await page.type('#list-date-from-month', '1');
+    await page.type('#list-date-from-year', '2025');
+    await page.waitForFunction(() => {
+      const day = document.querySelector('#list-date-from-day');
+      return (
+        day?.closest('app-date-input')?.classList.contains('ng-valid') ===
+          true && day.getAttribute('aria-invalid') === 'true'
+      );
+    });
   },
   error: '.govuk-error-summary',
 });

@@ -306,6 +306,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private clearErrors(): void {
+    this.notesSubmittedErrors.set(undefined);
     this.respondentValidationSubmitted.set(false);
     this.appListEntryCreatePatch({
       summaryErrors: [],
@@ -448,6 +449,9 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   readonly respondentValidationSubmitted = signal(false);
+  readonly notesSubmittedErrors = signal<readonly ErrorItem[] | undefined>(
+    undefined,
+  );
 
   private updateRespondentErrors(): void {
     const shouldValidate = this.shouldValidateRespondent();
@@ -502,6 +506,11 @@ export class ApplicationsListEntryCreate implements OnInit {
       this.updateApplicantErrors();
       this.updateRespondentErrors();
       this.parentErrors = this.buildErrorSummary();
+      this.notesSubmittedErrors.set(
+        this.parentErrors.filter(({ id }) =>
+          id?.startsWith('applicationNotes.'),
+        ),
+      );
     }
 
     const allChildErrors = Object.values(this.childErrors).flat();

@@ -126,19 +126,24 @@ describe('PaymentReferenceEditComponent', () => {
     expect(component.isPaymentReferenceInvalid()).toBe(false);
   });
 
-  it('getPaymentReferenceError returns maxlength message when > 15 chars', () => {
+  it('retains the submitted maxlength error until Save is retried', () => {
     createComponentWithHistoryState({
       row: { rowId: 'r1', paymentReference: '' },
     });
 
     component.paymentReference.setValue('1234567890123456'); // 16 chars
-    component.paymentReference.markAsTouched();
-    component.paymentReference.updateValueAndValidity({ emitEvent: false });
+    expect(component.isPaymentReferenceInvalid()).toBe(false);
+    component.save();
 
     expect(component.isPaymentReferenceInvalid()).toBe(true);
     expect(component.getPaymentReferenceError()).toBe(
       'Payment reference must be less than or equal to 15 characters',
     );
+    component.paymentReference.setValue('Corrected');
+    expect(component.paymentReference.valid).toBe(true);
+    expect(component.isPaymentReferenceInvalid()).toBe(true);
+    component.save();
+    expect(component.isPaymentReferenceInvalid()).toBe(false);
   });
 
   it('save does not navigate when control invalid', () => {

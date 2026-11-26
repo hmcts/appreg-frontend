@@ -94,6 +94,7 @@
           [lodgementDateDisabled]="true"
           (selectCodeAndLodgementDate)="onCodeSelected($event)"
           (codeSearchErrors)="onChildErrors('codes', $event)"
+          (resetParentErrors)="resetParentErrorsFromCodeSearch()"
         />
       </fieldset>
     }
@@ -153,7 +154,7 @@
 
   <ng-template #notesTpl>
     <app-notes-section
-      [submittedErrors]="vm().summaryErrors"
+      [submittedErrors]="notesSubmittedErrors()"
       [form]="applicationNotesForm"
       (notesErrors)="onChildErrors('notes', $event)"
     />
