@@ -184,7 +184,6 @@ export class ApplicationsListEntryCreate implements OnInit {
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSourceALECreate, ErrorItem[]> = {
     codes: [],
-    notes: [],
     fee: [],
     respondent: [],
     applicant: [],
@@ -287,10 +286,11 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.restoreNavigationState();
   }
 
-  resetParentErrorsFromCodeSearch(): void {
+  resetParentErrorsFromCodeSearch(scope: 'code' | 'all'): void {
     this.childErrors.codes = [];
     this.parentErrors = this.parentErrors.filter(
-      ({ id }) => id !== 'applicationCode' && id !== 'lodgementDate',
+      ({ id }) =>
+        id !== 'applicationCode' && (scope !== 'all' || id !== 'lodgementDate'),
     );
     this.updateErrors({ validateOtherSections: false, focusSummary: false });
   }
@@ -306,7 +306,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private clearErrors(): void {
-    this.notesSubmittedErrors.set(undefined);
+    this.notesSubmittedErrors.set([]);
     this.respondentValidationSubmitted.set(false);
     this.appListEntryCreatePatch({
       summaryErrors: [],
@@ -315,7 +315,6 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.parentErrors = [];
     this.childErrors = {
       codes: [],
-      notes: [],
       fee: [],
       respondent: [],
       applicant: [],
@@ -449,9 +448,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   readonly respondentValidationSubmitted = signal(false);
-  readonly notesSubmittedErrors = signal<readonly ErrorItem[] | undefined>(
-    undefined,
-  );
+  readonly notesSubmittedErrors = signal<readonly ErrorItem[]>([]);
 
   private updateRespondentErrors(): void {
     const shouldValidate = this.shouldValidateRespondent();

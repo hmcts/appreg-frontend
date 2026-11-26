@@ -140,6 +140,9 @@ type ConfirmationSection = 'applicant' | 'officials' | 'fees' | 'results';
 type ChildErrorSource = ChildErrorSourceALEDetail;
 
 const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
+const LINKED_CODE_LOAD_ERROR: ErrorItem = {
+  text: 'Application code details could not be loaded. You cannot save this application until the details are available.',
+};
 
 export const ERROR_HREFS = {
   resultWording: '#result-code',
@@ -275,7 +278,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
     codes: [],
-    notes: [],
     fee: [],
     respondent: [],
     applicant: [],
@@ -563,10 +565,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     applicationCodeId?: number;
   }): void {
     this.resetSuccessBanner();
-    if (codeAndLodgementDate.code) {
-      this.resetErrors();
-    }
-
     const prevSelection = {
       code: this.form.controls.applicationCode.value,
       date: this.form.controls.lodgementDate.value,
@@ -620,6 +618,11 @@ export class ApplicationsListEntryDetail implements OnInit {
           if (hasSelectionChanged) {
             this.wordingSubmitAttempt.set(0);
             this.formSvc.resetSectionsOnApplicationCodeChange(this.forms, true);
+            this.respondentValidationSubmitted.set(false);
+            this.childErrors.respondent = [];
+            this.childErrors.civilFee = [];
+            this.childErrors.wording = [];
+            this.updateAllErrors({ focusSummary: false });
             this.wordingAppliedBannerVisible.set(false);
             this.entryDetail!.wording = undefined;
           }
@@ -675,11 +678,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.appListEntryDetailPatch({
       errorFound: true,
       errorHint: 'There is a problem',
-      summaryErrors: [
-        {
-          text: 'Application code details could not be loaded. You cannot save this application until the details are available.',
-        },
-      ],
+      summaryErrors: [LINKED_CODE_LOAD_ERROR],
     });
   }
 
@@ -1429,9 +1428,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   readonly respondentValidationSubmitted = signal(false);
-  readonly notesSubmittedErrors = signal<readonly ErrorItem[] | undefined>(
-    undefined,
-  );
+  readonly notesSubmittedErrors = signal<readonly ErrorItem[]>([]);
 
   private updateRespondentErrors(): void {
     // Validate selected Bulk applications even when respondents are optional.
@@ -1486,11 +1483,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         ),
       );
     }
-    const allChildErrors = Object.values(this.childErrors).flat();
-
-    const summaryErrors = [
-      ...getUniqueErrors(this.parentErrors, allChildErrors),
-    ];
+    const summaryErrors = this.collectSummaryErrors();
     const errorFound = summaryErrors.length > 0;
 
     this.appListEntryDetailPatch({
@@ -1504,30 +1497,43 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
   }
 
-  resetParentErrorsFromCodeSearch(): void {
+  resetParentErrorsFromCodeSearch(scope: 'code' | 'all'): void {
+    this.childErrors.codes = [];
     this.parentErrors = this.parentErrors.filter(
-      ({ id }) => id !== 'applicationCode' && id !== 'lodgementDate',
+      ({ id }) =>
+        id !== 'applicationCode' && (scope !== 'all' || id !== 'lodgementDate'),
     );
+    this.updateAllErrors({ focusSummary: false });
+  }
+
+  private collectSummaryErrors(
+    errors = getUniqueErrors(
+      this.parentErrors,
+      Object.values(this.childErrors).flat(),
+    ),
+  ): ErrorItem[] {
+    return this.vm().formReady && !this.savedApplicationCodeLoaded()
+      ? [LINKED_CODE_LOAD_ERROR, ...errors]
+      : errors;
   }
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
-    this.childErrors[source] = errors ?? [];
-    this.submitAttempt.update((attempt) => attempt + 1);
+    const childErrors = errors ?? [];
+    this.childErrors[source] = childErrors;
+
+    if (source !== 'codes' || childErrors.length > 0) {
+      this.submitAttempt.update((attempt) => attempt + 1);
+    }
 
     if (source === 'codes' || source === 'resultWording') {
-      const summaryErrors = [
-        ...getUniqueErrors(
-          this.parentErrors,
-          Object.values(this.childErrors).flat(),
-        ),
-      ];
+      const summaryErrors = this.collectSummaryErrors();
 
       this.appListEntryDetailPatch({
         summaryErrors,
         errorFound: summaryErrors.length > 0,
       });
 
-      if (source === 'resultWording' && errors?.length > 0) {
+      if (source === 'resultWording' && childErrors.length > 0) {
         this.resultAppliedBannerVisible.set(false);
         this.openResultSection.set(true);
       }
@@ -1591,7 +1597,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private resetErrors(): void {
-    this.notesSubmittedErrors.set(undefined);
+    this.notesSubmittedErrors.set([]);
     this.respondentValidationSubmitted.set(false);
     this.appListEntryDetailPatch({
       errorHint: 'There is a problem',
@@ -1602,7 +1608,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.parentErrors = [];
     this.childErrors = {
       codes: [],
-      notes: [],
       fee: [],
       respondent: [],
       applicant: [],
@@ -1617,10 +1622,11 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private applyMappedError(err: unknown): void {
     const mapped = mapHttpErrorToSummary(err);
+    const summaryErrors = this.collectSummaryErrors(mapped.errorSummary);
     this.appListEntryDetailPatch({
       errorHint: mapped.errorHint,
-      summaryErrors: mapped.errorSummary,
-      errorFound: mapped.errorSummary.length > 0,
+      summaryErrors,
+      errorFound: summaryErrors.length > 0,
     });
   }
 

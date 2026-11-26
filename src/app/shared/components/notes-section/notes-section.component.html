@@ -116,6 +116,7 @@
       [maxCharacterLimit]="3000"
       [characterCountEnabled]="true"
       [isInvalid]="showControlError('notes')"
+      [errorMessage]="getControlError('notes')?.text ?? ''"
     />
   </div>
 </div>

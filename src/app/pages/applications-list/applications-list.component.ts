@@ -139,7 +139,9 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private readonly storedRecordsState = inject(ApplicationListRecordsService);
   readonly storedRecordsVm = this.storedRecordsState.vm;
   readonly searchSummaryItems = computed(() => [
-    ...(this.storedRecordsVm().submitted ? this.vm().searchErrors : []),
+    ...(this.storedRecordsVm().submitted
+      ? [...this.submittedFieldErrors.items(), ...this.vm().searchErrors]
+      : []),
     ...this.referenceDataErrorItems(),
   ]);
 
@@ -405,7 +407,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.submittedFieldErrors.capture(validationErrors, this.form);
     if (validationErrors.length) {
       this.storedRecordsState.patch({ submitted: true });
-      this.appListSignalState.patch({ searchErrors: validationErrors });
       return;
     }
 
@@ -754,6 +755,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       !this.vm().isLoading &&
       !this.vm().errorSummary.length &&
       this.storedRecordsVm().submitted &&
+      !this.submittedFieldErrors.items().length &&
       !this.vm().searchErrors.length
     );
   }

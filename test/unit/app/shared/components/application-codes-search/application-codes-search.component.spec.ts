@@ -643,7 +643,7 @@ describe('ApplicationCodeSearchComponent', () => {
     );
   });
 
-  it('shows and emits the code length error on entry submit when the parent code is missing', () => {
+  it('validates the selected code on entry submit and the query length on Search', () => {
     const parentForm = TestBed.inject(
       ApplicationListEntryFormService,
     ).createForms().form;
@@ -658,6 +658,14 @@ describe('ApplicationCodeSearchComponent', () => {
     const field = (fixture.nativeElement as HTMLElement).querySelector(
       'app-text-input',
     );
+    expect(field?.querySelector('.govuk-error-message')?.textContent).toContain(
+      'Enter an application code',
+    );
+    expect(errorsSpy).not.toHaveBeenCalled();
+
+    component.search();
+    fixture.detectChanges();
+
     expect(field?.querySelector('.govuk-error-message')?.textContent).toContain(
       'Application code must be 10 characters or fewer',
     );

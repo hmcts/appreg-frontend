@@ -5,6 +5,7 @@ import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { Observable, Subject, of } from 'rxjs';
 
+import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
 import { toOptionalTrimmed } from '@components/applications-list-entry-create/util/helpers';
@@ -91,7 +92,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
   });
 
   it('onSubmit: blocks create call when EF application code has no account reference', () => {
-    expect(component.notesSubmittedErrors()).toBeUndefined();
+    expect(component.notesSubmittedErrors()).toEqual([]);
     component.form.patchValue({
       applicationCode: 'EF123',
       lodgementDate: '2026-02-01',
@@ -109,6 +110,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.notesSubmittedErrors()).toEqual([
       expect.objectContaining({ id: 'applicationNotes.accountReference' }),
     ]);
+    expect(component.openNotes()).toBe(true);
     expect(component.vm().summaryErrors).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -125,7 +127,6 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     ['wording', 'openWording'],
     ['respondent', 'openRespondent'],
     ['civilFee', 'openCivilFee'],
-    ['notes', 'openNotes'],
   ] as const)(
     'opens %s when it receives validation errors',
     (source, section) => {
@@ -193,7 +194,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     component.openCivilFee.set(true);
     component.openNotes.set(true);
 
-    component.onChildErrors('notes', [{ id: 'notes', text: 'Error' }]);
+    component.onChildErrors('wording', [{ id: 'wording', text: 'Error' }]);
 
     expect(component.openApplicant()).toBe(true);
     expect(component.openApplicationCode()).toBe(true);
@@ -1716,6 +1717,62 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
       expect(component.form.controls.lodgementDate.value).toBe('2000-01-01');
     },
   );
+
+  it('keeps the submitted lodgement date error when a code is added from existing results', async () => {
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    const component = fixture.componentInstance;
+    component.openApplicationCode.set(true);
+    fixture.detectChanges();
+    const search: ApplicationCodeSearchComponent = fixture.debugElement.query(
+      By.directive(ApplicationCodeSearchComponent),
+    ).componentInstance;
+    search.codesRows = [
+      {
+        code: 'APP01',
+        title: 'Example code',
+        bulk: 'No',
+        fee: '—',
+        isFeeDue: '',
+      },
+    ];
+    search.form.controls.lodgementDate.setValue(null);
+    component.onSubmit(new Event('submit'));
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    const dateError = root.querySelector('#lodgement-date-error')?.textContent;
+    expect(dateError).toContain('Enter day, month and year');
+    const addCode = [
+      ...root.querySelectorAll<HTMLButtonElement>('button'),
+    ].find((button) => button.textContent?.trim() === 'Add code')!;
+    addCode.click();
+    fixture.detectChanges();
+
+    expect(component.form.controls.applicationCode.value).toBe('APP01');
+    expect(component.form.controls.lodgementDate.hasError('required')).toBe(
+      true,
+    );
+    expect(root.querySelector('#lodgement-date-error')?.textContent).toBe(
+      dateError,
+    );
+    const summary = root.querySelector('app-error-summary');
+    expect(
+      summary?.querySelector('a[href="#lodgement-date-day"]'),
+    ).not.toBeNull();
+    expect(summary?.querySelector('a[href="#applicationCode"]')).toBeNull();
+  });
 
   it('keeps focus in first name while the submitted error stays visible during editing', async () => {
     await TestBed.configureTestingModule({

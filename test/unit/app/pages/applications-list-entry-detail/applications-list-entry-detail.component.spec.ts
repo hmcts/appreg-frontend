@@ -305,7 +305,7 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
   });
 
-  it('shows live reference errors before the first save and retains submitted errors until the next save', () => {
+  it('shows reference errors only after save and retains them until the next save', () => {
     component.openNotesSection.set(true);
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
@@ -321,13 +321,14 @@ describe('ApplicationsListEntryDetail', () => {
 
     edit(caseReference, 'x'.repeat(300));
     edit(accountReference, 'x'.repeat(300));
-    expect(caseReference.getAttribute('aria-invalid')).toBe('true');
-    expect(accountReference.getAttribute('aria-invalid')).toBe('true');
+    expect(caseReference.hasAttribute('aria-invalid')).toBe(false);
+    expect(accountReference.hasAttribute('aria-invalid')).toBe(false);
 
     edit(caseReference, 'CASE-1');
     expect(caseReference.hasAttribute('aria-invalid')).toBe(false);
     component.onUpdateApplication();
     fixture.detectChanges();
+    expect(accountReference.getAttribute('aria-invalid')).toBe('true');
     edit(accountReference, 'ACCOUNT-1');
     edit(caseReference, 'x'.repeat(300));
     expect(accountReference.getAttribute('aria-invalid')).toBe('true');
@@ -337,6 +338,137 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
     expect(accountReference.hasAttribute('aria-invalid')).toBe(false);
     expect(caseReference.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('saves the selected application when the code search query is overlong', () => {
+    component.form.controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-999');
+    component.openApplicationCodeSection.set(true);
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    const query = root.querySelector<HTMLInputElement>('#applicationCode')!;
+    query.value = '12345678901';
+    query.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+
+    component.onUpdateApplication();
+    fixture.detectChanges();
+
+    expect(component.vm().summaryErrors).toEqual([]);
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+    expect(
+      mockUpdateApplicationListEntry.mock.calls[0][0].entryUpdateDto,
+    ).toEqual(expect.objectContaining({ applicationCode: 'APP-100' }));
+    expect(root.querySelector('#applicationCode-error')).toBeNull();
+  });
+
+  function prepareCodeSearch(result: ApplicationCodeGetDetailDto): HTMLElement {
+    mockGetApplicationCodes.mockReturnValue(
+      of({
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        totalPages: 1,
+        elementsOnPage: 1,
+        content: [result],
+      }),
+    );
+    component.openApplicationCodeSection.set(true);
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    return root.querySelector<HTMLElement>('app-application-code-search')!;
+  }
+
+  it('keeps the save-blocking explanation after adding a replacement for an unavailable linked code', () => {
+    const replacement: ApplicationCodeGetDetailDto = {
+      ...component.vm().appCodeDetail!,
+      applicationCodeId: 200,
+      applicationCode: 'APP-200',
+    };
+    mockGetApplicationCodeById.mockReturnValueOnce(
+      throwError(() => ({ status: 404 })),
+    );
+    component['loadCodesSectionFromEntry'](component.entryDetail!);
+    mockGetApplicationCodeById.mockReturnValue(of(replacement));
+
+    const search = prepareCodeSearch(replacement);
+    search.querySelector<HTMLButtonElement>('button.govuk-button')!.click();
+    fixture.detectChanges();
+    const addCode = search.querySelector<HTMLButtonElement>(
+      '#codes-table tbody button.govuk-button',
+    )!;
+    expect(addCode.matches(':disabled')).toBe(false);
+    addCode.click();
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    expect(component.vm().appCodeDetail).toEqual(replacement);
+    expect(
+      root.querySelector('form button[type="submit"]')?.matches(':disabled'),
+    ).toBe(true);
+    expect(root.querySelector('app-error-summary')?.textContent).toContain(
+      'Application code details could not be loaded. You cannot save this application until the details are available.',
+    );
+  });
+
+  it('keeps keyboard focus in code search after a successful search while the linked-code warning is visible', async () => {
+    const selectedCode = component.vm().appCodeDetail!;
+    mockGetApplicationCodeById.mockReturnValueOnce(
+      throwError(() => ({ status: 404 })),
+    );
+    component['loadCodesSectionFromEntry'](component.entryDetail!);
+    const search = prepareCodeSearch(selectedCode);
+    await fixture.whenStable();
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+    const query = search.querySelector<HTMLInputElement>('#applicationCode')!;
+    query.focus();
+    expect(document.activeElement).toBe(query);
+    query.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
+    );
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+    const root: HTMLElement = fixture.nativeElement;
+    const summary = root.querySelector<HTMLElement>('app-error-summary')!;
+    expect(search.querySelector('#codes-table tbody tr')).not.toBeNull();
+    expect(summary.hidden).toBe(false);
+    expect(summary.textContent).toContain(
+      'Application code details could not be loaded',
+    );
+    expect(document.activeElement).toBe(query);
+  });
+
+  it('clears the inline search error and summary when adding the already-selected code from existing results', () => {
+    const selectedCode = component.vm().appCodeDetail!;
+    const search = prepareCodeSearch(selectedCode);
+    search.querySelector<HTMLButtonElement>('button.govuk-button')!.click();
+    fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    const query = search.querySelector<HTMLInputElement>('#applicationCode')!;
+    query.value = '12345678901';
+    query.dispatchEvent(new Event('input', { bubbles: true }));
+    search.querySelector<HTMLButtonElement>('button.govuk-button')!.click();
+    fixture.detectChanges();
+
+    expect(root.querySelector('app-error-summary')?.textContent).toContain(
+      'Application code must be 10 characters or fewer',
+    );
+    expect(search.querySelector('#applicationCode-error')).not.toBeNull();
+    search
+      .querySelector<HTMLButtonElement>(
+        '#codes-table tbody button.govuk-button',
+      )!
+      .click();
+    fixture.detectChanges();
+
+    expect(query.value).toBe(selectedCode.applicationCode);
+    expect(search.querySelector('#applicationCode-error')).toBeNull();
+    expect(component.vm().summaryErrors).toEqual([]);
   });
 
   it.each(['applicant', 'officials'] as const)(

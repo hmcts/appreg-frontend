@@ -1079,7 +1079,7 @@ describe('ApplicationsList – search', () => {
 
       expect(preventDefault).toHaveBeenCalled();
       expect(getRecordsState(component).submitted).toBe(true);
-      expect(getUIFlagState(component).searchErrors).toEqual([
+      expect(component.searchSummaryItems()).toEqual([
         { href: '#date', id: 'date', text: 'Enter a valid date' },
         {
           href: '#time-hours',
@@ -1121,6 +1121,48 @@ describe('ApplicationsList – search', () => {
       expect(getRecordsState(component).rows).toEqual(existingRows);
       expect(getRecordsState(component).totalPages).toBe(4);
       expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('preserves the submitted date error in the field and summary during pagination', async () => {
+      service.getApplicationLists.mockReturnValue(
+        of(pageStub([{ id: 'list-1', status: ApplicationListStatus.OPEN }])),
+      );
+      const { e } = submitEvent('search');
+      component.onSubmit(e);
+      await flushSignalEffects(fixture);
+
+      const root: HTMLElement = fixture.nativeElement;
+      const day = root.querySelector<HTMLInputElement>('#date-day')!;
+      day.value = '1';
+      day.dispatchEvent(new Event('input', { bubbles: true }));
+      component.onSubmit(e);
+      fixture.detectChanges();
+      const errors = component.searchSummaryItems();
+      expect(errors).toContainEqual(expect.objectContaining({ id: 'date' }));
+      expect(root.querySelector('#date-error')?.textContent).toContain(
+        'Enter month and year',
+      );
+
+      component.onPageChange(2);
+      await flushSignalEffects(fixture);
+      expect(service.getApplicationLists).toHaveBeenLastCalledWith(
+        expect.objectContaining({ pageNumber: 2 }),
+        undefined,
+        undefined,
+        expect.anything(),
+      );
+      expect(component.searchSummaryItems()).toEqual(errors);
+      expect(
+        root.querySelector('app-error-summary a[href="#date"]'),
+      ).not.toBeNull();
+      expect(root.querySelector('#date-error')?.textContent).toContain(
+        'Enter month and year',
+      );
+
+      component.clearSearch();
+      fixture.detectChanges();
+      expect(component.searchSummaryItems()).toEqual([]);
+      expect(root.querySelector('#date-error')).toBeNull();
     });
 
     it('calls loadApplicationsLists for search action when no validation errors', () => {
@@ -1183,7 +1225,7 @@ describe('ApplicationsList – search', () => {
       const { e } = submitEvent('search');
       component.onSubmit(e);
 
-      expect(getUIFlagState(component).searchErrors).toEqual([
+      expect(component.searchSummaryItems()).toEqual([
         {
           href: '#cja',
           id: 'cja',

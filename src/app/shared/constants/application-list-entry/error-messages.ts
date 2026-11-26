@@ -15,7 +15,6 @@ type CivilFeeErrorMap = Readonly<
 
 export type ChildErrorSourceALECreate =
   | 'codes'
-  | 'notes'
   | 'fee'
   | 'respondent'
   | 'applicant'

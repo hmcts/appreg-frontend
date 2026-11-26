@@ -29,12 +29,16 @@ import {
 } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { CODES_COLUMNS } from '@constants/application-list-entry/columns-options';
+import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
 import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
 import { toApplicationCodeSortKey } from '@util/application-code-sort-map';
 import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
-import { SubmittedFieldErrors } from '@util/submitted-field-errors';
+import {
+  SubmittedFieldErrors,
+  captureCompositeErrors,
+} from '@util/submitted-field-errors';
 
 const APPLICATION_CODE_SEARCH_ERROR_MESSAGES = {
   code: {
@@ -93,7 +97,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
     applicationCodeId?: number;
   }>();
   resultsChange = output<ApplicationCodeGetSummaryDto[]>();
-  resetParentErrors = output<void>();
+  resetParentErrors = output<'code' | 'all'>();
   codeSearchErrors = output<ErrorItem[]>();
 
   private readonly route = inject(ActivatedRoute);
@@ -247,11 +251,6 @@ export class ApplicationCodeSearchComponent implements OnInit {
   }
 
   onAddCode(row: CodeRow): void {
-    this.submitted.set(false);
-    this.submittedFieldErrors.clear(this.form);
-    this.hasSearched.set(false);
-    this.codesRows = [];
-
     if (!this.listId) {
       return;
     }
@@ -266,10 +265,16 @@ export class ApplicationCodeSearchComponent implements OnInit {
       return;
     }
 
+    this.submitted.set(false);
+    this.submittedFieldErrors.clear();
+    this.hasSearched.set(false);
+    this.codesRows = [];
+    this.entryRequiredErrors.update((errors) =>
+      errors.filter(({ id }) => id === 'lodgementDate'),
+    );
     this.form.patchValue({ code, title });
 
-    this.entryRequiredErrors.set([]);
-    this.resetParentErrors.emit();
+    this.resetParentErrors.emit('code');
     this.selectCodeAndLodgementDate.emit({
       code,
       applicationCodeId: row.applicationCodeId,
@@ -302,8 +307,8 @@ export class ApplicationCodeSearchComponent implements OnInit {
     }
 
     return (
-      this.entryRequiredErrors().find(({ id }) => id === 'code')?.text ??
       this.submittedFieldErrors.errorFor('code')?.text ??
+      this.entryRequiredErrors().find(({ id }) => id === 'code')?.text ??
       null
     );
   }
@@ -325,7 +330,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
       this.submitted.set(false);
       this.entryRequiredErrors.set([]);
       this.submittedFieldErrors.clear(this.form);
-      this.resetParentErrors.emit();
+      this.resetParentErrors.emit('all');
       this.codeSearchErrors.emit([]);
     }
     this.totalPages.set(0);
@@ -346,16 +351,14 @@ export class ApplicationCodeSearchComponent implements OnInit {
   }
 
   validateForEntrySubmit(): void {
-    this.form.updateValueAndValidity({ emitEvent: false });
-    const errors = this.getValidationErrors();
     const parentControls = this.patchedFormData()?.controls;
     const requiredErrors: ErrorItem[] = [];
 
-    if (
-      parentControls?.applicationCode?.hasError('required') &&
-      !errors.some(({ id }) => id === 'code')
-    ) {
-      requiredErrors.push({ id: 'code', text: 'Enter an application code' });
+    if (parentControls?.applicationCode?.hasError('required')) {
+      requiredErrors.push({
+        id: 'code',
+        text: ENTRY_ERROR_MESSAGES.applicationCode.required,
+      });
     }
 
     if (parentControls?.lodgementDate?.hasError('required')) {
@@ -366,11 +369,8 @@ export class ApplicationCodeSearchComponent implements OnInit {
     }
 
     this.entryRequiredErrors.set(requiredErrors);
-    this.submittedFieldErrors.capture(
-      [...errors, ...requiredErrors],
-      this.form,
-    );
-    this.codeSearchErrors.emit(errors);
+    this.submittedFieldErrors.clear();
+    captureCompositeErrors(this.form, requiredErrors);
   }
 
   private canSearch(): boolean {

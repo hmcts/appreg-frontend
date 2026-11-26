@@ -22,7 +22,7 @@ export function getApplicationListEntryErrorSections(
     wording: childErrors['wording'].length > 0,
     respondent: childErrors['respondent'].length > 0,
     civilFee: childErrors['civilFee'].length > 0,
-    notes: childErrors['notes'].length > 0,
+    notes: false,
     officials: false,
     resultWording: (childErrors['resultWording']?.length ?? 0) > 0,
   };

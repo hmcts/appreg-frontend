@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup } from '@angular/forms';
 import { By } from '@angular/platform-browser';
@@ -13,9 +13,11 @@ import {
 @Component({
   standalone: true,
   imports: [NotesSectionComponent],
-  template: '<app-notes-section [form]="form" />',
+  template:
+    '<app-notes-section [form]="form" [submittedErrors]="submittedErrors()" />',
 })
 class HostComponent {
+  readonly submittedErrors = signal<ErrorItem[]>([]);
   form: ApplicationNotesForm = new FormGroup({
     notes: new FormControl<string | null>(null),
     caseReference: new FormControl<string | null>(null),
@@ -50,101 +52,42 @@ describe('NotesSectionComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('getControlError', () => {
-    it('returns undefined when there are no errors', () => {
-      expect(component.getControlError('caseReference')).toBeUndefined();
-    });
+  it('keeps live validation errors hidden before submission', () => {
+    const control = form.controls.caseReference;
+    control.setErrors({ maxlength: true });
+    control.markAsDirty();
+    control.markAsTouched();
+    hostFixture.detectChanges();
 
-    it('returns the mapped error item for a known error key', () => {
-      form.controls.caseReference.setErrors({ maxlength: true });
-
-      expect(component.getControlError('caseReference')).toEqual({
-        id: 'caseReference',
-        href: '#caseReference',
-        text: component.errorMap.caseReference['maxlength'],
-      });
-    });
-
-    it('ignores unknown error keys', () => {
-      form.controls.caseReference.setErrors({ unknownRule: true });
-
-      expect(component.getControlError('caseReference')).toBeUndefined();
-    });
+    const root: HTMLElement = hostFixture.nativeElement;
+    expect(root.querySelector('#case-reference-error')).toBeNull();
+    expect(
+      root.querySelector('#caseReference')?.hasAttribute('aria-invalid'),
+    ).toBe(false);
   });
 
-  describe('showControlError', () => {
-    it('returns false when control is valid', () => {
-      const result = component.showControlError('notes');
-      expect(result).toBe(false);
-    });
+  it('displays the submitted textarea message until the parent replaces it', () => {
+    host.submittedErrors.set([
+      {
+        id: 'applicationNotes.notes',
+        href: '#notes',
+        text: 'Notes must be 3000 characters or fewer',
+      },
+    ]);
+    form.controls.notes.setValue('Corrected notes');
+    hostFixture.detectChanges();
 
-    it('returns false when control has errors but is neither dirty nor touched', () => {
-      form.controls.notes.setErrors({ maxlength: true });
+    const root: HTMLElement = hostFixture.nativeElement;
+    const notes = root.querySelector('textarea#notes');
+    expect(notes?.getAttribute('aria-invalid')).toBe('true');
+    expect(notes?.getAttribute('aria-describedby')).toContain('notes-error');
+    expect(root.querySelector('#notes-error')?.textContent).toContain(
+      'Notes must be 3000 characters or fewer',
+    );
 
-      const result = component.showControlError('notes');
-      expect(result).toBe(false);
-    });
-
-    it('returns true when control has errors and is touched', () => {
-      form.controls.notes.setErrors({ maxlength: true });
-      form.controls.notes.markAsTouched();
-
-      const result = component.showControlError('notes');
-      expect(result).toBe(true);
-    });
-
-    it('returns true when control has errors and is dirty', () => {
-      form.controls.notes.setErrors({ maxlength: true });
-      form.controls.notes.markAsDirty();
-
-      const result = component.showControlError('notes');
-      expect(result).toBe(true);
-    });
-  });
-
-  describe('emitNotesErrors', () => {
-    it('emits an empty array when there are no control errors', () => {
-      const emitSpy = jest.spyOn(component.notesErrors, 'emit');
-
-      component.emitNotesErrors();
-
-      expect(emitSpy).toHaveBeenCalledTimes(1);
-      const arg = emitSpy.mock.calls[0][0];
-      expect(arg).toEqual([]);
-    });
-
-    it('emits the mapped error for each notes control', () => {
-      const emitSpy = jest.spyOn(component.notesErrors, 'emit');
-
-      form.controls.notes.setErrors({ maxlength: true });
-      form.controls.caseReference.setErrors({ maxlength: true });
-      form.controls.accountReference.setErrors({ maxlength: true });
-
-      component.emitNotesErrors();
-
-      expect(emitSpy).toHaveBeenCalledTimes(1);
-      const emitted = emitSpy.mock.calls[0][0];
-
-      expect(emitted).toEqual(
-        expect.arrayContaining<ErrorItem>([
-          {
-            id: 'notes',
-            href: '#notes',
-            text: component.errorMap.notes['maxlength'],
-          },
-          {
-            id: 'caseReference',
-            href: '#caseReference',
-            text: component.errorMap.caseReference['maxlength'],
-          },
-          {
-            id: 'accountReference',
-            href: '#accountReference',
-            text: component.errorMap.accountReference['maxlength'],
-          },
-        ]),
-      );
-      expect(emitted).toHaveLength(3);
-    });
+    host.submittedErrors.set([]);
+    hostFixture.detectChanges();
+    expect(notes?.hasAttribute('aria-invalid')).toBe(false);
+    expect(root.querySelector('#notes-error')).toBeNull();
   });
 });
