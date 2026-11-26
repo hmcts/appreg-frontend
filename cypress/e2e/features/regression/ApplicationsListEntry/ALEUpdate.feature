@@ -87,7 +87,7 @@ Feature: Applications List Entry Update
         Then User Clears The "Payment reference" Textbox
         Then User Enters "PAYUPD-{RANDOM}" Into The "Payment reference" Textbox
         When User Clicks On The "Save" Button
-        Then User Sees Success Banner "Payment reference updated" Containing "The payment reference has been updated for the selected fee status."
+        Then User Sees Success Alert "The payment reference has been updated for the selected fee status."
         Then User Should See The Accordion "Civil fee" Expanded
         Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
             | Fee Status | Status Date  | Payment Ref     |
@@ -134,7 +134,7 @@ Feature: Applications List Entry Update
         Then User Enters "Violette" In The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
         Then User Enters "Zanetti{SCENARIO_ID}" In The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
         When User Clicks On The "Save recording officials" Button
-        Then User Sees Success Banner "Officials updated" Containing "Officials have been updated for this application list entry."
+        Then User Sees Success Alert "Officials have been updated for this application list entry."
         When User Starts Listening For Result Retrieval
         # Show unsaved changes warning
         When User Clicks On The "Cancel" Button
@@ -150,7 +150,7 @@ Feature: Applications List Entry Update
         Then User Verifies The Local Updated Date And Time In Summary Card "PROA - Production Order (to allow access)" From Alias "proaUpdatedDateTime"
         # Remove Result to check 'Removed' banner
         Then User Clicks The Link "Remove" In Summary Card "PROA - Production Order (to allow access)"
-        Then User Sees Success Banner "Result removed" Containing "The result has been removed from this application list entry."
+        Then User Sees Success Alert "The result has been removed from this application list entry."
 
     @applicationListEntry @regression @ARCPOC-1707 @ARCPOC-1950
     Scenario Outline: Update Application List Entry,Allow User to Change Application Code with Fee Status of DUE or REMITTED, expect wording and fee accordion to be expanded
@@ -369,7 +369,7 @@ Feature: Applications List Entry Update
         Then User Should See The Text "BGAS" In The Accordion "Applicant"
         Then User Checks The Checkbox With Label "Select BGAS" In The Accordion "Applicant"
         When User Clicks On The "Update applicant" Button In The Accordion "Applicant"
-        Then User Sees Success Banner "Applicant updated" Containing "The applicant has been updated for this application list entry."
+        Then User Sees Success Alert "The applicant has been updated for this application list entry."
         # Update Respondent
         When User Toggles The Accordion "Respondent"
         When User Fills In The Respondent Details
