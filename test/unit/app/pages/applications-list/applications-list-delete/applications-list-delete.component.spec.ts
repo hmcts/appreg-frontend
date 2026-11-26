@@ -2,6 +2,7 @@ import { Location } from '@angular/common';
 import {
   HttpContext,
   HttpErrorResponse,
+  HttpHeaders,
   HttpResponse,
 } from '@angular/common/http';
 import { PLATFORM_ID } from '@angular/core';
@@ -28,7 +29,10 @@ describe('ApplicationsListDeleteComponent', () => {
   let fixture: ComponentFixture<ApplicationsListDeleteComponent>;
   let component: ApplicationsListDeleteComponent;
 
-  let api: Pick<ApplicationListsApi, 'deleteApplicationList'>;
+  let api: Pick<
+    ApplicationListsApi,
+    'deleteApplicationList' | 'getApplicationList'
+  >;
   let entriesApi: Pick<ApplicationListEntriesApi, 'getApplicationListEntries'>;
   let router: Pick<Router, 'navigate'>;
   let location: Pick<Location, 'getState'>;
@@ -55,6 +59,9 @@ describe('ApplicationsListDeleteComponent', () => {
     routeId?: string | null;
     entriesResponse?: (pageNumber: number) => Observable<EntryPage1>;
     realTemplate?: boolean;
+    listResponse?: Observable<
+      HttpResponse<import('@openapi').ApplicationListGetDetailDto>
+    >;
   }) => {
     const platformId = opts?.platformId ?? 'browser';
     const navStateRow = opts?.navStateRow;
@@ -62,6 +69,11 @@ describe('ApplicationsListDeleteComponent', () => {
 
     api = {
       deleteApplicationList: jest.fn(),
+      getApplicationList: jest
+        .fn()
+        .mockReturnValue(
+          opts?.listResponse ?? throwError(() => new Error('Load failed')),
+        ),
     };
     entriesApi = {
       getApplicationListEntries: jest.fn(
@@ -138,7 +150,7 @@ describe('ApplicationsListDeleteComponent', () => {
         if (page === 0) {
           response.content[0] = {
             ...response.content[0],
-            sequenceNumber: 7,
+            sequenceNumber: 0,
             accountNumber: 'SYNTHETIC-ACCOUNT',
             applicationTitle: 'Synthetic title',
             applicant: {
@@ -179,30 +191,146 @@ describe('ApplicationsListDeleteComponent', () => {
         ?.textContent?.replace(/\s+/g, ' ')
         .trim(),
     ).toBe('2 application list entries will be deleted.');
-    const cards = root.querySelectorAll('.govuk-summary-card');
-    expect(cards).toHaveLength(2);
+    const table = root.querySelector('table')!;
+    const rows = table.querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(2);
+    expect(table.querySelector('caption')?.textContent?.trim()).toBe(
+      'Application list entries to be deleted',
+    );
     expect(
-      Array.from(root.querySelectorAll('.govuk-summary-card__title'), (title) =>
-        title.textContent?.trim(),
+      Array.from(table.querySelectorAll('thead th[scope="col"]'), (cell) =>
+        cell.textContent?.trim(),
       ),
-    ).toEqual(['Application list entry 1', 'Application list entry 2']);
-    expect(values(cards[0])).toEqual([
-      '7',
+    ).toEqual([
+      'Sequence number',
+      'Account number',
+      'Applicant',
+      'Respondent',
+      'Title',
+    ]);
+    const cells = (row: Element) =>
+      Array.from(row.querySelectorAll('th, td'), (cell) =>
+        cell.textContent?.trim(),
+      );
+    expect(cells(rows[0])).toEqual([
+      '0',
       'SYNTHETIC-ACCOUNT',
       'Synthetic organisation',
       'Synthetic Respondent',
       'Synthetic title',
     ]);
-    expect(values(cards[1])).toEqual([
+    expect(cells(rows[1])).toEqual([
       'Not provided',
       'Not provided',
       'Not provided',
       'Not provided',
       'Synthetic application',
     ]);
+    expect(root.querySelector('.govuk-summary-card')).toBeNull();
+    expect(table.querySelector('input, a')).toBeNull();
+    expect(table.querySelectorAll('thead button')).toHaveLength(5);
+    expect(root.querySelector('app-pagination')).toBeNull();
     expect(root.querySelector('.govuk-summary-list__actions')).toBeNull();
     expect(api.deleteApplicationList).not.toHaveBeenCalled();
   });
+
+  it.each([
+    ['Sequence number', 'sequenceNumber'],
+    ['Account number', 'accountNumber'],
+    ['Applicant', 'applicant'],
+    ['Respondent', 'respondent'],
+    ['Title', 'title'],
+  ])(
+    'sorts %s across all pages and resets to the first page',
+    async (header, key) => {
+      await setup({
+        navStateRow: makeRow(),
+        realTemplate: true,
+        entriesResponse: (page) => {
+          const number = page + 1;
+          const response = makePage([`entry-${number}`], page, 12);
+          const party = {
+            organisation: {
+              name: `Synthetic ${number}`,
+              contactDetails: { addressLine1: 'Synthetic test address' },
+            },
+          };
+          response.content[0] = {
+            ...response.content[0],
+            sequenceNumber: number,
+            accountNumber: `Synthetic ${number}`,
+            applicant: party,
+            respondent: party,
+            applicationTitle: `Synthetic ${number}`,
+          };
+          return of(response);
+        },
+      });
+      const root = fixture.nativeElement as HTMLElement;
+      const sequenceNumbers = () =>
+        Array.from(root.querySelectorAll('tbody tr'), (row) =>
+          Number(row.querySelector('th, td')?.textContent?.trim()),
+        );
+      const clickPage = (selector: string) => {
+        (root.querySelector(selector) as HTMLAnchorElement).click();
+        fixture.detectChanges();
+      };
+      const heading = Array.from(root.querySelectorAll('thead th')).find(
+        (cell) => cell.textContent?.trim() === header,
+      )!;
+      const clickSort = () => {
+        heading.querySelector('button')!.click();
+        fixture.detectChanges();
+      };
+
+      expect(sequenceNumbers()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      expect(
+        root
+          .querySelector('[aria-label="Page 1"]')
+          ?.getAttribute('aria-current'),
+      ).toBe('page');
+      expect(root.querySelector('[rel="prev"]')).toBeNull();
+      clickPage('[rel="next"]');
+      expect(sequenceNumbers()).toEqual([11, 12]);
+      expect(
+        root
+          .querySelector('[aria-label="Page 2"]')
+          ?.getAttribute('aria-current'),
+      ).toBe('page');
+      expect(root.querySelector('[rel="next"]')).toBeNull();
+      clickPage('[rel="prev"]');
+      expect(sequenceNumbers()).toHaveLength(10);
+      clickPage('[aria-label="Page 2"]');
+
+      if (key !== 'sequenceNumber') {
+        clickSort();
+        expect(component.currentPage()).toBe(0);
+        expect(heading.getAttribute('aria-sort')).toBe('ascending');
+        expect(sequenceNumbers()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        clickPage('[rel="next"]');
+      }
+      clickSort();
+      expect(component.currentPage()).toBe(0);
+      expect(heading.getAttribute('aria-sort')).toBe('descending');
+      expect(sequenceNumbers()).toEqual([12, 11, 10, 9, 8, 7, 6, 5, 4, 3]);
+      clickPage('[rel="next"]');
+      expect(sequenceNumbers()).toEqual([2, 1]);
+      clickSort();
+      expect(heading.getAttribute('aria-sort')).toBe('ascending');
+      expect(sequenceNumbers()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      expect(
+        component.childEntries().map((entry) => entry.sequenceNumber),
+      ).toEqual(Array.from({ length: 12 }, (_, index) => index + 1));
+      expect(
+        root
+          .querySelector('[role="status"]')
+          ?.textContent?.replace(/\s+/g, ' ')
+          .trim(),
+      ).toBe('12 application list entries will be deleted.');
+      expect(entriesApi.getApplicationListEntries).toHaveBeenCalledTimes(12);
+      expect(api.deleteApplicationList).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([false, true])(
     'cancels the rendered review with fromListDetails=%s without deleting',
@@ -275,12 +403,12 @@ describe('ApplicationsListDeleteComponent', () => {
       expect(component.childEntries()).toEqual([]);
       expect(component.entriesLoaded()).toBe(false);
       expect(
-        fixture.nativeElement.querySelector('.govuk-summary-card'),
+        fixture.nativeElement.querySelector('app-sortable-table'),
       ).toBeNull();
       expect(confirm().disabled).toBe(true);
       expect(
         fixture.nativeElement.querySelector('.govuk-error-summary').textContent,
-      ).toContain('Could not load all');
+      ).toContain('Could not load the application list and all its entries.');
       component.onDelete();
       expect(api.deleteApplicationList).not.toHaveBeenCalled();
 
@@ -325,14 +453,68 @@ describe('ApplicationsListDeleteComponent', () => {
     },
   );
 
+  it.each(['browser', 'server'] as const)(
+    'loads a direct URL on %s and retains concurrency metadata',
+    async (platformId) => {
+      const response = new Subject<
+        HttpResponse<import('@openapi').ApplicationListGetDetailDto>
+      >();
+      await setup({ platformId, listResponse: response, realTemplate: true });
+      component.onDelete();
+      expect(api.deleteApplicationList).not.toHaveBeenCalled();
+      expect(component.entriesLoading()).toBe(true);
+      response.next(
+        new HttpResponse({
+          body: {
+            id: 'abc-123',
+            date: '2025-10-01',
+            time: '09:30',
+            description: 'Synthetic list',
+            status: ApplicationListStatus.OPEN,
+            courtName: 'Synthetic court',
+            version: 7,
+            entriesCount: 0,
+          },
+          headers: new HttpHeaders({ ETag: '"7"' }),
+        }),
+      );
+      fixture.detectChanges();
+      expect(component.listToDelete?.rowVersion).toBe('7');
+      expect(component.listToDelete?.etag).toBe('"7"');
+      expect(component.entriesLoaded()).toBe(true);
+      expect(fixture.nativeElement.textContent).toContain('Synthetic list');
+      expect(router.navigate).not.toHaveBeenCalled();
+    },
+  );
+
+  it('blocks a direct URL for a closed list', async () => {
+    await setup({
+      listResponse: of(
+        new HttpResponse({
+          body: {
+            id: 'abc-123',
+            date: '2025-10-01',
+            time: '09:30',
+            description: 'Synthetic list',
+            status: ApplicationListStatus.CLOSED,
+            version: 7,
+          },
+        }),
+      ),
+    });
+    component.onDelete();
+    expect(component.entriesLoadError()).toBe(true);
+    expect(api.deleteApplicationList).not.toHaveBeenCalled();
+  });
+
   it('should create', async () => {
     await setup({ navStateRow: makeRow() });
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInit: when no listRow but id exists -> navigates back', async () => {
+  it('keeps deletion blocked when loading a direct URL fails', async () => {
     await setup({ navStateRow: undefined, routeId: 'abc-123' });
-    expect(router.navigate).toHaveBeenCalledWith(['/applications-list']);
+    expect(component.entriesLoadError()).toBe(true);
     expect(entriesApi.getApplicationListEntries).not.toHaveBeenCalled();
   });
 
@@ -472,14 +654,14 @@ describe('ApplicationsListDeleteComponent', () => {
     );
   });
 
-  it('server platform: listRow is undefined even if state exists -> navigates back when id exists', async () => {
+  it('server platform: attempts URL-based loading without browser navigation state', async () => {
     await setup({
       platformId: 'server',
       navStateRow: makeRow(),
       routeId: 'abc-123',
     });
 
-    expect(router.navigate).toHaveBeenCalledWith(['/applications-list']);
+    expect(component.entriesLoadError()).toBe(true);
     expect(entriesApi.getApplicationListEntries).not.toHaveBeenCalled();
   });
 });

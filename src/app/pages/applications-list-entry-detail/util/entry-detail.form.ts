@@ -4,10 +4,9 @@ import {
   Validators,
 } from '@angular/forms';
 
-import { PERSON_TITLE_OPTIONS } from './entry-detail.constants';
-
 import { toOptionalTrimmed } from '@components/applications-list-entry-create/util';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
+import { PERSON_TITLE_OPTIONS } from '@constants/application-list-entry/columns-options';
 import {
   ADDRESS_REGEX,
   APPLICATION_CODE_REGEX,
@@ -46,17 +45,12 @@ import {
   mapTitleToOptionValue,
   toNullableInteger,
   trimToNull,
-  trimToString,
-  trimToUndefined,
 } from '@util/string-helpers';
 import {
   getEntryWordingFields,
   toTemplateSubstitutions,
 } from '@util/template-substitution-utils';
-import {
-  ContactFormRaw,
-  OrganisationFormRaw,
-} from '@util/types/applications-list-entry/types';
+import { ContactFormRaw } from '@util/types/applications-list-entry/types';
 import { accountReferenceRequiredForApplicationCode } from '@validators/account-reference.validator';
 import { officialRowRequiredValidator } from '@validators/official-row-required.validator';
 import { isEmpty, optional } from '@validators/optional.validator';
@@ -120,6 +114,14 @@ const WHOLE_NUMBER: ValidatorFn = optional((c) =>
   Validators.pattern(/^\d+$/)(c),
 );
 
+/**
+ * Creates the entry form with field and cross-field validation rules.
+ * Official rows and the account reference depend on related form values,
+ * so their validators are attached to the group rather than individual fields.
+ *
+ * @param fb - Builder used to create non-nullable Angular form controls.
+ * @returns The initial application entry form.
+ */
 export function buildStandardApplicationForm(
   fb: NonNullableFormBuilder,
 ): ApplicationsListEntryForm {
@@ -324,6 +326,20 @@ export function buildOrganisationForm(
 // Preserve stable fallback keys for wording values that may arrive without keys.
 const LEGACY_WORDING_KEYS = ['courtName', 'organisationName'] as const;
 
+/**
+ * Builds a full entry update from the saved detail and the current form values.
+ * Unedited server fields are preserved, while cleared notes, respondent mode, and
+ * applicant mode are represented explicitly in the request. An application code
+ * ID comes from the form, or from the saved detail when the code is unchanged.
+ *
+ * @param detail - Current server detail used as the base of the update.
+ * @param formValue - Main entry form values.
+ * @param applicantPersonValue - Applicant person form values.
+ * @param applicantOrgValue - Applicant organisation form values.
+ * @param respondentPersonValue - Respondent person form values.
+ * @param respondentOrgValue - Respondent organisation form values.
+ * @returns Complete update DTO for the selected applicant and respondent modes.
+ */
 export function buildEntryUpdateDtoFromForm(
   detail: EntryGetDetailDto,
   formValue: ApplicationsListEntryFormValue,
@@ -408,20 +424,6 @@ export function buildEntryUpdateDtoFromForm(
   return dto as EntryUpdateDto;
 }
 
-export function buildContactDetailsFromRaw(v: ContactFormRaw): ContactDetails {
-  return {
-    addressLine1: trimToString(v.addressLine1),
-    addressLine2: trimToUndefined(v.addressLine2),
-    addressLine3: trimToUndefined(v.addressLine3),
-    addressLine4: trimToUndefined(v.addressLine4),
-    addressLine5: trimToUndefined(v.addressLine5),
-    postcode: trimToUndefined(v.postcode),
-    phone: trimToUndefined(v.phoneNumber),
-    mobile: trimToUndefined(v.mobileNumber),
-    email: trimToUndefined(v.emailAddress),
-  };
-}
-
 export function contactDetailsToFormPatch(cd: ContactDetails): ContactFormRaw {
   return {
     addressLine1: cd.addressLine1 ?? '',
@@ -434,17 +436,6 @@ export function contactDetailsToFormPatch(cd: ContactDetails): ContactFormRaw {
     mobileNumber: cd.mobile ?? '',
     emailAddress: cd.email ?? '',
   };
-}
-
-export function buildOrganisationApplicantFromRaw(
-  raw: OrganisationFormRaw,
-): Applicant {
-  const organisation: Organisation = {
-    name: trimToString(raw.name),
-    contactDetails: buildContactDetailsFromRaw(raw),
-  };
-
-  return { organisation };
 }
 
 export function personToFormPatch(
@@ -535,6 +526,18 @@ export function officialsToFormPatch(
   return patch;
 }
 
+/**
+ * Builds a full entry update while replacing one field of the saved detail.
+ * Changing a code drops its saved lookup ID, and applicant selection is
+ * normalized so standard-applicant fields and inline applicant data do not
+ * appear together.
+ *
+ * @param detail - Saved entry detail used as the base of the update.
+ * @param key - Entry field to replace.
+ * @param value - Replacement value for that field.
+ * @returns Full update DTO with the requested field change.
+ * @throws If the entry detail has not been loaded.
+ */
 export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
   detail: EntryGetDetailDto | null | undefined,
   key: K,

@@ -376,6 +376,17 @@ export class ApplicationListEntryResultsFacade {
       });
   }
 
+  /**
+   * Applies edits to one entry's existing results before creating pending ones.
+   * Successful completion reloads results and clears pending rows only when
+   * creates were sent; an empty payload invokes neither callback.
+   *
+   * @param listId - Parent list ID.
+   * @param entryId - Entry whose results are being changed.
+   * @param payload - Existing updates and pending creates.
+   * @param onSuccess - Called after every request succeeds.
+   * @param onError - Called on the first request failure.
+   */
   submitResultChanges(
     listId: string,
     entryId: string,
@@ -616,6 +627,17 @@ export class ApplicationListEntryResultsFacade {
       .map((item) => requestFactory(item, selectedEntryIds));
   }
 
+  /**
+   * Runs updates before creates, stopping after the first failed update.
+   * Results returned before a failure are retained; newly created pending rows
+   * are cleared only after every request succeeds. An empty request set invokes
+   * neither callback.
+   *
+   * @param updateRequests - Updates for results already created on selected entries.
+   * @param createRequests - New results to add after the updates.
+   * @param onSuccess - Called after all requests succeed.
+   * @param onError - Called with the first failed update or request error.
+   */
   private submitCombinedRequests(
     updateRequests: Observable<BulkResultUpdate>[],
     createRequests: Observable<ResultGetDto[]>[],
@@ -666,6 +688,15 @@ export class ApplicationListEntryResultsFacade {
       });
   }
 
+  /**
+   * Builds one update per selected entry whose created result matches the edited
+   * result's original code and wording template. The entry groups supply the list
+   * ID needed by each update endpoint.
+   *
+   * @param payload - Existing results to update, alongside any pending creates.
+   * @param entryGroups - Selected entry IDs grouped by their parent list ID.
+   * @returns Update requests that report API failures as unsuccessful results.
+   */
   private buildUpdateRequests(
     payload: ResultSectionSubmitPayload,
     entryGroups: EntryGroupByListId[],

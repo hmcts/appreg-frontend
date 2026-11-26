@@ -23,6 +23,7 @@
 <h1 class="govuk-heading-xl">Create new entry</h1>
 
 <hr
+  aria-hidden="true"
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
@@ -102,6 +103,7 @@
       [feeStatusOptions]="feeStatusOptions"
       [feeForm]="civilFeeForm"
       [feeMeta]="feeMeta"
+      [feeAdditionStatus]="feeAdditionStatus()"
       (addFeeDetails)="onAddFeeDetails($event)"
       (civilFeeErrors)="onChildErrors('civilFee', $event)"
       (submitAttempted)="onCivilFeeSubmitAttempt()"

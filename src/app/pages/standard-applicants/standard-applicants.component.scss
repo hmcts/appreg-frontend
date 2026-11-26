@@ -1,5 +1,12 @@
+.table-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
 .table-caption__actions {
-  float: right;
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
@@ -7,16 +14,12 @@
 }
 
 @media (max-width: 100em) {
-  :host ::ng-deep #sa-sortable-table .app-sortable-table__frame {
-    overflow: visible;
-  }
-
   :host ::ng-deep #sa-sortable-table .govuk-table {
     table-layout: auto;
   }
 
-  :host ::ng-deep #sa-sortable-table .govuk-table__header,
-  :host ::ng-deep #sa-sortable-table .govuk-table__cell {
+  :host ::ng-deep #sa-sortable-table .govuk-table__body .govuk-table__header,
+  :host ::ng-deep #sa-sortable-table .govuk-table__body .govuk-table__cell {
     overflow-wrap: anywhere;
     white-space: normal;
   }

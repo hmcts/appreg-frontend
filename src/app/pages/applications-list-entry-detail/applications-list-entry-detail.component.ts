@@ -1,22 +1,3 @@
-/*
-  Main component for /applications-list/:listId/entries/:entryId
-  Functionality:
-    On load:
-      - Reads list and entry IDs from the route/query params
-      - Fetches the entry details and initial application code metadata
-      - Builds and hydrates the entry detail form (codes, applicant, respondent, wording, fees, notes, officials)
-    Application code section:
-      - Searches application codes and maps results into the sortable table
-      - Updates the entry with the selected application code via full PUT and refreshes wording metadata
-    Applicant section:
-      - Supports Standard Applicant, Person and Organisation applicant types
-      - Validates applicant fields per type and updates only the applicant-related part of the entry using a full PUT
-      - Validation should be mostly handled via Angular form validation, with some custom validation logic for complex rules
-    Error and UX handling:
-      - Maps HTTP errors into GOV.UK-style error summary and hint state
-      - Manages success banners and scroll/focus behaviour for validation and server errors
-      - TODO: Eventually use generic components/services for banners & scroll/focus behavior
-*/
 import { Location, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -34,25 +15,21 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Observable, map } from 'rxjs';
 
+import { EntryDetailFeeSaveFacade } from './facades/entry-detail-fee-save.facade';
+import { EntryDetailLoadFacade } from './facades/entry-detail-load.facade';
+import { EntryDetailSaveFacade } from './facades/entry-detail-save.facade';
 import {
   ApplicationsListEntryDetailState,
   initialApplicationsListEntryDetailState,
 } from './util/applications-list-entry-detail.state';
 import { focusLocalBanner, focusSuccessBanner } from './util/banners.util';
-import {
-  APPLICANT_COLUMNS,
-  CIVIL_FEE_COLUMNS,
-  CODES_COLUMNS,
-  FEE_STATUS_OPTIONS,
-  PERSON_TITLE_OPTIONS,
-  RESPONDENT_TYPE_OPTIONS,
-} from './util/entry-detail.constants';
-import { buildEntryUpdateDtoForFeeChange } from './util/entry-detail.form';
+import { codeFeeMeta } from './util/entry-load-fee-meta';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { buildResultApplicantContext } from './util/result-context.util';
 import { getEntryId } from './util/routing.util';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
+import { AlertComponent } from '@components/alert/alert.component';
 import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import {
@@ -86,7 +63,16 @@ import { SelectedStandardApplicantSummary } from '@components/standard-applicant
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import {
+  APPLICANT_COLUMNS,
+  CIVIL_FEE_COLUMNS,
+  CODES_COLUMNS,
+  FEE_STATUS_OPTIONS,
+  PERSON_TITLE_OPTIONS,
+  RESPONDENT_TYPE_OPTIONS,
+} from '@constants/application-list-entry/columns-options';
+import {
   APPLICANT_ENTRY_ERROR_MESSAGES,
+  ChildErrorSourceALEDetail,
   ENTRY_ERROR_MESSAGES,
   RESPONDENT_ENTRY_ERROR_MESSAGES,
 } from '@constants/application-list-entry/error-messages';
@@ -103,15 +89,13 @@ import { SuccessBanner } from '@core-types/banner/banner.types';
 import {
   Applicant,
   ApplicationCodesApi,
-  ApplicationListEntriesApi,
   EntryGetDetailDto,
   EntryUpdateDto,
   FeeStatus,
+  PaymentStatus,
   StandardApplicantGetDetailDto,
-  StandardApplicantsApi,
   TemplateDetail,
   TemplateSubstitution,
-  UpdateApplicationListEntryRequestParams,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
@@ -150,15 +134,9 @@ import {
   withWordingFieldValues,
 } from '@util/template-substitution-utils';
 
-type ChildErrorSource =
-  | 'codes'
-  | 'notes'
-  | 'fee'
-  | 'respondent'
-  | 'applicant'
-  | 'civilFee'
-  | 'wording'
-  | 'resultWording';
+type ConfirmationSection = 'applicant' | 'officials' | 'fees' | 'results';
+
+type ChildErrorSource = ChildErrorSourceALEDetail;
 
 const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
@@ -170,16 +148,41 @@ export const ERROR_HREFS = {
   ...(RESPONDENT_PERSON_ERROR_HREFS as Record<string, string>),
 } as const satisfies Record<string, string>;
 
+/**
+  Main component for /applications-list/:listId/entries/:entryId
+  Functionality:
+    On load:
+      - Reads list and entry IDs from the route and navigation state
+      - Loads the entry, saved code by ID, and saved standard applicant through the load facade
+      - Hydrates the form, restores a navigation draft, and loads entry results
+    Application code section:
+      - Searches application codes and maps results into the sortable table
+      - Updates the selected code and its metadata; full saves persist entry changes
+    Applicant section:
+      - Supports Standard Applicant, Person and Organisation applicant types
+      - Validates applicant fields and uses the form service to build full entry updates
+    Fee section:
+      - Persists fee statuses and offsite fee changes through partial saves
+    Error and UX handling:
+      - Maps validation and server errors into the error summary and hint state
+      - Manages success banners, focus, accordion state, and navigation draft warnings
+*/
 @Component({
   selector: 'app-applications-list-entry-detail',
   standalone: true,
-  providers: [ApplicationListEntryResultsFacade],
+  providers: [
+    ApplicationListEntryResultsFacade,
+    EntryDetailLoadFacade,
+    EntryDetailFeeSaveFacade,
+    EntryDetailSaveFacade,
+  ],
   imports: [
     ReactiveFormsModule,
     RouterModule,
     BreadcrumbsComponent,
     NavigationWarningComponent,
     AccordionComponent,
+    AlertComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
     NotesSectionComponent,
@@ -214,11 +217,12 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
-  private readonly entriesApi = inject(ApplicationListEntriesApi);
   private readonly formSvc = inject(ApplicationListEntryFormService);
   private readonly location = inject(Location);
   private readonly applicationCodesApi = inject(ApplicationCodesApi);
-  private readonly standardApplicantsApi = inject(StandardApplicantsApi);
+  private readonly loadFacade = inject(EntryDetailLoadFacade);
+  private readonly feeSaveFacade = inject(EntryDetailFeeSaveFacade);
+  private readonly saveFacade = inject(EntryDetailSaveFacade);
 
   //Utilising facade for entry results to keep component clean
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
@@ -243,43 +247,8 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   readonly hasUnchangedContent = signal(true);
   @ViewChild(NavigationWarningComponent)
-  private navigationWarning?: NavigationWarningComponent;
+  private readonly navigationWarning?: NavigationWarningComponent;
 
-  canLeave(): boolean | Observable<boolean> {
-    const destination = this.router
-      .currentNavigation()
-      ?.extractedUrl.toString()
-      .split(/[?#]/, 1)[0];
-    const { appListId } = this.vm();
-    const entryId = getEntryId(this.route);
-    // The snapshot preserves form values, but not unapplied wording or result drafts.
-    if (
-      destination ===
-        `/applications-list/${appListId}/update-entry/${entryId}/change-payment-reference` &&
-      (this.wordingSection?.hasUnchangedContent() ?? true) &&
-      (this.resultWordingSection?.hasUnchangedContent() ?? true)
-    ) {
-      return true;
-    }
-    const changed = !this.contentIsUnchanged();
-    return this.navigationWarning?.canLeave(changed) ?? !changed;
-  }
-
-  private contentIsUnchanged(): boolean {
-    return (
-      this.savedContent === undefined ||
-      (this.formSvc.hasUnchangedContent(this.forms, this.savedContent) &&
-        (this.wordingSection?.hasUnchangedContent() ?? true) &&
-        (this.resultWordingSection?.hasUnchangedContent() ?? true))
-    );
-  }
-
-  constructor() {
-    // Child sections initialise their controls during rendering; compare afterwards.
-    afterEveryRender(() => {
-      this.hasUnchangedContent.set(this.contentIsUnchanged());
-    });
-  }
   form!: ApplicationsListEntryForm;
 
   personForm!: PersonForm;
@@ -315,6 +284,12 @@ export class ApplicationsListEntryDetail implements OnInit {
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
   readonly submitAttempt = signal(0);
+  readonly sectionConfirmation = signal<{
+    section: ConfirmationSection;
+    message: SuccessBanner;
+  } | null>(null);
+  readonly sectionSaveStatus = signal('');
+  private sectionSaveTrigger: HTMLElement | null = null;
   readonly savedApplicationCodeLoaded = signal(false);
   readonly newerApplicationCodeVersionExists = signal(false);
 
@@ -357,6 +332,14 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   disableOfficialButton = signal(false);
   disableSaveCompleteAppBtn = signal(false);
+
+  // Lifecycle and setup
+  constructor() {
+    // Child sections initialise their controls during rendering; compare afterwards.
+    afterEveryRender(() => {
+      this.hasUnchangedContent.set(this.contentIsUnchanged());
+    });
+  }
 
   ngOnInit(): void {
     const state = readNavState(this.location, this.platformId);
@@ -403,6 +386,17 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.handleListCreate();
   }
 
+  private createForms(): void {
+    // Build forms via helpers
+    this.forms = this.formSvc.createForms();
+    this.form = this.forms.form;
+
+    this.personForm = this.forms.personForm;
+    this.organisationForm = this.forms.organisationForm;
+
+    this.civilFeeForm = this.formSvc.createCivilFeeForm(this.forms);
+  }
+
   private setupNavigationLinks(
     listId: string,
     fromApplicationsPage: boolean,
@@ -423,163 +417,138 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.cancelLink.set(['/applications-list', listId]);
   }
 
-  private createForms(): void {
-    // Build forms via helpers
-    this.forms = this.formSvc.createForms();
-    this.form = this.forms.form;
-
-    this.personForm = this.forms.personForm;
-    this.organisationForm = this.forms.organisationForm;
-
-    this.civilFeeForm = this.formSvc.createCivilFeeForm(this.forms);
-  }
-
-  onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
-    this.forms.form.patchValue({
-      wordingFields: dto.wordingFields,
-    });
-    this.wordingAppliedBannerVisible.set(true);
-
-    focusLocalBanner(this.platformId, '#wording-local-banner');
-  }
-
-  onWordingAppliedBannerDismissed(): void {
-    this.wordingAppliedBannerVisible.set(false);
-  }
-
-  onResultAppliedBannerDismissed(): void {
-    this.resultAppliedBannerVisible.set(false);
-  }
-
-  getWordingObjectValues(
-    template: TemplateDetail | null | undefined,
-  ): TemplateDetail | undefined {
-    return this.resolveWordingObjectValues(
-      template,
-      this.form.controls.wordingFields.value,
-    );
-  }
-
-  resetSuccessBanner(): void {
-    this.appListEntryDetailPatch({ successBanner: null });
-  }
-
-  onAddFeeDetails(payload: AddFeeDetailsPayload): void {
-    if (this.blockSaveWithoutApplicationCode()) {
-      return;
-    }
-
-    this.resetErrors();
-    const previousFeeStatuses = [
-      ...(this.form.controls.feeStatuses.value ?? []),
-    ];
-
-    const { next, changed } = updateFeeStatusesControl(
-      this.form.controls.feeStatuses,
-      payload,
-    );
-    if (!changed) {
-      return;
-    }
-
-    const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.feeStatusUpdated;
-    this.persistFeeStatuses(previousFeeStatuses, next, bannerText);
-  }
-
-  // Used to update payment reference for current fee status from /change-payment-reference
-  private applyPaymentRefReturn(updatedRowId: string, newRef: string): void {
-    const previousFeeStatuses = [
-      ...(this.form.controls.feeStatuses.value ?? []),
-    ];
-
-    const { next, changed } = updatePaymentReferenceInFeeStatusesControl(
-      this.form.controls.feeStatuses,
-      updatedRowId,
-      newRef,
-    );
-
-    if (!changed) {
-      return;
-    }
-
-    const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.paymentRefUpdated;
-    this.persistFeeStatuses(previousFeeStatuses, next, bannerText);
-  }
-
-  private clearPaymentRefNavigationStateOnly(): void {
-    const current = (history.state ?? {}) as Record<string, unknown>;
-    const { paymentRefReturn, entryDetailSnapshot, ...rest } = current;
-    history.replaceState(rest, '');
-  }
-
-  private persistFeeStatuses(
-    previousFeeStatuses: FeeStatus[],
-    feeStatuses: FeeStatus[],
-    bannerText: SuccessBanner,
-  ): void {
-    if (this.blockSaveWithoutApplicationCode()) {
-      return;
-    }
-    const entryId = getEntryId(this.route);
-    if (!entryId || !this.entryDetail) {
-      return;
-    }
-
-    if (this.runWordingValidationForPartialSave()) {
-      this.form.controls.feeStatuses.setValue(previousFeeStatuses, {
-        emitEvent: false,
+  private handleListCreate(): void {
+    if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
+      this.appListEntryDetailPatch({
+        successBanner: ENTRY_SUCCESS_MESSAGES.listCreated,
       });
-      this.form.controls.feeStatuses.markAsPristine();
-      return;
+      focusSuccessBanner(this.platformId);
     }
+  }
 
-    const entryUpdateDto = buildEntryUpdateDtoForFeeChange(
-      this.entryDetail,
-      this.form.getRawValue(),
-      'feeStatuses',
-      feeStatuses,
-    );
+  /**
+   * Entry and application code loading
+   */
 
-    const params: UpdateApplicationListEntryRequestParams = {
-      listId: this.appListEntryDetailState().appListId,
-      entryId,
-      entryUpdateDto,
-    };
-
-    this.entriesApi
-      .updateApplicationListEntry(params, 'body', false, {
-        transferCache: false,
-      })
+  /**
+   * Loads the entry, results, and linked application code. Restores a navigation
+   * snapshot before applying a returned payment-reference change.
+   */
+  private loadEntryAndPatchForm(
+    listId: string,
+    entryId: string,
+    paymentRefReturn: PaymentRefReturn | null,
+    state: EntryDetailNavState | null | undefined,
+  ): void {
+    this.loadFacade
+      .loadEntry(listId, entryId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
-          this.mergeEntryDetailUpdate(entryUpdateDto, res);
+        next: ({ entry }) => {
+          this.entryDetail = entry;
+          this.persistedHasOffsiteFee = entry.hasOffsiteFee === true;
 
-          this.form.controls.feeStatuses.markAsPristine();
-
-          if (this.savedContent) {
-            this.savedContent.form.feeStatuses = structuredClone(
-              this.form.controls.feeStatuses.getRawValue(),
-            );
-          }
-
-          this.appListEntryDetailPatch({
-            successBanner: bannerText,
-          });
-          focusSuccessBanner(this.platformId);
-        },
-        error: (err) => {
-          this.form.controls.feeStatuses.setValue(previousFeeStatuses, {
+          const hydrate = this.formSvc.hydrateFromDto(entry, this.forms, {
             emitEvent: false,
           });
-          this.form.controls.feeStatuses.markAsPristine();
 
-          this.applyMappedError(err);
+          this.selectedStandardApplicantCode =
+            hydrate.selectedStandardApplicantCode;
+          this.savedStandardApplicantCode =
+            hydrate.selectedStandardApplicantCode;
+          this.savedStandardApplicantName = null;
+          this.savedStandardApplicantDetailsUnavailable = false;
+          this.pendingStandardApplicantSummary = null;
+          this.savedStandardApplicantId =
+            entry.standardApplicantId ?? undefined;
+          this.loadSavedStandardApplicantName(this.savedStandardApplicantId);
+
+          const type = this.form.controls.applicantType.value ?? 'person';
+          this.formSvc.syncApplicantTypeState(this.forms, type);
+          this.savedContent = this.formSvc.editableContent(this.forms);
+          this.applyEntryDetailSnapshot(state?.entryDetailSnapshot);
+          this.handleResultWordingContext(state);
+
+          this.resultsFacade.loadEntryResults(listId, entryId);
+
+          this.loadCodesSectionFromEntry(entry, () => {
+            const snapshot = state?.entryDetailSnapshot;
+            // Preserve a deliberately staged replacement when returning from payment editing.
+            // For the saved code, use the freshly fetched exact record's metadata.
+            if (
+              isRecord(snapshot?.form) &&
+              hasStringProp(snapshot.form, 'applicationCode') &&
+              snapshot.form.applicationCode &&
+              (snapshot.form.applicationCode !== entry.applicationCode ||
+                (typeof snapshot.appCodeDetail?.applicationCodeId ===
+                  'number' &&
+                  snapshot.appCodeDetail.applicationCodeId !==
+                    entry.applicationCodeId))
+            ) {
+              this.applyEntryDetailSnapshot(snapshot);
+            }
+            if (paymentRefReturn) {
+              this.applyPaymentRefReturn(
+                paymentRefReturn.updatedRowId,
+                paymentRefReturn.newPaymentReference,
+              );
+            }
+          });
         },
+        error: (err) => this.handleFatalLoadError(err),
       });
   }
 
-  // ── UI handlers ─────────────────────────────────────────────────────────────
+  /**
+   * Loads the saved code and fee metadata before enabling the form. A failed
+   * lookup shows an error that blocks saving.
+   */
+  private loadCodesSectionFromEntry(
+    entry: EntryGetDetailDto,
+    onLoaded?: () => void,
+  ): void {
+    const lodgementDate = entry.lodgementDate.slice(0, 10);
+    const applicationCode = entry.applicationCode;
+
+    this.form.patchValue({ lodgementDate, applicationCode });
+
+    this.savedApplicationCodeLoaded.set(false);
+    this.feeMeta = null;
+    this.form.patchValue({ applicationTitle: '' });
+    this.appListEntryDetailPatch({
+      appCodeDetail: null,
+      formReady: false,
+      isFeeRequired: false,
+      bulkApplicationsAllowed: false,
+    });
+    this.loadFacade
+      .loadLinkedCode(entry)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (result.kind === 'linkedCodeUnavailable') {
+          this.form.patchValue({ applicationTitle: '' });
+          this.handleResultWordingContext(this.navState);
+          this.appListEntryDetailPatch({ formReady: true });
+          this.showApplicationCodeLoadError();
+          return;
+        }
+
+        const { code, feeMeta } = result;
+        this.form.patchValue({ applicationTitle: code.title });
+        this.handleResultWordingContext(this.navState);
+        this.feeMeta = feeMeta;
+        this.savedApplicationCodeLoaded.set(true);
+        this.appListEntryDetailPatch({
+          appCodeDetail: code,
+          isFeeRequired: code.isFeeDue,
+          bulkApplicationsAllowed: code.bulkRespondentAllowed,
+          formReady: true,
+        });
+        onLoaded?.();
+      });
+  }
+
+  /** Refreshes code details and dependent form state after a code selection. */
   onCodeSelected(codeAndLodgementDate: {
     code: string;
     date: string;
@@ -637,14 +606,7 @@ export class ApplicationsListEntryDetail implements OnInit {
             applicationTitle: appCodeDetail.title,
             applicationCodeId: appCodeDetail.applicationCodeId ?? null,
           });
-          this.feeMeta = {
-            feeReference: appCodeDetail.feeReference ?? null,
-            feeDescription: appCodeDetail.feeDescription ?? null,
-            feeAmount: appCodeDetail.feeAmount ?? null,
-            offsiteFeeReference: appCodeDetail.offsiteFeeReference ?? null,
-            offsiteFeeDescription: appCodeDetail.offsiteFeeDescription ?? null,
-            offsiteFeeAmount: appCodeDetail.offsiteFeeAmount ?? null,
-          };
+          this.feeMeta = codeFeeMeta(appCodeDetail);
 
           if (hasSelectionChanged) {
             this.wordingSubmitAttempt.set(0);
@@ -689,19 +651,737 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
   }
 
+  private handleFatalLoadError(err: unknown): void {
+    const { errorHint, errorSummary } = mapHttpErrorToSummary(err);
+    this.submitAttempt.update((attempt) => attempt + 1);
+
+    this.appListEntryDetailPatch({
+      errorHint,
+      summaryErrors: errorSummary,
+      errorFound: true,
+    });
+  }
+
+  private showApplicationCodeLoadError(): void {
+    this.appListEntryDetailPatch({
+      errorFound: true,
+      errorHint: 'There is a problem',
+      summaryErrors: [
+        {
+          text: 'Application code details could not be loaded. You cannot save this application until the details are available.',
+        },
+      ],
+    });
+  }
+
+  private blockSaveWithoutApplicationCode(): boolean {
+    if (
+      this.savedApplicationCodeLoaded() &&
+      !this.form.controls.applicationCode.value
+    ) {
+      this.submitAttempt.update((attempt) => attempt + 1);
+      this.appListEntryDetailPatch({ formSubmitted: true });
+      this.runFullSubmitValidation();
+      return true;
+    }
+    if (this.savedApplicationCodeLoaded() && this.vm().appCodeDetail) {
+      return false;
+    }
+    this.showApplicationCodeLoadError();
+    return true;
+  }
+
+  private loadSavedStandardApplicantName(id: number | null | undefined): void {
+    if (!id) {
+      this.savedStandardApplicantName = null;
+      this.savedStandardApplicantDetailsUnavailable = false;
+      this.pendingStandardApplicantSummary = null;
+      this.savedStandardApplicantId = null;
+      return;
+    }
+
+    this.savedStandardApplicantDetailsUnavailable = false;
+
+    this.loadFacade
+      .loadSavedStandardApplicant(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (result.kind === 'savedStandardApplicantLoaded') {
+          this.saveStandardApplicantDetailsFromResponse(result.applicant);
+        } else {
+          this.savedStandardApplicantName = null;
+          this.savedStandardApplicantDetailsUnavailable = true;
+          this.pendingStandardApplicantSummary = null;
+
+          // Append standard applicant errors with existing errors
+          const allErrors = this.appListEntryDetailState().summaryErrors;
+          const summaryErrors = [
+            ...allErrors,
+            {
+              text:
+                getProblemText(result.error) ??
+                'Failed to load standard applicant',
+            },
+          ];
+
+          this.appListEntryDetailPatch({
+            errorFound: true,
+            summaryErrors,
+          });
+        }
+      });
+  }
+
+  /**
+   * Applicant and wording
+   */
+
+  onStandardApplicantCodeChanged(code: string | null): void {
+    this.selectedStandardApplicantCode = code;
+    // In Update, no selection means no replacement of the persisted applicant.
+    const effectiveCode =
+      code ??
+      (this.applicantType === 'standard'
+        ? (this.entryDetail?.standardApplicantCode ?? null)
+        : null);
+    this.formSvc.setStandardApplicantCode(this.forms, effectiveCode, {
+      emitEvent: false,
+    });
+    if (
+      effectiveCode === this.entryDetail?.standardApplicantCode &&
+      !this.form.controls.standardApplicantId?.value
+    ) {
+      this.form.controls.standardApplicantId?.setValue(
+        this.entryDetail?.standardApplicantId ?? null,
+        { emitEvent: false },
+      );
+    }
+  }
+
+  onSelectedStandardApplicantSummaryChanged(
+    summary: SelectedStandardApplicantSummary | null,
+  ): void {
+    this.pendingStandardApplicantSummary = summary;
+    this.form.controls.standardApplicantId?.setValue(
+      summary?.standardApplicantId ??
+        (this.form.controls.standardApplicantCode.value ===
+        this.entryDetail?.standardApplicantCode
+          ? (this.entryDetail?.standardApplicantId ?? null)
+          : null),
+    );
+  }
+
+  private saveStandardApplicantDetailsFromResponse(
+    applicant: StandardApplicantGetDetailDto & { applicant?: Applicant },
+  ): void {
+    this.savedStandardApplicantName =
+      applicant.name?.trim() ||
+      returnOrgName(applicant.applicant)?.trim() ||
+      null;
+    this.savedStandardApplicantDetailsUnavailable =
+      this.savedStandardApplicantName === null;
+    this.pendingStandardApplicantSummary ??= this.savedStandardApplicantName
+      ? {
+          code: applicant.code.trim(),
+          standardApplicantId: this.savedStandardApplicantId ?? undefined,
+          name: this.savedStandardApplicantName,
+        }
+      : null;
+  }
+
+  private applySavedStandardApplicantSummary(): void {
+    this.savedStandardApplicantId =
+      this.entryDetail?.standardApplicantId ?? null;
+    if (this.applicantType !== 'standard') {
+      this.savedStandardApplicantCode = null;
+      this.savedStandardApplicantName = null;
+      this.savedStandardApplicantDetailsUnavailable = false;
+      this.pendingStandardApplicantSummary = null;
+      return;
+    }
+
+    const pending = this.pendingStandardApplicantSummary;
+    const currentCode = this.selectedStandardApplicantCode?.trim() || '';
+
+    if (pending?.code.trim() === currentCode) {
+      this.savedStandardApplicantCode = pending.code.trim() || null;
+      this.savedStandardApplicantName = pending.name.trim() || null;
+      this.savedStandardApplicantDetailsUnavailable =
+        this.savedStandardApplicantName === null;
+    }
+  }
+
+  private bindApplicantTypeChanges(): void {
+    this.form.controls.applicantType.valueChanges
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        map((type): ApplicantType => type ?? 'person'),
+      )
+      .subscribe((t) => {
+        this.appListEntryDetailPatch({ formSubmitted: false });
+
+        this.resetErrors();
+
+        // keep UI state in sync
+        this.selectedStandardApplicantCode =
+          t === 'standard' ? this.selectedStandardApplicantCode : null;
+        this.pendingStandardApplicantSummary =
+          t === 'standard' ? this.pendingStandardApplicantSummary : null;
+
+        // let the service reset the subforms + standard code
+        this.formSvc.onApplicantTypeChanged(this.forms, t);
+        this.formSvc.syncApplicantTypeState(this.forms, t);
+        if (t === 'standard') {
+          // Update restores the saved selection when returning to its section.
+          this.onStandardApplicantCodeChanged(
+            this.selectedStandardApplicantCode ??
+              this.savedStandardApplicantCode,
+          );
+        }
+      });
+  }
+
+  onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
+    this.forms.form.patchValue({
+      wordingFields: dto.wordingFields,
+    });
+    this.wordingAppliedBannerVisible.set(true);
+
+    focusLocalBanner(this.platformId, '#wording-local-banner');
+  }
+
+  onWordingAppliedBannerDismissed(): void {
+    this.wordingAppliedBannerVisible.set(false);
+  }
+
+  getWordingObjectValues(
+    template: TemplateDetail | null | undefined,
+  ): TemplateDetail | undefined {
+    return this.resolveWordingObjectValues(
+      template,
+      this.form.controls.wordingFields.value,
+    );
+  }
+
+  /**
+   * Result code
+   */
+
+  private handleResultWordingContext(
+    state: EntryDetailNavState | null | undefined,
+  ): void {
+    const currentTitle =
+      this.form.controls.applicationTitle?.value?.trim() ||
+      this.appListEntryDetailState().appCodeDetail?.title ||
+      state?.resultApplicantContext?.title ||
+      '';
+
+    if (!this.entryDetail) {
+      this.resultApplicantContext = state?.resultApplicantContext
+        ? [
+            {
+              ...state.resultApplicantContext,
+              title: currentTitle,
+            },
+          ]
+        : [];
+      return;
+    }
+
+    const apiContext = buildResultApplicantContext(
+      this.entryDetail,
+      currentTitle,
+    );
+
+    this.resultApplicantContext = [
+      state?.resultApplicantContext
+        ? {
+            applicant:
+              this.entryDetail.standardApplicantCode?.trim() &&
+              state.resultApplicantContext.applicant
+                ? state.resultApplicantContext.applicant
+                : apiContext.applicant,
+            respondent:
+              apiContext.respondent || state.resultApplicantContext.respondent,
+            title: currentTitle,
+          }
+        : apiContext,
+    ];
+  }
+
+  onSubmitResults(payload: ResultSectionSubmitPayload): void {
+    const entryId = getEntryId(this.route);
+    const listId = this.appListEntryDetailState().appListId;
+
+    if (!entryId || !listId) {
+      return;
+    }
+
+    this.resetSuccessBanner();
+    this.resultsFacade.setPending(payload.pendingToCreate ?? []);
+
+    this.resultAppliedBannerVisible.set(true);
+
+    focusLocalBanner(this.platformId, '#results-local-banner');
+
+    this.appListEntryDetailPatch({
+      pendingResults:
+        payload.pendingToCreate.length > 0 ||
+        payload.existingToUpdate.length > 0,
+      resultsPayload: { entryId, listId, payload },
+    });
+  }
+
+  onRemoveResult(resultId: string): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
+    const entryId = getEntryId(this.route);
+    const listId = this.appListEntryDetailState().appListId;
+
+    if (!entryId || !resultId) {
+      return;
+    }
+
+    const showSuccess = this.prepareSectionConfirmation(
+      'results',
+      ENTRY_SUCCESS_MESSAGES.resultRemoved,
+    );
+    this.resultsFacade.removeResult(
+      listId,
+      entryId,
+      resultId,
+      () => {
+        this.resultAppliedBannerVisible.set(false);
+        showSuccess();
+      },
+      (err) => this.applyMappedError(err),
+    );
+  }
+
+  onPendingChange(rows: PendingResultRow[]): void {
+    this.resultsFacade.setPending(rows);
+
+    // update stale results on change
+    const state = this.appListEntryDetailState();
+    if (!state.pendingResults) {
+      return;
+    }
+
+    const payload = {
+      ...state.resultsPayload.payload,
+      pendingToCreate: rows ?? [],
+    };
+    const pendingResults =
+      payload.pendingToCreate.length > 0 || payload.existingToUpdate.length > 0;
+
+    if (!pendingResults) {
+      this.resultAppliedBannerVisible.set(false);
+    }
+
+    this.appListEntryDetailPatch({
+      pendingResults,
+      resultsPayload: {
+        ...state.resultsPayload,
+        payload,
+      },
+    });
+  }
+
+  onResultAppliedBannerDismissed(): void {
+    this.resultAppliedBannerVisible.set(false);
+  }
+
+  /**
+   * Fees and partial saves
+   */
+
+  onAddFeeDetails(payload: AddFeeDetailsPayload): void {
+    this.sectionSaveStatus.set('');
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
+    this.resetErrors();
+    const previousFeeStatuses = [
+      ...(this.form.controls.feeStatuses.value ?? []),
+    ];
+
+    const { next, changed } = updateFeeStatusesControl(
+      this.form.controls.feeStatuses,
+      payload,
+    );
+    if (!changed) {
+      return;
+    }
+
+    const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.feeStatusUpdated;
+    this.persistFeeStatuses(previousFeeStatuses, next, bannerText);
+  }
+
+  onOffsiteFeeChanged(nextValue: boolean): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
+    const prev = this.persistedHasOffsiteFee;
+
+    if (prev === nextValue) {
+      return;
+    }
+
+    this.persistHasOffsiteFee(nextValue, prev);
+  }
+
+  onCivilFeeSubmitAttempt(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
+  }
+
+  /** Saves fee rows, restoring the previous rows if validation or saving fails. */
+  private persistFeeStatuses(
+    previousFeeStatuses: FeeStatus[],
+    feeStatuses: FeeStatus[],
+    bannerText: SuccessBanner,
+    returningFromPaymentReference = false,
+  ): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+    const entryId = getEntryId(this.route);
+    if (!entryId || !this.entryDetail) {
+      return;
+    }
+
+    if (this.runWordingValidationForPartialSave()) {
+      this.feeSaveFacade.rollbackFeeStatuses(
+        this.form.controls.feeStatuses,
+        previousFeeStatuses,
+      );
+      return;
+    }
+
+    const isFeeAddition =
+      bannerText === ENTRY_SUCCESS_MESSAGES.feeStatusUpdated;
+    const showSuccess = this.prepareSectionConfirmation(
+      'fees',
+      isFeeAddition
+        ? { ...bannerText, body: 'Fee details saved.' }
+        : bannerText,
+      returningFromPaymentReference,
+    );
+    const { entryUpdateDto, response } = this.feeSaveFacade.save(
+      this.appListEntryDetailState().appListId,
+      entryId,
+      this.entryDetail,
+      this.form,
+      'feeStatuses',
+      feeStatuses,
+    );
+
+    response.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (res) => {
+        this.mergeEntryDetailUpdate(entryUpdateDto, res);
+
+        this.form.controls.feeStatuses.markAsPristine();
+
+        if (this.savedContent) {
+          this.savedContent.form.feeStatuses = structuredClone(
+            this.form.controls.feeStatuses.getRawValue(),
+          );
+        }
+
+        showSuccess();
+      },
+      error: (err) => {
+        this.form.controls.feeStatuses.setValue(previousFeeStatuses, {
+          emitEvent: false,
+        });
+        this.form.controls.feeStatuses.markAsPristine();
+
+        this.applyMappedError(err);
+      },
+    });
+  }
+
+  /** Saves the offsite-fee selection and restores it if saving fails. */
+  private persistHasOffsiteFee(nextValue: boolean, prevValue: boolean): void {
+    const entryId = getEntryId(this.route);
+
+    if (!entryId || !this.entryDetail) {
+      return;
+    }
+
+    if (this.runWordingValidationForPartialSave()) {
+      this.feeSaveFacade.rollbackOffsiteFee(
+        this.form.controls.hasOffsiteFee,
+        prevValue,
+      );
+      return;
+    }
+
+    const showSuccess = this.prepareSectionConfirmation(
+      'fees',
+      nextValue
+        ? ENTRY_SUCCESS_MESSAGES.offSiteFeeApplied
+        : ENTRY_SUCCESS_MESSAGES.offSiteFeeRemoved,
+    );
+    const { entryUpdateDto, response } = this.feeSaveFacade.save(
+      this.appListEntryDetailState().appListId,
+      entryId,
+      this.entryDetail,
+      this.form,
+      'hasOffsiteFee',
+      nextValue,
+    );
+
+    response.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (res) => {
+        this.mergeEntryDetailUpdate(entryUpdateDto, res);
+        this.persistedHasOffsiteFee = nextValue;
+        this.feeMeta = this.feeSaveFacade.offsiteFeeMeta(
+          this.feeMeta,
+          this.entryDetail,
+          this.appListEntryDetailState().appCodeDetail,
+          nextValue,
+        );
+        if (this.savedContent) {
+          this.savedContent.form.hasOffsiteFee = nextValue;
+        }
+        this.form.controls.hasOffsiteFee.markAsPristine();
+
+        showSuccess();
+      },
+      error: (err) => {
+        // rollback UI state
+        this.form.controls.hasOffsiteFee.setValue(prevValue, {
+          emitEvent: false,
+        });
+        this.form.controls.hasOffsiteFee.markAsPristine();
+
+        this.applyMappedError(err);
+      },
+    });
+  }
+
+  // Used to update payment reference for current fee status from /change-payment-reference
+  private applyPaymentRefReturn(updatedRowId: string, newRef: string): void {
+    const previousFeeStatuses = [
+      ...(this.form.controls.feeStatuses.value ?? []),
+    ];
+
+    const { next, changed } = updatePaymentReferenceInFeeStatusesControl(
+      this.form.controls.feeStatuses,
+      updatedRowId,
+      newRef,
+    );
+
+    if (!changed) {
+      return;
+    }
+
+    const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.paymentRefUpdated;
+    this.openCivilFeeSection.set(true);
+    this.persistFeeStatuses(previousFeeStatuses, next, bannerText, true);
+  }
+
+  /**
+   * Full entry saves
+   */
+
+  onUpdateApplicant(): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
+    if (this.isEntrySaveInProgress()) {
+      return;
+    }
+
+    this.submitAttempt.update((attempt) => attempt + 1);
+    this.resetErrors();
+    this.resetSuccessBanner();
+    this.appListEntryDetailPatch({ formSubmitted: true });
+
+    if (this.runFullSubmitValidation()) {
+      return;
+    }
+
+    this.setEntrySaveButtonsDisabled(true);
+
+    this.submitEntryUpdate(
+      this.buildEntryUpdateDto(),
+      ENTRY_SUCCESS_MESSAGES.applicantUpdated,
+      'applicant',
+    );
+  }
+
+  onUpdateApplication(): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
+    if (this.isEntrySaveInProgress()) {
+      return;
+    }
+
+    this.submitAttempt.update((attempt) => attempt + 1);
+    this.resetErrors();
+    this.resetSuccessBanner();
+    this.appListEntryDetailPatch({ formSubmitted: true });
+
+    this.wordingSubmitAttempt.update((n) => n + 1);
+
+    if (this.runFullSubmitValidation()) {
+      return;
+    }
+
+    this.setEntrySaveButtonsDisabled(true);
+
+    // Save result if there are pending results to be saved
+    if (this.appListEntryDetailState().pendingResults) {
+      const listId = this.appListEntryDetailState().resultsPayload.listId;
+      const entryId = this.appListEntryDetailState().resultsPayload.entryId;
+      const payload = this.appListEntryDetailState().resultsPayload.payload;
+
+      this.resultsFacade.submitResultChanges(
+        listId,
+        entryId,
+        payload,
+        () => {
+          this.resultAppliedBannerVisible.set(false);
+          this.appListEntryDetailPatch({ pendingResults: false });
+          this.submitEntryUpdate(
+            this.buildEntryUpdateDto(),
+            ENTRY_SUCCESS_MESSAGES.listUpdated,
+          );
+        },
+        (err) => {
+          this.applyMappedError(err);
+          this.setEntrySaveButtonsDisabled(false);
+        },
+      );
+    } else {
+      this.submitEntryUpdate(
+        this.buildEntryUpdateDto(),
+        ENTRY_SUCCESS_MESSAGES.listUpdated,
+      );
+    }
+  }
+
+  onSaveOfficials(): void {
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
+    if (this.isEntrySaveInProgress()) {
+      return;
+    }
+
+    this.submitAttempt.update((attempt) => attempt + 1);
+    this.resetErrors();
+    this.resetSuccessBanner();
+    this.appListEntryDetailPatch({ formSubmitted: true });
+
+    if (this.runFullSubmitValidation()) {
+      return;
+    }
+
+    this.setEntrySaveButtonsDisabled(true);
+
+    this.submitEntryUpdate(
+      this.buildEntryUpdateDto(),
+      ENTRY_SUCCESS_MESSAGES.officialsUpdated,
+      'officials',
+    );
+  }
+
+  /** Saves a complete entry update and synchronizes the saved form snapshot. */
+  private submitEntryUpdate(
+    entryUpdateDto: EntryUpdateDto,
+    successBanner: SuccessBanner,
+    destination: ConfirmationSection | 'page' = 'page',
+  ): void {
+    const showSuccess =
+      destination === 'page'
+        ? () => this.appListEntryDetailPatch({ successBanner })
+        : this.prepareSectionConfirmation(destination, successBanner);
+    const submittedContent = this.saveFacade.prepareSubmittedContent(
+      this.forms,
+      this.savedContent,
+    );
+
+    if (this.blockSaveWithoutApplicationCode()) {
+      return;
+    }
+
+    const entryId = getEntryId(this.route);
+    this.submitAttempt.update((attempt) => attempt + 1);
+    if (!entryId || !this.entryDetail) {
+      this.appListEntryDetailPatch({
+        errorFound: true,
+        summaryErrors: [
+          { text: 'Entry is not loaded. Reload the page and try again.' },
+        ],
+      });
+      this.setEntrySaveButtonsDisabled(false);
+      return;
+    }
+
+    this.saveFacade
+      .save(
+        this.appListEntryDetailState().appListId,
+        entryId,
+        entryUpdateDto,
+        submittedContent,
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ entry: res, submittedContent: savedContent }) => {
+          this.appListEntryDetailPatch({
+            formSubmitted: false,
+            errorFound: false,
+          });
+          this.mergeEntryDetailUpdate(entryUpdateDto, res);
+          this.savedContent = savedContent;
+          this.applySavedStandardApplicantSummary();
+          showSuccess();
+
+          if (this.applicantType === 'person') {
+            markFormGroupClean(this.personGroup);
+          } else if (this.applicantType === 'org') {
+            markFormGroupClean(this.organisationGroup);
+          } else {
+            this.form.controls.standardApplicantCode.markAsPristine();
+          }
+          this.setEntrySaveButtonsDisabled(false);
+        },
+        error: (err) => {
+          this.appListEntryDetailPatch({ formSubmitted: false });
+          this.applyMappedError(err);
+          this.setEntrySaveButtonsDisabled(false);
+        },
+      });
+  }
+
+  private isEntrySaveInProgress(): boolean {
+    return this.disableOfficialButton() || this.disableSaveCompleteAppBtn();
+  }
+
+  private setEntrySaveButtonsDisabled(disabled: boolean): void {
+    this.disableOfficialButton.set(disabled);
+    this.disableSaveCompleteAppBtn.set(disabled);
+  }
+
+  /**
+   * Validation, errors and section state
+   */
+
   private buildErrorSummary(): ErrorItem[] {
     return buildFormErrorSummary(this.form, UPDATE_ENTRY_ERROR_MESSAGES, {
       nested: [{ path: 'applicationNotes', prefixId: 'applicationNotes' }],
       hrefs: ERROR_HREFS,
     });
-  }
-
-  get respondentErrorItems(): ErrorItem[] {
-    return this.childErrors.respondent;
-  }
-
-  get applicantErrorItems(): ErrorItem[] {
-    return this.childErrors.applicant;
   }
 
   private updateApplicantErrors(): void {
@@ -832,6 +1512,192 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
   }
 
+  private runFullSubmitValidation(): boolean {
+    this.form.markAllAsTouched();
+    this.form.controls.standardApplicantCode.updateValueAndValidity({
+      emitEvent: false,
+    });
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    const submitErrors = collectChildSubmitErrors<ChildErrorSource>([
+      { source: 'wording', section: this.wordingSection },
+      { source: 'civilFee', section: this.civilFeeSection },
+    ]);
+
+    if (this.resultWordingSection?.hasUnappliedChanges()) {
+      this.childErrors.resultWording = [
+        {
+          text: 'You have unsaved result wording changes. Please apply result before saving.',
+          href: ERROR_HREFS.resultWording,
+        },
+      ];
+    } else {
+      this.childErrors.resultWording = [];
+    }
+
+    this.childErrors.wording = submitErrors.wording ?? [];
+    this.childErrors.civilFee = submitErrors.civilFee ?? [];
+
+    this.updateAllErrors();
+    return this.appListEntryDetailState().errorFound;
+  }
+
+  private runWordingValidationForPartialSave(): boolean {
+    this.childErrors.wording =
+      this.wordingSection?.validateForSubmit({
+        enforceSavedWording: false,
+      }) ?? [];
+
+    this.updateAllErrors();
+    return this.childErrors.wording.length > 0;
+  }
+
+  private bindPartyValidationChanges(): void {
+    this.formSvc
+      .partyValidationChanges(this.forms)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (!this.vm().formSubmitted) {
+          return;
+        }
+
+        this.updateAllErrors({ focusSummary: false });
+      });
+  }
+
+  private resetErrors(): void {
+    this.appListEntryDetailPatch({
+      errorHint: 'There is a problem',
+      summaryErrors: [],
+      errorFound: false,
+    });
+
+    this.parentErrors = [];
+    this.childErrors = {
+      codes: [],
+      notes: [],
+      fee: [],
+      respondent: [],
+      applicant: [],
+      civilFee: [],
+      wording: [],
+      resultWording: [],
+    };
+    if (this.vm().formReady && !this.savedApplicationCodeLoaded()) {
+      this.showApplicationCodeLoadError();
+    }
+  }
+
+  private applyMappedError(err: unknown): void {
+    const mapped = mapHttpErrorToSummary(err);
+    this.appListEntryDetailPatch({
+      errorHint: mapped.errorHint,
+      summaryErrors: mapped.errorSummary,
+      errorFound: mapped.errorSummary.length > 0,
+    });
+  }
+
+  /** Capture the originating section before an asynchronous save disables its button. */
+  private prepareSectionConfirmation(
+    section: ConfirmationSection,
+    message: SuccessBanner,
+    returningFromPaymentReference = false,
+  ): () => void {
+    const trigger = isPlatformBrowser(this.platformId)
+      ? document.activeElement
+      : null;
+    const origin = trigger?.closest('.govuk-accordion__section-content');
+    this.resetSuccessBanner();
+    return () => {
+      if (this.destroyRef.destroyed) {
+        return;
+      }
+      this.appListEntryDetailPatch({ successBanner: null });
+      const confirmation = { section, message };
+      this.sectionSaveTrigger =
+        isPlatformBrowser(this.platformId) && trigger instanceof HTMLElement
+          ? trigger
+          : null;
+      this.sectionConfirmation.set(confirmation);
+      focusLocalBanner(this.platformId, `#${section}-save-banner`, () => {
+        if (
+          this.destroyRef.destroyed ||
+          this.sectionConfirmation() !== confirmation
+        ) {
+          return false;
+        }
+        const active = document.activeElement;
+        // A return navigation starts at the document body, not inside an accordion.
+        // Only move to the confirmation if the user has not started working elsewhere.
+        const destinationPanel = document
+          .getElementById(`${section}-save-banner`)
+          ?.closest('.govuk-accordion__section-content');
+        if (
+          returningFromPaymentReference &&
+          active === document.body &&
+          destinationPanel &&
+          !destinationPanel.hasAttribute('hidden')
+        ) {
+          return true;
+        }
+        if (
+          origin?.isConnected &&
+          !origin.hasAttribute('hidden') &&
+          (origin.contains(active) || active === document.body)
+        ) {
+          return true;
+        }
+        // The user has moved on: announce completion without reopening a section.
+        this.sectionSaveStatus.set(`${message.heading}. ${message.body}`);
+        return false;
+      });
+    };
+  }
+
+  onSectionConfirmationDismissed(): void {
+    const confirmation = this.sectionConfirmation();
+    if (confirmation && isPlatformBrowser(this.platformId)) {
+      const banner = document.getElementById(
+        `${confirmation.section}-save-banner`,
+      );
+      if (banner?.contains(document.activeElement)) {
+        const panel = banner.closest('.govuk-accordion__section-content');
+        const section = confirmation.section;
+        const saveButton =
+          section === 'applicant' || section === 'officials'
+            ? panel?.querySelector<HTMLElement>(
+                section === 'applicant'
+                  ? '#btn-update-applicant:not(:disabled)'
+                  : 'app-officials-section button.govuk-button:not(:disabled)',
+              )
+            : null;
+        const trigger = this.sectionSaveTrigger;
+        const availableTrigger =
+          trigger?.isConnected &&
+          panel?.contains(trigger) &&
+          trigger.matches(
+            'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled)',
+          )
+            ? trigger
+            : null;
+        const heading = panel
+          ?.closest('.govuk-accordion__section')
+          ?.querySelector<HTMLElement>('.govuk-accordion__section-button');
+        (saveButton ?? availableTrigger ?? heading)?.focus();
+      }
+    }
+    this.sectionSaveTrigger = null;
+    this.sectionConfirmation.set(null);
+    this.sectionSaveStatus.set('');
+  }
+
+  resetSuccessBanner(): void {
+    this.sectionSaveTrigger = null;
+    this.sectionConfirmation.set(null);
+    this.sectionSaveStatus.set('');
+    this.appListEntryDetailPatch({ successBanner: null });
+  }
+
   onAccordionExpandedChange(event: { index: number; expanded: boolean }): void {
     const sections = [
       this.openApplicantSection,
@@ -886,697 +1752,43 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
   }
 
-  private submitEntryUpdate(
-    entryUpdateDto: EntryUpdateDto,
-    successBanner: SuccessBanner,
-    onComplete?: () => void,
-  ): void {
-    const submittedContent = this.formSvc.editableContent(this.forms);
-    if (Array.isArray(submittedContent.form.feeStatuses)) {
-      // The mapper sends table rows instead of the unadded fee-entry fields.
-      for (const field of [
-        'feeStatus',
-        'feeStatusDate',
-        'paymentRef',
-      ] as const) {
-        submittedContent.form[field] = this.savedContent?.form[field] ?? null;
-      }
-    }
-    if (this.blockSaveWithoutApplicationCode()) {
-      return;
-    }
+  /**
+   * Navigation and draft snapshots
+   */
+
+  canLeave(): boolean | Observable<boolean> {
+    const destination = this.router
+      .currentNavigation()
+      ?.extractedUrl.toString()
+      .split(/[?#]/, 1)[0];
+    const { appListId } = this.vm();
     const entryId = getEntryId(this.route);
-    this.submitAttempt.update((attempt) => attempt + 1);
-    if (!entryId || !this.entryDetail) {
-      this.appListEntryDetailPatch({
-        errorFound: true,
-        summaryErrors: [
-          { text: 'Entry is not loaded. Reload the page and try again.' },
-        ],
-      });
-      onComplete?.();
-      this.setEntrySaveButtonsDisabled(false);
-      return;
-    }
-
-    const params: UpdateApplicationListEntryRequestParams = {
-      listId: this.appListEntryDetailState().appListId,
-      entryId,
-      entryUpdateDto,
-    };
-
-    this.entriesApi
-      .updateApplicationListEntry(params, 'body', false, {
-        context: undefined,
-        transferCache: false,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          this.appListEntryDetailPatch({
-            formSubmitted: false,
-            errorFound: false,
-          });
-          this.mergeEntryDetailUpdate(entryUpdateDto, res);
-          this.savedContent = submittedContent;
-          this.applySavedStandardApplicantSummary();
-          this.appListEntryDetailPatch({ successBanner });
-
-          if (this.applicantType === 'person') {
-            markFormGroupClean(this.personGroup);
-          } else if (this.applicantType === 'org') {
-            markFormGroupClean(this.organisationGroup);
-          } else {
-            this.form.controls.standardApplicantCode.markAsPristine();
-          }
-          onComplete?.();
-          this.setEntrySaveButtonsDisabled(false);
-        },
-        error: (err) => {
-          this.appListEntryDetailPatch({ formSubmitted: false });
-          this.applyMappedError(err);
-          onComplete?.();
-          this.setEntrySaveButtonsDisabled(false);
-        },
-      });
-  }
-
-  private runFullSubmitValidation(): boolean {
-    this.form.markAllAsTouched();
-    this.form.controls.standardApplicantCode.updateValueAndValidity({
-      emitEvent: false,
-    });
-    this.form.updateValueAndValidity({ emitEvent: false });
-
-    const submitErrors = collectChildSubmitErrors<ChildErrorSource>([
-      { source: 'wording', section: this.wordingSection },
-      { source: 'civilFee', section: this.civilFeeSection },
-    ]);
-
-    if (this.resultWordingSection?.hasUnappliedChanges()) {
-      this.childErrors.resultWording = [
-        {
-          text: 'You have unsaved result wording changes. Please apply result before saving.',
-          href: ERROR_HREFS.resultWording,
-        },
-      ];
-    } else {
-      this.childErrors.resultWording = [];
-    }
-
-    this.childErrors.wording = submitErrors.wording ?? [];
-    this.childErrors.civilFee = submitErrors.civilFee ?? [];
-
-    this.updateAllErrors();
-    return this.appListEntryDetailState().errorFound;
-  }
-
-  private runWordingValidationForPartialSave(): boolean {
-    this.childErrors.wording =
-      this.wordingSection?.validateForSubmit({
-        enforceSavedWording: false,
-      }) ?? [];
-
-    this.updateAllErrors();
-    return this.childErrors.wording.length > 0;
-  }
-
-  onUpdateApplicant(): void {
-    if (this.blockSaveWithoutApplicationCode()) {
-      return;
-    }
-
-    if (this.isEntrySaveInProgress()) {
-      return;
-    }
-
-    this.submitAttempt.update((attempt) => attempt + 1);
-    this.resetErrors();
-    this.resetSuccessBanner();
-    this.appListEntryDetailPatch({ formSubmitted: true });
-
-    if (this.runFullSubmitValidation()) {
-      return;
-    }
-
-    this.setEntrySaveButtonsDisabled(true);
-
-    this.submitEntryUpdate(
-      this.buildEntryUpdateDto(),
-      ENTRY_SUCCESS_MESSAGES.applicantUpdated,
-    );
-  }
-
-  onUpdateApplication(): void {
-    if (this.blockSaveWithoutApplicationCode()) {
-      return;
-    }
-
-    if (this.isEntrySaveInProgress()) {
-      return;
-    }
-
-    this.submitAttempt.update((attempt) => attempt + 1);
-    this.resetErrors();
-    this.resetSuccessBanner();
-    this.appListEntryDetailPatch({ formSubmitted: true });
-
-    this.wordingSubmitAttempt.update((n) => n + 1);
-
-    if (this.runFullSubmitValidation()) {
-      return;
-    }
-
-    this.setEntrySaveButtonsDisabled(true);
-
-    // Save result if there are pending results to be saved
-    if (this.appListEntryDetailState().pendingResults) {
-      const listId = this.appListEntryDetailState().resultsPayload.listId;
-      const entryId = this.appListEntryDetailState().resultsPayload.entryId;
-      const payload = this.appListEntryDetailState().resultsPayload.payload;
-
-      this.resultsFacade.submitResultChanges(
-        listId,
-        entryId,
-        payload,
-        () => {
-          this.resultAppliedBannerVisible.set(false);
-          this.appListEntryDetailPatch({ pendingResults: false });
-          this.submitEntryUpdate(
-            this.buildEntryUpdateDto(),
-            ENTRY_SUCCESS_MESSAGES.listUpdated,
-          );
-        },
-        (err) => {
-          this.applyMappedError(err);
-          this.setEntrySaveButtonsDisabled(false);
-        },
-      );
-    } else {
-      this.submitEntryUpdate(
-        this.buildEntryUpdateDto(),
-        ENTRY_SUCCESS_MESSAGES.listUpdated,
-      );
-    }
-  }
-
-  onSaveOfficials(): void {
-    if (this.blockSaveWithoutApplicationCode()) {
-      return;
-    }
-
-    if (this.isEntrySaveInProgress()) {
-      return;
-    }
-
-    this.submitAttempt.update((attempt) => attempt + 1);
-    this.resetErrors();
-    this.resetSuccessBanner();
-    this.appListEntryDetailPatch({ formSubmitted: true });
-
-    if (this.runFullSubmitValidation()) {
-      return;
-    }
-
-    this.setEntrySaveButtonsDisabled(true);
-
-    this.submitEntryUpdate(
-      this.buildEntryUpdateDto(),
-      ENTRY_SUCCESS_MESSAGES.officialsUpdated,
-    );
-  }
-
-  private isEntrySaveInProgress(): boolean {
-    return this.disableOfficialButton() || this.disableSaveCompleteAppBtn();
-  }
-
-  private setEntrySaveButtonsDisabled(disabled: boolean): void {
-    this.disableOfficialButton.set(disabled);
-    this.disableSaveCompleteAppBtn.set(disabled);
-  }
-
-  private buildEntryUpdateDto(): EntryUpdateDto {
-    if (!this.entryDetail) {
-      throw new Error('entryDetail is not loaded');
-    }
-
-    return this.formSvc.buildUpdateDto(
-      this.entryDetail,
-      this.forms,
-      this.form.controls.standardApplicantCode.value,
-    );
-  }
-
-  onStandardApplicantCodeChanged(code: string | null): void {
-    this.selectedStandardApplicantCode = code;
-    // In Update, no selection means no replacement of the persisted applicant.
-    const effectiveCode =
-      code ??
-      (this.applicantType === 'standard'
-        ? (this.entryDetail?.standardApplicantCode ?? null)
-        : null);
-    this.formSvc.setStandardApplicantCode(this.forms, effectiveCode, {
-      emitEvent: false,
-    });
+    // The snapshot preserves form values, but not unapplied wording or result drafts.
     if (
-      effectiveCode === this.entryDetail?.standardApplicantCode &&
-      !this.form.controls.standardApplicantId?.value
+      destination ===
+        `/applications-list/${appListId}/update-entry/${entryId}/change-payment-reference` &&
+      (this.wordingSection?.hasUnchangedContent() ?? true) &&
+      (this.resultWordingSection?.hasUnchangedContent() ?? true)
     ) {
-      this.form.controls.standardApplicantId?.setValue(
-        this.entryDetail?.standardApplicantId ?? null,
-        { emitEvent: false },
-      );
-    }
-  }
-
-  onSelectedStandardApplicantSummaryChanged(
-    summary: SelectedStandardApplicantSummary | null,
-  ): void {
-    this.pendingStandardApplicantSummary = summary;
-    this.form.controls.standardApplicantId?.setValue(
-      summary?.standardApplicantId ??
-        (this.form.controls.standardApplicantCode.value ===
-        this.entryDetail?.standardApplicantCode
-          ? (this.entryDetail?.standardApplicantId ?? null)
-          : null),
-    );
-  }
-
-  onOffsiteFeeChanged(nextValue: boolean): void {
-    if (this.blockSaveWithoutApplicationCode()) {
-      return;
-    }
-
-    const prev = this.persistedHasOffsiteFee;
-
-    if (prev === nextValue) {
-      return;
-    }
-
-    this.persistHasOffsiteFee(nextValue, prev);
-  }
-
-  onCivilFeeSubmitAttempt(): void {
-    this.submitAttempt.update((attempt) => attempt + 1);
-  }
-
-  private persistHasOffsiteFee(nextValue: boolean, prevValue: boolean): void {
-    const entryId = getEntryId(this.route);
-
-    if (!entryId || !this.entryDetail) {
-      return;
-    }
-
-    if (this.runWordingValidationForPartialSave()) {
-      this.form.controls.hasOffsiteFee.setValue(prevValue, {
-        emitEvent: false,
-      });
-      this.form.controls.hasOffsiteFee.markAsPristine();
-      return;
-    }
-
-    const entryUpdateDto = buildEntryUpdateDtoForFeeChange(
-      this.entryDetail,
-      this.form.getRawValue(),
-      'hasOffsiteFee',
-      nextValue,
-    );
-
-    const params: UpdateApplicationListEntryRequestParams = {
-      listId: this.appListEntryDetailState().appListId,
-      entryId,
-      entryUpdateDto,
-    };
-
-    this.entriesApi
-      .updateApplicationListEntry(params, 'body', false, {
-        transferCache: false,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          this.mergeEntryDetailUpdate(entryUpdateDto, res);
-          this.persistedHasOffsiteFee = nextValue;
-          const offsiteFee = this.entryDetail?.fees?.find(
-            (fee) => fee.offsite === true,
-          );
-          const codeDetail = this.appListEntryDetailState().appCodeDetail;
-          this.feeMeta = {
-            ...this.feeMeta,
-            offsiteFeeReference: nextValue
-              ? (offsiteFee?.reference ??
-                codeDetail?.offsiteFeeReference ??
-                null)
-              : null,
-            offsiteFeeDescription: nextValue
-              ? (offsiteFee?.description ??
-                codeDetail?.offsiteFeeDescription ??
-                null)
-              : null,
-            offsiteFeeAmount: nextValue
-              ? typeof offsiteFee?.value === 'number'
-                ? { value: offsiteFee.value * 100, currency: 'GBP' }
-                : (codeDetail?.offsiteFeeAmount ?? null)
-              : null,
-          };
-          if (this.savedContent) {
-            this.savedContent.form.hasOffsiteFee = nextValue;
-          }
-          this.form.controls.hasOffsiteFee.markAsPristine();
-
-          this.appListEntryDetailPatch({
-            successBanner: nextValue
-              ? ENTRY_SUCCESS_MESSAGES.offSiteFeeApplied
-              : ENTRY_SUCCESS_MESSAGES.offSiteFeeRemoved,
-          });
-          focusSuccessBanner(this.platformId);
-        },
-        error: (err) => {
-          // rollback UI state
-          this.form.controls.hasOffsiteFee.setValue(prevValue, {
-            emitEvent: false,
-          });
-          this.form.controls.hasOffsiteFee.markAsPristine();
-
-          this.applyMappedError(err);
-        },
-      });
-  }
-
-  // ——— Form accessors ———
-  get personGroup(): PersonForm {
-    return this.personForm;
-  }
-
-  get organisationGroup(): OrganisationForm {
-    return this.organisationForm;
-  }
-
-  get applicantType(): ApplicantType {
-    return this.form.controls.applicantType.value ?? 'person';
-  }
-
-  get isUpdateDisabled(): boolean {
-    if (this.isEntrySaveInProgress()) {
       return true;
     }
-
-    if (!this.entryDetail) {
-      return true;
-    }
-
-    switch (this.applicantType) {
-      case 'standard':
-        return !this.form.controls.standardApplicantCode.value;
-      case 'person':
-      case 'org':
-        return false;
-      default:
-        return true;
-    }
+    const changed = !this.contentIsUnchanged();
+    return this.navigationWarning?.canLeave(changed) ?? !changed;
   }
 
-  get applicationNotesForm(): ApplicationNotesForm {
-    return this.form.controls.applicationNotes;
-  }
-
-  // ── Private helpers ─────────────────────────────────────────────────────────
-  private applyMappedError(err: unknown): void {
-    const mapped = mapHttpErrorToSummary(err);
-    this.appListEntryDetailPatch({
-      errorHint: mapped.errorHint,
-      summaryErrors: mapped.errorSummary,
-      errorFound: mapped.errorSummary.length > 0,
-    });
-  }
-
-  get applicationCodeSaveDisabled(): boolean {
+  private contentIsUnchanged(): boolean {
     return (
-      !this.savedApplicationCodeLoaded() ||
-      (!!this.form.controls.applicationCode.value && !this.vm().appCodeDetail)
+      this.savedContent === undefined ||
+      (this.formSvc.hasUnchangedContent(this.forms, this.savedContent) &&
+        (this.wordingSection?.hasUnchangedContent() ?? true) &&
+        (this.resultWordingSection?.hasUnchangedContent() ?? true))
     );
   }
 
-  private blockSaveWithoutApplicationCode(): boolean {
-    if (
-      this.savedApplicationCodeLoaded() &&
-      !this.form.controls.applicationCode.value
-    ) {
-      this.submitAttempt.update((attempt) => attempt + 1);
-      this.appListEntryDetailPatch({ formSubmitted: true });
-      this.runFullSubmitValidation();
-      return true;
-    }
-    if (this.savedApplicationCodeLoaded() && this.vm().appCodeDetail) {
-      return false;
-    }
-    this.showApplicationCodeLoadError();
-    return true;
-  }
-
-  private showApplicationCodeLoadError(): void {
-    this.appListEntryDetailPatch({
-      errorFound: true,
-      errorHint: 'There is a problem',
-      summaryErrors: [
-        {
-          text: 'Application code details could not be loaded. You cannot save this application until the details are available.',
-        },
-      ],
-    });
-  }
-
-  private loadCodesSectionFromEntry(
-    entry: EntryGetDetailDto,
-    onLoaded?: () => void,
-  ): void {
-    const lodgementDate = entry.lodgementDate.slice(0, 10);
-    const applicationCode = entry.applicationCode;
-
-    this.form.patchValue({ lodgementDate, applicationCode });
-
-    this.savedApplicationCodeLoaded.set(false);
-    this.feeMeta = null;
-    this.form.patchValue({ applicationTitle: '' });
-    this.appListEntryDetailPatch({
-      appCodeDetail: null,
-      formReady: false,
-      isFeeRequired: false,
-      bulkApplicationsAllowed: false,
-    });
-    if (
-      entry.applicationCodeId === null ||
-      entry.applicationCodeId === undefined
-    ) {
-      this.appListEntryDetailPatch({ formReady: true });
-      this.showApplicationCodeLoadError();
-      return;
-    }
-
-    // Check if fees is populated and use this first
-    const feesMetaExistsInResponse = (entry.fees?.length ?? 0) > 0;
-
-    if (feesMetaExistsInResponse) {
-      const feesArr = entry.fees ?? [];
-
-      if (!feesArr.length) {
-        return;
-      }
-
-      const mainFee = feesArr.find((fee) => fee.offsite !== true);
-      const offsiteFee = feesArr.find((fee) => fee.offsite === true);
-
-      const feeMeta = {
-        feeReference: mainFee?.reference ?? null,
-        feeDescription: mainFee?.description ?? null,
-        feeAmount:
-          mainFee?.value === null || mainFee?.value === undefined
-            ? null
-            : { value: mainFee.value * 100, currency: 'GBP' }, // formatGbp() assumes the returned value in pence so multiple by 100
-        offsiteFeeReference: offsiteFee?.reference ?? null,
-        offsiteFeeDescription: offsiteFee?.description ?? null,
-        offsiteFeeAmount:
-          offsiteFee?.value === null || offsiteFee?.value === undefined
-            ? null
-            : { value: offsiteFee.value * 100, currency: 'GBP' }, // formatGbp() assumes the returned value in pence so multiple by 100
-      };
-
-      this.feeMeta = feeMeta;
-    }
-
-    this.applicationCodesApi
-      .getApplicationCodeById({ id: entry.applicationCodeId }, 'body', false, {
-        transferCache: true,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (codeDto) => {
-          this.form.patchValue({ applicationTitle: codeDto.title });
-          this.handleResultWordingContext(this.navState);
-
-          if (!feesMetaExistsInResponse) {
-            this.feeMeta = {
-              feeReference: codeDto.feeReference ?? null,
-              feeDescription: codeDto.feeDescription ?? null,
-              feeAmount: codeDto.feeAmount ?? null,
-              offsiteFeeReference: codeDto.offsiteFeeReference ?? null,
-              offsiteFeeDescription: codeDto.offsiteFeeDescription ?? null,
-              offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
-            };
-          }
-
-          this.savedApplicationCodeLoaded.set(true);
-          this.appListEntryDetailPatch({
-            appCodeDetail: codeDto,
-            isFeeRequired: codeDto.isFeeDue,
-            bulkApplicationsAllowed: codeDto.bulkRespondentAllowed,
-            formReady: true,
-          });
-          onLoaded?.();
-        },
-        error: () => {
-          this.form.patchValue({ applicationTitle: '' });
-          this.handleResultWordingContext(this.navState);
-          this.appListEntryDetailPatch({ formReady: true });
-          this.showApplicationCodeLoadError();
-        },
-      });
-  }
-
-  private bindApplicantTypeChanges(): void {
-    this.form.controls.applicantType.valueChanges
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        map((type): ApplicantType => type ?? 'person'),
-      )
-      .subscribe((t) => {
-        this.appListEntryDetailPatch({ formSubmitted: false });
-
-        this.resetErrors();
-
-        // keep UI state in sync
-        this.selectedStandardApplicantCode =
-          t === 'standard' ? this.selectedStandardApplicantCode : null;
-        this.pendingStandardApplicantSummary =
-          t === 'standard' ? this.pendingStandardApplicantSummary : null;
-
-        // let the service reset the subforms + standard code
-        this.formSvc.onApplicantTypeChanged(this.forms, t);
-        this.formSvc.syncApplicantTypeState(this.forms, t);
-        if (t === 'standard') {
-          // Update restores the saved selection when returning to its section.
-          this.onStandardApplicantCodeChanged(
-            this.selectedStandardApplicantCode ??
-              this.savedStandardApplicantCode,
-          );
-        }
-      });
-  }
-
-  private bindPartyValidationChanges(): void {
-    this.formSvc
-      .partyValidationChanges(this.forms)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        if (!this.vm().formSubmitted) {
-          return;
-        }
-
-        this.updateAllErrors({ focusSummary: false });
-      });
-  }
-
-  private resetErrors(): void {
-    this.appListEntryDetailPatch({
-      errorHint: 'There is a problem',
-      summaryErrors: [],
-      errorFound: false,
-    });
-
-    this.parentErrors = [];
-    this.childErrors = {
-      codes: [],
-      notes: [],
-      fee: [],
-      respondent: [],
-      applicant: [],
-      civilFee: [],
-      wording: [],
-      resultWording: [],
-    };
-    if (this.vm().formReady && !this.savedApplicationCodeLoaded()) {
-      this.showApplicationCodeLoadError();
-    }
-  }
-
-  // ——— Data loading & mapping ———
-  //Also loads entry result
-  private loadEntryAndPatchForm(
-    listId: string,
-    entryId: string,
-    paymentRefReturn: PaymentRefReturn | null,
-    state: EntryDetailNavState | null | undefined,
-  ): void {
-    this.entriesApi
-      .getApplicationListEntry({ listId, entryId }, 'body', false, {
-        context: undefined,
-        transferCache: true,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (entry) => {
-          this.entryDetail = entry;
-          this.persistedHasOffsiteFee = entry.hasOffsiteFee === true;
-
-          const hydrate = this.formSvc.hydrateFromDto(entry, this.forms, {
-            emitEvent: false,
-          });
-
-          this.selectedStandardApplicantCode =
-            hydrate.selectedStandardApplicantCode;
-          this.savedStandardApplicantCode =
-            hydrate.selectedStandardApplicantCode;
-          this.savedStandardApplicantName = null;
-          this.savedStandardApplicantDetailsUnavailable = false;
-          this.pendingStandardApplicantSummary = null;
-          this.savedStandardApplicantId =
-            entry.standardApplicantId ?? undefined;
-          this.loadSavedStandardApplicantName(this.savedStandardApplicantId);
-
-          const type = this.form.controls.applicantType.value ?? 'person';
-          this.formSvc.syncApplicantTypeState(this.forms, type);
-          this.savedContent = this.formSvc.editableContent(this.forms);
-          this.applyEntryDetailSnapshot(state?.entryDetailSnapshot);
-          this.handleResultWordingContext(state);
-
-          this.resultsFacade.loadEntryResults(listId, entryId);
-
-          this.loadCodesSectionFromEntry(entry, () => {
-            const snapshot = state?.entryDetailSnapshot;
-            // Preserve a deliberately staged replacement when returning from payment editing.
-            // For the saved code, use the freshly fetched exact record's metadata.
-            if (
-              isRecord(snapshot?.form) &&
-              hasStringProp(snapshot.form, 'applicationCode') &&
-              snapshot.form.applicationCode &&
-              (snapshot.form.applicationCode !== entry.applicationCode ||
-                (typeof snapshot.appCodeDetail?.applicationCodeId ===
-                  'number' &&
-                  snapshot.appCodeDetail.applicationCodeId !==
-                    entry.applicationCodeId))
-            ) {
-              this.applyEntryDetailSnapshot(snapshot);
-            }
-            if (paymentRefReturn) {
-              this.applyPaymentRefReturn(
-                paymentRefReturn.updatedRowId,
-                paymentRefReturn.newPaymentReference,
-              );
-            }
-          });
-        },
-        error: (err) => this.handleFatalLoadError(err),
-      });
+  private clearPaymentRefNavigationStateOnly(): void {
+    const current = (history.state ?? {}) as Record<string, unknown>;
+    const { paymentRefReturn, entryDetailSnapshot, ...rest } = current;
+    history.replaceState(rest, '');
   }
 
   buildChangePaymentReferenceState = (): Record<string, unknown> => ({
@@ -1615,6 +1827,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     };
   }
 
+  /** Restores form and section state captured before navigation. */
   private applyEntryDetailSnapshot(
     state: EntryDetailSnapshot | undefined,
   ): void {
@@ -1696,95 +1909,81 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.formSvc.syncApplicantTypeState(this.forms, type);
   }
 
-  private loadSavedStandardApplicantName(id: number | null | undefined): void {
-    if (!id) {
-      this.savedStandardApplicantName = null;
-      this.savedStandardApplicantDetailsUnavailable = false;
-      this.pendingStandardApplicantSummary = null;
-      this.savedStandardApplicantId = null;
-      return;
-    }
+  /**
+   * Form accessors and DTO helpers
+   */
 
-    this.savedStandardApplicantDetailsUnavailable = false;
-
-    this.standardApplicantsApi
-      .getStandardApplicantById({ id })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (
-          applicant: StandardApplicantGetDetailDto & { applicant?: Applicant },
-        ) => {
-          this.saveStandardApplicantDetailsFromResponse(applicant);
-        },
-        error: (err) => {
-          this.savedStandardApplicantName = null;
-          this.savedStandardApplicantDetailsUnavailable = true;
-          this.pendingStandardApplicantSummary = null;
-
-          // Append standard applicant errors with existing errors
-          const allErrors = this.appListEntryDetailState().summaryErrors;
-          const summaryErrors = [
-            ...allErrors,
-            {
-              text: getProblemText(err) ?? 'Failed to load standard applicant',
-            },
-          ];
-
-          this.appListEntryDetailPatch({
-            errorFound: true,
-            summaryErrors,
-          });
-        },
-      });
+  get respondentErrorItems(): ErrorItem[] {
+    return this.childErrors.respondent;
   }
 
-  private saveStandardApplicantDetailsFromResponse(
-    applicant: StandardApplicantGetDetailDto & { applicant?: Applicant },
-  ): void {
-    this.savedStandardApplicantName =
-      applicant.name?.trim() ||
-      returnOrgName(applicant.applicant)?.trim() ||
-      null;
-    this.savedStandardApplicantDetailsUnavailable =
-      this.savedStandardApplicantName === null;
-    this.pendingStandardApplicantSummary ??= this.savedStandardApplicantName
-      ? {
-          code: applicant.code.trim(),
-          standardApplicantId: this.savedStandardApplicantId ?? undefined,
-          name: this.savedStandardApplicantName,
-        }
-      : null;
+  get applicantErrorItems(): ErrorItem[] {
+    return this.childErrors.applicant;
   }
 
-  private applySavedStandardApplicantSummary(): void {
-    this.savedStandardApplicantId =
-      this.entryDetail?.standardApplicantId ?? null;
-    if (this.applicantType !== 'standard') {
-      this.savedStandardApplicantCode = null;
-      this.savedStandardApplicantName = null;
-      this.savedStandardApplicantDetailsUnavailable = false;
-      this.pendingStandardApplicantSummary = null;
-      return;
+  get personGroup(): PersonForm {
+    return this.personForm;
+  }
+
+  get organisationGroup(): OrganisationForm {
+    return this.organisationForm;
+  }
+
+  get applicantType(): ApplicantType {
+    return this.form.controls.applicantType.value ?? 'person';
+  }
+
+  get isUpdateDisabled(): boolean {
+    if (this.isEntrySaveInProgress()) {
+      return true;
     }
 
-    const pending = this.pendingStandardApplicantSummary;
-    const currentCode = this.selectedStandardApplicantCode?.trim() || '';
+    if (!this.entryDetail) {
+      return true;
+    }
 
-    if (pending?.code.trim() === currentCode) {
-      this.savedStandardApplicantCode = pending.code.trim() || null;
-      this.savedStandardApplicantName = pending.name.trim() || null;
-      this.savedStandardApplicantDetailsUnavailable =
-        this.savedStandardApplicantName === null;
+    switch (this.applicantType) {
+      case 'standard':
+        return !this.form.controls.standardApplicantCode.value;
+      case 'person':
+      case 'org':
+        return false;
+      default:
+        return true;
     }
   }
 
-  private handleListCreate(): void {
-    if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
-      this.appListEntryDetailPatch({
-        successBanner: ENTRY_SUCCESS_MESSAGES.listCreated,
-      });
-      focusSuccessBanner(this.platformId);
+  get applicationNotesForm(): ApplicationNotesForm {
+    return this.form.controls.applicationNotes;
+  }
+
+  get hasBlockingFeeStatuses(): boolean {
+    return (
+      this.entryDetail?.feeStatuses?.some(
+        (status) =>
+          status.paymentStatus === PaymentStatus.PAID ||
+          status.paymentStatus === PaymentStatus.REMITTED,
+      ) ?? false
+    );
+  }
+
+  get applicationCodeSaveDisabled(): boolean {
+    return (
+      !this.savedApplicationCodeLoaded() ||
+      (!!this.form.controls.applicationCode.value && !this.vm().appCodeDetail)
+    );
+  }
+
+  private buildEntryUpdateDto(): EntryUpdateDto {
+    if (!this.entryDetail) {
+      throw new Error('entryDetail is not loaded');
     }
+
+    return this.formSvc.buildUpdateDto(
+      this.entryDetail,
+      this.forms,
+      this.form.controls.standardApplicantCode.value,
+    );
   }
 
   private getLegacyWordingFields(
@@ -1843,136 +2042,5 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     return patch;
-  }
-
-  onSubmitResults(payload: ResultSectionSubmitPayload): void {
-    const entryId = getEntryId(this.route);
-    const listId = this.appListEntryDetailState().appListId;
-
-    if (!entryId || !listId) {
-      return;
-    }
-
-    this.resetSuccessBanner();
-    this.resultsFacade.setPending(payload.pendingToCreate ?? []);
-
-    this.resultAppliedBannerVisible.set(true);
-
-    focusLocalBanner(this.platformId, '#results-local-banner');
-
-    this.appListEntryDetailPatch({
-      pendingResults:
-        payload.pendingToCreate.length > 0 ||
-        payload.existingToUpdate.length > 0,
-      resultsPayload: { entryId, listId, payload },
-    });
-  }
-
-  onRemoveResult(resultId: string): void {
-    if (this.blockSaveWithoutApplicationCode()) {
-      return;
-    }
-
-    const entryId = getEntryId(this.route);
-    const listId = this.appListEntryDetailState().appListId;
-
-    if (!entryId || !resultId) {
-      return;
-    }
-
-    this.resultsFacade.removeResult(
-      listId,
-      entryId,
-      resultId,
-      () => {
-        this.appListEntryDetailPatch({
-          successBanner: ENTRY_SUCCESS_MESSAGES.resultRemoved,
-        });
-        focusSuccessBanner(this.platformId);
-      },
-      (err) => this.applyMappedError(err),
-    );
-  }
-
-  onPendingChange(rows: PendingResultRow[]): void {
-    this.resultsFacade.setPending(rows);
-
-    // update stale results on change
-    const state = this.appListEntryDetailState();
-    if (!state.pendingResults) {
-      return;
-    }
-
-    const payload = {
-      ...state.resultsPayload.payload,
-      pendingToCreate: rows ?? [],
-    };
-    const pendingResults =
-      payload.pendingToCreate.length > 0 || payload.existingToUpdate.length > 0;
-
-    if (!pendingResults) {
-      this.resultAppliedBannerVisible.set(false);
-    }
-
-    this.appListEntryDetailPatch({
-      pendingResults,
-      resultsPayload: {
-        ...state.resultsPayload,
-        payload,
-      },
-    });
-  }
-
-  private handleFatalLoadError(err: unknown): void {
-    const { errorHint, errorSummary } = mapHttpErrorToSummary(err);
-    this.submitAttempt.update((attempt) => attempt + 1);
-
-    this.appListEntryDetailPatch({
-      errorHint,
-      summaryErrors: errorSummary,
-      errorFound: true,
-    });
-  }
-
-  private handleResultWordingContext(
-    state: EntryDetailNavState | null | undefined,
-  ): void {
-    const currentTitle =
-      this.form.controls.applicationTitle?.value?.trim() ||
-      this.appListEntryDetailState().appCodeDetail?.title ||
-      state?.resultApplicantContext?.title ||
-      '';
-
-    if (!this.entryDetail) {
-      this.resultApplicantContext = state?.resultApplicantContext
-        ? [
-            {
-              ...state.resultApplicantContext,
-              title: currentTitle,
-            },
-          ]
-        : [];
-      return;
-    }
-
-    const apiContext = buildResultApplicantContext(
-      this.entryDetail,
-      currentTitle,
-    );
-
-    this.resultApplicantContext = [
-      state?.resultApplicantContext
-        ? {
-            applicant:
-              this.entryDetail.standardApplicantCode?.trim() &&
-              state.resultApplicantContext.applicant
-                ? state.resultApplicantContext.applicant
-                : apiContext.applicant,
-            respondent:
-              apiContext.respondent || state.resultApplicantContext.respondent,
-            title: currentTitle,
-          }
-        : apiContext,
-    ];
   }
 }

@@ -112,7 +112,19 @@
             name="fileUpload1"
             type="file"
             aria-labelledby="file-upload-1-label"
+            aria-describedby="file-upload-1-selection"
           />
+        </div>
+        <!-- Safari voiceover bug, ARCPOC-1984. TODO: remove this div when this GDS component is fixed -->
+        <!-- There is an additional bug where stale file names are retained in safari + voicevoer -->
+        <div
+          id="file-upload-1-selection"
+          class="govuk-visually-hidden"
+          aria-hidden="true"
+        >
+          @if (selectedFileName()) {
+            Selected file: {{ selectedFileName() }}
+          }
         </div>
         <button
           type="submit"
@@ -133,6 +145,7 @@
 </div>
 
 <hr
+  aria-hidden="true"
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 

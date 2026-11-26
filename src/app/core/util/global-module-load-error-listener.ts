@@ -139,6 +139,15 @@ function getModuleLoadErrorType(errorText: string): string | undefined {
   return match?.errorType;
 }
 
+/**
+ * Applies the rolling reload limit to module-load recovery attempts.
+ * An allowed attempt must be persisted in session storage before reloading;
+ * otherwise a reload could discard the counter and repeat indefinitely.
+ *
+ * @param target - Browser target supplying session storage.
+ * @param now - Current timestamp used to expire attempts outside the window.
+ * @returns The attempts in the current window and whether reload is allowed.
+ */
 function getReloadDecision(
   target: ModuleLoadErrorListenerTarget,
   now: number,
@@ -186,6 +195,14 @@ function getReloadAttempts(storage: Storage | undefined): StoredReloadAttempts {
   };
 }
 
+/**
+ * Reads finite reload timestamps from session storage.
+ * Unavailable storage is distinguished from empty or malformed stored data:
+ * the latter can still accept a new persisted attempt before reloading.
+ *
+ * @param storage - Browser session storage, when accessible.
+ * @returns Valid timestamps and whether storage is available.
+ */
 function readStoredReloadAttempts(
   storage: Storage | undefined,
 ): StoredReloadAttempts {
@@ -287,6 +304,15 @@ function isUnknownArray(value: unknown): value is unknown[] {
   return Array.isArray(value);
 }
 
+/**
+ * Extracts searchable text from error events and nested rejection reasons.
+ * It follows known error-like fields and ignores repeated object references
+ * so circular event payloads cannot recurse indefinitely.
+ *
+ * @param value - Error, event, rejection reason, or nested error-like value.
+ * @param seen - Objects already visited during recursive extraction.
+ * @returns Combined text used to identify module-load failures.
+ */
 function toErrorText(
   value: unknown,
   seen: WeakSet<object> = new WeakSet<object>(),

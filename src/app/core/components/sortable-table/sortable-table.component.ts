@@ -1,10 +1,3 @@
-/**
- * Depends on `@ministryofjustice/frontend` `SortableTable` for sortable header UI/interactions
- * Sorting mode is controlled by `clientOrServerSort`:
- * client sorts in-browser via `data-sort-value` from `getSortValue()`
- * server keeps the same UI but emits `sortChange` for parent-side fetch/sort.
- */
-
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   AfterViewChecked,
@@ -50,6 +43,12 @@ export type TableColumn = {
   defaultSort?: 'ascending' | 'descending' | 'none';
 };
 
+/**
+ * Depends on `@ministryofjustice/frontend` `SortableTable` for sortable header UI/interactions
+ * Sorting mode is controlled by `clientOrServerSort`:
+ * client sorts in-browser via `data-sort-value` from `getSortValue()`
+ * server keeps the same UI but emits `sortChange` for parent-side fetch/sort.
+ */
 @Component({
   selector: 'app-sortable-table',
   standalone: true,
@@ -272,6 +271,11 @@ export class SortableTableComponent
     this.tryInitSortableTable();
   }
 
+  /**
+   * Lazily initializes the MOJ sortable-table widget for browser-side sorting.
+   * Server sorting and repeated view checks skip initialization.
+   * Failed imports leave the table usable and allow a later attempt.
+   */
   private tryInitSortableTable(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;

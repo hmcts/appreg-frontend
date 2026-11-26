@@ -1,7 +1,7 @@
 <div class="govuk-form-group">
   <fieldset class="govuk-fieldset" [attr.aria-describedby]="ariaDescribedBy()">
     <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
-      <h1 class="govuk-fieldset__heading">{{ legend() }}</h1>
+      {{ legend() }}
     </legend>
 
     <div class="govuk-radios" data-module="govuk-radios">
@@ -13,6 +13,9 @@
             [name]="name()"
             type="radio"
             [value]="r.id"
+            [attr.aria-describedby]="
+              r.hint ? idPrefix() + '-' + r.id + '-hint' : null
+            "
             [disabled]="formDisabled || selectorDisabled() || !!r.disabled"
             [attr.disabled]="
               formDisabled || selectorDisabled() || !!r.disabled ? true : null

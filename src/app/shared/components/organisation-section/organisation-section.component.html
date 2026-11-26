@@ -18,6 +18,7 @@
   </fieldset>
 
   <hr
+    aria-hidden="true"
     class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
   />
   <fieldset class="govuk-fieldset">
@@ -40,7 +41,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="addressLine2"
-        label="Address line 2"
+        label="Address line 2 (optional)"
         [idPrefix]="scopeId() + '-org-address-line-2'"
         [error]="errorFor(scopeId() + '-org-address-line-2')"
         widthClass="govuk-!-width-full"
@@ -50,7 +51,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="addressLine3"
-        label="Town or city"
+        label="Town or city (optional)"
         [idPrefix]="scopeId() + '-org-address-line-3'"
         [error]="errorFor(scopeId() + '-org-address-line-3')"
         widthClass="govuk-!-width-full"
@@ -60,7 +61,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="addressLine4"
-        label="County or region"
+        label="County or region (optional)"
         [idPrefix]="scopeId() + '-org-address-line-4'"
         [error]="errorFor(scopeId() + '-org-address-line-4')"
         widthClass="govuk-!-width-full"
@@ -70,7 +71,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="addressLine5"
-        label="Post town"
+        label="Post town (optional)"
         [idPrefix]="scopeId() + '-org-address-line-5'"
         [error]="errorFor(scopeId() + '-org-address-line-5')"
         widthClass="govuk-!-width-full"
@@ -80,7 +81,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="postcode"
-        label="Postcode"
+        label="Postcode (optional)"
         hint="For example, SW1A 2AA"
         [idPrefix]="scopeId() + '-org-postcode'"
         [submitted]="submitted()"
@@ -92,6 +93,7 @@
   </fieldset>
 
   <hr
+    aria-hidden="true"
     class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
   />
 
@@ -103,7 +105,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="phoneNumber"
-        label="Phone number"
+        label="Phone number (optional)"
         hint="For example, 020 7946 0000"
         [idPrefix]="scopeId() + '-org-phone-number'"
         inputType="tel"
@@ -117,7 +119,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="mobileNumber"
-        label="Mobile number"
+        label="Mobile number (optional)"
         hint="For example, 07123 456789"
         [idPrefix]="scopeId() + '-org-mobile-number'"
         inputType="tel"
@@ -131,7 +133,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="emailAddress"
-        label="Email address"
+        label="Email address (optional)"
         hint="For example, name@department.gov.uk"
         [idPrefix]="scopeId() + '-org-email-address'"
         inputType="email"

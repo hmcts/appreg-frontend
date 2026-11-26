@@ -1,7 +1,3 @@
-/**
- * Standard Applicant table selection
- */
-
 import {
   ChangeDetectionStrategy,
   Component,
@@ -58,6 +54,17 @@ type StandardApplicantFilters = Pick<
   'code' | 'name'
 >;
 
+/**
+ * Standard Applicant table selection
+ *
+ * Functionality:
+ * - Searches standard applicants by code or name.
+ * - Displays paginated, sortable search results.
+ * - Tracks the selected applicant and reports changes to the parent component.
+ * - Reports search and loading errors to the parent component.
+ * - Validation rules:
+ *   - Code is limited to 10 characters and name to 100 characters.
+ */
 @Component({
   selector: 'app-standard-applicant-select',
   standalone: true,

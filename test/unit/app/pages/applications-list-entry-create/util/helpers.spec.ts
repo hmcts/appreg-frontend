@@ -1,7 +1,6 @@
 // helpers.spec.ts
 // Adjust the import path to match your project structure.
 import {
-  compactStrings,
   hasRequiredOrg,
   hasRequiredPerson,
   makeContactDetails,
@@ -22,23 +21,6 @@ describe('helpers', () => {
     it('trims and returns non-empty strings', () => {
       expect(toOptionalTrimmed('  abc  ')).toBe('abc');
       expect(toOptionalTrimmed('a')).toBe('a');
-    });
-  });
-
-  describe('compactStrings', () => {
-    it('returns undefined for empty input or when all values are empty after trim', () => {
-      expect(compactStrings([])).toBeUndefined();
-      expect(compactStrings([null, undefined, '', '   '])).toBeUndefined();
-    });
-
-    it('trims values and filters out nullish/empty strings', () => {
-      expect(
-        compactStrings([' a ', null, 'b', '   ', undefined, ' c ']),
-      ).toEqual(['a', 'b', 'c']);
-    });
-
-    it('preserves order', () => {
-      expect(compactStrings(['  z ', 'a', '  m  '])).toEqual(['z', 'a', 'm']);
     });
   });
 

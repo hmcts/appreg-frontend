@@ -17,6 +17,14 @@ export type PageHeaderAction = {
   onClick?: (this: void, ev: Event) => void;
 };
 
+/**
+ * PageHeaderComponent
+ *
+ * Functionality:
+ * - Displays a page header and actions.
+ * - Applies header styles based on action type and size.
+ * - Supports actions with secondary or warning presentation.
+ */
 @Component({
   selector: 'app-page-header',
   standalone: true,
@@ -27,6 +35,7 @@ export type PageHeaderAction = {
 export class PageHeaderComponent {
   title = input.required<string>();
   actions = input<PageHeaderAction[]>([]);
+  headingTag = input<'h1' | 'h2' | 'h3' | 'h4'>('h1');
 
   /** GOV.UK heading size: xl | l | m | s */
   size = input<'xl' | 'l' | 'm' | 's'>('xl');

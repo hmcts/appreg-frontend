@@ -78,8 +78,15 @@ export class PdfService {
   private readonly dateTimePipe = inject(DateTimePipe);
 
   /**
-   * Single-entry, paged layout (portrait).
-   * Intentionally mirrors the continuous layout’s typography where sensible.
+   * Saves application list entries in a paged portrait PDF.
+   * Each entry starts on a new page, and long entry content can continue beneath
+   * a repeated header on another page. An optional crest is loaded once for all
+   * headers (in this application we always render '/assets/govuk-crest.png').
+   * Failure to load or draw it does not stop PDF generation.
+   *
+   * @param dto - One list or an array of lists to normalize and render in order.
+   * @param opts - Optional crest URL used in each page header.
+   * @returns A promise that resolves after the PDF has been saved.
    */
   async generatePagedApplicationListPdf(
     dto: unknown,
@@ -290,8 +297,14 @@ export class PdfService {
   }
 
   /**
-   * Multi-entry, continuous layout (landscape).
-   * Uses a two-column grid; labels are short and values wrap.
+   * Saves multiple application lists in a continuous landscape PDF.
+   * Most rows use two columns with wrapping values. Long full-width values can
+   * split across pages with a continued label. New pages receive a fresh header.
+   * The closed-list flag selects the document header text.
+   *
+   * @param dtos - List data to normalize and render in input order.
+   * @param isClosed - Whether to use the closed-list page header.
+   * @returns A promise that resolves after the PDF has been saved.
    */
   async generateContinuousApplicationListsPdf(
     dtos: unknown[],
@@ -542,6 +555,14 @@ export class PdfService {
     );
   }
 
+  /**
+   * Saves a portrait report of standard applicants and any search criteria.
+   * Each applicant is rendered as a table that may move to another page;
+   * an absent DTO exits without creating a PDF.
+   *
+   * @param dto - Applicants and search criteria to print.
+   * @returns A promise that resolves after the PDF has been saved or skipped.
+   */
   async generateStandardApplicantsPdf(
     dto: StandardApplicantPrintDto,
   ): Promise<void> {
@@ -621,6 +642,92 @@ export class PdfService {
     doc.save(`standard-applicant-pdf-${todaysDate}.pdf`);
   }
 
+  previewContinuousApplicationLists(
+    dtos: unknown[],
+    isClosed: boolean,
+    target: Document,
+    description?: string,
+    container: HTMLElement = target.body,
+  ): void {
+    const title =
+      description?.trim() ||
+      `${this.getContinuousPageHeader(isClosed)} – Preview`;
+    target.title = `Application List - ${title}`;
+    target.documentElement.lang = 'en';
+    const main = target.createElement('section');
+    main.className = 'app-print-preview';
+    const heading = target.createElement('h1');
+    heading.className = 'govuk-heading-l';
+    heading.textContent = title;
+    main.append(heading);
+
+    const addRow = (label: string, value: string): void => {
+      const row = target.createElement('div');
+      row.className = 'govuk-summary-list__row';
+      // Location is the final AL header row, immediately above its entries.
+      if (label === 'Location') {
+        row.classList.add('app-print-preview-entries-start');
+      }
+      const key = target.createElement('dt');
+      key.className = 'govuk-summary-list__key';
+      key.textContent = label;
+      const content = target.createElement('dd');
+      content.className = 'govuk-summary-list__value';
+      // Preserve report line breaks without treating any report content as HTML.
+      value.split('\n').forEach((line, index) => {
+        if (index) {
+          content.append(target.createElement('br'));
+        }
+        content.append(target.createTextNode(line));
+      });
+      row.append(key, content);
+      rows.append(row);
+    };
+    let rows = target.createElement('dl');
+    rows.className = 'govuk-summary-list';
+    main.append(rows);
+    let entryNumber = 0;
+    // Reuse the PDF's formatting and field selection; only the layout differs.
+    this.renderContinuousApplicationLists(
+      dtos.map((dto) => this.normalise(dto)),
+      dtos,
+      () => {
+        rows = target.createElement('dl');
+        rows.className = 'govuk-summary-list';
+        main.append(target.createElement('hr'), rows);
+      },
+      (leftLabel, leftValue, rightLabel, rightValue) => {
+        if (leftLabel === 'Date & Time\nDuration') {
+          const [dateTime, duration] = leftValue.split('\n');
+          addRow('Date & Time', dateTime);
+          addRow('Duration', duration);
+        } else {
+          addRow(
+            leftLabel === `${entryNumber}. Applicant` ? 'Applicant' : leftLabel,
+            leftValue,
+          );
+        }
+        addRow(rightLabel, rightValue);
+      },
+      addRow,
+      (index) => {
+        entryNumber = index;
+        const entry = target.createElement('section');
+        entry.className = 'app-print-preview-entry app-print-preview-entry-end';
+        entry.setAttribute('aria-label', `Application list entry ${index}`);
+        const number = target.createElement('p');
+        number.className =
+          'govuk-body govuk-!-font-weight-bold app-print-preview-entry-number';
+        number.textContent = String(index);
+        rows = target.createElement('dl');
+        rows.className = 'govuk-summary-list';
+        entry.append(number, rows);
+        main.append(entry);
+      },
+    );
+    container.replaceChildren(main);
+  }
+
   // -------------------- Mapping helpers --------------------
 
   private renderContinuousApplicationLists(
@@ -629,6 +736,7 @@ export class PdfService {
     drawListDivider: () => void,
     drawTwoColRow: DrawContinuousTwoColumnRow,
     drawFullRow: DrawContinuousFullRow,
+    drawEntryStart?: (index: number) => void,
   ): void {
     let entryIndex = 0;
 
@@ -644,6 +752,7 @@ export class PdfService {
 
       for (const entry of data.entries) {
         entryIndex += 1;
+        drawEntryStart?.(entryIndex);
         this.drawContinuousEntry(entry, entryIndex, drawTwoColRow, drawFullRow);
       }
     }
@@ -819,6 +928,16 @@ export class PdfService {
     );
   }
 
+  /**
+   * Converts supported list and entry response shapes into the printable model.
+   * When several source fields represent the same value, the first nonempty
+   * candidate wins (for example, `date` before `listDate` and `hearingDate`).
+   * Missing or malformed objects become empty printable fields which are then
+   * resolved as '–'.
+   *
+   * @param dto - List response or compatible legacy data shape.
+   * @returns Values and entries used by both PDF layouts.
+   */
   private normalise(dto: unknown): PdfList {
     const root = asObj(dto) ?? {};
 
@@ -980,6 +1099,15 @@ export class PdfService {
     return address;
   }
 
+  /**
+   * Formats supported contact-detail field names for printable party text.
+   * Address fields are joined on one line; date of birth and available contact
+   * methods follow on separate lines.
+   *
+   * @param cd - Contact details in a current or legacy response shape.
+   * @param dob - Optional date of birth to include before contact methods.
+   * @returns Printable address and contact lines, or an empty string.
+   */
   private formatContactDetails(cd: unknown, dob?: string): string {
     const cdObj = asObj(cd);
     const addrObj = cdObj ? (asObj(cdObj['address']) ?? cdObj) : null;

@@ -1,5 +1,5 @@
+/// <reference types="cypress" />
 import { ConfirmationElement } from '../../pageobjects/generic/window/ConfirmationElement';
-
 export class ConfirmationHelper {
   /**
    * Accept the next confirmation dialog (if it appears).

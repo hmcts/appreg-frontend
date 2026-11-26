@@ -10,8 +10,15 @@ Then(
     const resolvedDateValue = DateTimeUtil.parseDateValue(value);
     const resolvedValue =
       TestDataGenerator.replaceRandomPlaceholders(resolvedDateValue);
+    const resolvedTimeValue = /\btimenowhhmm\b/i.test(value)
+      ? resolvedValue
+      : undefined;
 
-    SummaryListHelper.verifySummaryListRow(key, resolvedValue);
+    SummaryListHelper.verifySummaryListRow(
+      key,
+      resolvedValue,
+      resolvedTimeValue,
+    );
     cy.screenshot(`VerifiedSummaryListRow-${key}-${resolvedValue}`);
   },
 );

@@ -65,20 +65,17 @@ export function addFeeStatus(
   return { next: [...current, nextItem], changed: true };
 }
 
-/**
- * Builds:
- *  - no offsite: "Fee Reference: CO7.2  Amount: £25.00"
- *  - offsite: "Fee Reference: CO7.2  Amount: £25.00  Off Site Fee Reference: CO1.1  Off Site Fee Amount: £30.00  Total Fee Amount: £55.00"
- */
-export function buildCivilFeeHeading(
+export function buildCivilFeeSummary(
   meta: CivilFeeMeta,
   hasOffsiteFee: boolean,
-): string {
+): { key: string; value: string }[] {
   const feeRef = (meta.feeReference ?? '').trim();
   const feeAmount = formatGbp(meta.feeAmount);
 
-  const parts: string[] = [];
-  parts.push(`Fee Reference: ${feeRef || '—'}`, `Amount: ${feeAmount}`);
+  const rows = [
+    { key: 'Fee reference', value: feeRef || '—' },
+    { key: 'Amount', value: feeAmount },
+  ];
 
   if (hasOffsiteFee) {
     const offsiteAmount = formatGbpOrDash(meta.offsiteFeeAmount);
@@ -88,14 +85,14 @@ export function buildCivilFeeHeading(
         ? formatGbpOrDash(addMoney(meta.feeAmount, meta.offsiteFeeAmount))
         : '—';
 
-    parts.push(
-      `Off Site Fee Reference: ${offsiteRef || '—'}`,
-      `Off Site Fee Amount: ${offsiteAmount}`,
-      `Total Fee Amount: ${total}`,
+    rows.push(
+      { key: 'Off site fee reference', value: offsiteRef || '—' },
+      { key: 'Off site fee amount', value: offsiteAmount },
+      { key: 'Total fee amount', value: total },
     );
   }
 
-  return parts.join(' \u2003 '); // em space
+  return rows;
 }
 
 export function feeStatusRowId(

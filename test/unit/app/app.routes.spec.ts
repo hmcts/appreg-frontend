@@ -1,9 +1,21 @@
 import { Observable, of } from 'rxjs';
 
 import { routes } from '../../../src/app/app.routes';
+import { applicationListGuard } from '../../../src/app/guards/application-list.guard';
 import { canLeavePageGuard } from '../../../src/app/guards/can-leave-page.guard';
+import { sessionGuard } from '../../../src/app/guards/session.guard';
 
 describe('app.routes', () => {
+  it('protects the independent preview route and lazy loads its component', async () => {
+    const parent = routes.find((route) => route.path === 'applications-list');
+    const preview = parent?.children?.find(
+      (route) => route.path === ':id/preview',
+    );
+    expect(parent?.canActivate).toContain(sessionGuard);
+    expect(preview?.canActivate).toEqual([applicationListGuard]);
+    expect(preview?.data?.['preview']).toBe(true);
+    expect(typeof (await preview?.loadComponent?.())).toBe('function');
+  });
   it('does not add an ALE navigation guard to bulk payment-reference editing', () => {
     const parent = routes.find((r) => r.path === 'applications-list');
     const route = parent?.children?.find(

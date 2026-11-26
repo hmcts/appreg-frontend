@@ -10,6 +10,7 @@
             class="govuk-checkboxes__input"
             id="offSiteFee"
             type="checkbox"
+            aria-describedby="offSiteFee-hint"
             formControlName="hasOffsiteFee"
             (click)="onOffsiteFeeChange()"
             (keydown.enter)="onOffsiteFeeChange($event)"
@@ -18,7 +19,7 @@
           <label class="govuk-label govuk-checkboxes__label" for="offSiteFee">
             Off site fee applies
           </label>
-          <div class="govuk-hint govuk-checkboxes__hint">
+          <div id="offSiteFee-hint" class="govuk-hint govuk-checkboxes__hint">
             @if (autoSaveOffsiteFee()) {
               Selecting this will automatically apply the off site fee to the
               {{ informationText() }}. This change is saved immediately.
@@ -32,6 +33,17 @@
     </div>
   }
 
+  @if (feeAdditionStatus() !== null) {
+    <p
+      class="govuk-visually-hidden"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {{ feeAdditionStatus() }}
+    </p>
+  }
+
   @if (newerApplicationCodeVersionExists()) {
     <app-alert
       alertType="information"
@@ -41,9 +53,18 @@
 
   <section id="civil-fee-section">
     @if (!noFeeMeta()) {
-      <h2 class="govuk-heading-s">
-        {{ feeRequired() ? feeHeadingText() : 'No fee required' }}
-      </h2>
+      @if (feeRequired()) {
+        <dl class="govuk-summary-list">
+          @for (row of feeSummaryRows(); track row.key) {
+            <div class="govuk-summary-list__row">
+              <dt class="govuk-summary-list__key">{{ row.key }}</dt>
+              <dd class="govuk-summary-list__value">{{ row.value }}</dd>
+            </div>
+          }
+        </dl>
+      } @else {
+        <h2 class="govuk-heading-s">No fee required</h2>
+      }
     }
 
     <app-sortable-table

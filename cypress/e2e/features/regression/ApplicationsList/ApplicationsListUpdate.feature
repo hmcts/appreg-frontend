@@ -1,6 +1,6 @@
 Feature: Applications List Update
 
-    @regression @applicationsList @core @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759 @ARCPOC-801 @ARCPOC-1748 @ARCPOC-1822
+    @regression @applicationsList @core @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759 @ARCPOC-801 @ARCPOC-1748 @ARCPOC-1822 @ARCPOC-1967
     Scenario Outline: Update applications list Successfully with Other location and CJA selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -11,7 +11,7 @@ Feature: Applications List Update
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      | <Description> |             |       |        |                |     |           |
-        When User Clicks "<SelectButtonText>" Then "Open" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Open" Link From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location   | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Location> | <Description> | <Entries> | <Status> |
         Then User Clicks On The Tab "List details"
@@ -36,7 +36,7 @@ Feature: Applications List Update
         When User Searches Application List With:
             | Date         | Time | Description          | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      | <UpdatedDescription> |             |       |        |                |     |           |
-        When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Delete" Link From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location   | Description          | Entries   | Status   |
             | <DisplayDate> | <Time> | <CJAValue> | <UpdatedDescription> | <Entries> | <Status> |
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
@@ -47,7 +47,7 @@ Feature: Applications List Update
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description        | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription         | UpdatedOtherLocation   | SuccessHeading           | SuccessBody                                        |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{SCENARIO_ID} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{SCENARIO_ID} | Updated Location_21442 | Application list updated | The application list has been successfully updated |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759 @ARCPOC-801
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-1759 @ARCPOC-801 @ARCPOC-1967
     Scenario Outline: Update applications list Successfully with Court selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -58,7 +58,7 @@ Feature: Applications List Update
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      | <Description> |             |       |        |                |     |           |
-        When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "<ButtonName>" Link From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location        | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <CourtLocation> | <Description> | <Entries> | <Status> |
         Then User Clicks On The Tab "List details"
@@ -84,7 +84,7 @@ Feature: Applications List Update
         When User Searches Application List With:
             | Date         | Time | Description          | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      | <UpdatedDescription> |             |       |        |                |     |           |
-        When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Delete" Link From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location     | Description          | Entries   | Status   |
             | <DisplayDate> | <Time> | <OptionText> | <UpdatedDescription> | <Entries> | <Status> |
         Then User Sees Warning Alert "You are about to delete this application list and all of the application list entries. This action cannot be undone."
@@ -106,7 +106,7 @@ Feature: Applications List Update
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      | <Description> |             |       |        |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location        | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <courtLocation> | <Description> | <Entries> | <Status> |
         Then User Clicks On The Tab "List details"
@@ -166,7 +166,7 @@ Feature: Applications List Update
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description               | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                         | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation           | InvalidCJAValue | InvalidCourtValue | SuccessHeading           | SuccessBody                                        |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {SCENARIO_ID} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {SCENARIO_ID} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {SCENARIO_ID} | InvalidCJA      | InvalidCourt      | Application list updated | The application list has been successfully updated |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1759 @ARCPOC-1843
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1759 @ARCPOC-1843 @ARCPOC-1967
     Scenario Outline: Close application list with NO ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -178,7 +178,7 @@ Feature: Applications List Update
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      | <Description> |             |       |        |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location        | Description   | Entries | Status |
             | <DisplayDate> | <Time> | <courtLocation> | <Description> | 0       | OPEN   |
         Then User Clicks On The Tab "List details"
@@ -210,7 +210,7 @@ Feature: Applications List Update
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description        | Status     | BeforeUpdateStatus | durationHours | durationMinutes |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {SCENARIO_ID} | Close list | OPEN               | 3             | 3               |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567 @ARCPOC-1759 @ARCPOC-1843 @ARCPOC-1769
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @ARCPOC-1437 @ARCPOC-1567 @ARCPOC-1759 @ARCPOC-1843 @ARCPOC-1769 @ARCPOC-1956 @ARCPOC-1967
     Scenario Outline: Close application list with One ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -261,7 +261,7 @@ Feature: Applications List Update
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      | <Description> |             |       |        |                |     |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location        | Description   | Entries | Status |
             | <DisplayDate> | <Time> | <courtLocation> | <Description> | 1       | OPEN   |
         Then User Clicks On The Tab "List details"
@@ -399,6 +399,13 @@ Feature: Applications List Update
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Application list closed successfully" Containing "If you believe this was in error, please contact support."
+        # Verify Select Button sub menu option for AL with status CLOSED
+        When User Searches Application List With:
+            | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <Description> |             |       |        |                |     |           |
+        When User Clicks "Select" In Row Of Table "Lists" And Verify Menu Options "Print page,  Print continuous"
+            | Date          | Time   | Location        | Description   | Entries | Status |
+            | <DisplayDate> | <Time> | <courtLocation> | <Description> | 1       | CLOSED |
         # ARCPOC-1843: Verify After Close List, Actions Menu is not available
         Given User Navigates To The URL "/applications-list/:listId"
         Then User See "This application list is view-only. Closed lists cannot be changed." On The Page

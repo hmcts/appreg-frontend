@@ -38,6 +38,101 @@ describe('DateInputComponent', () => {
     expect(component.dateForm.value).toEqual({ day: '', month: '', year: '' });
   });
 
+  it.each(['Date', 'Date of birth', 'List date from'])(
+    'labels the date fieldset "%s" without adding a heading',
+    (label) => {
+      fixture.componentRef.setInput('label', label);
+      fixture.detectChanges();
+
+      expect(element('fieldset > legend').textContent?.trim()).toBe(label);
+      expect(
+        element('fieldset > legend').querySelector(
+          'h1, h2, h3, h4, h5, h6, [role="heading"]',
+        ),
+      ).toBeNull();
+      for (const field of ['day', 'month', 'year']) {
+        expect(element(`label[for="date-${field}"]`).textContent?.trim()).toBe(
+          field[0].toUpperCase() + field.slice(1),
+        );
+      }
+      expect(element('fieldset').getAttribute('aria-describedby')).toContain(
+        'date-hint',
+      );
+    },
+  );
+
+  it.each(['day', 'month', 'year'] as const)(
+    'only presents %s errors after submission, even after typing and blur',
+    (field) => {
+      component.dateForm.setValue({ day: '1', month: '1', year: '2020' });
+      const input = element<HTMLInputElement>(`#date-${field}`);
+      input.value = field === 'year' ? '20' : 'x';
+      input.dispatchEvent(new Event('input'));
+      input.dispatchEvent(new Event('blur'));
+      fixture.detectChanges();
+
+      expect(component.dateForm.invalid).toBe(true);
+      expect(input.classList.contains('govuk-input--error')).toBe(false);
+      expect(input.hasAttribute('aria-invalid')).toBe(false);
+      expect(element('#date-error')).toBeNull();
+
+      fixture.componentRef.setInput('submitted', true);
+      fixture.detectChanges();
+
+      expect(input.classList.contains('govuk-input--error')).toBe(true);
+      expect(input.getAttribute('aria-invalid')).toBe('true');
+      expect(element('#date-error').textContent.toLowerCase()).toContain(
+        'date',
+      );
+      expect(element('fieldset').getAttribute('aria-describedby')).toContain(
+        'date-error',
+      );
+
+      input.value = field === 'year' ? '2020' : '1';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(input.classList.contains('govuk-input--error')).toBe(false);
+      expect(input.hasAttribute('aria-invalid')).toBe(false);
+      expect(element('#date-error')).toBeNull();
+    },
+  );
+
+  it('presents errors for invalid pristine fields after submission', () => {
+    component.dateForm.setValue({ day: '1', month: '1', year: '2e03' });
+    fixture.componentRef.setInput('submitted', true);
+    fixture.detectChanges();
+
+    expect(element('#date-year').classList.contains('govuk-input--error')).toBe(
+      true,
+    );
+    expect(element('#date-error').textContent).toContain('Enter a valid date');
+  });
+
+  it('keeps empty search dates optional after submission', () => {
+    fixture.componentRef.setInput('isSearch', true);
+    fixture.componentRef.setInput('submitted', true);
+    fixture.detectChanges();
+
+    expect(element('#date-error')).toBeNull();
+    expect(element('.govuk-input--error')).toBeNull();
+    expect(element('[aria-invalid="true"]')).toBeNull();
+  });
+
+  it('presents missing date parts after submission and clears presentation on reset', () => {
+    component.dateForm.setValue({ day: '1', month: '', year: '2020' });
+    fixture.componentRef.setInput('submitted', true);
+    fixture.detectChanges();
+
+    expect(element('#date-error').textContent).toContain('Enter month');
+    expect(element('#date-month').getAttribute('aria-invalid')).toBe('true');
+
+    fixture.componentRef.setInput('submitted', false);
+    fixture.detectChanges();
+    expect(element('#date-error')).toBeNull();
+    expect(element('.govuk-input--error')).toBeNull();
+    expect(element('[aria-invalid="true"]')).toBeNull();
+  });
+
   it('adds a calendar without replacing the manual fields', async () => {
     await fixture.whenStable();
     expect(

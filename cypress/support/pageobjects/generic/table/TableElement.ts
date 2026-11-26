@@ -76,10 +76,50 @@ export class TableElement {
       .wrap(row)
       .find('td')
       .last()
-      .find('button')
+      .find('button, a')
       .filter((_, el) => {
         const actualText = StringUtils.normalizeText(Cypress.$(el).text());
         const expectedText = StringUtils.normalizeText(buttonText);
+
+        return (
+          actualText === expectedText ||
+          actualText.startsWith(`${expectedText} `)
+        );
+      })
+      .first();
+  }
+
+  /**
+   * Gets the action-menu container in a table row without asserting its state.
+   */
+  static getMenuContainerInRow(
+    row: JQuery<HTMLElement>,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .wrap(row)
+      .find('td')
+      .last()
+      .find(this.menuContainerSelector)
+      .first();
+  }
+
+  /**
+   * Gets a menu action, regardless of whether it is implemented as a link or button.
+   */
+  static getMenuItemInRow(
+    row: JQuery<HTMLElement>,
+    menuItemText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .wrap(row)
+      .find('td')
+      .last()
+      .find(this.menuContainerSelector)
+      .should('be.visible')
+      .find('a, button')
+      .filter((_, el) => {
+        const actualText = StringUtils.normalizeText(Cypress.$(el).text());
+        const expectedText = StringUtils.normalizeText(menuItemText);
 
         return (
           actualText === expectedText ||
@@ -104,12 +144,70 @@ export class TableElement {
       .last()
       .find(this.menuContainerSelector)
       .should('be.visible')
-      .find('button, a')
-      .filter(
-        (_, el) =>
-          StringUtils.normalizeText(Cypress.$(el).text()) ===
-          StringUtils.normalizeText(menuButtonText),
-      )
+      .find('button')
+      .filter((_, el) => {
+        const actualText = StringUtils.normalizeText(Cypress.$(el).text());
+        const expectedText = StringUtils.normalizeText(menuButtonText);
+
+        return (
+          actualText === expectedText ||
+          actualText.startsWith(`${expectedText} `)
+        );
+      })
+      .first();
+  }
+
+  /**
+   * Gets a menu link in a table row by its text
+   * @param row The table row element
+   * @param menuLinkText The text of the menu link to find
+   */
+  static getMenuLinkInRow(
+    row: JQuery<HTMLElement>,
+    menuLinkText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .wrap(row)
+      .find('td')
+      .last()
+      .find(this.menuContainerSelector)
+      .should('be.visible')
+      .find('a')
+      .filter((_, el) => {
+        const actualText = StringUtils.normalizeText(Cypress.$(el).text());
+        const expectedText = StringUtils.normalizeText(menuLinkText);
+
+        return (
+          actualText === expectedText ||
+          actualText.startsWith(`${expectedText} `)
+        );
+      })
+      .first();
+  }
+
+  /**
+   * Gets a menu button in a table row by its text.
+   */
+  static getMenuActionButtonInRow(
+    row: JQuery<HTMLElement>,
+    menuButtonText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .wrap(row)
+      .find('td')
+      .last()
+      .find(this.menuContainerSelector)
+      .should('be.visible')
+      .find('button')
+      .filter((_, el) => {
+        const actualText = StringUtils.normalizeText(Cypress.$(el).text());
+        const expectedText = StringUtils.normalizeText(menuButtonText);
+
+        return (
+          actualText === expectedText ||
+          actualText.startsWith(`${expectedText} `)
+        );
+      })
       .first();
   }
 
@@ -171,7 +269,7 @@ export class TableElement {
   }
 
   /**
-   * Gets the toggle button for the Actions menu in the table caption
+   * Gets the Actions toggle from the toolbar belonging to the named table
    * @param tableCaption Caption of the table
    * @param toggleButtonText Text of the toggle button (e.g. "Actions")
    */
@@ -181,6 +279,8 @@ export class TableElement {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
       .contains('caption', tableCaption, { matchCase: false })
+      .closest('app-sortable-table')
+      .find('[tableActions], caption .table-caption__actions')
       .find(this.captionMenuToggleSelector)
       .filter((_, el) =>
         StringUtils.normalizeText(Cypress.$(el).text()).includes(
@@ -191,7 +291,7 @@ export class TableElement {
   }
 
   /**
-   * Gets a menu item button from the open caption Actions menu
+   * Gets a menu item from the open toolbar belonging to the named table
    * @param tableCaption Caption of the table
    * @param menuItemText Text of the menu item to find (e.g. "Result selected")
    */
@@ -201,6 +301,8 @@ export class TableElement {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
       .contains('caption', tableCaption, { matchCase: false })
+      .closest('app-sortable-table')
+      .find('[tableActions], caption .table-caption__actions')
       .find(this.captionMenuItemSelector)
       .filter(
         (_, el) =>

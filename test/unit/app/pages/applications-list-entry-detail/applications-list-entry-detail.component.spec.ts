@@ -4,7 +4,12 @@ import { Location } from '@angular/common';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { PLATFORM_ID } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  TestBed,
+  fakeAsync,
+  tick,
+} from '@angular/core/testing';
 import {
   ActivatedRoute,
   Router,
@@ -321,6 +326,253 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
   });
 
+  it.each(['applicant', 'officials'] as const)(
+    'focuses the %s confirmation after saving, including repeated saves',
+    fakeAsync((section: 'applicant' | 'officials') => {
+      component.openApplicantSection.set(true);
+      component.openOfficialSection.set(true);
+      component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+      fixture.detectChanges();
+      const host: HTMLElement = fixture.nativeElement;
+      const sectionHost = host.querySelector(`app-${section}-section`)!;
+      const trigger = sectionHost.querySelector<HTMLButtonElement>(
+        'button.govuk-button',
+      )!;
+      const save = () =>
+        section === 'applicant'
+          ? component.onUpdateApplicant()
+          : component.onSaveOfficials();
+
+      for (let attempt = 0; attempt < 2; attempt++) {
+        trigger.focus();
+        save();
+        fixture.detectChanges();
+        tick();
+        const banner = host.querySelector(`#${section}-save-banner`)!;
+        expect(banner).not.toBeNull();
+        expect(document.activeElement).toBe(banner);
+        expect(
+          banner
+            .closest('.govuk-accordion__section-content')
+            ?.hasAttribute('hidden'),
+        ).toBe(false);
+        expect(host.querySelector('app-success-banner')).toBeNull();
+        expect(component.sectionSaveStatus()).toBe('');
+        expect(banner.querySelector('.moj-alert__heading')).toBeNull();
+        const dismiss = banner.querySelector<HTMLButtonElement>(
+          '.moj-alert__dismiss',
+        )!;
+        expect(dismiss.hidden).toBe(false);
+        dismiss.focus();
+        dismiss.click();
+        fixture.detectChanges();
+        expect(host.querySelector(`#${section}-save-banner`)).toBeNull();
+        expect(document.activeElement).toBe(trigger);
+      }
+    }),
+  );
+
+  it('announces a delayed section save without taking focus from another section', fakeAsync(() => {
+    component.openOfficialSection.set(true);
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    fixture.detectChanges();
+    const response = new Subject<unknown>();
+    mockUpdateApplicationListEntry.mockReturnValueOnce(response);
+    const host: HTMLElement = fixture.nativeElement;
+    host
+      .querySelector<HTMLButtonElement>('app-officials-section button')!
+      .focus();
+    component.onSaveOfficials();
+    component.openOfficialSection.set(false);
+    fixture.detectChanges();
+    const other = host.querySelector<HTMLButtonElement>(
+      '.govuk-accordion__section-button',
+    )!;
+    other.focus();
+    response.next({});
+    response.complete();
+    fixture.detectChanges();
+    tick();
+    expect(document.activeElement).toBe(other);
+    expect(component.openOfficialSection()).toBe(false);
+    expect(component.sectionSaveStatus()).toContain('Officials updated');
+  }));
+
+  it('does not show a section success message when the save fails', fakeAsync(() => {
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      throwError(() => new Error('Save failed')),
+    );
+    component.onSaveOfficials();
+    fixture.detectChanges();
+    tick();
+    expect(component.sectionConfirmation()).toBeNull();
+    expect(component.sectionSaveStatus()).toBe('');
+    expect(component.vm().errorFound).toBe(true);
+  }));
+
+  it('retains page-level confirmation and focus for a complete application save', async () => {
+    // Use valid applicant data: the wording submit effect also rebuilds form
+    // errors, so bypassing only runFullSubmitValidation leaves this fixture invalid.
+    component['form'].controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-999');
+    component['form'].controls.standardApplicantCode.setValue('SA-999', {
+      emitEvent: false,
+    });
+    fixture.detectChanges();
+
+    component.onUpdateApplication();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+    expect(component.vm().summaryErrors).toEqual([]);
+    expect(component.sectionConfirmation()).toBeNull();
+    expect(component.vm().successBanner).toEqual(
+      ENTRY_SUCCESS_MESSAGES.listUpdated,
+    );
+    const banner = fixture.nativeElement.querySelector(
+      'app-success-banner [tabindex="-1"]',
+    );
+    expect(banner).not.toBeNull();
+    expect(document.activeElement).toBe(banner);
+  });
+
+  it.each([PaymentStatus.PAID, PaymentStatus.REMITTED])(
+    'keeps the code layout but disables its fields and buttons for saved %s, even before a later Due status',
+    (paymentStatus) => {
+      component.entryDetail = {
+        ...component.entryDetail!,
+        feeStatuses: [
+          { paymentStatus, statusDate: '2025-10-31' },
+          { paymentStatus: PaymentStatus.DUE, statusDate: '2025-11-01' },
+        ],
+      };
+      component.openApplicationCodeSection.set(true);
+      fixture.detectChanges();
+
+      expect(component.hasBlockingFeeStatuses).toBe(true);
+      const codeSearch: HTMLElement = fixture.nativeElement.querySelector(
+        'app-application-code-search',
+      );
+      expect(codeSearch).not.toBeNull();
+      expect(codeSearch.querySelector('app-help-details')).toBeNull();
+      expect(
+        codeSearch.querySelector('#application-code-lock-hint')?.textContent,
+      ).toContain(
+        'Cannot change the application code because a fee has been paid or remitted for this entry.',
+      );
+      expect(codeSearch.closest('fieldset')?.disabled).toBe(true);
+      expect(
+        codeSearch.closest('fieldset')?.getAttribute('aria-describedby'),
+      ).toBe('application-code-lock-hint');
+      const inputs = codeSearch.querySelectorAll('input');
+      const buttons = codeSearch.querySelectorAll('button');
+      expect(inputs.length).toBeGreaterThan(0);
+      expect(buttons.length).toBeGreaterThan(0);
+      [...inputs, ...buttons].forEach((control) => {
+        // Inputs inherit fieldset disabling; buttons also need the attribute for GOV.UK styling.
+        expect(control.matches(':disabled')).toBe(true);
+      });
+      buttons.forEach((button) => {
+        expect(button.disabled).toBe(true);
+        expect(button.hasAttribute('disabled')).toBe(true);
+      });
+      expect(inputs[0].value).toBe(
+        component.form.controls.applicationCode.value,
+      );
+      mockGetApplicationCodes.mockClear();
+      buttons.forEach((button) => button.click());
+      expect(mockGetApplicationCodes).not.toHaveBeenCalled();
+      expect(fixture.nativeElement.textContent).toContain(
+        'Cannot change the application code because a fee has been paid or remitted for this entry.',
+      );
+      expect(component.applicationCodeSaveDisabled).toBe(false);
+    },
+  );
+
+  it.each([
+    { feeStatuses: null },
+    { feeStatuses: [] },
+    {
+      feeStatuses: [
+        { paymentStatus: PaymentStatus.DUE, statusDate: '2025-11-01' },
+      ],
+    },
+    {
+      feeStatuses: [
+        { paymentStatus: PaymentStatus.UNDERTAKEN, statusDate: '2025-11-01' },
+      ],
+    },
+    {
+      feeStatuses: [
+        { paymentStatus: PaymentStatus.DUE, statusDate: '2025-11-01' },
+        { paymentStatus: PaymentStatus.UNDERTAKEN, statusDate: '2025-11-01' },
+      ],
+    },
+  ])(
+    'keeps code search available without blocking saved fee statuses ($feeStatuses), even with unsaved Paid statuses',
+    ({ feeStatuses }) => {
+      component.entryDetail = {
+        ...component.entryDetail!,
+        feeStatuses,
+      };
+      component.form.controls.feeStatuses.setValue([
+        { paymentStatus: PaymentStatus.PAID, statusDate: '2025-11-01' },
+      ]);
+      component.openApplicationCodeSection.set(true);
+      fixture.detectChanges();
+
+      expect(component.hasBlockingFeeStatuses).toBe(false);
+      const codeSearch: HTMLElement = fixture.nativeElement.querySelector(
+        'app-application-code-search',
+      );
+      expect(codeSearch).not.toBeNull();
+      expect(codeSearch.querySelector('app-help-details')).not.toBeNull();
+      expect(
+        codeSearch.querySelector('#application-code-lock-hint'),
+      ).toBeNull();
+      expect(codeSearch.closest('fieldset')?.disabled).toBe(false);
+      expect(codeSearch.querySelector('input')?.matches(':disabled')).toBe(
+        false,
+      );
+      const searchButtons = [...codeSearch.querySelectorAll('button')].filter(
+        (button) =>
+          ['Search', 'Clear'].includes(button.textContent?.trim() ?? ''),
+      );
+      expect(searchButtons).toHaveLength(2);
+      // Lodgement-date buttons remain disabled independently of the fee-status lock.
+      searchButtons.forEach((button) => {
+        expect(button.matches(':disabled')).toBe(false);
+      });
+      expect(fixture.nativeElement.textContent).not.toContain(
+        'Cannot change the application code because a fee has been paid or remitted for this entry.',
+      );
+    },
+  );
+
+  it('does not lock the code before an entry has loaded', () => {
+    component.entryDetail = null;
+    expect(component.hasBlockingFeeStatuses).toBe(false);
+  });
+
+  it('displays the API fee-lock error from a stale edit page', () => {
+    component['applyMappedError']({
+      status: 400,
+      error: {
+        type: 'ALE-57',
+        detail:
+          'Cannot change the application code because a fee has been paid or remitted for this entry.',
+      },
+    });
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('app-error-summary').textContent,
+    ).toContain(
+      'Cannot change the application code because a fee has been paid or remitted for this entry.',
+    );
+  });
+
   it('shows the fee warning when the saved application code has a newer version', async () => {
     component.entryDetail = {
       ...component.entryDetail!,
@@ -494,7 +746,7 @@ describe('ApplicationsListEntryDetail', () => {
       warning.mockRestore();
       expect(component.form.getRawValue()).toMatchObject(draft);
 
-      const response = new Subject<EntryGetDetailDto>();
+      const response = new Subject<unknown>();
       mockUpdateApplicationListEntry.mockReturnValue(response.asObservable());
       component['civilFeeSection']!.onAddFeeDetailsClick();
       expect(
@@ -510,7 +762,7 @@ describe('ApplicationsListEntryDetail', () => {
       const originalClone = globalThis.structuredClone;
       globalThis.structuredClone ??= cloneDeep;
       try {
-        response.next({} as EntryGetDetailDto);
+        response.next({});
       } finally {
         globalThis.structuredClone = originalClone;
       }
@@ -820,8 +1072,8 @@ describe('ApplicationsListEntryDetail', () => {
       offsiteFeeAmount: { value: 3000, currency: 'GBP' },
     });
     expect(
-      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
-    ).toContain('Total Fee Amount: £41.00');
+      civilFeeUtils.buildCivilFeeSummary(component.feeMeta!, true),
+    ).toContainEqual({ key: 'Total fee amount', value: '£41.00' });
 
     mockGetApplicationCodeByCodeAndDate.mockReturnValue(
       of({
@@ -998,6 +1250,19 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component.applicationCodeSaveDisabled).toBe(true);
     component.onUpdateApplication();
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+  });
+
+  it('treats entry retrieval failure as fatal and skips linked code retrieval', () => {
+    mockGetApplicationListEntry.mockReturnValue(
+      throwError(() => ({ status: 500 })),
+    );
+    mockGetApplicationCodeById.mockClear();
+
+    component['loadEntryAndPatchForm']('AL-1', 'EN-1', null, null);
+
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.submitAttempt()).toBeGreaterThan(0);
+    expect(mockGetApplicationCodeById).not.toHaveBeenCalled();
   });
 
   it('allows validation after clearing the code without saving an empty selection', () => {
@@ -1624,10 +1889,11 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['form'].controls.hasOffsiteFee.pristine).toBe(true);
 
     const state = component['appListEntryDetailState']();
-    expect(state.successBanner).toBeTruthy();
+    expect(state.successBanner).toBeNull();
+    expect(component.sectionConfirmation()?.section).toBe('fees');
   });
 
-  it('onRemoveResult sets successBanner when removeResult succeeds', () => {
+  it('onRemoveResult shows local confirmation when removeResult succeeds', () => {
     component['appListEntryDetailPatch']({ appListId: 'AL-1' });
 
     const removeSpy = jest
@@ -1648,8 +1914,11 @@ describe('ApplicationsListEntryDetail', () => {
     expect(resultId).toBe('R-1');
 
     const state = component['appListEntryDetailState']();
-    expect(state.successBanner).toBeTruthy();
-    expect(state.successBanner?.heading).toBe('Result removed');
+    expect(state.successBanner).toBeNull();
+    expect(component.sectionConfirmation()).toEqual({
+      section: 'results',
+      message: ENTRY_SUCCESS_MESSAGES.resultRemoved,
+    });
 
     removeSpy.mockRestore();
   });
@@ -1734,8 +2003,8 @@ describe('ApplicationsListEntryDetail', () => {
       currency: 'GBP',
     });
     expect(
-      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
-    ).toContain('Total Fee Amount: £41.00');
+      civilFeeUtils.buildCivilFeeSummary(component.feeMeta!, true),
+    ).toContainEqual({ key: 'Total fee amount', value: '£41.00' });
 
     component.form.controls.hasOffsiteFee.setValue(false);
     mockUpdateApplicationListEntry.mockReturnValueOnce(
@@ -1823,8 +2092,8 @@ describe('ApplicationsListEntryDetail', () => {
       currency: 'GBP',
     });
     expect(
-      civilFeeUtils.buildCivilFeeHeading(component.feeMeta!, true),
-    ).toContain('Total Fee Amount: £53.00');
+      civilFeeUtils.buildCivilFeeSummary(component.feeMeta!, true),
+    ).toContainEqual({ key: 'Total fee amount', value: '£53.00' });
   });
 
   it("does not reuse the previous code's offsite fee after selecting a replacement code", () => {
@@ -2782,9 +3051,11 @@ describe('ApplicationsListEntryDetail', () => {
     expect(reportProgress).toBe(false);
     expect(options).toEqual(expect.objectContaining({ transferCache: false }));
 
-    expect(component['appListEntryDetailState']().successBanner?.heading).toBe(
-      'Applicant updated',
-    );
+    expect(component['appListEntryDetailState']().successBanner).toBeNull();
+    expect(component.sectionConfirmation()).toEqual({
+      section: 'applicant',
+      message: ENTRY_SUCCESS_MESSAGES.applicantUpdated,
+    });
   });
 
   it('onUpdateApplicant sends an update payload without lodgementDate or detail-only fields', () => {
@@ -3210,61 +3481,108 @@ describe('ApplicationsListEntryDetail', () => {
     spy.mockRestore();
   });
 
-  it('onAddFeeDetails: when helper returns changed=true, uses current app code without persisting unrelated drafts', () => {
-    const next: FeeStatus[] = [
-      {
-        paymentStatus: 'Paid',
+  it.each([false, true])(
+    'onAddFeeDetails saves isolated fee changes and respects moved focus: %s',
+    fakeAsync((movedFocus: boolean) => {
+      const next: FeeStatus[] = [
+        {
+          paymentStatus: 'Paid',
+          statusDate: '2026-01-10',
+          paymentReference: 'REF1',
+        } as unknown as FeeStatus,
+      ];
+
+      const spy = jest
+        .spyOn(civilFeeUtils, 'updateFeeStatusesControl')
+        .mockReturnValue({ next, changed: true });
+
+      const payload: AddFeeDetailsPayload = {
+        feeStatus: PaymentStatus.PAID,
         statusDate: '2026-01-10',
         paymentReference: 'REF1',
-      } as unknown as FeeStatus,
-    ];
+      };
 
-    const spy = jest
-      .spyOn(civilFeeUtils, 'updateFeeStatusesControl')
-      .mockReturnValue({ next, changed: true });
-
-    const payload: AddFeeDetailsPayload = {
-      feeStatus: PaymentStatus.PAID,
-      statusDate: '2026-01-10',
-      paymentReference: 'REF1',
-    };
-
-    component['entryDetail'] = {
-      id: 'EN-1',
-      listId: 'AL-1',
-      applicationCode: 'APP-100',
-      notes: 'persisted note',
-      numberOfRespondents: 0,
-      lodgementDate: '2025-11-01',
-    };
-    component['form'].controls.applicationCode.setValue('APP-200', {
-      emitEvent: false,
-    });
-    component['form'].controls.applicationNotes.controls.notes.setValue(
-      'draft note',
-      { emitEvent: false },
-    );
-
-    component.onAddFeeDetails(payload);
-
-    expect(spy).toHaveBeenCalledTimes(1);
-
-    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
-    const call = mockUpdateApplicationListEntry.mock.calls[0];
-    const params = call[0];
-
-    expect(params.listId).toBe('AL-1');
-    expect(params.entryId).toBe('EN-1');
-    expect(params.entryUpdateDto).toEqual(
-      expect.objectContaining({
-        applicationCode: 'APP-200',
+      component['entryDetail'] = {
+        id: 'EN-1',
+        listId: 'AL-1',
+        applicationCode: 'APP-100',
         notes: 'persisted note',
-        feeStatuses: next,
-      }),
-    );
+        numberOfRespondents: 0,
+        lodgementDate: '2025-11-01',
+      };
+      component['form'].controls.applicationCode.setValue('APP-200', {
+        emitEvent: false,
+      });
+      component['form'].controls.applicationNotes.controls.notes.setValue(
+        'draft note',
+        { emitEvent: false },
+      );
 
-    spy.mockRestore();
-  });
+      component['form'].controls.applicantType.setValue('standard');
+      component.onStandardApplicantCodeChanged('SA-999');
+      component['appListEntryDetailPatch']({ isFeeRequired: true });
+      component.openCivilFeeSection.set(true);
+      fixture.detectChanges();
+      const addButton = fixture.nativeElement.querySelector(
+        'app-civil-fee-section button.govuk-button',
+      );
+      addButton.focus();
+      const otherControl = fixture.nativeElement.querySelector(
+        '.govuk-accordion__section-button',
+      );
+      const response = new Subject<unknown>();
+      mockUpdateApplicationListEntry.mockReturnValueOnce(response);
+      const originalClone = globalThis.structuredClone;
+      globalThis.structuredClone ??= cloneDeep;
+      try {
+        component.onAddFeeDetails(payload);
+        expect(component.sectionConfirmation()).toBeNull();
+        if (movedFocus) {
+          otherControl.focus();
+        }
+        response.next({});
+        response.complete();
+        fixture.detectChanges();
+        tick();
+      } finally {
+        globalThis.structuredClone = originalClone;
+      }
+
+      if (movedFocus) {
+        expect(component.sectionSaveStatus()).toContain('Fee details saved.');
+      } else {
+        expect(component.sectionSaveStatus()).toBe('');
+      }
+      expect(component.vm().successBanner).toBeNull();
+      const banner = fixture.nativeElement.querySelector('#fees-save-banner');
+      expect(banner.textContent).toContain('Fee details saved.');
+      expect(banner.querySelector('.moj-alert__heading')).toBeNull();
+      expect(document.activeElement).toBe(movedFocus ? otherControl : banner);
+      const dismiss = banner.querySelector('.moj-alert__dismiss');
+      dismiss.focus();
+      dismiss.click();
+      fixture.detectChanges();
+      expect(component.sectionConfirmation()).toBeNull();
+      expect(document.activeElement).toBe(addButton);
+      expect(spy).toHaveBeenCalledTimes(1);
+
+      expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+      const call = mockUpdateApplicationListEntry.mock.calls[0];
+      const params = call[0];
+
+      expect(params.listId).toBe('AL-1');
+      expect(params.entryId).toBe('EN-1');
+      expect(params.entryUpdateDto).toEqual(
+        expect.objectContaining({
+          applicationCode: 'APP-200',
+          notes: 'persisted note',
+          feeStatuses: next,
+        }),
+      );
+
+      spy.mockRestore();
+    }),
+  );
 
   it('onAddFeeDetails rolls back feeStatuses when update API errors', () => {
     const previous: FeeStatus[] = [
@@ -3304,7 +3622,10 @@ describe('ApplicationsListEntryDetail', () => {
       paymentReference: 'NEW',
     };
 
+    component.sectionSaveStatus.set('Fee details saved.');
     component.onAddFeeDetails(payload);
+    expect(component.sectionSaveStatus()).toBe('');
+    expect(component.sectionConfirmation()).toBeNull();
 
     expect(component.form.controls.feeStatuses.value).toEqual(previous);
     expect(component.form.controls.feeStatuses.pristine).toBe(true);
@@ -3327,7 +3648,7 @@ describe('ApplicationsListEntryDetail', () => {
     spy.mockRestore();
   });
 
-  it('applyPaymentRefReturn: when helper returns changed=true, persists feeStatuses via update API', () => {
+  it('applyPaymentRefReturn: when helper returns changed=true, persists feeStatuses via update API and focuses the Civil fee confirmation on return', fakeAsync(() => {
     const next: FeeStatus[] = [
       {
         paymentStatus: 'Paid',
@@ -3340,8 +3661,18 @@ describe('ApplicationsListEntryDetail', () => {
       .spyOn(civilFeeUtils, 'updatePaymentReferenceInFeeStatusesControl')
       .mockReturnValue({ next, changed: true });
 
+    component['form'].controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-999');
+    component.openCivilFeeSection.set(false);
+    (document.activeElement as HTMLElement)?.blur();
     const subject = component as unknown as PaymentRefApplier;
-    subject.applyPaymentRefReturn('ROW-1', '  NEW  ');
+    const originalClone = globalThis.structuredClone;
+    globalThis.structuredClone ??= cloneDeep;
+    try {
+      subject.applyPaymentRefReturn('ROW-1', '  NEW  ');
+    } finally {
+      globalThis.structuredClone = originalClone;
+    }
 
     expect(spy).toHaveBeenCalledTimes(1);
 
@@ -3357,8 +3688,14 @@ describe('ApplicationsListEntryDetail', () => {
       }),
     );
 
+    fixture.detectChanges();
+    tick();
+    const banner = fixture.nativeElement.querySelector('#fees-save-banner');
+    expect(banner).not.toBeNull();
+    expect(component.openCivilFeeSection()).toBe(true);
+    expect(document.activeElement).toBe(banner);
     spy.mockRestore();
-  });
+  }));
 
   it('applyPaymentRefReturn rolls back feeStatuses when update API errors', () => {
     const previous: FeeStatus[] = [

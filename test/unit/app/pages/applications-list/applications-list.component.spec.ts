@@ -83,7 +83,9 @@ class ReferenceDataFacadeStub implements Pick<
 
 class PdfServiceStub implements Pick<
   PdfService,
-  'generatePagedApplicationListPdf' | 'generateContinuousApplicationListsPdf'
+  | 'generatePagedApplicationListPdf'
+  | 'generateContinuousApplicationListsPdf'
+  | 'previewContinuousApplicationLists'
 > {
   generatePagedApplicationListPdf = jest.fn<
     Promise<void>,
@@ -91,7 +93,209 @@ class PdfServiceStub implements Pick<
   >();
 
   generateContinuousApplicationListsPdf = jest.fn<Promise<void>, [unknown[]]>();
+  previewContinuousApplicationLists = jest.fn();
 }
+
+describe('List row actions', () => {
+  it.each([0, 1])(
+    'uses links for navigation and buttons for printing with %i entries',
+    async (entries) => {
+      const row = makeApplicationListRow({ entries });
+      const { fixture } = createInstance('browser', [row]);
+      await flushSignalEffects(fixture);
+      const menu: HTMLElement = fixture.nativeElement.querySelector(
+        'tbody .moj-button-menu',
+      );
+      const links = Array.from(menu.querySelectorAll('a'));
+      expect(links.map((link) => link.getAttribute('href'))).toEqual(
+        entries
+          ? [
+              '/applications-list/abc-123',
+              '/applications-list/abc-123/preview',
+              '/applications-list/abc-123/delete',
+            ]
+          : ['/applications-list/abc-123', '/applications-list/abc-123/delete'],
+      );
+      expect(links.every((link) => !link.hasAttribute('role'))).toBe(true);
+      expect(
+        Array.from(menu.querySelectorAll('button'), (button) =>
+          button.textContent?.trim(),
+        ),
+      ).toEqual(entries ? ['Print page', 'Print continuous'] : []);
+    },
+  );
+
+  it.each(['ctrlKey', 'metaKey', 'shiftKey', 'altKey'])(
+    'preserves native link behaviour with %s',
+    async (modifier) => {
+      const { comp, navigateSpy } = createInstanceWithQuery({});
+      navigateSpy.mockClear();
+      const event = new MouseEvent('click', {
+        [modifier]: true,
+        cancelable: true,
+      });
+      const row = makeApplicationListRow();
+      await comp.onOpenList(row, event);
+      await comp.onDeleteClick(row, event);
+      comp.onPreviewPrintContinuous(row, event);
+      expect(event.defaultPrevented).toBe(false);
+      expect(navigateSpy).not.toHaveBeenCalled();
+    },
+  );
+
+  it('handles an ordinary link click once using the existing navigation', async () => {
+    const { comp, navigateSpy } = createInstanceWithQuery({});
+    const event = new MouseEvent('click', { cancelable: true });
+    const scroll = jest
+      .spyOn(window, 'scrollTo')
+      .mockImplementation(() => undefined);
+    navigateSpy.mockClear();
+    await comp.onOpenList(makeApplicationListRow(), event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(navigateSpy).toHaveBeenCalledTimes(1);
+    scroll.mockRestore();
+  });
+
+  it('replaces the whole menu when entry availability changes after MOJ enhancement', async () => {
+    const row = makeApplicationListRow({ entries: 0 });
+    const { fixture, comp } = createInstance('browser', [row]);
+    await flushSignalEffects(fixture);
+    const original = fixture.nativeElement.querySelector(
+      'tbody .moj-button-menu',
+    );
+    // MOJ moves the menu's child nodes, including Angular control-flow anchors.
+    const wrapper = document.createElement('ul');
+    while (original.firstChild) {
+      wrapper.append(original.firstChild);
+    }
+    original.append(wrapper);
+
+    patchRecordsState(comp, { rows: [{ ...row, entries: 1 }] });
+    await flushSignalEffects(fixture);
+    const updated = fixture.nativeElement.querySelector(
+      'tbody .moj-button-menu',
+    );
+    expect(updated).not.toBe(original);
+    expect(updated.querySelectorAll('button')).toHaveLength(2);
+    expect(updated.querySelectorAll('a[href]')).toHaveLength(3);
+    expect(updated.querySelector('ul')).toBeNull();
+  });
+
+  it.each([
+    [ApplicationListStatus.CLOSED, 0, false],
+    [ApplicationListStatus.CLOSED, 1, true],
+    [ApplicationListStatus.OPEN, 0, true],
+    [ApplicationListStatus.OPEN, 1, true],
+  ])(
+    'shows actions for %s lists with %i entries: %s',
+    async (status, entries, expected) => {
+      const { fixture } = createInstance('browser', [
+        makeApplicationListRow({ status, entries }),
+      ]);
+      await flushSignalEffects(fixture);
+      const menu = fixture.nativeElement.querySelector(
+        'tbody .moj-button-menu',
+      );
+      expect(!!menu).toBe(expected);
+      const actions = Array.from(
+        fixture.nativeElement.querySelectorAll('tbody .moj-button-menu__item'),
+        (button: HTMLElement) =>
+          button.textContent?.replace(/\s+/g, ' ').trim(),
+      );
+      if (entries === 0) {
+        expect(actions).toEqual(
+          status === ApplicationListStatus.OPEN ? ['Open', 'Delete'] : [],
+        );
+      } else {
+        expect(actions).toEqual(
+          expect.arrayContaining([
+            'Print page',
+            'Print continuous',
+            'Preview print cont (opens in a new window)',
+          ]),
+        );
+      }
+    },
+  );
+});
+
+describe('HTML continuous preview', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  const mockWindow = () => {
+    const preview = {
+      document: document.implementation.createHTMLDocument(),
+      closed: false,
+      focus: jest.fn(),
+    };
+    const open = jest
+      .spyOn(window, 'open')
+      .mockReturnValue(preview as unknown as Window);
+    return { preview, open };
+  };
+
+  it.each([ApplicationListStatus.OPEN, ApplicationListStatus.CLOSED])(
+    'opens the independent preview route in the same named window for %s lists',
+    (status) => {
+      const { comp, api, pdf } = createInstance();
+      const { preview, open } = mockWindow();
+      comp.onPreviewPrintContinuous(makeApplicationListRow({ status }));
+      comp.onPreviewPrintContinuous(
+        makeApplicationListRow({ id: 'next', status }),
+      );
+
+      expect(open).toHaveBeenCalledTimes(2);
+      expect(open).toHaveBeenNthCalledWith(
+        1,
+        '/applications-list/abc-123/preview',
+        'appreg-print-cont-preview',
+        expect.any(String),
+      );
+      expect(open).toHaveBeenNthCalledWith(
+        2,
+        '/applications-list/next/preview',
+        'appreg-print-cont-preview',
+        expect.any(String),
+      );
+      expect(preview.focus).toHaveBeenCalledTimes(2);
+      expect(api.printApplicationLists).not.toHaveBeenCalled();
+      expect(pdf.previewContinuousApplicationLists).not.toHaveBeenCalled();
+      expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
+      expect(comp.vm().pdfLoading).toBe(false);
+    },
+  );
+
+  it('reports blocked popups without requesting data', () => {
+    const { comp, api, showInlineSpy } = createInstance();
+    jest.spyOn(window, 'open').mockReturnValue(null);
+    comp.onPreviewPrintContinuous(makeApplicationListRow());
+    expect(showInlineSpy).toHaveBeenCalledWith(
+      'Allow popups for this site to preview print cont.',
+    );
+    expect(api.printApplicationLists).not.toHaveBeenCalled();
+  });
+
+  it.each(['server', 'empty', 'invalid', 'loading'])(
+    'does not open a preview when %s',
+    (reason) => {
+      const { comp, api } = createInstance(
+        reason === 'server' ? 'server' : 'browser',
+      );
+      const { open } = mockWindow();
+      if (reason === 'loading') {
+        patchUIState(comp, { pdfLoading: true });
+      }
+      comp.onPreviewPrintContinuous(
+        makeApplicationListRow({
+          entries: reason === 'empty' ? 0 : 1,
+          id: reason === 'invalid' ? '' : 'abc-123',
+        }),
+      );
+      expect(open).not.toHaveBeenCalled();
+      expect(api.printApplicationLists).not.toHaveBeenCalled();
+    },
+  );
+});
 
 const getUIFlagState = (component: ApplicationsList) => component.vm();
 const getRecordsState = (component: ApplicationsList) =>
@@ -510,6 +714,23 @@ describe('ApplicationsList – search', () => {
     ) as HTMLLegendElement | null;
 
     expect(legend?.textContent?.trim()).toBe('Lists to show');
+  });
+
+  it('announces total matches and then no results without focusing the empty banner', async () => {
+    service.getApplicationLists.mockReturnValue(
+      of(pageStub([], { totalElements: 134 })),
+    );
+    component.loadApplicationsLists();
+    await flushSignalEffects(fixture);
+    expect(component.searchStatus()).toBe('134 results found.');
+    service.getApplicationLists.mockReturnValue(
+      of(pageStub([], { totalElements: 0 })),
+    );
+    component.loadApplicationsLists();
+    await flushSignalEffects(fixture);
+    expect(component.searchStatus()).toBe('No results found.');
+    component.clearSearch();
+    expect(component.searchStatus()).toBe('');
   });
 
   it('merges filter when hasParams=true', async () => {

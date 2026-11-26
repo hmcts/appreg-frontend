@@ -1,26 +1,3 @@
-/**
- * Applications
- * Main Component for page /applications
- *
- * Note:
- * Bulk preview endpoint contains a BE limit of 2000 max selected applications
- *
- * Functionality:
- * onSubmit():
- * - GET request to Spring API which returns applications based on given params
- * - Populates query based on fields that are  !null/!undefined/!defaultValue
- *
- * onPrintContinuous/Page():
- * - Runs bulk preview endpoint to get selected row details
- * - Runs print endpoint with entryIds + listIds
- *
- * onUpdateNotesClick():
- * - Navigates to ./update-notes/update-notes.component.ts with row context
- *
- * onResultSelectedClick():
- * - Navigates to ./applications-result-selected/applications-result-selected.component.ts with row context
- */
-
 import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -134,6 +111,32 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
   status: 'status',
 };
 
+/**
+ * Applications
+ * Main Component for page /applications
+ *
+ * Note:
+ * Bulk preview endpoint contains a BE limit of 2000 max selected applications
+ *
+ * Functionality:
+ * onSubmit():
+ * - GET request to Spring API which returns applications based on given params
+ * - Populates query based on fields that are  !null/!undefined/!defaultValue
+ *
+ * onPrintContinuous/Page():
+ * - Runs bulk preview endpoint to get selected row details
+ * - Runs print endpoint with entryIds + listIds
+ *
+ * onUpdateNotesClick():
+ * - Navigates to ./update-notes/update-notes.component.ts with row context
+ *
+ * onResultSelectedClick():
+ * - Navigates to ./applications-result-selected/applications-result-selected.component.ts with row context
+ *
+ * - Validation rules:
+ *   - Application title is limited to 500 characters and the allowed title punctuation.
+ *   - Respondent postcode is limited to 8 characters.
+ */
 @Component({
   selector: 'app-applications',
   standalone: true,
@@ -159,6 +162,7 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
   styleUrls: ['./applications.component.scss'],
 })
 export class Applications extends PlaceFieldsBase implements OnInit {
+  readonly searchStatus = signal('');
   private readonly envInjector = inject(EnvironmentInjector);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly refFacade = inject(ReferenceDataFacade);
@@ -328,6 +332,11 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  /**
+   * Registers the PDF-print request effect for selected applications.
+   * It clears the request signal before rendering and resets loading state
+   * after rendering or an API failure.
+   */
   private setupEffects(): void {
     // GET /application-lists/print
     setupLoadEffect(
@@ -610,6 +619,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       filter: filterOverride ?? this.loadQuery(),
     };
 
+    this.searchStatus.set('Searching…');
     this.patchApp({ ...startSearchPatch(), ...clearNotificationsPatch() });
 
     this.appListEntryApi
@@ -625,10 +635,17 @@ export class Applications extends PlaceFieldsBase implements OnInit {
             ),
             getFilters: params.filter ?? {},
           });
+          const count = page?.totalElements ?? rows.length;
+          this.searchStatus.set(
+            count === 0
+              ? 'No results found.'
+              : `${count} ${count === 1 ? 'result' : 'results'} found.`,
+          );
           this.saveSearchState();
           this.patchApp({ isLoading: false });
         },
         error: () => {
+          this.searchStatus.set('');
           this.patchApp(searchErrorPatch());
           this.patchApp({ isLoading: false });
         },
@@ -719,6 +736,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   clearSearch(): void {
+    this.searchStatus.set('');
     this.appState.state.set({
       ...initialApplicationsState,
       sortField: defaultApplicationsSort(),

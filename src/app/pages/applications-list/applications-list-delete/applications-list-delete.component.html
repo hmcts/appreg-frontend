@@ -16,7 +16,7 @@
     <app-error-summary
       [items]="[
         {
-          text: 'Could not load all application list entries. Try again before deleting the list.',
+          text: 'Could not load the application list and all its entries. Try again before deleting the list.',
           href: '#retry-entries',
         },
       ]"
@@ -52,24 +52,23 @@
   </dl>
   @if (entriesLoaded() && childEntries().length > 0) {
     <h2 class="govuk-heading-m">Application list entries to be deleted</h2>
-    @for (entry of childSummaries(); track entry.id; let index = $index) {
-      <div class="govuk-summary-card">
-        <div class="govuk-summary-card__title-wrapper">
-          <h3 class="govuk-summary-card__title">
-            {{ 'Application list entry ' + (index + 1) }}
-          </h3>
-        </div>
-        <div class="govuk-summary-card__content">
-          <dl class="govuk-summary-list">
-            @for (detail of entry.details; track detail.key) {
-              <div class="govuk-summary-list__row">
-                <dt class="govuk-summary-list__key">{{ detail.key }}</dt>
-                <dd class="govuk-summary-list__value">{{ detail.value }}</dd>
-              </div>
-            }
-          </dl>
-        </div>
-      </div>
+    <app-sortable-table
+      [columns]="childColumns"
+      [data]="paginatedRows()"
+      caption="Application list entries to be deleted"
+      [hiddenCaption]="true"
+      [selectable]="false"
+      clientOrServerSort="server"
+      [sortState]="childSort()"
+      (sortChange)="onSortChange($event)"
+      idField="id"
+    />
+    @if (totalPages() > 1) {
+      <app-pagination
+        [currentPage]="currentPage()"
+        [totalPages]="totalPages()"
+        (pageChange)="onPageChange($event)"
+      />
     }
   }
 </app-review-confirm>

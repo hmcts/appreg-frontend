@@ -10,6 +10,14 @@ import { RouterModule } from '@angular/router';
 import { HeaderService } from '@services/header.service';
 import { SessionService } from '@services/session.service';
 
+/**
+ * NotFoundComponent
+ *
+ * Functionality:
+ * - Displays the not found page.
+ * - Refreshes session state when the page opens.
+ * - Provides navigation options based on authentication state.
+ */
 @Component({
   selector: 'app-not-found',
   standalone: true,

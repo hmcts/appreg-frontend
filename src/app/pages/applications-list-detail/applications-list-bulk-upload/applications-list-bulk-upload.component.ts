@@ -1,12 +1,3 @@
-/*
-Applications List – Bulk Upload (/applications-list/:id/bulk-upload)
-
-Functionality:
-  - Validates selected CSV file by extension and MIME type
-  - Submits bulk upload request for the selected list
-  - Updates UI state for upload progress and result
-*/
-
 import { DOCUMENT } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
 import {
@@ -120,6 +111,14 @@ const AffectedColumn: Record<string, string> = {
   RESPONDENT: 'Respondent details',
 };
 
+/**
+Applications List – Bulk Upload (/applications-list/:id/bulk-upload)
+
+Functionality:
+  - Validates selected CSV file by extension and MIME type
+  - Submits bulk upload request for the selected list
+  - Updates UI state for upload progress and result
+*/
 @Component({
   selector: 'app-applications-list-bulk-upload',
   imports: [
@@ -163,6 +162,7 @@ export class ApplicationsListBulkUpload implements OnInit {
   readonly submitAttempt = signal(0);
   readonly pendingJobId = signal<string | null>(null);
   readonly replacementFileSelected = signal(false);
+  readonly selectedFileName = signal<string | null>(null);
   isJobPolling = false;
 
   columns = BulkUploadErrorTableColumns;
@@ -232,6 +232,13 @@ export class ApplicationsListBulkUpload implements OnInit {
     );
   }
 
+  /**
+   * Watches a submitted upload job, avoiding duplicate subscriptions.
+   * Authorization and status failures update feedback and end the active
+   * polling state so the user can retry checking the job.
+   *
+   * @param jobId - Upload job whose status is requested.
+   */
   private startBulkUploadPolling(jobId: string): void {
     if (this.isJobPolling) {
       return;
@@ -291,6 +298,14 @@ export class ApplicationsListBulkUpload implements OnInit {
     });
   }
 
+  /**
+   * Converts a terminal upload status into user feedback.
+   * Success navigates back with the job summary instead of returning feedback;
+   * failed and unknown states return an error message for this page.
+   *
+   * @param job - Normalized upload status.
+   * @returns Feedback for non-success states, or `void` after navigation.
+   */
   private toBulkUploadFeedback(
     job: PolledJobStatus,
   ): BulkUploadFeedback | void {
@@ -338,6 +353,14 @@ export class ApplicationsListBulkUpload implements OnInit {
     }
   }
 
+  /**
+   * Converts a structured upload error description into readable table rows.
+   * Missing, invalid, or non-array JSON clears the rows and falls back to
+   * a plain error message.
+   *
+   * @param msg - Error description returned with the upload job.
+   * @returns Message to display above any parsed error rows.
+   */
   private formatErrorDescriptionFromError(msg: string | null): string {
     const formatMsg = trimToUndefined(msg);
 
@@ -449,7 +472,7 @@ export class ApplicationsListBulkUpload implements OnInit {
     }
 
     const file = input.files[0];
-
+    this.selectedFileName.set(file.name);
     // validate filename extension
     const isCsvExtension = file.name.toLowerCase().endsWith('.csv');
 

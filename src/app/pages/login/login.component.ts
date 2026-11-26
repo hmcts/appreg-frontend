@@ -1,3 +1,5 @@
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+
 /**
  * Login
  * Main Component for page /login
@@ -6,9 +8,6 @@
  * goLogin():
  * - Redirects the user to the SSO login endpoint
  */
-
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-
 @Component({
   selector: 'app-login',
   standalone: true,

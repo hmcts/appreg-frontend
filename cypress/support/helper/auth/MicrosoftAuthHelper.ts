@@ -7,8 +7,6 @@ import { NavigationPage } from '../../pageobjects/pageelements/NavigationPage';
 
 export class MicrosoftAuthHelper {
   static performLogin(email: string, password: string): void {
-    cy.screenshot('03-Microsoft-Login-Page');
-
     cy.origin(
       'https://login.microsoftonline.com',
       { args: { email, password } },
@@ -123,6 +121,10 @@ export class MicrosoftAuthHelper {
             });
         };
 
+        // Wait in the Microsoft origin before capturing the page during SSO navigation.
+        getVisible(emailSel).should('be.visible');
+        cy.screenshot('03-Microsoft-Login-Page');
+
         // Enter email
         cy.log('Entering email...');
         typeExact(emailSel, innerEmail, 'email');
@@ -141,29 +143,37 @@ export class MicrosoftAuthHelper {
     cy.location('hostname', {
       timeout: TIMEOUT_CONSTANTS.LONG_TIMEOUT,
     }).should('not.include', AUTH_CONSTANTS.MICROSOFT_LOGIN_DOMAIN);
+    cy.url({ timeout: TIMEOUT_CONSTANTS.LONG_TIMEOUT }).should(
+      'include',
+      '/applications-list',
+    );
+    NavigationPage.signOutLink().should('be.visible');
     cy.screenshot('04-After-Microsoft-Auth');
   }
 
   static performSignOut(): void {
-    // Click the app's sign out link or button
-    NavigationPage.signOutLink().click();
-    cy.log('AAD logout initiated');
+    cy.location('origin').then((appOrigin) => {
+      // Click the app's sign out link or button
+      NavigationPage.signOutLink().click();
+      cy.log('AAD logout initiated');
 
-    // If redirected to Microsoft account picker, click the user tile to fully sign out
-    cy.origin('https://login.microsoftonline.com', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        if ($body.find('.table-cell.tile-img > .tile-img').length) {
-          cy.get('.table-cell.tile-img > .tile-img')
-            .should('be.visible')
-            .click();
-        }
+      // Wait for the account picker to render before completing Microsoft logout.
+      cy.origin('https://login.microsoftonline.com', () => {
+        cy.get('.table-cell.tile-img > .tile-img', { timeout: 30000 })
+          .should('be.visible')
+          .click();
       });
-    });
 
-    // Verify signed-out state in app
-    cy.url({ timeout: TIMEOUT_CONSTANTS.LONG_TIMEOUT }).should(
-      'include',
-      '/login',
-    );
+      // "/login" also matches Microsoft's hostname; wait for the app itself.
+      cy.location('origin', {
+        timeout: TIMEOUT_CONSTANTS.LONG_TIMEOUT,
+      }).should('eq', appOrigin);
+      cy.location('pathname', {
+        timeout: TIMEOUT_CONSTANTS.LONG_TIMEOUT,
+      }).should('eq', '/login');
+      cy.contains('button', 'Sign in with your Justice SSO account', {
+        timeout: TIMEOUT_CONSTANTS.LONG_TIMEOUT,
+      }).should('be.visible');
+    });
   }
 }

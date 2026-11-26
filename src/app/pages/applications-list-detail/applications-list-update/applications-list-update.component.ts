@@ -1,15 +1,3 @@
-/**
- * Contains applications-list-detail#list-details update logic + validation
- *
- * onUpdate:
-    - Input validation
-    - Window confirmation of update
-    - Create payload with If-match etag in header
-    - PUT request sent with payload and row ID
-
-  On close, navigate to applications-list/:id/close confirmation page
- */
-
 import {
   ChangeDetectionStrategy,
   Component,
@@ -53,6 +41,17 @@ import { PlaceFieldsState } from '@util/place-fields.base';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { closeDurationError } from '@validators/applications-list-close.validator';
 
+/**
+ * Contains applications-list-detail#list-details update logic + validation
+ *
+ * onUpdate:
+    - Input validation
+    - Window confirmation of update
+    - Create payload with If-match etag in header
+    - PUT request sent with payload and row ID
+
+  On close, navigate to applications-list/:id/close confirmation page
+ */
 @Component({
   selector: 'app-applications-list-update',
   standalone: true,
@@ -191,6 +190,11 @@ export class ApplicationsListUpdateComponent {
     }
   }
 
+  /**
+   * Validates the saved list duration before opening the close confirmation.
+   * The close request is built from original server details rather than unsaved
+   * form edits, and carries the current ETag through navigation.
+   */
   onCloseListClick(): void {
     if (!this.canModifyList()) {
       return;
@@ -325,6 +329,13 @@ export class ApplicationsListUpdateComponent {
     });
   }
 
+  /**
+   * Replaces a generic duration summary item with field-specific links.
+   * Hours and minutes errors take precedence over the close-duration message;
+   * an unclassified duration error links to the hours field.
+   *
+   * @param items - Error summary items to update in place.
+   */
   private replaceDurationErrors(items: ErrorItem[]): void {
     const durCtrl = this.form().get('duration');
     const errs = durCtrl?.errors as Record<string, unknown> | null;

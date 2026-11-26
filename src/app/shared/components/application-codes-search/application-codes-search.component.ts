@@ -1,5 +1,3 @@
-// TODO: add header comment
-
 import {
   ChangeDetectionStrategy,
   Component,
@@ -22,7 +20,6 @@ import { ActivatedRoute } from '@angular/router';
 import { EMPTY, expand, reduce } from 'rxjs';
 
 import { AlertComponent } from '@components/alert/alert.component';
-import { CODES_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
@@ -32,6 +29,7 @@ import {
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { CODES_COLUMNS } from '@constants/application-list-entry/columns-options';
 import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
 import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
@@ -44,6 +42,16 @@ const APPLICATION_CODE_SEARCH_ERROR_MESSAGES = {
   },
 } as const;
 
+/**
+ * ApplicationCodeSearchComponent
+ *
+ * Functionality:
+ * - Searches and sorts application codes.
+ * - Emits the selected code and lodgement date.
+ * - Supports clearing filters and changing result pages or sort order.
+ * - Validation rules:
+ *   - An application code search term can contain at most 10 characters.
+ */
 @Component({
   selector: 'app-application-code-search',
   standalone: true,
@@ -66,6 +74,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   parentSubmitted = input(false);
   patchedFormData = input<ApplicationsListEntryForm | undefined>(undefined);
   lodgementDateDisabled = input(false);
+  disabledReason = input('');
   savedApplicationCode = input<string | null>(null);
   savedApplicationCodeId = input<number | null>(null);
 

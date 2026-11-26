@@ -7,6 +7,14 @@ import { ReportsSharedFormComponent } from '@components/reports-shared-form/repo
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import type { ErrorMessageMap } from '@util/error-summary';
 
+/**
+ * FeesSectionComponent
+ *
+ * Functionality:
+ * - Displays fee form fields.
+ * - Shows validation errors for fee details.
+ * - Uses the parent form and external errors for fee fields.
+ */
 @Component({
   selector: 'app-fees-section',
   standalone: true,

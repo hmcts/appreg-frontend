@@ -1,17 +1,3 @@
-/**
- * Delete Application List
- * Main Component for page /applications-list/:id/delete
- *
- * Functionality:
- * onDelete():
- * - DELETE request to remove the selected Application List
- * - Sends concurrency headers (ETag and row version)
- * - Redirects back to /applications-list with success or error status
- *
- * goBack():
- * - Navigates back to /applications-list without deleting the Application List
- */
-
 import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import {
@@ -29,22 +15,49 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { EMPTY, expand, map, reduce } from 'rxjs';
 
 import { AlertComponent } from '@components/alert/alert.component';
+import { toRow } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
+import {
+  SortableTableComponent,
+  TableColumn,
+} from '@components/sortable-table/sortable-table.component';
 import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
   ApplicationListEntriesApi,
+  ApplicationListStatus,
   ApplicationListsApi,
   EntryGetSummaryDto,
 } from '@openapi';
 import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import { formatPartyName } from '@util/string-helpers';
+import { SortState, sortRows } from '@util/table-sort';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
+/**
+ * Delete Application List
+ * Main Component for page /applications-list/:id/delete
+ *
+ * Functionality:
+ * onDelete():
+ * - DELETE request to remove the selected Application List
+ * - Sends concurrency headers (ETag and row version)
+ * - Redirects back to /applications-list with success or error status
+ *
+ * goBack():
+ * - Navigates back to /applications-list without deleting the Application List
+ */
 @Component({
   selector: 'app-applications-list-delete',
-  imports: [ReviewConfirmComponent, AlertComponent, ErrorSummaryComponent],
+  imports: [
+    ReviewConfirmComponent,
+    AlertComponent,
+    ErrorSummaryComponent,
+    SortableTableComponent,
+    PaginationComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './applications-list-delete.component.html',
 })
@@ -75,8 +88,17 @@ export class ApplicationsListDeleteComponent implements OnInit {
   readonly entriesLoaded = signal(false);
   readonly entriesLoadError = signal(false);
   readonly deleting = signal(false);
+  private readonly pageSize = 10;
+  readonly currentPage = signal(0);
+  readonly childSort = signal<SortState>({
+    key: 'sequenceNumber',
+    direction: 'asc',
+  });
+  readonly totalPages = computed(() =>
+    Math.ceil(this.childEntries().length / this.pageSize),
+  );
 
-  readonly listSummary = computed(() => {
+  listSummary(): { key: string; value: string }[] {
     const row = this.listToDelete;
     return [
       {
@@ -88,50 +110,104 @@ export class ApplicationsListDeleteComponent implements OnInit {
       { key: 'Description', value: row?.description || 'Not provided' },
       { key: 'Status', value: row?.status || 'Not provided' },
     ];
-  });
+  }
 
-  readonly childSummaries = computed(() =>
+  readonly childColumns: TableColumn[] = [
+    { header: 'Sequence number', field: 'sequenceNumber' },
+    { header: 'Account number', field: 'accountNumber' },
+    { header: 'Applicant', field: 'applicant' },
+    { header: 'Respondent', field: 'respondent' },
+    { header: 'Title', field: 'title', minWidth: '15em' },
+  ];
+
+  readonly childRows = computed(() =>
     this.childEntries().map((entry) => ({
       id: entry.id,
-      details: [
-        {
-          key: 'Sequence number',
-          value: entry.sequenceNumber ?? 'Not provided',
-        },
-        {
-          key: 'Account number',
-          value: entry.accountNumber?.trim() || 'Not provided',
-        },
-        {
-          key: 'Applicant',
-          value: formatPartyName(entry.applicant) || 'Not provided',
-        },
-        {
-          key: 'Respondent',
-          value: formatPartyName(entry.respondent) || 'Not provided',
-        },
-        {
-          key: 'Title',
-          value: entry.applicationTitle?.trim() || 'Not provided',
-        },
-      ],
+      sequenceNumber: entry.sequenceNumber ?? 'Not provided',
+      accountNumber: entry.accountNumber?.trim() || 'Not provided',
+      applicant: formatPartyName(entry.applicant) || 'Not provided',
+      respondent: formatPartyName(entry.respondent) || 'Not provided',
+      title: entry.applicationTitle?.trim() || 'Not provided',
     })),
   );
 
+  readonly sortedRows = computed(() =>
+    sortRows(this.childRows(), this.childSort()),
+  );
+  readonly paginatedRows = computed(() => {
+    const start = this.currentPage() * this.pageSize;
+    return this.sortedRows().slice(start, start + this.pageSize);
+  });
+
+  onSortChange(sort: SortState): void {
+    this.childSort.set(sort);
+    this.currentPage.set(0);
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+  }
+
   ngOnInit(): void {
-    if (
-      !this.listToDelete ||
-      !this.idFromUrl ||
-      this.listToDelete.id !== this.idFromUrl
-    ) {
+    if (!this.idFromUrl) {
       this.goBack();
       return;
     }
-
+    if (!this.listToDelete || this.listToDelete.id !== this.idFromUrl) {
+      this.listToDelete = undefined;
+      this.loadList();
+      return;
+    }
     this.loadChildEntries();
   }
 
+  private loadList(): void {
+    if (!this.idFromUrl || this.entriesLoading()) {
+      return;
+    }
+    this.entriesLoading.set(true);
+    this.entriesLoadError.set(false);
+    this.appListsApi
+      .getApplicationList({ listId: this.idFromUrl }, 'response', false, {
+        transferCache: false,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.entriesLoading.set(false);
+          const dto = response.body;
+          if (
+            !dto ||
+            dto.id !== this.idFromUrl ||
+            dto.status !== ApplicationListStatus.OPEN
+          ) {
+            this.entriesLoadError.set(true);
+            return;
+          }
+          this.listToDelete = {
+            ...toRow(dto),
+            etag: response.headers.get('ETag'),
+          };
+          this.loadChildEntries();
+        },
+        error: () => {
+          this.entriesLoading.set(false);
+          this.entriesLoadError.set(true);
+        },
+      });
+  }
+
+  /**
+   * Loads every child entry before allowing list deletion.
+   * Each page is checked against the expected page number, size, and total;
+   * the combined result must also have the expected count and unique IDs.
+   * Any incomplete response leaves deletion blocked.
+   */
   loadChildEntries(): void {
+    if (!this.listToDelete) {
+      this.loadList();
+      return;
+    }
     if (
       !this.listToDelete ||
       this.listToDelete.id !== this.idFromUrl ||
@@ -143,6 +219,7 @@ export class ApplicationsListDeleteComponent implements OnInit {
 
     const listId = this.listToDelete.id;
     let totalElements: number | undefined;
+    this.currentPage.set(0);
     this.childEntries.set([]);
     this.entriesLoaded.set(false);
     this.entriesLoadError.set(false);

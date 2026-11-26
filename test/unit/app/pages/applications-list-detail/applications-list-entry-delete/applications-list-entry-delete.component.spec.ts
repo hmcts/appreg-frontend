@@ -3,10 +3,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { ApplicationsListEntryDeleteComponent } from '@components/applications-list-detail/applications-list-entry-delete/applications-list-entry-delete.component';
-import { ApplicationListEntriesApi } from '@openapi';
+import {
+  ApplicationListEntriesApi,
+  ApplicationListStatus,
+  EntryPage1,
+} from '@openapi';
 
 describe('ApplicationsListEntryDeleteComponent', () => {
   let component: ApplicationsListEntryDeleteComponent;
@@ -14,7 +18,7 @@ describe('ApplicationsListEntryDeleteComponent', () => {
 
   const routeStub: Partial<ActivatedRoute> = {
     snapshot: {
-      paramMap: convertToParamMap({ id: 'list-id' }),
+      paramMap: convertToParamMap({ id: 'list-id', entryId: 'entry-id' }),
     } as ActivatedRoute['snapshot'],
   };
 
@@ -26,12 +30,20 @@ describe('ApplicationsListEntryDeleteComponent', () => {
     navigate: jest.fn().mockResolvedValue(true),
   };
 
-  const apiStub: Pick<ApplicationListEntriesApi, 'deleteApplicationListEntry'> =
-    {
-      deleteApplicationListEntry: jest.fn(),
-    };
+  const apiStub: Pick<
+    ApplicationListEntriesApi,
+    'deleteApplicationListEntry' | 'getApplicationListEntries'
+  > = {
+    deleteApplicationListEntry: jest.fn(),
+    getApplicationListEntries: jest
+      .fn()
+      .mockReturnValue(throwError(() => new Error('Load failed'))),
+  };
 
   beforeEach(async () => {
+    (apiStub.getApplicationListEntries as jest.Mock).mockReturnValue(
+      throwError(() => new Error('Load failed')),
+    );
     await TestBed.configureTestingModule({
       imports: [ApplicationsListEntryDeleteComponent],
       providers: [
@@ -48,6 +60,95 @@ describe('ApplicationsListEntryDeleteComponent', () => {
     fixture.detectChanges();
   });
 
+  it('loads the matching entry from a later page without navigation state', () => {
+    const response = new Subject<EntryPage1>();
+    (apiStub.getApplicationListEntries as jest.Mock).mockImplementation(
+      ({ pageNumber }) =>
+        pageNumber === 0
+          ? of({
+              pageNumber: 0,
+              pageSize: 1,
+              totalElements: 2,
+              content: [{ id: 'other-entry' }],
+            })
+          : response,
+    );
+    component.entryRow = undefined;
+    component.ngOnInit();
+    expect(component.loading()).toBe(true);
+    (apiStub.deleteApplicationListEntry as jest.Mock).mockClear();
+    component.onDelete();
+    expect(apiStub.deleteApplicationListEntry).not.toHaveBeenCalled();
+    response.next({
+      pageNumber: 1,
+      pageSize: 1,
+      totalElements: 2,
+      elementsOnPage: 1,
+      content: [
+        {
+          id: 'entry-id',
+          applicationTitle: 'Synthetic application',
+          status: ApplicationListStatus.OPEN,
+          isFeeRequired: false,
+          isResulted: false,
+        },
+      ],
+    });
+    response.complete();
+    expect(component.entryRow?.id).toBe('entry-id');
+    expect(component.entryRow?.title).toBe('Synthetic application');
+    expect(component.loading()).toBe(false);
+    expect(component.loadError()).toBe(false);
+  });
+
+  it.each([
+    ['missing', []],
+    ['closed', [{ id: 'entry-id', status: ApplicationListStatus.CLOSED }]],
+    ['different', [{ id: 'other-entry', status: ApplicationListStatus.OPEN }]],
+  ])(
+    'blocks deletion for a %s entry and discards mismatched navigation state',
+    (_case, content) => {
+      (apiStub.getApplicationListEntries as jest.Mock).mockReturnValue(
+        of({
+          pageNumber: 0,
+          pageSize: 100,
+          totalElements: content.length,
+          content,
+        }),
+      );
+      component.entryRow = { ...component.entryRow!, id: 'stale-entry' };
+      component.ngOnInit();
+      (apiStub.deleteApplicationListEntry as jest.Mock).mockClear();
+      component.onDelete();
+      expect(component.entryRow).toBeUndefined();
+      expect(component.loadError()).toBe(true);
+      expect(apiStub.deleteApplicationListEntry).not.toHaveBeenCalled();
+    },
+  );
+
+  it('allows retry after a direct entry load fails', () => {
+    component.entryRow = undefined;
+    component.ngOnInit();
+    expect(component.loadError()).toBe(true);
+    (apiStub.getApplicationListEntries as jest.Mock).mockReturnValue(
+      of({
+        pageNumber: 0,
+        pageSize: 100,
+        totalElements: 1,
+        content: [
+          {
+            id: 'entry-id',
+            status: ApplicationListStatus.OPEN,
+            applicationTitle: 'Synthetic application',
+          },
+        ],
+      }),
+    );
+    component.loadEntry();
+    expect(component.loadError()).toBe(false);
+    expect(component.entryRow?.id).toBe('entry-id');
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
@@ -57,16 +158,15 @@ describe('ApplicationsListEntryDeleteComponent', () => {
     expect(component.entryRow).toEqual({ id: 'entry-id' });
   });
 
-  it('ngOnInit: redirects to the list when the entry row is missing', () => {
+  it('blocks deletion when the entry cannot be loaded', () => {
     (routerStub.navigate as jest.Mock).mockClear();
     component.entryRow = undefined;
 
     component.ngOnInit();
 
-    expect(routerStub.navigate).toHaveBeenCalledWith([
-      '/applications-list',
-      'list-id',
-    ]);
+    expect(component.loadError()).toBe(true);
+    expect(component.entryRow).toBeUndefined();
+    expect(routerStub.navigate).not.toHaveBeenCalled();
   });
 
   it('ngOnInit: redirects to applications list when the list id is missing', () => {

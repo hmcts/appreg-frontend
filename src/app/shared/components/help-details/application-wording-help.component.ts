@@ -2,6 +2,14 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { HelpDetailsComponent } from './help-details.component';
 
+/**
+ * ApplicationWordingHelpComponent
+ *
+ * Functionality:
+ * - Displays application wording help.
+ * - Provides guidance for wording fields.
+ * - Presents reusable help content beside application wording fields.
+ */
 @Component({
   selector: 'app-application-wording-help',
   standalone: true,

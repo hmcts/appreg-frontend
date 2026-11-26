@@ -1,5 +1,11 @@
-<app-header></app-header>
-<app-service-navigation></app-service-navigation>
+<a class="govuk-skip-link" [href]="skipLinkHref" data-module="govuk-skip-link">
+  Skip to main content
+</a>
+
+@if (!isPreview()) {
+  <app-header></app-header>
+  <app-service-navigation></app-service-navigation>
+}
 
 <div class="govuk-width-container">
   <main class="govuk-main-wrapper" id="main-content">
@@ -7,4 +13,6 @@
   </main>
 </div>
 
-<app-footer></app-footer>
+@if (!isPreview()) {
+  <app-footer></app-footer>
+}

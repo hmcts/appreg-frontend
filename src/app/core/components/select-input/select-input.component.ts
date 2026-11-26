@@ -18,6 +18,14 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
+/**
+ * SelectInputComponent
+ *
+ * Functionality:
+ * - Displays a select input with labels and errors.
+ * - Integrates selection and disabled state with Angular forms.
+ * - Supports hints, errors, and a supplied list of options.
+ */
 @Component({
   selector: 'app-select-input',
   standalone: true,

@@ -6,6 +6,14 @@ import type { ErrorItem } from '@components/error-summary/error-summary.componen
 import { ReportsSharedFormComponent } from '@components/reports-shared-form/reports-shared-form.component';
 import type { ErrorMessageMap } from '@util/error-summary';
 
+/**
+ * SearchWarrantsSectionComponent
+ *
+ * Functionality:
+ * - Displays search warrant form fields.
+ * - Shows validation errors for search warrant details.
+ * - Uses the parent form, suggestions, and external errors in the shared report form.
+ */
 @Component({
   selector: 'app-search-warrants-section',
   standalone: true,

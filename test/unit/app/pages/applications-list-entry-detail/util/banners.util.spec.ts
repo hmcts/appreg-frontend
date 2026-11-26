@@ -1,34 +1,10 @@
 import {
-  computeSuccessBanner,
   focusLocalBanner,
   focusSuccessBanner,
 } from '@components/applications-list-entry-detail/util/banners.util';
-import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 
 const BROWSER_PLATFORM_ID = 'browser' as unknown as object;
 const SERVER_PLATFORM_ID = 'server' as unknown as object;
-
-describe('computeSuccessBanner', () => {
-  it('returns the wording-required banner when the wording reference regex matches', () => {
-    const banner = computeSuccessBanner(
-      'Result requires [wording] before submission',
-      /\[wording\]/,
-    );
-
-    expect(banner).toBe(
-      ENTRY_SUCCESS_MESSAGES.applicationCodeAdded.needsWording,
-    );
-  });
-
-  it('returns the standard banner when the wording reference regex does not match', () => {
-    const banner = computeSuccessBanner(
-      'Result wording is already complete',
-      /\[wording\]/,
-    );
-
-    expect(banner).toBe(ENTRY_SUCCESS_MESSAGES.applicationCodeAdded.ok);
-  });
-});
 
 describe('focusSuccessBanner', () => {
   afterEach(() => {
@@ -49,14 +25,17 @@ describe('focusSuccessBanner', () => {
 
   it('focuses and scrolls the success banner on the browser platform', () => {
     jest.useFakeTimers();
-    const banner = document.createElement('app-success-banner');
+    const host = document.createElement('app-success-banner');
+    const banner = document.createElement('div');
+    banner.tabIndex = -1;
+    host.appendChild(banner);
     const focusSpy = jest.spyOn(banner, 'focus');
     const scrollIntoView = jest.fn<
       void,
       Parameters<HTMLElement['scrollIntoView']>
     >();
     banner.scrollIntoView = scrollIntoView;
-    document.body.appendChild(banner);
+    document.body.appendChild(host);
 
     focusSuccessBanner(BROWSER_PLATFORM_ID);
     expect(focusSpy).not.toHaveBeenCalled();
@@ -64,6 +43,7 @@ describe('focusSuccessBanner', () => {
     jest.runOnlyPendingTimers();
 
     expect(focusSpy).toHaveBeenCalledTimes(1);
+    expect(document.activeElement).toBe(banner);
     expect(scrollIntoView).toHaveBeenCalledWith({
       behavior: 'smooth',
       block: 'start',
@@ -120,6 +100,20 @@ describe('focusLocalBanner', () => {
       behavior: 'smooth',
       block: 'center',
     });
+  });
+
+  it('does not focus or scroll when the caller reports that the user has moved on', () => {
+    jest.useFakeTimers();
+    const banner = document.createElement('app-alert');
+    banner.tabIndex = -1;
+    const focusSpy = jest.spyOn(banner, 'focus');
+    const scrollSpy = jest.fn();
+    banner.scrollIntoView = scrollSpy;
+    document.body.appendChild(banner);
+    focusLocalBanner(BROWSER_PLATFORM_ID, 'app-alert', () => false);
+    jest.runOnlyPendingTimers();
+    expect(focusSpy).not.toHaveBeenCalled();
+    expect(scrollSpy).not.toHaveBeenCalled();
   });
 
   it('uses app-alert as the default selector when no banner id is provided', () => {

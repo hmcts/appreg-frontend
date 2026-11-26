@@ -13,6 +13,20 @@ type CivilFeeErrorMap = Readonly<
   Record<CivilFeeControlName, Readonly<Record<string, string>>>
 >;
 
+export type ChildErrorSourceALECreate =
+  | 'codes'
+  | 'notes'
+  | 'fee'
+  | 'respondent'
+  | 'applicant'
+  | 'wording'
+  | 'civilFee';
+
+export type ChildErrorSourceALEDetail =
+  | ChildErrorSourceALECreate
+  | 'wording'
+  | 'resultWording';
+
 const person_org_shared_messages = {
   addressLine1: {
     required: 'Enter address line 1',

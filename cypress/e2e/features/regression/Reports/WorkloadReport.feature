@@ -35,8 +35,8 @@ Feature: Workload Report
     Then User Verifies CSV "<CSVFileName>" Is Downloaded
     Then User Sees Success Banner "Report downloaded" Containing "The workload report has downloaded."
     Examples:
-      | from       | to         | CSVFileName              |
-      | today      | today      | workload-report-todayiso |
+      | from  | to    | CSVFileName              |
+      | today | today | workload-report-todayiso |
 
   @regression @reports @ARCPOC-248
   Scenario: Workload Report - Validate required dates and location exclusivity
@@ -97,6 +97,7 @@ Feature: Workload Report
       | JP2                     |
       | JP3                     |
       | Official                |
+      | Auto Closed             |
     Then User Clears Downloaded CSVs
     Examples:
       | CSVFileName              |

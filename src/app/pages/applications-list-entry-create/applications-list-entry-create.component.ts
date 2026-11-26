@@ -1,33 +1,3 @@
-/**
- * Create Application List Entry
- * Main Component for page /applications-list/:id/create-entry
- *
- * Note:
- * Creates a new Application List Entry using the selected Application Code,
- * applicant, respondent, wording, fee, notes and officials.
- *
- * Application code drives application rules:
- * - the wording template for the application
- * - whether a fee is required
- * - whether a respondent is required
- * - whether bulk respondents are allowed
- * - the fee type to be applied
- *
- * Functionality:
- * onSubmit():
- * - Validates all sections of the entry form
- * - Builds the Entry Create DTO
- * - POST request to create the Application List Entry
- * - Navigates to the Entry Detail page on success
- *
- * onCodeSelected():
- * - Retrieves Application Code metadata
- * - Updates wording, fee and respondent requirements
- *
- * onAddFeeDetails():
- * - Adds fee status rows to the Civil Fee table
- */
-
 import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -52,7 +22,6 @@ import { Observable, map } from 'rxjs';
 
 import {
   ApplicationsListEntryCreateState,
-  ChildErrorSource,
   EntryCreateSnapshot,
   initialApplicationsListEntryCreateState,
   parseCreateNavState,
@@ -61,13 +30,6 @@ import {
 import { AccordionComponent } from '@components/accordion/accordion.component';
 import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
-import {
-  APPLICANT_TYPE_OPTIONS,
-  CIVIL_FEE_COLUMNS,
-  FEE_STATUS_OPTIONS,
-  PERSON_TITLE_OPTIONS,
-  RESPONDENT_TYPE_OPTIONS,
-} from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { mapHttpErrorToSummary } from '@components/applications-list-entry-detail/util/errors.util';
 import { readNavState } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -87,7 +49,15 @@ import { RespondentSectionComponent } from '@components/respondent-section/respo
 import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import {
+  APPLICANT_TYPE_OPTIONS,
+  CIVIL_FEE_COLUMNS,
+  FEE_STATUS_OPTIONS,
+  PERSON_TITLE_OPTIONS,
+  RESPONDENT_TYPE_OPTIONS,
+} from '@constants/application-list-entry/columns-options';
+import {
   APPLICANT_ENTRY_ERROR_MESSAGES,
+  ChildErrorSourceALECreate,
   ENTRY_ERROR_MESSAGES,
   RESPONDENT_ENTRY_ERROR_MESSAGES,
 } from '@constants/application-list-entry/error-messages';
@@ -132,6 +102,35 @@ const ENTRY_CREATE_ERROR_HREFS = {
   lodgementDate: '#lodgement-date-day',
 } as const satisfies Record<string, string>;
 
+/**
+ * Create Application List Entry
+ * Main Component for page /applications-list/:id/create-entry
+ *
+ * Note:
+ * Creates a new Application List Entry using the selected Application Code,
+ * applicant, respondent, wording, fee, notes and officials.
+ *
+ * Application code drives application rules:
+ * - the wording template for the application
+ * - whether a fee is required
+ * - whether a respondent is required
+ * - whether bulk respondents are allowed
+ * - the fee type to be applied
+ *
+ * Functionality:
+ * onSubmit():
+ * - Validates all sections of the entry form
+ * - Builds the Entry Create DTO
+ * - POST request to create the Application List Entry
+ * - Navigates to the Entry Detail page on success
+ *
+ * onCodeSelected():
+ * - Retrieves Application Code metadata
+ * - Updates wording, fee and respondent requirements
+ *
+ * onAddFeeDetails():
+ * - Adds fee status rows to the Civil Fee table
+ */
 @Component({
   selector: 'app-applications-list-entry-create',
   standalone: true,
@@ -182,7 +181,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   readonly vm = this.appListEntryCreateSignalState.vm;
 
   private parentErrors: ErrorItem[] = [];
-  private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
+  private childErrors: Record<ChildErrorSourceALECreate, ErrorItem[]> = {
     codes: [],
     notes: [],
     fee: [],
@@ -195,6 +194,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
   readonly submitAttempt = signal(0);
+  readonly feeAdditionStatus = signal('');
 
   respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
   personTitleOptions = PERSON_TITLE_OPTIONS;
@@ -500,7 +500,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     }
   }
 
-  onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
+  onChildErrors(source: ChildErrorSourceALECreate, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
     this.submitAttempt.update((attempt) => attempt + 1);
 
@@ -574,7 +574,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private validateChildSectionsForSubmit(): void {
-    const submitErrors = collectChildSubmitErrors<ChildErrorSource>([
+    const submitErrors = collectChildSubmitErrors<ChildErrorSourceALECreate>([
       { source: 'wording', section: this.wordingSection },
       { source: 'civilFee', section: this.civilFeeSection },
     ]);
@@ -587,6 +587,15 @@ export class ApplicationsListEntryCreate implements OnInit {
     }
   }
 
+  /**
+   * Loads metadata for a selected application code and lodgement date.
+   * Changing codes resets dependent wording; fee fields are cleared when the
+   * new code has no fee. The response controls which sections open and whether
+   * fees and respondents are required.
+   * Clearing the code keeps the visible search date.
+   *
+   * @param codeAndLodgementDate - Selected code and date used for the lookup.
+   */
   onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
     this.form.patchValue({
       applicationCode: codeAndLodgementDate.code,
@@ -718,7 +727,15 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
-    updateFeeStatusesControl(this.form.controls.feeStatuses, payload);
+    const { next, changed } = updateFeeStatusesControl(
+      this.form.controls.feeStatuses,
+      payload,
+    );
+    if (changed) {
+      this.feeAdditionStatus.set(
+        `Fee details added. ${next.length} ${next.length === 1 ? 'fee status' : 'fee statuses'} in the table. Changes will be saved when you create the entry.`,
+      );
+    }
   }
 
   onCivilFeeSubmitAttempt(): void {
@@ -834,6 +851,13 @@ export class ApplicationsListEntryCreate implements OnInit {
     };
   }
 
+  /**
+   * Restores a draft after returning from payment-reference editing.
+   * Form values are patched without emitting change events, then applicant-type
+   * controls are synchronized with the restored selection.
+   *
+   * @param state - Navigation state containing an optional entry draft.
+   */
   private applyEntryCreateSnapshot(state: unknown): void {
     // We need to store a draft of the current forms so when we nav back from payment ref page
     // we patch the cleaned forms with the draft values

@@ -62,6 +62,18 @@ export type ApplicationsListDetailSearchResult = {
   errors: ErrorItem[];
 };
 
+/**
+ * ApplicationsListDetailSearchComponent
+ *
+ * Functionality:
+ * - Searches entries within an applications list.
+ * - Emits search results and status.
+ * - Handles application title suggestions and maps search or API errors.
+ * - Validation rules:
+ *   - Sequence number contains digits only.
+ *   - Account reference is limited to 20 characters; applicant and respondent names to 300 each.
+ *   - Respondent postcode is limited to 8 characters and application title to 500.
+ */
 @Component({
   selector: 'app-applications-list-detail-search',
   standalone: true,
@@ -154,6 +166,13 @@ export class ApplicationsListDetailSearchComponent {
     void this.onSearch();
   }
 
+  /**
+   * Validates list-entry filters before loading the first result page.
+   * It emits the active filters when the API request starts and emits either
+   * mapped rows or errors so the parent can reset its selection consistently.
+   *
+   * @returns A promise that resolves after search results or errors are emitted.
+   */
   async onSearch(): Promise<void> {
     this.incrementSubmitAttempt()();
     this.submitted.set(true);

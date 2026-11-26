@@ -16,6 +16,18 @@ jest.mock(
   }),
 );
 
+let displayedSummary: string;
+jest.mock(
+  '../../../cypress/support/helper/forms/summarylist/SummaryListHelper',
+  () => ({
+    SummaryListHelper: {
+      verifySummaryListRow: (key: string, value: string) => {
+        expect(displayedSummary).toContain(`${key} ${value}`);
+      },
+    },
+  }),
+);
+
 // Runtime loading keeps Cypress's global types out of the Jest TypeScript project.
 const { CivilFeeHelper } = jest.requireActual<{
   CivilFeeHelper: {
@@ -36,22 +48,6 @@ describe('CivilFeeHelper', () => {
       offsiteFeeAmount?: { value: number } | null;
     };
   };
-  let heading: string;
-  const chain = {
-    invoke: jest.fn(
-      (method: string, pattern?: RegExp, replacement?: string) => {
-        if (method === 'replace') {
-          heading = heading.replace(pattern!, replacement!);
-        } else if (method === 'trim') {
-          heading = heading.trim();
-        }
-        return chain;
-      },
-    ),
-    should: jest.fn((_matcher: string, expected: string) => {
-      expect(heading).toBe(expected);
-    }),
-  };
   const cyMock = {
     intercept: jest.fn(() => ({ as: alias })),
     get: jest.fn(() => ({
@@ -59,7 +55,6 @@ describe('CivilFeeHelper', () => {
         then: (run: (value: typeof response) => void) => run(response),
       })),
     })),
-    contains: jest.fn(() => chain),
   };
 
   beforeEach(() => {
@@ -76,8 +71,8 @@ describe('CivilFeeHelper', () => {
         offsiteFeeAmount: { value: 2550 },
       },
     };
-    heading =
-      ' Fee Reference: CO8.1 \u2003 Amount: £292.00 \u2003 Off Site Fee Reference: CO1.1 \u2003 Off Site Fee Amount: £25.50 \u2003 Total Fee Amount: £317.50 ';
+    displayedSummary =
+      ' Fee reference CO8.1 \u2003 Amount £292.00 \u2003 Off site fee reference CO1.1 \u2003 Off site fee amount £25.50 \u2003 Total fee amount £317.50 ';
   });
 
   afterAll(() => {
@@ -101,19 +96,20 @@ describe('CivilFeeHelper', () => {
     CivilFeeHelper.verifyAmounts();
     CivilFeeHelper.verifyAmounts();
     expect(cyMock.get).toHaveBeenCalledWith('@civilFeeApplicationCode');
-    expect(cyMock.contains).toHaveBeenCalledWith('h2', 'Fee Reference:');
   });
 
   it('also checks the different local reference-data amounts', () => {
     response.body.offsiteFeeAmount = { value: 3000 };
-    heading = heading.replace('£25.50', '£30.00').replace('£317.50', '£322.00');
+    displayedSummary = displayedSummary
+      .replace('£25.50', '£30.00')
+      .replace('£317.50', '£322.00');
     CivilFeeHelper.verifyAmounts();
   });
 
   it('checks an offsite-only application with no base fee', () => {
     response.body.feeAmount = null;
     response.body.feeReference = null;
-    heading = heading
+    displayedSummary = displayedSummary
       .replace('CO8.1', '—')
       .replace('£292.00', '£0.00')
       .replace('£317.50', '£25.50');
@@ -123,7 +119,7 @@ describe('CivilFeeHelper', () => {
   it.each(['£292.00', '£25.50', '£317.50'])(
     'rejects an incorrect displayed amount: %s',
     (amount) => {
-      heading = heading.replace(amount, '£1.00');
+      displayedSummary = displayedSummary.replace(amount, '£1.00');
       expect(() => CivilFeeHelper.verifyAmounts()).toThrow();
     },
   );

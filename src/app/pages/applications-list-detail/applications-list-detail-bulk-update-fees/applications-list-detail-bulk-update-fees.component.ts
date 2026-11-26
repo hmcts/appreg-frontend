@@ -1,20 +1,3 @@
-/**
- * Bulk Update Fees
- * Main Component for page /applications-list/:id/bulk-update-fee
- *
- * Note:
- * Allows fee details and off-site fees to be applied to multiple selected
- * Application List Entries.
- *
- * Functionality:
- * addFees():
- * - Validates Civil Fee section
- * - Navigates to the confirmation page with selected entries and fee details
- *
- * onAddFeeDetails():
- * - Adds fee status rows to the Civil Fee table
- */
-
 import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -32,11 +15,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BulkUpdateFeeState, initialBulkUpdateFeeState } from './util';
 
 import { AlertComponent } from '@components/alert/alert.component';
-import {
-  APPLICATION_ENTRIES_MOVE_COLUMNS,
-  CIVIL_FEE_COLUMNS,
-  FEE_STATUS_OPTIONS,
-} from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { ApplicationEntriesBaseContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
@@ -50,6 +28,11 @@ import {
 import { CivilFeeHelpComponent } from '@components/help-details/civil-fee-help.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@constants/application-list-detail-bulk-operations/bulk-action';
+import {
+  CIVIL_FEE_COLUMNS,
+  FEE_STATUS_OPTIONS,
+} from '@constants/application-list-entry/columns-options';
 import { FeeStatus } from '@openapi';
 import {
   AddFeeDetailsPayload,
@@ -74,6 +57,22 @@ type BulkUpdateFeeSnapshot = {
   feeErrors?: ErrorItem[];
 };
 
+/**
+ * Bulk Update Fees
+ * Main Component for page /applications-list/:id/bulk-update-fee
+ *
+ * Note:
+ * Allows fee details and off-site fees to be applied to multiple selected
+ * Application List Entries.
+ *
+ * Functionality:
+ * addFees():
+ * - Validates Civil Fee section
+ * - Navigates to the confirmation page with selected entries and fee details
+ *
+ * onAddFeeDetails():
+ * - Adds fee status rows to the Civil Fee table
+ */
 @Component({
   selector: 'app-applications-list-detail-bulk-update-fees',
   standalone: true,

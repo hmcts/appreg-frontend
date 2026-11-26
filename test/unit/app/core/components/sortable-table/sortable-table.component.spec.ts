@@ -36,10 +36,16 @@ jest.mock('@ministryofjustice/frontend', () => ({
       <caption class="govuk-table__caption">
         Projected caption
       </caption>
+      <div tableActions>
+        <button type="button" (click)="actionCount = actionCount + 1">
+          Actions
+        </button>
+      </div>
     </app-sortable-table>
   `,
 })
 class HostWithProjectedCaptionComponent {
+  actionCount = 0;
   columns: TableColumn[] = [{ header: 'Name', field: 'name' }];
   data: Row[] = [{ name: 'Everest' }];
 }
@@ -201,6 +207,24 @@ describe('SortableTableComponent', () => {
   });
 
   describe('selection', () => {
+    it('labels selection controls without redundant header text or row whitespace', async () => {
+      await create('browser');
+      setInput('selectable', true);
+
+      const header = fixture.nativeElement.querySelector(
+        'th.moj-multi-select__select-all',
+      ) as HTMLTableCellElement;
+      const selectAll = header.querySelector('label') as HTMLLabelElement;
+      const rowLabel = fixture.nativeElement.querySelector(
+        'label[for="row-abc"] .govuk-visually-hidden',
+      ) as HTMLSpanElement;
+
+      expect(header.hasAttribute('aria-label')).toBe(false);
+      expect(header.querySelectorAll('.govuk-visually-hidden')).toHaveLength(1);
+      expect(selectAll.textContent).toBe('Select all');
+      expect(rowLabel.textContent).toBe('Select Everest');
+    });
+
     it('renders checkbox column when selectable is enabled', async () => {
       await create('browser');
       setInput('selectable', true);
@@ -315,6 +339,17 @@ describe('SortableTableComponent', () => {
       expect(captions[0].nativeElement.textContent.trim()).toBe(
         'Projected caption',
       );
+      const actions = hostFixture.nativeElement.querySelector('[tableActions]');
+      expect(actions).not.toBeNull();
+      expect(actions.closest('table')).toBeNull();
+      actions.querySelector('button').click();
+      expect(hostFixture.componentInstance.actionCount).toBe(1);
+
+      hostFixture.componentInstance.data = [];
+      hostFixture.detectChanges();
+      expect(
+        hostFixture.nativeElement.querySelector('[tableActions]'),
+      ).toBeNull();
     });
   });
 

@@ -53,6 +53,15 @@ export class ApplicationListEntryFormService {
 
   private readonly emptyOrganisation: Organisation = createEmptyOrganisation();
 
+  /**
+   * Captures the user-editable content used for change detection.
+   * Cached title and respondent DTO values are excluded; empty applicant and
+   * respondent sections are treated as UI state unless a bulk count is entered.
+   * The result is cloned so later form edits cannot mutate the snapshot.
+   *
+   * @param forms - Entry and party forms to snapshot.
+   * @returns Normalized editable values for comparison with a saved snapshot.
+   */
   editableContent(forms: ApplicationListEntryForms): {
     form: Omit<
       ReturnType<ApplicationListEntryForms['form']['getRawValue']>,

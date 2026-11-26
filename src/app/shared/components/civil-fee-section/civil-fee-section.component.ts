@@ -39,7 +39,7 @@ import {
   AddFeeDetailsPayload,
   CivilFeeMeta,
 } from '@shared-types/civil-fee/civil-fee';
-import { buildCivilFeeHeading, feeStatusRowId } from '@util/civil-fee-utils';
+import { buildCivilFeeSummary, feeStatusRowId } from '@util/civil-fee-utils';
 import {
   buildFormErrorSummary,
   getControlErrorItem,
@@ -54,6 +54,18 @@ export type CivilFeeForm = FormGroup<{
   feeStatuses: FormControl<FeeStatus[] | null>;
 }>;
 
+/**
+ * CivilFeeSectionComponent
+ *
+ * Functionality:
+ * - Manages civil fee form fields and payment reference actions.
+ * - Emits fee changes and validation errors.
+ * - Handles offsite fee selection and the add-fee-details action.
+ * - Validation rules:
+ *   - A required fee needs at least one fee status row.
+ *   - Status and status date are required when adding a fee, unless fee-only entry is allowed.
+ *   - Payment references have a maximum of 15 characters and are not allowed when status is DUE.
+ */
 @Component({
   selector: 'app-civil-fee-section',
   imports: [
@@ -77,6 +89,7 @@ export class CivilFeeSectionComponent implements OnInit {
   readonly entryId = this.route.snapshot.paramMap.get('id');
 
   autoSaveOffsiteFee = input(false);
+  feeAdditionStatus = input<string | null>(null);
 
   feeForm = input.required<CivilFeeForm>();
   civilFeeColumns = input.required<TableColumn[]>();
@@ -163,6 +176,12 @@ export class CivilFeeSectionComponent implements OnInit {
     this.offsiteFeeChanged.emit(next);
   }
 
+  /**
+   * Validates and emits a new fee-status row.
+   * Required validators are attached when the user attempts to add a row, so
+   * they do not appear during an unrelated parent save. A successful add clears
+   * the entry fields and their errors.
+   */
   onAddFeeDetailsClick(): void {
     if (!this.feeRequired()) {
       return;
@@ -287,8 +306,8 @@ export class CivilFeeSectionComponent implements OnInit {
     );
   }
 
-  feeHeadingText(): string {
-    return buildCivilFeeHeading(this.feeMeta() ?? {}, this.offSiteFee());
+  feeSummaryRows(): { key: string; value: string }[] {
+    return buildCivilFeeSummary(this.feeMeta() ?? {}, this.offSiteFee());
   }
 
   civilFeeColumnsWithChangeLink = (): TableColumn[] =>

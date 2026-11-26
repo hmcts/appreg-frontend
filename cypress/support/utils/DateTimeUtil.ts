@@ -600,8 +600,9 @@ export class DateTimeUtil {
 
     // Calculate difference
     const diff = Math.abs(actualMinutes - expectedMinutes);
+    const wrappedDiff = Math.min(diff, 24 * 60 - diff);
 
     // Check if within tolerance
-    return diff <= toleranceMinutes;
+    return wrappedDiff <= toleranceMinutes;
   }
 }

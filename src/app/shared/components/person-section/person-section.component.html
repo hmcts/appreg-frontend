@@ -28,7 +28,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="middleNames"
-        label="Middle name(s)"
+        label="Middle name(s) (optional)"
         [idPrefix]="scopeId() + '-person-middle-names'"
         [error]="errorFor(scopeId() + '-person-middle-names')"
         widthClass="govuk-!-width-full"
@@ -51,8 +51,7 @@
       <div class="govuk-grid-row">
         <app-date-input
           formControlName="dob"
-          label="Date of birth"
-          hint=""
+          label="Date of birth (optional)"
           [idPrefix]="scopeId() + '-person-dob'"
           [submitted]="submitted()"
           [isSearch]="true"
@@ -64,6 +63,7 @@
   </fieldset>
 
   <hr
+    aria-hidden="true"
     class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
   />
 
@@ -86,7 +86,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="addressLine2"
-        label="Address line 2"
+        label="Address line 2 (optional)"
         [idPrefix]="scopeId() + '-person-address-line-2'"
         [error]="errorFor(scopeId() + '-person-address-line-2')"
         widthClass="govuk-!-width-full"
@@ -96,7 +96,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="addressLine3"
-        label="Town or city"
+        label="Town or city (optional)"
         [idPrefix]="scopeId() + '-person-address-line-3'"
         [error]="errorFor(scopeId() + '-person-address-line-3')"
         widthClass="govuk-!-width-full"
@@ -106,7 +106,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="addressLine4"
-        label="County or region"
+        label="County or region (optional)"
         [idPrefix]="scopeId() + '-person-address-line-4'"
         [error]="errorFor(scopeId() + '-person-address-line-4')"
         widthClass="govuk-!-width-full"
@@ -116,7 +116,7 @@
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="addressLine5"
-        label="Post town"
+        label="Post town (optional)"
         [idPrefix]="scopeId() + '-person-address-line-5'"
         [error]="errorFor(scopeId() + '-person-address-line-5')"
         widthClass="govuk-!-width-full"
@@ -127,7 +127,7 @@
       <app-text-input
         formControlName="postcode"
         [idPrefix]="scopeId() + '-person-postcode'"
-        label="Postcode"
+        label="Postcode (optional)"
         hint="For example, SW1A 2AA"
         [submitted]="submitted()"
         [suppressError]="true"
@@ -138,6 +138,7 @@
   </fieldset>
 
   <hr
+    aria-hidden="true"
     class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
   />
 
@@ -150,7 +151,7 @@
       <app-text-input
         formControlName="phoneNumber"
         [idPrefix]="scopeId() + '-person-phone-number'"
-        label="Phone number"
+        label="Phone number (optional)"
         hint="For example, 020 7946 0000"
         inputType="tel"
         [submitted]="submitted()"
@@ -164,7 +165,7 @@
       <app-text-input
         formControlName="mobileNumber"
         [idPrefix]="scopeId() + '-person-mobile-number'"
-        label="Mobile number"
+        label="Mobile number (optional)"
         hint="For example, 07123 456789"
         inputType="tel"
         [submitted]="submitted()"
@@ -178,7 +179,7 @@
       <app-text-input
         formControlName="emailAddress"
         [idPrefix]="scopeId() + '-person-email-address'"
-        label="Email address"
+        label="Email address (optional)"
         hint="For example, name@department.gov.uk"
         inputType="email"
         [submitted]="submitted()"

@@ -210,3 +210,19 @@ Then(
     }
   },
 );
+
+Then(
+  'User Verify {string} Link Is Not Present In Row Of Table {string} With:',
+  (linkName: string, tableCaption: string, dataTable: DataTable) => {
+    const rows = dataTable.hashes();
+
+    if (rows.length === 0) {
+      throw new Error('DataTable must have at least one row of data');
+    }
+
+    // Verify the link is not present for each row in the data table
+    for (const row of rows) {
+      TableVerification.verifyLinkNotPresentInRow(tableCaption, row, linkName);
+    }
+  },
+);

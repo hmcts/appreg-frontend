@@ -1,3 +1,6 @@
+<p class="govuk-visually-hidden" role="status" aria-atomic="true">
+  {{ searchStatus() }}
+</p>
 @if (searchSummaryItems().length) {
   <app-error-summary
     title="There is a problem"
@@ -8,6 +11,7 @@
 } @else {
   @if (vm().isSearch && !vm().isLoading && !storedRecordsVm().rows.length) {
     <app-notification-banner
+      [autoFocus]="false"
       heading="No lists found"
       body="Try different filters, or "
       linkText="create a new list"
@@ -82,6 +86,7 @@
 </app-help-details>
 
 <hr
+  aria-hidden="true"
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 <form [formGroup]="form" (ngSubmit)="onSubmit($event)">
@@ -117,6 +122,7 @@
 </form>
 
 <hr
+  aria-hidden="true"
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
@@ -142,23 +148,23 @@
     <ng-template #actionsTemplate let-row>
       <div class="govuk-button-group">
         <!-- actions slot -->
-        @if (isOpen(row)) {
+        @if (isOpen(row) && row.entries > 0) {
           <div
             class="moj-button-menu"
             data-module="moj-button-menu"
             data-button-text="Select"
             data-button-classes="govuk-button"
           >
-            <!-- Open button (only when open) -->
-            <button
-              type="button"
+            <!-- Open link (only when open) -->
+            <a
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onOpenList(row)"
+              [href]="listActionUrl(row, '')"
+              (click)="onOpenList(row, $event)"
             >
               Open
-            </button>
+            </a>
 
-            <!-- Print page button (always shown) -->
+            <!-- Print page button -->
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
@@ -167,7 +173,7 @@
               Print page
             </button>
 
-            <!-- Print continuous button (always shown)
+            <!-- Print continuous button
                Print cont with false bool param to change PDF title -->
             <button
               type="button"
@@ -177,16 +183,49 @@
               Print continuous
             </button>
 
-            <!-- Delete button (only when open) -->
-            <button
-              type="button"
+            <a
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              [href]="listActionUrl(row, 'preview')"
+              target="appreg-print-cont-preview"
+              (click)="onPreviewPrintContinuous(row, $event)"
+            >
+              Preview print cont<span class="govuk-visually-hidden">
+                (opens in a new window)</span
+              >
+            </a>
+
+            <!-- Delete link (only when open) -->
+            <a
               class="govuk-button moj-button-menu__item govuk-button--warning"
-              (click)="onDeleteClick(row)"
+              [href]="listActionUrl(row, 'delete')"
+              (click)="onDeleteClick(row, $event)"
             >
               Delete
-            </button>
+            </a>
           </div>
-        } @else {
+        } @else if (isOpen(row)) {
+          <div
+            class="moj-button-menu"
+            data-module="moj-button-menu"
+            data-button-text="Select"
+            data-button-classes="govuk-button"
+          >
+            <a
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              [href]="listActionUrl(row, '')"
+              (click)="onOpenList(row, $event)"
+            >
+              Open
+            </a>
+            <a
+              class="govuk-button moj-button-menu__item govuk-button--warning"
+              [href]="listActionUrl(row, 'delete')"
+              (click)="onDeleteClick(row, $event)"
+            >
+              Delete
+            </a>
+          </div>
+        } @else if (row.entries > 0) {
           <div
             class="moj-button-menu"
             data-module="moj-button-menu"
@@ -211,6 +250,16 @@
             >
               Print continuous
             </button>
+            <a
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              [href]="listActionUrl(row, 'preview')"
+              target="appreg-print-cont-preview"
+              (click)="onPreviewPrintContinuous(row, $event)"
+            >
+              Preview print cont<span class="govuk-visually-hidden">
+                (opens in a new window)</span
+              >
+            </a>
           </div>
         }
       </div>

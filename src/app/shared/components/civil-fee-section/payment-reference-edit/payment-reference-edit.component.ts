@@ -28,6 +28,16 @@ const PAYMENT_REF_EDIT_ERRORS = {
   },
 };
 
+/**
+ * PaymentReferenceEditComponent
+ *
+ * Functionality:
+ * - Edits a civil fee payment reference.
+ * - Saves or cancels changes and guards navigation.
+ * - Checks for unsaved changes before leaving the editor.
+ * - Validation rules:
+ *   - A payment reference can contain at most 15 characters.
+ */
 @Component({
   selector: 'app-payment-reference-edit',
   imports: [ReactiveFormsModule, DateTimePipe, NavigationWarningComponent],

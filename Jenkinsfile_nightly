@@ -9,7 +9,7 @@ properties([
     booleanParam(name: 'Regression', defaultValue: true, description: 'Run regression tests'),
   ])
 ])
-@Library('Infrastructure@2.13.2')
+@Library('Infrastructure@2.15.0')
 def type = 'angular'
 def product = 'appreg'
 def component = 'frontend'
@@ -85,6 +85,16 @@ withNightlyPipeline(type, product, component) {
       stage('Regression Tests') {
         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed') {
           try {
+            sh '''
+              set +x
+              echo "=== Cypress runtime diagnostics ==="
+              echo "TEST_URL: $TEST_URL"
+              node --version
+              corepack --version
+              yarn --version
+              yarn cypress --version
+              yarn cypress-parallel --version
+            '''
             yarnBuilder.yarn('test:parallel:regression:chrome')
           } finally {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'

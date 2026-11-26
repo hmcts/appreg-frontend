@@ -176,6 +176,14 @@ export class MojButtonMenuDirective implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Positions an open menu against its toggle within the current viewport.
+   * The menu moves above the toggle when it fits better there, and horizontal
+   * placement is clamped to viewport margins. Overflow becomes scrollable.
+   *
+   * @param menu - Menu containing the wrapper to position.
+   * @param toggle - Expanded button used as the position anchor.
+   */
   private applyOverlayPosition(
     menu: HTMLElement,
     toggle: HTMLElement | null,

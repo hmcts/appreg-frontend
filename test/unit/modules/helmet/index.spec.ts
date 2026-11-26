@@ -61,11 +61,14 @@ describe('Helmet Module', () => {
     // In development mode, it should also include "'unsafe-eval'".
     const scriptSrc = helmetConfig.contentSecurityPolicy.directives.scriptSrc;
     const formAction = helmetConfig.contentSecurityPolicy.directives.formAction;
+    const upgradeInsecureRequests =
+      helmetConfig.contentSecurityPolicy.directives.upgradeInsecureRequests;
     expect(scriptSrc).toContain("'self'");
     expect(scriptSrc).toContain("'unsafe-eval'");
     expect(formAction).toContain("'self'");
     expect(formAction).toContain('https://login.microsoftonline.com');
     expect(formAction).toContain('http://localhost:4000');
+    expect(upgradeInsecureRequests).toBeNull();
 
     // Verify that app.use was called with the dummy middleware and the
     // additional permissions policy middleware.
@@ -107,10 +110,13 @@ describe('Helmet Module', () => {
     const helmetConfig = (helmet as unknown as jest.Mock).mock.calls[0][0];
     const scriptSrc = helmetConfig.contentSecurityPolicy.directives.scriptSrc;
     const formAction = helmetConfig.contentSecurityPolicy.directives.formAction;
+    const upgradeInsecureRequests =
+      helmetConfig.contentSecurityPolicy.directives.upgradeInsecureRequests;
 
     // In non-development mode, "'unsafe-eval'" should not be present.
     expect(scriptSrc).not.toContain("'unsafe-eval'");
     expect(formAction).toEqual(["'self'", 'https://login.microsoftonline.com']);
+    expect(upgradeInsecureRequests).toEqual([]);
   });
 
   it('uses the configured local dev server port for form-action', () => {

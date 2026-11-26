@@ -1,24 +1,3 @@
-/*
-Applications List
-Main Component for page /applications-list
-
-Functionality:
-onSubmit():
-  - GET request to Spring API which returns applications lists based on given params
-  - Populates query based on fields that are  !null/!undefined/!defaultValue
-
-Delete:
-  - Handled in applications-list-delete component
-
-onPrintPage():
-  - Fetch list by id and generate a paged PDF in the browser
-  - If list is empty/missing or PDF fails, show inline message
-
-onPrintContinuous():
-  - Fetch list by id and generate a continuous PDF in the browser (uses isClosed which changes the title)
-  - If list is empty or PDF fails, show inline message
-*/
-
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -84,6 +63,7 @@ import {
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { BulkPrintRequest } from '@shared-types/pdf/pdf.types';
+import { handleActionLink } from '@util/action-link';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
@@ -96,6 +76,26 @@ import { addLocationValidatorsToForm } from '@validators/add-location-validators
 
 type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
 
+/**
+ * Applications List
+ * Main Component for page /applications-list
+ *
+ * Functionality:
+ * onSubmit():
+ * - GET request to Spring API which returns applications lists based on given params
+ * - Populates query based on fields that are  !null/!undefined/!defaultValue
+ *
+ * Delete:
+ * - Handled in applications-list-delete component
+ *
+ * onPrintPage():
+ * - Fetch list by id and generate a paged PDF in the browser
+ * - If list is empty/missing or PDF fails, show inline message
+ *
+ * onPrintContinuous():
+ * - Fetch list by id and generate a continuous PDF in the browser (uses isClosed which changes the title)
+ * - If list is empty or PDF fails, show inline message
+ */
 @Component({
   selector: 'app-applications-list',
   standalone: true,
@@ -119,6 +119,7 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
   styleUrl: './applications-list.component.scss',
 })
 export class ApplicationsList extends PlaceFieldsBase implements OnInit {
+  readonly searchStatus = signal('');
   // APIs
   private readonly platformId = inject(PLATFORM_ID);
   private readonly appListsApi = inject(ApplicationListsApi);
@@ -231,6 +232,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   clearSearch(): void {
+    this.searchStatus.set('');
     this.appListSignalState.patch(clearNotificationsPatch());
     this.appListSignalState.patch({ isSearch: false, appliedFilters: {} });
     this.storedRecordsState.patch({ submitted: false, rows: [] });
@@ -249,8 +251,11 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.patch({ filteredCourthouses: [] });
   }
 
-  // Registers signal-driven effects that watch request signals and run API calls,
-  // then update state on success/error
+  /**
+   * Registers the list-search and PDF-print request effects.
+   * Both effects clear their request signals and loading state on completion;
+   * print failures are shown inline instead of leaving the loading UI active.
+   */
   private setupEffects(): void {
     setupLoadEffect(
       {
@@ -261,6 +266,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           }),
         onSuccess: (page) => {
           const content: ApplicationListGetSummaryDto[] = page.content ?? [];
+          const count = page.totalElements ?? content.length;
+          this.searchStatus.set(
+            count === 0
+              ? 'No results found.'
+              : `${count} ${count === 1 ? 'result' : 'results'} found.`,
+          );
           this.appListSignalState.patch({
             searchErrors: [],
             isLoading: false,
@@ -274,6 +285,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           this.disableSearchButton.set(false);
         },
         onError: (err) => {
+          this.searchStatus.set('');
           const msg = getProblemText(err);
           this.appListSignalState.patch({
             isLoading: false,
@@ -418,7 +430,18 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.onCjaInputChange();
   }
 
-  async onOpenList(row: ApplicationListRow): Promise<void> {
+  listActionUrl(row: ApplicationListRow, action: string): string {
+    const commands = ['/applications-list', row.id];
+    if (action) {
+      commands.push(action);
+    }
+    return this.router.serializeUrl(this.router.createUrlTree(commands));
+  }
+
+  async onOpenList(row: ApplicationListRow, event?: MouseEvent): Promise<void> {
+    if (!handleActionLink(event)) {
+      return;
+    }
     const navigated = await this.router.navigate(
       ['/applications-list', row.id],
       {
@@ -511,7 +534,42 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  async onDeleteClick(row: ApplicationListRow): Promise<void> {
+  onPreviewPrintContinuous(row: ApplicationListRow, event?: MouseEvent): void {
+    if (!handleActionLink(event)) {
+      return;
+    }
+    if (!isPlatformBrowser(this.platformId) || this.vm().pdfLoading) {
+      return;
+    }
+    this.appListSignalState.patch(clearNotificationsPatch());
+    if (!row?.id || !row.entries) {
+      this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
+      return;
+    }
+
+    const url = this.router.serializeUrl(
+      this.router.createUrlTree(['/applications-list', row.id, 'preview']),
+    );
+    // The route loads its own data; the named window is reused across lists.
+    const preview = window.open(
+      url,
+      'appreg-print-cont-preview',
+      'popup,width=1000,height=800,resizable=yes,scrollbars=yes',
+    );
+    if (!preview) {
+      this.showInline('Allow popups for this site to preview print cont.');
+      return;
+    }
+    preview.focus();
+  }
+
+  async onDeleteClick(
+    row: ApplicationListRow,
+    event?: MouseEvent,
+  ): Promise<void> {
+    if (!handleActionLink(event)) {
+      return;
+    }
     if (!row) {
       return;
     }
@@ -615,6 +673,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       filter,
     };
 
+    this.searchStatus.set('Searching…');
     this.appListSignalState.patch({ isLoading: true });
     this.loadRequest.set(params);
   }

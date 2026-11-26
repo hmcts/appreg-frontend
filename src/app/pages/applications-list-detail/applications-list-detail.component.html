@@ -145,6 +145,7 @@
             ]
           : []
       "
+      headingTag="h2"
     >
     </app-page-header>
 
@@ -175,6 +176,7 @@
       </ul>
     </app-help-details>
     <hr
+      aria-hidden="true"
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
@@ -187,6 +189,7 @@
     />
 
     <hr
+      aria-hidden="true"
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
@@ -310,33 +313,33 @@
               data-button-text="Select"
               data-button-classes="govuk-button"
             >
-              <!-- Open button -->
-              <button
-                type="button"
+              <!-- Open link -->
+              <a
                 class="govuk-button moj-button-menu__item govuk-button--secondary"
-                (click)="openUpdate(row)"
+                [href]="entryActionUrl(row, 'open')"
+                (click)="openUpdate(row, $event)"
               >
                 Open
-              </button>
+              </a>
 
-              <!-- Delete button -->
-              <button
-                type="button"
+              <!-- Delete link -->
+              <a
                 class="govuk-button moj-button-menu__item govuk-button--secondary"
-                (click)="onDeleteButtonClick(row)"
+                [href]="entryActionUrl(row, 'delete')"
+                (click)="onDeleteButtonClick(row, $event)"
               >
                 Delete
-              </button>
+              </a>
             </div>
           } @else {
-            <!-- Open button - cannot modify list -->
-            <button
-              type="button"
+            <!-- Open link - cannot modify list -->
+            <a
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="openUpdate(row)"
+              [href]="entryActionUrl(row, 'open')"
+              (click)="openUpdate(row, $event)"
             >
               Open
-            </button>
+            </a>
           }
         </ng-template>
       </app-sortable-table>

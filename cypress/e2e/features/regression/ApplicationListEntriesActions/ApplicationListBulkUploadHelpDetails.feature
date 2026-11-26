@@ -3,7 +3,7 @@ Feature: Application list bulk upload help details
   Background: Create applications list
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Body:
-      | date     | time  | status | description                    | courtLocationCode |
+      | date     | time  | status | description                         | courtLocationCode |
       | todayiso | 10:20 | OPEN   | Bulk upload help list {SCENARIO_ID} | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
@@ -12,10 +12,10 @@ Feature: Application list bulk upload help details
   Scenario: Expand and collapse bulk upload help details
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
-      | Date  | Time | Description                    | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+      | Date  | Time | Description                         | CourtSearch | Court | Status | Other location | CJA | CJASearch |
       | today |      | Bulk upload help list {SCENARIO_ID} | LCCC065     |       |        |                |     |           |
-    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-      | Date         | Time  | Location                          | Description                    | Entries | Status |
+    When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
+      | Date         | Time  | Location                          | Description                         | Entries | Status |
       | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Bulk upload help list {SCENARIO_ID} | 0       | OPEN   |
     Then User Clicks On The Link "Bulk upload"
     Then User Sees Page Heading "Bulk upload applications"

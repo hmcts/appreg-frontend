@@ -24,6 +24,15 @@ type ClosePermittedOptions = {
   durationControlName?: string;
 };
 
+/**
+ * Validates the frontend duration rule when closing an application list.
+ * It clears duration errors when the list is open and attaches a child error
+ * with display text when a closed list has no positive duration. Other close
+ * rules are left to the API.
+ *
+ * @param options - Optional names of the status and duration controls.
+ * @returns Group validator with `closeNotPermitted` details when invalid.
+ */
 export function closePermitted(
   options: ClosePermittedOptions = {},
 ): ValidatorFn {

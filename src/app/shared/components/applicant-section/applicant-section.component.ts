@@ -12,10 +12,6 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { EMPTY, expand, reduce } from 'rxjs';
 
 import { AlertComponent } from '@components/alert/alert.component';
-import {
-  APPLICANT_TYPE_OPTIONS,
-  PERSON_TITLE_OPTIONS,
-} from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
@@ -26,11 +22,23 @@ import {
   StandardApplicantSelectComponent,
 } from '@components/standard-applicant-select/standard-applicant-select.component';
 import {
+  APPLICANT_TYPE_OPTIONS,
+  PERSON_TITLE_OPTIONS,
+} from '@constants/application-list-entry/columns-options';
+import {
   StandardApplicantGetSummaryDto,
   StandardApplicantsApi,
 } from '@openapi';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
+/**
+ * ApplicantSectionComponent
+ *
+ * Functionality:
+ * - Displays applicant details and standard applicant selection.
+ * - Emits applicant selection, errors, and update actions.
+ * - Keeps the selected standard applicant code and summary in sync with the parent.
+ */
 @Component({
   selector: 'app-applicant-section',
   imports: [
