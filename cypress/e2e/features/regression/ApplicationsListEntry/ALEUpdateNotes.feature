@@ -58,7 +58,7 @@ Feature: Applications List Entry Notes Update
         When User Searches Application List With:
             | Date  | Time  | List description                 | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
             | today | 10:20 | Entry update Notes {SCENARIO_ID} | LCCC065     |       | OPEN               |                            |                       |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date         | Location                          | Entries | Status |
             | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
         Then User Should See Row In Table "Entries" With Values:
@@ -160,7 +160,7 @@ Feature: Applications List Entry Notes Update
         When User Searches Application List With:
             | Date  | Time  | List description                 | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
             | today | 10:20 | Entry update Notes {SCENARIO_ID} | LCCC065     |       | OPEN               |                            |                       |           |
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date         | Location                          | Entries | Status |
             | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
         Then User Should See Row In Table "Entries" With Values:

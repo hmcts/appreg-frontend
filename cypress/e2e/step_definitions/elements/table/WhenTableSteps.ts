@@ -79,6 +79,74 @@ When(
 );
 
 When(
+  'User Clicks {string} Then {string} Link From Menu In Row Of Table {string} With:',
+  (
+    selectButtonText: string,
+    menuLinkText: string,
+    tableCaption: string,
+    dataTable: { hashes: () => { [key: string]: string }[] },
+  ) => {
+    const rows = dataTable.hashes();
+    if (rows.length === 0) {
+      throw new Error('DataTable must have at least one row of data');
+    }
+    const rowData = rows[0];
+    cy.log(
+      `Clicking "${selectButtonText}" → "${menuLinkText}" in table "${tableCaption}" for row: ${JSON.stringify(rowData)}`,
+    );
+
+    const openingApplicationList =
+      tableCaption === 'Lists' && menuLinkText === 'Open';
+    const detailRequestAlias = openingApplicationList
+      ? `application-list-detail-${++applicationListDetailRequestNumber}`
+      : undefined;
+
+    if (detailRequestAlias) {
+      cy.intercept('GET', '**/application-lists/*').as(detailRequestAlias);
+    }
+
+    TableInteraction.clickMenuLinkInTableRow(
+      tableCaption,
+      rowData,
+      menuLinkText,
+      selectButtonText,
+    );
+
+    if (detailRequestAlias) {
+      cy.wait(`@${detailRequestAlias}`, { timeout: 20000 })
+        .its('response.statusCode')
+        .should('eq', 200);
+    }
+
+    cy.screenshot(`clicked-menu-link-${selectButtonText}-in-row`);
+  },
+);
+
+When(
+  'User Clicks {string} Then {string} Button From Menu In Row Of Table {string} With:',
+  (
+    selectButtonText: string,
+    menuButtonText: string,
+    tableCaption: string,
+    dataTable: { hashes: () => { [key: string]: string }[] },
+  ) => {
+    const rows = dataTable.hashes();
+    if (rows.length === 0) {
+      throw new Error('DataTable must have at least one row of data');
+    }
+
+    TableInteraction.clickMenuActionButtonInTableRow(
+      tableCaption,
+      rows[0],
+      menuButtonText,
+      selectButtonText,
+    );
+
+    cy.screenshot(`clicked-menu-button-${selectButtonText}-in-row`);
+  },
+);
+
+When(
   'User Clicks {string} Then {string} From Caption Menu In Table {string}',
   (toggleButtonText: string, menuItemText: string, tableCaption: string) => {
     TableInteraction.clickCaptionMenuButton(
@@ -137,12 +205,67 @@ When(
       throw new Error('DataTable must have at least one row of data');
     }
     const rowData = rows[0];
+    const expectedMenuOptions = menuOptions
+      ? menuOptions.split(',').map((option) => option.trim())
+      : [];
+
+    TableInteraction.verifyMenuOptionsInTableRow(
+      tableCaption,
+      rowData,
+      selectButtonText,
+      expectedMenuOptions,
+    );
+    cy.screenshot(`verify-menu-options-${selectButtonText}-in-row`);
+  },
+);
+
+When(
+  'User Clicks {string} In Row Of Table {string} And Verify Menu Button Options {string}',
+  (
+    selectButtonText: string,
+    tableCaption: string,
+    menuOptions: string,
+    dataTable: { hashes: () => { [key: string]: string }[] },
+  ) => {
+    const rows = dataTable.hashes();
+    if (rows.length === 0) {
+      throw new Error('DataTable must have at least one row of data');
+    }
+    const rowData = rows[0];
     cy.log(`rowData: ${JSON.stringify(rowData)}`);
     const expectedMenuOptions = menuOptions
       ? menuOptions.split(',').map((opt: string) => opt.trim())
       : [];
     cy.log(`Expected Menu Options (step): ${expectedMenuOptions.join(', ')}`);
     TableInteraction.verifyButtonsInTableRow(
+      tableCaption,
+      rowData,
+      selectButtonText,
+      expectedMenuOptions,
+    );
+    cy.screenshot(`verify-menu-options-${selectButtonText}-in-row`);
+  },
+);
+
+When(
+  'User Clicks {string} In Row Of Table {string} And Verify Menu Link Options {string}',
+  (
+    selectButtonText: string,
+    tableCaption: string,
+    menuOptions: string,
+    dataTable: { hashes: () => { [key: string]: string }[] },
+  ) => {
+    const rows = dataTable.hashes();
+    if (rows.length === 0) {
+      throw new Error('DataTable must have at least one row of data');
+    }
+    const rowData = rows[0];
+    cy.log(`rowData: ${JSON.stringify(rowData)}`);
+    const expectedMenuOptions = menuOptions
+      ? menuOptions.split(',').map((opt: string) => opt.trim())
+      : [];
+    cy.log(`Expected Menu Options (step): ${expectedMenuOptions.join(', ')}`);
+    TableInteraction.verifyLinksInTableRow(
       tableCaption,
       rowData,
       selectButtonText,

@@ -362,25 +362,57 @@ export class TableVerification {
     );
 
     TableSearch.searchWithPagination(rowData, tableCaption, true, (row) => {
-      return cy
-        .wrap(row)
-        .find(
-          'button, [role="button"], input[type="button"], input[type="submit"], a',
-        )
-        .filter((_index, element) => {
-          const $element = Cypress.$(element);
-          const text = $element.is('input')
-            ? String($element.val() ?? '')
-            : $element.text();
+      return cy.wrap(row).then(($row) => {
+        const matchingButtons = $row
+          .find(
+            'button, [role="button"], input[type="button"], input[type="submit"], a',
+          )
+          .filter((_index, element) => {
+            const $element = Cypress.$(element);
+            const text = $element.is('input')
+              ? String($element.val() ?? '')
+              : $element.text();
 
-          return exactButtonText.test(text);
-        })
-        .should('not.exist') as unknown as Cypress.Chainable<void>;
+            return exactButtonText.test(text);
+          });
+
+        expect(
+          matchingButtons,
+          `Button "${buttonText}" should not be present in the matching row`,
+        ).to.have.length(0);
+      }) as unknown as Cypress.Chainable<void>;
     }).then((found) => {
       expect(
         found,
         `Row should exist in table "${tableCaption}" before checking button "${buttonText}"`,
       ).to.equal(true);
+    });
+  }
+
+  static verifyLinkNotPresentInRow(
+    tableCaption: string,
+    rowData: { [key: string]: string },
+    linkName: string,
+  ): void {
+    cy.log(
+      `Verifying link "${linkName}" is not present for row with data: ${JSON.stringify(
+        rowData,
+      )}`,
+    );
+
+    TableSearch.searchWithPagination(rowData, tableCaption, true, (row) => {
+      return cy.wrap(row).then(($row) => {
+        const matchingLinks = $row
+          .find('a')
+          .filter(
+            (_index, element) => Cypress.$(element).text().trim() === linkName,
+          );
+
+        expect(
+          matchingLinks,
+          `Link "${linkName}" should not be present in the matching row`,
+        ).to.have.length(0);
+      }) as unknown as Cypress.Chainable<void>;
     });
   }
 }

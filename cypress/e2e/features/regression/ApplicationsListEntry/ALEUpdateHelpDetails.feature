@@ -48,10 +48,10 @@ Feature: Applications list entry update help details
     When User Searches Application List With:
       | Date  | Time | Description                          | CourtSearch | Court | Status | Other location | CJA | CJASearch |
       | today |      | Entry update help list {SCENARIO_ID} | LCCC065     |       |        |                |     |           |
-    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+    When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
       | Date         | Time  | Location                          | Description                          | Entries | Status |
       | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Entry update help list {SCENARIO_ID} | 1       | OPEN   |
-    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Entries" With:
+    When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Entries" With:
       | Sequence number | Account number | Applicant                  | Respondent                | Postcode | Fee |
       | 1               | ACC-{RANDOM}   | Henry Taylor {SCENARIO_ID} | Emily Clark {SCENARIO_ID} | BS15 5AA | Yes |
     Then User Sees Page Heading "Applications list entry update"

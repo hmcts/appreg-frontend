@@ -176,7 +176,7 @@ Feature: Application List Entries Search
         Then User Should See Table "List" Has Sortable Headers "Time, Description, Entries, Status"
         And User Should See Table "List" Header "Date" Is Not Sortable
         And User Should See Table "List" Header "Location" Is Not Sortable
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
@@ -313,7 +313,7 @@ Feature: Application List Entries Search
         Then User Should See Table "List" Has Sortable Headers "Time, Description, Entries, Status"
         And User Should See Table "List" Header "Date" Is Not Sortable
         And User Should See Table "List" Header "Location" Is Not Sortable
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
@@ -339,7 +339,7 @@ Feature: Application List Entries Search
         Then User Should See Table "List" Has Sortable Headers "Time, Description, Entries, Status"
         And User Should See Table "List" Header "Date" Is Not Sortable
         And User Should See Table "List" Header "Location" Is Not Sortable
-        When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+        When User Clicks "Select" Then "Open" Link From Menu In Row Of Table "Lists" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page

@@ -19,6 +19,30 @@ export class TableInteraction {
   }
 
   /**
+   * Opens a row action menu only when it is currently closed.
+   *
+   * A scenario can make multiple assertions against the same menu; blindly
+   * clicking the toggle for each assertion closes it on the second call.
+   */
+  private static ensureMenuOpenInRow(
+    row: JQuery<HTMLElement>,
+    selectButtonText: string,
+  ): Cypress.Chainable<void> {
+    return TableElement.getMenuContainerInRow(row).then(($menu) => {
+      if ($menu.is(':visible')) {
+        return;
+      }
+
+      return TableElement.getButtonInRow(row, selectButtonText).then(
+        (button) => {
+          TableInteraction.clickButton(button);
+          return TableElement.getMenuContainerInRow(row).should('be.visible');
+        },
+      );
+    }) as unknown as Cypress.Chainable<void>;
+  }
+
+  /**
    * Clicks on a table header to trigger sorting
    */
   static clickTableHeader(caption: string, headerText: string): void {
@@ -48,11 +72,67 @@ export class TableInteraction {
       tableCaption,
       true,
       (row) => {
-        return TableElement.getButtonInRow(row, selectButtonText)
-          .then((button) => {
-            TableInteraction.clickButton(button);
-          })
+        return TableInteraction.ensureMenuOpenInRow(row, selectButtonText)
           .then(() => TableElement.getMenuButtonInRow(row, menuButtonText))
+          .then((menuButton) => {
+            TableInteraction.clickButton(menuButton);
+          }) as unknown as Cypress.Chainable<void>;
+      },
+    ).then((found) => {
+      if (!found) {
+        throw new Error(
+          `Row with specified values not found in table "${tableCaption}" to select menu button "${menuButtonText}"`,
+        );
+      }
+    }) as unknown as Cypress.Chainable<void>;
+  }
+  /**
+   * Selects an option Link from a menu link within a specific table row
+   */
+  static clickMenuLinkInTableRow(
+    tableCaption: string,
+    columnValues: Record<string, string>,
+    menuLinkText: string,
+    selectButtonText: string,
+  ): Cypress.Chainable<void> {
+    return TableSearch.searchWithPagination(
+      columnValues,
+      tableCaption,
+      true,
+      (row) => {
+        return TableInteraction.ensureMenuOpenInRow(row, selectButtonText)
+          .then(() => TableElement.getMenuLinkInRow(row, menuLinkText))
+          .then((menuLink) => {
+            TableInteraction.clickButton(menuLink);
+          }) as unknown as Cypress.Chainable<void>;
+      },
+    ).then((found) => {
+      if (!found) {
+        throw new Error(
+          `Row with specified values not found in table "${tableCaption}" to select menu link "${menuLinkText}"`,
+        );
+      }
+    }) as unknown as Cypress.Chainable<void>;
+  }
+
+  /**
+   * Selects a button from a menu within a specific table row.
+   */
+  static clickMenuActionButtonInTableRow(
+    tableCaption: string,
+    columnValues: Record<string, string>,
+    menuButtonText: string,
+    selectButtonText: string,
+  ): Cypress.Chainable<void> {
+    return TableSearch.searchWithPagination(
+      columnValues,
+      tableCaption,
+      true,
+      (row) => {
+        return TableInteraction.ensureMenuOpenInRow(row, selectButtonText)
+          .then(() =>
+            TableElement.getMenuActionButtonInRow(row, menuButtonText),
+          )
           .then((menuButton) => {
             TableInteraction.clickButton(menuButton);
           }) as unknown as Cypress.Chainable<void>;
@@ -85,10 +165,7 @@ export class TableInteraction {
       tableCaption,
       true,
       (row) => {
-        return TableElement.getButtonInRow(row, selectButtonText)
-          .then((button) => {
-            TableInteraction.clickButton(button);
-          })
+        return TableInteraction.ensureMenuOpenInRow(row, selectButtonText)
           .then(() => {
             cy.log(`Expected Menu Options: ${expectedMenuOptions.join(', ')}`);
           })
@@ -102,12 +179,97 @@ export class TableInteraction {
           })
           .then(() => {
             cy.screenshot('menu-buttons-verified');
-          }) as unknown as Cypress.Chainable<void>;
+          });
       },
     ).then((found) => {
       if (!found) {
         throw new Error(
           `Row with specified values not found in table "${tableCaption}" to verify menu options: ${expectedMenuOptions.join(', ')}`,
+        );
+      }
+    }) as unknown as Cypress.Chainable<void>;
+  }
+
+  /**
+   * Finds a row, opens its action menu once, and verifies link and button items.
+   */
+  static verifyMenuOptionsInTableRow(
+    tableCaption: string,
+    columnValues: Record<string, string>,
+    selectButtonText: string,
+    expectedMenuOptions: string[],
+  ): Cypress.Chainable<void> {
+    cy.contains('caption', tableCaption, { timeout: 20000 }).should(
+      'be.visible',
+    );
+
+    return TableSearch.searchWithPagination(
+      columnValues,
+      tableCaption,
+      true,
+      (row) => {
+        return TableInteraction.ensureMenuOpenInRow(row, selectButtonText)
+          .then(() => {
+            cy.log(`Expected Menu Options: ${expectedMenuOptions.join(', ')}`);
+          })
+          .then(() => {
+            for (const optionText of expectedMenuOptions) {
+              cy.log(`Verifying menu item: ${optionText}`);
+              TableElement.getMenuItemInRow(row, optionText).should(
+                'be.visible',
+              );
+            }
+          })
+          .then(() => {
+            cy.screenshot('menu-options-verified');
+          });
+      },
+    ).then((found) => {
+      if (!found) {
+        throw new Error(
+          `Row with specified values not found in table "${tableCaption}" to verify menu options: ${expectedMenuOptions.join(', ')}`,
+        );
+      }
+    }) as unknown as Cypress.Chainable<void>;
+  }
+
+  /**
+   * Finds a row by values, clicks a button, and verifies menu link options
+   */
+  static verifyLinksInTableRow(
+    tableCaption: string,
+    columnValues: Record<string, string>,
+    selectButtonText: string,
+    expectedMenuOptions: string[],
+  ): Cypress.Chainable<void> {
+    // Wait for table to be visible before searching
+    cy.contains('caption', tableCaption, { timeout: 20000 }).should(
+      'be.visible',
+    );
+
+    return TableSearch.searchWithPagination(
+      columnValues,
+      tableCaption,
+      true,
+      (row) => {
+        return TableInteraction.ensureMenuOpenInRow(row, selectButtonText)
+          .then(() => {
+            cy.log(`Expected Menu Options: ${expectedMenuOptions.join(', ')}`);
+          })
+          .then(() => {
+            for (const linkText of expectedMenuOptions) {
+              cy.log(`Verifying menu link: ${linkText}`);
+              TableElement.getMenuLinkInRow(row, linkText).should('be.visible');
+            }
+          })
+          .then(() => {
+            cy.screenshot('menu-links-verified');
+          });
+      },
+    ).then((found) => {
+      if (!found) {
+        throw new Error(
+          `Row with specified values not found in table "${tableCaption}" to verify menu link options: ${expectedMenuOptions.join(', ')}`,
         );
       }
     }) as unknown as Cypress.Chainable<void>;

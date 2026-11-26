@@ -10,6 +10,13 @@
   gap: 30px;
 }
 
+@media (width <= 60em) {
+  .fee-update-fields {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}
+
 // These shared inputs contain their own grid columns. Let this row own the
 // spacing so the calendar's width is included rather than overflowing a column.
 :host ::ng-deep .fee-update-fields .govuk-grid-column-one-quarter {
