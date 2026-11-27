@@ -343,6 +343,7 @@
           <!-- Open -->
           <a
             class="govuk-button moj-button-menu__item govuk-button--secondary"
+            [attr.aria-label]="'Open, row ' + (tableRows().indexOf(row) + 1)"
             [routerLink]="[
               '/applications-list',
               row.applicationListId,
@@ -359,6 +360,9 @@
           <button
             type="button"
             class="govuk-button"
+            [attr.aria-label]="
+              'Update notes, row ' + (tableRows().indexOf(row) + 1)
+            "
             (click)="onUpdateNotesClick(row)"
           >
             Update notes
