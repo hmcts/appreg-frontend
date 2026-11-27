@@ -71,8 +71,7 @@
       idPrefix="code"
       [error]="
         submitted()
-          ? (getControlErrorItem(form.controls.code, 'code', errorMap)?.text ??
-            null)
+          ? (submittedFieldErrors.errorFor('code')?.text ?? null)
           : null
       "
       containerWidthClass="govuk-grid-column-one-half"
@@ -86,8 +85,7 @@
       idPrefix="name"
       [error]="
         submitted()
-          ? (getControlErrorItem(form.controls.name, 'name', errorMap)?.text ??
-            null)
+          ? (submittedFieldErrors.errorFor('name')?.text ?? null)
           : null
       "
       widthClass="govuk-input--width-20"

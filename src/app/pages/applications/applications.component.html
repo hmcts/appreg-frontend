@@ -72,13 +72,8 @@
       [suggestions]="state().filteredCourthouses"
       (selectItem)="onCourthouseSuggestionSelected($event)"
       [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
-      [showError]="
-        vm().submitted &&
-        !!getControlErrorItem(form.controls.court, 'court', errorMap)
-      "
-      [errorText]="
-        getControlErrorItem(form.controls.court, 'court', errorMap)?.text ?? ''
-      "
+      [showError]="vm().submitted && !!submittedFieldErrors.errorFor('court')"
+      [errorText]="submittedFieldErrors.errorFor('court')?.text ?? ''"
       containerWidthClass="govuk-grid-column-one-half"
       widthClass="govuk-!-width-two-thirds"
     />
@@ -152,11 +147,7 @@
           label="Respondent post code"
           idPrefix="respondentPostcode"
           [error]="
-            getControlErrorItem(
-              form.controls.respondentPostcode,
-              'respondentPostcode',
-              errorMap
-            )?.text ?? null
+            submittedFieldErrors.errorFor('respondentPostcode')?.text ?? null
           "
           containerWidthClass="govuk-grid-column-one-quarter"
           widthClass="govuk-!-width-full"
@@ -172,13 +163,8 @@
           [suggestions]="state().filteredCja"
           (selectItem)="onCjaSuggestionSelected($event)"
           [disabled]="!!state().courthouseSearch || !!form.get('court')?.value"
-          [showError]="
-            vm().submitted &&
-            !!getControlErrorItem(form.controls.cja, 'cja', errorMap)
-          "
-          [errorText]="
-            getControlErrorItem(form.controls.cja, 'cja', errorMap)?.text ?? ''
-          "
+          [showError]="vm().submitted && !!submittedFieldErrors.errorFor('cja')"
+          [errorText]="submittedFieldErrors.errorFor('cja')?.text ?? ''"
           containerWidthClass="govuk-grid-column-one-quarter"
           widthClass="govuk-!-width-full"
         />
@@ -229,18 +215,10 @@
           (selectItem)="onApplicationTitleSuggestionSelected($event)"
           [showError]="
             vm().submitted &&
-            !!getControlErrorItem(
-              form.controls.applicationTitle,
-              'applicationTitle',
-              errorMap
-            )
+            !!submittedFieldErrors.errorFor('applicationTitle')
           "
           [errorText]="
-            getControlErrorItem(
-              form.controls.applicationTitle,
-              'applicationTitle',
-              errorMap
-            )?.text ?? ''
+            submittedFieldErrors.errorFor('applicationTitle')?.text ?? ''
           "
           [charLimit]="500"
           containerWidthClass="govuk-grid-column-one-half"

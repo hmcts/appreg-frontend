@@ -5,6 +5,7 @@ import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { Observable, Subject, of } from 'rxjs';
 
+import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
 import { toOptionalTrimmed } from '@components/applications-list-entry-create/util/helpers';
@@ -91,6 +92,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
   });
 
   it('onSubmit: blocks create call when EF application code has no account reference', () => {
+    expect(component.notesSubmittedErrors()).toEqual([]);
     component.form.patchValue({
       applicationCode: 'EF123',
       lodgementDate: '2026-02-01',
@@ -105,6 +107,10 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
 
     expect(createApplicationListEntryMock).not.toHaveBeenCalled();
     expect(component.vm().errorFound).toBe(true);
+    expect(component.notesSubmittedErrors()).toEqual([
+      expect.objectContaining({ id: 'applicationNotes.accountReference' }),
+    ]);
+    expect(component.openNotes()).toBe(true);
     expect(component.vm().summaryErrors).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -121,7 +127,6 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     ['wording', 'openWording'],
     ['respondent', 'openRespondent'],
     ['civilFee', 'openCivilFee'],
-    ['notes', 'openNotes'],
   ] as const)(
     'opens %s when it receives validation errors',
     (source, section) => {
@@ -189,7 +194,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     component.openCivilFee.set(true);
     component.openNotes.set(true);
 
-    component.onChildErrors('notes', [{ id: 'notes', text: 'Error' }]);
+    component.onChildErrors('wording', [{ id: 'wording', text: 'Error' }]);
 
     expect(component.openApplicant()).toBe(true);
     expect(component.openApplicationCode()).toBe(true);
@@ -361,7 +366,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     ],
     ['respondentOrganisationForm', 'org', 'name', '#respondent-org-name'],
   ] as const)(
-    'refreshes %s field errors after a failed save without submitting again',
+    'keeps %s field errors until the next save',
     (formName, applicantType, field, href) => {
       component.form.patchValue({
         applicantType,
@@ -387,17 +392,22 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
       const errors = formName.startsWith('respondent')
         ? component.respondentErrorItems
         : component.applicantErrorItems;
-      expect(errors).not.toContainEqual(error);
-      expect(errors.length).toBeGreaterThan(0);
-      expect(component.vm().summaryErrors).not.toContainEqual(error);
-      group.get(field)!.setValue('   ');
+      expect(group.get(field)?.valid).toBe(true);
+      expect(errors).toContainEqual(error);
       expect(component.vm().summaryErrors).toContainEqual(error);
       expect(component.submitAttempt()).toBe(submitAttempt);
+
+      component.onSubmit(new Event('submit'));
+      expect(component.vm().summaryErrors).not.toContainEqual(error);
+      group.get(field)!.setValue('   ');
+      expect(component.vm().summaryErrors).not.toContainEqual(error);
+      component.onSubmit(new Event('submit'));
+      expect(component.vm().summaryErrors).toContainEqual(error);
       expect(createApplicationListEntryMock).not.toHaveBeenCalled();
     },
   );
 
-  it('rebuilds optional respondent errors immediately when populated after submit', () => {
+  it('waits until the next save to show errors for a newly populated optional respondent', () => {
     (
       component as unknown as {
         appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
@@ -419,6 +429,9 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
 
     component.forms.respondentPersonForm.patchValue({ firstName: 'Jane' });
 
+    expect(component.respondentSubmittedAndRequired).toBe(false);
+    expect(component.respondentErrorItems).toEqual([]);
+    component.onSubmit(new Event('submit'));
     expect(component.respondentSubmittedAndRequired).toBe(true);
     expect(component.respondentErrorItems).toEqual(
       expect.arrayContaining([
@@ -1712,7 +1725,63 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
     },
   );
 
-  it('keeps focus in first name when the last error clears and returns during editing', async () => {
+  it('keeps the submitted lodgement date error when a code is added from existing results', async () => {
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    const component = fixture.componentInstance;
+    component.openApplicationCode.set(true);
+    fixture.detectChanges();
+    const search: ApplicationCodeSearchComponent = fixture.debugElement.query(
+      By.directive(ApplicationCodeSearchComponent),
+    ).componentInstance;
+    search.codesRows = [
+      {
+        code: 'APP01',
+        title: 'Example code',
+        bulk: 'No',
+        fee: '—',
+        isFeeDue: '',
+      },
+    ];
+    search.form.controls.lodgementDate.setValue(null);
+    component.onSubmit(new Event('submit'));
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    const dateError = root.querySelector('#lodgement-date-error')?.textContent;
+    expect(dateError).toContain('Enter day, month and year');
+    const addCode = [
+      ...root.querySelectorAll<HTMLButtonElement>('button'),
+    ].find((button) => button.textContent?.trim() === 'Add code')!;
+    addCode.click();
+    fixture.detectChanges();
+
+    expect(component.form.controls.applicationCode.value).toBe('APP01');
+    expect(component.form.controls.lodgementDate.hasError('required')).toBe(
+      true,
+    );
+    expect(root.querySelector('#lodgement-date-error')?.textContent).toBe(
+      dateError,
+    );
+    const summary = root.querySelector('app-error-summary');
+    expect(
+      summary?.querySelector('a[href="#lodgement-date-day"]'),
+    ).not.toBeNull();
+    expect(summary?.querySelector('a[href="#applicationCode"]')).toBeNull();
+  });
+
+  it('keeps focus in first name while the submitted error stays visible during editing', async () => {
     await TestBed.configureTestingModule({
       imports: [ApplicationsListEntryCreate],
       providers: [
@@ -1767,8 +1836,9 @@ describe('ApplicationsListEntryCreate error summary focus (real template)', () =
       expect(fixture.nativeElement.querySelector('app-error-summary')).toBe(
         summary,
       );
-      expect(summary.hidden).toBe(value !== '');
-      expect(component.vm().summaryErrors).toHaveLength(value === '' ? 1 : 0);
+      expect(summary.hidden).toBe(false);
+      expect(component.vm().summaryErrors).toHaveLength(1);
+      expect(field.getAttribute('aria-invalid')).toBe('true');
       expect(document.activeElement).toBe(field);
       expect(scroll).not.toHaveBeenCalled();
     }

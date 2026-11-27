@@ -169,6 +169,32 @@ describe('ApplicationsListCreate', () => {
     expect(appListsMock.createApplicationList).not.toHaveBeenCalled();
   });
 
+  it('retains the description error while editing and replaces it on Create', () => {
+    const root = fixture.nativeElement as HTMLElement;
+    const create = root.querySelector<HTMLButtonElement>('#create')!;
+    create.click();
+    fixture.detectChanges();
+
+    const description =
+      root.querySelector<HTMLTextAreaElement>('#description')!;
+    expect(description.getAttribute('aria-invalid')).toBe('true');
+
+    description.value = 'Updated list description';
+    description.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    expect(description.getAttribute('aria-invalid')).toBe('true');
+    expect(component.vm().errorSummary).toContainEqual(
+      expect.objectContaining({ id: 'description' }),
+    );
+
+    create.click();
+    fixture.detectChanges();
+    expect(description.hasAttribute('aria-invalid')).toBe(false);
+    expect(component.vm().errorSummary).not.toContainEqual(
+      expect.objectContaining({ id: 'description' }),
+    );
+  });
+
   it('submits successfully with court payload', async () => {
     component.form.setValue({
       date: '2025-10-02',

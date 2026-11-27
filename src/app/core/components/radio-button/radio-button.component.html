@@ -39,6 +39,7 @@
             [name]="name() || idPrefix()"
             [value]="radioValue(opt.value)"
             [checked]="value === opt.value"
+            [attr.aria-invalid]="showError() ? 'true' : null"
             [disabled]="disabled || !!opt.disabled"
             (change)="onSelect(opt.value)"
           />

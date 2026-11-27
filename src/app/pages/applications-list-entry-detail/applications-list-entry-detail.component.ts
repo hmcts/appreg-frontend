@@ -13,7 +13,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Observable, map } from 'rxjs';
+import { Observable, distinctUntilChanged, map } from 'rxjs';
 
 import { EntryDetailFeeSaveFacade } from './facades/entry-detail-fee-save.facade';
 import { EntryDetailLoadFacade } from './facades/entry-detail-load.facade';
@@ -72,6 +72,7 @@ import {
 } from '@constants/application-list-entry/columns-options';
 import {
   APPLICANT_ENTRY_ERROR_MESSAGES,
+  CIVIL_FEE_FIELD_MESSAGES,
   ChildErrorSourceALEDetail,
   ENTRY_ERROR_MESSAGES,
   RESPONDENT_ENTRY_ERROR_MESSAGES,
@@ -129,6 +130,7 @@ import { getProblemText } from '@util/http-error-to-text';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
 import { returnOrgName } from '@util/string-helpers';
+import { captureCompositeErrors } from '@util/submitted-field-errors';
 import {
   createWordingObjectValuesResolver,
   withWordingFieldValues,
@@ -139,6 +141,9 @@ type ConfirmationSection = 'applicant' | 'officials' | 'fees' | 'results';
 type ChildErrorSource = ChildErrorSourceALEDetail;
 
 const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
+const LINKED_CODE_LOAD_ERROR: ErrorItem = {
+  text: 'Application code details could not be loaded. You cannot save this application until the details are available.',
+};
 
 export const ERROR_HREFS = {
   resultWording: '#result-code',
@@ -202,6 +207,8 @@ export const ERROR_HREFS = {
 export class ApplicationsListEntryDetail implements OnInit {
   @ViewChild('wordingSection')
   private readonly wordingSection?: WordingSectionComponent;
+  @ViewChild(ApplicationCodeSearchComponent)
+  private readonly applicationCodeSearch?: ApplicationCodeSearchComponent;
   @ViewChild('civilFeeSection')
   private readonly civilFeeSection?: CivilFeeSectionComponent;
   @ViewChild(ResultWordingSectionComponent)
@@ -270,9 +277,9 @@ export class ApplicationsListEntryDetail implements OnInit {
   codesHasSearched = false;
 
   private parentErrors: ErrorItem[] = [];
+  private suppressCivilFeeSummary = false;
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
     codes: [],
-    notes: [],
     fee: [],
     respondent: [],
     applicant: [],
@@ -374,7 +381,13 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // Watch applicantType changes
     this.bindApplicantTypeChanges();
-    this.bindPartyValidationChanges();
+    this.form.controls.respondentEntryType.valueChanges
+      .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.respondentValidationSubmitted.set(false);
+        this.childErrors.respondent = [];
+        this.updateAllErrors({ focusSummary: false });
+      });
 
     if (!isPlatformBrowser(this.platformId)) {
       return;
@@ -611,6 +624,11 @@ export class ApplicationsListEntryDetail implements OnInit {
           if (hasSelectionChanged) {
             this.wordingSubmitAttempt.set(0);
             this.formSvc.resetSectionsOnApplicationCodeChange(this.forms, true);
+            this.respondentValidationSubmitted.set(false);
+            this.childErrors.respondent = [];
+            this.childErrors.civilFee = [];
+            this.childErrors.wording = [];
+            this.updateAllErrors({ focusSummary: false });
             this.wordingAppliedBannerVisible.set(false);
             this.entryDetail!.wording = undefined;
           }
@@ -666,11 +684,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.appListEntryDetailPatch({
       errorFound: true,
       errorHint: 'There is a problem',
-      summaryErrors: [
-        {
-          text: 'Application code details could not be loaded. You cannot save this application until the details are available.',
-        },
-      ],
+      summaryErrors: [LINKED_CODE_LOAD_ERROR],
     });
   }
 
@@ -818,9 +832,11 @@ export class ApplicationsListEntryDetail implements OnInit {
         map((type): ApplicantType => type ?? 'person'),
       )
       .subscribe((t) => {
-        this.appListEntryDetailPatch({ formSubmitted: false });
-
-        this.resetErrors();
+        this.childErrors.applicant = [];
+        this.parentErrors = this.parentErrors.filter(
+          ({ id }) => id !== 'standardApplicantCode',
+        );
+        this.updateAllErrors({ focusSummary: false });
 
         // keep UI state in sync
         this.selectedStandardApplicantCode =
@@ -1003,7 +1019,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    this.resetErrors();
+    this.childErrors.civilFee = [];
+    this.updateAllErrors({ focusSummary: false });
     const previousFeeStatuses = [
       ...(this.form.controls.feeStatuses.value ?? []),
     ];
@@ -1091,6 +1108,13 @@ export class ApplicationsListEntryDetail implements OnInit {
           );
         }
 
+        if (isFeeAddition) {
+          this.parentErrors = this.parentErrors.filter(
+            ({ id }) => !id || !Object.hasOwn(CIVIL_FEE_FIELD_MESSAGES, id),
+          );
+          this.updateAllErrors({ focusSummary: false });
+        }
+
         showSuccess();
       },
       error: (err) => {
@@ -1112,7 +1136,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    if (this.runWordingValidationForPartialSave()) {
+    if (this.runWordingValidationForPartialSave(true)) {
       this.feeSaveFacade.rollbackOffsiteFee(
         this.form.controls.hasOffsiteFee,
         prevValue,
@@ -1416,6 +1440,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.childErrors.applicant = [];
   }
 
+  readonly respondentValidationSubmitted = signal(false);
+  readonly notesSubmittedErrors = signal<readonly ErrorItem[]>([]);
+
   private updateRespondentErrors(): void {
     // Validate selected Bulk applications even when respondents are optional.
     const isRespondentRequired =
@@ -1432,6 +1459,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       isRespondentRequired ||
       respondentFormHasValues;
 
+    this.respondentValidationSubmitted.set(shouldValidateRespondent);
     if (shouldValidateRespondent) {
       this.childErrors.respondent = buildRespondentErrors({
         respondentEntryType: this.form.controls.respondentEntryType.value,
@@ -1444,53 +1472,91 @@ export class ApplicationsListEntryDetail implements OnInit {
         respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
         bulkCountRequired: true,
       });
+      captureCompositeErrors(
+        this.forms.respondentPersonForm,
+        this.childErrors.respondent,
+      );
+
       return;
     }
 
     this.childErrors.respondent = [];
   }
 
-  private updateAllErrors(opts: { focusSummary?: boolean } = {}): void {
-    this.updateApplicantErrors();
-    this.updateRespondentErrors();
-
-    this.parentErrors = this.buildErrorSummary();
-    const allChildErrors = Object.values(this.childErrors).flat();
-
-    const summaryErrors = [
-      ...getUniqueErrors(this.parentErrors, allChildErrors),
-    ];
+  private updateAllErrors(
+    opts: { focusSummary?: boolean; validateOtherSections?: boolean } = {},
+  ): void {
+    if (opts.validateOtherSections) {
+      this.updateApplicantErrors();
+      this.updateRespondentErrors();
+      this.parentErrors = this.buildErrorSummary();
+      this.notesSubmittedErrors.set(
+        this.parentErrors.filter(({ id }) =>
+          id?.startsWith('applicationNotes.'),
+        ),
+      );
+    }
+    const parentErrors = this.suppressCivilFeeSummary
+      ? this.parentErrors.filter(
+          ({ id }) => !id || !Object.hasOwn(CIVIL_FEE_FIELD_MESSAGES, id),
+        )
+      : this.parentErrors;
+    const childErrors = this.suppressCivilFeeSummary
+      ? { ...this.childErrors, civilFee: [] }
+      : this.childErrors;
+    const summaryErrors = this.collectSummaryErrors(
+      getUniqueErrors(parentErrors, Object.values(childErrors).flat()),
+    );
     const errorFound = summaryErrors.length > 0;
 
     this.appListEntryDetailPatch({
       summaryErrors,
       errorFound,
     });
-    this.openSectionsWithErrors();
+    this.openSectionsWithErrors(childErrors, parentErrors);
 
     if (errorFound && opts.focusSummary !== false) {
       this.submitAttempt.update((attempt) => attempt + 1);
     }
   }
 
+  resetParentErrorsFromCodeSearch(scope: 'code' | 'all'): void {
+    this.childErrors.codes = [];
+    this.parentErrors = this.parentErrors.filter(
+      ({ id }) =>
+        id !== 'applicationCode' && (scope !== 'all' || id !== 'lodgementDate'),
+    );
+    this.updateAllErrors({ focusSummary: false });
+  }
+
+  private collectSummaryErrors(
+    errors = getUniqueErrors(
+      this.parentErrors,
+      Object.values(this.childErrors).flat(),
+    ),
+  ): ErrorItem[] {
+    return this.vm().formReady && !this.savedApplicationCodeLoaded()
+      ? [LINKED_CODE_LOAD_ERROR, ...errors]
+      : errors;
+  }
+
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
-    this.childErrors[source] = errors ?? [];
-    this.submitAttempt.update((attempt) => attempt + 1);
+    const childErrors = errors ?? [];
+    this.childErrors[source] = childErrors;
+
+    if (source !== 'codes' || childErrors.length > 0) {
+      this.submitAttempt.update((attempt) => attempt + 1);
+    }
 
     if (source === 'codes' || source === 'resultWording') {
-      const summaryErrors = [
-        ...getUniqueErrors(
-          this.parentErrors,
-          Object.values(this.childErrors).flat(),
-        ),
-      ];
+      const summaryErrors = this.collectSummaryErrors();
 
       this.appListEntryDetailPatch({
         summaryErrors,
         errorFound: summaryErrors.length > 0,
       });
 
-      if (source === 'resultWording' && errors?.length > 0) {
+      if (source === 'resultWording' && childErrors.length > 0) {
         this.resultAppliedBannerVisible.set(false);
         this.openResultSection.set(true);
       }
@@ -1519,6 +1585,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
     this.form.updateValueAndValidity({ emitEvent: false });
 
+    this.applicationCodeSearch?.validateForEntrySubmit();
     const submitErrors = collectChildSubmitErrors<ChildErrorSource>([
       { source: 'wording', section: this.wordingSection },
       { source: 'civilFee', section: this.civilFeeSection },
@@ -1538,34 +1605,32 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.childErrors.wording = submitErrors.wording ?? [];
     this.childErrors.civilFee = submitErrors.civilFee ?? [];
 
-    this.updateAllErrors();
+    this.updateAllErrors({ validateOtherSections: true });
     return this.appListEntryDetailState().errorFound;
   }
 
-  private runWordingValidationForPartialSave(): boolean {
-    this.childErrors.wording =
-      this.wordingSection?.validateForSubmit({
-        enforceSavedWording: false,
-      }) ?? [];
+  private runWordingValidationForPartialSave(
+    suppressCivilFeeSummary = false,
+  ): boolean {
+    // Wording validation emits an error event that can refresh the summary synchronously.
+    const previousSuppression = this.suppressCivilFeeSummary;
+    this.suppressCivilFeeSummary = suppressCivilFeeSummary;
+    try {
+      this.childErrors.wording =
+        this.wordingSection?.validateForSubmit({
+          enforceSavedWording: false,
+        }) ?? [];
 
-    this.updateAllErrors();
-    return this.childErrors.wording.length > 0;
-  }
-
-  private bindPartyValidationChanges(): void {
-    this.formSvc
-      .partyValidationChanges(this.forms)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        if (!this.vm().formSubmitted) {
-          return;
-        }
-
-        this.updateAllErrors({ focusSummary: false });
-      });
+      this.updateAllErrors();
+      return this.childErrors.wording.length > 0;
+    } finally {
+      this.suppressCivilFeeSummary = previousSuppression;
+    }
   }
 
   private resetErrors(): void {
+    this.notesSubmittedErrors.set([]);
+    this.respondentValidationSubmitted.set(false);
     this.appListEntryDetailPatch({
       errorHint: 'There is a problem',
       summaryErrors: [],
@@ -1575,7 +1640,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.parentErrors = [];
     this.childErrors = {
       codes: [],
-      notes: [],
       fee: [],
       respondent: [],
       applicant: [],
@@ -1590,10 +1654,11 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private applyMappedError(err: unknown): void {
     const mapped = mapHttpErrorToSummary(err);
+    const summaryErrors = this.collectSummaryErrors(mapped.errorSummary);
     this.appListEntryDetailPatch({
       errorHint: mapped.errorHint,
-      summaryErrors: mapped.errorSummary,
-      errorFound: mapped.errorSummary.length > 0,
+      summaryErrors,
+      errorFound: summaryErrors.length > 0,
     });
   }
 
@@ -1713,7 +1778,10 @@ export class ApplicationsListEntryDetail implements OnInit {
     sections[event.index]?.set(event.expanded);
   }
 
-  private openSectionsWithErrors(): void {
+  private openSectionsWithErrors(
+    childErrors: Record<ChildErrorSource, ErrorItem[]>,
+    parentErrors: ErrorItem[],
+  ): void {
     const submitted = this.vm().formSubmitted;
 
     if (!submitted) {
@@ -1721,8 +1789,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     const sectionsWithErrors = getApplicationListEntryErrorSections(
-      this.childErrors,
-      this.parentErrors,
+      childErrors,
+      parentErrors,
     );
     const sections = [
       this.openApplicantSection,

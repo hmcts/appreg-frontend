@@ -4,19 +4,26 @@
       @if (t.type == 'text') {
         {{ t.value }}&nbsp;
       } @else if (t.type == 'input') {
+        @let fieldId = normaliseKey(t.key);
+        @let error = submittedFieldErrors.errorFor(fieldId);
         <input
-          [id]="normaliseKey(t.key)"
+          [id]="fieldId"
           class="govuk-input"
           [ngClass]="getInputWidthClass(t.key)"
           [attr.aria-label]="'Enter ' + t.key"
-          [class.govuk-input--error]="
-            form.get(normaliseKey(t.key))?.invalid && submitted()
-          "
-          [formControlName]="normaliseKey(t.key)"
+          [class.govuk-input--error]="!!error"
+          [attr.aria-invalid]="error ? 'true' : null"
+          [attr.aria-describedby]="error ? fieldId + '-error' : null"
+          [formControlName]="fieldId"
           type="text"
           (keydown.enter)="onWordingEnter($event)"
           [placeholder]="'Enter a ' + t.key"
         />&nbsp;
+        @if (error) {
+          <span class="govuk-visually-hidden" [id]="fieldId + '-error'">
+            {{ error.text }}
+          </span>
+        }
       }
     }
   </p>

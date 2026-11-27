@@ -728,6 +728,48 @@ describe('ReportsComponent', () => {
     ).toBe(true);
   });
 
+  it('updates live report filters while retaining the last submitted errors', () => {
+    reportsApiMock.createActivityAuditReport.mockReturnValue(
+      new Subject<HttpResponse<JobAcknowledgement>>(),
+    );
+    component.form.controls.report.setValue('activity-audit');
+    component.activityAuditGroup.patchValue({
+      dateFrom: '2026-02-01',
+      dateTo: '2026-01-31',
+      activity: ['REPORT_DOWNLOADED'],
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const month = root.querySelector<HTMLInputElement>('#date-from-month')!;
+    month.value = '1';
+    month.dispatchEvent(new Event('input', { bubbles: true }));
+    component.activityAuditGroup.controls.activity.setValue([]);
+    fixture.detectChanges();
+
+    expect(component.activityAuditGroup.get('dateFrom')?.value).toBe(
+      '2026-01-01',
+    );
+    expect(root.querySelector('#date-to-error')?.textContent).toContain(
+      'Date to must be on or after Date from',
+    );
+    expect(
+      root.querySelector('#date-to-day')?.getAttribute('aria-invalid'),
+    ).toBe('true');
+    expect(root.querySelector('#activity-error')).toBeNull();
+
+    component.onDownload();
+    fixture.detectChanges();
+    expect(root.querySelector('#date-to-error')).toBeNull();
+    expect(root.querySelector('#activity-error')).not.toBeNull();
+
+    component.onClearFilters();
+    fixture.detectChanges();
+    expect(root.querySelector('#activity-error')).toBeNull();
+  });
+
   it('clears previous errors when the selected report is valid', () => {
     const createJob$ = new Subject<HttpResponse<JobAcknowledgement>>();
     reportsApiMock.createActivityAuditReport.mockReturnValue(createJob$);

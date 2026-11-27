@@ -1,9 +1,12 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  OnChanges,
+  SimpleChanges,
   computed,
   inject,
   input,
+  signal,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -38,6 +41,7 @@ import { buildNormalizedPayload } from '@util/build-payload';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsState } from '@util/place-fields.base';
+import { SubmittedFieldErrors } from '@util/submitted-field-errors';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { closeDurationError } from '@validators/applications-list-close.validator';
 
@@ -68,9 +72,11 @@ import { closeDurationError } from '@validators/applications-list-close.validato
   templateUrl: './applications-list-update.component.html',
   styleUrl: '../applications-list-detail.component.scss',
 })
-export class ApplicationsListUpdateComponent {
+export class ApplicationsListUpdateComponent implements OnChanges {
   private readonly router = inject(Router);
 
+  readonly submittedFieldErrors = new SubmittedFieldErrors();
+  private readonly submittedCloseDurationError = signal('');
   readonly form = input.required<DetailForm>();
 
   readonly statusOptions = input.required<{ value: string; label: string }[]>();
@@ -131,11 +137,19 @@ export class ApplicationsListUpdateComponent {
     duration: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
   } as const;
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['id'] || changes['form']) {
+      this.submittedFieldErrors.clear(this.form());
+      this.submittedCloseDurationError.set('');
+    }
+  }
+
   onUpdate(): void {
     if (!this.canModifyList()) {
       return;
     }
     this.incrementSubmitAttempt()();
+    this.submittedCloseDurationError.set('');
 
     // reset flags/errors
     this.patchState()(clearUpdateNotificationsPatch());
@@ -146,6 +160,7 @@ export class ApplicationsListUpdateComponent {
     const raw = this.form().getRawValue();
 
     const errors = this.buildUpdateErrorSummary();
+    this.submittedFieldErrors.capture(errors, this.form());
     if (errors.length) {
       this.patchState()({
         updateInvalid: true,
@@ -205,6 +220,7 @@ export class ApplicationsListUpdateComponent {
     }
 
     const durationError = closeDurationError(originalListDetails.duration);
+    this.submittedCloseDurationError.set(durationError ?? '');
     if (durationError) {
       // Set errors in form and then build banners
       const form = this.form();
@@ -273,13 +289,11 @@ export class ApplicationsListUpdateComponent {
   }
 
   hasDurationCloseError(): boolean {
-    return !!this.form().get('duration')?.errors?.['closeDurationMissing'];
+    return !!this.submittedCloseDurationError();
   }
 
   durationCloseErrorText(): string {
-    const errors = this.form().get('duration')?.errors;
-    const v = errors?.['durationErrorText'] as string;
-    return typeof v === 'string' ? v : '';
+    return this.submittedCloseDurationError();
   }
 
   private buildUpdateErrorSummary(): ErrorItem[] {

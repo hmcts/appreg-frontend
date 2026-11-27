@@ -22,6 +22,7 @@ import { isEqual } from 'lodash';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { TemplateDetail, TemplateSubstitution } from '@openapi';
+import { SubmittedFieldErrors } from '@util/submitted-field-errors';
 
 export type Token =
   | { type: 'text'; value: string }
@@ -79,8 +80,10 @@ export class WordingParserComponent {
 
   private readonly normalisedKeyToKeyMap = new Map<string, string>();
   private lastHandledAttempt = 0;
+  private previousTemplate?: TemplateDetail;
 
   submitted = signal(false);
+  readonly submittedFieldErrors = new SubmittedFieldErrors();
 
   tokens: Token[] = [];
 
@@ -262,6 +265,7 @@ export class WordingParserComponent {
     this.form.updateValueAndValidity({ emitEvent: false });
 
     const validationErrors = this.form.valid ? [] : this.buildErrors();
+    this.submittedFieldErrors.capture(validationErrors);
     if (validationErrors.length > 0) {
       this.wordingFieldErrors.emit(validationErrors);
       return validationErrors;
@@ -354,7 +358,12 @@ export class WordingParserComponent {
   }
 
   private tokeniseAndPatchWordingField(): void {
-    this.tokens = this.tokenize(this.wordingObject().template ?? '');
+    const template = this.wordingObject();
+    if (this.previousTemplate !== template) {
+      this.submittedFieldErrors.clear();
+      this.previousTemplate = template;
+    }
+    this.tokens = this.tokenize(template.template ?? '');
 
     this.createFormControls();
     this.patchFormControls();

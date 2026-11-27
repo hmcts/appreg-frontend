@@ -18,7 +18,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Observable, map } from 'rxjs';
+import { Observable, distinctUntilChanged, map } from 'rxjs';
 
 import {
   ApplicationsListEntryCreateState,
@@ -96,6 +96,7 @@ import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
+import { captureCompositeErrors } from '@util/submitted-field-errors';
 import { createWordingObjectValuesResolver } from '@util/template-substitution-utils';
 
 const ENTRY_CREATE_ERROR_HREFS = {
@@ -183,7 +184,6 @@ export class ApplicationsListEntryCreate implements OnInit {
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSourceALECreate, ErrorItem[]> = {
     codes: [],
-    notes: [],
     fee: [],
     respondent: [],
     applicant: [],
@@ -263,6 +263,8 @@ export class ApplicationsListEntryCreate implements OnInit {
   civilFeeForm: CivilFeeForm = this.formSvc.createCivilFeeForm(this.forms);
   @ViewChild('wordingSection')
   private readonly wordingSection?: WordingSectionComponent;
+  @ViewChild(ApplicationCodeSearchComponent)
+  private readonly applicationCodeSearch?: ApplicationCodeSearchComponent;
   @ViewChild('civilFeeSection')
   private readonly civilFeeSection?: CivilFeeSectionComponent;
   @ViewChild('entryAccordion')
@@ -271,12 +273,26 @@ export class ApplicationsListEntryCreate implements OnInit {
   ngOnInit(): void {
     this.appListEntryCreateState().id = this.route.snapshot.paramMap.get('id')!;
     this.bindApplicantTypeChanges();
-    this.bindPartyValidationChanges();
+    this.form.controls.respondentEntryType.valueChanges
+      .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.respondentValidationSubmitted.set(false);
+        this.childErrors.respondent = [];
+        this.updateErrors({
+          validateOtherSections: false,
+          focusSummary: false,
+        });
+      });
     this.restoreNavigationState();
   }
 
-  resetParentErrorsFromCodeSearch(): void {
-    this.resetFlags();
+  resetParentErrorsFromCodeSearch(scope: 'code' | 'all'): void {
+    this.childErrors.codes = [];
+    this.parentErrors = this.parentErrors.filter(
+      ({ id }) =>
+        id !== 'applicationCode' && (scope !== 'all' || id !== 'lodgementDate'),
+    );
+    this.updateErrors({ validateOtherSections: false, focusSummary: false });
   }
 
   private resetFlags(): void {
@@ -290,6 +306,8 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private clearErrors(): void {
+    this.notesSubmittedErrors.set([]);
+    this.respondentValidationSubmitted.set(false);
     this.appListEntryCreatePatch({
       summaryErrors: [],
     });
@@ -297,7 +315,6 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.parentErrors = [];
     this.childErrors = {
       codes: [],
-      notes: [],
       fee: [],
       respondent: [],
       applicant: [],
@@ -318,11 +335,12 @@ export class ApplicationsListEntryCreate implements OnInit {
     //Run Angular validation
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
+    this.applicationCodeSearch?.validateForEntrySubmit();
     this.validateChildSectionsForSubmit();
 
     // Build error summary from control errors + child errors
     this.updateErrors({
-      validateOtherSections: this.appListEntryCreateState().submitted,
+      validateOtherSections: true,
     });
 
     if (this.appListEntryCreateState().errorFound) {
@@ -367,10 +385,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   get respondentSubmittedAndRequired(): boolean {
-    return (
-      this.appListEntryCreateState().submitted &&
-      this.shouldValidateRespondent()
-    );
+    return this.respondentValidationSubmitted();
   }
 
   onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
@@ -432,8 +447,13 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.childErrors.applicant = [];
   }
 
+  readonly respondentValidationSubmitted = signal(false);
+  readonly notesSubmittedErrors = signal<readonly ErrorItem[]>([]);
+
   private updateRespondentErrors(): void {
-    if (this.shouldValidateRespondent()) {
+    const shouldValidate = this.shouldValidateRespondent();
+    this.respondentValidationSubmitted.set(shouldValidate);
+    if (shouldValidate) {
       this.childErrors.respondent = buildRespondentErrors({
         respondentEntryType: this.form.controls.respondentEntryType.value,
         respondentPersonForm: this.forms.respondentPersonForm,
@@ -445,6 +465,11 @@ export class ApplicationsListEntryCreate implements OnInit {
         respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
         bulkCountRequired: true,
       });
+      captureCompositeErrors(
+        this.forms.respondentPersonForm,
+        this.childErrors.respondent,
+      );
+
       return;
     }
 
@@ -478,6 +503,11 @@ export class ApplicationsListEntryCreate implements OnInit {
       this.updateApplicantErrors();
       this.updateRespondentErrors();
       this.parentErrors = this.buildErrorSummary();
+      this.notesSubmittedErrors.set(
+        this.parentErrors.filter(({ id }) =>
+          id?.startsWith('applicationNotes.'),
+        ),
+      );
     }
 
     const allChildErrors = Object.values(this.childErrors).flat();
@@ -515,13 +545,13 @@ export class ApplicationsListEntryCreate implements OnInit {
       }
 
       this.updateErrors({
-        validateOtherSections: this.appListEntryCreateState().submitted,
+        validateOtherSections: false,
       });
       return;
     }
 
     this.updateErrors({
-      validateOtherSections: this.appListEntryCreateState().submitted,
+      validateOtherSections: false,
     });
   }
 
@@ -630,6 +660,9 @@ export class ApplicationsListEntryCreate implements OnInit {
 
               this.wordingSubmitAttempt.set(0);
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
+              this.respondentValidationSubmitted.set(false);
+              this.childErrors.respondent = [];
+              this.childErrors.civilFee = [];
               this.wordingAppliedBannerVisible.set(false);
 
               if (hadSubmitAttempt) {
@@ -762,8 +795,14 @@ export class ApplicationsListEntryCreate implements OnInit {
         map((type): ApplicantType => type ?? 'person'),
       )
       .subscribe((t) => {
-        this.appListEntryCreatePatch({ submitted: false });
-        this.clearErrors();
+        this.childErrors.applicant = [];
+        this.parentErrors = this.parentErrors.filter(
+          ({ id }) => id !== 'standardApplicantCode',
+        );
+        this.updateErrors({
+          validateOtherSections: false,
+          focusSummary: false,
+        });
         this.appListEntryCreatePatch({
           currentStandardApplicantSummary:
             t === 'standard'
@@ -774,22 +813,6 @@ export class ApplicationsListEntryCreate implements OnInit {
         // reset/rehydrate subforms + keep standardApplicantCode in sync
         this.formSvc.onApplicantTypeChanged(this.forms, t);
         this.formSvc.syncApplicantTypeState(this.forms, t);
-      });
-  }
-
-  private bindPartyValidationChanges(): void {
-    this.formSvc
-      .partyValidationChanges(this.forms)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        if (!this.vm().submitted) {
-          return;
-        }
-
-        this.updateErrors({
-          validateOtherSections: true,
-          focusSummary: false,
-        });
       });
   }
 

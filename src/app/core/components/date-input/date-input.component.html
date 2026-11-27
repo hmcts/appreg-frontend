@@ -28,7 +28,9 @@
           @let missMonth = missing('month');
           @let missYear = missing('year');
 
-          @if (missDay || missMonth || missYear) {
+          @if (submittedError(); as error) {
+            {{ error.text }}
+          } @else if (missDay || missMonth || missYear) {
             @if (missDay && missMonth && missYear && !isSearch()) {
               Enter day, month and year
             } @else if (missDay && missMonth) {

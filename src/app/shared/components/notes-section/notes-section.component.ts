@@ -1,19 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import type { ErrorItem } from '@components/error-summary/error-summary.component';
 import { GovukTextareaComponent } from '@components/govuk-textarea/govuk-textarea.component';
 import { HelpDetailsComponent } from '@components/help-details/help-details.component';
-import { NOTES_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
-import {
-  buildFormErrorSummary,
-  getControlErrorItem,
-} from '@util/error-summary';
 
 export type ApplicationNotesForm = FormGroup<{
   notes: FormControl<string | null>;
@@ -25,8 +15,7 @@ export type ApplicationNotesForm = FormGroup<{
  *
  * Functionality:
  * - Displays notes form fields.
- * - Emits notes validation errors.
- * - Keeps notes validation feedback available to the parent form.
+ * - Displays the validation errors from the most recent entry submission.
  */
 @Component({
   selector: 'app-notes-section',
@@ -36,29 +25,19 @@ export type ApplicationNotesForm = FormGroup<{
 })
 export class NotesSectionComponent {
   form = input.required<ApplicationNotesForm>();
-  // signal output
-  notesErrors = output<ErrorItem[]>();
-
-  readonly errorMap = NOTES_ERROR_MESSAGES;
+  submittedErrors = input<readonly ErrorItem[]>([]);
 
   getControlError(
     controlName: keyof ApplicationNotesForm['controls'],
   ): ErrorItem | undefined {
-    return getControlErrorItem(
-      this.form().controls[controlName],
-      controlName,
-      this.errorMap,
+    return this.submittedErrors().find(
+      ({ id }) => id === `applicationNotes.${controlName}`,
     );
   }
 
   showControlError(
     controlName: keyof ApplicationNotesForm['controls'],
   ): boolean {
-    const ctrl = this.form().controls[controlName];
-    return !!this.getControlError(controlName) && (ctrl.dirty || ctrl.touched);
-  }
-
-  emitNotesErrors(): void {
-    this.notesErrors.emit(buildFormErrorSummary(this.form(), this.errorMap));
+    return !!this.getControlError(controlName);
   }
 }

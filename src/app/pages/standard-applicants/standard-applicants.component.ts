@@ -21,7 +21,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   ErrorMessageMap,
   buildFormErrorSummary,
-  getControlErrorItem,
 } from '../../core/util/error-summary';
 
 import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
@@ -60,6 +59,7 @@ import { saveCsv as saveCsvFile } from '@util/save-csv';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 import { getDateStamp, trimToUndefined } from '@util/string-helpers';
+import { SubmittedFieldErrors } from '@util/submitted-field-errors';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
 export type StandardApplicantFilters = Pick<
@@ -159,12 +159,11 @@ export class StandardApplicants implements OnInit {
     signal<PrintStandardApplicantsRequestParams | null>(null);
 
   readonly submitted = signal(false);
+  readonly submittedFieldErrors = new SubmittedFieldErrors();
   readonly submitAttempt = signal(0);
   readonly errorMap: ErrorMessageMap = STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
   private appliedFilters: StandardApplicantFilters = {};
   onCreateErrorClick = onCreateErrorClickFn;
-
-  getControlErrorItem = getControlErrorItem;
 
   form = new FormGroup({
     code: new FormControl<string>('', {
@@ -211,6 +210,7 @@ export class StandardApplicants implements OnInit {
     });
 
     const validationErrors = this.buildErrorSummary();
+    this.submittedFieldErrors.capture(validationErrors, this.form);
     this.signalState.patch({ searchErrors: validationErrors });
     this.persistFormState();
 
@@ -295,6 +295,7 @@ export class StandardApplicants implements OnInit {
   }
 
   clearSearch(): void {
+    this.submittedFieldErrors.clear();
     this.searchForm.reset();
     this.searchState.reset();
     this.loadRequest.set(null);

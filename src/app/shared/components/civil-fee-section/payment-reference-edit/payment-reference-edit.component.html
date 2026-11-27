@@ -31,6 +31,7 @@
         id="paymentReference"
         class="govuk-input"
         [class.govuk-input--error]="isPaymentReferenceInvalid()"
+        [attr.aria-invalid]="isPaymentReferenceInvalid() ? 'true' : null"
         [formControl]="paymentReference"
         [attr.aria-describedby]="
           isPaymentReferenceInvalid() ? 'paymentReference-error' : null

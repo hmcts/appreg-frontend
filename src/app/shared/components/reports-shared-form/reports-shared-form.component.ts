@@ -43,7 +43,7 @@ export class ReportsSharedFormComponent {
 
   submitted = input(false);
   errorMap = input.required<ErrorMessageMap>();
-  externalErrors = input<readonly ErrorItem[]>([]);
+  externalErrors = input<readonly ErrorItem[]>();
   advancedFilters = input(false);
   advancedOpen = input<boolean | null>(null);
   advancedLabel = input('Advanced filters');
@@ -64,18 +64,13 @@ export class ReportsSharedFormComponent {
     this.submitted() ? (this.getControlError(id)?.text ?? '') : '';
 
   getControlError(id: string): ErrorItem | undefined {
-    const currentError = getControlErrorItem(
-      this.group().get(id),
-      id,
-      this.errorMap(),
+    const submitted = this.externalErrors();
+    return (
+      submitted?.find((item) => item.id === id) ??
+      (submitted === undefined
+        ? getControlErrorItem(this.group().get(id), id, this.errorMap())
+        : undefined)
     );
-
-    // Date fields must not redisplay errors from a previous submission.
-    if (id === 'dateFrom' || id === 'dateTo') {
-      return currentError;
-    }
-
-    return currentError ?? this.externalErrors().find((item) => item.id === id);
   }
 
   onAdvancedClick(e: Event): void {

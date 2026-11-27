@@ -107,6 +107,7 @@
           (newerVersionExists)="newerApplicationCodeVersionExists.set($event)"
           (selectCodeAndLodgementDate)="onCodeSelected($event)"
           (codeSearchErrors)="onChildErrors('codes', $event)"
+          (resetParentErrors)="resetParentErrorsFromCodeSearch($event)"
         />
       </fieldset>
     }
@@ -139,7 +140,7 @@
       [respondentEntryTypeOptions]="respondentEntryTypeOptions"
       [bulkAllowed]="vm().bulkApplicationsAllowed"
       [personTitleOptions]="personTitleOptions"
-      [submitted]="vm().formSubmitted"
+      [submitted]="respondentValidationSubmitted()"
       [errorItems]="respondentErrorItems"
     />
   </ng-template>
@@ -179,8 +180,8 @@
 
   <ng-template #notesTpl>
     <app-notes-section
+      [submittedErrors]="notesSubmittedErrors()"
       [form]="applicationNotesForm"
-      (notesErrors)="onChildErrors('notes', $event)"
     />
   </ng-template>
 

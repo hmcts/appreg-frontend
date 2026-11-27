@@ -61,6 +61,7 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { SubmittedFieldErrors } from '@util/submitted-field-errors';
 import { withDisabledColumnSort } from '@util/table-column-sort';
 import { sortRows } from '@util/table-sort';
 import { ApplicationListRow } from '@util/types/application-list/types';
@@ -137,6 +138,7 @@ export class ApplicationsListEntryMoveComponent
 
   private readonly loadRequest =
     signal<GetApplicationListsRequestParams | null>(null);
+  readonly submittedFieldErrors = new SubmittedFieldErrors();
   readonly submitAttempt = signal(0);
 
   readonly searchFormState = this.searchForm.state;
@@ -277,6 +279,7 @@ export class ApplicationsListEntryMoveComponent
       this.form,
       this.errorMap,
     );
+    this.submittedFieldErrors.capture(validationErrors, this.form);
     if (validationErrors.length) {
       this.storedRecordsState.patch({ submitted: true });
       this.moveEntryPatch({ searchErrors: validationErrors });
@@ -342,6 +345,7 @@ export class ApplicationsListEntryMoveComponent
   }
 
   clearSearch(): void {
+    this.submittedFieldErrors.clear(this.form);
     this.moveEntryPatch(entryMoveClearPatch());
     this.storedRecordsState.patch({ submitted: false, rows: [] });
 

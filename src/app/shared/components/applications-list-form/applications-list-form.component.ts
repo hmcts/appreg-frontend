@@ -29,6 +29,7 @@ import {
   ApplicationsListUpdateFormControls,
 } from '@shared-types/applications-list/applications-list-form';
 import { ErrorMessageMap, getControlErrorItem } from '@util/error-summary';
+import { SubmittedFieldErrors } from '@util/submitted-field-errors';
 
 type AppListForm =
   | FormGroup<ApplicationsListFormControls>
@@ -81,6 +82,7 @@ export class ApplicationsListFormComponent {
   status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
   errorMap = input.required<ErrorMessageMap>();
+  submittedErrors = input<SubmittedFieldErrors>();
   externalErrors = input<readonly ErrorItem[]>([]);
 
   isCreate = computed(() => this.mode() === 'create');
@@ -127,7 +129,9 @@ export class ApplicationsListFormComponent {
     const control = (this.form() as FormGroup).get(id);
 
     return (
-      getControlErrorItem(control, id, this.errorMap()) ??
+      (this.submittedErrors()
+        ? this.submittedErrors()?.errorFor(id)
+        : getControlErrorItem(control, id, this.errorMap())) ??
       this.externalErrors().find((item) => item.id === id)
     );
   }

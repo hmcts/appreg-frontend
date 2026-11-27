@@ -518,6 +518,58 @@ describe('ApplicationCodeSearchComponent', () => {
     );
   });
 
+  it('retains entry required errors through search, sort and pagination until resubmission or Clear', () => {
+    const parentForm = TestBed.inject(
+      ApplicationListEntryFormService,
+    ).createForms().form;
+    componentRef.setInput('patchedFormData', parentForm);
+    component.form.controls.lodgementDate.setValue(null);
+    componentRef.setInput('parentSubmitted', true);
+    fixture.detectChanges();
+
+    const fetch = jest
+      .spyOn(helpers, 'fetchCodeRows$')
+      .mockReturnValue(of(mockRows));
+    const element = fixture.nativeElement as HTMLElement;
+    const day = element.querySelector('#lodgement-date-day');
+    const expectRequiredErrors = () => {
+      expect(component.codeError()).toBe('Enter an application code');
+      expect(day?.getAttribute('aria-invalid')).toBe('true');
+      expect(
+        element.querySelector('#lodgement-date-error')?.textContent,
+      ).toContain('Enter day, month and year');
+    };
+
+    expectRequiredErrors();
+    component.form.controls.lodgementDate.setValue('2020-01-01');
+    for (const search of [
+      () => component.search(),
+      () => component.onSortChange({ key: 'code', direction: 'desc' }),
+      () => component.onPageChange(1),
+    ]) {
+      search();
+      fixture.detectChanges();
+      expectRequiredErrors();
+    }
+    expect(fetch).toHaveBeenCalledTimes(3);
+
+    parentForm.controls.applicationCode.setValue('APP01');
+    component.validateForEntrySubmit();
+    fixture.detectChanges();
+    expect(component.codeError()).toBeNull();
+    expect(day?.hasAttribute('aria-invalid')).toBe(false);
+
+    parentForm.controls.applicationCode.setValue(null);
+    component.form.controls.lodgementDate.setValue(null);
+    component.validateForEntrySubmit();
+    fixture.detectChanges();
+    expectRequiredErrors();
+    component.clear();
+    fixture.detectChanges();
+    expect(component.codeError()).toBeNull();
+    expect(day?.hasAttribute('aria-invalid')).toBe(false);
+  });
+
   it('treats lodgement date as a search filter for no-results display', () => {
     component.form.patchValue({
       lodgementDate: '1000-01-01',
@@ -720,13 +772,32 @@ describe('ApplicationCodeSearchComponent', () => {
     );
   });
 
-  it('emits validation errors when the parent submit state turns on', () => {
+  it('validates the selected code on entry submit and the query length on Search', () => {
+    const parentForm = TestBed.inject(
+      ApplicationListEntryFormService,
+    ).createForms().form;
+    expect(parentForm.controls.applicationCode.hasError('required')).toBe(true);
+    componentRef.setInput('patchedFormData', parentForm);
     const errorsSpy = jest.spyOn(component.codeSearchErrors, 'emit');
 
     component.form.patchValue({ code: '12345678901' });
     componentRef.setInput('parentSubmitted', true);
     fixture.detectChanges();
 
+    const field = (fixture.nativeElement as HTMLElement).querySelector(
+      'app-text-input',
+    );
+    expect(field?.querySelector('.govuk-error-message')?.textContent).toContain(
+      'Enter an application code',
+    );
+    expect(errorsSpy).not.toHaveBeenCalled();
+
+    component.search();
+    fixture.detectChanges();
+
+    expect(field?.querySelector('.govuk-error-message')?.textContent).toContain(
+      'Application code must be 10 characters or fewer',
+    );
     expect(errorsSpy).toHaveBeenCalledWith([
       {
         id: 'code',

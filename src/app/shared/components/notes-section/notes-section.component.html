@@ -36,6 +36,7 @@
       <input
         class="govuk-input govuk-input--width-10"
         [class.govuk-input--error]="showControlError('caseReference')"
+        [attr.aria-invalid]="showControlError('caseReference') ? 'true' : null"
         id="caseReference"
         name="caseReference"
         type="text"
@@ -72,6 +73,9 @@
       <input
         class="govuk-input govuk-input--width-10"
         [class.govuk-input--error]="showControlError('accountReference')"
+        [attr.aria-invalid]="
+          showControlError('accountReference') ? 'true' : null
+        "
         id="accountReference"
         name="accountReference"
         type="text"
@@ -112,6 +116,7 @@
       [maxCharacterLimit]="3000"
       [characterCountEnabled]="true"
       [isInvalid]="showControlError('notes')"
+      [errorMessage]="getControlError('notes')?.text ?? ''"
     />
   </div>
 </div>

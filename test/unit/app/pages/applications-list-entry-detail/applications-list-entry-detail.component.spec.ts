@@ -326,6 +326,172 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
   });
 
+  it('shows reference errors only after save and retains them until the next save', () => {
+    component.openNotesSection.set(true);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const caseReference =
+      element.querySelector<HTMLInputElement>('#caseReference')!;
+    const accountReference =
+      element.querySelector<HTMLInputElement>('#accountReference')!;
+    const edit = (input: HTMLInputElement, value: string) => {
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      fixture.detectChanges();
+    };
+
+    edit(caseReference, 'x'.repeat(300));
+    edit(accountReference, 'x'.repeat(300));
+    expect(caseReference.hasAttribute('aria-invalid')).toBe(false);
+    expect(accountReference.hasAttribute('aria-invalid')).toBe(false);
+
+    edit(caseReference, 'CASE-1');
+    expect(caseReference.hasAttribute('aria-invalid')).toBe(false);
+    component.onUpdateApplication();
+    fixture.detectChanges();
+    expect(accountReference.getAttribute('aria-invalid')).toBe('true');
+    edit(accountReference, 'ACCOUNT-1');
+    edit(caseReference, 'x'.repeat(300));
+    expect(accountReference.getAttribute('aria-invalid')).toBe('true');
+    expect(caseReference.hasAttribute('aria-invalid')).toBe(false);
+
+    component.onUpdateApplication();
+    fixture.detectChanges();
+    expect(accountReference.hasAttribute('aria-invalid')).toBe(false);
+    expect(caseReference.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('saves the selected application when the code search query is overlong', () => {
+    component.form.controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-999');
+    component.openApplicationCodeSection.set(true);
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    const query = root.querySelector<HTMLInputElement>('#applicationCode')!;
+    query.value = '12345678901';
+    query.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+
+    component.onUpdateApplication();
+    fixture.detectChanges();
+
+    expect(component.vm().summaryErrors).toEqual([]);
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+    expect(
+      mockUpdateApplicationListEntry.mock.calls[0][0].entryUpdateDto,
+    ).toEqual(expect.objectContaining({ applicationCode: 'APP-100' }));
+    expect(root.querySelector('#applicationCode-error')).toBeNull();
+  });
+
+  function prepareCodeSearch(result: ApplicationCodeGetDetailDto): HTMLElement {
+    mockGetApplicationCodes.mockReturnValue(
+      of({
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        totalPages: 1,
+        elementsOnPage: 1,
+        content: [result],
+      }),
+    );
+    component.openApplicationCodeSection.set(true);
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    return root.querySelector<HTMLElement>('app-application-code-search')!;
+  }
+
+  it('keeps the save-blocking explanation after adding a replacement for an unavailable linked code', () => {
+    const replacement: ApplicationCodeGetDetailDto = {
+      ...component.vm().appCodeDetail!,
+      applicationCodeId: 200,
+      applicationCode: 'APP-200',
+    };
+    mockGetApplicationCodeById.mockReturnValueOnce(
+      throwError(() => ({ status: 404 })),
+    );
+    component['loadCodesSectionFromEntry'](component.entryDetail!);
+    mockGetApplicationCodeById.mockReturnValue(of(replacement));
+
+    const search = prepareCodeSearch(replacement);
+    search.querySelector<HTMLButtonElement>('button.govuk-button')!.click();
+    fixture.detectChanges();
+    const addCode = search.querySelector<HTMLButtonElement>(
+      '#codes-table tbody button.govuk-button',
+    )!;
+    expect(addCode.matches(':disabled')).toBe(false);
+    addCode.click();
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    expect(component.vm().appCodeDetail).toEqual(replacement);
+    expect(
+      root.querySelector('form button[type="submit"]')?.matches(':disabled'),
+    ).toBe(true);
+    expect(root.querySelector('app-error-summary')?.textContent).toContain(
+      'Application code details could not be loaded. You cannot save this application until the details are available.',
+    );
+  });
+
+  it('keeps keyboard focus in code search after a successful search while the linked-code warning is visible', async () => {
+    const selectedCode = component.vm().appCodeDetail!;
+    mockGetApplicationCodeById.mockReturnValueOnce(
+      throwError(() => ({ status: 404 })),
+    );
+    component['loadCodesSectionFromEntry'](component.entryDetail!);
+    const search = prepareCodeSearch(selectedCode);
+    await fixture.whenStable();
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+    const query = search.querySelector<HTMLInputElement>('#applicationCode')!;
+    query.focus();
+    expect(document.activeElement).toBe(query);
+    query.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
+    );
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+    const root: HTMLElement = fixture.nativeElement;
+    const summary = root.querySelector<HTMLElement>('app-error-summary')!;
+    expect(search.querySelector('#codes-table tbody tr')).not.toBeNull();
+    expect(summary.hidden).toBe(false);
+    expect(summary.textContent).toContain(
+      'Application code details could not be loaded',
+    );
+    expect(document.activeElement).toBe(query);
+  });
+
+  it('clears the inline search error and summary when adding the already-selected code from existing results', () => {
+    const selectedCode = component.vm().appCodeDetail!;
+    const search = prepareCodeSearch(selectedCode);
+    search.querySelector<HTMLButtonElement>('button.govuk-button')!.click();
+    fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    const query = search.querySelector<HTMLInputElement>('#applicationCode')!;
+    query.value = '12345678901';
+    query.dispatchEvent(new Event('input', { bubbles: true }));
+    search.querySelector<HTMLButtonElement>('button.govuk-button')!.click();
+    fixture.detectChanges();
+
+    expect(root.querySelector('app-error-summary')?.textContent).toContain(
+      'Application code must be 10 characters or fewer',
+    );
+    expect(search.querySelector('#applicationCode-error')).not.toBeNull();
+    search
+      .querySelector<HTMLButtonElement>(
+        '#codes-table tbody button.govuk-button',
+      )!
+      .click();
+    fixture.detectChanges();
+
+    expect(query.value).toBe(selectedCode.applicationCode);
+    expect(search.querySelector('#applicationCode-error')).toBeNull();
+    expect(component.vm().summaryErrors).toEqual([]);
+  });
+
   it.each(['applicant', 'officials'] as const)(
     'focuses the %s confirmation after saving, including repeated saves',
     fakeAsync((section: 'applicant' | 'officials') => {
@@ -2526,42 +2692,115 @@ describe('ApplicationsListEntryDetail', () => {
     ).toBeTruthy();
   });
 
-  it('persistHasOffsiteFee blocks the partial save when wording is invalid', () => {
-    component['entryDetail'] = {
-      id: 'EN-1',
-      listId: 'AL-1',
-      applicationCode: 'APP-100',
-      numberOfRespondents: 0,
-      lodgementDate: '2025-11-01',
-    };
-    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
-    component['form'].controls.hasOffsiteFee.setValue(true, {
-      emitEvent: false,
-    });
+  it.each(['full save', 'add fee details'])(
+    'ticks and unticks the offsite fee without showing cached errors from %s',
+    (validationSource) => {
+      component.appListEntryDetailPatch({ isFeeRequired: true });
+      component.openCivilFeeSection.set(true);
+      fixture.detectChanges();
 
-    (component as never)['wordingSection'] = {
-      validateForSubmit: () => [
+      const page: HTMLElement = fixture.nativeElement;
+      const addFeeButton = page.querySelector<HTMLButtonElement>(
+        'app-civil-fee-section .govuk-button-group button',
+      )!;
+      const summaryItems = () =>
+        Array.from(
+          page.querySelectorAll(
+            'app-error-summary .govuk-error-summary__list li',
+          ),
+          (item) => item.textContent?.trim(),
+        );
+      const feeErrors = ['Select a fee status', 'Enter a valid status date'];
+      let otherErrors: ReturnType<typeof summaryItems> = [];
+      if (validationSource === 'full save') {
+        component.form.controls.applicationNotes.controls.notes.setValue(
+          'x'.repeat(3001),
+        );
+        page.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
+        fixture.detectChanges();
+        const errorsBeforeAdd = summaryItems();
+        expect(errorsBeforeAdd).toEqual(expect.arrayContaining(feeErrors));
+        otherErrors = errorsBeforeAdd.filter(
+          (item) => !feeErrors.includes(item ?? ''),
+        );
+        expect(otherErrors).toContain('Notes must be 3000 characters or fewer');
+      }
+
+      component.form.patchValue({
+        feeStatus: PaymentStatus.PAID,
+        feeStatusDate: '2026-03-10',
+        paymentRef: 'EXAMPLE',
+      });
+      const response = new Subject<unknown>();
+      mockUpdateApplicationListEntry.mockReturnValueOnce(
+        response.asObservable(),
+      );
+      addFeeButton.click();
+      if (validationSource === 'full save') {
+        fixture.detectChanges();
+        expect(summaryItems()).toEqual(expect.arrayContaining(feeErrors));
+      }
+      const originalClone = globalThis.structuredClone;
+      globalThis.structuredClone ??= cloneDeep;
+      try {
+        response.next({});
+      } finally {
+        globalThis.structuredClone = originalClone;
+      }
+      response.complete();
+      fixture.detectChanges();
+      expect(summaryItems()).toEqual(otherErrors);
+      expect(component.entryDetail?.feeStatuses).toEqual([
         {
-          text: 'Enter a value for “Court” in the wording section',
-          href: '#Court',
+          paymentStatus: PaymentStatus.PAID,
+          statusDate: '2026-03-10',
+          paymentReference: 'EXAMPLE',
         },
-      ],
-    } as never;
+      ]);
 
-    mockUpdateApplicationListEntry.mockClear();
+      if (validationSource === 'add fee details') {
+        addFeeButton.click();
+        fixture.detectChanges();
+        expect(component.form.controls.feeStatus.hasError('required')).toBe(
+          true,
+        );
+        expect(component.form.controls.feeStatusDate.hasError('required')).toBe(
+          true,
+        );
+        expect(summaryItems()).toEqual([]);
+      }
 
-    component['persistHasOffsiteFee'](false, true);
+      const checkbox = page.querySelector<HTMLInputElement>('#offSiteFee')!;
+      mockUpdateApplicationListEntry.mockClear();
+
+      for (const checked of [true, false]) {
+        checkbox.click();
+        fixture.detectChanges();
+
+        expect(checkbox.checked).toBe(checked);
+        expect(component.entryDetail?.hasOffsiteFee).toBe(checked);
+        expect(summaryItems()).toEqual(otherErrors);
+      }
+      expect(
+        mockUpdateApplicationListEntry.mock.calls.map(
+          ([request]) => request.entryUpdateDto.hasOffsiteFee,
+        ),
+      ).toEqual([true, false]);
+    },
+  );
+
+  it('still blocks the offsite fee save when wording is invalid', () => {
+    const wordingError = { text: 'Enter a value for “Court”', href: '#Court' };
+    jest
+      .spyOn(component['wordingSection']!, 'validateForSubmit')
+      .mockReturnValue([wordingError]);
+    component.form.controls.hasOffsiteFee.setValue(true);
+
+    component.onOffsiteFeeChanged(true);
 
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
-    expect(component['form'].controls.hasOffsiteFee.value).toBe(true);
-    expect(component['form'].controls.hasOffsiteFee.pristine).toBe(true);
-    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          text: 'Enter a value for “Court” in the wording section',
-        }),
-      ]),
-    );
+    expect(component.form.controls.hasOffsiteFee.value).toBe(false);
+    expect(component.vm().summaryErrors).toContainEqual(wordingError);
   });
 
   it('shows list-created success banner when listCreated=true query param is present', () => {
@@ -3211,7 +3450,7 @@ describe('ApplicationsListEntryDetail', () => {
     ],
     ['respondentOrganisationForm', 'org', 'name', '#respondent-org-name'],
   ] as const)(
-    'refreshes %s field errors after a failed save without submitting again',
+    'keeps %s field errors until the next save',
     (formName, applicantType, field, href) => {
       component['form'].patchValue({
         applicantType,
@@ -3239,17 +3478,30 @@ describe('ApplicationsListEntryDetail', () => {
       const errors = formName.startsWith('respondent')
         ? component.respondentErrorItems
         : component.applicantErrorItems;
-      expect(errors).not.toContainEqual(error);
-      expect(errors.length).toBeGreaterThan(0);
-      expect(component.vm().summaryErrors).not.toContainEqual(error);
-      group.get(field)!.setValue('   ');
+      expect(group.get(field)?.valid).toBe(true);
+      expect(errors).toContainEqual(error);
       expect(component.vm().summaryErrors).toContainEqual(error);
       expect(component.submitAttempt()).toBe(submitAttempt);
+
+      const feeError = {
+        id: 'paymentRef',
+        text: 'Enter a valid payment reference',
+      };
+      component.onChildErrors('civilFee', [feeError]);
+      expect(component.vm().summaryErrors).toContainEqual(feeError);
+      expect(component.vm().summaryErrors).toContainEqual(error);
+
+      component.onUpdateApplication();
+      expect(component.vm().summaryErrors).not.toContainEqual(error);
+      group.get(field)!.setValue('   ');
+      expect(component.vm().summaryErrors).not.toContainEqual(error);
+      component.onUpdateApplication();
+      expect(component.vm().summaryErrors).toContainEqual(error);
       expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
     },
   );
 
-  it('rebuilds optional respondent errors immediately when populated after submit', () => {
+  it('waits until the next save to show errors for a newly populated optional respondent', () => {
     component['forms'].respondentPersonForm.reset();
     component['forms'].respondentOrganisationForm.reset();
     component['form'].patchValue({
@@ -3269,6 +3521,8 @@ describe('ApplicationsListEntryDetail', () => {
       firstName: 'Jane',
     });
 
+    expect(component.respondentErrorItems).toEqual([]);
+    component.onUpdateApplication();
     expect(component.respondentErrorItems).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ href: '#respondent-person-surname' }),

@@ -23,6 +23,7 @@
       <input
         class="govuk-input"
         [ngClass]="[widthClass(), showError() ? 'govuk-input--error' : '']"
+        [attr.aria-invalid]="showError() ? 'true' : null"
         [id]="id()"
         [name]="id()"
         type="text"
