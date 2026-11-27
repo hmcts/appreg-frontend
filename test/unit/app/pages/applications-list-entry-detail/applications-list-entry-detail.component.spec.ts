@@ -2704,10 +2704,19 @@ describe('ApplicationsListEntryDetail', () => {
           (item) => item.textContent?.trim(),
         );
       const feeErrors = ['Select a fee status', 'Enter a valid status date'];
+      let otherErrors: ReturnType<typeof summaryItems> = [];
       if (validationSource === 'full save') {
+        component.form.controls.applicationNotes.controls.notes.setValue(
+          'x'.repeat(3001),
+        );
         page.querySelector<HTMLButtonElement>('button[type="submit"]')!.click();
         fixture.detectChanges();
-        expect(summaryItems()).toEqual(expect.arrayContaining(feeErrors));
+        const errorsBeforeAdd = summaryItems();
+        expect(errorsBeforeAdd).toEqual(expect.arrayContaining(feeErrors));
+        otherErrors = errorsBeforeAdd.filter(
+          (item) => !feeErrors.includes(item ?? ''),
+        );
+        expect(otherErrors).toContain('Notes must be 3000 characters or fewer');
       }
 
       component.form.patchValue({
@@ -2720,6 +2729,10 @@ describe('ApplicationsListEntryDetail', () => {
         response.asObservable(),
       );
       addFeeButton.click();
+      if (validationSource === 'full save') {
+        fixture.detectChanges();
+        expect(summaryItems()).toEqual(expect.arrayContaining(feeErrors));
+      }
       const originalClone = globalThis.structuredClone;
       globalThis.structuredClone ??= cloneDeep;
       try {
@@ -2729,6 +2742,7 @@ describe('ApplicationsListEntryDetail', () => {
       }
       response.complete();
       fixture.detectChanges();
+      expect(summaryItems()).toEqual(otherErrors);
       expect(component.entryDetail?.feeStatuses).toEqual([
         {
           paymentStatus: PaymentStatus.PAID,
@@ -2749,9 +2763,6 @@ describe('ApplicationsListEntryDetail', () => {
         expect(summaryItems()).toEqual([]);
       }
 
-      const otherErrors = summaryItems().filter(
-        (item) => !feeErrors.includes(item ?? ''),
-      );
       const checkbox = page.querySelector<HTMLInputElement>('#offSiteFee')!;
       mockUpdateApplicationListEntry.mockClear();
 

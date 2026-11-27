@@ -1108,6 +1108,13 @@ export class ApplicationsListEntryDetail implements OnInit {
           );
         }
 
+        if (isFeeAddition) {
+          this.parentErrors = this.parentErrors.filter(
+            ({ id }) => !id || !Object.hasOwn(CIVIL_FEE_FIELD_MESSAGES, id),
+          );
+          this.updateAllErrors({ focusSummary: false });
+        }
+
         showSuccess();
       },
       error: (err) => {
