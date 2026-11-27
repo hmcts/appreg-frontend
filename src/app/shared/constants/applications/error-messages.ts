@@ -1,4 +1,6 @@
 type ApplicationsControl =
+  | 'applicantName'
+  | 'respondentName'
   | 'respondentPostcode'
   | 'applicationTitle'
   | 'date'
@@ -6,6 +8,8 @@ type ApplicationsControl =
   | 'cja';
 type ApplicationsErrorKeyMap = {
   date: 'dateInvalid';
+  applicantName: 'maxlength';
+  respondentName: 'maxlength';
   respondentPostcode: 'maxlength';
   applicationTitle: 'maxlength' | 'pattern';
   court: 'courtNotFound';
@@ -15,6 +19,12 @@ export const APPLICATIONS_ERROR_MAP: {
   [C in ApplicationsControl]: Record<ApplicationsErrorKeyMap[C], string>;
 } = {
   date: { dateInvalid: 'Enter a valid date' },
+  applicantName: {
+    maxlength: 'Applicant name must be 300 characters or fewer',
+  },
+  respondentName: {
+    maxlength: 'Respondent name must be 300 characters or fewer',
+  },
   respondentPostcode: {
     maxlength: 'Postcode must be 8 characters or fewer',
   },
