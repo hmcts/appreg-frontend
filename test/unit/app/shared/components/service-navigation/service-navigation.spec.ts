@@ -42,6 +42,18 @@ describe('ServiceNavigationComponent', () => {
           { path: '', component: DummyComponent },
           { path: 'login', component: DummyComponent },
           { path: 'lists', component: DummyComponent },
+          ...[
+            'applications-list',
+            'applications',
+            'standard-applicants',
+            'reports',
+          ].map((path) => ({
+            path,
+            children: [
+              { path: '', component: DummyComponent },
+              { path: 'detail', component: DummyComponent },
+            ],
+          })),
         ]),
         provideLocationMocks(),
         { provide: SessionService, useValue: session },
@@ -141,5 +153,56 @@ describe('ServiceNavigationComponent', () => {
       true,
     );
     expect(button?.textContent?.trim()).toBe('Sign out');
+  });
+
+  it.each([
+    'applications-list',
+    'applications',
+    'standard-applicants',
+    'reports',
+  ])(
+    'marks only the current %s link and clears the previous state on navigation',
+    async (path) => {
+      await createAt('/');
+      for (const destination of [path, 'login', `${path}?page=2#results`]) {
+        await router.navigateByUrl(`/${destination}`);
+        fixture.detectChanges();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        const current =
+          fixture.nativeElement.querySelectorAll('a[aria-current]');
+        expect(current).toHaveLength(destination === 'login' ? 0 : 1);
+        if (destination !== 'login') {
+          expect(current[0].getAttribute('href')).toBe(`/${path}`);
+          expect(current[0].getAttribute('aria-current')).toBe('page');
+          expect(
+            current[0]
+              .closest('li')
+              .classList.contains('govuk-service-navigation__item--active'),
+          ).toBe(true);
+        }
+      }
+    },
+  );
+
+  it.each(['applications-list', 'applications', 'standard-applicants'])(
+    'marks %s as the current section on a child page',
+    async (path) => {
+      await createAt(`/${path}/detail`);
+      fixture.detectChanges();
+      const current = fixture.nativeElement.querySelectorAll('a[aria-current]');
+      expect(current).toHaveLength(1);
+      expect(current[0].getAttribute('href')).toBe(`/${path}`);
+      expect(current[0].getAttribute('aria-current')).toBe('true');
+    },
+  );
+
+  it('does not mark Reports as current on an unmatched child page', async () => {
+    await createAt('/reports/detail');
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelectorAll('a[aria-current]'),
+    ).toHaveLength(0);
   });
 });

@@ -113,6 +113,13 @@ describe('Report navigation confirmation in a browser', () => {
     expect(
       await page.$eval('dialog', (dialog) => dialog.matches(':modal')),
     ).toBe(true);
+    expect(await page.evaluate(() => document.activeElement?.id)).toBe(
+      'leave-page-title',
+    );
+    expect(
+      await page.evaluate(() => document.activeElement?.textContent?.trim()),
+    ).toBe('Leave the reports page?');
+    await page.keyboard.press('Tab');
     expect(
       await page.evaluate(() => document.activeElement?.textContent?.trim()),
     ).toBe('Stay on this page');

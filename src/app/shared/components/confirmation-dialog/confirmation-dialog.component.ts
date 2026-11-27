@@ -39,15 +39,17 @@ import { Observable } from 'rxjs';
         </button>
       </div>
       <div class="dialog-content">
-        <h2 id="leave-page-title" class="govuk-heading-m">{{ heading() }}</h2>
+        <h2
+          #initialFocus
+          id="leave-page-title"
+          class="govuk-heading-m"
+          tabindex="-1"
+        >
+          {{ heading() }}
+        </h2>
         <p id="leave-page-description" class="govuk-body">{{ message() }}</p>
         <div class="govuk-button-group">
-          <button
-            type="button"
-            class="govuk-button"
-            autofocus
-            (click)="dismiss()"
-          >
+          <button type="button" class="govuk-button" (click)="dismiss()">
             Stay on this page
           </button>
           <button
@@ -68,6 +70,8 @@ export class ConfirmationDialogComponent implements OnDestroy {
   readonly message = input.required<string>();
   private readonly dialog =
     viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
+  private readonly initialFocus =
+    viewChild.required<ElementRef<HTMLHeadingElement>>('initialFocus');
   private resolve: ((leave: boolean) => void) | undefined;
 
   confirm(): Observable<boolean> {
@@ -79,6 +83,8 @@ export class ConfirmationDialogComponent implements OnDestroy {
         subscriber.complete();
       };
       element.showModal();
+      // Start at the heading so users encounter the warning before its actions.
+      this.initialFocus().nativeElement.focus();
       // one dialog at a time; router unsubscription also cleans up superseded navigation.
       return () => {
         this.resolve = undefined;

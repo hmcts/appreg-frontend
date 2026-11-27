@@ -18,11 +18,26 @@
             class="govuk-service-navigation__item"
             routerLinkActive="govuk-service-navigation__item--active"
             [routerLinkActiveOptions]="{ exact: false }"
+            #listSection="routerLinkActive"
           >
             <a
               routerLink="/applications-list"
               class="govuk-service-navigation__link"
-              [attr.aria-current]="rlaAppList.isActive ? 'page' : null"
+              routerLinkActive
+              #listPage="routerLinkActive"
+              [routerLinkActiveOptions]="{
+                paths: 'exact',
+                queryParams: 'ignored',
+                fragment: 'ignored',
+                matrixParams: 'ignored',
+              }"
+              [attr.aria-current]="
+                listPage.isActive
+                  ? 'page'
+                  : listSection.isActive
+                    ? 'true'
+                    : null
+              "
             >
               Applications list
             </a>
@@ -31,13 +46,26 @@
             class="govuk-service-navigation__item"
             routerLinkActive="govuk-service-navigation__item--active"
             [routerLinkActiveOptions]="{ exact: false }"
+            #applicationsSection="routerLinkActive"
           >
             <a
               routerLink="/applications"
               class="govuk-service-navigation__link"
               routerLinkActive
               #rlaApp="routerLinkActive"
-              [attr.aria-current]="rlaApp.isActive ? 'page' : null"
+              [routerLinkActiveOptions]="{
+                paths: 'exact',
+                queryParams: 'ignored',
+                fragment: 'ignored',
+                matrixParams: 'ignored',
+              }"
+              [attr.aria-current]="
+                rlaApp.isActive
+                  ? 'page'
+                  : applicationsSection.isActive
+                    ? 'true'
+                    : null
+              "
             >
               Applications
             </a>
@@ -46,13 +74,26 @@
             class="govuk-service-navigation__item"
             routerLinkActive="govuk-service-navigation__item--active"
             [routerLinkActiveOptions]="{ exact: false }"
+            #applicantsSection="routerLinkActive"
           >
             <a
               routerLink="/standard-applicants"
               class="govuk-service-navigation__link"
               routerLinkActive
-              #rlaAppList="routerLinkActive"
-              [attr.aria-current]="rlaAppList.isActive ? 'page' : null"
+              #applicantsPage="routerLinkActive"
+              [routerLinkActiveOptions]="{
+                paths: 'exact',
+                queryParams: 'ignored',
+                fragment: 'ignored',
+                matrixParams: 'ignored',
+              }"
+              [attr.aria-current]="
+                applicantsPage.isActive
+                  ? 'page'
+                  : applicantsSection.isActive
+                    ? 'true'
+                    : null
+              "
             >
               Standard applicants
             </a>
@@ -60,14 +101,24 @@
           <li
             class="govuk-service-navigation__item"
             routerLinkActive="govuk-service-navigation__item--active"
-            [routerLinkActiveOptions]="{ exact: true }"
+            [routerLinkActiveOptions]="{
+              paths: 'exact',
+              queryParams: 'ignored',
+              fragment: 'ignored',
+              matrixParams: 'ignored',
+            }"
           >
             <a
               routerLink="/reports"
               class="govuk-service-navigation__link"
               routerLinkActive
-              #rlaAppList="routerLinkActive"
-              [attr.aria-current]="rlaAppList.isActive ? 'page' : null"
+              ariaCurrentWhenActive="page"
+              [routerLinkActiveOptions]="{
+                paths: 'exact',
+                queryParams: 'ignored',
+                fragment: 'ignored',
+                matrixParams: 'ignored',
+              }"
             >
               Reports
             </a>

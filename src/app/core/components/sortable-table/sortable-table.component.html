@@ -170,6 +170,9 @@
                     <ng-container
                       *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
                     ></ng-container>
+                  } @else if (row[col.field] === '—') {
+                    <span aria-hidden="true">—</span>
+                    <span class="govuk-visually-hidden">Not provided</span>
                   } @else {
                     {{ row[col.field] }}
                   }
@@ -205,6 +208,9 @@
                     <ng-container
                       *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
                     ></ng-container>
+                  } @else if (row[col.field] === '—') {
+                    <span aria-hidden="true">—</span>
+                    <span class="govuk-visually-hidden">Not provided</span>
                   } @else {
                     {{ row[col.field] }}
                   }
