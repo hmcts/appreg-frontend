@@ -1,0 +1,42 @@
+<div [class]="containerWidthClass()" (focusout)="onFocusOut()">
+  <app-suggestions
+    [id]="id()"
+    [label]="label()"
+    [hint]="hintText()"
+    [disabled]="disabledState()"
+    [showError]="showError()"
+    [errorText]="errorText()"
+    [search]="search()"
+    (searchChange)="onSearchChange($event)"
+    [suggestions]="suggestions()"
+    (selectItem)="onSelectItem($event)"
+    [noResultsText]="noResultsText()"
+    containerWidthClass=""
+    [widthClass]="widthClass()"
+  />
+
+  @if (selectedItems().length) {
+    <p class="govuk-body">{{ selectedHeading() }}</p>
+
+    <dl class="govuk-summary-list" [id]="id() + '-selected'">
+      @for (item of selectedItems(); track item.value) {
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__value">{{ item.label }}</dt>
+          <dd class="govuk-summary-list__actions">
+            @if (!disabledState()) {
+              <a
+                class="govuk-link"
+                href="javascript:void(0)"
+                (click)="remove(item.value, $event)"
+              >
+                Remove<span class="govuk-visually-hidden">
+                  {{ item.label }}</span
+                >
+              </a>
+            }
+          </dd>
+        </div>
+      }
+    </dl>
+  }
+</div>
